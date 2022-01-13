@@ -87,7 +87,7 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem> extends Base
                 return "left";
             }
         });
-        help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
+//        help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
         searchItemContainer.add(help);
 
         initSearchItemField(searchItemContainer);

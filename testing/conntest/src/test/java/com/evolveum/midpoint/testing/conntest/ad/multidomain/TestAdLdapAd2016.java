@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.conntest.ad;
+package com.evolveum.midpoint.testing.conntest.ad.multidomain;
 
 import java.io.File;
 
@@ -18,9 +18,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * AD multi-domain test for AD 2109 hosted in Evolveum private cloud.
+ * AD multi-domain test for AD 2106 hosted in Evolveum private cloud.
  *
- * This test is running on ad03/ad04 servers in ad2019.lab.evolveum.com domain.
+ * This test is running on ad05/ad06 servers in ad2016.lab.evolveum.com domain.
  *
  * These servers do not have Exchange installed, therefore exchange-specific aspects are skipped.
  *
@@ -37,36 +37,36 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAdLdapAd2019 extends AbstractAdLdapMultidomainTest {
+public class TestAdLdapAd2016 extends AbstractAdLdapMultidomainTest {
 
     @Override
     protected File getResourceFile() {
-        return new File(getBaseDir(), "resource-ad2019.xml");
+        return new File(getBaseDir(), "resource-ad2016.xml");
     }
 
     @Override
     protected String getLdapServerHost() {
-        return "ad03.ad2019.lab.evolveum.com";
+        return "ad05.ad2016.lab.evolveum.com";
     }
 
     @Override
     protected String getLdapSuffix() {
-        return "DC=ad2019,DC=lab,DC=evolveum,DC=com";
+        return "DC=ad2016,DC=lab,DC=evolveum,DC=com";
     }
 
     @Override
     protected String getLdapSubServerHost() {
-        return "ad04.ad2019.lab.evolveum.com";
+        return "ad06.ad2016.lab.evolveum.com";
     }
 
     @Override
     protected String getLdapSubSuffix() {
-        return "DC=sub2019,DC=ad2019,DC=lab,DC=evolveum,DC=com";
+        return "DC=sub2016,DC=ad2016,DC=lab,DC=evolveum,DC=com";
     }
 
     @Override
     protected File getReconciliationTaskFile() {
-        return new File(getBaseDir(), "task-reconcile-ad2019-users.xml");
+        return new File(getBaseDir(), "task-reconcile-ad2016-users.xml");
     }
 
     @Override
@@ -86,12 +86,12 @@ public class TestAdLdapAd2019 extends AbstractAdLdapMultidomainTest {
 
     @Override
     protected String getAccountJackSid() {
-        return "S-1-5-21-1010034557-3261374367-4224384715-1110";
+        return "S-1-5-21-910020289-1878391065-1784003141-1116";
     }
 
     @Override
     protected int getNumberOfAllAccounts() {
-        return 10;
+        return 11;
     }
 
     @Override

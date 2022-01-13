@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.conntest.ad;
+package com.evolveum.midpoint.testing.conntest.ad.multidomain;
 
 import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.getRootSyncTokenRealValueRequired;
 
@@ -15,7 +15,6 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDEN
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
@@ -26,15 +25,14 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
+import com.evolveum.midpoint.testing.conntest.ad.AbstractAdLdapTest;
+import com.evolveum.midpoint.testing.conntest.ad.AdTestMixin;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
-import org.apache.directory.api.ldap.model.exception.LdapInvalidDnException;
-import org.apache.directory.api.ldap.model.name.Ava;
-import org.apache.directory.api.ldap.model.name.Rdn;
-import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
@@ -46,7 +44,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -64,7 +61,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.testing.conntest.AbstractLdapTest;
 import com.evolveum.midpoint.testing.conntest.UserLdapConnectionConfig;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -88,7 +84,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author Radovan Semancik
  */
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
+public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         implements AdTestMixin {
 
     protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ad-ldap-multidomain");
@@ -187,16 +183,6 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     }
 
     @Override
-    public String getStartSystemCommand() {
-        return null;
-    }
-
-    @Override
-    public String getStopSystemCommand() {
-        return null;
-    }
-
-    @Override
     protected File getBaseDir() {
         return TEST_DIR;
     }
@@ -207,33 +193,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     }
 
     @Override
-    protected boolean useSsl() {
-        return true;
-    }
-
-    @Override
     protected String getLdapBindPassword() {
         return "qwe.123";
-    }
-
-    @Override
-    protected int getSearchSizeLimit() {
-        return -1;
-    }
-
-    @Override
-    public String getPrimaryIdentifierAttributeName() {
-        return "objectGUID";
-    }
-
-    @Override
-    protected String getPeopleLdapSuffix() {
-        return "CN=Users," + getLdapSuffix();
-    }
-
-    @Override
-    protected String getGroupsLdapSuffix() {
-        return "CN=Users," + getLdapSuffix();
     }
 
     protected abstract String getLdapSubServerHost();
@@ -248,26 +209,6 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         return "CN=midpoint," + getPeopleLdapSubSuffix();
     }
 
-    @Override
-    protected int getLdapServerPort() {
-        return 636;
-    }
-
-    @Override
-    protected String getLdapAccountObjectClass() {
-        return "user";
-    }
-
-    @Override
-    protected String getLdapGroupObjectClass() {
-        return "group";
-    }
-
-    @Override
-    protected String getLdapGroupMemberAttribute() {
-        return "member";
-    }
-
     private QName getAssociationGroupQName() {
         return new QName(MidPointConstants.NS_RI, ASSOCIATION_GROUP_NAME);
     }
@@ -277,30 +218,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         return allowDuplicateSearchResults;
     }
 
-    @Override
-    protected boolean isGroupMemberMandatory() {
-        return false;
-    }
-
     protected String getOrgsLdapSuffix() {
         return "OU=Org," + getLdapSuffix();
-    }
-
-    protected String getObjectCategoryPerson() {
-        return "CN=Person,CN=Schema,CN=Configuration," + getLdapSuffix();
-    }
-
-    protected String getObjectCategoryGroup() {
-        return "CN=Group,CN=Schema,CN=Configuration," + getLdapSuffix();
-    }
-
-    protected abstract boolean hasExchange();
-
-    /**
-     * Returns true if this test does not really care about all the details.
-     */
-    protected boolean isVagueTest() {
-        return false;
     }
 
     protected abstract String getAccountJackSid();
@@ -382,7 +301,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     @Override
     public void test020Schema() throws Exception {
         //        IntegrationTestTools.displayXml("Resource XML", resource);
-        accountObjectClassDefinition = assertAdResourceSchema(resource, getAccountObjectClass());
+        accountDefinition = assertAdResourceSchema(resource, getAccountObjectClass());
         assertAdRefinedSchema(resource, getAccountObjectClass());
         if (hasExchange()) {
             assertExchangeSchema(resource, getAccountObjectClass());
@@ -908,7 +827,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, ATTRIBUTE_TITLE_NAME);
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
@@ -943,7 +862,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
@@ -981,7 +900,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
@@ -1023,7 +942,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, ATTRIBUTE_PROXY_ADDRESSES_NAME);
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         assertNotNull("No definition for attribute " + attrQName, attrDef);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, PROXY_ADDRES_ADDR_UPCASE);
@@ -1062,7 +981,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, ATTRIBUTE_USER_PARAMETERS_NAME);
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         assertNotNull("No definition for attribute " + attrQName, attrDef);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, VERY_STRANGE_PARAMETER);
@@ -2350,41 +2269,6 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         assertSuccess(result);
     }
 
-    @Override
-    protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
-        super.assertAccountShadow(shadow, dn);
-        ResourceAttribute<String> primaryIdAttr = ShadowUtil.getAttribute(shadow, getPrimaryIdentifierAttributeQName());
-        assertNotNull("No primary identifier (" + getPrimaryIdentifierAttributeQName() + " in " + shadow, primaryIdAttr);
-        String primaryId = primaryIdAttr.getRealValue();
-        assertTrue("Unexpected chars in primary ID: '" + primaryId + "'", primaryId.matches("[a-z0-9\\-]+"));
-
-        ResourceAttribute<String> objectSidAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_SID_NAME));
-        assertNotNull("No SID in " + shadow, objectSidAttr);
-        display("SID of " + dn + ": " + objectSidAttr);
-    }
-
-    protected void assertSid(PrismObject<ShadowType> shadow, String expectedSid) {
-        ResourceAttribute<String> objectSidAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_SID_NAME));
-        assertNotNull("No SID in " + shadow, objectSidAttr);
-        display("SID of " + shadow + ": " + objectSidAttr);
-        assertEquals("Wrong SID in " + shadow, expectedSid, objectSidAttr.getRealValue());
-    }
-
-    private void assertObjectCategory(PrismObject<ShadowType> shadow, String expectedObjectCategory) {
-        ResourceAttribute<String> objectCategoryAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_CATEGORY_NAME));
-        assertNotNull("No objectCategory in " + shadow, objectCategoryAttr);
-        display("objectCategory of " + shadow + ": " + objectCategoryAttr);
-        assertEquals("Wrong objectCategory in " + shadow, expectedObjectCategory, objectCategoryAttr.getRealValue());
-    }
-
-    @Override
-    protected Entry assertLdapAccount(String samAccountName, String cn) throws LdapException, IOException, CursorException {
-        Entry entry = searchLdapAccount("(cn=" + cn + ")");
-        assertAttribute(entry, "cn", cn);
-        assertAttribute(entry, ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName);
-        return entry;
-    }
-
     protected Entry assertLdapSubAccount(String samAccountName, String cn) throws LdapException, IOException, CursorException {
         Entry entry = searchLdapAccount(getSubLdapConnectionConfig(), "(cn=" + cn + ")");
         assertAttribute(entry, "cn", cn);
@@ -2392,50 +2276,12 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         return entry;
     }
 
-    @Override
-    protected void assertNoLdapAccount(String uid) {
-        throw new UnsupportedOperationException("Boom! Cannot do this here. This is bloody AD! We need full name!");
-    }
-
-    protected void assertNoLdapAccount(String uid, String cn) throws LdapException, IOException, CursorException {
-        assertNoLdapAccount(null, uid, cn);
-    }
-
     protected void assertNoLdapSubAccount(String uid, String cn) throws LdapException, IOException, CursorException {
         assertNoLdapAccount(getSubLdapConnectionConfig(), uid, cn);
     }
 
-    protected void assertNoLdapAccount(UserLdapConnectionConfig config, String uid, String cn) throws LdapException, IOException, CursorException {
-        LdapNetworkConnection connection = ldapConnect(config);
-        List<Entry> entriesCn = ldapSearch(config, connection, "(cn=" + cn + ")");
-        List<Entry> entriesSamAccountName = ldapSearch(config, connection, "(sAMAccountName=" + uid + ")");
-        ldapDisconnect(connection);
-
-        assertEquals("Unexpected number of entries for cn=" + cn + ": " + entriesCn, 0, entriesCn.size());
-        assertEquals("Unexpected number of entries for sAMAccountName=" + uid + ": " + entriesSamAccountName, 0, entriesSamAccountName.size());
-    }
-
-    @Override
-    protected String toAccountDn(String username) {
-        throw new UnsupportedOperationException("Boom! Cannot do this here. This is bloody AD! We need full name!");
-    }
-
-    @Override
-    protected String toAccountDn(String username, String fullName) {
-        return ("CN=" + fullName + "," + getPeopleLdapSuffix());
-    }
-
     protected String toAccountSubDn(String username, String fullName) {
         return ("CN=" + fullName + "," + getPeopleLdapSubSuffix());
-    }
-
-    @Override
-    protected Rdn toAccountRdn(String username, String fullName) {
-        try {
-            return new Rdn(new Ava("CN", fullName));
-        } catch (LdapInvalidDnException e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
     }
 
     protected String toOrgDn(String cn) {
@@ -2474,54 +2320,6 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         Entry entry = getLdapEntry(dn);
         assertNull("Unexpected org group entry " + entry, entry);
         return entry;
-    }
-
-    protected void assertLdapPassword(String uid, String fullName, String password) throws LdapException, IOException, CursorException {
-        assertLdapPassword(null, uid, fullName, password);
-    }
-
-    protected void assertLdapPassword(UserLdapConnectionConfig config, String uid, String fullName, String password) throws LdapException, IOException, CursorException {
-        Entry entry = getLdapAccountByCn(config, fullName);
-        assertLdapPassword(config, entry, password);
-    }
-
-    protected void assertLdapPassword(String uid, String password) {
-        throw new UnsupportedOperationException("Boom! Cannot do this here. This is bloody AD! We need full name!");
-    }
-
-    protected ObjectQuery createSamAccountNameQuery(String samAccountName) throws SchemaException {
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
-        ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter(ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName),
-                prismContext);
-        return query;
-    }
-
-    @Override
-    protected Entry createAccountEntry(String uid, String cn, String givenName, String sn) throws LdapException {
-        byte[] password = encodePassword("Secret.123");
-        Entry entry = new DefaultEntry(toAccountDn(uid, cn),
-                "objectclass", getLdapAccountObjectClass(),
-                ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, uid,
-                "cn", cn,
-                "givenName", givenName,
-                "sn", sn,
-                ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512",
-                ATTRIBUTE_UNICODE_PWD_NAME, password);
-        return entry;
-    }
-
-    private byte[] encodePassword(String password) {
-        String quotedPassword = "\"" + password + "\"";
-        return quotedPassword.getBytes(StandardCharsets.UTF_16LE);
-    }
-
-    public <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
-        assertAttribute(shadow, new QName(getResourceNamespace(), attrName), expectedValues);
-    }
-
-    public <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQname, T... expectedValues) {
-        List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
-        PrismAsserts.assertSets("attribute " + attrQname + " in " + shadow, actualValues, expectedValues);
     }
 
     protected abstract void assertAccountDisabled(PrismObject<ShadowType> shadow);

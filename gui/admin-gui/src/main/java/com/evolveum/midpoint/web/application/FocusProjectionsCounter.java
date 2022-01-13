@@ -27,7 +27,7 @@ public class FocusProjectionsCounter<F extends FocusType> extends SimpleCounter<
 
     @Override
     public int count(FocusDetailsModels<F> objectDetailsModels, PageBase pageBase) {
-        if (objectDetailsModels.getProjectionModel().isLoaded()) {
+        if (objectDetailsModels.getProjectionModel().isAttached()) {
             return objectDetailsModels.getProjectionModel().getObject().size();
         }
 

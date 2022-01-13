@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.conntest.ad;
+package com.evolveum.midpoint.testing.conntest.ad.simple;
 
 import static com.evolveum.midpoint.testing.conntest.ad.AdTestMixin.*;
 import static org.testng.AssertJUnit.assertFalse;
@@ -13,6 +13,8 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.testing.conntest.ad.AbstractAdLdapTest;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -25,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * @author semancik
  */
-public abstract class AbstractAdLdapRawTest extends AbstractAdLdapTest {
+public abstract class AbstractAdLdapRawTest extends AbstractAdLdapSimpleTest {
 
     @Test
     public void test050Capabilities() {
@@ -35,7 +37,7 @@ public abstract class AbstractAdLdapRawTest extends AbstractAdLdapTest {
         assertFalse("No native activation capability", ResourceTypeUtil.hasResourceNativeActivationCapability(resourceType));
         assertFalse("No native activation status capability", ResourceTypeUtil.hasResourceNativeActivationStatusCapability(resourceType));
         assertFalse("No native lockout capability", ResourceTypeUtil.hasResourceNativeActivationLockoutCapability(resourceType));
-        assertTrue("No native credentias capability", ResourceTypeUtil.isCredentialsCapabilityEnabled(resourceType, null));
+        assertTrue("No native credentials capability", ResourceTypeUtil.isCredentialsCapabilityEnabled(resourceType, null));
     }
 
 

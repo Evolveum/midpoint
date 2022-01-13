@@ -1,17 +1,19 @@
 /*
- * Copyright (c) 2015-2016 Evolveum and contributors
+ * Copyright (c) 2016 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.conntest.ad;
+package com.evolveum.midpoint.testing.conntest.ad.simple;
+
+import com.evolveum.midpoint.testing.conntest.ad.simple.AbstractAdLdapRawTest;
 
 import java.io.File;
 
 /**
  * @author semancik
  */
-public class TestAdLdapLocalhost extends AbstractAdLdapCookedTest {
+public class TestAdLdapRawLocalhost extends AbstractAdLdapRawTest {
 
     @Override
     protected String getResourceOid() {
@@ -20,7 +22,7 @@ public class TestAdLdapLocalhost extends AbstractAdLdapCookedTest {
 
     @Override
     protected File getResourceFile() {
-        return new File(getBaseDir(), "resource-localhost.xml");
+        return new File(getBaseDir(), "resource-raw-localhost.xml");
     }
 
     @Override

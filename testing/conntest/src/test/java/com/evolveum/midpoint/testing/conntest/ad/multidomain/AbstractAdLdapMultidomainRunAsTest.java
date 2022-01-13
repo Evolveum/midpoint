@@ -4,10 +4,12 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.conntest.ad;
+package com.evolveum.midpoint.testing.conntest.ad.multidomain;
 
 import java.util.List;
 
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.testing.conntest.AbstractLdapTest;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
@@ -40,10 +42,10 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
     @Override
     public void test222ModifyUserBarbossaPasswordSelfServicePassword1Again() throws Exception {
         testModifyUserBarbossaPasswordSelfServiceFailure(
-                USER_BARBOSSA_PASSWORD_AD_1, USER_BARBOSSA_PASSWORD_AD_1);
+                AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1, AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1);
 
-        assertUserAfter(USER_BARBOSSA_OID)
-                .assertPassword(USER_BARBOSSA_PASSWORD_AD_1);
+        assertUserAfter(AbstractLdapTest.USER_BARBOSSA_OID)
+                .assertPassword(AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1);
     }
 
     /**
@@ -56,7 +58,7 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
     @Override
     public void test226ModifyUserBarbossaPasswordSelfServicePassword1AgainAgain() throws Exception {
         testModifyUserBarbossaPasswordSelfServiceFailure(
-                USER_BARBOSSA_PASSWORD_AD_2, USER_BARBOSSA_PASSWORD_AD_1);
+                AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_2, AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1);
     }
 
     /**
@@ -70,18 +72,18 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
         // GIVEN
 
         // preconditions
-        assertUserBefore(USER_BARBOSSA_OID)
-                .assertPassword(USER_BARBOSSA_PASSWORD_AD_1);
-        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_2);
+        assertUserBefore(AbstractLdapTest.USER_BARBOSSA_OID)
+                .assertPassword(AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1);
+        assertLdapPassword(AbstractLdapTest.USER_BARBOSSA_USERNAME, AbstractLdapTest.USER_BARBOSSA_FULL_NAME, AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_2);
 
-        login(USER_BARBOSSA_USERNAME);
+        login(AbstractLdapTest.USER_BARBOSSA_USERNAME);
 
         Task task = getTestTask();
         task.setChannel(SchemaConstants.CHANNEL_SELF_SERVICE_URI);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID,
-                USER_BARBOSSA_PASSWORD_AD_1, USER_BARBOSSA_PASSWORD_AD_3);
+        ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(AbstractLdapTest.USER_BARBOSSA_OID,
+                AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1, AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_3);
 
         // WHEN
         when();
@@ -89,20 +91,20 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
 
         // THEN
         then();
-        login(USER_ADMINISTRATOR_USERNAME);
-        display(result);
+        login(AbstractLdapTest.USER_ADMINISTRATOR_USERNAME);
+        AbstractIntegrationTest.display(result);
         assertPartialError(result);
         assertMessageContains(result.getMessage(), "CONSTRAINT_ATT_TYPE");
 
-        assertBarbossaEnabled(USER_BARBOSSA_PASSWORD_AD_1);
-        assertUserAfter(USER_BARBOSSA_OID)
-                .assertPassword(USER_BARBOSSA_PASSWORD_AD_3)
+        assertBarbossaEnabled(AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1);
+        assertUserAfter(AbstractLdapTest.USER_BARBOSSA_OID)
+                .assertPassword(AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_3)
                 .singleLink()
                 .resolveTarget()
                 .pendingOperations()
                 .assertNone();
 
-        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_2);
+        assertLdapPassword(AbstractLdapTest.USER_BARBOSSA_USERNAME, AbstractLdapTest.USER_BARBOSSA_FULL_NAME, AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_2);
 
         assertLdapConnectorReasonableInstances();
     }

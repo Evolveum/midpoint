@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.objecttemplate;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -19,6 +18,7 @@ import com.evolveum.midpoint.web.page.admin.objectTemplate.ObjectTemplateSummary
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
@@ -59,7 +59,7 @@ public class PageObjectTemplate extends PageAssignmentHolderDetails<ObjectTempla
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, LoadableModel<ObjectTemplateType> summaryModel) {
+    protected Panel createSummaryPanel(String id, IModel<ObjectTemplateType> summaryModel) {
         return new ObjectTemplateSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 }

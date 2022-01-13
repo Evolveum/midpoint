@@ -4,7 +4,9 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.conntest.ad;
+package com.evolveum.midpoint.testing.conntest.ad.simple;
+
+import com.evolveum.midpoint.testing.conntest.ad.simple.AbstractAdLdapRawTest;
 
 import java.io.File;
 
@@ -31,6 +33,11 @@ public class TestAdLdapRawMedusa extends AbstractAdLdapRawTest {
     @Override
     protected int getLdapServerPort() {
         return 636;
+    }
+
+    @Override
+    protected String getLdapBindPassword() {
+        return "qwe.123";
     }
 
 }

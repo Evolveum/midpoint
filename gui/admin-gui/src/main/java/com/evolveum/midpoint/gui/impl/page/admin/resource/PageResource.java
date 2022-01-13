@@ -19,6 +19,7 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -55,7 +56,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, LoadableModel<ResourceType> summaryModel) {
+    protected Panel createSummaryPanel(String id, IModel<ResourceType> summaryModel) {
         return new ResourceSummaryPanel(id,
                 summaryModel, getSummaryPanelSpecification());
     }

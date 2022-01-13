@@ -50,16 +50,16 @@ public class TestOpenDjDn extends AbstractOpenDjNoiseTest {
 
     @Test
     public void test025SchemaDn() {
-        ResourceAttributeDefinition<?> dnDef = accountObjectClassDefinition.findAttributeDefinition("dn");
+        ResourceAttributeDefinition<?> dnDef = accountDefinition.findAttributeDefinition("dn");
         displayDumpable("DN defintion", dnDef);
         PrismAsserts.assertDefinition(dnDef, new QName(MidPointConstants.NS_RI, "dn"), DOMUtil.XSD_STRING, 1, 1);
         assertTrue("dn read", dnDef.canRead());
         assertTrue("dn modify", dnDef.canModify());
         assertTrue("dn add", dnDef.canAdd());
 
-        assertTrue("Dn is not an identifier", accountObjectClassDefinition.getPrimaryIdentifiers().contains(dnDef));
-        assertTrue("Secodary identifiers are not empty: "+accountObjectClassDefinition.getSecondaryIdentifiers(),
-                accountObjectClassDefinition.getSecondaryIdentifiers().isEmpty());
+        assertTrue("Dn is not an identifier", accountDefinition.getPrimaryIdentifiers().contains(dnDef));
+        assertTrue("Secodary identifiers are not empty: "+ accountDefinition.getSecondaryIdentifiers(),
+                accountDefinition.getSecondaryIdentifiers().isEmpty());
     }
 
     // MID-6515
