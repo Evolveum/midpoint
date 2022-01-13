@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 
 import com.evolveum.midpoint.model.common.SystemObjectCache;
@@ -119,4 +120,5 @@ public class ModelBeans {
     @Autowired public PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
     @Autowired public ClockworkHookHelper clockworkHookHelper;
     @Autowired public SecurityHelper securityHelper;
+    @Autowired public CorrelatorFactoryRegistry correlatorFactoryRegistry;
 }

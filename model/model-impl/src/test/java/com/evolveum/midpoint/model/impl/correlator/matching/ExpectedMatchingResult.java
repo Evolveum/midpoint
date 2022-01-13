@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.correlator.match;
+package com.evolveum.midpoint.model.impl.correlator.matching;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
@@ -16,6 +16,9 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Parsed form of expected result of the matching process (including operator choice).
+ */
 public class ExpectedMatchingResult {
 
     private boolean isNew;

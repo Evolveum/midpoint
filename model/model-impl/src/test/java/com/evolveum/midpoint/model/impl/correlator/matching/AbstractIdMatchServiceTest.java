@@ -5,48 +5,104 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.correlator.match;
+package com.evolveum.midpoint.model.impl.correlator.matching;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ICFS_UID;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
+
+import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
+import com.evolveum.midpoint.model.impl.correlator.TestingAccount;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.impl.correlator.AbstractCorrelatorOrMatcherTest;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchService;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.MatchingResult;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.PotentialMatch;
-import com.evolveum.midpoint.model.impl.correlator.match.ExpectedMatchingResult.UncertainWithResolution;
+import com.evolveum.midpoint.model.impl.correlator.matching.ExpectedMatchingResult.UncertainWithResolution;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
 /**
- * Tests specific ID Match service: either "real" or the dummy one.
+ * Isolated testing of the ID Match service: either "real" or the dummy one.
+ *
+ * The tests are based on {@link #FILE_ACCOUNTS} with source data plus expected matching results
+ * (including operator responses in case of uncertainty).
  */
-public abstract class AbstractIdMatchServiceTest extends AbstractCorrelatorOrMatcherTest {
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIntegrationTest {
+
+    protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "correlator/matching");
+
+    private static final DummyTestResource RESOURCE_FUZZY = new DummyTestResource(
+            TEST_DIR, "resource-dummy-matching.xml",
+            "12c070d2-c4f5-451f-942d-11675920fdd7", "matching", CorrelatorTestUtil::createAttributeDefinitions);
+
+    /**
+     * The automated tests processes these accounts and check if the correlator or matcher acts accordingly.
+     * Please see comments in the file itself.
+     */
+    private static final File FILE_ACCOUNTS = new File(TEST_DIR, "accounts.csv");
 
     /** Service that we want to test (real or dummy one). */
     private IdMatchService service;
 
     /** Accounts that we want to push to the service. Taken from {@link #FILE_ACCOUNTS}. */
-    private List<TestingAccount> accounts;
+    private List<MatchingTestingAccount> accounts;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        initDummyResource(RESOURCE_FUZZY, initTask, initResult);
+        addAccountsFromCsvFile();
+
         service = createService();
         accounts = getAllAccounts(initTask, initResult);
     }
+
+    /**
+     * To provide correct definitions, and easy access to {@link ShadowType} objects, the accounts from {@link #FILE_ACCOUNTS}
+     * are first imported into {@link #RESOURCE_FUZZY}. They are then read from that
+     * by {@link #getAllAccounts(Task, OperationResult)} method.
+     */
+    private void addAccountsFromCsvFile()
+            throws IOException, ConflictException, SchemaViolationException, InterruptedException, ObjectAlreadyExistsException {
+        CorrelatorTestUtil.addAccountsFromCsvFile(this, FILE_ACCOUNTS, RESOURCE_FUZZY);
+    }
+
+    /**
+     * Returns accounts sorted by uid (interpreted as integer).
+     */
+    private List<MatchingTestingAccount> getAllAccounts(Task task, OperationResult result)
+            throws CommonException {
+        return CorrelatorTestUtil.getAllAccounts(this, RESOURCE_FUZZY, MatchingTestingAccount::new, task, result);
+    }
+
+    /** Creates {@link IdMatchService} instance that is to be tested. */
+    abstract protected IdMatchService createService();
 
     /**
      * Sequentially processes all accounts, pushing them to matcher and checking its response.
@@ -67,7 +123,7 @@ public abstract class AbstractIdMatchServiceTest extends AbstractCorrelatorOrMat
 
         // 1. Push the account to the matcher
 
-        TestingAccount account = accounts.get(i);
+        MatchingTestingAccount account = accounts.get(i);
         ShadowAttributesType attributes = account.getAttributes();
         displayDumpable("Account attributes", attributes);
 
@@ -81,7 +137,7 @@ public abstract class AbstractIdMatchServiceTest extends AbstractCorrelatorOrMat
     }
 
     private void processMatchingResult(int i, MatchingResult matchingResult) {
-        TestingAccount account = accounts.get(i);
+        MatchingTestingAccount account = accounts.get(i);
         ExpectedMatchingResult expectedResult = account.getExpectedMatchingResult();
         displayDumpable("Matching result obtained", matchingResult);
         displayValue("Expected result", expectedResult);
@@ -99,21 +155,21 @@ public abstract class AbstractIdMatchServiceTest extends AbstractCorrelatorOrMat
 
     private void assertNewIdentifier(String referenceId) {
         assertThat(referenceId).as("reference ID").isNotNull();
-        List<TestingAccount> accountsWithReferenceId = accounts.stream()
+        List<MatchingTestingAccount> accountsWithReferenceId = accounts.stream()
                 .filter(a -> referenceId.equals(a.getReferenceId()))
                 .collect(Collectors.toList());
         assertThat(accountsWithReferenceId).as("accounts with presumably new reference ID").isEmpty();
     }
 
     private void assertExistingIdentifier(String referenceId, int accountId) {
-        TestingAccount account = getAccountWithId(accountId);
+        MatchingTestingAccount account = getAccountWithId(accountId);
         assertThat(referenceId)
                 .withFailMessage(() -> "Expected reference ID matching account #" + accountId +
                         " (" + account.referenceId + "), got " + referenceId)
                 .isEqualTo(account.referenceId);
     }
 
-    private TestingAccount getAccountWithId(int accountId) {
+    private MatchingTestingAccount getAccountWithId(int accountId) {
         return accounts.stream()
                 .filter(a -> a.getNumber() == accountId)
                 .findFirst().orElseThrow(() -> new AssertionError("No account with ID " + accountId));
@@ -135,7 +191,7 @@ public abstract class AbstractIdMatchServiceTest extends AbstractCorrelatorOrMat
         String referenceIdAfterRetry = checkResponseApplied(i, operatorResponse, result);
 
         // Remember acquired reference ID
-        TestingAccount account = accounts.get(i);
+        MatchingTestingAccount account = accounts.get(i);
         account.setReferenceId(referenceIdAfterRetry);
         displayDumpable("Updated account after resolution", account);
     }
@@ -164,7 +220,7 @@ public abstract class AbstractIdMatchServiceTest extends AbstractCorrelatorOrMat
         if (operatorResponse == null) {
             resolvedId = null;
         } else {
-            TestingAccount designatedAccount = getAccountWithId(operatorResponse);
+            MatchingTestingAccount designatedAccount = getAccountWithId(operatorResponse);
             resolvedId = designatedAccount.referenceId;
             assertThat(resolvedId)
                     .withFailMessage(() -> "No reference ID in account pointed to by operator response: " + designatedAccount)
@@ -183,7 +239,7 @@ public abstract class AbstractIdMatchServiceTest extends AbstractCorrelatorOrMat
      */
     @NotNull
     private String checkResponseApplied(int i, Integer operatorResponse, OperationResult result) {
-        TestingAccount account = accounts.get(i);
+        MatchingTestingAccount account = accounts.get(i);
         MatchingResult reMatchingResult = service.executeMatch(account.getAttributes(), result);
         displayDumpable("Matching result after operator decision", reMatchingResult);
 
@@ -197,6 +253,4 @@ public abstract class AbstractIdMatchServiceTest extends AbstractCorrelatorOrMat
         }
         return referenceIdAfterRetry;
     }
-
-    abstract protected IdMatchService createService();
 }

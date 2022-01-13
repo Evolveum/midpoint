@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.test.correlator;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -27,7 +28,8 @@ class DummyCorrelator implements Correlator {
     }
 
     @Override
-    public CorrelationResult correlate(@NotNull ShadowType resourceObject, @NotNull Task task, @NotNull OperationResult result) {
+    public CorrelationResult correlate(@NotNull ShadowType resourceObject, @NotNull CorrelationContext correlationContext,
+            @NotNull Task task, @NotNull OperationResult result) {
         // TODO
         return CorrelationResult.uncertain();
     }

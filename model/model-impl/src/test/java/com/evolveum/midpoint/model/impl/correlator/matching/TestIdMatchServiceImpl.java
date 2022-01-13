@@ -5,9 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.correlator.match;
+package com.evolveum.midpoint.model.impl.correlator.matching;
 
-import com.evolveum.midpoint.model.impl.correlator.AbstractCorrelatorOrMatcherTest;
+import com.evolveum.midpoint.model.impl.correlator.DummyIdMatchServiceImpl;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchService;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchServiceImpl;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -20,7 +20,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * TODO The ID Match service must be configured to behave just like {@link DummyIdMatchServiceImpl#executeMatch
  *  (ShadowAttributesType, OperationResult)} (see the description there)
  *
- * The answers should be like described in {@link AbstractCorrelatorOrMatcherTest#FILE_ACCOUNTS}. If that would not be
+ * The answers should be like described in {@link AbstractIdMatchServiceTest#FILE_ACCOUNTS}. If that would not be
  * possible, please create a copy of that file, and adapt it accordingly. We'll maintain both, or (even better) we'll
  * update the {@link DummyIdMatchServiceImpl} to match the actual behavior of COmanage Match.
  */

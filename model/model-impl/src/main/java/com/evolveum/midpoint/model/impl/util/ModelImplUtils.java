@@ -631,6 +631,11 @@ public class ModelImplUtils {
         return variables;
     }
 
+    public static VariablesMap getDefaultVariablesMap(
+            ObjectType focus, ShadowType shadow, ResourceType resource, SystemConfigurationType configuration) {
+        return getDefaultVariablesMap(focus, shadow, resource, configuration, PrismContext.get());
+    }
+
     public static VariablesMap getDefaultVariablesMap(ObjectType focusType,
             ShadowType shadowType, ResourceType resourceType, SystemConfigurationType configurationType,
             PrismContext prismContext) {

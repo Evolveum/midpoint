@@ -8905,7 +8905,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="correlationDefinition" type="tns:CorrelationType" minOccurs="0"> <!-- TODO name? -->
+            <xsd:element name="correlationDefinition" type="tns:CorrelatorsType" minOccurs="0"> <!-- TODO name? -->
                 <xsd:annotation>
                     <xsd:documentation>
                         Definition of (complex) correlation. TODO
@@ -23121,12 +23121,10 @@
     </xsd:complexType>
     <xsd:element name="plannedOperationAttempt" type="tns:PlannedOperationAttemptType"/>
 
-    <xsd:complexType name="CorrelationType">
+    <xsd:complexType name="CorrelatorsType">
         <xsd:annotation>
             <xsd:documentation>
-                Defines how resource objects are correlated i.e. matched with their owners. (TODO)
-
-                TODO consider name like CorrelationDefinitionType?
+                User-friendly way of defining a correlator or correlators.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
@@ -23168,7 +23166,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="correlation" type="tns:CorrelationType"/>
+    <xsd:element name="correlators" type="tns:CorrelatorsType"/>
 
     <xsd:complexType name="AbstractCorrelatorType">
         <xsd:annotation>
@@ -23209,7 +23207,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="name" type="t:PolyStringType" minOccurs="0">
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Name of the correlator. Should be unique in the given context (object type definition,
@@ -23269,6 +23267,7 @@
                     <xsd:element name="filter" type="tns:ConditionalSearchFilterType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
+                                WE MAY RENAME THIS BEFORE RELEASE.
                                 <!-- TODO should the focus type be specified here? -->
                                 <p>The filter that should return a list of candidate focus entries that may be owners
                                     of a particular shadow.</p>
@@ -23290,12 +23289,19 @@
                                 The evaluation of the confirmation expression may be relatively inefficient, as it will only
                                 be run for candidate entries returned by correlation expression.
 
-                                Called only when multiple objects are found.
-
                                 TODO review this
                                 The expression variables should be set as follows:
                                 $user - the candidate user object (one of the results of correlation expression)
                                 $account - the changed account object
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="useConfirmationForSingleCandidate" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should be the confirmation expression used also when there is only a single candidate
+                                found by the filter? (The default is true. This is consistent with midPoint 4.3+ behavior.
+                                Before midPoint 4.3, the default was false.)
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -23306,6 +23312,8 @@
                                 the one that should be selected.
 
                                 TODO specify better -- can this one be used also to start correlation cases?
+
+                                NOT IMPLEMENTED YET.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -23329,14 +23337,23 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractCorrelatorType">
                 <xsd:sequence>
-                    <!-- TODO name: expression/expression looks weird -->
-                    <xsd:element name="expression" type="c:ExpressionType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO specify
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
+                    <xsd:choice>
+                        <xsd:element name="owner" type="c:ExpressionType" minOccurs="0">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Expression that returns owner as an ObjectType.
+                                    (MAYBE WE WILL REMOVE THIS.)
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="ownerRef" type="c:ExpressionType" minOccurs="0">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Expression that returns owner as an ObjectReferenceType.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:choice>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -23379,7 +23396,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="correlator" type="tns:AbstractCorrelatorType" minOccurs="0">
+                    <xsd:element name="followOn" type="tns:CorrelatorsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The correlator that is applied to the resolved reference identifier
@@ -23391,7 +23408,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="idMatchCorrelator" type="tns:ExpressionCorrelatorType"/>
+    <xsd:element name="idMatchCorrelator" type="tns:IdMatchCorrelatorType"/>
 
     <!--<xsd:complexType name="CorrelationRequestType">-->
     <!--    <xsd:annotation>-->
@@ -23643,5 +23660,56 @@
     <!--    </xsd:sequence>-->
     <!--    <xsd:attribute name="id" type="xsd:long"/>-->
     <!--</xsd:complexType>-->
+
+    <xsd:complexType name="AbstractCorrelationStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Current state of the correlation process.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <!-- Should be anything here? -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="IdMatchCorrelationStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                State of the process driven by ID Match correlator.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCorrelationStateType">
+                <xsd:sequence>
+                    <xsd:element name="referenceId" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference ID determined by ID Match (if known).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="matchRequestId" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Match request ID - present if the match is pending.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="idMatchCorrelationState" type="tns:IdMatchCorrelationStateType"/>
 
 </xsd:schema>

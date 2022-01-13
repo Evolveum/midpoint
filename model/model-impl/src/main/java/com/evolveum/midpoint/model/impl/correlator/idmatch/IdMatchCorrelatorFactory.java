@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.correlator.idmatch;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorFactory;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -23,14 +24,18 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+/**
+ * Factory for {@link IdMatchCorrelator} instances.
+ */
 @Component
 public class IdMatchCorrelatorFactory implements CorrelatorFactory<IdMatchCorrelator, IdMatchCorrelatorType> {
 
     private static final QName CONFIGURATION_ITEM_NAME = SchemaConstantsGenerated.C_ID_MATCH_CORRELATOR;
 
     @Autowired CorrelatorFactoryRegistry registry;
+    @Autowired ModelBeans beans;
 
-    /** What service to use */
+    /** What service to use in the instances created. */
     @VisibleForTesting
     private IdMatchService serviceOverride;
 
@@ -49,7 +54,7 @@ public class IdMatchCorrelatorFactory implements CorrelatorFactory<IdMatchCorrel
             @NotNull IdMatchCorrelatorType configuration,
             @NotNull Task task,
             @NotNull OperationResult result) throws ConfigurationException {
-        return new IdMatchCorrelator(configuration, serviceOverride);
+        return new IdMatchCorrelator(configuration, serviceOverride, beans);
     }
 
     @VisibleForTesting

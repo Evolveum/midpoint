@@ -6652,4 +6652,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                         ActivityReportsType.F_BUCKETS, taskManager.getNodeId()),
                 () -> "no bucket report data in " + taskAfter + " (activity path " + path.toDebugName() + ")");
     }
+
+    public ProvisioningService getProvisioningService() {
+        return provisioningService;
+    }
 }

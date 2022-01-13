@@ -13,7 +13,7 @@
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-    <name>resource-dummy-fuzzy</name>
+    <name>resource-dummy-matching</name>
     <connectorRef type="c:ConnectorType">
         <filter>
             <q:and>
@@ -31,7 +31,7 @@
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
-            <icfi:instanceId>fuzzy</icfi:instanceId>
+            <icfi:instanceId>matching</icfi:instanceId>
         </icfc:configurationProperties>
     </connectorConfiguration>
 

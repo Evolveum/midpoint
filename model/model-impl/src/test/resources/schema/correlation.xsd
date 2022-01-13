@@ -18,7 +18,7 @@
     <xsd:complexType name="CorrelationExtensionType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:extension ref="c:CorrelationType"/>
+                <a:extension ref="c:CorrelatorsType"/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

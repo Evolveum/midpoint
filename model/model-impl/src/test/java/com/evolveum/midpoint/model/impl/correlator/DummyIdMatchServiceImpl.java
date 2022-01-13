@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.correlator.match;
+package com.evolveum.midpoint.model.impl.correlator;
 
 import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchService;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.MatchingResult;
@@ -23,7 +23,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.model.impl.correlator.AbstractCorrelatorOrMatcherTest.*;
+import static com.evolveum.midpoint.model.impl.correlator.TestingAccount.*;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
@@ -140,6 +140,11 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
     private static String getValue(ShadowAttributesType attributes, String name) {
         PrismProperty<?> attribute = attributes.asPrismContainerValue().findProperty(new ItemName(NS_RI, name));
         return attribute != null ? attribute.getRealValue(String.class) : null;
+    }
+
+    /** Used for manual setup of the matcher state. */
+    public void addRecord(@NotNull ShadowAttributesType attributes, @Nullable String referenceId, @Nullable String matchId) {
+        records.add(new Record(attributes, referenceId, matchId));
     }
 
     private static class Record {
