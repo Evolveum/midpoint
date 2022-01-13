@@ -19,8 +19,31 @@ call apply_change(0, $$ SELECT 1 $$, true);
 
 -- changes for 4.4.1
 
--- REPLACE THIS WITH THE FIRST CHANGE
+-- adding trigger to mark org closure for refresh when org is inserted/deleted
+call apply_change(1, $aa$
+-- The trigger that flags the view for refresh after m_org changes.
+CREATE OR REPLACE FUNCTION mark_org_closure_for_refresh_org()
+    RETURNS trigger
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO m_global_metadata VALUES ('orgClosureRefreshNeeded', 'true')
+    ON CONFLICT (name) DO UPDATE SET value = 'true';
+
+    -- after trigger returns null
+    RETURN NULL;
+END $$;
+
+-- Update is not necessary, it does not change relations between orgs.
+-- If it does, it is handled by trigger on m_ref_object_parent_org.
+CREATE TRIGGER m_org_mark_refresh_tr
+    AFTER INSERT OR DELETE ON m_org
+    FOR EACH ROW EXECUTE FUNCTION mark_org_closure_for_refresh_org();
+CREATE TRIGGER m_org_mark_refresh_trunc_tr
+    AFTER TRUNCATE ON m_org
+    FOR EACH STATEMENT EXECUTE FUNCTION mark_org_closure_for_refresh_org();
+$aa$);
 
 -- WRITE CHANGES ABOVE ^^
--- IMPORTANT: update apply_change number at the end of postgres-new-upgrade.sql
+-- IMPORTANT: update apply_change number at the end of postgres-new.sql
 -- to match the number used in the last change here!
