@@ -7,32 +7,18 @@
 package com.evolveum.midpoint.authentication.impl.provider;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.OidcModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.OidcAdditionalConfiguration;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
-import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcAuthenticationModuleType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcClientAuthenticationModuleType;
-
 import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.RSAKey;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -45,9 +31,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -58,7 +42,7 @@ import java.util.function.Function;
  * @author skublik
  */
 
-public class OidcProvider extends MidPointAbstractAuthenticationProvider {
+public class OidcProvider extends RemoteModuleProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(OidcProvider.class);
 
@@ -66,10 +50,6 @@ public class OidcProvider extends MidPointAbstractAuthenticationProvider {
 
     private final Map<String, OidcAdditionalConfiguration> additionalConfiguration;
     private Function<ClientRegistration, JWK> jwkResolver;
-
-    @Autowired
-    @Qualifier("passwordAuthenticationEvaluator")
-    private AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
 
     public OidcProvider(Map<String, OidcAdditionalConfiguration> additionalConfiguration) {
         this.additionalConfiguration = additionalConfiguration;
@@ -111,28 +91,8 @@ public class OidcProvider extends MidPointAbstractAuthenticationProvider {
     }
 
     @Override
-    protected AuthenticationEvaluator getEvaluator() {
-        return authenticationEvaluator;
-    }
-
-    @Override
-    protected void writeAuthentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication,
-            ModuleAuthenticationImpl moduleAuthentication, Authentication token) {
-        Object principal = token.getPrincipal();
-        if (principal instanceof GuiProfiledPrincipal) {
-            mpAuthentication.setPrincipal(principal);
-        }
-        if (token instanceof PreAuthenticatedAuthenticationToken) {
-            ((PreAuthenticatedAuthenticationToken) token).setDetails(originalAuthentication);
-        }
-        moduleAuthentication.setAuthentication(token);
-    }
-
-    @Override
     protected Authentication internalAuthentication(Authentication authentication, List requireAssignment,
             AuthenticationChannel channel, Class focusType) throws AuthenticationException {
-        ConnectionEnvironment connEnv = createEnvironment(channel);
-
         Authentication token;
         if (authentication instanceof OAuth2LoginAuthenticationToken) {
             OAuth2LoginAuthenticationToken oidcAuthenticationToken = (OAuth2LoginAuthenticationToken) authentication;
@@ -149,19 +109,15 @@ public class OidcProvider extends MidPointAbstractAuthenticationProvider {
                 String nameOfSamlAttribute = config.getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
                 if (!attributes.containsKey(nameOfSamlAttribute)) {
                     LOGGER.error("Couldn't find attribute for username in oidc response");
-                    throw new AuthenticationServiceException("web.security.auth.oidc.username.null");
+                    throw new AuthenticationServiceException("web.security.provider.invalid");
                 } else {
                     enteredUsername = String.valueOf(attributes.get(nameOfSamlAttribute));
                     if (StringUtils.isEmpty(enteredUsername)) {
                         LOGGER.error("Oidc attribute, which define username don't contains value");
-                        throw new AuthenticationServiceException("web.security.auth.oidc.username.null");
+                        throw new AuthenticationServiceException("web.security.provider.invalid");
                     }
                 }
-                PreAuthenticationContext authContext = new PreAuthenticationContext(enteredUsername, focusType, requireAssignment);
-                if (channel != null) {
-                    authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
-                }
-                token = authenticationEvaluator.authenticateUserPreAuthenticated(connEnv, authContext);
+                token = getPreAuthenticationToken(enteredUsername, focusType, requireAssignment, channel);
             } catch (AuthenticationException e) {
                 oidcModule.setAuthentication(oidcAuthenticationToken);
                 LOGGER.info("Authentication with oidc module failed: {}", e.getMessage());
@@ -177,15 +133,6 @@ public class OidcProvider extends MidPointAbstractAuthenticationProvider {
         LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
                 authentication.getClass().getSimpleName(), principal.getAuthorities());
         return token;
-    }
-
-    @Override
-    protected Authentication createNewAuthenticationToken(Authentication actualAuthentication, Collection newAuthorities) {
-        if (actualAuthentication instanceof PreAuthenticatedAuthenticationToken) {
-            return new PreAuthenticatedAuthenticationToken(actualAuthentication.getPrincipal(), actualAuthentication.getCredentials(), newAuthorities);
-        } else {
-            return actualAuthentication;
-        }
     }
 
     @Override

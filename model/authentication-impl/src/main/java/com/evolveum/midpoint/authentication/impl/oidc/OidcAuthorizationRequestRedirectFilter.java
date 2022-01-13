@@ -80,7 +80,7 @@ public class OidcAuthorizationRequestRedirectFilter extends OncePerRequestFilter
 
     private final RedirectStrategy authorizationRedirectStrategy = new DefaultRedirectStrategy();
 
-    private AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
+    private final AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
 
     private RequestCache requestCache = new HttpSessionRequestCache();
 

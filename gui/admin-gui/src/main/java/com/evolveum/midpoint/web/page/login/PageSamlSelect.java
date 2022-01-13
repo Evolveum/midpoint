@@ -33,4 +33,14 @@ public class PageSamlSelect extends AbstractPageRemoteAuthenticationSelect imple
                 || (actualModule.getAuthentication() instanceof AnonymousAuthenticationToken
                 && actualModule.getAuthentication().getDetails() instanceof Saml2AuthenticationToken));
     }
+
+    @Override
+    protected String getErrorKeyUnsupportedType() {
+        return "PageSamlSelect.unsupported.authentication.type";
+    }
+
+    @Override
+    protected String getErrorKeyEmptyProviders() {
+        return "PageSamlSelect.empty.providers";
+    }
 }

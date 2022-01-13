@@ -124,9 +124,7 @@ public class OidcLoginAuthenticationFilter extends OAuth2LoginAuthenticationFilt
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>(map.size());
         map.forEach((key, values) -> {
             if (values.length > 0) {
-
-                for(int index = 0; index < values.length; ++index) {
-                    String value = values[index];
+                for (String value : values) {
                     params.add(key, value);
                 }
             }

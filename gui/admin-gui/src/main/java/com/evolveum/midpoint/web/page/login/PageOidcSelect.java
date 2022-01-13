@@ -34,4 +34,14 @@ public class PageOidcSelect extends AbstractPageRemoteAuthenticationSelect imple
                 || (actualModule.getAuthentication() instanceof AnonymousAuthenticationToken
                 && actualModule.getAuthentication().getDetails() instanceof OAuth2LoginAuthenticationToken));
     }
+
+    @Override
+    protected String getErrorKeyUnsupportedType() {
+        return "PageOidcSelect.unsupported.authentication.type";
+    }
+
+    @Override
+    protected String getErrorKeyEmptyProviders() {
+        return "PageOidcSelect.empty.providers";
+    }
 }

@@ -8,8 +8,6 @@ package com.evolveum.midpoint.authentication.impl.module.configuration;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -24,16 +22,12 @@ import org.bouncycastle.operator.InputDecryptorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
 import org.bouncycastle.pkcs.PKCSException;
-import org.springframework.security.saml2.Saml2Exception;
-import org.springframework.security.saml2.core.Saml2X509Credential;
 
 import java.io.*;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.util.List;
 
 import static java.util.Optional.ofNullable;
 import static org.springframework.util.StringUtils.hasText;
@@ -43,8 +37,6 @@ import static org.springframework.util.StringUtils.hasText;
  */
 
 public class RemoteModuleWebSecurityConfiguration extends ModuleWebSecurityConfigurationImpl {
-
-    private static final Trace LOGGER = TraceManager.getTrace(RemoteModuleWebSecurityConfiguration.class);
 
     protected static Certificate getCertificate(AbstractSimpleKeyType key, Protector protector)
             throws EncryptionException, CertificateException {
@@ -64,8 +56,7 @@ public class RemoteModuleWebSecurityConfiguration extends ModuleWebSecurityConfi
         FileInputStream is = new FileInputStream(key.getKeyStorePath());
         ks.load(is, protector.decryptString(key.getKeyStorePassword()).toCharArray());
 
-        Certificate certificate = ks.getCertificate(key.getKeyAlias());
-        return certificate;
+        return ks.getCertificate(key.getKeyAlias());
     }
 
     protected static PrivateKey getPrivateKey(AbstractSimpleKeyType key, Protector protector)

@@ -74,12 +74,12 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
             if (moduleAuthentication instanceof RemoteModuleAuthentication) {
                 providers = ((RemoteModuleAuthentication) moduleAuthentication).getProviders();
                 if (providers.isEmpty()) {
-                    String key = "PageSamlSelect.empty.providers";
+                    String key = getErrorKeyEmptyProviders();
                     error(getString(key));
                 }
                 return providers;
             }
-            String key = "PageSamlSelect.unsupported.authentication.type";
+            String key = getErrorKeyUnsupportedType();
             error(getString(key));
             return providers;
         }
@@ -87,6 +87,10 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
         error(getString(key));
         return providers;
     }
+
+    protected abstract String getErrorKeyUnsupportedType();
+
+    protected abstract String getErrorKeyEmptyProviders();
 
     @Override
     protected void confirmUserPrincipal() {

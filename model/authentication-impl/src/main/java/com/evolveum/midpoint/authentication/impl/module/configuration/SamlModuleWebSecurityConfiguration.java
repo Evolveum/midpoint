@@ -8,9 +8,6 @@ package com.evolveum.midpoint.authentication.impl.module.configuration;
 
 import static com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil.getBasePath;
 
-import static java.util.Optional.ofNullable;
-import static org.springframework.util.StringUtils.hasText;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -31,17 +28,7 @@ import com.evolveum.midpoint.authentication.impl.saml.MidpointAssertingPartyMeta
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.openssl.PEMDecryptorProvider;
-import org.bouncycastle.openssl.PEMEncryptedKeyPair;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
-import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
-import org.bouncycastle.operator.InputDecryptorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
 import org.bouncycastle.pkcs.PKCSException;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;

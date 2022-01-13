@@ -37,8 +37,6 @@ import java.util.Objects;
 
 import static com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil.getBasePath;
 
-import static org.springframework.util.StringUtils.hasText;
-
 /**
  * @author skublik
  */
@@ -134,9 +132,7 @@ public class OidcModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
             }
             if (StringUtils.isNotEmpty(openIdProvider.getEndSessionUri())) {
                 Map<String, Object> configurationMetadata = new HashMap<>(clientRegistration.getProviderDetails().getConfigurationMetadata());
-                if (configurationMetadata.containsKey("end_session_endpoint")) {
-                    configurationMetadata.remove("end_session_endpoint");
-                }
+                configurationMetadata.remove("end_session_endpoint");
                 configurationMetadata.put("end_session_endpoint", openIdProvider.getEndSessionUri());
                 builder.providerConfigurationMetadata(configurationMetadata);
             }
@@ -165,8 +161,7 @@ public class OidcModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
             configuration.additionalConfiguration.put(client.getRegistrationId(), additionalConfBuilder.build());
         });
 
-        InMemoryClientRegistrationRepository clientRegistrationRepository = new InMemoryClientRegistrationRepository(registrations);
-        configuration.clientRegistrationRepository = clientRegistrationRepository;
+        configuration.clientRegistrationRepository = new InMemoryClientRegistrationRepository(registrations);
         return configuration;
     }
 
