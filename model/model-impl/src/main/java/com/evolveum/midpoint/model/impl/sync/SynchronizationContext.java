@@ -206,15 +206,20 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     public @NotNull CorrelatorsType getCorrelators() {
         if (objectSynchronization.getCorrelators() != null) {
             return objectSynchronization.getCorrelators().clone();
-        }
-        CorrelatorsType correlators =
-                new CorrelatorsType(PrismContext.get())
-                        .beginFilter()
+        } else if (objectSynchronization.getCorrelation().isEmpty()) {
+            LOGGER.debug("No correlation information present. Will always find no owner. In: {}", this);
+            return new CorrelatorsType(PrismContext.get())
+                    .beginNone().end();
+        } else {
+            CorrelatorsType correlators =
+                    new CorrelatorsType(PrismContext.get())
+                            .beginFilter()
                             .confirmation(CloneUtil.clone(objectSynchronization.getConfirmation()))
-                        .end();
-        correlators.getFilter().get(0).getFilter().addAll(
-                CloneUtil.cloneCollectionMembers(objectSynchronization.getCorrelation()));
-        return correlators;
+                            .end();
+            correlators.getFilter().get(0).getFilter().addAll(
+                    CloneUtil.cloneCollectionMembers(objectSynchronization.getCorrelation()));
+            return correlators;
+        }
     }
 
     public ObjectReferenceType getObjectTemplateRef() {

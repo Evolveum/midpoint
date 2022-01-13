@@ -23154,6 +23154,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="none" type="tns:NoOpCorrelatorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "No-op" correlation that always returns "certainly no owner" result.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="filter" type="tns:FilterCorrelatorType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -23262,6 +23269,26 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:complexType name="NoOpCorrelatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                "No-op" correlation that always returns "certainly no owner" result.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCorrelatorType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="noOpCorrelator" type="tns:NoOpCorrelatorType"/>
 
     <xsd:complexType name="FilterCorrelatorType">
         <xsd:annotation>

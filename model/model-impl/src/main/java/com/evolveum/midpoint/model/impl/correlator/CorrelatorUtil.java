@@ -83,6 +83,7 @@ public class CorrelatorUtil {
     public static @NotNull Collection<CorrelatorConfiguration> getConfigurations(@NotNull CorrelatorsType correlation) {
         List<CorrelatorConfiguration> configurations =
                 Stream.of(
+                                correlation.getNone().stream(),
                                 correlation.getFilter().stream(),
                                 correlation.getExpression().stream(),
                                 correlation.getIdMatch().stream())
