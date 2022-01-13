@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -63,11 +64,11 @@ public class SynchronizationUtils {
                 .createReplaceDelta(object.getDefinition(), propName, timestamp);
     }
 
-    public static List<PropertyDelta<?>> createSynchronizationSituationAndDescriptionDelta(PrismObject<ShadowType> shadow,
+    public static List<ItemDelta<?, ?>> createSynchronizationSituationAndDescriptionDelta(PrismObject<ShadowType> shadow,
             SynchronizationSituationType situation, String sourceChannel, boolean full, XMLGregorianCalendar timestamp)
             throws SchemaException {
 
-        List<PropertyDelta<?>> propertyDeltas = new ArrayList<>();
+        List<ItemDelta<?, ?>> propertyDeltas = new ArrayList<>();
 
         propertyDeltas.add(
                 createSynchronizationSituationDescriptionDelta(shadow, situation, timestamp, sourceChannel, full));

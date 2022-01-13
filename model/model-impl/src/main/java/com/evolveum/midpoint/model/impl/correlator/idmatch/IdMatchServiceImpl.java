@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.correlator.idmatch;
 
+import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchService;
+import com.evolveum.midpoint.model.api.correlator.idmatch.MatchingResult;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -19,15 +21,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IdMatchCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Set;
 
 public class IdMatchServiceImpl implements IdMatchService {

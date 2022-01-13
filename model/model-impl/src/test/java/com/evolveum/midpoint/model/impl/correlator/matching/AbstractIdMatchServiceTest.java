@@ -23,7 +23,6 @@ import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
-import com.evolveum.midpoint.model.impl.correlator.TestingAccount;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -35,9 +34,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchService;
-import com.evolveum.midpoint.model.impl.correlator.idmatch.MatchingResult;
-import com.evolveum.midpoint.model.impl.correlator.idmatch.PotentialMatch;
+import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchService;
+import com.evolveum.midpoint.model.api.correlator.idmatch.MatchingResult;
+import com.evolveum.midpoint.model.api.correlator.idmatch.PotentialMatch;
 import com.evolveum.midpoint.model.impl.correlator.matching.ExpectedMatchingResult.UncertainWithResolution;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;

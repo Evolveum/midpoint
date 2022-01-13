@@ -17,6 +17,11 @@ import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistency
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -39,10 +44,6 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -578,6 +579,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         Task task = syncCtx.getTask();
 
+        syncCtx.setCorrelationContext(correlationContext);
+
         return correlatorFactoryRegistry.instantiateCorrelator(syncCtx.getCorrelators(), task, result)
                 .correlate(syncCtx.getShadowedResourceObject().asObjectable(), correlationContext, task, result);
     }
@@ -835,26 +838,31 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             ShadowType shadowBean = shadow.asObjectable();
             // new situation description
             XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-            List<PropertyDelta<?>> deltas = createSynchronizationSituationAndDescriptionDelta(shadow, syncCtx.getSituation(),
-                            change.getSourceChannel(), full, now);
+            List<ItemDelta<?, ?>> deltas =
+                    createSynchronizationSituationAndDescriptionDelta(
+                            shadow, syncCtx.getSituation(), change.getSourceChannel(), full, now);
+
+            S_ItemEntry builder = prismContext.deltaFor(ShadowType.class);
+
+            // TODO revisit this
+            if (syncCtx.getCorrelationContext() != null) {
+                builder = builder.item(ShadowType.F_CORRELATION_STATE).replace(
+                        CloneUtil.clone(syncCtx.getCorrelationContext().getCorrelationState()));
+            }
 
             if (ShadowUtil.isNotKnown(shadowBean.getKind())) {
-                PropertyDelta<ShadowKindType> kindDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),
-                        ShadowType.F_KIND, syncCtx.getKind());
-                deltas.add(kindDelta);
+                builder = builder.item(ShadowType.F_KIND).replace(syncCtx.getKind());
             }
 
             if (shouldSaveIntent(syncCtx)) {
-                PropertyDelta<String> intentDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),
-                        ShadowType.F_INTENT, syncCtx.getIntent());
-                deltas.add(intentDelta);
+                builder = builder.item(ShadowType.F_INTENT).replace(syncCtx.getIntent());
             }
 
             if (shadowBean.getTag() == null && syncCtx.getTag() != null) {
-                PropertyDelta<String> tagDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),
-                        ShadowType.F_TAG, syncCtx.getTag());
-                deltas.add(tagDelta);
+                builder = builder.item(ShadowType.F_TAG).replace(syncCtx.getTag());
             }
+
+            deltas.addAll(builder.asItemDeltas());
 
             repositoryService.modifyObject(shadowBean.getClass(), shadow.getOid(), deltas, result);
             ItemDeltaCollectionsUtil.applyTo(deltas, shadow);

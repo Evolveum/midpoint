@@ -5,11 +5,11 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.correlator;
+package com.evolveum.midpoint.model.test.idmatch;
 
-import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchService;
-import com.evolveum.midpoint.model.impl.correlator.idmatch.MatchingResult;
-import com.evolveum.midpoint.model.impl.correlator.idmatch.PotentialMatch;
+import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchService;
+import com.evolveum.midpoint.model.api.correlator.idmatch.MatchingResult;
+import com.evolveum.midpoint.model.api.correlator.idmatch.PotentialMatch;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -23,7 +23,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.model.impl.correlator.TestingAccount.*;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
@@ -34,6 +33,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * A dummy implementation of {@link IdMatchService} used to test IdMatchCorrelator without actual ID Match Service.
  */
 public class DummyIdMatchServiceImpl implements IdMatchService {
+
+    private static final String ATTR_GIVEN_NAME = "givenName";
+    private static final String ATTR_FAMILY_NAME = "familyName";
+    private static final String ATTR_DATE_OF_BIRTH = "dateOfBirth";
+    private static final String ATTR_NATIONAL_ID = "nationalId";
 
     /**
      * Current records.

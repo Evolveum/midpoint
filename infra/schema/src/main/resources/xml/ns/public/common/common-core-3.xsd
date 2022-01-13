@@ -8905,7 +8905,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="correlationDefinition" type="tns:CorrelatorsType" minOccurs="0"> <!-- TODO name? -->
+            <xsd:element name="correlators" type="tns:CorrelatorsType" minOccurs="0"> <!-- TODO name? -->
                 <xsd:annotation>
                     <xsd:documentation>
                         Definition of (complex) correlation. TODO
@@ -9715,8 +9715,8 @@
                                 <a:emphasized>true</a:emphasized>
                             </xsd:appinfo>
                         </xsd:annotation>
-                     </xsd:element>
-                     <xsd:element name="pendingOperation" type="tns:PendingOperationType" minOccurs="0" maxOccurs="unbounded">
+                    </xsd:element>
+                    <xsd:element name="pendingOperation" type="tns:PendingOperationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Description of an operation which which execution is pending for this shadow.
@@ -9727,29 +9727,29 @@
                                 we have not yet received the feedback. Or operations that are executed but are
                                 still kept in the shadow for review by midPoint administrator.
                             </xsd:documentation>
-                             <xsd:appinfo>
+                            <xsd:appinfo>
                                 <a:displayName>ShadowType.pendingOperation</a:displayName>
                                 <a:since>3.6</a:since>
                                 <a:index>presence</a:index>
                             </xsd:appinfo>
                         </xsd:annotation>
-                     </xsd:element>
-                     <xsd:element name="synchronizationSituation" type="tns:SynchronizationSituationType" minOccurs="0">
-                         <xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="synchronizationSituation" type="tns:SynchronizationSituationType" minOccurs="0">
+                        <xsd:annotation>
                             <xsd:documentation>
                                 The most recent synchronization situation. Regardless of the channel.
                                 This simple enumeration property is used for (indexed) search of shadows in certain situation.
                                 It does not provide any further details. More details can be found in the "synchronizationSituationDescription"
                                 property.
                             </xsd:documentation>
-                             <xsd:appinfo>
+                            <xsd:appinfo>
                                 <a:displayName>ShadowType.synchronizationSituation</a:displayName>
                                 <a:emphasized>true</a:emphasized>
                             </xsd:appinfo>
                         </xsd:annotation>
-                     </xsd:element>
-                     <xsd:element name="synchronizationTimestamp" type="xsd:dateTime" minOccurs="0">
-                         <xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="synchronizationTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
                             <xsd:documentation>
                                 The timestamp of the most recent synchronization. Regardless of the channel or result.
                                 It does not provide any further details. More details can be found in the "synchronizationSituationDescription"
@@ -9759,25 +9759,38 @@
                                  <a:displayName>ShadowType.synchronizationTimestamp</a:displayName>
                              </xsd:appinfo>
                         </xsd:annotation>
-                     </xsd:element>
-                     <xsd:element name="fullSynchronizationTimestamp" type="xsd:dateTime" minOccurs="0">
-                         <xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="fullSynchronizationTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
                             <xsd:documentation>
                                 The timestamp of the most recent full synchronization. Regardless of the channel or result.
                                 It does not provide any further details. More details can be found in the "synchronizationSituationDescription"
                                 property.
                             </xsd:documentation>
                         </xsd:annotation>
-                     </xsd:element>
-                     <xsd:element name="synchronizationSituationDescription" type="tns:SynchronizationSituationDescriptionType" minOccurs="0" maxOccurs="unbounded">
-                         <xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="synchronizationSituationDescription" type="tns:SynchronizationSituationDescriptionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
                             <xsd:documentation>
                                 Complex description of synchronization situations. This is multi-valued property and it should
                                 store only a single value for each channel (the most recent one). All the older values should be
                                 removed on each update.
                             </xsd:documentation>
                         </xsd:annotation>
-                     </xsd:element>
+                    </xsd:element>
+                    <xsd:element name="correlationState" type="tns:AbstractCorrelationStateType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Current state of the correlation process.
+                                This is a correlator-specific structure. As of today it is supported only by ID Match correlator.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.5</a:since>
+                                <a:container>true</a:container>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

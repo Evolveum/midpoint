@@ -7,11 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.correlator.idmatch;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.Correlator;
+import com.evolveum.midpoint.model.api.correlator.*;
+import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchService;
+import com.evolveum.midpoint.model.api.correlator.idmatch.MatchingResult;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;

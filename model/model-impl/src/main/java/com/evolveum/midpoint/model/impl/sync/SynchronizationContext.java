@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.sync;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -93,6 +94,12 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     /** Situation determined by the sorter or the synchronization service. */
     private SynchronizationSituationType situation;
 
+    /**
+     * Correlation context - in case the correlation was run.
+     * For some correlators it contains the correlation state (to be stored in the shadow).
+     */
+    private CorrelationContext correlationContext;
+
     private String intent;
     private String tag;
 
@@ -162,6 +169,14 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return intent;
     }
 
+    public CorrelationContext getCorrelationContext() {
+        return correlationContext;
+    }
+
+    public void setCorrelationContext(CorrelationContext correlationContext) {
+        this.correlationContext = correlationContext;
+    }
+
     // TODO reconsider
     public @NotNull ResourceObjectTypeDefinition getObjectTypeDefinition() throws SchemaException, ConfigurationException {
         if (objectTypeDefinition == null) {
@@ -189,8 +204,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     // TODO reconsider cloning here
     public @NotNull CorrelatorsType getCorrelators() {
-        if (objectSynchronization.getCorrelationDefinition() != null) {
-            return objectSynchronization.getCorrelationDefinition().clone();
+        if (objectSynchronization.getCorrelators() != null) {
+            return objectSynchronization.getCorrelators().clone();
         }
         CorrelatorsType correlators =
                 new CorrelatorsType(PrismContext.get())

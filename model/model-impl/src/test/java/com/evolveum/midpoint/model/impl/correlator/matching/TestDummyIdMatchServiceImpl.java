@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.correlator.matching;
 
-import com.evolveum.midpoint.model.impl.correlator.DummyIdMatchServiceImpl;
-import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchService;
+import com.evolveum.midpoint.model.test.idmatch.DummyIdMatchServiceImpl;
+import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchService;
 
 /**
  * Tests {@link DummyIdMatchServiceImpl}. Used to develop the testing data for real {@link TestIdMatchServiceImpl}

@@ -29,7 +29,7 @@
             <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
             <icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
             <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
-            <icfccsvfile:uniqueAttribute>identifier</icfccsvfile:uniqueAttribute>
+            <icfccsvfile:uniqueAttribute>aisId</icfccsvfile:uniqueAttribute>
         </icfc:configurationProperties>
     </c:connectorConfiguration>
 
@@ -39,28 +39,33 @@
             <intent>default</intent>
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
-            <!--<attribute>-->
-            <!--    &lt;!&ndash; fake attribute - will be replaced by something more serious &ndash;&gt;-->
-            <!--    <c:ref>ri:referenceId</c:ref>-->
-            <!--    <inbound>-->
-            <!--        <strength>strong</strength>-->
-            <!--        <target>-->
-            <!--            <c:path>name</c:path> &lt;!&ndash; temporary &ndash;&gt;-->
-            <!--        </target>-->
-            <!--    </inbound>-->
-            <!--</attribute>-->
+            <multiplicity>
+                <maxOccurs>unbounded</maxOccurs>
+                <tag>
+                    <expression>
+                        <script>
+                            <code>basic.getIdentifierValue(projection)</code>
+                        </script>
+                    </expression>
+                </tag>
+            </multiplicity>
             <attribute>
-                <c:ref>ri:identifier</c:ref>
+                <c:ref>ri:aisId</c:ref>
                 <inbound>
-                    <strength>strong</strength>
+                    <strength>weak</strength>
+                    <expression>
+                        <!-- Hack. This mapping should be invokable directly. -->
+                        <!-- We assume the reference ID is present. -->
+                        <path>$shadow/correlationState/referenceId</path>
+                    </expression>
                     <target>
-                        <c:path>name</c:path> <!-- temporary -->
+                        <path>name</path>
                     </target>
                 </inbound>
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <c:path>employeeNumber</c:path> <!-- temporary -->
+                        <path>employeeNumber</path> <!-- temporary -->
                     </target>
                 </inbound>
             </attribute>
@@ -69,7 +74,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <c:path>givenName</c:path> <!-- temporary -->
+                        <path>givenName</path> <!-- temporary -->
                     </target>
                 </inbound>
             </attribute>
@@ -78,7 +83,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <c:path>familyName</c:path> <!-- temporary -->
+                        <path>familyName</path> <!-- temporary -->
                     </target>
                 </inbound>
             </attribute>
@@ -87,7 +92,16 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <c:path>description</c:path> <!-- temporary -->
+                        <path>description</path> <!-- temporary -->
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:nationalId</c:ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>telephoneNumber</path> <!-- temporary -->
                     </target>
                 </inbound>
             </attribute>
@@ -96,7 +110,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <c:path>emailAddress</c:path> <!-- temporary -->
+                        <path>emailAddress</path> <!-- temporary -->
                     </target>
                 </inbound>
             </attribute>
@@ -106,31 +120,27 @@
     <synchronization>
         <objectSynchronization>
             <enabled>true</enabled>
-            <condition>
-                <!-- We import only correlated accounts -->
-                <!-- However, this is only a temporary solution, relying on the fact that the correlator injects
-                     the reference ID to the ri:referenceId fake attribute -->
-                <script>
-                    <code>
-                        import com.evolveum.midpoint.schema.constants.MidPointConstants
-                        import com.evolveum.midpoint.schema.constants.SchemaConstants
-                        import org.apache.commons.collections4.CollectionUtils
-
-                        true || CollectionUtils.isNotEmpty(
-                                basic.getAttributeStringValues(projection, MidPointConstants.NS_RI, 'referenceId'))
-                    </code>
-                </script>
-            </condition>
-            <correlation>
-                <q:equal>
-                    <q:path>name</q:path>
-                    <expression>
-                        <!-- TEMPORARY SOLUTION -->
-                        <!--<path>$projection/attributes/ri:referenceId</path>-->
-                        <path>$projection/attributes/ri:identifier</path>
-                    </expression>
-                </q:equal>
-            </correlation>
+            <correlators>
+                <idMatch>
+                    <!-- URL and credentials are ignored when dummy ID Match Service implementation is used.
+                         They are used only when running TestIdMatchReal (not part of the test suite). -->
+                    <url>TODO</url>
+                    <username>TODO</username>
+                    <password>TODO</password>
+                    <followOn>
+                        <filter>
+                            <filter>
+                                <q:equal>
+                                    <q:path>name</q:path>
+                                    <expression>
+                                        <path>$correlationState/referenceId</path>
+                                    </expression>
+                                </q:equal>
+                            </filter>
+                        </filter>
+                    </followOn>
+                </idMatch>
+            </correlators>
             <reaction>
                 <situation>linked</situation>
                 <synchronize>true</synchronize>
