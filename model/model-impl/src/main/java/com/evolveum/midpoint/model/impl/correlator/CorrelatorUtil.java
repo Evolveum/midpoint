@@ -28,24 +28,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 public class CorrelatorUtil {
 
     @NotNull
-    public static CorrelationResult getCorrelationResultFromObjects(List<? extends ObjectType> candidates) {
-        if (candidates.isEmpty()) {
-            return CorrelationResult.noOwner();
-        } else if (candidates.size() == 1) {
-            return CorrelationResult.existingOwner(
-                    ObjectTypeUtil.createObjectRef(candidates.get(0)));
-        } else {
-            return CorrelationResult.uncertain();
-        }
-    }
-
-    @NotNull
-    public static CorrelationResult getCorrelationResultFromReferences(List<ObjectReferenceType> candidates) {
+    public static CorrelationResult createCorrelationResult(List<? extends ObjectType> candidates) {
         if (candidates.isEmpty()) {
             return CorrelationResult.noOwner();
         } else if (candidates.size() == 1) {
@@ -66,7 +53,7 @@ public class CorrelatorUtil {
         }
     }
 
-    private static <F extends ObjectType> boolean containsOid(List<F> allCandidates, String oid) {
+    public static <F extends ObjectType> boolean containsOid(List<F> allCandidates, String oid) {
         for (F existing : allCandidates) {
             if (existing.getOid().equals(oid)) {
                 return true;

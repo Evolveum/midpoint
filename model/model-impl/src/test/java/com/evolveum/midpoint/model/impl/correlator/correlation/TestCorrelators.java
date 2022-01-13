@@ -174,12 +174,10 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 .isEqualTo(account.getExpectedCorrelationStatus());
 
         if (correlationResult.getStatus() == CorrelationResult.Status.EXISTING_OWNER) {
-            ObjectReferenceType realOwnerRef = correlationResult.getOwnerRef();
-            assertThat(realOwnerRef).as("correlated owner ref").isNotNull();
-            String realOwnerName = repositoryService.getObject(UserType.class, realOwnerRef.getOid(), null, result)
-                    .asObjectable().getName().getOrig();
+            ObjectType realOwner = correlationResult.getOwner();
+            assertThat(realOwner).as("correlated owner").isNotNull();
             String expectedOwnerName = account.getExpectedOwnerName();
-            assertThat(realOwnerName).as("owner name").isEqualTo(expectedOwnerName);
+            assertThat(realOwner.getName().getOrig()).as("owner name").isEqualTo(expectedOwnerName);
         }
     }
 }

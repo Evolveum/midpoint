@@ -7,7 +7,7 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
-import static com.evolveum.midpoint.common.SynchronizationUtils.*;
+import static com.evolveum.midpoint.common.SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta;
 import static com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils.isLogDebug;
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
@@ -16,8 +16,6 @@ import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistency
 
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.model.impl.ModelBeans;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
@@ -30,12 +28,14 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.schema.processor.RefinedDefinitionUtil;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
@@ -54,6 +54,8 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.processor.RefinedDefinitionUtil;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -91,6 +93,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
     @Autowired private ActionManager<Action> actionManager;
     @Autowired private SynchronizationExpressionsEvaluator synchronizationExpressionsEvaluator;
+    @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
     @Autowired private ContextFactory contextFactory;
     @Autowired private Clockwork clockwork;
     @Autowired private ExpressionFactory expressionFactory;
@@ -468,7 +471,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     private <F extends FocusType> void checkLinkedAndCorrelatedOwnersMatch(SynchronizationContext<F> syncCtx,
             OperationResult result) throws ConfigurationException {
         F linkedOwner = syncCtx.getLinkedOwner();
-        F correlatedOwner = syncCtx.getCorrelatedOwner();
+        F correlatedOwner = syncCtx.getCorrelatedOwner(); // may be null; or may be provided by sync sorter
 
         LOGGER.trace("Shadow {} has linked owner: {}, correlated owner: {}", syncCtx.getShadowedResourceObject(),
                 linkedOwner, correlatedOwner);
@@ -533,40 +536,50 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         ResourceType resource = change.getResource().asObjectable();
         setupResourceRefInShadowIfNeeded(resourceObject.asObjectable(), resource);
 
-        SynchronizationSituationType state;
-        LOGGER.trace("SYNCHRONIZATION: CORRELATION: Looking for list of {} objects based on correlation rule.",
-                syncCtx.getFocusClass().getSimpleName());
-        List<PrismObject<F>> users = synchronizationExpressionsEvaluator.findFocusesByCorrelationRule(syncCtx.getFocusClass(),
-                resourceObject.asObjectable(), syncCtx.getCorrelation(), resource,
-                syncCtx.getSystemConfiguration().asObjectable(), syncCtx.getTask(), result);
-        if (syncCtx.getConfirmation() == null) {
-            LOGGER.trace("SYNCHRONIZATION: CONFIRMATION: no confirmation defined.");
-        } else {
-            LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: Checking objects from correlation with confirmation rule.");
-            users = synchronizationExpressionsEvaluator.findUserByConfirmationRule(syncCtx.getFocusClass(), users,
-                    resourceObject.asObjectable(), resource, syncCtx.getSystemConfiguration().asObjectable(),
-                    syncCtx.getConfirmation(), syncCtx.getTask(), result);
-        }
+        CorrelationResult correlationResult = correlate(syncCtx, result);
+        LOGGER.trace("Correlation result:\n{}", correlationResult.debugDumpLazily(1));
 
-        F user;
-        switch (users.size()) {
-            case 0:
-                state = SynchronizationSituationType.UNMATCHED;
-                user = null;
-                break;
-            case 1:
+        SynchronizationSituationType state;
+        F owner;
+        switch (correlationResult.getStatus()) {
+            case EXISTING_OWNER:
                 state = SynchronizationSituationType.UNLINKED;
-                user = users.get(0).asObjectable();
+                //noinspection unchecked
+                owner = (F) correlationResult.getOwner();
+                break;
+            case NO_OWNER:
+                state = SynchronizationSituationType.UNMATCHED;
+                owner = null;
+                break;
+            case UNCERTAIN:
+                state = SynchronizationSituationType.DISPUTED;
+                owner = null;
                 break;
             default:
-                state = SynchronizationSituationType.DISPUTED;
-                user = null;
+                throw new AssertionError(correlationResult.getStatus());
         }
+        LOGGER.debug("Determined synchronization situation: {} with owner: {}", state, owner);
 
-        syncCtx.setCorrelatedOwner(user);
+        syncCtx.setCorrelatedOwner(owner);
         if (syncCtx.getSituation() == null) {
             syncCtx.setSituation(state);
         }
+    }
+
+    private <F extends FocusType> CorrelationResult correlate(SynchronizationContext<F> syncCtx, OperationResult result)
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+
+        CorrelationContext correlationContext = new CorrelationContext(
+                syncCtx.getFocusClass(),
+                syncCtx.getResource().asObjectable(),
+                syncCtx.getObjectTypeDefinition(),
+                asObjectable(syncCtx.getSystemConfiguration()));
+
+        Task task = syncCtx.getTask();
+
+        return correlatorFactoryRegistry.instantiateCorrelator(syncCtx.getCorrelators(), task, result)
+                .correlate(syncCtx.getShadowedResourceObject().asObjectable(), correlationContext, task, result);
     }
 
     // This is maybe not needed

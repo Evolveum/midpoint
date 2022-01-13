@@ -118,7 +118,7 @@ class FilterCorrelator implements Correlator {
             List<F> confirmedCandidates = confirmCandidates(candidates, result);
             // TODO selection expression
 
-            return CorrelatorUtil.getCorrelationResultFromObjects(confirmedCandidates);
+            return CorrelatorUtil.createCorrelationResult(confirmedCandidates);
         }
 
         private @NotNull List<F> findCandidatesUsingConditionalFilters(OperationResult result)

@@ -18,11 +18,11 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -76,11 +76,11 @@ class ExpressionCorrelator implements Correlator {
                 resourceObject.debugDumpLazily(1),
                 correlationContext.debugDumpLazily(1));
 
-        return new Correlation(resourceObject, correlationContext, task)
+        return new Correlation<>(resourceObject, correlationContext, task)
                 .execute(result);
     }
 
-    private class Correlation {
+    private class Correlation<F extends ObjectType> {
 
         @NotNull private final ShadowType resourceObject;
         @NotNull private final CorrelationContext correlationContext;
@@ -106,11 +106,11 @@ class ExpressionCorrelator implements Correlator {
         public CorrelationResult execute(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
-            return CorrelatorUtil.getCorrelationResultFromReferences(
+            return CorrelatorUtil.createCorrelationResult(
                     findCandidatesUsingExpressions(result));
         }
 
-        private @NotNull List<ObjectReferenceType> findCandidatesUsingExpressions(OperationResult result)
+        private @NotNull List<F> findCandidatesUsingExpressions(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
@@ -147,10 +147,10 @@ class ExpressionCorrelator implements Correlator {
                     .evaluateAnyExpressionInContext(expression, params, task, result);
             LOGGER.trace("Correlation expression returned:\n{}", DebugUtil.debugDumpLazily(outputTriple, 1));
 
-            List<ObjectReferenceType> allCandidates = new ArrayList<>();
+            List<F> allCandidates = new ArrayList<>();
             if (outputTriple != null) {
                 for (PrismValue candidateValue : outputTriple.getNonNegativeValues()) {
-                    addCandidateOwner(allCandidates, candidateValue);
+                    addCandidateOwner(allCandidates, candidateValue, result);
                 }
             }
 
@@ -161,42 +161,65 @@ class ExpressionCorrelator implements Correlator {
             return allCandidates;
         }
 
-        private void addCandidateOwner(List<ObjectReferenceType> allCandidates, PrismValue candidateValue)
-                throws SchemaException {
+        private void addCandidateOwner(List<F> allCandidates, PrismValue candidateValue, OperationResult result)
+                throws SchemaException, ObjectNotFoundException {
             if (candidateValue == null) {
                 return;
             }
-            ObjectReferenceType reference;
+            F candidateOwner;
             if (candidateValue instanceof PrismObjectValue) {
-                reference = ObjectTypeUtil.createObjectRef(((PrismObjectValue<?>) candidateValue).asPrismObject());
+                //noinspection unchecked
+                candidateOwner = ((PrismObjectValue<F>) candidateValue).asObjectable();
+                if (containsOid(allCandidates, candidateValue, candidateOwner.getOid())) {
+                    return;
+                }
             } else if (candidateValue instanceof PrismReferenceValue) {
-                reference = ObjectTypeUtil.createObjectRef((PrismReferenceValue) candidateValue);
+                // We first check for duplicates to avoid needless resolution of the reference
+                PrismReferenceValue candidateOwnerRef = (PrismReferenceValue) candidateValue;
+                if (containsOid(allCandidates, candidateValue, candidateOwnerRef.getOid())) {
+                    return;
+                }
+                candidateOwner = resolveReference(candidateOwnerRef, result);
             } else {
                 throw new IllegalStateException("Unexpected return value " + MiscUtil.getValueWithClass(candidateValue)
                         + " from correlation script in " + contextDescription);
             }
+            allCandidates.add(candidateOwner);
+        }
 
-            String oid = reference.getOid();
+        /** Does some checking/logging besides OID presence checking. */
+        private boolean containsOid(List<F> allCandidates, PrismValue candidateValue, String oid) throws SchemaException {
             if (oid == null) {
                 // Or other kind of exception?
                 throw new SchemaException("No OID found in value returned from correlation script. Value: "
                         + candidateValue + " in: " + contextDescription);
             }
-            if (containsReferenceWithOid(allCandidates, oid)) {
+            if (CorrelatorUtil.containsOid(allCandidates, oid)) {
                 LOGGER.trace("Candidate owner {} already processed", candidateValue);
+                return true;
             } else {
                 LOGGER.trace("Adding {} to the list of candidate owners", candidateValue);
-                allCandidates.add(reference);
+                return false;
             }
         }
 
-        private boolean containsReferenceWithOid(List<ObjectReferenceType> allCandidates, String oid) {
-            for (ObjectReferenceType existing : allCandidates) {
-                if (existing.getOid().equals(oid)) {
-                    return true;
-                }
+        private F resolveReference(PrismReferenceValue candidateOwnerRef, OperationResult result)
+                throws SchemaException, ObjectNotFoundException {
+            Class<? extends ObjectType> type;
+            if (candidateOwnerRef.getTargetType() != null) {
+                type = ObjectTypes.getObjectTypeClass(candidateOwnerRef.getTargetType());
+            } else {
+                type = correlationContext.getFocusType();
             }
-            return false;
+            try {
+                //noinspection unchecked
+                return beans.cacheRepositoryService
+                        .getObject((Class<F>) type, candidateOwnerRef.getOid(), null, result)
+                        .asObjectable();
+            } catch (Exception e) {
+                MiscUtil.throwAsSame(e, "Couldn't resolve OID returned by correlation expression: " + e.getMessage());
+                throw e; // to make compiler happy
+            }
         }
 
         @NotNull

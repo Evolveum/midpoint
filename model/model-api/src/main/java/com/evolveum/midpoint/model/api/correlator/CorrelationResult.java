@@ -9,7 +9,8 @@ package com.evolveum.midpoint.model.api.correlator;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,17 +28,17 @@ public class CorrelationResult implements Serializable, DebugDumpable {
     @NotNull private final Status status;
 
     /**
-     * Reference to the correlated owner. Non-null if and only if {@link #status} is {@link Status#EXISTING_OWNER}.
+     * The correlated owner. Non-null if and only if {@link #status} is {@link Status#EXISTING_OWNER}.
      */
-    @Nullable private final ObjectReferenceType ownerRef;
+    @Nullable private final ObjectType owner;
 
-    private CorrelationResult(@NotNull Status status, @Nullable ObjectReferenceType ownerRef) {
+    private CorrelationResult(@NotNull Status status, @Nullable ObjectType owner) {
         this.status = status;
-        this.ownerRef = ownerRef;
+        this.owner = owner;
     }
 
-    public static CorrelationResult existingOwner(@NotNull ObjectReferenceType ownerRef) {
-        return new CorrelationResult(Status.EXISTING_OWNER, ownerRef);
+    public static CorrelationResult existingOwner(@NotNull ObjectType owner) {
+        return new CorrelationResult(Status.EXISTING_OWNER, owner);
     }
 
     public static CorrelationResult noOwner() {
@@ -52,17 +53,17 @@ public class CorrelationResult implements Serializable, DebugDumpable {
         return status;
     }
 
-    public @Nullable ObjectReferenceType getOwnerRef() {
-        return ownerRef;
+    public @Nullable ObjectType getOwner() {
+        return owner;
     }
 
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabel(sb, "status", status, indent + 1);
-        if (ownerRef != null) {
+        if (owner != null) {
             sb.append("\n");
-            DebugUtil.debugDumpWithLabel(sb, "ownerRef", String.valueOf(ownerRef), indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, "owner", String.valueOf(owner), indent + 1);
         }
         return sb.toString();
     }

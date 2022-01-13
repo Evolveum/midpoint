@@ -17,23 +17,16 @@
                 // we (mis)use the "employeeNumber" attribute to hold owner OID
                 def test = basic.getAttributeValue(projection, 'employeeNumber')
                 log.info('test = {}', test)
+                def oids
                 if (test == null || test.isEmpty()) {
-                    null
+                    oids = []
                 } else if (test == '*') {
-                    [
-                            // two different objects
-                            new UserType(prismContext)
-                                    .oid('0025b4fd-e4d5-4055-8e65-6eb9a6c56fb2')
-                                    .name('any'), // just to avoid empty values
-                            new UserType()
-                                    .oid('00000000-0000-0000-0000-000000000002')
-                                    .name('any') // just to avoid empty values
-                    ]
+                    // just any two different objects
+                    oids = [ '0025b4fd-e4d5-4055-8e65-6eb9a6c56fb2', '00000000-0000-0000-0000-000000000002' ]
                 } else {
-                    new UserType()
-                            .oid(test)
-                            .name('any') // just to avoid empty values
+                    oids = [ test ]
                 }
+                oids.collect { midpoint.getUserByOid(it) }
             </code>
         </script>
     </owner>

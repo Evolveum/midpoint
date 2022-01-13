@@ -254,7 +254,7 @@ public class ModelObjectResolver implements ObjectResolver {
             if (orgRefValue != null) {
 
                 try {
-                    PrismObject<OrgType> org = resolve(orgRefValue, "resolving parent org ref", null, null, result);
+                    PrismObject<OrgType> org = resolve(orgRefValue, "resolving parent org ref", null, task, result);
                     orgs.add(org);
                     ObjectReferenceType ref = function.apply(org);
 
@@ -315,7 +315,7 @@ public class ModelObjectResolver implements ObjectResolver {
             if (orgRefValue != null) {
 
                 try {
-                    PrismObject<OrgType> org = resolve(orgRefValue, "resolving parent org ref", null, null, result);
+                    PrismObject<OrgType> org = resolve(orgRefValue, "resolving parent org ref", null, task, result);
                     orgs.add(org);
                     R val = function.apply(org);
 
