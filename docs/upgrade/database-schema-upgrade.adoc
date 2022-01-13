@@ -148,7 +148,7 @@ Strictly speaking, the _version_ term above refers to the _database schema versi
 These are the same for the majority of cases.
 A notable exception is midPoint 4.1 that uses database schema version 4.0.
 So, in that particular case, upgrade scripts are named like `postgresql-upgrade-4.0-4.2.sql`.
-See xref:/midpoint/reference/repository/database-schema-versioning/[Database schema versioning] for more information.
+See xref:/midpoint/reference/repository/generic/database-schema-versioning/[Database schema versioning] for more information.
 ====
 
 == See Also
@@ -157,4 +157,4 @@ See xref:/midpoint/reference/repository/database-schema-versioning/[Database sch
 
 * xref:/midpoint/reference/upgrade/upgrade-guide/[Upgrade HOWTO]
 
-* xref:/midpoint/reference/repository/database-schema-versioning/[Database schema versioning]
+* xref:/midpoint/reference/repository/generic/database-schema-versioning/[Database schema versioning] (Generic repository)

@@ -93,6 +93,18 @@ Attempt to create or delet any object on the resource would fail with an error.
 </capabilities>
 ----
 
+Keep in mind the capabilities section works as override. For example if you explicitly override udpate and set enabled to true, you are explicitly setting the capability to read/replace mode. In case you would like to enable advanced logic for delta or addRemoveAttributeValues you have to set them explicitly to true. 
+
+[source,xml]
+----
+<configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+    <cap:update>
+      <cap:enabled>true</cap:enabled>
+      <cap:delta>true</cap:delta>
+      <cap:addRemoveAttributeValues>true</cap:addRemoveAttributeValues>
+    </cap:update>
+</configured>    
+----
 
 == Another example: Precise token value in Live synchronization
 
@@ -102,7 +114,7 @@ Attempt to create or delet any object on the resource would fail with an error.
 
 As another example let's consider `preciseTokenValue` property in `cap:liveSync`  capability:
 
-[source]
+[source,xml]
 ----
 <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
     <configured>

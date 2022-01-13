@@ -17,7 +17,7 @@ However, this is not acceptable for `searchObjects` performance see note there.
 These IDs are unique inside a single object and assigned loosely sequentially.
 For this `m_object.cid_seq` is stored in the database and it contains the next available CID.
 IDs are assigned only to multi-valued containers, e.g. object's metadata does not need any CID.
-* _Repository allows for searching for objects and selected containers with reasonable performance._
+* _Repository allows searching for objects and selected containers with reasonable performance._
 This is why objects stored as documents (`fullObject`) is not enough.
 Various types are stored in specific sub-tables instead with values extracted to separate columns.
 There are other related tables, typically for containers and other multi-value properties.
