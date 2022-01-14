@@ -93,10 +93,14 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 editRawPerformed(ajaxRequestTarget);
             }
         };
-        edit.add(new VisibleBehaviour(this::isEditingObject));
+        edit.add(new VisibleBehaviour(this::isEditRawButtonVisible));
         edit.showTitleAsLabel(true);
         edit.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         repeatingView.add(edit);
+    }
+
+    protected boolean isEditRawButtonVisible() {
+        return isEditingObject();
     }
 
     private void createBackButton(RepeatingView repeatingView) {
