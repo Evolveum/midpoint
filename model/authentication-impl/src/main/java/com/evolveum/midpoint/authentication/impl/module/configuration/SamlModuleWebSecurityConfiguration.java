@@ -94,7 +94,7 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
                 });
             } else {
                 Saml2ProviderAuthenticationModuleType providerType = serviceProviderType.getIdentityProvider();
-                RelyingPartyRegistration.Builder registrationBuilder = getRelyingPartyFromMetadata(providerType.getMetadata());
+                RelyingPartyRegistration.Builder registrationBuilder = getRelyingPartyFromMetadata(providerType.getMetadata(), providerType);
                 SamlAdditionalConfiguration.Builder additionalConfigBuilder = SamlAdditionalConfiguration.builder();
                 createRelyingPartyRegistration(registrationBuilder,
                         additionalConfigBuilder,
@@ -144,8 +144,7 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
                 .assertionConsumerServiceLocation(ssoBuilder.build().toUriString())
                 .singleLogoutServiceLocation(logoutBuilder.build().toUriString())
                 .assertingPartyDetails(party -> {
-                    party.entityId(providerType.getEntityId())
-                            .singleSignOnServiceBinding(Saml2MessageBinding.from(providerType.getAuthenticationRequestBinding()));
+                    party.entityId(providerType.getEntityId());
                     if (serviceProviderType.isSignRequests() != null) {
                         party.wantAuthnRequestsSigned(Boolean.TRUE.equals(serviceProviderType.isSignRequests()));
                     }
@@ -212,7 +211,7 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
         }
     }
 
-    private static RelyingPartyRegistration.Builder getRelyingPartyFromMetadata(Saml2ProviderMetadataAuthenticationModuleType metadata) {
+    private static RelyingPartyRegistration.Builder getRelyingPartyFromMetadata(Saml2ProviderMetadataAuthenticationModuleType metadata, Saml2ProviderAuthenticationModuleType providerConfig) {
         RelyingPartyRegistration.Builder builder = RelyingPartyRegistration.withRegistrationId("builder");
         if (metadata != null) {
             if (metadata.getXml() != null || metadata.getPathToFile() != null) {
@@ -223,12 +222,12 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
                     LOGGER.error("Couldn't obtain metadata as string from " + metadata);
                 }
                 if (StringUtils.isNotEmpty(metadataAsString)) {
-                    builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(new ByteArrayInputStream(metadataAsString.getBytes()));
+                    builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(new ByteArrayInputStream(metadataAsString.getBytes()), providerConfig);
                 }
             }
             if (metadata.getMetadataUrl() != null) {
                 try (InputStream source = RESOURCE_LOADER.getResource(metadata.getMetadataUrl()).getInputStream()) {
-                    builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(source);
+                    builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(source, providerConfig);
                 } catch (IOException ex) {
                     if (ex.getCause() instanceof Saml2Exception) {
                         throw (Saml2Exception) ex.getCause();
