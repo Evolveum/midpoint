@@ -345,6 +345,10 @@ public class ObjectTypeUtil {
         return createObjectRefWithFullObject(object, PrismContext.get());
     }
 
+    public static <T extends ObjectType> ObjectReferenceType createObjectRefWithFullObject(T object) {
+        return createObjectRefWithFullObject(object, PrismContext.get());
+    }
+
     public static <T extends ObjectType> ObjectReferenceType createObjectRefWithFullObject(PrismObject<T> object,
             PrismContext prismContext) {
         if (object == null) {

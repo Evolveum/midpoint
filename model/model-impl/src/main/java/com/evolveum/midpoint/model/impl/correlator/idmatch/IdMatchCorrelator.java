@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.api.correlator.idmatch.PotentialMatch;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -24,9 +25,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
 import java.util.Collection;
 
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+import static com.evolveum.midpoint.util.QNameUtil.qNameToUri;
 
 /**
  * A correlator based on an external service providing ID Match API.
@@ -149,9 +152,12 @@ class IdMatchCorrelator implements Correlator {
     }
 
     private IdMatchCorrelationPotentialMatchType createPotentialMatchBean(PotentialMatch potentialMatch) {
+        String id = potentialMatch.getReferenceId();
         return new IdMatchCorrelationPotentialMatchType(PrismContext.get())
+                .uri(qNameToUri(
+                        new QName(SchemaConstants.CORRELATION_NS, SchemaConstants.CORRELATION_OPTION_PREFIX + id)))
                 .confidence(potentialMatch.getConfidence())
-                .referenceId(potentialMatch.getReferenceId())
+                .referenceId(id)
                 .attributes(potentialMatch.getAttributes());
     }
 }

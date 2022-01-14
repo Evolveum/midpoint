@@ -16,9 +16,10 @@ import java.io.IOException;
 
 import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
@@ -30,9 +31,6 @@ import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Here we test the correlation that uses an ID Match implementation (real or dummy one).
@@ -56,8 +54,8 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
     /** This is the initialized object (retrieved from the repo). */
     private ResourceType resourceAis;
 
-    private PrismObject<UserType> ian;
-    private PrismObject<UserType> mary;
+    private UserType ian;
+    private UserType mary;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -79,7 +77,6 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
     @Test
     public void test100ImportNoAmbiguities() throws CommonException, IOException {
         given();
-        Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
         RESOURCE_AIS.appendLine("1,Ian,Smith,2004-02-06,0402061328,ian@evolveum.com");
@@ -133,7 +130,6 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
     @Test
     public void test110ImportIanSlightlyModified() throws CommonException, IOException {
         given();
-        Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
         // A slight change in the given name. ID Match should automatically assign the same ID.
@@ -176,12 +172,13 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
     }
 
     /**
-     * Manually resolved ambiguity - same person.
+     * Manually resolvable (single) ambiguity - will be resolved to the same person.
+     *
+     * A case should be created.
      */
     @Test
-    public void test120ImportIanAmbiguousSame() throws CommonException, IOException {
+    public void test120ImportIanSingleAmbiguity() throws CommonException, IOException {
         given();
-        Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
         // National ID without the last four digits. The algorithm should stop and ask the operator.
@@ -203,7 +200,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                     .end()
                     .synchronizationStatistics()
                         .display()
-                        // tree existing accounts (Ian, Mary, Jan)
+                        // three existing accounts (Ian, Mary, Jan)
                         .assertTransition(LINKED, LINKED, LINKED, null, 3, 0, 0)
                         // newly added account
                         .assertTransition(null, DISPUTED, DISPUTED, null, 1, 0, 0)
@@ -231,7 +228,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                 .assertMatchReferenceId(null) // not matched yet
                 .assertMatchRequestId("0");
 
-        CaseType correlationCase = correlationCaseManager.findCorrelationCase(newShadow.asObjectable(), result);
+        CaseType correlationCase = correlationCaseManager.findCorrelationCase(newShadow.asObjectable(), false, result);
         assertThat(correlationCase).as("case").isNotNull();
 
         // @formatter:off
@@ -243,7 +240,165 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         // @formatter:on
     }
 
-    private @NotNull PrismObject<UserType> findUserByEmail(@NotNull String email) throws SchemaException {
+    /**
+     * Resolve the case created in the previous test. (By confirming it is the same person.)
+     *
+     * Currently the confirmation is done "externally", not via case management. TODO fix this.
+     */
+    @Test
+    public void test130ResolveAmbiguityAsExisting() throws CommonException {
+        given();
+        OperationResult result = getTestOperationResult();
+
+        ShadowType newShadow = findShadowByPrismName("4", resourceAis.asPrismObject(), result).asObjectable();
+        String matchRequestId = ((IdMatchCorrelationStateType) newShadow.getCorrelationState()).getMatchRequestId();
+
+        when();
+        resolve(newShadow.getAttributes(), matchRequestId, ian.getName().getOrig(), result);
+
+        then();
+        assertSuccess(result);
+    }
+
+    /**
+     * Reimport manually resolved ambiguity introduced in previous tests.
+     *
+     * Import should succeed and the case should be updated.
+     */
+    @Test
+    public void test140ReimportIanSingleAmbiguity() throws CommonException {
+        given();
+        OperationResult result = getTestOperationResult();
+
+        when();
+        TASK_IMPORT_AIS.rerun(result);
+
+        then();
+        // @formatter:off
+        TASK_IMPORT_AIS.assertAfter()
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .rootActivityState()
+                    .display()
+                    .progress()
+                        .assertCommitted(4, 0, 0)
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
+                        // three imported accounts (Ian, Mary, Jan)
+                        .assertTransition(LINKED, LINKED, LINKED, null, 3, 0, 0)
+                        // newly resolved account
+                        .assertTransition(DISPUTED, UNLINKED, LINKED, null, 1, 0, 0)
+                        .assertTransitions(2)
+                    .end();
+        // @formatter:on
+
+        assertUser(findUserByEmail("ian@evolveum.com"), "Ian after")
+                .display()
+                .assertName(ian.getName().getOrig()) // unchanged
+                .assertGivenName("Ian") // updated from 4
+                .assertEmployeeNumber("4"); // updated from 4
+
+        assertUser(findUserByEmail("mary@evolveum.com"), "Mary after")
+                .display()
+                .assertName(mary.getName().getOrig()) // unchanged
+                .assertGivenName("Mary") // unchanged
+                .assertEmployeeNumber("2"); // unchanged
+
+        PrismObject<ShadowType> newShadow = findShadowByPrismName("4", resourceAis.asPrismObject(), result);
+
+        assertShadow(newShadow, "after")
+                .display()
+                .assertSynchronizationSituation(LINKED)
+                .assertMatchReferenceId(ian.getName().getOrig());
+                // match request ID may or may not be there
+
+        CaseType correlationCase = correlationCaseManager.findCorrelationCase(newShadow.asObjectable(), false, result);
+        assertThat(correlationCase).as("case").isNotNull();
+
+        // @formatter:off
+        assertCase(correlationCase, "correlation case")
+                .display()
+                .assertClosed()
+                .workItems()
+                    .assertWorkItems(1);
+        // @formatter:on
+    }
+
+    /**
+     * Manually resolvable ambiguity (two options) - will be resolved to existing person.
+     *
+     * A new (different) case should be created.
+     */
+    @Test
+    public void test150ImportIanTwoOptions() throws CommonException, IOException {
+        given();
+        OperationResult result = getTestOperationResult();
+
+        // National ID without the last four digits. The algorithm should stop and ask the operator.
+        RESOURCE_AIS.appendLine("5,Ian,Smith,2004-02-06,0402060000,ian@evolveum.com");
+
+        when();
+        TASK_IMPORT_AIS.rerun(result);
+
+        then();
+        // @formatter:off
+        TASK_IMPORT_AIS.assertAfter()
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .rootActivityState()
+                    .display()
+                    .progress()
+                        .assertCommitted(5, 0, 0)
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
+                        // four existing accounts (1-4)
+                        .assertTransition(LINKED, LINKED, LINKED, null, 4, 0, 0)
+                        // newly added account
+                        .assertTransition(null, DISPUTED, DISPUTED, null, 1, 0, 0)
+                        .assertTransitions(2)
+                    .end();
+        // @formatter:on
+
+        assertUser(findUserByEmail("ian@evolveum.com"), "Ian after")
+                .display()
+                .assertName(ian.getName().getOrig()) // unchanged
+                .assertGivenName("Ian") // unchanged
+                .assertEmployeeNumber("4"); // unchanged
+
+        assertUser(findUserByEmail("mary@evolveum.com"), "Mary after")
+                .display()
+                .assertName(mary.getName().getOrig()) // unchanged
+                .assertGivenName("Mary") // unchanged
+                .assertEmployeeNumber("2"); // unchanged
+
+        PrismObject<ShadowType> newShadow = findShadowByPrismName("5", resourceAis.asPrismObject(), result);
+
+        assertShadow(newShadow, "after")
+                .display()
+                .assertSynchronizationSituation(DISPUTED)
+                .assertMatchReferenceId(null) // not matched yet
+                .assertMatchRequestId("1");
+
+        CaseType correlationCase = correlationCaseManager.findCorrelationCase(newShadow.asObjectable(), true, result);
+        assertThat(correlationCase).as("case").isNotNull();
+
+        // @formatter:off
+        assertCase(correlationCase, "correlation case")
+                .display()
+                .assertOpen()
+                .workItems()
+                    .assertWorkItems(1);
+        // @formatter:on
+
+        var xml = prismContext.xmlSerializer().serialize(correlationCase.asPrismObject());
+        displayValue("Case XML", xml);
+    }
+
+    private @NotNull UserType findUserByEmail(@NotNull String email) throws SchemaException {
         return MiscUtil.extractSingletonRequired(
                 repositoryService.searchObjects(
                         UserType.class,
@@ -253,6 +408,13 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                         null,
                         getTestOperationResult()),
                 () -> new AssertionError("Multiple users with email: " + email),
-                () -> new AssertionError("No user with email: " + email));
+                () -> new AssertionError("No user with email: " + email))
+                .asObjectable();
     }
+
+    protected abstract void resolve(
+            @NotNull ShadowAttributesType attributes,
+            @Nullable String matchRequestId,
+            @Nullable String referenceId,
+            @NotNull OperationResult result);
 }

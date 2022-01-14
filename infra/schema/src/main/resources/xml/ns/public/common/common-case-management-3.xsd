@@ -1381,6 +1381,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="uri" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        URI used to reference this option in the work item outcome.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="confidence" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

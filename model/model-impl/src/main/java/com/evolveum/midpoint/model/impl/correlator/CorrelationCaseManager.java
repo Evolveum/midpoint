@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import org.jetbrains.annotations.NotNull;
@@ -57,7 +58,7 @@ public class CorrelationCaseManager {
             @NotNull OperationResult result)
             throws SchemaException {
         checkOid(resourceObject);
-        CaseType aCase = findCorrelationCase(resourceObject, result);
+        CaseType aCase = findCorrelationCase(resourceObject, true, result);
         if (aCase == null) {
             createCase(resourceObject, correlatorSpecificContext, result);
         } else {
@@ -74,8 +75,8 @@ public class CorrelationCaseManager {
             throws SchemaException {
         String assigneeOid = SystemObjectsType.USER_ADMINISTRATOR.value(); // temporary
         CaseType newCase = new CaseType(prismContext)
-                .name("Correlate " + resourceObject.getName())
-                .objectRef(ObjectTypeUtil.createObjectRef(resourceObject))
+                .name(getCaseName(resourceObject))
+                .objectRef(ObjectTypeUtil.createObjectRefWithFullObject(resourceObject))
                 .archetypeRef(createArchetypeRef())
                 .assignment(new AssignmentType(prismContext)
                         .targetRef(createArchetypeRef()))
@@ -83,12 +84,38 @@ public class CorrelationCaseManager {
                         .correlatorPart(correlatorSpecificContext))
                 .state(SchemaConstants.CASE_STATE_OPEN)
                 .workItem(new CaseWorkItemType(PrismContext.get())
+                        .name(getWorkItemName(resourceObject))
                         .assigneeRef(assigneeOid, UserType.COMPLEX_TYPE));
         try {
             repositoryService.addObject(newCase.asPrismObject(), null, result);
         } catch (ObjectAlreadyExistsException e) {
             throw new SystemException("Unexpected exception: " + e.getMessage(), e);
         }
+    }
+
+    // Temporary implementation
+    private String getCaseName(ShadowType resourceObject) {
+        return "Correlation of " + getKindLabel(resourceObject) + " '" + resourceObject.getName() + "'";
+    }
+
+    // Temporary implementation
+    private String getKindLabel(ShadowType resourceObject) {
+        ShadowKindType kind = resourceObject.getKind();
+        if (kind == null) {
+            return "object";
+        } else switch (kind) {
+            case ACCOUNT:
+                return "account";
+            case ENTITLEMENT:
+                return "entitlement";
+            case GENERIC:
+            default:
+                return "object";
+        }
+    }
+
+    private String getWorkItemName(ShadowType resourceObject) {
+        return "Correlate " + getKindLabel(resourceObject) + " '" + resourceObject.getName() + "'";
     }
 
     private ObjectReferenceType createArchetypeRef() {
@@ -121,13 +148,18 @@ public class CorrelationCaseManager {
         }
     }
 
-    public @Nullable CaseType findCorrelationCase(ShadowType resourceObject, OperationResult result) throws SchemaException {
+    // TODO fix this method
+    public @Nullable CaseType findCorrelationCase(ShadowType resourceObject, boolean mustBeOpen, OperationResult result)
+            throws SchemaException {
         checkOid(resourceObject);
         LOGGER.trace("Looking for correlation case for {}", resourceObject);
-        ObjectQuery query = prismContext.queryFor(CaseType.class)
+        S_AtomicFilterExit q = prismContext.queryFor(CaseType.class)
                 .item(CaseType.F_OBJECT_REF).ref(resourceObject.getOid())
-                .and().item(CaseType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value())
-                .build();
+                .and().item(CaseType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value());
+        if (mustBeOpen) {
+            q = q.and().item(CaseType.F_STATE).eq(SchemaConstants.CASE_STATE_OPEN); // what about namespaces?
+        }
+        ObjectQuery query = q.build();
         List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
         LOGGER.trace("Found cases:\n{}", DebugUtil.debugDumpLazily(cases));
         if (cases.size() > 1) {
@@ -151,7 +183,7 @@ public class CorrelationCaseManager {
             @NotNull ShadowType resourceObject,
             @NotNull OperationResult result) throws SchemaException {
         checkOid(resourceObject);
-        CaseType aCase = findCorrelationCase(resourceObject, result);
+        CaseType aCase = findCorrelationCase(resourceObject, true, result);
         if (aCase != null) {
             LOGGER.debug("Marking correlation case as closed: {}", aCase);
             List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(CaseType.class)

@@ -5797,6 +5797,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return asserter;
     }
 
+    protected UserAsserter<Void> assertUser(UserType user, String message) {
+        return assertUser(user.asPrismObject(), message);
+    }
+
     protected UserAsserter<Void> assertUser(PrismObject<UserType> user, String message) {
         UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
         initializeAsserter(asserter);
