@@ -8,8 +8,61 @@
 :page-upkeep-status: orange
 :page-toc: top
 
+== Motivation
 
-== Relativity
+Mapping inputs are provided by sources and variables, which both are represented as regular variables in mapping expressions.
+Every programmer knows what a variable is.
+However, variables are usually too simple to handle the xref:/midpoint/reference/concepts/relativity/[relative change model] used in midPoint.
+In midPoint we do not just need to know that user property `organization` has a values `foo` and `bar`. What we need to know is that before the operation there was a value of `foo`.
+Even more important is to know the currently processed operation is adding the value of `bar`.
+Why do we need that?
+There are two reasons:
+
+Firstly, the variables may be multi-value and in that case we want to transform each value individually.
+E.g. these values may be translated to group names by prefixing them with a fixed strings.
+We do not want the expression to implement loops that iterate over all the values.
+However, MidPoint knows its schema, it can do the necessary processing.
+MidPoint knows that the property is multi-value, and it can implement the iteration once and for all.
+It can even implement it more reliably than the average programmer by checking for null values and empty strings and so on.
+
+Secondly, there are no transactions in identity management, and use of hard data locking in integration scenarios makes more problems than it solves.
+MidPoint is not relying on any of these mechanisms when interacting with identity resources.
+Which means midPoint needs to be very careful with data values.
+This is easy to do for single-value properties.
+These properties can have at most one value, so whoever comes later overwrites the previous state.
+This is usually the expected behavior.
+But it is a completely different story for multi-value properties.
+We usually do *not* want to overwrite all the values of a multi-value property.
+What we usually do is adding and removing individual values.
+E.g. adding user to a project, removing from a specific group and so on.
+So, if we are adding user to organization `bar`, we want to process that single value, transform it to `org-bar` and use that as a name of the group.
+Then we want to add user's account to the `org-bar` group.
+But we do not want to disturb other groups that the account may already be a member of.
+The account is also a member of group `org-foo`, but it may also be in the group `project-titanic` and  `adhoc-fight-club`.
+Maybe the `project-titanic` group is also managed by midPoint.
+However, the value may come from a very different mapping, and we will need to merge the results of the two expressions when midPoint determines the final value.
+The other expression may be evaluated at all, if no sources of the mapping were changed.
+Therefore, we need a way to evaluate each mapping individually.
+Then there is the `adhoc-fight-club` group, which is not managed by midPoint at all (remember the first rule of the Fight Club?).
+Therefore, if we just compile the list of groups in midPoint and then overwrite the entire list with a set of new values, the `adhoc-fight-club` value would disappear.
+I guess this wouldn't go well with the Fight Club members.
+Therefore, midPoint needs to know which individual values were changed and how they were transformed, so it can compile the final xref:/midpoint/devel/prism/concepts/deltas/[delta], which can be merged with other deltas produced by other expressions.
+Resulting deltas describe value that were added and removed.
+When such deltas are applied, the changes will not destroy the existing state of the target system.
+
+Therefore, midPoint has a concept of _mapping source_, which is like a very smart change-sensitive variable.
+The source will usually be presented as a simple single-value variable in the expressions.
+Even though the underlying property is multi-value, and it has been changed in a very strange way, the expression will process only a single value each time it is evaluated.
+MidPoint will do all the complex stuff in the background, processing expression inputs and outputs as necessary.
+MidPoint will feed the correct values to the expression.
+MidPoint will execute the expression as many times as necessary.
+MidPoint will keep track which values are added and which are removed so the expression code does not need to care.
+The expression will simply transform each value.
+MidPoint will do all the other complex stuff.
+This is the functionality of midPoint xref:/midpoint/reference/expressions/mappings/[mappings].
+
+
+== Relativity Mechanism
 
 MidPoint mappings are designed to work correctly with the xref:/midpoint/reference/concepts/relativity/[relative change model] that is a fundamental principle of midPoint operation.
 Simply speaking the mapping does not just maps the source values to the target values.
@@ -17,9 +70,57 @@ It also maps the corresponding deltas.
 
 TODO: better explanation:
 
+// TODO: picture
+
 * Picture how a delta is translated through mapping
 
 * correct support for multi-value properties
+
+
+
+
+// TODO
+
+== Mapping Source
+
+Mapping source is the fundamental part in mapping relativity mechanism.
+Change of mapping source values triggers evaluation of the mapping.
+Moreover, the changes of mapping source dictate how many times will be the mapping expression evaluated, and how the evaluation results will be handled.
+
+// TODO
+
+The source can be defined by the mapping by simply specifying the path of the item which the source should represent:
+
+[source,xml]
+----
+<outbound>
+    <source>
+        <path>$focus/organization</path>
+    </source>
+    ...
+----
+
+If the source is specified like this, then it can be used inside an expression just as a simple variable.
+Like this:
+
+[source,xml]
+----
+    ...
+    <expression>
+        <script>
+            <code>
+                'org-' + organization
+            </code>
+        </script>
+    </expression>
+    ...
+----
+
+MidPoint will take care that the variable `organization` will be filled with appropriate value, the the expression will be executed as many times as needed and that the result of the expression will be interpreted in a proper way to maintain the relative change model.
+All that the mapping definition needs is proper definition of sources and an expression to transform a single value.
+
+// TODO: mapping reacts to changes in source values
+
 
 == Scripting Expressions in Mappings
 
