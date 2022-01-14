@@ -141,10 +141,11 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
 
     private GuiFlexibleLabelType mergeSummaryPanelFlexibleLabel(GuiFlexibleLabelType defaultSummaryPanelIdentifier, GuiFlexibleLabelType compiledSummaryPanelIdentifier) {
         if (compiledSummaryPanelIdentifier == null) {
-            return defaultSummaryPanelIdentifier.cloneWithoutId();
+            return defaultSummaryPanelIdentifier != null ? defaultSummaryPanelIdentifier.cloneWithoutId() : null;
         }
 
-        GuiFlexibleLabelType mergedFlexibleLabel = defaultSummaryPanelIdentifier.cloneWithoutId();
+        GuiFlexibleLabelType mergedFlexibleLabel = defaultSummaryPanelIdentifier != null ?
+                defaultSummaryPanelIdentifier.cloneWithoutId() : new GuiFlexibleLabelType();
         if (compiledSummaryPanelIdentifier.getVisibility() != null) {
             mergedFlexibleLabel.setVisibility(compiledSummaryPanelIdentifier.getVisibility());
         }
