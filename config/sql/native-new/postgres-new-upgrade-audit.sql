@@ -77,8 +77,8 @@ BEGIN
 
     END loop;
 END $$;
-$aac$, false);
+$aac$);
 
 -- WRITE CHANGES ABOVE ^^
--- IMPORTANT: update apply_audit_change number at the end of postgres-new-upgrade-audit.sql
+-- IMPORTANT: update apply_audit_change number at the end of postgres-new-audit.sql
 -- to match the number used in the last change here!

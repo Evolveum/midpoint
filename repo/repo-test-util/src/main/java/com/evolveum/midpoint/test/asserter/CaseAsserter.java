@@ -168,6 +168,10 @@ public class CaseAsserter<RA> extends PrismObjectAsserter<CaseType,RA> {
         return assertState(SchemaConstants.CASE_STATE_CLOSED_QNAME);
     }
 
+    public CaseAsserter<RA> assertOpen() {
+        return assertState(SchemaConstants.CASE_STATE_OPEN_QNAME);
+    }
+
     private CaseAsserter<RA> assertState(QName expected) {
         MidPointAsserts.assertUriMatches(getObjectable().getState(), "state", expected);
         return this;

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.sync;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -92,8 +94,17 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     /** Situation determined by the sorter or the synchronization service. */
     private SynchronizationSituationType situation;
 
+    /**
+     * Correlation context - in case the correlation was run.
+     * For some correlators it contains the correlation state (to be stored in the shadow).
+     */
+    private CorrelationContext correlationContext;
+
     private String intent;
     private String tag;
+
+    /** Definition of corresponding object type (currently found by kind+intent). Lazily evaluated. TODO reconsider. */
+    private ResourceObjectTypeDefinition objectTypeDefinition;
 
     private boolean reactionEvaluated = false;
     private SynchronizationReactionType reaction;
@@ -158,6 +169,23 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return intent;
     }
 
+    public CorrelationContext getCorrelationContext() {
+        return correlationContext;
+    }
+
+    public void setCorrelationContext(CorrelationContext correlationContext) {
+        this.correlationContext = correlationContext;
+    }
+
+    // TODO reconsider
+    public @NotNull ResourceObjectTypeDefinition getObjectTypeDefinition() throws SchemaException, ConfigurationException {
+        if (objectTypeDefinition == null) {
+            objectTypeDefinition = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable())
+                    .findObjectTypeDefinitionRequired(getKind(), getIntent());
+        }
+        return objectTypeDefinition;
+    }
+
     public String getTag() {
         return tag;
     }
@@ -172,6 +200,26 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     public ExpressionType getConfirmation() {
         return objectSynchronization.getConfirmation();
+    }
+
+    // TODO reconsider cloning here
+    public @NotNull CorrelatorsType getCorrelators() {
+        if (objectSynchronization.getCorrelators() != null) {
+            return objectSynchronization.getCorrelators().clone();
+        } else if (objectSynchronization.getCorrelation().isEmpty()) {
+            LOGGER.debug("No correlation information present. Will always find no owner. In: {}", this);
+            return new CorrelatorsType(PrismContext.get())
+                    .beginNone().end();
+        } else {
+            CorrelatorsType correlators =
+                    new CorrelatorsType(PrismContext.get())
+                            .beginFilter()
+                            .confirmation(CloneUtil.clone(objectSynchronization.getConfirmation()))
+                            .end();
+            correlators.getFilter().get(0).getFilter().addAll(
+                    CloneUtil.cloneCollectionMembers(objectSynchronization.getCorrelation()));
+            return correlators;
+        }
     }
 
     public ObjectReferenceType getObjectTemplateRef() {

@@ -1448,7 +1448,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected ObjectQuery createShadowQuerySecondaryIdentifier(
             ResourceObjectDefinition rAccount, String identifier, PrismObject<ResourceType> resource) {
         Collection<? extends ResourceAttributeDefinition<?>> identifierDefs = rAccount.getSecondaryIdentifiers();
-        assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
+        assert identifierDefs.size() == 1 : "Unexpected secondary identifier set in " + resource + " refined schema: " + identifierDefs;
         ResourceAttributeDefinition<?> identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
         return prismContext.queryFor(ShadowType.class)

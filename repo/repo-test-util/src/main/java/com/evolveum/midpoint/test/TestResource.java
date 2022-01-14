@@ -50,6 +50,10 @@ public class TestResource<T extends ObjectType> {
         return object.asObjectable();
     }
 
+    public PrismObject<T> getObject() {
+        return object;
+    }
+
     public Class<T> getObjectClass() {
         return object.getCompileTimeClass();
     }

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import javax.xml.namespace.QName;
@@ -15,8 +16,14 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 @SuppressWarnings("UnusedReturnValue")
 public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
@@ -317,5 +324,29 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
     public ShadowAsserter<RA> assertNoTrigger() {
         super.assertNoTrigger();
         return this;
+    }
+
+    public ShadowAsserter<RA> assertMatchReferenceId(String id) throws SchemaException {
+        assertThat(getIdMatchCorrelationStateRequired().getReferenceId())
+                .as("referenceId")
+                .isEqualTo(id);
+        return this;
+    }
+
+    public ShadowAsserter<RA> assertMatchRequestId(String id) throws SchemaException {
+        assertThat(getIdMatchCorrelationStateRequired().getMatchRequestId())
+                .as("matchRequestId")
+                .isEqualTo(id);
+        return this;
+    }
+
+    private @NotNull AbstractCorrelationStateType getCorrelationStateRequired() {
+        return Objects.requireNonNull(
+                getObjectable().getCorrelationState(), () -> "No correlation state in " + desc());
+    }
+
+    private @NotNull IdMatchCorrelationStateType getIdMatchCorrelationStateRequired() throws SchemaException {
+        return MiscUtil.castSafely(
+                getCorrelationStateRequired(), IdMatchCorrelationStateType.class);
     }
 }
