@@ -284,10 +284,10 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
 
 
     public void reset() {
-//        prismObjectModel.reset();
+        prismObjectModel.detach();
         objectWrapperModel.reset();
-//        detailsPageConfigurationModel.reset();
-//        summaryModel.reset();
+        detailsPageConfigurationModel.reset();
+        summaryModel.detach();
     }
 
     protected ModelServiceLocator getModelServiceLocator() {

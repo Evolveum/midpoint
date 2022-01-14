@@ -248,7 +248,6 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
 
             @Override
             protected void onPostProcessTarget(AjaxRequestTarget target) {
-                refreshEnabled = null;
                 refresh(target);
             }
 
@@ -472,7 +471,6 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         repeatingView.add(resumePauseRefreshing);
     }
 
-    //TODO abstract
     protected boolean isRefreshEnabled() {
         if (refreshEnabled == null) {
             return WebComponentUtil.isRunningTask(getObjectType());
