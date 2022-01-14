@@ -98,6 +98,10 @@ public class ObjectQueryUtil {
         return prismContext.queryFactory().createQuery(createResourceAndObjectClassFilter(resourceOid, objectClass, prismContext));
     }
 
+    public static @NotNull ObjectQuery createResourceAndObjectClassQuery(String resourceOid, QName objectClass) {
+        return createResourceAndObjectClassQuery(resourceOid, objectClass, PrismContext.get());
+    }
+
     public static ObjectFilter createResourceAndObjectClassFilter(String resourceOid, QName objectClass, PrismContext prismContext) {
         Validate.notNull(resourceOid, "Resource where to search must not be null.");
         Validate.notNull(objectClass, "Object class to search must not be null.");

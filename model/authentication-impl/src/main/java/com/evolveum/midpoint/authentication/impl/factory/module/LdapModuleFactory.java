@@ -24,13 +24,11 @@ import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManage
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
-import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Component;
 
@@ -63,7 +61,7 @@ public class LdapModuleFactory extends AbstractModuleFactory {
     }
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence,
+    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix,
             ServletRequest request, Map<Class<?>, Object> sharedObjects,
             AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
 
@@ -74,8 +72,8 @@ public class LdapModuleFactory extends AbstractModuleFactory {
 
         isSupportedChannel(authenticationChannel);
 
-        LdapModuleWebSecurityConfiguration configuration = LdapModuleWebSecurityConfiguration.build(moduleType, prefixOfSequence);
-        configuration.setPrefixOfSequence(prefixOfSequence);
+        LdapModuleWebSecurityConfiguration configuration = LdapModuleWebSecurityConfiguration.build(moduleType, sequenceSuffix);
+        configuration.setSequenceSuffix(sequenceSuffix);
 
         configuration.addAuthenticationProvider(getProvider((LdapAuthenticationModuleType)moduleType));
 
@@ -128,7 +126,7 @@ public class LdapModuleFactory extends AbstractModuleFactory {
     protected ModuleAuthenticationImpl createEmptyModuleAuthentication(LdapAuthenticationModuleType moduleType,
                                                                    ModuleWebSecurityConfiguration configuration) {
         LdapModuleAuthentication moduleAuthentication = new LdapModuleAuthentication();
-        moduleAuthentication.setPrefix(configuration.getPrefix());
+        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         if (moduleType.getSearch() != null) {
             moduleAuthentication.setNamingAttribute(moduleType.getSearch().getNamingAttr());
         }

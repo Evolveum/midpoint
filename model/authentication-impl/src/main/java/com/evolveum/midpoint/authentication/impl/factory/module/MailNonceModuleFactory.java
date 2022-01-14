@@ -34,7 +34,7 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory
     @Override
     protected ModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType,prefixOfSequence);
-        configuration.setPrefixOfSequence(prefixOfSequence);
+        configuration.setSequenceSuffix(prefixOfSequence);
         configuration.setSpecificLoginUrl(authenticationChannel.getSpecificLoginUrl());
         return configuration;
     }
@@ -59,7 +59,7 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory
     protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
                                                                    ModuleWebSecurityConfiguration configuration) {
         MailNonceModuleAuthenticationImpl moduleAuthentication = new MailNonceModuleAuthenticationImpl();
-        moduleAuthentication.setPrefix(configuration.getPrefix());
+        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());

@@ -569,7 +569,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         // GIVEN
         XMLGregorianCalendar now = XmlTypeConverter
                 .createXMLGregorianCalendar(System.currentTimeMillis());
-        List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils
+        List<ItemDelta<?, ?>> syncSituationDeltas = SynchronizationUtils
                 .createSynchronizationSituationAndDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, null, false, now);
 
         // WHEN
@@ -629,7 +629,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.addObject(account, null, result);
 
         XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-        List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils.
+        List<ItemDelta<?, ?>> syncSituationDeltas = SynchronizationUtils.
                 createSynchronizationSituationAndDescriptionDelta(account, SynchronizationSituationType.LINKED, null, false, timestamp);
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, getModifyOptions(), result);

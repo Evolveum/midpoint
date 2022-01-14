@@ -40,7 +40,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
 
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType,
-            String prefixOfSequence, ServletRequest request, Map<Class<?>, Object> sharedObjects,
+            String sequenceSuffix, ServletRequest request, Map<Class<?>, Object> sharedObjects,
             AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
             AuthenticationChannel authenticationChannel) throws Exception {
 
@@ -51,7 +51,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
 
         isSupportedChannel(authenticationChannel);
 
-        C configuration = createConfiguration(moduleType, prefixOfSequence, authenticationChannel);
+        C configuration = createConfiguration(moduleType, sequenceSuffix, authenticationChannel);
 
         configuration.addAuthenticationProvider(
                 getProvider((AbstractCredentialAuthenticationModuleType) moduleType, credentialPolicy));

@@ -80,7 +80,6 @@ public class MidpointSaml2LoginConfigurer<B extends HttpSecurityBuilder<B>> exte
             } else {
                 super.init(http);
             }
-        this.initDefaultLoginFilter(http);
     }
 
     public void configure(B http) throws Exception {
@@ -90,16 +89,6 @@ public class MidpointSaml2LoginConfigurer<B extends HttpSecurityBuilder<B>> exte
         super.configure(http);
         if (this.authenticationManager != null) {
             this.saml2WebSsoAuthenticationFilter.setAuthenticationManager(this.authenticationManager);
-        }
-    }
-
-    private void initDefaultLoginFilter(B http) {
-        DefaultLoginPageGeneratingFilter loginPageGeneratingFilter = http.getSharedObject(DefaultLoginPageGeneratingFilter.class);
-        if (loginPageGeneratingFilter != null && !this.isCustomLoginPage()) {
-            loginPageGeneratingFilter.setSaml2LoginEnabled(true);
-            loginPageGeneratingFilter.setSaml2AuthenticationUrlToProviderName(this.getIdentityProviderUrlMap(this.relyingPartyRegistrationRepository));
-            loginPageGeneratingFilter.setLoginPageUrl(this.getLoginPage());
-            loginPageGeneratingFilter.setFailureUrl(this.getFailureUrl());
         }
     }
 

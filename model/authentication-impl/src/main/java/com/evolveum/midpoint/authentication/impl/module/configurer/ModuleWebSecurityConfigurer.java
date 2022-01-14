@@ -90,7 +90,7 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
     }
 
     public String getPrefix() {
-        return configuration.getPrefix();
+        return configuration.getPrefixOfModule();
     }
 
     @Override

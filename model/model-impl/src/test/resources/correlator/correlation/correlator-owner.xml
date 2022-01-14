@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<expressionCorrelator
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>owner</name>
+    <description>"Correlates" by providing resolved owner directly</description>
+    <owner>
+        <script>
+            <code>
+                import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                // we (mis)use the "employeeNumber" attribute to hold owner OID
+                def test = basic.getAttributeValue(projection, 'employeeNumber')
+                log.info('test = {}', test)
+                def oids
+                if (test == null || test.isEmpty()) {
+                    oids = []
+                } else if (test == '*') {
+                    // just any two different objects
+                    oids = [ '0025b4fd-e4d5-4055-8e65-6eb9a6c56fb2', '00000000-0000-0000-0000-000000000002' ]
+                } else {
+                    oids = [ test ]
+                }
+                oids.collect { midpoint.getUserByOid(it) }
+            </code>
+        </script>
+    </owner>
+</expressionCorrelator>

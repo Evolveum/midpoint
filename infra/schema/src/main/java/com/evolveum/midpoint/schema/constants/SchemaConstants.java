@@ -625,4 +625,10 @@ public abstract class SchemaConstants {
     public static final ActivityPath PATH_OUTPUT_REPORTS_CLEANUP = ActivityPath.fromId(ID_OUTPUT_REPORTS_CLEANUP);
     public static final ActivityPath PATH_CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP =
             ActivityPath.fromId(ID_CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP);
+
+    public static final String CORRELATION_NS = NS_C; // at least for now
+    public static final String CORRELATION_NONE = "none";
+    public static final QName CORRELATION_NONE_QNAME = new QName(CORRELATION_NS, CORRELATION_NONE);
+    public static final String CORRELATION_NONE_URI = qNameToUri(CORRELATION_NONE_QNAME);
+    public static final String CORRELATION_OPTION_PREFIX = "existing-";
 }

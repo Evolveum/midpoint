@@ -13,7 +13,10 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.Saml2ProviderAuthenticationModuleType;
+
 import net.shibboleth.utilities.java.support.xml.ParserPool;
+import org.apache.commons.lang3.StringUtils;
 import org.opensaml.core.config.ConfigurationService;
 import org.opensaml.core.xml.XMLObject;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistry;
@@ -46,7 +49,7 @@ public class MidpointAssertingPartyMetadataConverter {
         this.parserPool = this.registry.getParserPool();
     }
 
-    public RelyingPartyRegistration.Builder convert(InputStream inputStream) {
+    public RelyingPartyRegistration.Builder convert(InputStream inputStream, Saml2ProviderAuthenticationModuleType providerConfig) {
         EntityDescriptor descriptor = entityDescriptor(inputStream);
         IDPSSODescriptor idpssoDescriptor = descriptor.getIDPSSODescriptor(SAMLConstants.SAML20P_NS);
         if (idpssoDescriptor == null) {
@@ -72,7 +75,7 @@ public class MidpointAssertingPartyMetadataConverter {
                     (party) -> party.signingAlgorithms((algorithms) -> algorithms.add(method.getAlgorithm())));
         }
 
-        defineSingleSingOnService(idpssoDescriptor, builder);
+        defineSingleSingOnService(idpssoDescriptor, providerConfig.getAuthenticationRequestBinding(), builder);
         defineSingleLogoutService(idpssoDescriptor, builder);
 
         return builder;
@@ -81,17 +84,17 @@ public class MidpointAssertingPartyMetadataConverter {
     private void defineSingleLogoutService(IDPSSODescriptor idpssoDescriptor, RelyingPartyRegistration.Builder builder) {
         Saml2MessageBinding authBinding = null;
         for (SingleLogoutService singleLogoutService : idpssoDescriptor.getSingleLogoutServices()) {
-            Saml2MessageBinding binding;
             if (singleLogoutService.getBinding().equals(Saml2MessageBinding.POST.getUrn())) {
-                binding = Saml2MessageBinding.POST;
+                authBinding = Saml2MessageBinding.POST;
             } else if (singleLogoutService.getBinding().equals(Saml2MessageBinding.REDIRECT.getUrn())) {
-                binding = Saml2MessageBinding.REDIRECT;
+                authBinding = Saml2MessageBinding.REDIRECT;
             } else {
                 continue;
             }
+            Saml2MessageBinding finalAuthBinding = authBinding;
             builder.assertingPartyDetails(
                     (party) -> party.singleLogoutServiceLocation(singleLogoutService.getLocation())
-                            .singleLogoutServiceBinding(binding));
+                            .singleLogoutServiceBinding(finalAuthBinding));
             break;
         }
         if (authBinding == null) {
@@ -100,12 +103,20 @@ public class MidpointAssertingPartyMetadataConverter {
         }
     }
 
-    private void defineSingleSingOnService(IDPSSODescriptor idpssoDescriptor, RelyingPartyRegistration.Builder builder) {
+    private void defineSingleSingOnService(IDPSSODescriptor idpssoDescriptor, String authenticationRequestBinding, RelyingPartyRegistration.Builder builder) {
+        Saml2MessageBinding defaultBinding = Saml2MessageBinding.from(authenticationRequestBinding);
+        if (defaultBinding == null && StringUtils.isNotEmpty(authenticationRequestBinding)
+                && !defaultBinding.equals(Saml2MessageBinding.POST) && !defaultBinding.equals(Saml2MessageBinding.REDIRECT)) {
+            throw new Saml2Exception("Default request binding '" + defaultBinding.getUrn() + "' isn't supported."
+                    + "Supported bindings are 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST' and 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'.");
+        }
         Saml2MessageBinding authBinding = null;
         for (SingleSignOnService singleSignOnService : idpssoDescriptor.getSingleSignOnServices()) {
-            if (singleSignOnService.getBinding().equals(Saml2MessageBinding.POST.getUrn())) {
+            if (singleSignOnService.getBinding().equals(Saml2MessageBinding.POST.getUrn())
+                    && allowBaseOnConsideringDefaultBinding(defaultBinding, Saml2MessageBinding.POST)) {
                 authBinding = Saml2MessageBinding.POST;
-            } else if (singleSignOnService.getBinding().equals(Saml2MessageBinding.REDIRECT.getUrn())) {
+            } else if (singleSignOnService.getBinding().equals(Saml2MessageBinding.REDIRECT.getUrn())
+                    && allowBaseOnConsideringDefaultBinding(defaultBinding, Saml2MessageBinding.REDIRECT)) {
                 authBinding = Saml2MessageBinding.REDIRECT;
             } else {
                 continue;
@@ -117,9 +128,17 @@ public class MidpointAssertingPartyMetadataConverter {
             break;
         }
         if (authBinding == null) {
-            throw new Saml2Exception(
-                    "Metadata response is missing a SingleSignOnService, necessary for sending AuthnRequests");
+            String message = "Supported SingleSignOnService is missing in metadata response, necessary for sending authentication request. ";
+            if (defaultBinding != null) {
+                message = "Default SingleSignOnService '" + defaultBinding.getUrn() + "' is missing in metadata response, necessary for sending authentication request. ";
+            }
+            message = message + "Supported bindings are 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST' and 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'.";
+            throw new Saml2Exception(message);
         }
+    }
+
+    private boolean allowBaseOnConsideringDefaultBinding(Saml2MessageBinding defaultBinding, Saml2MessageBinding actualBinding) {
+        return defaultBinding == null || defaultBinding.equals(actualBinding);
     }
 
     private void defineKeys(KeyDescriptor keyDescriptor, List<Saml2X509Credential> verification, List<Saml2X509Credential> encryption) {

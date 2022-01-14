@@ -20,5 +20,6 @@ public class AuthenticationModuleNameConstants {
     public static final String SAML_2 = "Saml2";
     public static final String LDAP = "LDAP";
     public static final String MAIL_NONCE = "MailNonce";
+    public static final String OIDC = "OIDC";
     public static final String OTHER = "Other";
 }

@@ -35,7 +35,7 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory
     @Override
     protected ModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType,prefixOfSequence);
-        configuration.setPrefixOfSequence(prefixOfSequence);
+        configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
     }
 
@@ -57,7 +57,7 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory
     @Override
     protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, ModuleWebSecurityConfiguration configuration) {
         HttpModuleAuthentication moduleAuthentication = new HttpModuleAuthentication(AuthenticationModuleNameConstants.HTTP_BASIC);
-        moduleAuthentication.setPrefix(configuration.getPrefix());
+        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(((AbstractPasswordAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());

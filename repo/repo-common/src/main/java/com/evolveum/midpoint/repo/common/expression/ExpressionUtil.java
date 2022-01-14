@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
@@ -1232,4 +1229,23 @@ public class ExpressionUtil {
         }
     }
 
+    /**
+     * Post-condition: the result does not contain null values
+     */
+    public static <T> @NotNull Set<T> getUniqueNonNullRealValues(
+            @Nullable PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple) {
+        if (outputTriple == null) {
+            return Set.of();
+        }
+        Set<T> realValues = new HashSet<>();
+        for (PrismPropertyValue<T> nonNegativeValue : outputTriple.getNonNegativeValues()) {
+            if (nonNegativeValue != null) {
+                T realValue = nonNegativeValue.getRealValue();
+                if (realValue != null) {
+                    realValues.add(realValue);
+                }
+            }
+        }
+        return realValues;
+    }
 }

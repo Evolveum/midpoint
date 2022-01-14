@@ -380,15 +380,17 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         assertTrue("o modify", oDef.canModify());
         assertTrue("o add", oDef.canAdd());
 
-        ResourceAttributeDefinition<?> createTimestampDef = accountDefinition.findAttributeDefinition("createTimestamp");
-        PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimestamp"),
+        ResourceAttributeDefinition<?> createTimestampDef = accountDefinition.findAttributeDefinition(getCreateTimeStampAttributeName());
+        PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, getCreateTimeStampAttributeName()),
                 getTimestampXsdType(), 0, 1);
-        assertTrue("createTimestampDef read", createTimestampDef.canRead());
-        assertFalse("createTimestampDef read", createTimestampDef.canModify());
-        assertFalse("createTimestampDef read", createTimestampDef.canAdd());
+        assertTrue(getCreateTimeStampAttributeName() + " def read", createTimestampDef.canRead());
+        assertFalse(getCreateTimeStampAttributeName() + " def read", createTimestampDef.canModify());
+        assertFalse(getCreateTimeStampAttributeName() + " def read", createTimestampDef.canAdd());
 
         assertStableSystem();
     }
+
+    protected String getCreateTimeStampAttributeName() { return "createTimestamp"; }
 
     protected QName getTimestampXsdType() {
         return DOMUtil.XSD_DATETIME;
@@ -807,15 +809,17 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     /**
      * Silent delete. Used to clean up after previous test runs.
+     * @return deleted entry or null
      */
-    protected void cleanupDelete(String dn) throws LdapException, IOException, CursorException {
-        cleanupDelete(null, dn);
+    protected Entry cleanupDelete(String dn) throws LdapException, IOException, CursorException {
+        return cleanupDelete(null, dn);
     }
 
     /**
      * Silent delete. Used to clean up after previous test runs.
+     * @return deleted entry or null
      */
-    protected void cleanupDelete(UserLdapConnectionConfig config, String dn) throws LdapException, IOException, CursorException {
+    protected Entry cleanupDelete(UserLdapConnectionConfig config, String dn) throws LdapException, IOException, CursorException {
         LdapNetworkConnection connection = ldapConnect(config);
         Entry entry = getLdapEntry(connection, dn);
         if (entry != null) {
@@ -823,6 +827,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
             display("Cleaning up LDAP entry: " + dn);
         }
         ldapDisconnect(connection);
+        return entry;
     }
 
     protected String toAccountDn(String username, String fullName) {

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.authentication.impl.handler;
 
 import java.io.IOException;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -65,8 +66,20 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
 
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-            throws IOException {
+            throws IOException, ServletException {
 
+        String targetUrl = getTargetUrl(authentication);
+
+        if (response.isCommitted()) {
+            LOGGER.debug("Response has already been committed. Unable to redirect to " + targetUrl);
+        } else {
+            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        }
+
+        auditEvent(request, authentication);
+    }
+
+    protected String getTargetUrl(Authentication authentication) {
         String targetUrl;
         if (useDefaultUrl()) {
             targetUrl = getDefaultTargetUrl();
@@ -79,14 +92,7 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
                 }
             }
         }
-
-        if (response.isCommitted()) {
-            LOGGER.debug("Response has already been committed. Unable to redirect to " + targetUrl);
-        } else {
-            getRedirectStrategy().sendRedirect(request, response, targetUrl);
-        }
-
-        auditEvent(request, authentication);
+        return targetUrl;
     }
 
     protected void auditEvent(HttpServletRequest request, Authentication authentication) {

@@ -110,7 +110,7 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
 
     private NonceCredentialsPolicyType getNoncePolicy(String username) {
         if (StringUtils.isBlank(username)) {
-            throw new UsernameNotFoundException("web.security.provider.invalid");
+            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
 
         if (illegalAuthentication()){
@@ -120,7 +120,7 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
         UserType user = AuthSequenceUtil.searchUserPrivileged(username, securityContextManager, manager,
                 modelService, prismContext);
         if (user == null) {
-            throw new UsernameNotFoundException("web.security.provider.invalid");
+            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
 
         SecurityPolicyType securityPolicy = AuthSequenceUtil.resolveSecurityPolicy(user.asPrismObject(), securityContextManager, manager, modelInteractionService);

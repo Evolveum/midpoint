@@ -5833,6 +5833,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return asserter;
     }
 
+    protected UserAsserter<Void> assertUser(UserType user, String message) {
+        return assertUser(user.asPrismObject(), message);
+    }
+
     protected UserAsserter<Void> assertUser(PrismObject<UserType> user, String message) {
         UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
         initializeAsserter(asserter);
@@ -6687,5 +6691,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 ActivityReportUtil.getReportDataOid(taskAfter.getActivityState(), path,
                         ActivityReportsType.F_BUCKETS, taskManager.getNodeId()),
                 () -> "no bucket report data in " + taskAfter + " (activity path " + path.toDebugName() + ")");
+    }
+
+    public ProvisioningService getProvisioningService() {
+        return provisioningService;
     }
 }

@@ -37,7 +37,7 @@ public class OtherModuleFactory extends AbstractModuleFactory {
     }
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType module, String prefixOfSequence, ServletRequest request,
+    public AuthModule createModuleFilter(AbstractAuthenticationModuleType module, String sequenceSuffix, ServletRequest request,
             Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
             CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
 
@@ -53,7 +53,7 @@ public class OtherModuleFactory extends AbstractModuleFactory {
         Class<AbstractModuleFactory> factoryClazz = (Class) Class.forName(factoryClass);
         AbstractModuleFactory factory = applicationContext.getBean(factoryClazz);
 
-        return factory.createModuleFilter(module, prefixOfSequence, request, sharedObjects,
+        return factory.createModuleFilter(module, sequenceSuffix, request, sharedObjects,
                 authenticationsPolicy, credentialPolicy, authenticationChannel);
     }
 }

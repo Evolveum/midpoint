@@ -30,11 +30,11 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv, PasswordAuthenticationContext authCtx) {
         if (StringUtils.isBlank(authCtx.getUsername())) {
             recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty login provided", authCtx.getPrincipalType(), false);
-            throw new UsernameNotFoundException("web.security.provider.invalid");
+            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
         if (StringUtils.isBlank(authCtx.getPassword())) {
             recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty password provided", authCtx.getPrincipalType(), false);
-            throw new BadCredentialsException("web.security.provider.invalid");
+            throw new BadCredentialsException("web.security.provider.invalid.credentials");
         }
     }
 

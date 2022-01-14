@@ -7,19 +7,15 @@
 package com.evolveum.midpoint.authentication.impl.module.authentication;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
-import com.evolveum.midpoint.authentication.api.IdentityProvider;
+import com.evolveum.midpoint.authentication.api.config.RemoteModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.config.Saml2ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
-import com.evolveum.midpoint.authentication.impl.util.RequestState;
-import com.evolveum.midpoint.authentication.impl.module.configuration.SamlMidpointAdditionalConfiguration;
+import com.evolveum.midpoint.authentication.impl.module.configuration.SamlAdditionalConfiguration;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,11 +25,9 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
  * @author skublik
  */
 
-public class Saml2ModuleAuthenticationImpl extends ModuleAuthenticationImpl implements Saml2ModuleAuthentication,Serializable {
+public class Saml2ModuleAuthenticationImpl extends RemoteModuleAuthenticationImpl implements RemoteModuleAuthentication, Serializable {
 
-    private List<IdentityProvider> providers = new ArrayList<>();
-    private Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration;
-    private RequestState requestState;
+    private Map<String, SamlAdditionalConfiguration> additionalConfiguration;
 
     public Saml2ModuleAuthenticationImpl() {
         super(AuthenticationModuleNameConstants.SAML_2);
@@ -41,27 +35,11 @@ public class Saml2ModuleAuthenticationImpl extends ModuleAuthenticationImpl impl
         setState(AuthenticationModuleState.LOGIN_PROCESSING);
     }
 
-    public void setRequestState(RequestState requestState) {
-        this.requestState = requestState;
-    }
-
-    public RequestState getRequestState() {
-        return requestState;
-    }
-
-    public void setProviders(List<IdentityProvider> providers) {
-        this.providers = providers;
-    }
-
-    public List<IdentityProvider> getProviders() {
-        return providers;
-    }
-
-    public Map<String, SamlMidpointAdditionalConfiguration> getAdditionalConfiguration() {
+    public Map<String, SamlAdditionalConfiguration> getAdditionalConfiguration() {
         return additionalConfiguration;
     }
 
-    public void setAdditionalConfiguration(Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration) {
+    public void setAdditionalConfiguration(Map<String, SamlAdditionalConfiguration> additionalConfiguration) {
         this.additionalConfiguration = additionalConfiguration;
     }
 
@@ -76,7 +54,7 @@ public class Saml2ModuleAuthenticationImpl extends ModuleAuthenticationImpl impl
                 && ((MidpointAuthentication) actualAuth).getAuthentications() != null
                 && !((MidpointAuthentication) actualAuth).getAuthentications().isEmpty()) {
             ModuleAuthentication actualModule = ((MidpointAuthentication) actualAuth).getAuthentications().get(0);
-            if (actualModule instanceof Saml2ModuleAuthentication
+            if (actualModule instanceof Saml2ModuleAuthenticationImpl
                     && actualModule.getAuthentication() instanceof Saml2AuthenticationToken) {
                 newAuthentication = actualModule.getAuthentication();
             }

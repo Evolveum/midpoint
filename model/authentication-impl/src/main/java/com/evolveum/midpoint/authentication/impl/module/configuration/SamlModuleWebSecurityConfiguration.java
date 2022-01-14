@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configuration;
 
-import static java.util.Optional.ofNullable;
-import static org.springframework.util.StringUtils.hasText;
+import static com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil.getBasePath;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -29,17 +28,7 @@ import com.evolveum.midpoint.authentication.impl.saml.MidpointAssertingPartyMeta
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.openssl.PEMDecryptorProvider;
-import org.bouncycastle.openssl.PEMEncryptedKeyPair;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
-import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
-import org.bouncycastle.operator.InputDecryptorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
 import org.bouncycastle.pkcs.PKCSException;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
@@ -60,20 +49,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 
-public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigurationImpl {
+public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfiguration.class);
 
     public static final String SSO_LOCATION_URL_SUFFIX = "/SSO/alias/{registrationId}";
     public static final String LOGOUT_LOCATION_URL_SUFFIX = "/logout/alias/{registrationId}";
-    public static final String REQUEST_PROCESSING_URL_SUFFIX = "/authenticate/{registrationId}";
 
     private static Protector protector;
     private static final ResourceLoader RESOURCE_LOADER = new DefaultResourceLoader();
     private static final MidpointAssertingPartyMetadataConverter ASSERTING_PARTY_METADATA_CONVERTER = new MidpointAssertingPartyMetadataConverter();
 
     private InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
-    private final Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration = new HashMap<>();
+    private final Map<String, SamlAdditionalConfiguration> additionalConfiguration = new HashMap<>();
 
     private SamlModuleWebSecurityConfiguration() {
     }
@@ -106,8 +94,8 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                 });
             } else {
                 Saml2ProviderAuthenticationModuleType providerType = serviceProviderType.getIdentityProvider();
-                RelyingPartyRegistration.Builder registrationBuilder = getRelyingPartyFromMetadata(providerType.getMetadata());
-                SamlMidpointAdditionalConfiguration.Builder additionalConfigBuilder = SamlMidpointAdditionalConfiguration.builder();
+                RelyingPartyRegistration.Builder registrationBuilder = getRelyingPartyFromMetadata(providerType.getMetadata(), providerType);
+                SamlAdditionalConfiguration.Builder additionalConfigBuilder = SamlAdditionalConfiguration.builder();
                 createRelyingPartyRegistration(registrationBuilder,
                         additionalConfigBuilder,
                         providerType,
@@ -128,7 +116,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
     }
 
     private static void createRelyingPartyRegistration(RelyingPartyRegistration.Builder registrationBuilder,
-            SamlMidpointAdditionalConfiguration.Builder additionalConfigBuilder, Saml2ProviderAuthenticationModuleType providerType,
+            SamlAdditionalConfiguration.Builder additionalConfigBuilder, Saml2ProviderAuthenticationModuleType providerType,
             String publicHttpUrlPattern, SamlModuleWebSecurityConfiguration configuration, Saml2KeyAuthenticationModuleType keysType,
             Saml2ServiceProviderAuthenticationModuleType serviceProviderType, ServletRequest request) {
 
@@ -147,17 +135,16 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
                 StringUtils.isNotBlank(publicHttpUrlPattern) ? publicHttpUrlPattern : getBasePath((HttpServletRequest) request));
         UriComponentsBuilder ssoBuilder = builder.cloneBuilder();
-        ssoBuilder.pathSegment(AuthUtil.stripSlashes(configuration.getPrefix()) + SSO_LOCATION_URL_SUFFIX);
+        ssoBuilder.pathSegment(AuthUtil.stripSlashes(configuration.getPrefixOfModule()) + SSO_LOCATION_URL_SUFFIX);
         UriComponentsBuilder logoutBuilder = builder.cloneBuilder();
-        logoutBuilder.pathSegment(AuthUtil.stripSlashes(configuration.getPrefix()) + LOGOUT_LOCATION_URL_SUFFIX);
+        logoutBuilder.pathSegment(AuthUtil.stripSlashes(configuration.getPrefixOfModule()) + LOGOUT_LOCATION_URL_SUFFIX);
         registrationBuilder
                 .registrationId(registrationId)
                 .entityId(serviceProviderType.getEntityId())
                 .assertionConsumerServiceLocation(ssoBuilder.build().toUriString())
                 .singleLogoutServiceLocation(logoutBuilder.build().toUriString())
                 .assertingPartyDetails(party -> {
-                    party.entityId(providerType.getEntityId())
-                            .singleSignOnServiceBinding(Saml2MessageBinding.from(providerType.getAuthenticationRequestBinding()));
+                    party.entityId(providerType.getEntityId());
                     if (serviceProviderType.isSignRequests() != null) {
                         party.wantAuthnRequestsSigned(Boolean.TRUE.equals(serviceProviderType.isSignRequests()));
                     }
@@ -224,7 +211,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         }
     }
 
-    private static RelyingPartyRegistration.Builder getRelyingPartyFromMetadata(Saml2ProviderMetadataAuthenticationModuleType metadata) {
+    private static RelyingPartyRegistration.Builder getRelyingPartyFromMetadata(Saml2ProviderMetadataAuthenticationModuleType metadata, Saml2ProviderAuthenticationModuleType providerConfig) {
         RelyingPartyRegistration.Builder builder = RelyingPartyRegistration.withRegistrationId("builder");
         if (metadata != null) {
             if (metadata.getXml() != null || metadata.getPathToFile() != null) {
@@ -235,12 +222,12 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                     LOGGER.error("Couldn't obtain metadata as string from " + metadata);
                 }
                 if (StringUtils.isNotEmpty(metadataAsString)) {
-                    builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(new ByteArrayInputStream(metadataAsString.getBytes()));
+                    builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(new ByteArrayInputStream(metadataAsString.getBytes()), providerConfig);
                 }
             }
             if (metadata.getMetadataUrl() != null) {
                 try (InputStream source = RESOURCE_LOADER.getResource(metadata.getMetadataUrl()).getInputStream()) {
-                    builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(source);
+                    builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(source, providerConfig);
                 } catch (IOException ex) {
                     if (ex.getCause() instanceof Saml2Exception) {
                         throw (Saml2Exception) ex.getCause();
@@ -267,26 +254,12 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                 return new String(xml);
             }
         }
-            throw new IllegalArgumentException("Metadata is not present");
+        throw new IllegalArgumentException("Metadata is not present");
     }
 
     private static String readFile(String path) throws IOException {
         byte[] encoded = Files.readAllBytes(Paths.get(path));
         return new String(encoded);
-    }
-
-    private static String getBasePath(HttpServletRequest request) {
-        boolean includePort = true;
-        if (443 == request.getServerPort() && "https".equals(request.getScheme())) {
-            includePort = false;
-        } else if (80 == request.getServerPort() && "http".equals(request.getScheme())) {
-            includePort = false;
-        }
-        return request.getScheme() +
-                "://" +
-                request.getServerName() +
-                (includePort ? (":" + request.getServerPort()) : "") +
-                request.getContextPath();
     }
 
     public InMemoryRelyingPartyRegistrationRepository getRelyingPartyRegistrationRepository() {
@@ -297,7 +270,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
     }
 
-    public Map<String, SamlMidpointAdditionalConfiguration> getAdditionalConfiguration() {
+    public Map<String, SamlAdditionalConfiguration> getAdditionalConfiguration() {
         return additionalConfiguration;
     }
 
@@ -313,65 +286,22 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         if (key == null) {
             return null;
         }
+        PrivateKey pkey;
         try {
-            Saml2X509Credential saml2credential = null;
-//            byte[] certbytes = X509Utilities.getDER(protector.decryptString(key.getCertificate()));
-//            X509Certificate certificate = X509Utilities.getCertificate(certbytes);
-
-            byte[] certbytes = protector.decryptString(key.getCertificate()).getBytes();
-            X509Certificate certificate = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(certbytes));
-
-            String stringPrivateKey = protector.decryptString(key.getPrivateKey());
-            String stringPassphrase = protector.decryptString(key.getPassphrase());
-            if (hasText(stringPrivateKey)) {
-                PrivateKey pkey;
-                Object obj = null;
-                try {
-                    PEMParser parser = new PEMParser(new CharArrayReader(stringPrivateKey.toCharArray()));
-                    obj = parser.readObject();
-                    parser.close();
-                    JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
-                    if (obj == null) {
-                        throw new Saml2Exception("Unable to decode PEM key:" + key.getPrivateKey());
-                    } else if (obj instanceof PEMEncryptedKeyPair) {
-
-                        // Encrypted key - we will use provided password
-                        PEMEncryptedKeyPair ckp = (PEMEncryptedKeyPair) obj;
-                        char[] passarray = (ofNullable(stringPassphrase).orElse("")).toCharArray();
-                        PEMDecryptorProvider decProv = new JcePEMDecryptorProviderBuilder().build(passarray);
-                        KeyPair kp = converter.getKeyPair(ckp.decryptKeyPair(decProv));
-                        pkey = kp.getPrivate();
-                    } else if (obj instanceof PEMKeyPair) {
-                        // Unencrypted key - no password needed
-                        PEMKeyPair ukp = (PEMKeyPair) obj;
-                        KeyPair kp = converter.getKeyPair(ukp);
-                        pkey = kp.getPrivate();
-                    } else if (obj instanceof PrivateKeyInfo) {
-                        // Encrypted key - we will use provided password
-                        PrivateKeyInfo pk = (PrivateKeyInfo) obj;
-                        pkey = converter.getPrivateKey(pk);
-                    } else if (obj instanceof PKCS8EncryptedPrivateKeyInfo) {
-                        // Encrypted key - we will use provided password
-                        PKCS8EncryptedPrivateKeyInfo cpk = (PKCS8EncryptedPrivateKeyInfo) obj;
-                        char[] passarray = (ofNullable(stringPassphrase).orElse("")).toCharArray();
-                        final InputDecryptorProvider provider = new JceOpenSSLPKCS8DecryptorProviderBuilder().build(passarray);
-                        pkey = converter.getPrivateKey(cpk.decryptPrivateKeyInfo(provider));
-                    } else {
-                        throw new Saml2Exception("Unable get private key from " + obj);
-                    }
-                } catch (IOException e) {
-                    throw new Saml2Exception("Unable get private key", e);
-                } catch (OperatorCreationException | PKCSException e) {
-                    throw new Saml2Exception("Unable get private key from " + obj, e);
-                }
-                List<Saml2X509Credential.Saml2X509CredentialType> types = getTypesForKey(isActive, key.getType());
-                saml2credential = new Saml2X509Credential(pkey, certificate, types.toArray(new Saml2X509Credential.Saml2X509CredentialType[0]));
-            }
-
-            return saml2credential;
-        } catch (EncryptionException | CertificateException e) {
-            throw new Saml2Exception("Unable get key from " + key);
+            pkey = getPrivateKey(key, protector);
+        } catch (IOException | OperatorCreationException | PKCSException | EncryptionException e) {
+            throw new Saml2Exception("Unable get key from " + key, e);
         }
+
+        Certificate certificate;
+        try {
+            certificate = getCertificate(key, protector);
+        } catch (EncryptionException | CertificateException e) {
+            throw new Saml2Exception("Unable get certificate from " + key, e);
+        }
+        List<Saml2X509Credential.Saml2X509CredentialType> types = getTypesForKey(isActive, key.getType());
+        return new Saml2X509Credential(
+                pkey, (X509Certificate) certificate, types.toArray(new Saml2X509Credential.Saml2X509CredentialType[0]));
     }
 
     private static List<Saml2X509Credential.Saml2X509CredentialType> getTypesForKey(boolean isActive, ModuleSaml2KeyTypeType type) {
@@ -401,23 +331,24 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         if (key == null) {
             return null;
         }
+        PrivateKey pkey;
         try {
-            KeyStore ks = KeyStore.getInstance("JKS");
-            FileInputStream is = new FileInputStream(key.getKeyStorePath());
-            ks.load(is, protector.decryptString(key.getKeyStorePassword()).toCharArray());
-
-            Key pkey = ks.getKey(key.getKeyAlias(), protector.decryptString(key.getKeyPassword()).toCharArray());
-            if (!(pkey instanceof PrivateKey)) {
-                throw new Saml2Exception("Alias " + key.getKeyAlias() + " don't return key of PrivateKey type.");
-            }
-            Certificate certificate = ks.getCertificate(key.getKeyAlias());
-            if (!(certificate instanceof X509Certificate)) {
-                throw new Saml2Exception("Alias " + key.getKeyAlias() + " don't return certificate of X509Certificate type.");
-            }
-            List<Saml2X509Credential.Saml2X509CredentialType> types = getTypesForKey(isActive, key.getType());
-            return new Saml2X509Credential((PrivateKey) pkey, (X509Certificate) certificate, types.toArray(new Saml2X509Credential.Saml2X509CredentialType[0]));
-        } catch (KeyStoreException | IOException | CertificateException | NoSuchAlgorithmException | EncryptionException | UnrecoverableKeyException e) {
-            throw new Saml2Exception("Unable get key from " + key);
+            pkey = getPrivateKey(key, protector);
+        } catch (KeyStoreException | IOException | EncryptionException | CertificateException |
+                NoSuchAlgorithmException | UnrecoverableKeyException e) {
+            throw new Saml2Exception("Unable get key from " + key, e);
         }
+
+        Certificate certificate;
+        try {
+            certificate = getCertificate(key, protector);
+        } catch (EncryptionException | CertificateException  | KeyStoreException | IOException | NoSuchAlgorithmException e) {
+            throw new Saml2Exception("Unable get certificate from " + key, e);
+        }
+        if (!(certificate instanceof X509Certificate)) {
+            throw new Saml2Exception("Alias " + key.getKeyAlias() + " don't return certificate of X509Certificate type.");
+        }
+        List<Saml2X509Credential.Saml2X509CredentialType> types = getTypesForKey(isActive, key.getType());
+        return new Saml2X509Credential(pkey, (X509Certificate) certificate, types.toArray(new Saml2X509Credential.Saml2X509CredentialType[0]));
     }
 }

@@ -43,7 +43,7 @@ public class MidpointProviderManager implements AuthenticationManager {
                     continue;
                 }
 
-            } else if (!provider.supports(toTest)) {
+            } else {
                 continue;
             }
 
