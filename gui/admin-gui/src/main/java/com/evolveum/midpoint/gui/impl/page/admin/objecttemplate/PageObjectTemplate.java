@@ -6,19 +6,19 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.objecttemplate;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.page.admin.objectTemplate.ObjectTemplateSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
@@ -27,9 +27,9 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
         },
         encoder = OnePageParameterEncoder.class,
         action = {
-                @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
-                        label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
-                        description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
+                        label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL,
+                        description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_OBJECT_TEMPLATES_ALL_URL,
                         label = "PageObjectCollection.auth.objectTemplatesAll.label",
                         description = "PageObjectCollection.auth.objectTemplatesAll.description"),
@@ -59,7 +59,7 @@ public class PageObjectTemplate extends PageAssignmentHolderDetails<ObjectTempla
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, LoadableModel<ObjectTemplateType> summaryModel) {
+    protected Panel createSummaryPanel(String id, IModel<ObjectTemplateType> summaryModel) {
         return new ObjectTemplateSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 }

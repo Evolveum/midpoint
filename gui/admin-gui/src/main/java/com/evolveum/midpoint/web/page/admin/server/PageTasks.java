@@ -15,6 +15,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

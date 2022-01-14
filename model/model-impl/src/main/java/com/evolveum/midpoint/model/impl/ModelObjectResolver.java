@@ -122,7 +122,7 @@ public class ModelObjectResolver implements ObjectResolver {
             @NotNull Class<T> clazz,
             @NotNull String oid,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @NotNull Task task,
+            /*@NotNull*/ Task task,
             @NotNull OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         T objectType;

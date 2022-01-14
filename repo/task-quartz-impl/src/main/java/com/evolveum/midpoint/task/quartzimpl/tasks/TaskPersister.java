@@ -15,7 +15,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,7 +34,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -144,7 +145,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentType> {
         try {
             ObjectDelta<UserType> delta = getPageBase().getPrismContext().deltaFor(UserType.class)
                     .property(ItemPath.create(getModelObject().asPrismContainerValue().getPath(), AssignmentType.F_LIFECYCLE_STATE))
-                    .replace(newLifecycleState).asObjectDelta(SecurityUtils.getPrincipalUser().getOid());
+                    .replace(newLifecycleState).asObjectDelta(AuthUtil.getPrincipalUser().getOid());
             WebModelServiceUtils.save(delta, result, getPageBase());
         } catch (SchemaException e) {
             LOGGER.error("Cannot save consent decision {}, reason: {}", newLifecycleState, e.getMessage(), e);

@@ -38,6 +38,7 @@ public interface AdTestMixin extends InfraTestMixin {
     String ATTRIBUTE_TITLE_NAME = "title";
     String ATTRIBUTE_PROXY_ADDRESSES_NAME = "proxyAddresses";
     String ATTRIBUTE_USER_PARAMETERS_NAME = "userParameters";
+    String ATTRIBUTE_MEMBER_NAME = "member";
 
     QName OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME = new QName(MidPointConstants.NS_RI, "msExchBaseClass");
 
@@ -71,7 +72,7 @@ public interface AdTestMixin extends InfraTestMixin {
     default ResourceObjectDefinition assertAdResourceSchema(
             PrismObject<ResourceType> resource, QName accountObjectClass)
             throws SchemaException {
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
         displayDumpable("Resource schema", resourceSchema);
         ResourceTypeUtil.validateSchema(resourceSchema, resource);
         return assertAdSchema(resource, accountObjectClass);

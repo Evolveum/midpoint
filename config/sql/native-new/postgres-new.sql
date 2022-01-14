@@ -761,6 +761,28 @@ CREATE TRIGGER m_ref_object_parent_mark_refresh_trunc_tr
     AFTER TRUNCATE ON m_ref_object_parent_org
     FOR EACH STATEMENT EXECUTE FUNCTION mark_org_closure_for_refresh();
 
+-- The trigger that flags the view for refresh after m_org changes.
+CREATE OR REPLACE FUNCTION mark_org_closure_for_refresh_org()
+    RETURNS trigger
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO m_global_metadata VALUES ('orgClosureRefreshNeeded', 'true')
+        ON CONFLICT (name) DO UPDATE SET value = 'true';
+
+    -- after trigger returns null
+    RETURN NULL;
+END $$;
+
+-- Update is not necessary, it does not change relations between orgs.
+-- If it does, it is handled by trigger on m_ref_object_parent_org.
+CREATE TRIGGER m_org_mark_refresh_tr
+    AFTER INSERT OR DELETE ON m_org
+    FOR EACH ROW EXECUTE FUNCTION mark_org_closure_for_refresh_org();
+CREATE TRIGGER m_org_mark_refresh_trunc_tr
+    AFTER TRUNCATE ON m_org
+    FOR EACH STATEMENT EXECUTE FUNCTION mark_org_closure_for_refresh_org();
+
 -- This procedure for conditional refresh when needed is called from the application code.
 -- The refresh can be forced, e.g. after many changes with triggers off (or just to be sure).
 CREATE OR REPLACE PROCEDURE m_refresh_org_closure(force boolean = false)
@@ -1842,4 +1864,5 @@ END $$;
 -- endregion
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
-call apply_change(0, $$ SELECT 1 $$, true);
+call apply_change(1, $$ SELECT 1 $$, true);
+

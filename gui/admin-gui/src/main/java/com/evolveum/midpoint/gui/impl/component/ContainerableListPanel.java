@@ -30,6 +30,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -116,7 +117,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     private final Class<C> defaultType;
 
-    private LoadableModel<Search<C>> searchModel;
+    private LoadableDetachableModel<Search<C>> searchModel;
 
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
@@ -162,8 +163,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
     }
 
-    protected LoadableModel<Search<C>> createSearchModel(){
-        return new LoadableModel<>(false) {
+    protected LoadableDetachableModel<Search<C>> createSearchModel(){
+        return new LoadableDetachableModel<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -214,6 +215,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     }
                 }
                 if (storage != null) {
+
                     storage.setSearch(search);
                 }
                 return search;
@@ -380,7 +382,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     public Class<C> getType() {
-        if (getSearchModel().isLoaded()) {
+        if (getSearchModel().isAttached()) {
             return getSearchModel().getObject().getTypeClass();
         }
         PageStorage storage = getPageStorage();
@@ -1111,7 +1113,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             storage.setPaging(null);
         }
 
-        searchModel.reset();
+//        searchModel.reset();
     }
 
     protected void saveSearchModel(ObjectPaging paging) {
@@ -1180,7 +1182,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         this.manualRefreshEnabled = manualRefreshEnabled;
     }
 
-    protected LoadableModel<Search<C>> getSearchModel() {
+    protected LoadableDetachableModel<Search<C>> getSearchModel() {
         return searchModel;
     }
 

@@ -197,7 +197,7 @@ public class ResourceObjectDefinitionResolver {
      * Adds resolved auxiliary object classes to a given resource object definition.
      * (Creating {@link CompositeObjectDefinition} if needed.)
      */
-    private static ResourceObjectDefinition addAuxiliaryObjectClasses(
+    private static @NotNull ResourceObjectDefinition addAuxiliaryObjectClasses(
             @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull Collection<QName> auxiliaryObjectClassNames,
             @NotNull ResourceSchema resourceSchema) {

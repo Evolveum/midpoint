@@ -11,14 +11,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;

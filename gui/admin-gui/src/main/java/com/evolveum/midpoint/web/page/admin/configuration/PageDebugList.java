@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.web.component.dialog.*;
 
 import org.apache.commons.collections4.IteratorUtils;
@@ -51,9 +52,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -88,7 +89,7 @@ import org.jetbrains.annotations.NotNull;
         urls = {
                 @Url(mountUrl = "/admin/config/debugs", matchUrlForSecurity = "/admin/config/debugs") },
         action = {
-                @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL, label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL, label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL, description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUGS_URL, label = "PageDebugList.auth.debugs.label", description = "PageDebugList.auth.debugs.description") })
 public class PageDebugList extends PageAdminConfiguration {
 

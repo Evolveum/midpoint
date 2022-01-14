@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 

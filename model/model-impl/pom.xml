@@ -140,6 +140,11 @@
             <artifactId>notifications-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>authentication-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -170,10 +175,6 @@
             <artifactId>javax.ws.rs-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.wss4j</groupId>
-            <artifactId>wss4j-ws-security-common</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.jvnet.jaxb2_commons</groupId>
             <artifactId>jaxb2-basics-runtime</artifactId>
         </dependency>
@@ -190,20 +191,8 @@
             <artifactId>spring-context</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.ldap</groupId>
-            <artifactId>spring-ldap-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-ldap</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>

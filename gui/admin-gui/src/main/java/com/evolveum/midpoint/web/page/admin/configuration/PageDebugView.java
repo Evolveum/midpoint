@@ -10,7 +10,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -39,8 +40,8 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -56,8 +57,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
                 @Url(mountUrl = "/admin/config/debug", matchUrlForSecurity = "/admin/config/debug")
         },
         action = {
-        @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
-                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
+                label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL, description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL,
                 label = "PageDebugView.auth.debug.label", description = "PageDebugView.auth.debug.description") })
 public class PageDebugView extends PageAdminConfiguration {

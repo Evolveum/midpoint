@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+  <c:user oid="00000000-0000-0000-0000-000000000002"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        <c:name>
+            <t:orig>administrator</t:orig>
+            <t:norm>administrator</t:norm>
+        </c:name>
+        <c:fullName>
+            <t:orig>midPoint Administrator</t:orig>
+            <t:norm>midpoint administrator</t:norm>
+        </c:fullName>
+        <c:givenName>
+            <t:orig>midPoint</t:orig>
+            <t:norm>midpoint</t:norm>
+        </c:givenName>
+        <c:familyName>
+            <t:orig>Administrator</t:orig>
+            <t:norm>administrator</t:norm>
+        </c:familyName>
+        <c:assignment>
+            <c:targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
+        </c:assignment>
+        <c:activation>
+            <c:administrativeStatus>enabled</c:administrativeStatus>
+        </c:activation>
+        <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+            <c:password>
+                <c:value>
+                    <t:clearValue>5ecr3t</t:clearValue>
+                </c:value>
+            </c:password>
+        </c:credentials>
+    </c:user>

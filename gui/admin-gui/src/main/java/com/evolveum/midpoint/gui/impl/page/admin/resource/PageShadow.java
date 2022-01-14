@@ -13,9 +13,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.page.admin.resources.ShadowSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -61,7 +61,7 @@ public class PageShadow extends AbstractPageObjectDetails<ShadowType, ShadowDeta
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, LoadableModel<ShadowType> summaryModel) {
+    protected Panel createSummaryPanel(String id, IModel<ShadowType> summaryModel) {
         return new ShadowSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 

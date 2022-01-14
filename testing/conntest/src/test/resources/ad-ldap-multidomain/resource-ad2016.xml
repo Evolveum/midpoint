@@ -13,7 +13,7 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           oid="eced6d24-73e3-11e5-8457-93eff15a6b85">
-    <name>Active Directory 2016 (LDAP)</name>
+    <name>Active Directory 2016 Multidomain (LDAP)</name>
 
     <connectorRef type="ConnectorType">
         <filter>

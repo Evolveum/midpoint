@@ -18,7 +18,9 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -27,16 +29,17 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
 import com.evolveum.midpoint.web.component.search.SpecialSearchItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.session.MemberPanelStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeatureType;
 
 public class ProjectSearchItem extends SpecialSearchItem {
 
-    private final MemberPanelStorage memberStorage;
+    private final SearchBoxConfigurationHelper searchBoxConfiguration;
 
-    public ProjectSearchItem(Search search, MemberPanelStorage memberStorage) {
+    public ProjectSearchItem(Search search, SearchBoxConfigurationHelper searchBoxConfiguration) {
         super(search);
-        this.memberStorage = memberStorage;
+        this.searchBoxConfiguration = searchBoxConfiguration;
     }
 
     @Override
@@ -46,7 +49,7 @@ public class ProjectSearchItem extends SpecialSearchItem {
 
     @Override
     public SearchSpecialItemPanel createSpecialSearchPanel(String id) {
-        IModel projectModel = new PropertyModel(getMemberPanelStorage(), MemberPanelStorage.F_PROJECT) {
+        IModel projectModel = new PropertyModel(getMemberPanelStorage(), SearchBoxConfigurationHelper.F_PROJECT) {
             @Override
             public void setObject(Object object) {
                 if (object == null) {
@@ -60,7 +63,7 @@ public class ProjectSearchItem extends SpecialSearchItem {
         SearchSpecialItemPanel panel = new SearchSpecialItemPanel(id, projectModel) {
             @Override
             protected WebMarkupContainer initSearchItemField(String id) {
-                ReferenceValueSearchPanel searchItemField = new ReferenceValueSearchPanel(id, getModelValue(), projectRefDef) {
+                return new ReferenceValueSearchPanel(id, getModelValue(), projectRefDef) {
                     @Override
                     public Boolean isItemPanelEnabled() {
                         return !(getMemberPanelStorage().isIndirect());
@@ -71,7 +74,6 @@ public class ProjectSearchItem extends SpecialSearchItem {
                         return Collections.singletonList(RelationTypes.MEMBER.getRelation());
                     }
                 };
-                return searchItemField;
             }
 
             @Override
@@ -97,14 +99,29 @@ public class ProjectSearchItem extends SpecialSearchItem {
     }
 
     private UserInterfaceFeatureType getProjectSearchConfig() {
-        return memberStorage.getProjectSearchItem();
+        return searchBoxConfiguration.getDefaultProjectConfiguration();
     }
 
-    public MemberPanelStorage getMemberPanelStorage() {
-        return memberStorage;
+    public SearchBoxConfigurationHelper getMemberPanelStorage() {
+        return searchBoxConfiguration;
+    }
+
+    @Override
+    public boolean isApplyFilter() {
+        return !searchBoxConfiguration.isSearchScopeVisible()
+                || (!searchBoxConfiguration.isSearchScope(SearchBoxScopeType.SUBTREE)
+                && !searchBoxConfiguration.isRelationVisible()
+                && !searchBoxConfiguration.isTenantVisible()
+                && !searchBoxConfiguration.isIndirect());
     }
 
     public PrismReferenceDefinition getProjectRefDef() {
-        return null;
+        return getReferenceDefinition(AssignmentType.F_ORG_REF);
+    }
+
+    protected PrismReferenceDefinition getReferenceDefinition(ItemName refName) {
+        return PrismContext.get().getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(AssignmentType.class)
+                .findReferenceDefinition(refName);
     }
 }
