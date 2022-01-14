@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.correlator.idmatch;
 
+import com.evolveum.midpoint.model.impl.correlator.idmatch.data.structure.JsonListStructure;
+import com.evolveum.midpoint.model.impl.correlator.idmatch.operations.Client;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -18,17 +20,17 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IdMatchCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Set;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.*;
 
 public class IdMatchServiceImpl implements IdMatchService {
 
@@ -54,17 +56,71 @@ public class IdMatchServiceImpl implements IdMatchService {
 
         LOGGER.trace("Executing match for:\n{}", attributes.debugDumpLazily(1));
 
-        // just a demo
-        //noinspection unchecked
+        Client client = new Client(url, username, password.getClearValue());
+
         PrismContainerValue<ShadowAttributesType> pcv = attributes.asPrismContainerValue();
-        for (Item<?, ?> item : pcv.getItems()) {
-            LOGGER.info("Got attribute {} with value(s): {}",
-                    item.getElementName().getLocalPart(), item.getRealValues());
+
+        List<JsonListStructure> jsonList;
+
+        jsonList = generateJson(pcv);
+
+        String sorLabel;
+        String sorId;
+        String objectToSend;
+
+        for (JsonListStructure jsonListStructure : jsonList) {
+            sorLabel = jsonListStructure.getSorLabel();
+            sorId = jsonListStructure.getSorId();
+            objectToSend = jsonListStructure.getObjectToSend();
+
+            client.peoplePut(sorLabel, sorId, objectToSend);
         }
 
-        // TODO implement
-
         return MatchingResult.forUncertain(null, Set.of());
+    }
+
+    public List<JsonListStructure> generateJson(PrismContainerValue<ShadowAttributesType> attributes) {
+
+        List<JsonListStructure> jsonList = new ArrayList<>();
+
+        JsonFactory factory = new JsonFactory();
+        StringWriter jsonString = new StringWriter();
+        JsonGenerator generator;
+
+        try {
+            generator = factory.createGenerator(jsonString);
+            generator.useDefaultPrettyPrinter();
+            generator.writeStartObject();
+            generator.writeFieldName("sorAttributes");
+            generator.writeStartObject();
+
+            String sorLabel = "sor";
+            String uid = null;
+            String elementName;
+            String elementRealValue;
+
+            for (Item<?, ?> item : attributes.getItems()) {
+                elementName = item.getElementName().getLocalPart();
+                elementRealValue = item.getRealValue(String.class);
+
+                if (elementName.equals("uid")) {
+                    uid = elementRealValue;
+                } else {
+                    generator.writeFieldName(elementName.toLowerCase());
+                    generator.writeString(elementRealValue);
+                }
+            }
+
+            generator.writeEndObject();
+            generator.writeEndObject();
+            generator.close();
+            jsonList.add(new JsonListStructure(sorLabel, uid, String.valueOf(jsonString)));
+        } catch (IOException e) {
+            //TODO throw exception
+            e.printStackTrace();
+        }
+
+        return jsonList;
     }
 
     @Override

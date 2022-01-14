@@ -26,9 +26,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  */
 public class TestIdMatchServiceImpl extends AbstractIdMatchServiceTest {
 
-    private static final String URL = "todo";
-    private static final String USERNAME = "todo";
-    private static final String PASSWORD = "todo";
+    private static final String URL = "http://localhost:9090";
+    private static final String USERNAME = "administrator";
+    private static final String PASSWORD = "5ecr3t";
 
     protected IdMatchService createService() {
         return IdMatchServiceImpl.instantiate(URL, USERNAME, ProtectedStringType.fromClearValue(PASSWORD));
