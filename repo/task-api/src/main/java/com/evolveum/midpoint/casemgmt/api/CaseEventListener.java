@@ -12,7 +12,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 /**
  * An interface through which external observers can be notified about case-related events.
- * Used e.g. for implementing case-related notifications.
  *
  * EXPERIMENTAL. This interface may change in near future.
  */

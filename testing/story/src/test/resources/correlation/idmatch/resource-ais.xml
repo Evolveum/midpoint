@@ -120,6 +120,8 @@
     <synchronization>
         <objectSynchronization>
             <enabled>true</enabled>
+            <kind>account</kind>
+            <intent>default</intent>
             <correlators>
                 <idMatch>
                     <!-- URL and credentials are ignored when dummy ID Match Service implementation is used.

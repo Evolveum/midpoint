@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.PrismObject;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,6 +88,16 @@ class FilterCorrelator implements Correlator {
 
         return new Correlation<>(resourceObject, correlationContext, task)
                 .execute(result);
+    }
+
+    @Override
+    public void resolve(
+            @NotNull PrismObject<CaseType> aCase,
+            @NotNull AbstractWorkItemOutputType output,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        // This correlator should never create any correlation cases.
+        throw new IllegalStateException("The resolve() method should not be called for this correlator");
     }
 
     private class Correlation<F extends FocusType> {
