@@ -53,4 +53,8 @@ public class ProvisioningStatisticsLineDto {
     public List<ProvisioningStatisticsOperationDto> getOperations() {
         return operations;
     }
+
+    public QName getObjectClass() {
+        return objectClass;
+    }
 }

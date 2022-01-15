@@ -36,8 +36,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -145,7 +147,7 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
 
                 detailsPanel.setIdentifier("schemaHandlingDetails");
                 DisplayType displayType = new DisplayType();
-                displayType.setLabel(new PolyStringType(objectTypeDef.getNewValue().asContainerable().getDisplayName()));
+                displayType.setLabel(getObjectTypeDisplayName(objectTypeDef.getNewValue().asContainerable()));
                 detailsPanel.setDisplay(displayType);
 
                 getPageBase().getSessionStorage().setObjectDetailsStorage("details" + parent.getType().getSimpleName(), detailsPanel);
@@ -157,6 +159,18 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
             }
         };
         form.add(objectTypesPanel);
+    }
+
+    private PolyStringType getObjectTypeDisplayName(ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType) {
+        String displayName = resourceObjectTypeDefinitionType.getDisplayName();
+        if (StringUtils.isNotBlank(displayName)) {
+            return new PolyStringType(displayName);
+        }
+        PolyStringType polyStringType = new PolyStringType();
+        PolyStringTranslationType translationType = new PolyStringTranslationType();
+        translationType.setKey("feedbackMessagePanel.message.undefined");
+        polyStringType.setTranslation(translationType);
+        return polyStringType;
     }
 
     private MultivalueContainerListPanelWithDetailsPanel<ResourceObjectTypeDefinitionType> getMultivalueContainerListPanel(){

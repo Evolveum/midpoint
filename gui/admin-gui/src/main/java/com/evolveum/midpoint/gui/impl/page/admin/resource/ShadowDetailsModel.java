@@ -23,7 +23,7 @@ public class ShadowDetailsModel extends ObjectDetailsModels<ShadowType> {
     }
 
     protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<ShadowType> prismObject) {
-        return getModelServiceLocator().getCompiledGuiProfile().findShadowDetailsConfiguration(createResourceShadowDiscriminator(prismObject.asObjectable()));
+        return getModelServiceLocator().getCompiledGuiProfile().findShadowDetailsConfiguration(createResourceShadowDiscriminator(getPrismObject().asObjectable()));
     }
 
     private ResourceShadowDiscriminator createResourceShadowDiscriminator(ShadowType shadow) {

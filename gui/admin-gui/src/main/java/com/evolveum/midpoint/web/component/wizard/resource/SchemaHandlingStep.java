@@ -548,10 +548,6 @@ public class SchemaHandlingStep extends WizardStep {
         associationsTooltip.add(new InfoTooltipBehavior());
         editor.add(associationsTooltip);
 
-        Label assignmentPolicyRefTooltip = new Label(ID_T_ASSIGNMENT_POLICY_REF);
-        assignmentPolicyRefTooltip.add(new InfoTooltipBehavior());
-        editor.add(assignmentPolicyRefTooltip);
-
         Label iterationTooltip = new Label(ID_T_ITERATION);
         iterationTooltip.add(AttributeAppender.append("title", createStringResource("SchemaHandlingStep.tooltip.iteration",
                 WebComponentUtil.getMidpointCustomSystemName(getPageBase(), "midpoint.default.system.name"))));
