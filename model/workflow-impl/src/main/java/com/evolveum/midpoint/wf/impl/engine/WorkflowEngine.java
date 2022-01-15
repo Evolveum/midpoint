@@ -15,7 +15,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -112,14 +111,14 @@ public class WorkflowEngine implements CaseEventListener {
                     return;
                 } catch (PreconditionViolationException e) {
                     boolean repeat = attempt < MAX_ATTEMPTS;
-                    String action = repeat ? "retried" : "aborted";
+                    String handling = repeat ? "retried" : "aborted";
                     LOGGER.info("Approval commit conflict detected; operation will be {} (this was attempt {} of {})",
-                            action, attempt, MAX_ATTEMPTS);
+                            handling, attempt, MAX_ATTEMPTS);
                     if (repeat) {
                         attempt++;
                     } else {
-                        throw new SystemException("Couldn't execute " + request.getClass() + " in " + MAX_ATTEMPTS + " attempts",
-                                e);
+                        throw new SystemException(
+                                "Couldn't execute " + request.getClass() + " in " + MAX_ATTEMPTS + " attempts", e);
                     }
                 }
             } catch (Throwable t) {
@@ -132,22 +131,9 @@ public class WorkflowEngine implements CaseEventListener {
     }
 
     private EngineInvocationContext createInvocationContext(String caseOid, Task opTask, OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
         PrismObject<CaseType> caseObject = repositoryService.getObject(CaseType.class, caseOid, null, result);
-        return new EngineInvocationContext(caseObject.asObjectable(), opTask, this, getMidPointPrincipal());
-    }
-
-    private MidPointPrincipal getMidPointPrincipal() {
-        MidPointPrincipal user;
-        try {
-            user = SecurityUtil.getPrincipal();
-        } catch (SecurityViolationException e) {
-            throw new SystemException("Couldn't get midPoint principal: " + e.getMessage(), e);
-        }
-        if (user == null) {
-            throw new SystemException("No principal");
-        }
-        return user;
+        return new EngineInvocationContext(caseObject.asObjectable(), opTask, this, SecurityUtil.getPrincipalRequired());
     }
 
     private void executeActionChain(Action action, OperationResult result)
