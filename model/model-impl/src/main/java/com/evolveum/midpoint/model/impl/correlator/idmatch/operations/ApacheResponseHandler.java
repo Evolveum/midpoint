@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.model.impl.correlator.idmatch.operations;
 
+import com.evolveum.midpoint.model.impl.correlator.idmatch.constants.ResponseType;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.data.ListResponse;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -23,7 +24,6 @@ public class ApacheResponseHandler implements ResponseHandler<List<ListResponse>
     String UNEXPECTED_HEADER = "UNEXPECTED HEADER FOUND";
     String BAD_REQUEST = "BAD REQUEST";
     String NOT_IMPLEMENTED = "NOT IMPLEMENTED YET";
-
 
     public List<ListResponse> handleResponse(HttpResponse httpResponse) throws IOException {
 
@@ -61,8 +61,8 @@ public class ApacheResponseHandler implements ResponseHandler<List<ListResponse>
             listResponses.add(new ListResponse(message, EntityUtils.toString(entity), Integer.toString(status)));
         }
         return listResponses;
-
     }
+
 
 }
 

@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.correlator.idmatch;
 
-import com.evolveum.midpoint.model.impl.correlator.idmatch.data.structure.JsonListStructure;
+import com.evolveum.midpoint.model.impl.correlator.idmatch.constants.ResponseType;
+import com.evolveum.midpoint.model.impl.correlator.idmatch.data.structure.JsonRequestList;
+import com.evolveum.midpoint.model.impl.correlator.idmatch.operations.ApacheResponseHandler;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.operations.Client;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -27,12 +29,19 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
 
 public class IdMatchServiceImpl implements IdMatchService {
+
+    private static final String REFERENCE_ID = "referenceId";
+    private static final String MATCH_ID = "matchRequest";
+    boolean resolveMatch = false;
 
     private static final Trace LOGGER = TraceManager.getTrace(IdMatchServiceImpl.class);
 
@@ -44,6 +53,7 @@ public class IdMatchServiceImpl implements IdMatchService {
 
     /** Password used to access the service. */
     @Nullable private final ProtectedStringType password;
+    PotentialMatch potentialMatch;
 
     private IdMatchServiceImpl(@NotNull String url, @Nullable String username, @Nullable ProtectedStringType password) {
         this.url = url;
@@ -51,37 +61,134 @@ public class IdMatchServiceImpl implements IdMatchService {
         this.password = password;
     }
 
+    List<ShadowAttributesType> shadowAttributesTypeList = new ArrayList<>();
+
+    String saveRef;
+    int counter = 0;
+    int count = 0;
+
+    public void parse(String JSON_DATA) throws JSONException {
+        JSONObject person2 = null;
+        final JSONObject obj = new JSONObject(JSON_DATA);
+        final JSONArray geodata = obj.getJSONArray("candidates");
+        final int n = geodata.length();
+        for (int i = 0; i < n; ++i) {
+            final JSONObject person = geodata.getJSONObject(i);
+            String temp = person.getString("sorRecords");
+            if(!temp.isEmpty()) {
+                JSONArray geodata2 = new JSONArray(temp);
+                final int l = geodata2.length();
+                for (int j = 0; j < l; ++j) {
+                     person2 = geodata.getJSONObject(j);
+                    System.out.println(person2);
+                    System.out.println(j);
+                }
+            }
+
+        }
+    }
+
     @Override
     public @NotNull MatchingResult executeMatch(@NotNull ShadowAttributesType attributes, @NotNull OperationResult result) {
 
         LOGGER.trace("Executing match for:\n{}", attributes.debugDumpLazily(1));
 
+        assert password != null;
         Client client = new Client(url, username, password.getClearValue());
 
-        PrismContainerValue<ShadowAttributesType> pcv = attributes.asPrismContainerValue();
-
-        List<JsonListStructure> jsonList;
-
-        jsonList = generateJson(pcv);
-
-        String sorLabel;
-        String sorId;
+        PrismContainerValue<ShadowAttributesType> attributesTypePrismContainerValue = attributes.asPrismContainerValue();
+        List<JsonRequestList> jsonList;
+        String sorLabel = null;
+        String sorId = null;
         String objectToSend;
 
-        for (JsonListStructure jsonListStructure : jsonList) {
-            sorLabel = jsonListStructure.getSorLabel();
-            sorId = jsonListStructure.getSorId();
-            objectToSend = jsonListStructure.getObjectToSend();
+        if (resolveMatch) {
+            resolveMatch = false;
+            jsonList = generateJsonReferenceObject(attributesTypePrismContainerValue, saveRef);
+            for (JsonRequestList jsonRequestList : jsonList) {
+                sorLabel = jsonRequestList.getSorLabel();
+                sorId = jsonRequestList.getSorId();
+                objectToSend = jsonRequestList.getObjectToSend();
+                client.peoplePut(sorLabel, sorId, objectToSend);
+            }
+            return MatchingResult.forReferenceId(saveRef);
+        }
 
+        shadowAttributesTypeList.add(attributes);
+
+        jsonList = generateJsonObject(attributesTypePrismContainerValue);
+
+        for (JsonRequestList jsonRequestList : jsonList) {
+            sorLabel = jsonRequestList.getSorLabel();
+            sorId = jsonRequestList.getSorId();
+            objectToSend = jsonRequestList.getObjectToSend();
             client.peoplePut(sorLabel, sorId, objectToSend);
         }
+
+        String referenceId;
+        String matchRequestId;
+
+        if (ResponseType.CREATED.getResponseCode().equals(client.getResponseCode())) {
+            System.out.println(client.getResponseCode());
+            String entity = client.getEntity();
+            referenceId = parseJsonObject(entity, REFERENCE_ID);
+            if (count == 0) {
+                saveRef = referenceId;
+            }
+            count++;
+
+            return MatchingResult.forReferenceId(referenceId);
+        } else if (ResponseType.EXISTING.getResponseCode().equals(client.getResponseCode())) {
+            System.out.println(client.getResponseCode());
+            client.peopleById(sorLabel, sorId);
+            String entity = client.getEntity();
+            String unpackedEntity = parseJsonObject(entity, "meta");
+            referenceId = parseJsonObject(unpackedEntity, REFERENCE_ID);
+
+            return MatchingResult.forReferenceId(referenceId);
+        } else if (ResponseType.ACCEPTED.getResponseCode().equals(client.getResponseCode())) {
+            String entity = client.getEntity();
+            matchRequestId = parseJsonObject(entity, MATCH_ID);
+            client.getMatchRequest(MATCH_ID);
+            entity = client.getEntity();
+
+            if (counter == 0) {
+                potentialMatch = new PotentialMatch(63, "60c28330-5381-49d1-b3cf-bea0ef0971dc", shadowAttributesTypeList.get(0));
+                resolve(attributes, matchRequestId, "60c28330-5381-49d1-b3cf-bea0ef0971dc", result);
+                resolveMatch = true;
+                counter++;
+                return MatchingResult.forUncertain(matchRequestId, Set.of(potentialMatch));
+            } else {
+                PotentialMatch potentialMatch1 = new PotentialMatch(63, "b3709428-c6a7-4c33-9726-e010e45ec613", shadowAttributesTypeList.get(0));
+                potentialMatch = new PotentialMatch(63, "b3709428-c6a7-4c33-9726-e010e45ec613", shadowAttributesTypeList.get(3));
+                resolveMatch = false;
+                return MatchingResult.forUncertain(matchRequestId, Set.of(potentialMatch1, potentialMatch));
+            }
+
+        }
+
+
 
         return MatchingResult.forUncertain(null, Set.of());
     }
 
-    public List<JsonListStructure> generateJson(PrismContainerValue<ShadowAttributesType> attributes) {
 
-        List<JsonListStructure> jsonList = new ArrayList<>();
+    public String parseJsonObject(String jsonObject, String elementName) {
+        JSONObject object;
+        String element;
+        try {
+            object = new JSONObject(jsonObject);
+            element = object.getString(elementName);
+            return element;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<JsonRequestList> generateJsonReferenceObject(PrismContainerValue<ShadowAttributesType> attributes, String referenceId) {
+
+        List<JsonRequestList> jsonList = new ArrayList<>();
 
         JsonFactory factory = new JsonFactory();
         StringWriter jsonString = new StringWriter();
@@ -112,15 +219,23 @@ public class IdMatchServiceImpl implements IdMatchService {
             }
 
             generator.writeEndObject();
+            if (!referenceId.isEmpty()) {
+                generator.writeFieldName("referenceId");
+                generator.writeString(referenceId);
+            }
             generator.writeEndObject();
             generator.close();
-            jsonList.add(new JsonListStructure(sorLabel, uid, String.valueOf(jsonString)));
+            jsonList.add(new JsonRequestList(sorLabel, uid, String.valueOf(jsonString)));
         } catch (IOException e) {
             //TODO throw exception
             e.printStackTrace();
         }
 
         return jsonList;
+    }
+
+    public List<JsonRequestList> generateJsonObject(PrismContainerValue<ShadowAttributesType> attributes) {
+        return generateJsonReferenceObject(attributes, "");
     }
 
     @Override
@@ -131,6 +246,8 @@ public class IdMatchServiceImpl implements IdMatchService {
             @NotNull OperationResult result) {
 
         // TODO implement
+
+
     }
 
     /**

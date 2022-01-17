@@ -7,11 +7,11 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 
-public class HttpClientSuper {
+public class HttpBuilder {
     AuthenticationProvider authenticationProvider;
     CloseableHttpClient httpClient;
 
-    public HttpClientSuper(AuthenticationProvider authenticationProvider) {
+    public HttpBuilder(AuthenticationProvider authenticationProvider) {
         this.authenticationProvider = authenticationProvider;
     }
 

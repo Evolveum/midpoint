@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class ApacheGetRequest extends HttpClientSuper implements ApacheApiRequest {
+public class ApacheGetRequest extends HttpBuilder implements ApacheApiRequest {
 
 
     List<ListResponse> httpResponse = new ArrayList<>();

@@ -9,13 +9,12 @@ import java.io.IOException;
 
 public class Client {
 
-
     private final ApacheApiRequest apachePutRequest;
     private final ApacheApiRequest apachePostRequest;
     private final ApacheApiRequest apacheGetRequest;
     private final ApacheApiRequest apacheDeleteRequest;
 
-    private final HttpClientSuper httpClientSuper;
+    private final HttpBuilder httpClientSuper;
 
     String urlPrefix;
     String username;
@@ -24,6 +23,27 @@ public class Client {
     AuthenticationProvider authenticationProvider;
 
     ListResponse listResponse;
+
+    public String getResponseCode() {
+        return responseCode;
+    }
+
+    public void setResponseCode(String responseCode) {
+        this.responseCode = responseCode;
+    }
+
+
+    public String getEntity() {
+        return entity;
+    }
+
+    public void setEntity(String entity) {
+        this.entity = entity;
+    }
+
+    String responseCode;
+    String entity;
+    String message;
 
     String NO_RESPONSE_MESSAGES = "NO RESPONSE MESSAGES";
 
@@ -37,25 +57,22 @@ public class Client {
         apachePostRequest = new ApachePostRequest(this.authenticationProvider);
         apacheGetRequest = new ApacheGetRequest(this.authenticationProvider);
         apacheDeleteRequest = new ApacheDeleteRequest(this.authenticationProvider);
-        httpClientSuper = new HttpClientSuper(this.authenticationProvider);
+        httpClientSuper = new HttpBuilder(this.authenticationProvider);
     }
-
 
     public void peoplePut(String sorLabel, String sorId, String object) {
 
         StringBuilder urlSuffix = new StringBuilder(sorLabel + "/" + sorId);
         StringBuilder url = new StringBuilder(urlPrefix + Channel.URL_PREFIX_MAIN_OPERATIONS.getUrl());
 
-
         try {
             apachePutRequest.doRequest(url.toString(), urlSuffix.toString(), object);
-            printResponses(apachePutRequest);
+
+            setResponses(apachePutRequest);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
 
 
     public void listPeople(String sorLabel) {
@@ -63,12 +80,11 @@ public class Client {
         StringBuilder url = new StringBuilder(urlPrefix + Channel.URL_PREFIX_MAIN_OPERATIONS.getUrl());
         try {
             apacheGetRequest.doRequest(url.toString(), sorLabel, "");
-            printResponses(apacheGetRequest);
+            setResponses(apacheGetRequest);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 
     public void peopleById(String sorLabel, String sorId) {
 
@@ -77,12 +93,11 @@ public class Client {
 
         try {
             apacheGetRequest.doRequest(url.toString(), urlSuffix.toString(), "");
-            printResponses(apacheGetRequest);
+            setResponses(apacheGetRequest);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 
     public void listMatchRequest(MatchStatus matchStatus) {
 
@@ -90,13 +105,12 @@ public class Client {
 
         try {
             apacheGetRequest.doRequest(urlPrefix, urlSuffix.toString(), "");
-            printResponses(apacheGetRequest);
+            setResponses(apacheGetRequest);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
-
 
     public void getMatchRequest(String id) {
 
@@ -104,24 +118,22 @@ public class Client {
 
         try {
             apacheGetRequest.doRequest(url.toString(), id, "");
-            printResponses(apacheGetRequest);
+            setResponses(apacheGetRequest);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 
     public void searchMatchRequestsByReferenceId(String refId) {
         StringBuilder url = new StringBuilder(urlPrefix + Channel.URL_PREFIX_GET_MATCH_REQUEST_REFERENCE_ID.getUrl());
 
         try {
             apacheGetRequest.doRequest(url.toString(), refId, "");
-            printResponses(apacheGetRequest);
+            setResponses(apacheGetRequest);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 
     public void peoplePost(String sorLabel, String sorId, String object) {
 
@@ -129,12 +141,11 @@ public class Client {
         StringBuilder url = new StringBuilder(urlPrefix + Channel.URL_PREFIX_MAIN_OPERATIONS.getUrl());
         try {
             apachePostRequest.doRequest(url.toString(), urlSuffix.toString(), object);
-            printResponses(apachePostRequest);
+            setResponses(apachePostRequest);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 
     public void deletePeople(String sorLabel, String sorId) {
 
@@ -142,28 +153,33 @@ public class Client {
         StringBuilder url = new StringBuilder(urlPrefix + Channel.URL_PREFIX_MAIN_OPERATIONS.getUrl());
         try {
             apacheDeleteRequest.doRequest(url.toString(), urlSuffix.toString(), "");
-            printResponses(apacheDeleteRequest);
+            setResponses(apacheDeleteRequest);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void printResponses(ApacheApiRequest apacheApiRequest) {
+    private void setResponses(ApacheApiRequest apacheApiRequest) {
         if (!apacheApiRequest.listResponse().isEmpty()) {
             listResponse = apacheApiRequest.listResponse().get(0);
-            System.out.printf("%s\n %s \n %s \n %n", "Response code: " + listResponse.getResponseCode(), "Message: " + listResponse.getMessage(), "Entity: " + listResponse.getEntity());
-        } else System.out.println(NO_RESPONSE_MESSAGES);
+            //System.out.printf("%s\n %s \n %s \n %n", "Response code: " + listResponse.getResponseCode(), "Message: " + listResponse.getMessage(), "Entity: " + listResponse.getEntity());
+            setResponseCode(listResponse.getResponseCode());
+            setEntity(listResponse.getEntity());
+            setMessage(listResponse.getMessage());
+        } else {System.out.println(NO_RESPONSE_MESSAGES);}
     }
-
 
     public void close() {
         httpClientSuper.clientClose();
     }
 
+    public String getMessage() {
+        return message;
+    }
 
-
-
-
+    public void setMessage(String message) {
+        this.message = message;
+    }
 
 
 }

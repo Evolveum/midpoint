@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class ApachePutRequest extends HttpClientSuper implements ApacheApiRequest {
+public class ApachePutRequest extends HttpBuilder implements ApacheApiRequest {
 
 
     List<ListResponse> httpResponse = new ArrayList<>();

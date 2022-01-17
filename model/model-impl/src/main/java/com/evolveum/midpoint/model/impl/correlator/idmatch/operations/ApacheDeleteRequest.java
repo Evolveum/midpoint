@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class ApacheDeleteRequest extends HttpClientSuper implements ApacheApiRequest {
+public class ApacheDeleteRequest extends HttpBuilder implements ApacheApiRequest {
 
 
     List<ListResponse> httpResponse = new ArrayList<>();

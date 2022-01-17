@@ -1,9 +1,9 @@
 package com.evolveum.midpoint.model.impl.correlator.idmatch.data.structure;
 
-public class JsonListStructure {
+public class JsonRequestList {
 
 
-    public JsonListStructure(String sorLabel, String sorId, String objectToSend) {
+    public JsonRequestList(String sorLabel, String sorId, String objectToSend) {
         this.sorLabel = sorLabel;
         this.sorId = sorId;
         this.objectToSend = objectToSend;

@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ApachePostRequest extends HttpClientSuper implements ApacheApiRequest {
+public class ApachePostRequest extends HttpBuilder implements ApacheApiRequest {
 
 
     List<ListResponse> httpResponse = new ArrayList<>();
