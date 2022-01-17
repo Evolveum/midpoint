@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.hasArchetype;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -17,6 +19,8 @@ import java.util.Objects;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
 
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -150,6 +154,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
+    @Autowired private CorrelationCaseManager correlationCaseManager;
 
     @Autowired(required = false)                        // not required in all circumstances
     private WorkflowManager workflowManager;
@@ -2333,9 +2338,33 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public void completeWorkItem(@NotNull WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output, @NotNull Task task, @NotNull OperationResult parentResult)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getWorkflowManagerChecked().completeWorkItem(workItemId, output, null, task, parentResult);
+    public void completeWorkItem(
+            @NotNull WorkItemId workItemId,
+            @NotNull AbstractWorkItemOutputType output,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        // temporary
+        dispatchWorkItemCompletionRequest(workItemId, output, task, parentResult);
+    }
+
+    /**
+     * This is an ugly hack: Normally, all requests should be processed by a case manager (if such component would exist).
+     * Currently, only approvals are sent that way. Correlation cases are treated separately.
+     *
+     * FIXME unify this
+     */
+    private void dispatchWorkItemCompletionRequest(
+            WorkItemId workItemId, AbstractWorkItemOutputType output, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        PrismObject<CaseType> aCase = cacheRepositoryService.getObject(CaseType.class, workItemId.caseOid, null, result);
+        if (hasArchetype(aCase, SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value())) {
+            correlationCaseManager.completeWorkItem(workItemId, aCase, output, task, result);
+        } else {
+            getWorkflowManagerChecked().completeWorkItem(workItemId, output, null, task, result);
+        }
     }
 
     @Override

@@ -80,6 +80,16 @@ class ExpressionCorrelator implements Correlator {
                 .execute(result);
     }
 
+    @Override
+    public void resolve(
+            @NotNull PrismObject<CaseType> aCase,
+            @NotNull AbstractWorkItemOutputType output,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        // This correlator should never create any correlation cases.
+        throw new IllegalStateException("The resolve() method should not be called for this correlator");
+    }
+
     private class Correlation<F extends ObjectType> {
 
         @NotNull private final ShadowType resourceObject;

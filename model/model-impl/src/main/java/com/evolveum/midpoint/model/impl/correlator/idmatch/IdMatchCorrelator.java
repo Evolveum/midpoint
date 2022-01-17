@@ -14,9 +14,11 @@ import com.evolveum.midpoint.model.api.correlator.idmatch.PotentialMatch;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -28,8 +30,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.util.QNameUtil.qNameToUri;
+import static com.evolveum.midpoint.util.QNameUtil.uriToQName;
 
 /**
  * A correlator based on an external service providing ID Match API.
@@ -106,8 +110,9 @@ class IdMatchCorrelator implements Correlator {
         MatchingResult mResult = service.executeMatch(resourceObject.getAttributes(), result);
         LOGGER.trace("Matching result:\n{}", mResult.debugDumpLazily(1));
 
-        correlationContext.setCorrelationState(
-                createCorrelationState(mResult));
+        IdMatchCorrelationStateType correlationState = createCorrelationState(mResult);
+        correlationContext.setCorrelationState(correlationState);
+        resourceObject.setCorrelationState(correlationState.clone()); // we also need the state in the shadow in the case object
 
         if (mResult.getReferenceId() != null) {
             beans.correlationCaseManager.closeCaseIfExists(resourceObject, result);
@@ -121,7 +126,7 @@ class IdMatchCorrelator implements Correlator {
         }
     }
 
-    private IdMatchCorrelationStateType createCorrelationState(MatchingResult mResult) {
+    private @NotNull IdMatchCorrelationStateType createCorrelationState(MatchingResult mResult) {
         IdMatchCorrelationStateType state = new IdMatchCorrelationStateType(PrismContext.get());
         state.setReferenceId(mResult.getReferenceId());
         state.setMatchRequestId(mResult.getMatchRequestId());
@@ -159,5 +164,37 @@ class IdMatchCorrelator implements Correlator {
                 .confidence(potentialMatch.getConfidence())
                 .referenceId(id)
                 .attributes(potentialMatch.getAttributes());
+    }
+
+    @Override
+    public void resolve(
+            @NotNull PrismObject<CaseType> aCase,
+            @NotNull AbstractWorkItemOutputType output,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException {
+        ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(aCase);
+        ShadowAttributesType attributes = MiscUtil.requireNonNull(shadow.getAttributes(),
+                () -> new IllegalStateException("No attributes in shadow " + shadow + " in " + aCase));
+        IdMatchCorrelationStateType state = MiscUtil.requireNonNull(
+                MiscUtil.castSafely(shadow.getCorrelationState(), IdMatchCorrelationStateType.class),
+                () -> new IllegalStateException("No correlation state in shadow " + shadow + " in " + aCase));
+        String matchRequestId = state.getMatchRequestId();
+        String correlatedReferenceId = getCorrelatedReferenceId(aCase, output);
+
+        service.resolve(attributes, matchRequestId, correlatedReferenceId, result);
+    }
+
+    private String getCorrelatedReferenceId(PrismObject<CaseType> aCase, AbstractWorkItemOutputType output)
+            throws SchemaException {
+        String outcomeUri = output.getOutcome();
+        argCheck(outcomeUri != null, "No outcome URI for %s", aCase);
+        String outcome = uriToQName(outcomeUri, true).getLocalPart();
+        if (SchemaConstants.CORRELATION_NONE.equals(outcome)) {
+            return null;
+        } else if (outcome.startsWith(SchemaConstants.CORRELATION_OPTION_PREFIX)) {
+            return outcome.substring(SchemaConstants.CORRELATION_OPTION_PREFIX.length());
+        } else {
+            throw new SchemaException("Unsupported outcome URI: " + outcomeUri);
+        }
     }
 }

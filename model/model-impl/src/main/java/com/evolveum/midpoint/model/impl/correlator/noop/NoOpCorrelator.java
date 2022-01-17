@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.correlator.noop;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
@@ -35,5 +39,15 @@ class NoOpCorrelator implements Correlator {
 
         LOGGER.debug("Returning no owner.");
         return CorrelationResult.noOwner();
+    }
+
+    @Override
+    public void resolve(
+            @NotNull PrismObject<CaseType> aCase,
+            @NotNull AbstractWorkItemOutputType output,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        // This correlator should never create any correlation cases.
+        throw new IllegalStateException("The resolve() method should not be called for this correlator");
     }
 }

@@ -247,16 +247,13 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         setOutputMarkupId(true);
     }
 
-    private LoadableDetachableModel<List<PrismContainerValueWrapper<ShadowType>>> loadShadowModel() {
-        return new LoadableDetachableModel<>() {
-            @Override
-            protected List<PrismContainerValueWrapper<ShadowType>> load() {
+    private IModel<List<PrismContainerValueWrapper<ShadowType>>> loadShadowModel() {
+        return () -> {
                 List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<>();
                 for (ShadowWrapper projection : getProjectionsModel().getObject()) {
                     items.add(projection.getValue());
                 }
                 return items;
-            }
         };
     }
 

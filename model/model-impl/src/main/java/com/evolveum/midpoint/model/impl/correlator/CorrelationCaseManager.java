@@ -7,12 +7,24 @@
 
 package com.evolveum.midpoint.model.impl.correlator;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import java.util.List;
 
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.correlator.Correlator;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
+import com.evolveum.midpoint.schema.util.WorkItemId;
+
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.task.api.Task;
+
+import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,15 +38,12 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Manages correlation cases.
@@ -44,8 +53,14 @@ public class CorrelationCaseManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationCaseManager.class);
 
+    private static final String OP_PERFORM_COMPLETION_IN_CORRELATOR =
+            CorrelationCaseManager.class.getName() + ".performCompletionInCorrelator";
+
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
+    @Autowired private Clock clock;
+    @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
+    @Autowired private ModelBeans beans;
 
     /**
      * Creates or updates a correlation case for given correlation operation that finished in "uncertain" state.
@@ -76,7 +91,7 @@ public class CorrelationCaseManager {
         String assigneeOid = SystemObjectsType.USER_ADMINISTRATOR.value(); // temporary
         CaseType newCase = new CaseType(prismContext)
                 .name(getCaseName(resourceObject))
-                .objectRef(ObjectTypeUtil.createObjectRefWithFullObject(resourceObject))
+                .objectRef(createObjectRefWithFullObject(resourceObject))
                 .archetypeRef(createArchetypeRef())
                 .assignment(new AssignmentType(prismContext)
                         .targetRef(createArchetypeRef()))
@@ -192,5 +207,74 @@ public class CorrelationCaseManager {
                     .asItemDeltas();
             modifyCase(aCase, itemDeltas, result);
         }
+    }
+
+    /**
+     * Temporary implementation. We should merge this code with CompleteWorkItemsAction (in workflow-impl module).
+     *
+     * Preconditions:
+     *
+     * - case is freshly fetched,
+     * - case is a correlation one
+     */
+    public void completeWorkItem(
+            @NotNull WorkItemId workItemId,
+            @NotNull PrismObject<CaseType> aCase,
+            @NotNull AbstractWorkItemOutputType output,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ConfigurationException, ExpressionEvaluationException, CommunicationException {
+
+        // TODO authorization
+        // TODO already-completed check
+
+        OperationResult subResult = performCompletionInCorrelator(aCase, output, task, result);
+        if (!subResult.isSuccess()) {
+            LOGGER.trace("Not closing the work item and the case because completion in correlator was not successful");
+            return;
+        }
+
+        // Preliminary code
+        ObjectReferenceType performerRef = createObjectRef(SecurityUtil.getPrincipalRequired().getFocus());
+        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(CaseType.class)
+                .item(CaseType.F_WORK_ITEM, workItemId.id, CaseWorkItemType.F_OUTPUT).replace(output.clone())
+                .item(CaseType.F_WORK_ITEM, workItemId.id, CaseWorkItemType.F_PERFORMER_REF).replace(performerRef)
+                .item(CaseType.F_WORK_ITEM, workItemId.id, CaseWorkItemType.F_CLOSE_TIMESTAMP).replace(now)
+                .item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
+                .asItemDeltas();
+
+        try {
+            repositoryService.modifyObject(CaseType.class, workItemId.caseOid, itemDeltas, result);
+        } catch (ObjectAlreadyExistsException e) {
+            throw new SystemException("Unexpected exception: " + e.getMessage(), e);
+        }
+    }
+
+    private OperationResult performCompletionInCorrelator(
+            PrismObject<CaseType> aCase, AbstractWorkItemOutputType output, Task task, OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        OperationResult result = parentResult.createSubresult(OP_PERFORM_COMPLETION_IN_CORRELATOR);
+        try {
+            Correlator correlator = instantiateCorrelator(aCase, task, result);
+            correlator.resolve(aCase, output, task, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+        return result;
+    }
+
+    private Correlator instantiateCorrelator(PrismObject<CaseType> aCase, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(aCase);
+        CorrelatorsType correlatorsBean = CorrelatorUtil.getCorrelatorsBeanForShadow(shadow, beans, task, result);
+        return correlatorFactoryRegistry.instantiateCorrelator(correlatorsBean, task, result);
     }
 }

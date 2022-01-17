@@ -14,8 +14,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +53,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
             "95ebbf1e-9c71-4870-a1fb-dc47ce6856c9", 30000);
 
     @Autowired CorrelationCaseManager correlationCaseManager;
+    @Autowired WorkflowService caseService;
 
     /** This is the initialized object (retrieved from the repo). */
     private ResourceType resourceAis;
@@ -242,19 +246,22 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
 
     /**
      * Resolve the case created in the previous test. (By confirming it is the same person.)
-     *
-     * Currently the confirmation is done "externally", not via case management. TODO fix this.
      */
     @Test
     public void test130ResolveAmbiguityAsExisting() throws CommonException {
         given();
-        OperationResult result = getTestOperationResult();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         ShadowType newShadow = findShadowByPrismName("4", resourceAis.asPrismObject(), result).asObjectable();
-        String matchRequestId = ((IdMatchCorrelationStateType) newShadow.getCorrelationState()).getMatchRequestId();
+        CaseType correlationCase = java.util.Objects.requireNonNull(
+                correlationCaseManager.findCorrelationCase(newShadow, true, result));
+        WorkItemId workItemId = WorkItemId.of(correlationCase.getWorkItem().get(0));
+        AbstractWorkItemOutputType output = new AbstractWorkItemOutputType(prismContext)
+                .outcome(SchemaConstants.CORRELATION_OPTION_PREFIX + ian.getName().getOrig()); // unqualified should be OK here
 
         when();
-        resolve(newShadow.getAttributes(), matchRequestId, ian.getName().getOrig(), result);
+        caseService.completeWorkItem(workItemId, output, task, result);
 
         then();
         assertSuccess(result);

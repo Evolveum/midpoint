@@ -160,12 +160,10 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         then("correlating account #" + account.getNumber());
 
         CorrelationResult correlationResult = correlator.correlate(account.getShadow(), context, task, result);
-        assertCorrelationResult(correlationResult, account, result);
+        assertCorrelationResult(correlationResult, account);
     }
 
-    private void assertCorrelationResult(
-            CorrelationResult correlationResult, CorrelationTestingAccount account, OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
+    private void assertCorrelationResult(CorrelationResult correlationResult, CorrelationTestingAccount account) {
 
         displayDumpable("Correlation result", correlationResult);
 
