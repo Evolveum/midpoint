@@ -124,11 +124,13 @@
             <intent>default</intent>
             <correlators>
                 <idMatch>
+                    <sorLabel>sor</sorLabel> <!-- this is the default testing configuration of ID Match demo -->
+                    <sorIdentifierAttribute>ri:aisId</sorIdentifierAttribute>
                     <!-- URL and credentials are ignored when dummy ID Match Service implementation is used.
                          They are used only when running TestIdMatchReal (not part of the test suite). -->
-                    <url>TODO</url>
-                    <username>TODO</username>
-                    <password>TODO</password>
+                    <url>http://localhost:9090</url>
+                    <username>administrator</username>
+                    <password><clearValue>5ecr3t</clearValue></password>
                     <followOn>
                         <filter>
                             <filter>
