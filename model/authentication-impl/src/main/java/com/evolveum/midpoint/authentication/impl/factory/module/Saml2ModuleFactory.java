@@ -67,7 +67,7 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
         HttpSecurity http = getNewHttpSecurity(module);
         setSharedObjects(http, sharedObjects);
 
-        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration);
+        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, request);
         moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         for (Filter f : filter.getFilters()){
@@ -80,12 +80,12 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 
-    public ModuleAuthenticationImpl createEmptyModuleAuthentication(SamlModuleWebSecurityConfiguration configuration) {
+    public ModuleAuthenticationImpl createEmptyModuleAuthentication(SamlModuleWebSecurityConfiguration configuration, ServletRequest request) {
         Saml2ModuleAuthenticationImpl moduleAuthentication = new Saml2ModuleAuthenticationImpl();
         List<IdentityProvider> providers = new ArrayList<>();
         configuration.getRelyingPartyRegistrationRepository().forEach(
                 p -> {
-                    String authRequestPrefixUrl = "/midpoint" + configuration.getPrefixOfModule()
+                    String authRequestPrefixUrl = request.getServletContext().getContextPath() + configuration.getPrefixOfModule()
                             + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID;
                     SamlAdditionalConfiguration config = configuration.getAdditionalConfiguration().get(p.getRegistrationId());
                     IdentityProvider mp = new IdentityProvider()

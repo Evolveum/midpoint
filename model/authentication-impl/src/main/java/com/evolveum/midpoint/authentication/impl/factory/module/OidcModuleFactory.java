@@ -64,18 +64,19 @@ public class OidcModuleFactory extends RemoteModuleFactory {
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);
 
-        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration);
+        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, request);
         moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 
-    public ModuleAuthenticationImpl createEmptyModuleAuthentication(OidcModuleWebSecurityConfiguration configuration) {
+    public ModuleAuthenticationImpl createEmptyModuleAuthentication(OidcModuleWebSecurityConfiguration configuration, ServletRequest request) {
         OidcModuleAuthenticationImpl moduleAuthentication = new OidcModuleAuthenticationImpl();
         List<IdentityProvider> providers = new ArrayList<>();
         configuration.getClientRegistrationRepository().forEach(
                 client -> {
-                    String authRequestPrefixUrl = "/midpoint" + configuration.getPrefixOfModule() + OidcModuleAuthenticationImpl.AUTHORIZATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID;
+                    String authRequestPrefixUrl = request.getServletContext().getContextPath() + configuration.getPrefixOfModule()
+                            + OidcModuleAuthenticationImpl.AUTHORIZATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID;
                     IdentityProvider mp = new IdentityProvider()
                                 .setLinkText(client.getClientName())
                                 .setRedirectLink(authRequestPrefixUrl.replace("{registrationId}", client.getRegistrationId()));
