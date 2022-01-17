@@ -13,11 +13,14 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.component.dialog.*;
 
 import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.web.component.search.refactored.ObjectTypeSearchItemWrapper;
 import com.evolveum.midpoint.web.component.search.refactored.PropertySearchItemWrapper;
 
 import org.apache.commons.collections4.IteratorUtils;
@@ -143,7 +146,9 @@ public class PageDebugList extends PageAdminConfiguration {
 //                    defaultType.setVisible(true);
 //                    search = SearchFactory.createSearch(defaultType, PageDebugList.this, true);
 //                    configureSearch(search);
-                    search = SearchFactory.createSearchNew(confDialogModel.getObject().getType(), null, createSearchConfig(), PageDebugList.this);
+                    search = SearchFactory.createSearchNew(confDialogModel.getObject().getType(), null,
+                            createSearchConfig(SystemConfigurationType.COMPLEX_TYPE), PageDebugList.this);
+                    storage.setSearch(search);
                 }
                 return search;
             }
@@ -161,13 +166,13 @@ public class PageDebugList extends PageAdminConfiguration {
         initLayout();
     }
 
-    private SearchBoxConfigurationType createSearchConfig() {
+    private SearchBoxConfigurationType createSearchConfig(QName defaultValue) {
         SearchBoxConfigurationType config = new SearchBoxConfigurationType();
         config.createAllowedModeList().add(SearchBoxModeType.BASIC);
         config.createAllowedModeList().add(SearchBoxModeType.ADVANCED);
         config.createAllowedModeList().add(SearchBoxModeType.OID);
         ObjectTypeSearchItemConfigurationType objectTypeConfig = new ObjectTypeSearchItemConfigurationType()
-                .defaultValue(SystemConfigurationType.COMPLEX_TYPE);
+                .defaultValue(defaultValue);
         objectTypeConfig.getSupportedTypes().addAll(getAllowedTypes());
         config.setObjectTypeConfiguration(objectTypeConfig);
         return config;
@@ -526,14 +531,18 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void listObjectsPerformed(AjaxRequestTarget target) {
         Table table = getListTable();
-//        if (searchModel.getObject().isTypeChanged()) {
+        if (searchModel.getObject().isTypeChanged()) {
+            ObjectTypeSearchItemWrapper objectType = searchModel.getObject().getObjectTypeSearchItemWrapper();
+            Search search = SearchFactory.createSearchNew(
+                    (Class<? extends Containerable>) WebComponentUtil.qnameToClass(PrismContext.get(), objectType.getValue().getValue()),
+                    null, createSearchConfig(objectType.getValue().getValue()), PageDebugList.this);
 //            Search search = SearchFactory.createSearch(getTypeItem(), PageDebugList.this, true);
-//            searchModel.setObject(search); //TODO: this is veeery ugly, available definitions should refresh when the type changed
+            searchModel.setObject(search);//TODO: this is veeery ugly, available definitions should refresh when the type changed
 //            configureSearch(search);
-//            table.getDataTable().getColumns().clear();
-//            //noinspection unchecked
-//            table.getDataTable().getColumns().addAll(createColumns());
-//        }
+            table.getDataTable().getColumns().clear();
+            //noinspection unchecked
+            table.getDataTable().getColumns().addAll(createColumns());
+        }
 
         // save object type category to session storage, used by back button
         ConfigurationStorage storage = getSessionStorage().getConfiguration();
@@ -553,7 +562,7 @@ public class PageDebugList extends PageAdminConfiguration {
 //            search.searchWasReload();
 //        }
 //    }
-
+//
 //    private PropertySearchItem createObjectClassSearchItem(Search search) {
 //        PrismPropertyDefinition objectClassDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
 //                .findPropertyDefinition(ShadowType.F_OBJECT_CLASS);
@@ -576,7 +585,7 @@ public class PageDebugList extends PageAdminConfiguration {
 //            }
 //        };
 //    }
-
+//
 //    private PropertySearchItem createResourceRefSearchItem(Search search) {
 //        PrismReferenceDefinition resourceRefDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
 //                .findReferenceDefinition(ShadowType.F_RESOURCE_REF);

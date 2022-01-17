@@ -23,6 +23,8 @@ import java.util.List;
 public class ObjectTypeSearchItemWrapper extends AbstractSearchItemWrapper<QName> {
 
     ObjectTypeSearchItemConfigurationType config;
+    private QName oldType;
+    private boolean typeChanged;
 
     public ObjectTypeSearchItemWrapper(ObjectTypeSearchItemConfigurationType config) {
         this.config = config;
@@ -36,18 +38,38 @@ public class ObjectTypeSearchItemWrapper extends AbstractSearchItemWrapper<QName
         return config.getSupportedTypes();
     }
 
+    public boolean isTypeChanged() {
+        return typeChanged;
+    }
+
+    public void setTypeChanged(boolean typeChanged) {
+        this.typeChanged = typeChanged;
+    }
+
+    @Override
     public DisplayableValue<QName> getDefaultValue() {
         return new SearchValue(config.getDefaultValue());
     }
 
     @Override
     public String getName() {
-        return "";
+        if (config != null && config.getDisplay() != null && config.getDisplay().getLabel() != null){
+            return WebComponentUtil.getTranslatedPolyString(config.getDisplay().getLabel());
+        }
+        return PageBase.createStringResourceStatic(null, "ContainerTypeSearchItem.name").getString();
     }
 
     @Override
     public String getHelp() {
+        if (config != null && config.getDisplay() != null && config.getDisplay().getHelp() != null){
+            return WebComponentUtil.getTranslatedPolyString(config.getDisplay().getHelp());
+        }
         return "";
+    }
+
+    @Override
+    public boolean canRemoveSearchItem() {
+        return false;
     }
 
     @Override

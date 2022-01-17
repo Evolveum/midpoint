@@ -347,15 +347,20 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 query = pageBase.getPrismContext().queryFactory().createQuery();
             }
         }
-        switch (conditions.size()) {
-            case 0:
-                query = null;
-                break;
-            default:
-                for (ObjectFilter filter : conditions) {
-                    query.addFilter(filter);
-                }
+        for (ObjectFilter filter : conditions) {
+            if (filter != null) {
+                query.addFilter(filter);
+            }
         }
+//        switch (conditions.size()) {
+//            case 0:
+//                query = null;
+//                break;
+//            default:
+//                for (ObjectFilter filter : conditions) {
+//                    query.addFilter(filter);
+//                }
+//        }
         return query;
     }
 
@@ -522,6 +527,20 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             }
             if (path.equivalent(((PropertySearchItemWrapper)searchItemWrapper).getSearchItem().getPath().getItemPath())) {
                 return (PropertySearchItemWrapper)searchItemWrapper;
+            }
+        }
+        return null;
+    }
+
+    public boolean isTypeChanged() {
+        ObjectTypeSearchItemWrapper item = getObjectTypeSearchItemWrapper();
+        return item != null ? item.isTypeChanged() : false;
+    }
+
+    public ObjectTypeSearchItemWrapper getObjectTypeSearchItemWrapper() {
+        for (AbstractSearchItemWrapper item : getItems()) {
+            if (item instanceof ObjectTypeSearchItemWrapper) {
+                return (ObjectTypeSearchItemWrapper) item;
             }
         }
         return null;

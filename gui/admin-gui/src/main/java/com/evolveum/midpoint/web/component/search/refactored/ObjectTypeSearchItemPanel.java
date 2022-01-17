@@ -7,12 +7,12 @@
 package com.evolveum.midpoint.web.component.search.refactored;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
-import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -25,10 +25,22 @@ public class ObjectTypeSearchItemPanel<T> extends AbstractSearchItemPanel<Object
 
     @Override
     protected Component initSearchItemField() {
-        DropDownChoice choices = new DropDownChoice(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), ObjectTypeSearchItemWrapper.F_VALUE),
+        DropDownChoicePanel choices = new DropDownChoicePanel(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), ObjectTypeSearchItemWrapper.F_VALUE),
                 Model.ofList(getModelObject().getAvailableValues()),
                 new QNameObjectTypeChoiceRenderer());
-        choices.add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
+//        choices.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
+        choices.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                getModelObject().setTypeChanged(true);
+                SearchPanel panel = findParent(SearchPanel.class);
+                panel.displayedSearchItemsModelReset();
+                panel.searchPerformed(target);
+            }
+        });
         return choices;
     }
 

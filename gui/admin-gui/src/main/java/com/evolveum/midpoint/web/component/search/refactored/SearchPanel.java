@@ -127,7 +127,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     }
 
     private void initBasicSearchItemsModel() {
-        basicSearchItemsModel = new LoadableModel<List<AbstractSearchItemWrapper>>(false) {
+        basicSearchItemsModel = new LoadableModel<List<AbstractSearchItemWrapper>>(true) {
             @Override
             protected List<AbstractSearchItemWrapper> load() {
                 return getModelObject().getItems().stream().filter(item
@@ -223,7 +223,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         dropdownButton.add(new VisibleBehaviour(() -> getModelObject().getConfig().getAllowedMode().size() != 1));
         searchContainer.add(dropdownButton);
 
-        ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_SEARCH_TYPE_ITEMS, Model.ofList(getSearchBoxTypesList())) {
+        ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_SEARCH_TYPE_ITEMS, getSearchBoxTypesList()) {
 
             private static final long serialVersionUID = 1L;
 

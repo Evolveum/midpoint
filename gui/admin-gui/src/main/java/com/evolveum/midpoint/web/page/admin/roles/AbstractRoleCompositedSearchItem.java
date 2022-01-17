@@ -45,8 +45,8 @@ public class AbstractRoleCompositedSearchItem<R extends AbstractRoleType> extend
     private boolean org;
 
     public AbstractRoleCompositedSearchItem(Search search, SearchBoxConfigurationHelper searchBoxConfig, boolean role, boolean org) {
-        super(null);
 //        super(search);
+        super(null);
         this.searchBoxConfig = searchBoxConfig;
         this.role = role;
         this.org = org;
