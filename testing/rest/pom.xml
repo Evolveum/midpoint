@@ -286,6 +286,10 @@
             <artifactId>cxf-rt-rs-client</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+        </dependency>
+        <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>javax.ws.rs-api</artifactId>
         </dependency>

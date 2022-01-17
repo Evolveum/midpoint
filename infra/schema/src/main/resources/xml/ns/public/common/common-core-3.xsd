@@ -23062,4 +23062,19 @@
     </xsd:complexType>
     <xsd:element name="plannedOperationAttempt" type="tns:PlannedOperationAttemptType"/>
 
+    <xsd:complexType name="SchemaFilesType">
+        <xsd:sequence>
+            <xsd:element name="schema" type="tns:SchemaFileType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="schemaFiles" type="tns:SchemaFilesType"/>
+
+    <xsd:complexType name="SchemaFileType">
+        <xsd:sequence>
+            <xsd:element name="fileName" type="xsd:string"/>
+            <xsd:element name="namespace" type="xsd:string"/>
+            <xsd:element name="usualPrefix" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>
