@@ -341,7 +341,7 @@ public class TestExpression extends AbstractModelCommonTest {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         // We need to provide some definitions for account attributes here,
         // otherwise the tests will fail on unknown data types
-        PrismObjectDefinition<ShadowType> shadowDef = account.getDefinition().deepClone(false, null);
+        PrismObjectDefinition<ShadowType> shadowDef = account.getDefinition().deepClone(DeepCloneOperation.notUltraDeep());
         PrismContainerDefinition<Containerable> attrsDef = shadowDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);
         attrsDef.toMutable().createPropertyDefinition(new QName(MidPointConstants.NS_RI, "quote"), PrimitiveType.STRING.getQname());
         account.setDefinition(shadowDef);

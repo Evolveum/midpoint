@@ -39,7 +39,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
@@ -1330,13 +1329,14 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test230GetAccountCommunicationProblem() throws Exception {
         final String testName = getTestNameShort();
+        Task task = getTestTask();
 
         // GIVEN
         openDJController.assumeStopped();
         OperationResult result = createOperationResult();
 
         ShadowType account = modelService.getObject(ShadowType.class, ACCOUNT_DENIELS_OID,
-                null, null, result).asObjectable();
+                null, task, result).asObjectable();
         assertNotNull("Get method returned null account.", account);
         assertNotNull("Fetch result was not set in the shadow.", account.getFetchResult());
 
@@ -2937,6 +2937,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     public void test800Reconciliation() throws Exception {
         openDJController.assumeRunning();
 
+        Task task = getTestTask();
         final OperationResult result = createOperationResult();
 
         // TODO: remove this if the previous test is enabled
@@ -2965,7 +2966,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // check if the account was added after reconciliation
         String accountOid = assertUserOneLinkRef(USER_E_OID);
 
-        ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e", "eeeee", "e", "e", null, result);
+        ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e", "eeeee", "e", "e", task, result);
         assertAttribute(eAccount, "employeeNumber", "emp4321");
         ResourceAttributeContainer attributeContainer = ShadowUtil
                 .getAttributesContainer(eAccount);
@@ -2976,7 +2977,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // check if the account was modified during reconciliation process
         String jackAccountOid = assertUserOneLinkRef(USER_JACK_OID);
-        ShadowType modifiedAccount = checkNormalizedShadowBasic(jackAccountOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
+        ShadowType modifiedAccount = checkNormalizedShadowBasic(jackAccountOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, result);
         assertAttribute(modifiedAccount, "givenName", "Jackkk");
         assertAttribute(modifiedAccount, "employeeNumber", "emp4321");
 
@@ -2984,7 +2985,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assert800DeadShadows();
 
         accountOid = assertUserOneLinkRef(USER_JACKIE_OID);
-        ShadowType jack2Shadow = checkNormalizedShadowBasic(accountOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
+        ShadowType jack2Shadow = checkNormalizedShadowBasic(accountOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, result);
         assertAttribute(jack2Shadow, "givenName", "jackNew2a");
         assertAttribute(jack2Shadow, "cn", "jackNew2a");
     }
@@ -3057,7 +3058,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         repositoryService.getObject(UserType.class, USER_E_OID, null, result).asObjectable();
         String accountOid = assertUserOneLinkRef(USER_E_OID);
 
-        ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e123", "eeeee", "e", "e", null, result);
+        ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e123", "eeeee", "e", "e", task, result);
         assertAttribute(eAccount, "employeeNumber", "emp4321");
         ResourceAttributeContainer attributeContainer = ShadowUtil
                 .getAttributesContainer(eAccount);
@@ -3117,8 +3118,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     }
 
     private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
-        ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
-        ObjectClassComplexTypeDefinition accountDefinition = schema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+        ResourceSchema schema = ResourceSchemaFactory.getRawSchema(resource);
+        ResourceObjectClassDefinition accountDefinition = schema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
         Collection<? extends ResourceAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
         assertFalse("No account identifiers (resource from " + source + ")", identifiers.isEmpty());

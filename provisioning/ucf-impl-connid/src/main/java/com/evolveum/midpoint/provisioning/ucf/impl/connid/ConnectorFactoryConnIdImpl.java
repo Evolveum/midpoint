@@ -187,7 +187,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      * connector instance.
      */
     @Override
-    public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String instanceName, String instanceDescription)
+    public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String instanceName, String instanceDescription)
             throws ObjectNotFoundException, SchemaException {
 
         ConnectorInfo cinfo = getConnectorInfo(connectorType);
@@ -213,7 +213,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorType);
         }
 
-        ConnectorInstanceConnIdImpl connectorImpl = new ConnectorInstanceConnIdImpl(cinfo, connectorType, namespace,
+        ConnectorInstanceConnIdImpl connectorImpl = new ConnectorInstanceConnIdImpl(cinfo, connectorType,
                 connectorSchema, protector, prismContext, localizationService);
         connectorImpl.setDescription(instanceDescription);
         connectorImpl.setInstanceName(instanceName);
@@ -373,7 +373,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
         // Create configuration type - the type used by the "configuration"
         // element
-        MutablePrismContainerDefinition<?> configurationContainerDef = connectorSchema.createPropertyContainerDefinition(
+        MutablePrismContainerDefinition<?> configurationContainerDef = connectorSchema.createContainerDefinition(
                 ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
                 SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
 

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceType> {
 
@@ -42,7 +43,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
 
     private final LoadableModel<PrismContainerWrapper<ConnectorConfigurationType>> configurationModel;
 
-    public ResourceDetailsModel(LoadableModel<PrismObject<ResourceType>> prismObjectModel, ModelServiceLocator serviceLocator) {
+    public ResourceDetailsModel(LoadableDetachableModel<PrismObject<ResourceType>> prismObjectModel, ModelServiceLocator serviceLocator) {
         super(prismObjectModel, serviceLocator);
 
         this.configurationModel = new LoadableModel<>(true) {

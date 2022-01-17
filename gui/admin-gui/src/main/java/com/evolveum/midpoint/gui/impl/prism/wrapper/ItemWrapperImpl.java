@@ -41,6 +41,8 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * @author katka
  */
@@ -146,11 +148,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public boolean isMandatory() {
-        return getItemDefinition().isMandatory();
-    }
-
-    @Override
     public ItemStatus getStatus() {
         return status;
     }
@@ -173,11 +170,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public PrismContainerValueWrapper<?> getParent() {
         return parent;
-    }
-
-    @Override
-    public boolean isMultiValue() {
-        return getItemDefinition().isMultiValue();
     }
 
     @Override
@@ -206,6 +198,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     <ID extends ItemDefinition<I>> ID getItemDefinition() {
+        //noinspection unchecked
         return (ID) newItem.getDefinition();
     }
 
@@ -397,11 +390,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public String getNamespace() {
-        return getItemDefinition().getNamespace();
-    }
-
-    @Override
     public int getMinOccurs() {
         return getItemDefinition().getMinOccurs();
     }
@@ -409,16 +397,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public int getMaxOccurs() {
         return getItemDefinition().getMaxOccurs();
-    }
-
-    @Override
-    public boolean isSingleValue() {
-        return getItemDefinition().isSingleValue();
-    }
-
-    @Override
-    public boolean isOptional() {
-        return getItemDefinition().isOptional();
     }
 
     @Override
@@ -467,12 +445,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
-        return getItemDefinition().isValidFor(elementQName, clazz);
-    }
-
-    @Override
-    public boolean isValidFor(@NotNull QName elementQName, @NotNull Class<? extends ItemDefinition> clazz, boolean caseInsensitive) {
+    public boolean isValidFor(@NotNull QName elementQName, @NotNull Class<? extends ItemDefinition<?>> clazz, boolean caseInsensitive) {
         return getItemDefinition().isValidFor(elementQName, clazz, caseInsensitive);
     }
 
@@ -494,12 +467,12 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public <T extends ItemDefinition> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
+    public <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
         return getItemDefinition().findItemDefinition(path, clazz);
     }
 
     @Override
-    public ItemDelta createEmptyDelta(ItemPath path) {
+    public @NotNull ItemDelta createEmptyDelta(ItemPath path) {
         return getItemDefinition().createEmptyDelta(path);
     }
 
@@ -509,14 +482,8 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public ItemDefinition<I> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
-        return getItemDefinition().deepClone(ultraDeep, postCloneAction);
-    }
-
-    @Override
-    public ItemDefinition<I> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath,
-            Consumer<ItemDefinition> postCloneAction) {
-        return getItemDefinition().deepClone(ctdMap, onThisPath, postCloneAction);
+    public ItemDefinition<I> deepClone(@NotNull DeepCloneOperation operation) {
+        return getItemDefinition().deepClone(operation);
     }
 
     @Override
@@ -607,12 +574,12 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public Class getTypeClassIfKnown() {
+    public Class<?> getTypeClassIfKnown() {
         return getItemDefinition().getTypeClassIfKnown();
     }
 
     @Override
-    public Class getTypeClass() {
+    public Class<?> getTypeClass() {
         return getItemDefinition().getTypeClass();
     }
 
@@ -624,6 +591,11 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public <A> void setAnnotation(QName qname, A value) {
         getItemDefinition().setAnnotation(qname, value);
+    }
+
+    @Override
+    public @Nullable Map<QName, Object> getAnnotations() {
+        return getItemDefinition().getAnnotations();
     }
 
     @Override

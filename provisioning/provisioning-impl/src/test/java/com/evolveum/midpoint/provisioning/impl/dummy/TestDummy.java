@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME;
+
 import static java.util.Objects.requireNonNull;
 import static org.testng.AssertJUnit.*;
 
@@ -23,6 +25,7 @@ import com.evolveum.midpoint.provisioning.api.*;
 
 import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import org.apache.commons.lang.ArrayUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -31,7 +34,6 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.*;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -46,7 +48,6 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -217,6 +218,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test107AGetModifiedAccountFromCacheMax() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -234,7 +236,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         when();
 
         try {
-            provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
+            provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
 
             assertNotReached();
         } catch (ConfigurationException e) {
@@ -268,6 +270,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test107BGetModifiedAccountFromCacheHighStaleness() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -283,7 +286,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         // WHEN
         when();
 
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
 
         // THEN
         then();
@@ -317,6 +320,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test108GetAccountLowStaleness() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -327,7 +331,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         // WHEN
         when();
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
 
         // THEN
         then();
@@ -372,6 +376,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test109ModifiedAccountCleanup() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -384,7 +389,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
         // THEN
         assertSuccess(result);
@@ -410,6 +415,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test110SearchIterative() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         // Make sure there is an account on resource that the provisioning has
@@ -425,7 +431,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         dummyResource.addAccount(newAccount);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID,
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+                new QName(MidPointConstants.NS_RI,
                         SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
 
         final XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
@@ -464,7 +470,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, null, result);
+        provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
 
         // THEN
 
@@ -495,7 +501,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         XMLGregorianCalendar startTs2 = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, null, result);
+        provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
 
         // THEN
 
@@ -522,10 +528,11 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test111SearchIterativeNoFetch() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID,
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+                new QName(MidPointConstants.NS_RI,
                         SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
 
         final XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
@@ -556,7 +563,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, null, result);
+        provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, task, result);
 
         // THEN
         assertSuccess(result);
@@ -577,10 +584,11 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test111bSearchIterativeRaw() throws Exception {
         given();
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID,
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+                new QName(MidPointConstants.NS_RI,
                         SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
 
         final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
@@ -595,7 +603,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         when();
-        provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, null, result);
+        provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, task, result);
 
         then();
         assertSuccess(result);
@@ -614,10 +622,11 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test112SearchIterativeKindIntent() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_DUMMY_OID,
-                ShadowKindType.ACCOUNT, "default", prismContext);
+                ShadowKindType.ACCOUNT, "default");
         displayDumpable("query", query);
 
         List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
@@ -630,7 +639,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                     foundObjects.add(object);
                     return true;
                 },
-                null, result);
+                task, result);
 
         // THEN
         result.computeStatus();
@@ -662,7 +671,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     public void test113SearchAllShadowsInRepository() throws Exception {
         // GIVEN
         OperationResult result = createOperationResult();
-        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType, prismContext);
+        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean, prismContext);
         displayDumpable("All shadows query", query);
 
         when();
@@ -684,14 +693,15 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test114SearchAllAccounts() throws Exception {
         given();
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
+        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         displayDumpable("All shadows query", query);
 
         when();
         List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
-                query, null, null, result);
+                query, null, task, result);
 
         then();
         assertSuccess(result);
@@ -710,13 +720,14 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test115CountAllAccounts() throws Exception {
         given();
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
+        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         displayDumpable("All shadows query", query);
 
         when();
-        Integer count = provisioningService.countObjects(ShadowType.class, query, null, null, result);
+        Integer count = provisioningService.countObjects(ShadowType.class, query, null, task, result);
 
         then();
         assertSuccess(result);
@@ -735,11 +746,12 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test116SearchNullQueryResource() throws Exception {
         given();
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         when();
         List<PrismObject<ResourceType>> allResources = provisioningService.searchObjects(ResourceType.class,
-                null, null, null, result);
+                null, null, task, result);
 
         then();
         assertSuccess(result);
@@ -755,10 +767,11 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test117CountNullQueryResource() throws Exception {
         given();
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         when();
-        int count = provisioningService.countObjects(ResourceType.class, null, null, null, result);
+        int count = provisioningService.countObjects(ResourceType.class, null, null, task, result);
 
         then();
         assertSuccess(result);
@@ -779,8 +792,9 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test118SearchAllAccountsLongStaleness() throws Exception {
         given();
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
+        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         displayDumpable("All shadows query", query);
 
@@ -791,7 +805,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         when();
         List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
-                query, options, null, result);
+                query, options, task, result);
 
         then();
         assertSuccess(result);
@@ -822,8 +836,9 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test119SearchAllAccountsMaxStaleness() throws Exception {
         given();
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
+        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         displayDumpable("All shadows query", query);
 
@@ -834,7 +849,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         when();
         List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
-                query, options, null, result);
+                query, options, task, result);
 
         then();
         assertFailure(result);
@@ -1120,7 +1135,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSuccess(result);
 
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(accountWill);
-        ResourceAttribute<Object> titleAttribute = attributesContainer.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
+        ResourceAttribute<Object> titleAttribute = attributesContainer.findAttribute(new QName(MidPointConstants.NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
         assertNull("Title attribute sneaked in", titleAttribute);
 
         accountWill.checkConsistence();
@@ -1363,7 +1378,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean), prismContext);
         ObjectQueryUtil.filterAnd(query.getFilter(),
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.DISABLED)
@@ -1372,7 +1387,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         when();
-        SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+        SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
         then();
         result.computeStatus();
@@ -1474,7 +1489,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean), prismContext);
         ObjectQueryUtil.filterAnd(query.getFilter(),
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.DISABLED)
@@ -1483,7 +1498,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         when();
-        SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+        SearchResultList<PrismObject<ShadowType>> resultList =
+                provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
         then();
         assertSuccess(result);
@@ -1632,6 +1648,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test159GetLockedoutAccount() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
@@ -1641,7 +1658,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         // WHEN
         when();
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
+        PrismObject<ShadowType> shadow =
+                provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
         // THEN
         then();
@@ -1675,7 +1693,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean), prismContext);
         ObjectQueryUtil.filterAnd(query.getFilter(),
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
@@ -1684,7 +1702,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         // WHEN
-        SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+        SearchResultList<PrismObject<ShadowType>> resultList =
+                provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
         result.computeStatus();
@@ -1745,12 +1764,14 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test163GetAccount() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
+        PrismObject<ShadowType> shadow =
+                provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
         // THEN
         result.computeStatus();
@@ -1786,7 +1807,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean), prismContext);
         ObjectQueryUtil.filterAnd(query.getFilter(),
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
@@ -1795,7 +1816,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         // WHEN
-        SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+        SearchResultList<PrismObject<ShadowType>> resultList =
+                provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
         result.computeStatus();
@@ -2034,16 +2056,17 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     private ObjectQuery createOnOffQuery() throws SchemaException {
-        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         assertNotNull(resourceSchema);
-        ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
-        ResourceAttributeDefinition<String> attrDef = objectClassDef.findAttributeDefinition(
+        ResourceObjectClassDefinition objectClassDef =
+                resourceSchema.findObjectClassDefinitionRequired(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME);
+        ResourceAttributeDefinition<?> attrDef = objectClassDef.findAttributeDefinition(
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
         assertNotNull(attrDef);
 
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME))
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME))
                 .and().itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq("Sea Monkey")
                 .and().item(ShadowType.F_DEAD).eq(true)
                 .build();
@@ -2060,9 +2083,10 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     <T> void testSearchIterativeSingleAttrFilter(QName attrQName, T attrVal,
             GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountNames) throws Exception {
-        ResourceSchema resourceSchema = requireNonNull(RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext));
-        ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
-        ResourceAttributeDefinition<T> attrDef = requireNonNull(objectClassDef.findAttributeDefinition(attrQName));
+        ResourceSchema resourceSchema = requireNonNull(ResourceSchemaFactory.getRawSchema(resource));
+        ResourceObjectClassDefinition objectClassDef =
+                resourceSchema.findObjectClassDefinitionRequired(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME);
+        ResourceAttributeDefinition<?> attrDef = objectClassDef.findAttributeDefinitionRequired(attrQName);
         ObjectFilter filter = prismContext.queryFor(ShadowType.class)
                 .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attrVal)
                 .buildFilter();
@@ -2073,10 +2097,11 @@ public class TestDummy extends AbstractBasicDummyTest {
     private <T> void testSearchIterativeAlternativeAttrFilter(QName attr1QName, T attr1Val,
             QName attr2QName, T attr2Val,
             GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountNames) throws Exception {
-        ResourceSchema resourceSchema = requireNonNull(RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext));
-        ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
-        ResourceAttributeDefinition<T> attr1Def = requireNonNull(objectClassDef.findAttributeDefinition(attr1QName));
-        ResourceAttributeDefinition<T> attr2Def = requireNonNull(objectClassDef.findAttributeDefinition(attr2QName));
+        ResourceSchema resourceSchema = requireNonNull(ResourceSchemaFactory.getRawSchema(resource));
+        ResourceObjectClassDefinition objectClassDef =
+                resourceSchema.findObjectClassDefinitionRequired(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME);
+        ResourceAttributeDefinition<?> attr1Def = objectClassDef.findAttributeDefinitionRequired(attr1QName);
+        ResourceAttributeDefinition<?> attr2Def = objectClassDef.findAttributeDefinitionRequired(attr2QName);
         ObjectFilter filter = prismContext.queryFor(ShadowType.class)
                 .itemWithDef(attr1Def, ShadowType.F_ATTRIBUTES, attr1Def.getItemName()).eq(attr1Val)
                 .or().itemWithDef(attr2Def, ShadowType.F_ATTRIBUTES, attr2Def.getItemName()).eq(attr2Val)
@@ -2089,11 +2114,12 @@ public class TestDummy extends AbstractBasicDummyTest {
             ObjectFilter attrFilter, GetOperationOptions rootOptions, final boolean fullShadow,
             boolean useObjectClassFilter, final boolean useRepo, String... expectedAccountNames)
             throws Exception {
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         ObjectQuery query;
         if (useObjectClassFilter) {
-            query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+            query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, new QName(MidPointConstants.NS_RI,
                     SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
             if (attrFilter != null) {
                 AndFilter filter = (AndFilter) query.getFilter();
@@ -2130,7 +2156,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         if (useRepo) {
             searchMetadata = repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, true, result);
         } else {
-            searchMetadata = provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, null, result);
+            searchMetadata = provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, task, result);
         }
 
         then();
@@ -2166,9 +2192,10 @@ public class TestDummy extends AbstractBasicDummyTest {
     private SearchResultMetadata testSearchIterativePaging(ObjectFilter attrFilter,
             ObjectPaging paging, GetOperationOptions rootOptions, String... expectedAccountNames)
             throws Exception {
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, new QName(MidPointConstants.NS_RI,
                 SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
         if (attrFilter != null) {
             AndFilter filter = (AndFilter) query.getFilter();
@@ -2194,7 +2221,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
 
         when();
-        SearchResultMetadata searchMetadata = provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, null, result);
+        SearchResultMetadata searchMetadata =
+                provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, task, result);
 
         then();
         assertSuccess(result);
@@ -2279,12 +2307,14 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test202GetGroup() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         rememberDummyResourceGroupMembersReadCount(null);
 
         // WHEN
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, null, null, result);
+        PrismObject<ShadowType> shadow =
+                provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, null, task, result);
 
         // THEN
         assertSuccess(result);
@@ -2317,6 +2347,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test203GetGroupNoFetch() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         GetOperationOptions rootOptions = new GetOperationOptions();
@@ -2326,7 +2357,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
 
         // WHEN
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, options, null, result);
+        PrismObject<ShadowType> shadow =
+                provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, options, task, result);
 
         // THEN
         assertSuccess(result);
@@ -2433,10 +2465,11 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test212GetPriv() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         // WHEN
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, null, null, result);
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, null, task, result);
 
         // THEN
         assertSuccess(result);
@@ -3391,7 +3424,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
 
         PrismObject<ShadowType> repoShadow = getShadowRepo(ACCOUNT_MORGAN_OID);
-        assertAccountShadowRepo(repoShadow, ACCOUNT_MORGAN_OID, ACCOUNT_CPTMORGAN_NAME, resourceType);
+        assertAccountShadowRepo(repoShadow, ACCOUNT_MORGAN_OID, ACCOUNT_CPTMORGAN_NAME, resourceBean);
 
         if (!isIcfNameUidSame()) {
             shadowUuid = (String) identifier.getRealValue();
@@ -3648,9 +3681,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         Collection<PropertyDelta<String>> modifications = new ArrayList<>(1);
-        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
-        ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-        ResourceAttributeDefinition<String> fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
+        ResourceObjectClassDefinition defaultAccountDefinition =
+                resourceSchema.findObjectClassDefinitionRequired(ACCOUNT_OBJECT_CLASS_NAME);
+        //noinspection unchecked
+        ResourceAttributeDefinition<String> fullnameAttrDef =
+                (ResourceAttributeDefinition<String>) defaultAccountDefinition.findAttributeDefinition("fullname");
         ResourceAttribute<String> fullnameAttr = fullnameAttrDef.instantiate();
         PropertyDelta<String> fullnameDelta = fullnameAttr.createDelta(ItemPath.create(ShadowType.F_ATTRIBUTES,
                 fullnameAttrDef.getItemName()));
@@ -3747,8 +3783,9 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     private PrismObject<ShadowType> createAccountShadow(String username) throws SchemaException {
-        ResourceSchema resourceSchema = requireNonNull(RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext));
-        ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+        ResourceSchema resourceSchema = requireNonNull(ResourceSchemaFactory.getRawSchema(resource));
+        ResourceObjectClassDefinition defaultAccountDefinition =
+                resourceSchema.findObjectClassDefinitionRequired(ACCOUNT_OBJECT_CLASS_NAME);
         ShadowType shadowType = new ShadowType(PrismTestUtil.getPrismContext());
         shadowType.setName(PrismTestUtil.createPolyStringType(username));
         ObjectReferenceType resourceRef = new ObjectReferenceType();
@@ -3890,7 +3927,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         // Otherwise a last sync token would be used and
         // no change would be detected
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
-                ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+                ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
 
         when();
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
@@ -3925,7 +3962,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         displayValue("Resource before sync", dummyResource.debugDump());
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
-                ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+                ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
 
         when();
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
@@ -3979,7 +4016,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         displayValue("Resource before sync", dummyResource.debugDump());
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
-                ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+                ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
 
         when();
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
@@ -4021,52 +4058,52 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test810LiveSyncAddDrakeDumbObjectClass() throws Exception {
-        testLiveSyncAddDrake(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+        testLiveSyncAddDrake(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
     }
 
     @Test
     public void test812LiveSyncModifyDrakeDumbObjectClass() throws Exception {
-        testLiveSyncModifyDrake(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+        testLiveSyncModifyDrake(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
     }
 
     @Test
     public void test815LiveSyncAddCorsairsDumbObjectClass() throws Exception {
-        testLiveSyncAddCorsairs(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
+        testLiveSyncAddCorsairs(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean), false);
     }
 
     @Test
     public void test817LiveSyncDeleteCorsairsDumbObjectClass() throws Exception {
-        testLiveSyncDeleteCorsairs(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
+        testLiveSyncDeleteCorsairs(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean), false);
     }
 
     @Test
     public void test819LiveSyncDeleteDrakeDumbObjectClass() throws Exception {
-        testLiveSyncDeleteDrake(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+        testLiveSyncDeleteDrake(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
     }
 
     @Test
     public void test820LiveSyncAddDrakeSmartObjectClass() throws Exception {
-        testLiveSyncAddDrake(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+        testLiveSyncAddDrake(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
     }
 
     @Test
     public void test822LiveSyncModifyDrakeSmartObjectClass() throws Exception {
-        testLiveSyncModifyDrake(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+        testLiveSyncModifyDrake(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
     }
 
     @Test
     public void test825LiveSyncAddCorsairsSmartObjectClass() throws Exception {
-        testLiveSyncAddCorsairs(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
+        testLiveSyncAddCorsairs(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean), false);
     }
 
     @Test
     public void test827LiveSyncDeleteCorsairsSmartObjectClass() throws Exception {
-        testLiveSyncDeleteCorsairs(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
+        testLiveSyncDeleteCorsairs(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean), false);
     }
 
     @Test
     public void test829LiveSyncDeleteDrakeSmartObjectClass() throws Exception {
-        testLiveSyncDeleteDrake(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+        testLiveSyncDeleteDrake(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
     }
 
     @Test
@@ -4167,8 +4204,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
         assertFalse("Attributes container is empty", attributes.isEmpty());
         assertEquals("Unexpected number of attributes", 3, attributes.size());
-        ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(ResourceTypeUtil
-                .getResourceNamespace(resourceType), "fullname"));
+        ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(MidPointConstants.NS_RI, "fullname"));
         assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
         assertEquals("Wrong value of fullname attribute in current shadow", "Sir Francis Drake",
                 fullnameAttribute.getRealValue());
@@ -4430,7 +4466,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         dummyAccount.replaceAttributeValue("fullname", "Maxwell deamon");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
-                ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+                ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
 
         when();
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, syncTask, result);
@@ -4451,12 +4487,13 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test901FailResourceNotFound() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         // WHEN
         try {
-            PrismObject<ResourceType> object = provisioningService.getObject(ResourceType.class, NOT_PRESENT_OID, null, null,
-                    result);
+            PrismObject<ResourceType> object =
+                    provisioningService.getObject(ResourceType.class, NOT_PRESENT_OID, null, task, result);
             AssertJUnit.fail("Expected ObjectNotFoundException to be thrown, but getObject returned " + object
                     + " instead");
         } catch (ObjectNotFoundException e) {
@@ -4488,13 +4525,13 @@ public class TestDummy extends AbstractBasicDummyTest {
     private void checkEntitlementShadow(PrismObject<ShadowType> shadow, OperationResult parentResult, String objectClassLocalName, boolean fullShadow) throws SchemaException {
         ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
         ShadowUtil.checkConsistence(shadow, parentResult.getOperation());
-        IntegrationTestTools.checkEntitlementShadow(shadow.asObjectable(), resourceType, repositoryService, checker, objectClassLocalName, getUidMatchingRule(), prismContext, parentResult);
+        IntegrationTestTools.checkEntitlementShadow(shadow.asObjectable(), resourceBean, repositoryService, checker, objectClassLocalName, getUidMatchingRule(), prismContext, parentResult);
     }
 
     @SuppressWarnings("ConstantConditions")
     private void checkAllShadows() throws SchemaException {
         ObjectChecker<ShadowType> checker = null;
-        IntegrationTestTools.checkAllShadows(resourceType, repositoryService, checker, prismContext);
+        IntegrationTestTools.checkAllShadows(resourceBean, repositoryService, checker, prismContext);
     }
 
     protected void checkRepoEntitlementShadow(PrismObject<ShadowType> repoShadow) {

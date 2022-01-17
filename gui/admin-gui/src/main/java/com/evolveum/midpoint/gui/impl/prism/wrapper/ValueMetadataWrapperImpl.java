@@ -22,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -120,7 +121,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public Class getTypeClassIfKnown() {
+    public Class<?> getTypeClassIfKnown() {
         return metadataValueWrapper.getTypeClassIfKnown();
     }
 
@@ -145,38 +146,18 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public String getDefaultNamespace() {
-        return metadataValueWrapper.getDefaultNamespace();
-    }
-
-    @Override
-    public List<String> getIgnoredNamespaces() {
-        return metadataValueWrapper.getIgnoredNamespaces();
-    }
-
-    @Override
-    public List<? extends ItemDefinition> getDefinitions() {
+    public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
         return metadataValueWrapper.getDefinitions();
     }
 
     @Override
-    public boolean isCompletelyDefined() {
-        return metadataValueWrapper.isCompletelyDefined();
-    }
-
-    @Override
-    public List<PrismPropertyDefinition> getPropertyDefinitions() {
+    public List<PrismPropertyDefinition<?>> getPropertyDefinitions() {
         return metadataValueWrapper.getPropertyDefinitions();
     }
 
     @Override
     public @NotNull ItemName getItemName() {
         return metadataValueWrapper.getItemName();
-    }
-
-    @Override
-    public String getNamespace() {
-        return metadataValueWrapper.getNamespace();
     }
 
     @Override
@@ -187,16 +168,6 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     @Override
     public int getMaxOccurs() {
         return metadataValueWrapper.getMaxOccurs();
-    }
-
-    @Override
-    public boolean isMandatory() {
-        return metadataValueWrapper.isMandatory();
-    }
-
-    @Override
-    public boolean isOptional() {
-        return metadataValueWrapper.isOptional();
     }
 
     @Override
@@ -250,17 +221,12 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
-        return metadataValueWrapper.isValidFor(elementQName, clazz);
-    }
-
-    @Override
-    public boolean isValidFor(@NotNull QName elementQName, @NotNull Class<? extends ItemDefinition> clazz, boolean caseInsensitive) {
+    public boolean isValidFor(@NotNull QName elementQName, @NotNull Class<? extends ItemDefinition<?>> clazz, boolean caseInsensitive) {
         return metadataValueWrapper.isValidFor(elementQName, clazz, caseInsensitive);
     }
 
     @Override
-    public void adoptElementDefinitionFrom(ItemDefinition otherDef) {
+    public void adoptElementDefinitionFrom(ItemDefinition<?> otherDef) {
         metadataValueWrapper.adoptElementDefinitionFrom(otherDef);
     }
 
@@ -277,22 +243,12 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive) {
-        return metadataValueWrapper.findLocalItemDefinition(name, clazz, caseInsensitive);
-    }
-
-    @Override
-    public <T extends ItemDefinition> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
+    public <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
         return metadataValueWrapper.findItemDefinition(path, clazz);
     }
 
     @Override
-    public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest, @NotNull Class<ID> clazz) {
-        return metadataValueWrapper.findNamedItemDefinition(firstName, rest, clazz);
-    }
-
-    @Override
-    public ContainerDelta<ValueMetadataType> createEmptyDelta(ItemPath path) {
+    public @NotNull ContainerDelta<ValueMetadataType> createEmptyDelta(ItemPath path) {
         return metadataValueWrapper.createEmptyDelta(path);
     }
 
@@ -302,13 +258,8 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public ItemDefinition<PrismContainer<ValueMetadataType>> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
-        return metadataValueWrapper.deepClone(ultraDeep, postCloneAction);
-    }
-
-    @Override
-    public ItemDefinition<PrismContainer<ValueMetadataType>> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
-        return metadataValueWrapper.deepClone(ctdMap, onThisPath, postCloneAction);
+    public ItemDefinition<PrismContainer<ValueMetadataType>> deepClone(@NotNull DeepCloneOperation operation) {
+        return metadataValueWrapper.deepClone(operation);
     }
 
     @Override
@@ -335,12 +286,13 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public PrismContainerDefinition<ValueMetadataType> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
+    public PrismContainerDefinition<ValueMetadataType> cloneWithReplacedDefinition(
+            QName itemName, ItemDefinition<?> newDefinition) {
         return metadataValueWrapper.cloneWithReplacedDefinition(itemName, newDefinition);
     }
 
     @Override
-    public void replaceDefinition(QName itemName, ItemDefinition newDefinition) {
+    public void replaceDefinition(QName itemName, ItemDefinition<?> newDefinition) {
         metadataValueWrapper.replaceDefinition(itemName, newDefinition);
     }
 
@@ -377,6 +329,11 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     @Override
     public <A> void setAnnotation(QName qname, A value) {
         metadataValueWrapper.setAnnotation(qname, value);
+    }
+
+    @Override
+    public @Nullable Map<QName, Object> getAnnotations() {
+        return metadataValueWrapper.getAnnotations();
     }
 
     @Override

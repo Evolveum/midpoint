@@ -14,6 +14,9 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 
 import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
@@ -27,13 +30,11 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -265,15 +265,15 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
     private IModel<List<PrismContainerValueWrapper<ShadowType>>> loadShadowModel() {
         return () -> {
-            List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<>();
-            for (ShadowWrapper projection : getProjectionsModel().getObject()) {
-                items.add(projection.getValue());
-            }
-            return items;
+                List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<>();
+                for (ShadowWrapper projection : getProjectionsModel().getObject()) {
+                    items.add(projection.getValue());
+                }
+                return items;
         };
     }
 
-    private LoadableModel<List<ShadowWrapper>> getProjectionsModel() {
+    private LoadableDetachableModel<List<ShadowWrapper>> getProjectionsModel() {
         return getObjectDetailsModels().getProjectionModel();
     }
 
@@ -282,7 +282,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             return 0;
         }
 
-        if (!getProjectionsModel().isLoaded()) {
+        if (!getProjectionsModel().isAttached()) {
             return WebComponentUtil.countLinkForDeadShadows(getObjectWrapper().getObject().asObjectable().getLinkRef());
         }
 
@@ -304,6 +304,11 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         SearchItemDefinition def = new SearchItemDefinition(ShadowType.F_DEAD,
                 getShadowDefinition().findPropertyDefinition(ShadowType.F_DEAD),
                 Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
+        DeadShadowSearchItem deadShadowSearchItem = new DeadShadowSearchItem(search, def);
+        search.addSpecialItem(deadShadowSearchItem);
+//        SearchItemDefinition def = new SearchItemDefinition(ShadowType.F_DEAD,
+//                getShadowDefinition().findPropertyDefinition(ShadowType.F_DEAD),
+//                Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
 //        PropertySearchItem<Boolean> deadSearchItem = new PropertySearchItem<>(search, def, new SearchValue<>(false)) {
 //
 //            @Override
@@ -316,7 +321,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 //                if (BooleanUtils.isTrue(value)) {
 //                    return null; // let the default behavior to take their chance
 //                }
-
+//
 //                return PrismContext.get().queryFor(ShadowType.class)
 //                        .not()
 //                        .item(ShadowType.F_DEAD)
@@ -562,13 +567,13 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
         for (ResourceType resource : newResources) {
             try {
-                RefinedResourceSchema refinedSchema = getRefinedSchema(resource);
+                ResourceSchema refinedSchema = getRefinedSchema(resource);
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.debugDump());
                 }
 
-                RefinedObjectClassDefinition accountDefinition = refinedSchema
-                        .getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+                ResourceObjectTypeDefinition accountDefinition = refinedSchema
+                        .findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
                 if (accountDefinition == null) {
                     error(getString("pageAdminFocus.message.couldntCreateAccountNoAccountSchema",
                             resource.getName()));
@@ -590,7 +595,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         target.add(getMultivalueContainerListPanel());
     }
 
-    private ShadowType createNewShadow(ResourceType resource, RefinedObjectClassDefinition accountDefinition) {
+    private ShadowType createNewShadow(ResourceType resource, ResourceObjectTypeDefinition accountDefinition) {
         ShadowType shadow = new ShadowType(getPrismContext());
         shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource, SchemaConstants.ORG_DEFAULT));
         QName objectClass = accountDefinition.getTypeName();
@@ -600,17 +605,15 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         return shadow;
     }
 
-    private RefinedResourceSchema getRefinedSchema(ResourceType resource) throws SchemaException {
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
-                resource.asPrismObject(), LayerType.PRESENTATION, getPrismContext());
+    private ResourceSchema getRefinedSchema(ResourceType resource) throws SchemaException {
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource.asPrismObject(), LayerType.PRESENTATION);
         if (refinedSchema == null) {
             Task task = getPageBase().createSimpleTask(FocusPersonasTabPanel.class.getSimpleName() + ".loadResource");
             OperationResult result = task.getResult();
             resource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result).asObjectable();
             result.recomputeStatus();
 
-            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
-                    resource, LayerType.PRESENTATION, getPrismContext());
+            refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource, LayerType.PRESENTATION);
 
             if (refinedSchema == null) {
                 error(getString("pageAdminFocus.message.couldntCreateAccountNoSchema",

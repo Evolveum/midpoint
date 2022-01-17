@@ -7,7 +7,7 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
-import static com.evolveum.midpoint.common.SynchronizationUtils.*;
+import static com.evolveum.midpoint.common.SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta;
 import static com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils.isLogDebug;
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
@@ -17,7 +17,10 @@ import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistency
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+
+import com.evolveum.midpoint.prism.util.CloneUtil;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
@@ -30,19 +33,17 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.common.refinery.RefinedDefinitionUtil;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -54,6 +55,8 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.processor.RefinedDefinitionUtil;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -91,6 +94,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
     @Autowired private ActionManager<Action> actionManager;
     @Autowired private SynchronizationExpressionsEvaluator synchronizationExpressionsEvaluator;
+    @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
     @Autowired private ContextFactory contextFactory;
     @Autowired private Clockwork clockwork;
     @Autowired private ExpressionFactory expressionFactory;
@@ -116,7 +120,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             logStart(change);
             checkConsistence(change);
 
-            SynchronizationContext<?> syncCtx = loadSynchronizationContext(change, task, result);
+            SynchronizationContext<?> syncCtx = loadSynchronizationContextFromChange(change, task, result);
 
             syncCtx.checkNotInMaintenance(result);
 
@@ -182,8 +186,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         return owners.get(0);
     }
 
-    private SynchronizationContext<FocusType> loadSynchronizationContext(@NotNull ResourceObjectShadowChangeDescription change,
-            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+    private SynchronizationContext<FocusType> loadSynchronizationContextFromChange(
+            @NotNull ResourceObjectShadowChangeDescription change, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         SynchronizationContext<FocusType> syncCtx = loadSynchronizationContext(change.getShadowedResourceObject(),
                 change.getObjectDelta(), change.getResource(), change.getSourceChannel(), change.getItemProcessingIdentifier(),
@@ -216,7 +221,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
 
         ObjectSynchronizationDiscriminatorType synchronizationDiscriminator =
-                determineObjectSynchronizationDiscriminator(syncCtx, task, result);
+                evaluateSynchronizationSorter(synchronization, syncCtx, task, result);
         if (synchronizationDiscriminator != null) {
             syncCtx.setForceIntentChange(true);
             LOGGER.trace("Setting synchronization situation to synchronization context: {}",
@@ -264,12 +269,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         if (applicableShadow.asObjectable().getTag() != null) {
             return;
         }
-        RefinedObjectClassDefinition rOcd = syncCtx.findRefinedObjectClassDefinition();
+        ResourceObjectTypeDefinition rOcd = syncCtx.findRefinedObjectClassDefinition();
         if (rOcd == null) {
             // We probably do not have kind/intent yet.
             return;
         }
-        ResourceObjectMultiplicityType multiplicity = rOcd.getMultiplicity();
+        ResourceObjectMultiplicityType multiplicity = rOcd.getObjectMultiplicity();
         if (!RefinedDefinitionUtil.isMultiaccount(multiplicity)) {
             return;
         }
@@ -277,24 +282,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 syncCtx.getResource(), syncCtx.getSystemConfiguration(), "tag expression for " + applicableShadow, syncCtx.getTask(), result);
         LOGGER.debug("SYNCHRONIZATION: TAG generated: {}", tag);
         syncCtx.setTag(tag);
-    }
-
-    private <F extends FocusType> ObjectSynchronizationDiscriminatorType determineObjectSynchronizationDiscriminator(
-            SynchronizationContext<F> syncCtx, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-
-        SynchronizationType synchronization = syncCtx.getResource().asObjectable().getSynchronization();
-        if (synchronization == null) {
-            return null;
-        }
-
-        ObjectSynchronizationSorterType sorter = synchronization.getObjectSynchronizationSorter();
-        if (sorter == null) {
-            return null;
-        }
-
-        return evaluateSynchronizationSorter(sorter, syncCtx, task, result);
     }
 
     private <F extends FocusType> boolean isPolicyApplicable(ObjectSynchronizationType synchronizationPolicy,
@@ -305,14 +292,16 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     }
 
     private <F extends FocusType> ObjectSynchronizationDiscriminatorType evaluateSynchronizationSorter(
-            ObjectSynchronizationSorterType synchronizationSorter, SynchronizationContext<F> syncCtx,
+            @NotNull SynchronizationType synchronization, @NotNull SynchronizationContext<F> syncCtx,
             Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        if (synchronizationSorter.getExpression() == null) {
+        ObjectSynchronizationSorterType synchronizationSorter = synchronization.getObjectSynchronizationSorter();
+        if (synchronizationSorter == null || synchronizationSorter.getExpression() == null) {
             return null;
         }
+
         ExpressionType classificationExpression = synchronizationSorter.getExpression();
         String desc = "synchronization divider type ";
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, syncCtx.getShadowedResourceObject(), null,
@@ -332,6 +321,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
+    /**
+     * Checks for common reasons to skip synchronization:
+     *
+     * - no applicable synchronization policy,
+     * - synchronization disabled,
+     * - protected resource object.
+     */
     private <F extends FocusType> boolean shouldSkipSynchronization(SynchronizationContext<F> syncCtx,
             OperationResult result) throws SchemaException {
         Task task = syncCtx.getTask();
@@ -476,7 +472,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     private <F extends FocusType> void checkLinkedAndCorrelatedOwnersMatch(SynchronizationContext<F> syncCtx,
             OperationResult result) throws ConfigurationException {
         F linkedOwner = syncCtx.getLinkedOwner();
-        F correlatedOwner = syncCtx.getCorrelatedOwner();
+        F correlatedOwner = syncCtx.getCorrelatedOwner(); // may be null; or may be provided by sync sorter
 
         LOGGER.trace("Shadow {} has linked owner: {}, correlated owner: {}", syncCtx.getShadowedResourceObject(),
                 linkedOwner, correlatedOwner);
@@ -541,40 +537,52 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         ResourceType resource = change.getResource().asObjectable();
         setupResourceRefInShadowIfNeeded(resourceObject.asObjectable(), resource);
 
-        SynchronizationSituationType state;
-        LOGGER.trace("SYNCHRONIZATION: CORRELATION: Looking for list of {} objects based on correlation rule.",
-                syncCtx.getFocusClass().getSimpleName());
-        List<PrismObject<F>> users = synchronizationExpressionsEvaluator.findFocusesByCorrelationRule(syncCtx.getFocusClass(),
-                resourceObject.asObjectable(), syncCtx.getCorrelation(), resource,
-                syncCtx.getSystemConfiguration().asObjectable(), syncCtx.getTask(), result);
-        if (syncCtx.getConfirmation() == null) {
-            LOGGER.trace("SYNCHRONIZATION: CONFIRMATION: no confirmation defined.");
-        } else {
-            LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: Checking objects from correlation with confirmation rule.");
-            users = synchronizationExpressionsEvaluator.findUserByConfirmationRule(syncCtx.getFocusClass(), users,
-                    resourceObject.asObjectable(), resource, syncCtx.getSystemConfiguration().asObjectable(),
-                    syncCtx.getConfirmation(), syncCtx.getTask(), result);
-        }
+        CorrelationResult correlationResult = correlate(syncCtx, result);
+        LOGGER.trace("Correlation result:\n{}", correlationResult.debugDumpLazily(1));
 
-        F user;
-        switch (users.size()) {
-            case 0:
-                state = SynchronizationSituationType.UNMATCHED;
-                user = null;
-                break;
-            case 1:
+        SynchronizationSituationType state;
+        F owner;
+        switch (correlationResult.getStatus()) {
+            case EXISTING_OWNER:
                 state = SynchronizationSituationType.UNLINKED;
-                user = users.get(0).asObjectable();
+                //noinspection unchecked
+                owner = (F) correlationResult.getOwner();
+                break;
+            case NO_OWNER:
+                state = SynchronizationSituationType.UNMATCHED;
+                owner = null;
+                break;
+            case UNCERTAIN:
+                state = SynchronizationSituationType.DISPUTED;
+                owner = null;
                 break;
             default:
-                state = SynchronizationSituationType.DISPUTED;
-                user = null;
+                throw new AssertionError(correlationResult.getStatus());
         }
+        LOGGER.debug("Determined synchronization situation: {} with owner: {}", state, owner);
 
-        syncCtx.setCorrelatedOwner(user);
+        syncCtx.setCorrelatedOwner(owner);
         if (syncCtx.getSituation() == null) {
             syncCtx.setSituation(state);
         }
+    }
+
+    private <F extends FocusType> CorrelationResult correlate(SynchronizationContext<F> syncCtx, OperationResult result)
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+
+        CorrelationContext correlationContext = new CorrelationContext(
+                syncCtx.getFocusClass(),
+                syncCtx.getResource().asObjectable(),
+                syncCtx.getObjectTypeDefinition(),
+                asObjectable(syncCtx.getSystemConfiguration()));
+
+        Task task = syncCtx.getTask();
+
+        syncCtx.setCorrelationContext(correlationContext);
+
+        return correlatorFactoryRegistry.instantiateCorrelator(syncCtx.getCorrelators(), task, result)
+                .correlate(syncCtx.getShadowedResourceObject().asObjectable(), correlationContext, task, result);
     }
 
     // This is maybe not needed
@@ -830,26 +838,31 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             ShadowType shadowBean = shadow.asObjectable();
             // new situation description
             XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-            List<PropertyDelta<?>> deltas = createSynchronizationSituationAndDescriptionDelta(shadow, syncCtx.getSituation(),
-                            change.getSourceChannel(), full, now);
+            List<ItemDelta<?, ?>> deltas =
+                    createSynchronizationSituationAndDescriptionDelta(
+                            shadow, syncCtx.getSituation(), change.getSourceChannel(), full, now);
+
+            S_ItemEntry builder = prismContext.deltaFor(ShadowType.class);
+
+            // TODO revisit this
+            if (syncCtx.getCorrelationContext() != null) {
+                builder = builder.item(ShadowType.F_CORRELATION_STATE).replace(
+                        CloneUtil.clone(syncCtx.getCorrelationContext().getCorrelationState()));
+            }
 
             if (ShadowUtil.isNotKnown(shadowBean.getKind())) {
-                PropertyDelta<ShadowKindType> kindDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),
-                        ShadowType.F_KIND, syncCtx.getKind());
-                deltas.add(kindDelta);
+                builder = builder.item(ShadowType.F_KIND).replace(syncCtx.getKind());
             }
 
             if (shouldSaveIntent(syncCtx)) {
-                PropertyDelta<String> intentDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),
-                        ShadowType.F_INTENT, syncCtx.getIntent());
-                deltas.add(intentDelta);
+                builder = builder.item(ShadowType.F_INTENT).replace(syncCtx.getIntent());
             }
 
             if (shadowBean.getTag() == null && syncCtx.getTag() != null) {
-                PropertyDelta<String> tagDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),
-                        ShadowType.F_TAG, syncCtx.getTag());
-                deltas.add(tagDelta);
+                builder = builder.item(ShadowType.F_TAG).replace(syncCtx.getTag());
             }
+
+            deltas.addAll(builder.asItemDeltas());
 
             repositoryService.modifyObject(shadowBean.getClass(), shadow.getOid(), deltas, result);
             ItemDeltaCollectionsUtil.applyTo(deltas, shadow);

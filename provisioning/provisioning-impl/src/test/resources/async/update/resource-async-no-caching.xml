@@ -79,6 +79,15 @@
             </configured>
         </capabilities>
     </additionalConnector>
+    <schemaHandling>
+        <!-- This is needed in order to recognize incoming objects as accounts. -->
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <default>true</default>
+        </objectType>
+    </schemaHandling>
     <capabilities>
         <configured>
             <cap:read>

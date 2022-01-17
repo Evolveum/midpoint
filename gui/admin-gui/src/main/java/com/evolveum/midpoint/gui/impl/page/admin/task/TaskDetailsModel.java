@@ -20,6 +20,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +33,7 @@ public class TaskDetailsModel extends AssignmentHolderDetailsModel<TaskType> {
 
     private LoadableModel<TaskType> rootTaskModel;
 
-    public TaskDetailsModel(LoadableModel<PrismObject<TaskType>> prismObjectModel, ModelServiceLocator serviceLocator) {
+    public TaskDetailsModel(LoadableDetachableModel<PrismObject<TaskType>> prismObjectModel, ModelServiceLocator serviceLocator) {
         super(prismObjectModel, serviceLocator);
 
         rootTaskModel = createRootTaskModel(this::getObjectType, () -> (PageBase) serviceLocator);

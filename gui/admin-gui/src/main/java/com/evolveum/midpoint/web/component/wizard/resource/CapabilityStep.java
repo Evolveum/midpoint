@@ -7,19 +7,18 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -298,11 +297,15 @@ public class CapabilityStep extends WizardStep {
                             PrismObject<ResourceType> resourcePrism = resourceModel.getObject();
 
                             try {
-                                ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resourcePrism, getPageBase().getPrismContext());
+                                ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resourcePrism);
                                 if (schema != null) {
-                                    ObjectClassComplexTypeDefinition def = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-                                    for (ResourceAttributeDefinition attribute : def.getAttributeDefinitions()) {
-                                        choices.add(attribute.getItemName());
+                                    // TODO is this OK?
+                                    ResourceObjectTypeDefinition def =
+                                            schema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+                                    if (def != null) {
+                                        for (ResourceAttributeDefinition<?> attribute : def.getAttributeDefinitions()) {
+                                            choices.add(attribute.getItemName());
+                                        }
                                     }
                                 }
                             } catch (CommonException | RuntimeException e) {
@@ -310,15 +313,11 @@ public class CapabilityStep extends WizardStep {
                                 getPageBase().error("Couldn't load resource schema attributes" + e);
                             }
 
-                            Collections.sort(choices, new Comparator<QName>() {
+                            choices.sort((o1, o2) -> {
+                                String s1 = (String) renderer.getDisplayValue(o1);
+                                String s2 = (String) renderer.getDisplayValue(o2);
 
-                                @Override
-                                public int compare(QName o1, QName o2) {
-                                    String s1 = (String) renderer.getDisplayValue(o1);
-                                    String s2 = (String) renderer.getDisplayValue(o2);
-
-                                    return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
-                                }
+                                return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
                             });
 
                             return choices;

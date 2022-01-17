@@ -243,6 +243,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
 
         // Make sure that the account has explicit intent
+        account.asObjectable().setKind(ShadowKindType.ACCOUNT);
         account.asObjectable().setIntent(SchemaConstants.INTENT_DEFAULT);
 
         // Make sure that the existing account has the same value as is set by the role
@@ -250,7 +251,7 @@ public class TestRbac extends AbstractRbacTest {
         // should work around that.
         TestUtil.setAttribute(account,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
-                DOMUtil.XSD_STRING, prismContext, ROLE_PIRATE_TITLE);
+                DOMUtil.XSD_STRING, ROLE_PIRATE_TITLE);
 
         ObjectDelta<UserType> delta = prismContext.deltaFactory().object()
                 .createModificationAddReference(UserType.class, USER_JACK_OID,

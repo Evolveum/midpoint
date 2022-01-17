@@ -8,8 +8,7 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -23,6 +22,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -148,10 +148,10 @@ class ShadowCreator {
 
             // Also add all the attributes that act as association identifiers.
             // We will need them when the shadow is deleted (to remove the shadow from entitlements).
-            RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
-            for (RefinedAssociationDefinition associationDef : objectClassDefinition.getAssociationDefinitions()) {
-                if (associationDef.getResourceObjectAssociationType().getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
-                    QName valueAttributeName = associationDef.getResourceObjectAssociationType().getValueAttribute();
+            ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
+            for (ResourceAssociationDefinition associationDef : objectDefinition.getAssociationDefinitions()) {
+                if (associationDef.getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
+                    QName valueAttributeName = associationDef.getDefinitionBean().getValueAttribute();
                     if (repoAttributesContainer.findAttribute(valueAttributeName) == null) {
                         ResourceAttribute<Object> valueAttribute = attributesContainer.findAttribute(valueAttributeName);
                         if (valueAttribute != null) {
@@ -175,7 +175,7 @@ class ShadowCreator {
             throw new ConfigurationException("Unknown caching strategy " + cachingStrategy);
         }
 
-        helper.setKindIfNecessary(repoShadowType, ctx.getObjectClassDefinition());
+        helper.setKindIfNecessary(repoShadowType, ctx);
 //        setIntentIfNecessary(repoShadowType, objectClassDefinition);
 
         // Store only password meta-data in repo - unless there is explicit caching
@@ -183,7 +183,7 @@ class ShadowCreator {
         if (creds != null) {
             PasswordType passwordType = creds.getPassword();
             if (passwordType != null) {
-                preparePasswordForStorage(passwordType, ctx.getObjectClassDefinition());
+                preparePasswordForStorage(passwordType, ctx);
                 ObjectReferenceType owner = ctx.getTask() != null ? ctx.getTask().getOwnerRef() : null;
                 ProvisioningUtil.addPasswordMetadata(passwordType, clock.currentTimeXMLGregorianCalendar(), owner);
             }
@@ -208,25 +208,24 @@ class ShadowCreator {
             repoShadowType.setProtectedObject(null);
         }
 
-        helper.normalizeAttributes(repoShadow, ctx.getObjectClassDefinition());
+        helper.normalizeAttributes(repoShadow, ctx.getObjectDefinitionRequired());
 
         return repoShadow;
     }
 
-    private void preparePasswordForStorage(PasswordType passwordType,
-            RefinedObjectClassDefinition objectClassDefinition) throws SchemaException, EncryptionException {
-        ProtectedStringType passwordValue = passwordType.getValue();
+    private void preparePasswordForStorage(PasswordType password, ProvisioningContext ctx)
+            throws SchemaException, EncryptionException {
+        ProtectedStringType passwordValue = password.getValue();
         if (passwordValue == null) {
             return;
         }
-        CachingStategyType cachingStrategy = ProvisioningUtil.getPasswordCachingStrategy(objectClassDefinition);
+        CachingStategyType cachingStrategy = ctx.getPasswordCachingStrategy();
         if (cachingStrategy != null && cachingStrategy != CachingStategyType.NONE) {
             if (!passwordValue.isHashed()) {
                 protector.hash(passwordValue);
             }
         } else {
-            ProvisioningUtil.cleanupShadowPassword(passwordType);
+            ProvisioningUtil.cleanupShadowPassword(password);
         }
     }
-
 }

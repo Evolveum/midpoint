@@ -8,8 +8,6 @@ package com.evolveum.midpoint.model.intest.sync;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -18,6 +16,7 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -198,8 +197,8 @@ public class TestParallelDiscovery extends AbstractInitializedModelIntegrationTe
         displayDumpable("Dummy resource azure", dummyResourceSteelBlue);
 
         // WHEN
-        ResourceSchema resourceSchemaSteelBlue = RefinedResourceSchemaImpl.getResourceSchema(resourceDummySteelBlueType, prismContext);
-        ResourceSchema resourceSchemaSteelGrey = RefinedResourceSchemaImpl.getResourceSchema(resourceDummySteelGreyType, prismContext);
+        ResourceSchema resourceSchemaSteelBlue = ResourceSchemaFactory.getRawSchema(resourceDummySteelBlueType);
+        ResourceSchema resourceSchemaSteelGrey = ResourceSchemaFactory.getRawSchema(resourceDummySteelGreyType);
 
         displayDumpable("Dummy steel blue resource schema", resourceSchemaSteelBlue);
         displayDumpable("Dummy steel grey resource schema", resourceSchemaSteelGrey);
@@ -212,8 +211,8 @@ public class TestParallelDiscovery extends AbstractInitializedModelIntegrationTe
     @Test
     public void test002SanityRefined() throws Exception {
         // WHEN
-        RefinedResourceSchema refinedSchemaSteelBlue = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummySteelBlueType, prismContext);
-        RefinedResourceSchema refinedSchemaSteelGrey = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummySteelGreyType, prismContext);
+        ResourceSchema refinedSchemaSteelBlue = ResourceSchemaFactory.getCompleteSchema(resourceDummySteelBlueType);
+        ResourceSchema refinedSchemaSteelGrey = ResourceSchemaFactory.getCompleteSchema(resourceDummySteelGreyType);
 
         displayDumpable("Dummy steel blue refined schema", refinedSchemaSteelBlue);
         displayDumpable("Dummy steel grey refined schema", refinedSchemaSteelGrey);

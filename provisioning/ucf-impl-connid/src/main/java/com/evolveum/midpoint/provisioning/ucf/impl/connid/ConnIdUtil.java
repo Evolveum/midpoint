@@ -29,6 +29,7 @@ import javax.naming.directory.SchemaViolationException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
@@ -49,10 +50,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -526,21 +523,13 @@ public class ConnIdUtil {
         }
     }
 
-    public static ResourceAttributeDefinition<String> getUidDefinition(ObjectClassComplexTypeDefinition def, ResourceSchema schema) {
-        ObjectClassComplexTypeDefinition concreteObjectClassDefinition = getConcreteObjectClassDefinition(def, schema);
-        if (concreteObjectClassDefinition == null) {
-            return null;
-        } else {
-            return getUidDefinition(concreteObjectClassDefinition);
-        }
-    }
-
-    public static ObjectClassComplexTypeDefinition getConcreteObjectClassDefinition(ObjectClassComplexTypeDefinition def, ResourceSchema schema) {
+    public static ResourceObjectDefinition getConcreteObjectClassDefinition(
+            ResourceObjectDefinition def, ResourceSchema schema) {
         if (def == null) {
             // Return definition from any structural object class. If there is no specific object class definition then
             // the UID definition must be the same in all structural object classes and that means that we can use
             // definition from any structural object class.
-            for (ObjectClassComplexTypeDefinition objectClassDefinition: schema.getObjectClassDefinitions()) {
+            for (ResourceObjectClassDefinition objectClassDefinition : schema.getObjectClassDefinitions()) {
                 if (!objectClassDefinition.isAuxiliary()) {
                     return objectClassDefinition;
                 }
@@ -551,8 +540,8 @@ public class ConnIdUtil {
         }
     }
 
-    public static ResourceAttributeDefinition<String> getUidDefinition(ObjectClassComplexTypeDefinition def) {
-        Collection<? extends ResourceAttributeDefinition> primaryIdentifiers = def.getPrimaryIdentifiers();
+    public static ResourceAttributeDefinition<?> getUidDefinition(ResourceObjectDefinition def) {
+        Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = def.getPrimaryIdentifiers();
         if (primaryIdentifiers.size() > 1) {
             throw new UnsupportedOperationException("Multiple primary identifiers are not supported");
         }
@@ -564,8 +553,9 @@ public class ConnIdUtil {
         }
     }
 
-    public static ResourceAttributeDefinition<String> getNameDefinition(ObjectClassComplexTypeDefinition def) {
-        Collection<? extends ResourceAttributeDefinition> secondaryIdentifiers = def.getSecondaryIdentifiers();
+    // TODO what if there are multiple secondary identifiers? It can be! (Somewhere we have code that deals with this.)
+    public static ResourceAttributeDefinition<?> getNameDefinition(ResourceObjectDefinition def) {
+        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifiers = def.getSecondaryIdentifiers();
         if (secondaryIdentifiers.size() > 1) {
             throw new UnsupportedOperationException("Multiple secondary identifiers are not supported");
         }
@@ -578,24 +568,27 @@ public class ConnIdUtil {
     }
 
     @NotNull public static Collection<ResourceAttribute<?>> convertToIdentifiers(Uid uid,
-            ObjectClassComplexTypeDefinition ocDef, ResourceSchema resourceSchema) throws SchemaException {
-        ObjectClassComplexTypeDefinition concreteObjectClassDefinition = getConcreteObjectClassDefinition(ocDef, resourceSchema);
-        if (concreteObjectClassDefinition == null) {
-            throw new SchemaException("Concrete object class for "+uid+" cannot be found");
+            ResourceObjectDefinition ocDef, ResourceSchema resourceSchema) throws SchemaException {
+        ResourceObjectDefinition concreteObjectDefinition =
+                getConcreteObjectClassDefinition(ocDef, resourceSchema);
+        if (concreteObjectDefinition == null) {
+            throw new SchemaException("Concrete object definition for "+uid+" cannot be found");
         }
-        ResourceAttributeDefinition<String> uidDefinition = getUidDefinition(concreteObjectClassDefinition);
+        ResourceAttributeDefinition<?> uidDefinition = getUidDefinition(concreteObjectDefinition);
         if (uidDefinition == null) {
             throw new SchemaException("No definition for ConnId UID attribute found in definition " + ocDef);
         }
         Collection<ResourceAttribute<?>> identifiers = new ArrayList<>(2);
-        ResourceAttribute<String> uidRoa = uidDefinition.instantiate();
+        //noinspection unchecked
+        ResourceAttribute<String> uidRoa = (ResourceAttribute<String>) uidDefinition.instantiate();
         uidRoa.setRealValue(uid.getUidValue());
         identifiers.add(uidRoa);
         if (uid.getNameHint() != null) {
-            ResourceAttributeDefinition<String> nameDefinition = getNameDefinition(concreteObjectClassDefinition);
+            //noinspection unchecked
+            ResourceAttributeDefinition<String> nameDefinition =
+                    (ResourceAttributeDefinition<String>) getNameDefinition(concreteObjectDefinition);
             if (nameDefinition == null) {
-                throw new SchemaException("No definition for ConnId NAME attribute found in definition "
-                        + ocDef);
+                throw new SchemaException("No definition for ConnId NAME attribute found in definition " + ocDef);
             }
             ResourceAttribute<String> nameRoa = nameDefinition.instantiate();
             nameRoa.setRealValue(uid.getNameHintValue());

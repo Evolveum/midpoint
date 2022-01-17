@@ -26,6 +26,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -108,8 +109,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return (ODM) new ObjectDetailsModels<>(createPrismObjectModel(object), this);
     }
 
-    protected LoadableModel<PrismObject<O>> createPrismObjectModel(PrismObject<O> object) {
-        return new LoadableModel<>(false) {
+    protected LoadableDetachableModel<PrismObject<O>> createPrismObjectModel(PrismObject<O> object) {
+        return new LoadableDetachableModel<>() {
 
             @Override
             protected PrismObject<O> load() {
@@ -149,7 +150,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private Panel initSummaryPanel() {
-        LoadableModel<O> summaryModel = objectDetailsModels.getSummaryModel();
+        LoadableDetachableModel<O> summaryModel = objectDetailsModels.getSummaryModel();
         Panel summaryPanel = createSummaryPanel(ID_SUMMARY, summaryModel);
         summaryPanel.add(new VisibleBehaviour(() -> objectDetailsModels.getObjectStatus() != ItemStatus.ADDED));
         return summaryPanel;
@@ -411,6 +412,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         try {
             initMainPanel(config, form);
             target.add(form);
+            target.add(getFeedbackPanel());
         } catch (Throwable e) {
             error("Cannot instantiate panel, " + e.getMessage());
             LOGGER.error("Cannot instantiate panel, " + e.getMessage(), e.getStackTrace());
@@ -485,7 +487,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     public abstract Class<O> getType();
-    protected abstract Panel createSummaryPanel(String id, LoadableModel<O> summaryModel);
+    protected abstract Panel createSummaryPanel(String id, IModel<O> summaryModel);
 
     private MidpointForm getMainForm() {
         return (MidpointForm) get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM));

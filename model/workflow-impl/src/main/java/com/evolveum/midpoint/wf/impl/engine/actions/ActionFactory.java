@@ -17,12 +17,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * Maps requests (part of the API) to actions (i.e. concepts from the implementation).
  */
 @Component
 public class ActionFactory {
 
-    private Map<Class<? extends Request>, Class<? extends Action>> requestToActionMap = new HashMap<>();
+    private final Map<Class<? extends Request>, Class<? extends Action>> requestToActionMap = new HashMap<>();
 
     {
         requestToActionMap.put(CompleteWorkItemsRequest.class, CompleteWorkItemsAction.class);

@@ -73,7 +73,7 @@ class ConnIdToMidPointConversion {
     /** The context (various useful beans) */
     private final ConnIdConvertor connIdConvertor;
 
-    private final List<ObjectClassComplexTypeDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>();
+    private final List<ResourceObjectDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>();
 
     ConnIdToMidPointConversion(@NotNull ConnectorObject connectorObject, @NotNull PrismObject<ShadowType> resourceObject,
             boolean full, boolean caseIgnoreAttributeNames, boolean legacySchema, ConnIdConvertor connIdConvertor)
@@ -111,11 +111,10 @@ class ConnIdToMidPointConversion {
         ConnIdNameMapper nameMapper = connIdConvertor.connIdNameMapper;
         for (Object connIdAuxiliaryObjectClass : getConnIdAuxiliaryObjectClasses()) {
             QName auxiliaryObjectClassQname = nameMapper
-                    .objectClassToQname(new ObjectClass((String) connIdAuxiliaryObjectClass),
-                            connIdConvertor.resourceSchemaNamespace, legacySchema);
+                    .objectClassToQname(new ObjectClass((String) connIdAuxiliaryObjectClass), legacySchema);
             auxiliaryObjectClasses.add(auxiliaryObjectClassQname);
-            ObjectClassComplexTypeDefinition auxiliaryObjectClassDefinition = nameMapper.getResourceSchema()
-                    .findObjectClassDefinition(auxiliaryObjectClassQname);
+            ResourceObjectDefinition auxiliaryObjectClassDefinition = nameMapper.getResourceSchema()
+                    .findDefinitionForObjectClass(auxiliaryObjectClassQname);
             if (auxiliaryObjectClassDefinition == null) {
                 throw new SchemaException(
                         "Resource object " + connectorObject + " refers to auxiliary object class " + auxiliaryObjectClassQname
@@ -236,13 +235,15 @@ class ConnIdToMidPointConversion {
      */
     private void convertUid() throws SchemaException {
         Uid uid = connectorObject.getUid();
-        ObjectClassComplexTypeDefinition ocDef = attributesContainerDefinition.getComplexTypeDefinition();
-        ResourceAttributeDefinition<String> uidDefinition = ConnIdUtil.getUidDefinition(ocDef);
+        ResourceObjectDefinition objDef = attributesContainerDefinition.getComplexTypeDefinition();
+        ResourceAttributeDefinition<?> uidDefinition = ConnIdUtil.getUidDefinition(objDef);
         if (uidDefinition == null) {
-            throw new SchemaException("No definition for ConnId UID attribute found in definition " + ocDef);
+            throw new SchemaException("No definition for ConnId UID attribute found in definition " + objDef);
         }
         if (!attributesContainer.getValue().contains(uidDefinition.getItemName())) {
-            ResourceAttribute<String> uidResourceObjectAttribute = uidDefinition.instantiate();
+            //noinspection unchecked
+            ResourceAttribute<String> uidResourceObjectAttribute =
+                    (ResourceAttribute<String>) uidDefinition.instantiate();
             uidResourceObjectAttribute.setRealValue(uid.getUidValue());
             attributesContainer.getValue().add(uidResourceObjectAttribute);
         }
@@ -331,7 +332,9 @@ class ConnIdToMidPointConversion {
     private void convertStandardAttribute(Attribute connIdAttr, String connIdAttrName, List<Object> values) throws SchemaException {
         ItemName convertedAttrName = ItemName.fromQName(
                 connIdConvertor.connIdNameMapper.convertAttributeNameToQName(connIdAttrName, attributesContainerDefinition));
-        ResourceAttributeDefinition<Object> convertedAttributeDefinition = findAttributeDefinition(connIdAttrName, convertedAttrName);
+        //noinspection unchecked
+        ResourceAttributeDefinition<Object> convertedAttributeDefinition =
+                (ResourceAttributeDefinition<Object>) findAttributeDefinition(connIdAttrName, convertedAttrName);
 
         QName normalizedAttributeName;
         if (caseIgnoreAttributeNames) {
@@ -376,7 +379,7 @@ class ConnIdToMidPointConversion {
     }
 
     @NotNull
-    private ResourceAttributeDefinition<Object> findAttributeDefinition(String connIdAttrName, ItemName convertedAttrName)
+    private ResourceAttributeDefinition<?> findAttributeDefinition(String connIdAttrName, ItemName convertedAttrName)
             throws SchemaException {
         ResourceAttributeDefinition<Object> attributeDefinition = attributesContainerDefinition
                 .findAttributeDefinition(convertedAttrName, caseIgnoreAttributeNames);
@@ -385,8 +388,8 @@ class ConnIdToMidPointConversion {
         }
 
         // Try to locate definition in auxiliary object classes
-        for (ObjectClassComplexTypeDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
-            ResourceAttributeDefinition<Object> auxAttributeDefinition = auxiliaryObjectClassDefinition
+        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+            ResourceAttributeDefinition<?> auxAttributeDefinition = auxiliaryObjectClassDefinition
                     .findAttributeDefinition(convertedAttrName, caseIgnoreAttributeNames);
             if (auxAttributeDefinition != null) {
                 return auxAttributeDefinition;

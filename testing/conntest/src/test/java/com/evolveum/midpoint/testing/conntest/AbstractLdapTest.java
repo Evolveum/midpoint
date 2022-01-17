@@ -8,6 +8,7 @@ package com.evolveum.midpoint.testing.conntest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayXml;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.LDAP_CONNECTOR_TYPE;
@@ -19,6 +20,8 @@ import java.util.*;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.processor.*;
 
 import org.apache.directory.api.ldap.codec.api.DefaultConfigurableBinaryAttributeDetector;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
@@ -46,7 +49,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationLauncher;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -59,9 +61,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -137,7 +136,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     private static String stopCommand;
 
-    protected ObjectClassComplexTypeDefinition accountObjectClassDefinition;
+    /** Should be object type (a.k.a. refined) definition, if available. */
+    protected ResourceObjectDefinition accountDefinition;
 
     protected DefaultConfigurableBinaryAttributeDetector binaryAttributeDetector = new DefaultConfigurableBinaryAttributeDetector();
 
@@ -358,36 +358,39 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     @Test
     public void test020Schema() throws Exception {
-        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-        displayDumpable("Resource schema", resourceSchema);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+        displayDumpable("Raw resource schema", resourceSchema);
 
-        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        displayDumpable("Refined schema", refinedSchema);
-        accountObjectClassDefinition = refinedSchema.findObjectClassDefinition(getAccountObjectClass());
-        assertNotNull("No definition for object class " + getAccountObjectClass(), accountObjectClassDefinition);
-        displayDumpable("Account object class def", accountObjectClassDefinition);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        displayDumpable("Complete resource schema", refinedSchema);
 
-        ResourceAttributeDefinition<String> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
+        accountDefinition = refinedSchema.findDefinitionForObjectClassRequired(getAccountObjectClass());
+        assertThat(accountDefinition).as("account definition").isInstanceOf(ResourceObjectTypeDefinition.class);
+        displayDumpable("Account object class def", accountDefinition);
+
+        ResourceAttributeDefinition<?> cnDef = accountDefinition.findAttributeDefinition("cn");
         PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 1, 1);
         assertTrue("cn read", cnDef.canRead());
         assertTrue("cn modify", cnDef.canModify());
         assertTrue("cn add", cnDef.canAdd());
 
-        ResourceAttributeDefinition<String> oDef = accountObjectClassDefinition.findAttributeDefinition("o");
+        ResourceAttributeDefinition<?> oDef = accountDefinition.findAttributeDefinition("o");
         PrismAsserts.assertDefinition(oDef, new QName(MidPointConstants.NS_RI, "o"), DOMUtil.XSD_STRING, 0, -1);
         assertTrue("o read", oDef.canRead());
         assertTrue("o modify", oDef.canModify());
         assertTrue("o add", oDef.canAdd());
 
-        ResourceAttributeDefinition<Long> createTimestampDef = accountObjectClassDefinition.findAttributeDefinition("createTimestamp");
-        PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimestamp"),
+        ResourceAttributeDefinition<?> createTimestampDef = accountDefinition.findAttributeDefinition(getCreateTimeStampAttributeName());
+        PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, getCreateTimeStampAttributeName()),
                 getTimestampXsdType(), 0, 1);
-        assertTrue("createTimestampDef read", createTimestampDef.canRead());
-        assertFalse("createTimestampDef read", createTimestampDef.canModify());
-        assertFalse("createTimestampDef read", createTimestampDef.canAdd());
+        assertTrue(getCreateTimeStampAttributeName() + " def read", createTimestampDef.canRead());
+        assertFalse(getCreateTimeStampAttributeName() + " def read", createTimestampDef.canModify());
+        assertFalse(getCreateTimeStampAttributeName() + " def read", createTimestampDef.canAdd());
 
         assertStableSystem();
     }
+
+    protected String getCreateTimeStampAttributeName() { return "createTimestamp"; }
 
     protected QName getTimestampXsdType() {
         return DOMUtil.XSD_DATETIME;
@@ -435,7 +438,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     protected <T> ObjectFilter createAttributeFilter(String attrName, T attrVal) {
-        ResourceAttributeDefinition<T> ldapAttrDef = accountObjectClassDefinition.findAttributeDefinition(attrName);
+        ResourceAttributeDefinition<?> ldapAttrDef = accountDefinition.findAttributeDefinition(attrName);
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(ldapAttrDef, ShadowType.F_ATTRIBUTES, ldapAttrDef.getItemName()).eq(attrVal)
                 .buildFilter();
@@ -806,15 +809,17 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     /**
      * Silent delete. Used to clean up after previous test runs.
+     * @return deleted entry or null
      */
-    protected void cleanupDelete(String dn) throws LdapException, IOException, CursorException {
-        cleanupDelete(null, dn);
+    protected Entry cleanupDelete(String dn) throws LdapException, IOException, CursorException {
+        return cleanupDelete(null, dn);
     }
 
     /**
      * Silent delete. Used to clean up after previous test runs.
+     * @return deleted entry or null
      */
-    protected void cleanupDelete(UserLdapConnectionConfig config, String dn) throws LdapException, IOException, CursorException {
+    protected Entry cleanupDelete(UserLdapConnectionConfig config, String dn) throws LdapException, IOException, CursorException {
         LdapNetworkConnection connection = ldapConnect(config);
         Entry entry = getLdapEntry(connection, dn);
         if (entry != null) {
@@ -822,6 +827,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
             display("Cleaning up LDAP entry: " + dn);
         }
         ldapDisconnect(connection);
+        return entry;
     }
 
     protected String toAccountDn(String username, String fullName) {

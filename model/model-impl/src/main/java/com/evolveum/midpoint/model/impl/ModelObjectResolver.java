@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -117,8 +118,13 @@ public class ModelObjectResolver implements ObjectResolver {
 
     @Override
     @NotNull
-    public <T extends ObjectType> T getObject(Class<T> clazz, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
-            OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public <T extends ObjectType> T getObject(
+            @NotNull Class<T> clazz,
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            /*@NotNull*/ Task task,
+            @NotNull OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         T objectType;
         try {
             PrismObject<T> object;
@@ -248,7 +254,7 @@ public class ModelObjectResolver implements ObjectResolver {
             if (orgRefValue != null) {
 
                 try {
-                    PrismObject<OrgType> org = resolve(orgRefValue, "resolving parent org ref", null, null, result);
+                    PrismObject<OrgType> org = resolve(orgRefValue, "resolving parent org ref", null, task, result);
                     orgs.add(org);
                     ObjectReferenceType ref = function.apply(org);
 
@@ -309,7 +315,7 @@ public class ModelObjectResolver implements ObjectResolver {
             if (orgRefValue != null) {
 
                 try {
-                    PrismObject<OrgType> org = resolve(orgRefValue, "resolving parent org ref", null, null, result);
+                    PrismObject<OrgType> org = resolve(orgRefValue, "resolving parent org ref", null, task, result);
                     orgs.add(org);
                     R val = function.apply(org);
 

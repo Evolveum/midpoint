@@ -25,7 +25,6 @@ import com.evolveum.midpoint.web.component.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 
 import org.apache.commons.collections4.CollectionUtils;

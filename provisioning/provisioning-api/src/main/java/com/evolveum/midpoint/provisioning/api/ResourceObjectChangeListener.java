@@ -17,16 +17,11 @@ import org.jetbrains.annotations.NotNull;
 public interface ResourceObjectChangeListener extends ProvisioningListener {
 
     /**
-     * Submits notification about a specific change that happened on the
-     * resource.
-     * <p>
-     * This describes the change that has already happened on the resource. The upper layers are
-     * notified to take that change into an account (synchronize it).
-     * <p>
-     * The call should return without a major delay. It means that the
-     * implementation can do calls to repository, but it should not
-     * (synchronously) initiate a long-running process or provisioning request.
-     * <p>
+     * Processes a notification about a specific change that happened on the resource.
+     *
+     * The change has already happened on the resource. The upper layers (implementing this interface) are
+     * notified to take that change into an account i.e. synchronize it.
+     *
      * This operation may be called multiple times with the same change, e.g. in
      * case of failures in IDM or on the resource. The implementation must be
      * able to handle such duplicates.
@@ -34,5 +29,4 @@ public interface ResourceObjectChangeListener extends ProvisioningListener {
      * @param change change description
      */
     void notifyChange(@NotNull ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult);
-
 }

@@ -36,6 +36,8 @@ import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.model.LoadableDetachableModel;
+
 public class UserDetailsModel extends FocusDetailsModels<UserType> {
 
     private static final String DOT_CLASS = UserDetailsModel.class.getName() + ".";
@@ -46,7 +48,7 @@ public class UserDetailsModel extends FocusDetailsModels<UserType> {
     private LoadableModel<List<AssignmentInfoDto>> privilegesListModel;
     private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
-    public UserDetailsModel(LoadableModel<PrismObject<UserType>> prismObjectModel, PageBase serviceLocator) {
+    public UserDetailsModel(LoadableDetachableModel<PrismObject<UserType>> prismObjectModel, PageBase serviceLocator) {
         super(prismObjectModel, serviceLocator);
 
         delegationsModel = new LoadableModel<>(false) {
@@ -225,7 +227,7 @@ public class UserDetailsModel extends FocusDetailsModels<UserType> {
 
         return list;
     }
-    
+
     public LoadableModel<List<AssignmentEditorDto>> getDelegationsModel() {
         return delegationsModel;
     }

@@ -1,11 +1,18 @@
 /*
- * Copyright (c) 2010-2014 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.input.dto;
+
+import java.io.Serializable;
+import java.util.Objects;
+import javax.xml.bind.JAXBElement;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -15,16 +22,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.bind.JAXBElement;
-import java.io.Serializable;
 
 /**
- *  @author shood
- * */
-public class ExpressionTypeDto implements Serializable{
+ * @author shood
+ */
+public class ExpressionTypeDto implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionTypeDto.class);
 
@@ -58,7 +60,7 @@ public class ExpressionTypeDto implements Serializable{
             } else {
                 StringBuilder sb = new StringBuilder();
 
-                for (JAXBElement<?> element: expressionObject.getExpressionEvaluator()) {
+                for (JAXBElement<?> element : expressionObject.getExpressionEvaluator()) {
                     String subElement = context.xmlSerializer().serialize(element);
                     sb.append(subElement).append("\n");
                 }
@@ -82,15 +84,15 @@ public class ExpressionTypeDto implements Serializable{
         ExpressionUtil.parseExpressionEvaluators(expression, expressionObject, context);
     }
 
-    public void updateExpressionType(){
+    public void updateExpressionType() {
         expression = ExpressionUtil.getExpressionString(type);
     }
 
-    public void updateExpressionLanguage(){
+    public void updateExpressionLanguage() {
         expression = ExpressionUtil.getExpressionString(type, language);
     }
 
-    public void updateExpressionValuePolicyRef(){
+    public void updateExpressionValuePolicyRef() {
         expression = ExpressionUtil.getExpressionString(type, policyRef);
     }
 
@@ -141,28 +143,23 @@ public class ExpressionTypeDto implements Serializable{
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ExpressionTypeDto)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ExpressionTypeDto)) {
+            return false;
+        }
 
         ExpressionTypeDto that = (ExpressionTypeDto) o;
-
-        if (expression != null ? !expression.equals(that.expression) : that.expression != null) return false;
-        if (!expressionObject.equals(that.expressionObject))
-            return false;
-        if (language != that.language) return false;
-        if (policyRef != null ? !policyRef.equals(that.policyRef) : that.policyRef != null) return false;
-        if (type != that.type) return false;
-
-        return true;
+        return Objects.equals(expression, that.expression)
+                && Objects.equals(expressionObject, that.expressionObject)
+                && Objects.equals(language, that.language)
+                && Objects.equals(policyRef, that.policyRef)
+                && Objects.equals(type, that.type);
     }
 
     @Override
     public int hashCode() {
-        int result = type != null ? type.hashCode() : 0;
-        result = 31 * result + (language != null ? language.hashCode() : 0);
-        result = 31 * result + (policyRef != null ? policyRef.hashCode() : 0);
-        result = 31 * result + (expression != null ? expression.hashCode() : 0);
-        result = 31 * result + expressionObject.hashCode();
-        return result;
+        return Objects.hash(expression, expressionObject, language, policyRef, type);
     }
 }

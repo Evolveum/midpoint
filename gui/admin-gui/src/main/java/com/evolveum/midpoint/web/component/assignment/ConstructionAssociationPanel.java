@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -19,7 +21,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -62,7 +63,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
     private static final String ID_INPUT_SIZE = "col-md-6";
 
     private LoadableDetachableModel<PrismObject<ResourceType>> resourceModel;
-    private LoadableDetachableModel<List<RefinedAssociationDefinition>> refinedAssociationDefinitionsModel;
+    private LoadableDetachableModel<List<ResourceAssociationDefinition>> refinedAssociationDefinitionsModel;
 
     public ConstructionAssociationPanel(String id, IModel<PrismContainerWrapper<ConstructionType>> model) {
         super(id, model);
@@ -93,9 +94,9 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                 return resource;
             }
         };
-        refinedAssociationDefinitionsModel = new LoadableDetachableModel<List<RefinedAssociationDefinition>>() {
+        refinedAssociationDefinitionsModel = new LoadableDetachableModel<List<ResourceAssociationDefinition>>() {
             @Override
-            protected List<RefinedAssociationDefinition> load() {
+            protected List<ResourceAssociationDefinition> load() {
                 ConstructionType construction = getModelObject().getItem().getRealValue();
                 if (construction == null) {
                     return new ArrayList<>();
@@ -107,10 +108,10 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
     }
 
     protected void initLayout() {
-        ListView<RefinedAssociationDefinition> associationsPanel =
-                new ListView<RefinedAssociationDefinition>(ID_ASSOCIATIONS, refinedAssociationDefinitionsModel) {
+        ListView<ResourceAssociationDefinition> associationsPanel =
+                new ListView<ResourceAssociationDefinition>(ID_ASSOCIATIONS, refinedAssociationDefinitionsModel) {
                     @Override
-                    protected void populateItem(ListItem<RefinedAssociationDefinition> item) {
+                    protected void populateItem(ListItem<ResourceAssociationDefinition> item) {
                         GenericMultiValueLabelEditPanel associationReferencesPanel = new GenericMultiValueLabelEditPanel<ObjectReferenceType>(ID_ASSOCIATION_REFERENCE_PANEL,
                                 getShadowReferencesModel(item.getModelObject()),
                                 Model.of(WebComponentUtil.getAssociationDisplayName(item.getModelObject())),
@@ -189,7 +190,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
         add(associationsPanel);
     }
 
-    private IModel<List<ObjectReferenceType>> getShadowReferencesModel(RefinedAssociationDefinition def) {
+    private IModel<List<ObjectReferenceType>> getShadowReferencesModel(ResourceAssociationDefinition def) {
         return new LoadableModel<List<ObjectReferenceType>>() {
             private static final long serialVersionUID = 1L;
 
@@ -258,7 +259,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
 
     }
 
-    private void addNewShadowRefValuePerformed(AjaxRequestTarget target, RefinedAssociationDefinition def) {
+    private void addNewShadowRefValuePerformed(AjaxRequestTarget target, ResourceAssociationDefinition def) {
         ObjectFilter filter = WebComponentUtil.createAssociationShadowRefFilter(def,
                 getPageBase().getPrismContext(), resourceModel.getObject().getOid());
         ObjectBrowserPanel<ShadowType> objectBrowserPanel = new ObjectBrowserPanel<ShadowType>(

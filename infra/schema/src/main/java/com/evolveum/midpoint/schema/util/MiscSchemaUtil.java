@@ -237,13 +237,18 @@ public class MiscSchemaUtil {
         return rval;
     }
 
-    public static PropertyLimitationsType getLimitationsType(
-            List<PropertyLimitationsType> limitationsTypes, LayerType layer) throws SchemaException {
-        if (limitationsTypes == null) {
+    /**
+     * Selects appropriate limitations definition (for a given layer) from a list of definitions.
+     *
+     * If given layer of `null`, selects a definition that has no layers provided.
+     */
+    public static PropertyLimitationsType getLimitationsForLayer(
+            List<PropertyLimitationsType> definitions, LayerType layer) throws SchemaException {
+        if (definitions == null) {
             return null;
         }
         PropertyLimitationsType found = null;
-        for (PropertyLimitationsType limitType : limitationsTypes) {
+        for (PropertyLimitationsType limitType : definitions) {
             if (contains(limitType.getLayer(), layer)) {
                 if (found == null) {
                     found = limitType;

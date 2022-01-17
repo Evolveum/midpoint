@@ -10,6 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -23,8 +28,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -44,7 +47,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> implements Popupable {
@@ -435,7 +437,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
                     Task task = TypedAssignablePanel.this.getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
                     OperationResult result = task.getResult();
 
-                    ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(SecurityUtils.getPrincipalUser().getFocus().asPrismObject(), AbstractRoleType.class,
+                    ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(AuthUtil.getPrincipalUser().getFocus().asPrismObject(), AbstractRoleType.class,
                             WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, TypedAssignablePanel.this.getPageBase());
                     query = getPrismContext().queryFactory().createQuery(filter);
                 }
@@ -505,11 +507,11 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
                         ResourceType selectedResource = (ResourceType) selectedResources.get(0);
 
                         try {
-                            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(selectedResource.asPrismObject());
+                            ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(selectedResource.asPrismObject());
                             if (refinedSchema != null) {
                                 ShadowKindType kind = (ShadowKindType) TypedAssignablePanel.this.getKindDropdownComponent().getBaseFormComponent().getModelObject();
-                                List<? extends RefinedObjectClassDefinition> definitions = refinedSchema.getRefinedDefinitions(kind);
-                                for (RefinedObjectClassDefinition def : definitions) {
+                                List<? extends ResourceObjectTypeDefinition> definitions = refinedSchema.getObjectTypeDefinitions(kind);
+                                for (ResourceObjectTypeDefinition def : definitions) {
                                     availableIntentValues.add(def.getIntent());
                                 }
                             }

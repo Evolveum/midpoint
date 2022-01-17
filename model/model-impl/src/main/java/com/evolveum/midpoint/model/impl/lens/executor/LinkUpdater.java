@@ -17,8 +17,8 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -424,7 +424,7 @@ class LinkUpdater<F extends FocusType> {
             }
 
             XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-            List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils
+            List<ItemDelta<?, ?>> syncSituationDeltas = SynchronizationUtils
                     .createSynchronizationSituationAndDescriptionDelta(currentShadow, newSituation, task.getChannel(),
                             projCtx.hasFullShadow() && TaskUtil.isExecute(task), now);
 

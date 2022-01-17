@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.CompositeObjectDefinition;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -99,7 +99,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 
     public void check(Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        RefinedObjectClassDefinition projOcDef = projectionContext.getCompositeObjectClassDefinition();
+        CompositeObjectDefinition projOcDef = projectionContext.getCompositeObjectDefinition();
         PrismObject<ShadowType> projectionNew = projectionContext.getObjectNew();
         if (projectionNew == null) {
             // This must be delete
@@ -128,9 +128,16 @@ public class ShadowConstraintsChecker<F extends FocusType> {
                 return violation;
             };
 
-        constraintsCheckingResult = provisioningService.checkConstraints(projOcDef, projectionNew, projectionContext.getObjectOld(),
-                projectionContext.getResource(), projectionContext.getOid(), projectionContext.getResourceShadowDiscriminator(),
-                confirmer, context.getProjectionConstraintsCheckingStrategy(), task, result);
+        constraintsCheckingResult = provisioningService.checkConstraints(
+                projOcDef,
+                projectionNew,
+                projectionContext.getObjectOld(),
+                projectionContext.getResource(),
+                projectionContext.getOid(),
+                projectionContext.getResourceShadowDiscriminator(),
+                confirmer,
+                context.getProjectionConstraintsCheckingStrategy(),
+                task, result);
 
         if (constraintsCheckingResult.isSatisfiesConstraints()) {
             satisfiesConstraints = true;

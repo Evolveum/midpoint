@@ -44,7 +44,12 @@ public class TaskInfoBoxPanel extends InfoBoxPanel<ActivityInfoBoxDto> {
         Label errorMessage = new Label(ID_ERROR_MESSAGE, new PropertyModel<>(model, ActivityInfoBoxDto.F_ERROR_MESSAGE));
         parentInfoBox.add(errorMessage);
         errorMessage.add(AttributeAppender.append("title", new PropertyModel<>(model, ActivityInfoBoxDto.F_ERROR_MESSAGE)));
-        errorMessage.add(new TooltipBehavior());
+        errorMessage.add(new TooltipBehavior() {
+            @Override
+            public String getDataPlacement() {
+                return "bottom";
+            }
+        });
 
 
         if (linkPage != null) {

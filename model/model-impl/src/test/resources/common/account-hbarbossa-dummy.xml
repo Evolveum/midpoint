@@ -21,6 +21,7 @@
     </extension>
     <resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
     <objectClass>ri:AccountObjectClass</objectClass>
+    <kind>account</kind>
     <intent>default</intent>
     <attributes>
         <icfs:uid>hbarbossa</icfs:uid>

@@ -15,14 +15,15 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.refinery.PropertyLimitations;
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.schema.processor.PropertyLimitations;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
@@ -151,7 +152,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
 
         private final ObjectDelta<ShadowType> aPrioriDelta;
 
-        private final RefinedObjectClassDefinition projectionDefinition;
+        private final ResourceObjectDefinition projectionDefinition;
 
         private boolean stop;
 
@@ -159,7 +160,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
             this.projectionContext = projectionContext;
             this.currentProjection = projectionContext.getObjectCurrent();
             this.aPrioriDelta = getAPrioriDelta(projectionContext);
-            this.projectionDefinition = projectionContext.getCompositeObjectClassDefinition();
+            this.projectionDefinition = projectionContext.getCompositeObjectDefinition();
         }
 
         private void collectOrEvaluate()
@@ -262,7 +263,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 attributeAPrioriDelta = null;
             }
 
-            RefinedAttributeDefinition<?> attributeDef = findAttributeDefinition(attributeName);
+            ResourceAttributeDefinition<?> attributeDef = findAttributeDefinition(attributeName);
 
             if (attributeDef.isIgnored(LayerType.MODEL)) {
                 LOGGER.trace("Skipping inbound for attribute {} in {} because the attribute is ignored",
@@ -270,7 +271,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 return;
             }
 
-            List<MappingType> inboundMappingBeans = attributeDef.getInboundMappingTypes();
+            List<MappingType> inboundMappingBeans = attributeDef.getInboundMappingBeans();
             LOGGER.trace("Processing inbounds for {} in {}; ({} mappings)", lazy(() -> PrettyPrinter.prettyPrint(attributeName)),
                     projectionContext.getResourceShadowDiscriminator(), inboundMappingBeans.size());
 
@@ -334,14 +335,14 @@ class InboundMappingsEvaluation<F extends FocusType> {
         }
 
         @NotNull
-        private RefinedAttributeDefinition<Object> findAttributeDefinition(QName attributeName) {
+        private ResourceAttributeDefinition<?> findAttributeDefinition(QName attributeName) {
             return java.util.Objects.requireNonNull(
                     projectionDefinition.findAttributeDefinition(attributeName),
                     () -> "No definition for attribute " + attributeName);
         }
 
         @NotNull
-        private RefinedAssociationDefinition findAssociationDefinition(QName associationName) {
+        private ResourceAssociationDefinition findAssociationDefinition(QName associationName) {
             return java.util.Objects.requireNonNull(
                     projectionDefinition.findAssociationDefinition(associationName),
                     () -> "No definition for association " + associationName);
@@ -373,7 +374,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 associationAPrioriDelta = null;
             }
 
-            RefinedAssociationDefinition associationDef = findAssociationDefinition(associationName);
+            ResourceAssociationDefinition associationDef = findAssociationDefinition(associationName);
 
             if (associationDef.isIgnored(LayerType.MODEL)) {
                 LOGGER.trace("Skipping inbounds for association {} in {} because the association is ignored",
@@ -909,15 +910,15 @@ class InboundMappingsEvaluation<F extends FocusType> {
 
         private boolean hasAnyStrongMapping() {
             for (QName attributeName : projectionDefinition.getNamesOfAttributesWithInboundExpressions()) {
-                RefinedAttributeDefinition<?> definition = findAttributeDefinition(attributeName);
-                for (MappingType inboundMapping : definition.getInboundMappingTypes()) {
+                ResourceAttributeDefinition<?> definition = findAttributeDefinition(attributeName);
+                for (MappingType inboundMapping : definition.getInboundMappingBeans()) {
                     if (inboundMapping.getStrength() == MappingStrengthType.STRONG) {
                         return true;
                     }
                 }
             }
             for (QName associationName : projectionDefinition.getNamesOfAssociationsWithInboundExpressions()) {
-                RefinedAssociationDefinition definition = findAssociationDefinition(associationName);
+                ResourceAssociationDefinition definition = findAssociationDefinition(associationName);
                 for (MappingType inboundMapping : definition.getInboundMappingTypes()) {
                     if (inboundMapping.getStrength() == MappingStrengthType.STRONG) {
                         return true;

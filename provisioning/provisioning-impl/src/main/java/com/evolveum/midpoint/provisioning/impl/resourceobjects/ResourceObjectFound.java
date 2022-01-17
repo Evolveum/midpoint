@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
@@ -15,6 +14,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectFound;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -85,7 +85,7 @@ public class ResourceObjectFound implements InitializableMixin {
     /** Useful beans from Resource Objects layer. */
     private final ResourceObjectsLocalBeans localBeans;
 
-    public ResourceObjectFound(UcfObjectFound ucfObject, ResourceObjectConverter converter,
+    ResourceObjectFound(UcfObjectFound ucfObject, ResourceObjectConverter converter,
             ProvisioningContext ctx, boolean fetchAssociations) {
         this.resourceObject = ucfObject.getResourceObject().clone();
         this.primaryIdentifierValue = ucfObject.getPrimaryIdentifierValue();
@@ -105,12 +105,10 @@ public class ResourceObjectFound implements InitializableMixin {
         }
     }
 
-    private void addFakePrimaryIdentifierIfNeeded() throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
-        RefinedObjectClassDefinition objectClassDef = ictx.ctx.getObjectClassDefinition();
-        ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(resourceObject, objectClassDef);
-        localBeans.fakeIdentifierGenerator
-                .addFakePrimaryIdentifierIfNeeded(attrContainer, primaryIdentifierValue, objectClassDef);
+    private void addFakePrimaryIdentifierIfNeeded() throws SchemaException {
+        ResourceObjectDefinition definition = ictx.ctx.getObjectDefinitionRequired();
+        ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(resourceObject, definition);
+        localBeans.fakeIdentifierGenerator.addFakePrimaryIdentifierIfNeeded(attrContainer, primaryIdentifierValue, definition);
     }
 
     public @NotNull PrismObject<ShadowType> getResourceObject() {

@@ -39,7 +39,7 @@ public class ProvenanceMetadataWrapperFactory extends MetadataWrapperFactoryImpl
 //    protected PrismContainerValue<ProvenanceAcquisitionType> createNewValue(PrismContainer<ProvenanceAcquisitionType> item) {
 //        PrismContainerValue<ProvenanceAcquisitionType> newValue = super.createNewValue(item);
 //        ProvenanceAcquisitionType acquisitionType = newValue.asContainerable();
-//        GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
+//        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
 //        if (principal != null) {
 //            FocusType focus = principal.getFocus();
 //            if (focus != null) {

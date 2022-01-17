@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME;
+
 import static org.testng.AssertJUnit.*;
 
 import java.util.ArrayList;
@@ -14,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
 
 import com.evolveum.midpoint.provisioning.ucf.api.UcfSyncToken;
@@ -150,7 +153,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     @Test
     public void test020CreateConfiguredConnector() throws Exception {
-        cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
+        cc = connectorFactory.createConnectorInstance(connectorType,
                 "dummy",
                 "description of dummy test connector instance");
         assertNotNull("Failed to instantiate connector", cc);
@@ -192,7 +195,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     public void test030ResourceSchema() throws Exception {
         OperationResult result = createOperationResult();
 
-        cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
+        cc = connectorFactory.createConnectorInstance(connectorType,
                 "dummy",
                 "description of dummy test connector instance");
         assertNotNull("Failed to instantiate connector", cc);
@@ -218,8 +221,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         displayValue("Serialized XSD resource schema", DOMUtil.serializeDOMToString(xsdSchemaDom));
 
         // Try to re-parse
-        ResourceSchema reparsedResourceSchema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(xsdSchemaDom),
-                "serialized schema", PrismTestUtil.getPrismContext());
+        ResourceSchema reparsedResourceSchema = ResourceSchemaParser.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), "serialized schema");
         displayDumpable("Re-parsed resource schema", reparsedResourceSchema);
         assertEquals("Unexpected number of definitions in re-parsed schema", 4, reparsedResourceSchema.getDefinitions().size());
 
@@ -230,7 +232,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     public void test031ResourceSchemaAccountObjectClass() throws Exception {
         OperationResult result = createOperationResult();
 
-        cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
+        cc = connectorFactory.createConnectorInstance(connectorType,
                 "dummy",
                 "description of dummy test connector instance");
         assertNotNull("Failed to instantiate connector", cc);
@@ -281,7 +283,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     public void test040AddAccount() throws Exception {
         OperationResult result = createOperationResult();
 
-        ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectClassDefinition defaultAccountDefinition =
+                resourceSchema.findObjectClassDefinition(ACCOUNT_OBJECT_CLASS_NAME);
         ShadowType shadowType = new ShadowType();
         PrismTestUtil.getPrismContext().adopt(shadowType);
         shadowType.setName(PrismTestUtil.createPolyStringType(ACCOUNT_JACK_USERNAME));
@@ -307,8 +310,10 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     @Test
     public void test050Search() throws Exception {
         // GIVEN
+        UcfExecutionContext ctx = createExecutionContext();
 
-        final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+        final ResourceObjectClassDefinition accountDefinition =
+                resourceSchema.findObjectClassDefinitionRequired(ACCOUNT_OBJECT_CLASS_NAME);
         // Determine object class from the schema
 
         final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
@@ -323,13 +328,13 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         OperationResult result = createOperationResult();
 
         // WHEN
-        cc.search(accountDefinition, null, handler, null, null, null, null, null, result);
+        cc.search(accountDefinition, null, handler, null, null, null, null, ctx, result);
 
         // THEN
         assertEquals("Unexpected number of search results", 1, searchResults.size());
     }
 
-    private void checkUcfShadow(PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
+    private void checkUcfShadow(PrismObject<ShadowType> shadow, ResourceObjectClassDefinition objectClassDefinition) {
         assertNotNull("No objectClass in shadow " + shadow, shadow.asObjectable().getObjectClass());
         assertEquals("Wrong objectClass in shadow " + shadow, objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
         Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
@@ -340,8 +345,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     @Test
     public void test100FetchEmptyChanges() throws Exception {
         OperationResult result = createOperationResult();
-        ObjectClassComplexTypeDefinition accountDefinition =
-                resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectClassDefinition accountDefinition =
+                resourceSchema.findObjectClassDefinitionRequired(ACCOUNT_OBJECT_CLASS_NAME);
 
         // WHEN
         UcfSyncToken lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
@@ -361,7 +366,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     @Test
     public void test101FetchAddChange() throws Exception {
         OperationResult result = createOperationResult();
-        ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectClassDefinition accountDefinition =
+                resourceSchema.findObjectClassDefinitionRequired(ACCOUNT_OBJECT_CLASS_NAME);
 
         UcfSyncToken lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
         assertNotNull("No last sync token", lastToken);

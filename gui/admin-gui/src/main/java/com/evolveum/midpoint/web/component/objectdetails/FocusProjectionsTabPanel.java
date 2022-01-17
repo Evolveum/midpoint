@@ -14,6 +14,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
@@ -38,9 +40,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
@@ -520,16 +520,15 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                 shadow.setResourceRef(resourceRef);
                 ResourceType usedResource = resource;
 
-                RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
-                        resource.asPrismObject(), LayerType.PRESENTATION, getPrismContext());
+                ResourceSchema refinedSchema =
+                        ResourceSchemaFactory.getCompleteSchema(resource.asPrismObject(), LayerType.PRESENTATION);
                 if (refinedSchema == null) {
                     Task task = getPageBase().createSimpleTask(FocusPersonasTabPanel.class.getSimpleName() + ".loadResource");
                     OperationResult result = task.getResult();
                     PrismObject<ResourceType> loadedResource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result);
                     result.recomputeStatus();
 
-                    refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
-                            loadedResource, LayerType.PRESENTATION, getPrismContext());
+                    refinedSchema = ResourceSchemaFactory.getCompleteSchema(loadedResource, LayerType.PRESENTATION);
 
                     if (refinedSchema == null) {
                         error(getString("pageAdminFocus.message.couldntCreateAccountNoSchema",
@@ -544,8 +543,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                     LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.debugDump());
                 }
 
-                RefinedObjectClassDefinition accountDefinition = refinedSchema
-                        .getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+                ResourceObjectTypeDefinition accountDefinition = refinedSchema
+                        .findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
                 if (accountDefinition == null) {
                     error(getString("pageAdminFocus.message.couldntCreateAccountNoAccountSchema",
                             resource.getName()));
@@ -557,8 +556,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                 usedResourceRef.asReferenceValue().setObject(usedResource.asPrismObject());
                 shadow.setResourceRef(usedResourceRef);
                 shadow.setObjectClass(objectClass);
-                shadow.setIntent(accountDefinition.getObjectClassDefinition().getIntent());
-                shadow.setKind(accountDefinition.getObjectClassDefinition().getKind());
+                shadow.setIntent(accountDefinition.getIntent());
+                shadow.setKind(accountDefinition.getKind());
                 getPrismContext().adopt(shadow);
 
                 Task task = getPageBase().createSimpleTask(OPERATION_ADD_ACCOUNT);

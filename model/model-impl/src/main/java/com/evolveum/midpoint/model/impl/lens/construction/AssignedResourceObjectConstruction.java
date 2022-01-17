@@ -10,12 +10,12 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -72,8 +72,7 @@ public class AssignedResourceObjectConstruction<AH extends AssignmentHolderType>
         assert resource != null; // evaluation without resource is skipped
         assert constructionBean != null;
 
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
-                LayerType.MODEL, getBeans().prismContext);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource, LayerType.MODEL);
         if (refinedSchema == null) {
             // Refined schema may be null in some error-related border cases
             throw new SchemaException("No (refined) schema for " + resource);
@@ -82,8 +81,8 @@ public class AssignedResourceObjectConstruction<AH extends AssignmentHolderType>
         ShadowKindType kind = defaultIfNull(constructionBean.getKind(), ShadowKindType.ACCOUNT);
         String intent = constructionBean.getIntent();
 
-        RefinedObjectClassDefinition refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
-        if (refinedObjectClassDefinition == null) {
+        ResourceObjectDefinition resourceObjectDefinition = refinedSchema.findObjectDefinition(kind, intent);
+        if (resourceObjectDefinition == null) {
             if (intent != null) {
                 throw new SchemaException(
                         "No " + kind + " type with intent '" + intent + "' found in "
@@ -93,10 +92,10 @@ public class AssignedResourceObjectConstruction<AH extends AssignmentHolderType>
                         + " as specified in construction in " + getSource());
             }
         }
-        setRefinedObjectClassDefinition(refinedObjectClassDefinition);
+        setResourceObjectDefinition(resourceObjectDefinition);
 
         for (QName auxiliaryObjectClassName : constructionBean.getAuxiliaryObjectClass()) {
-            RefinedObjectClassDefinition auxOcDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassName);
+            ResourceObjectDefinition auxOcDef = refinedSchema.findDefinitionForObjectClass(auxiliaryObjectClassName);
             if (auxOcDef == null) {
                 throw new SchemaException(
                         "No auxiliary object class " + auxiliaryObjectClassName + " found in "

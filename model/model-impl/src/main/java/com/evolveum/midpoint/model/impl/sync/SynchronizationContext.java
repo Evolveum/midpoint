@@ -9,8 +9,14 @@ package com.evolveum.midpoint.model.impl.sync;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -20,9 +26,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -46,6 +49,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * Context of the synchronization operation. It is created in the early stages of {@link ResourceObjectShadowChangeDescription}
+ * progressing in {@link SynchronizationServiceImpl}.
+ *
+ * @param <F> Type of the matching focus object
+ */
 public class SynchronizationContext<F extends FocusType> implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
@@ -85,8 +94,17 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     /** Situation determined by the sorter or the synchronization service. */
     private SynchronizationSituationType situation;
 
+    /**
+     * Correlation context - in case the correlation was run.
+     * For some correlators it contains the correlation state (to be stored in the shadow).
+     */
+    private CorrelationContext correlationContext;
+
     private String intent;
     private String tag;
+
+    /** Definition of corresponding object type (currently found by kind+intent). Lazily evaluated. TODO reconsider. */
+    private ResourceObjectTypeDefinition objectTypeDefinition;
 
     private boolean reactionEvaluated = false;
     private SynchronizationReactionType reaction;
@@ -142,10 +160,30 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         }
 
         if (intent == null) {
-            RefinedResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-            intent = schema.findDefaultObjectClassDefinition(getKind()).getIntent();
+            ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
+            ResourceObjectDefinition def = schema.findObjectDefinition(getKind(), null);
+            if (def instanceof ResourceObjectTypeDefinition) {
+                intent = ((ResourceObjectTypeDefinition) def).getIntent(); // TODO ???
+            }
         }
         return intent;
+    }
+
+    public CorrelationContext getCorrelationContext() {
+        return correlationContext;
+    }
+
+    public void setCorrelationContext(CorrelationContext correlationContext) {
+        this.correlationContext = correlationContext;
+    }
+
+    // TODO reconsider
+    public @NotNull ResourceObjectTypeDefinition getObjectTypeDefinition() throws SchemaException, ConfigurationException {
+        if (objectTypeDefinition == null) {
+            objectTypeDefinition = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable())
+                    .findObjectTypeDefinitionRequired(getKind(), getIntent());
+        }
+        return objectTypeDefinition;
     }
 
     public String getTag() {
@@ -162,6 +200,26 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     public ExpressionType getConfirmation() {
         return objectSynchronization.getConfirmation();
+    }
+
+    // TODO reconsider cloning here
+    public @NotNull CorrelatorsType getCorrelators() {
+        if (objectSynchronization.getCorrelators() != null) {
+            return objectSynchronization.getCorrelators().clone();
+        } else if (objectSynchronization.getCorrelation().isEmpty()) {
+            LOGGER.debug("No correlation information present. Will always find no owner. In: {}", this);
+            return new CorrelatorsType(PrismContext.get())
+                    .beginNone().end();
+        } else {
+            CorrelatorsType correlators =
+                    new CorrelatorsType(PrismContext.get())
+                            .beginFilter()
+                            .confirmation(CloneUtil.clone(objectSynchronization.getConfirmation()))
+                            .end();
+            correlators.getFilter().get(0).getFilter().addAll(
+                    CloneUtil.cloneCollectionMembers(objectSynchronization.getCorrelation()));
+            return correlators;
+        }
     }
 
     public ObjectReferenceType getObjectTemplateRef() {
@@ -424,9 +482,21 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return itemProcessingIdentifier;
     }
 
-    RefinedObjectClassDefinition findRefinedObjectClassDefinition() throws SchemaException {
-        RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        return refinedResourceSchema.getRefinedDefinition(getKind(), getIntent());
+    ResourceObjectTypeDefinition findRefinedObjectClassDefinition() throws SchemaException {
+        ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ShadowKindType kind = getKind();
+
+        // FIXME this hacking
+        String intent = getIntent();
+        if (kind == null || kind == ShadowKindType.UNKNOWN) {
+            return null; // nothing to look for
+        }
+        if (SchemaConstants.INTENT_UNKNOWN.equals(intent)) {
+            intent = null;
+        }
+
+        // FIXME the cast
+        return (ResourceObjectTypeDefinition) refinedResourceSchema.findObjectDefinition(kind, intent);
     }
 
     @Override

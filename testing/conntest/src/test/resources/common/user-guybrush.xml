@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -23,13 +23,12 @@
         <effectiveStatus>enabled</effectiveStatus>
     </activation>
 
-<!--     <credentials> -->
-<!--         <password> -->
-<!--             <value> -->
-<!--                 <clearValue>xM4rksTh3Sp0t</clearValue> -->
-<!--             </value> -->
-<!--         </password> -->
-<!--     </credentials> -->
-
+     <credentials>
+         <password>
+             <value>
+                 <clearValue>x.M4rks.Th3.Sp0t</clearValue>
+             </value>
+         </password>
+     </credentials>
 
 </user>

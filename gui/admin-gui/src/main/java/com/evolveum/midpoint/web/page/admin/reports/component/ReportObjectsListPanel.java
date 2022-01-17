@@ -82,12 +82,12 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
         } catch (Exception e) {
             LOGGER.debug("Couldn't create compiled view for report " + getReport(), e);
         }
-        if (checkViewAfterInicialize()) {
+        if (checkViewAfterInitialize()) {
             checkView();
         }
     }
 
-    protected boolean checkViewAfterInicialize() {
+    protected boolean checkViewAfterInitialize() {
         return false;
     }
 
@@ -336,5 +336,10 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     public void resetTable(AjaxRequestTarget target) {
         initView();
         super.resetTable(target);
+    }
+
+    @Override
+    protected String getStringValueForObject(ObjectType object) {
+        return super.getStringValueForObject(object) + " (" + object.getOid() + ")";
     }
 }

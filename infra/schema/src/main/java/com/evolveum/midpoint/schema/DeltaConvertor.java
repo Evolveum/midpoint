@@ -89,8 +89,8 @@ public class DeltaConvertor {
      */
     @NotNull
     public static <T extends Objectable> ObjectDelta<T> createObjectDelta(
-            @NotNull ObjectDeltaType objectDeltaBean, PrismContext prismContext) throws SchemaException {
-        argCheck(prismContext != null, "No prismContext in DeltaConvertor.createObjectDelta call");
+            @NotNull ObjectDeltaType objectDeltaBean, PrismContext prismContext1) throws SchemaException {
+        PrismContext prismContext = PrismContext.get();
         QName objectTypeName =
                 requireNonNull(objectDeltaBean.getObjectType(),
                         () -> "No objectType specified");

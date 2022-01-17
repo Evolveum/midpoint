@@ -72,10 +72,11 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 
     @Test
     public void testListConnectors() throws Exception {
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
-        List<PrismObject<ConnectorType>> connectors = provisioningService.searchObjects(ConnectorType.class, null, null, null, result);
-        assertNotNull(connectors);
+        List<PrismObject<ConnectorType>> connectors =
+                provisioningService.searchObjects(ConnectorType.class, null, null, task, result);
 
         for (PrismObject<ConnectorType> connector : connectors) {
             ConnectorType conn = connector.asObjectable();

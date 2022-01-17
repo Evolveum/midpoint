@@ -50,6 +50,7 @@ import com.evolveum.midpoint.web.boot.AbstractSpringBootApplication;
         "classpath:ctx-model-test.xml",
         "classpath:ctx-model-common.xml",
         "classpath:ctx-init.xml",
+        "classpath:ctx-authentication.xml",
         "classpath:ctx-report.xml",
         "classpath*:ctx-workflow.xml",
         "classpath*:ctx-notifications.xml",

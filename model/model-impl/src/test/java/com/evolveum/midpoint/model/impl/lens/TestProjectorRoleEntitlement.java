@@ -11,6 +11,8 @@ import static org.testng.AssertJUnit.*;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -28,7 +30,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -97,7 +98,8 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         PrismProperty<Object> intentProperty = accountToAddPrimary.findProperty(ShadowType.F_INTENT);
         assertNotNull("No intent type in projection primary add delta", intentProperty);
         assertEquals("group", intentProperty.getRealValue());
-        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(getDummyResourceType()), "GroupObjectClass"),
+        getDummyResourceType();
+        assertEquals(new QName(MidPointConstants.NS_RI, "GroupObjectClass"),
                 accountToAddPrimary.findProperty(ShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = accountToAddPrimary.findReference(ShadowType.F_RESOURCE_REF);
         assertEquals(getDummyResourceType().getOid(), resourceRef.getOid());

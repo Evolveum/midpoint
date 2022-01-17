@@ -19,6 +19,7 @@ import javax.annotation.PreDestroy;
 import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
 import org.apache.commons.lang.Validate;
@@ -30,7 +31,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -306,7 +306,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             result.recordFatalError(t); // just for sure
             throw t;
         } finally {
-            result.computeStatusIfUnknown(); // just for sure
+            result.close();
         }
     }
 
@@ -362,7 +362,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public void processAsynchronousUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates,
+    public void processAsynchronousUpdates(@NotNull ResourceShadowCoordinates shadowCoordinates,
             @NotNull AsyncUpdateEventHandler handler, @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
@@ -997,7 +997,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         try {
 
             if (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-                shadowsFacade.applyDefinition((ObjectDelta<ShadowType>) delta, (ShadowType) object, result);
+                shadowsFacade.applyDefinition((ObjectDelta<ShadowType>) delta, (ShadowType) object, task, result);
             } else if (ResourceType.class.isAssignableFrom(delta.getObjectTypeClass())) {
                 resourceManager.applyDefinition((ObjectDelta<ResourceType>) delta, (ResourceType) object, null, task, result);
             } else {
@@ -1025,7 +1025,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         try {
 
             if (object.isOfType(ShadowType.class)) {
-                shadowsFacade.applyDefinition((PrismObject<ShadowType>) object, result);
+                shadowsFacade.applyDefinition((PrismObject<ShadowType>) object, task, result);
             } else if (object.isOfType(ResourceType.class)) {
                 resourceManager.applyDefinition((PrismObject<ResourceType>) object, task, result);
             } else {
@@ -1051,7 +1051,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         result.addParam("shadow", shadow);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
         try {
-            shadowsFacade.determineShadowState(shadow, task, result);
+            ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, result);
+            shadowsFacade.determineShadowState(ctx, shadow);
         } catch (Throwable e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
             throw e;
@@ -1078,7 +1079,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             }
 
             if (ShadowType.class.isAssignableFrom(type)) {
-                shadowsFacade.applyDefinition(query, result);
+                shadowsFacade.applyDefinition(query, task, result);
             } else if (ResourceType.class.isAssignableFrom(type)) {
                 resourceManager.applyDefinition(query, result);
             } else {
@@ -1137,25 +1138,26 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public ConstraintsCheckingResult checkConstraints(RefinedObjectClassDefinition shadowDefinition,
+    public ConstraintsCheckingResult checkConstraints(
+            ResourceObjectDefinition objectDefinition,
             PrismObject<ShadowType> shadowObject,
             PrismObject<ShadowType> shadowObjectOld,
-            ResourceType resourceType, String shadowOid,
-            ResourceShadowDiscriminator resourceShadowDiscriminator, ConstraintViolationConfirmer constraintViolationConfirmer,
+            ResourceType resource, String shadowOid,
+            ResourceShadowCoordinates shadowCoordinates,
+            ConstraintViolationConfirmer constraintViolationConfirmer,
             ConstraintsCheckingStrategyType strategy,
-            Task task, OperationResult parentResult) throws CommunicationException, SchemaException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws CommunicationException, SchemaException, SecurityViolationException, ConfigurationException,
+            ObjectNotFoundException, ExpressionEvaluationException {
+
         OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".checkConstraints");
         try {
             ConstraintsChecker checker = new ConstraintsChecker();
             checker.setCacheConfigurationManager(cacheConfigurationManager);
             checker.setShadowsFacade(shadowsFacade);
             checker.setShadowObjectOld(shadowObjectOld);
-            checker.setPrismContext(prismContext);
-            ProvisioningContext ctx = ctxFactory.create(shadowObject, task, result);
-            ctx.setObjectClassDefinition(shadowDefinition);
-            ctx.setResource(resourceType);
-            ctx.setShadowCoordinates(resourceShadowDiscriminator);
+            ProvisioningContext ctx = ctxFactory.createForDefinition(resource, objectDefinition, task);
             checker.setProvisioningContext(ctx);
             checker.setShadowObject(shadowObject);
             checker.setShadowOid(shadowOid);
@@ -1164,7 +1166,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             if (checker.canSkipChecking()) {
                 return ConstraintsCheckingResult.createOk();
             } else {
-                return checker.check(task, result);
+                return checker.check(result);
             }
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -1208,7 +1210,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public <O extends ObjectType, T> ItemComparisonResult compare(Class<O> type, String oid, ItemPath path,
             T expectedValue, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, EncryptionException {
         Validate.notNull(oid, "Oid of object to get must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
@@ -1227,7 +1230,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDumpLazily());
 
             //noinspection unchecked
-            comparisonResult = shadowsFacade.compare((PrismObject<ShadowType>) (repositoryObject), path, expectedValue, task, result);
+            comparisonResult = shadowsFacade.compare((PrismObject<ShadowType>) repositoryObject, path, expectedValue, task, result);
 
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException |
                 SecurityViolationException | ExpressionEvaluationException | EncryptionException | RuntimeException | Error e) {

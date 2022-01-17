@@ -128,5 +128,19 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
 
     }
 
+    @Override
+    protected boolean isChangeArchetypeButtonVisible() {
+        if (isSelfprofile) {
+            return false;
+        }
+        return super.isChangeArchetypeButtonVisible();
+    }
 
+    @Override
+    protected boolean isEditRawButtonVisible() {
+        if (isSelfprofile) {
+            return false;
+        }
+        return super.isEditRawButtonVisible();
+    }
 }
