@@ -6,13 +6,17 @@
  */
 package com.evolveum.midpoint.rest.impl;
 
-import java.io.File;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.prism.schema.SchemaDescription;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaFileType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaFilesType;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,15 +26,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.prism.schema.SchemaDescription;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 
 @RestController
 @RequestMapping({ "/ws/schema", "/rest/schema", "/api/schema" })
@@ -38,9 +36,8 @@ public class ExtensionSchemaRestController extends AbstractRestController {
 
     @Autowired private SecurityEnforcer securityEnforcer;
 
-    @GetMapping(produces = MediaType.TEXT_PLAIN_VALUE)
+    @GetMapping
     public ResponseEntity<?> listSchemas() {
-
         Task task = initRequest();
         OperationResult result = createSubresult(task, "listSchemas");
 
@@ -51,25 +48,30 @@ public class ExtensionSchemaRestController extends AbstractRestController {
             SchemaRegistry registry = prismContext.getSchemaRegistry();
             Collection<SchemaDescription> descriptions = registry.getSchemaDescriptions();
 
-            List<String> names = new ArrayList<>();
+            SchemaFilesType files = new SchemaFilesType();
 
             for (SchemaDescription description : descriptions) {
                 String name = computeName(description);
-                if (name != null) {
-                    names.add(name);
+
+                if (name == null) {
+                    continue;
                 }
+
+                files.schema(new SchemaFileType()
+                        .namespace(description.getNamespace())
+                        .usualPrefix(description.getUsualPrefix())
+                        .fileName(name));
             }
 
-            String output = StringUtils.join(names, "\n");
-            response = ResponseEntity.ok(output);
+            response = ResponseEntity.ok(files);
         } catch (Exception ex) {
-            // we can't use handleException because we cannot serialize OperationResultType into text/plain
-            LoggingUtils.logUnexpectedException(logger, "Got exception while servicing REST request: {}", ex, result.getOperation());
-            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ex.getMessage()); // TODO handle this somehow better
+            result.recordFatalError(ex);
+
+            response = handleException(result, ex);
         }
 
         finishRequest(task, result);
+
         return response;
     }
 
@@ -84,15 +86,11 @@ public class ExtensionSchemaRestController extends AbstractRestController {
             return null;
         }
 
-        String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
-        java.nio.file.Path homePath = Paths.get(midpointHome, "schema");
-        java.nio.file.Path relative = homePath.relativize(file.toPath());
-
-        return relative.toString();
+        return file.getName();
     }
 
     @GetMapping(value = "/{name}",
-            produces = { MediaType.TEXT_XML_VALUE, MediaType.TEXT_PLAIN_VALUE })
+            produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_PLAIN_VALUE })
     public ResponseEntity<?> getSchema(
             @PathVariable("name") String name) {
 
@@ -105,11 +103,11 @@ public class ExtensionSchemaRestController extends AbstractRestController {
                     null, AuthorizationParameters.EMPTY, null, task, result);
 
             if (name == null) {
-                response = ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.TEXT_PLAIN)
-                        .body("Name not defined");
+                result.recordFatalError("Name not defined");
+                response = createErrorResponseBuilder(HttpStatus.BAD_REQUEST, result);
             } else if (!name.toLowerCase().endsWith(".xsd") && name.length() > 4) {
-                response = ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.TEXT_PLAIN)
-                        .body("Name must be an xsd schema (.xsd extension expected)");
+                result.recordFatalError("Name must be an xsd schema (.xsd extension expected)");
+                response = createErrorResponseBuilder(HttpStatus.BAD_REQUEST, result);
             } else {
                 SchemaRegistry registry = prismContext.getSchemaRegistry();
                 Collection<SchemaDescription> descriptions = registry.getSchemaDescriptions();
@@ -124,16 +122,18 @@ public class ExtensionSchemaRestController extends AbstractRestController {
                 }
 
                 if (description != null) {
-                    response = ResponseEntity.ok(new File(description.getPath()));
-                } else {
-                    response = ResponseEntity
-                            .status(HttpStatus.NOT_FOUND)
+                    String content = FileUtils.readFileToString(new File(description.getPath()), StandardCharsets.UTF_8);
+                    response = ResponseEntity.status(HttpStatus.OK)
                             .contentType(MediaType.TEXT_PLAIN)
-                            .body("Unknown name");
+                            .body(content);
+                } else {
+                    result.recordFatalError("Unknown schema");
+                    response = createErrorResponseBuilder(HttpStatus.NOT_FOUND, result);
                 }
             }
         } catch (Exception ex) {
-            result.computeStatus();
+            result.recordFatalError(ex);
+
             response = handleException(result, ex);
         }
 
