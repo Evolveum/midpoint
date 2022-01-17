@@ -46,5 +46,5 @@ public interface Correlator {
             @NotNull PrismObject<CaseType> aCase,
             @NotNull AbstractWorkItemOutputType output,
             @NotNull Task task,
-            @NotNull OperationResult result) throws SchemaException;
+            @NotNull OperationResult result) throws SchemaException, CommunicationException;
 }

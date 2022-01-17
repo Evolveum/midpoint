@@ -28,6 +28,9 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.test.annotation.DirtiesContext;
@@ -107,13 +110,16 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
      * Sequentially processes all accounts, pushing them to matcher and checking its response.
      */
     @Test
-    public void test100ProcessAccounts() {
+    public void test100ProcessAccounts() throws SchemaException, CommunicationException {
         for (int i = 0; i < accounts.size(); i++) {
             processAccount(i);
         }
     }
 
-    private void processAccount(int i) {
+    private void processAccount(int i) throws SchemaException, CommunicationException {
+        //Here we can set account from csv
+
+
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -135,7 +141,7 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
         processMatchingResult(i, matchingResult);
     }
 
-    private void processMatchingResult(int i, MatchingResult matchingResult) {
+    private void processMatchingResult(int i, MatchingResult matchingResult) throws SchemaException, CommunicationException {
         MatchingTestingAccount account = accounts.get(i);
         ExpectedMatchingResult expectedResult = account.getExpectedMatchingResult();
         displayDumpable("Matching result obtained", matchingResult);
@@ -182,7 +188,7 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
      * @param matchingResult Result containing the uncertainty (and potential matches)
      * @param uncertainWithResolution Expected uncertain result plus resolution that should be provided (from accounts file)
      */
-    private void processUncertainAnswer(int i, MatchingResult matchingResult, UncertainWithResolution uncertainWithResolution) {
+    private void processUncertainAnswer(int i, MatchingResult matchingResult, UncertainWithResolution uncertainWithResolution) throws CommunicationException, SchemaException {
         OperationResult result = getTestOperationResult();
 
         checkUncertainAnswer(matchingResult, uncertainWithResolution);
@@ -213,7 +219,8 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
     }
 
     @Nullable
-    private Integer sendOperatorResponse(int i, MatchingResult matchingResult, UncertainWithResolution uncertainWithResolution, OperationResult result) {
+    private Integer sendOperatorResponse(int i, MatchingResult matchingResult, UncertainWithResolution uncertainWithResolution,
+            OperationResult result) throws CommunicationException {
         String resolvedId;
         Integer operatorResponse = uncertainWithResolution.getOperatorResponse();
         if (operatorResponse == null) {
@@ -237,7 +244,8 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
      * Checks that the resolution was correctly processed - by retrying the query and checking the result.
      */
     @NotNull
-    private String checkResponseApplied(int i, Integer operatorResponse, OperationResult result) {
+    private String checkResponseApplied(int i, Integer operatorResponse, OperationResult result)
+            throws SchemaException, CommunicationException {
         MatchingTestingAccount account = accounts.get(i);
         MatchingResult reMatchingResult = service.executeMatch(account.getAttributes(), result);
         displayDumpable("Matching result after operator decision", reMatchingResult);
