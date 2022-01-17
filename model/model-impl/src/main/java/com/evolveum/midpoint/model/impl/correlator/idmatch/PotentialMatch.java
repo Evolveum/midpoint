@@ -21,9 +21,9 @@ import java.util.Objects;
 public class PotentialMatch implements DebugDumpable {
 
     /**
-     * Integer [0,100].
+     * Integer [0,100]. May be missing.
      */
-    private final int confidence;
+    private final Integer confidence;
 
     /**
      * Reference ID. If a record comes from ID Match without reference ID, it is not included here.
@@ -35,7 +35,7 @@ public class PotentialMatch implements DebugDumpable {
      */
     @NotNull private final ShadowAttributesType attributes;
 
-    public PotentialMatch(int confidence, @NotNull String referenceId, @NotNull ShadowAttributesType attributes) {
+    public PotentialMatch(Integer confidence, @NotNull String referenceId, @NotNull ShadowAttributesType attributes) {
         this.confidence = confidence;
         this.referenceId = referenceId;
         this.attributes = attributes;
@@ -62,7 +62,7 @@ public class PotentialMatch implements DebugDumpable {
             return false;
         }
         PotentialMatch that = (PotentialMatch) o;
-        return confidence == that.confidence
+        return Objects.equals(confidence, that.confidence)
                 && referenceId.equals(that.referenceId)
                 && attributes.equals(that.attributes);
     }
