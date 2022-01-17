@@ -223,10 +223,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public void refreshTable(AjaxRequestTarget target) {
-                if (getSearchModel().isAttached() && getSearchModel().getObject()!= null
-                        && getSearchModel().getObject().isTypeChanged()) {
-                    clearCache();
-                }
+//                if (getSearchModel().isAttached() && getSearchModel().getObject()!= null
+//                        && getSearchModel().getObject().isTypeChanged()) {
+//                    clearCache();
+//                }
                 if (reloadPageOnRefresh()) {
                     throw new RestartResponseException(getPage().getClass());
                 } else {

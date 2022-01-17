@@ -304,8 +304,9 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         SearchItemDefinition def = new SearchItemDefinition(ShadowType.F_DEAD,
                 getShadowDefinition().findPropertyDefinition(ShadowType.F_DEAD),
                 Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
-        DeadShadowSearchItem deadShadowSearchItem = new DeadShadowSearchItem(search, def);
-        search.addSpecialItem(deadShadowSearchItem);
+        //todo create dead search item for refactored search
+//        DeadShadowSearchItem deadShadowSearchItem = new DeadShadowSearchItem(search, def);
+//        search.addSpecialItem(deadShadowSearchItem);
 //        SearchItemDefinition def = new SearchItemDefinition(ShadowType.F_DEAD,
 //                getShadowDefinition().findPropertyDefinition(ShadowType.F_DEAD),
 //                Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));

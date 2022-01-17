@@ -64,8 +64,37 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
         return SearchFactory.createSearchNew(ShadowType.class, null, createAttributeSearchItemWrappers(), getPageBase());
     }
 
-    private <T extends ObjectType> List<SearchItemDefinition> createAttributeDefinitionList() {
-
+    //    private <T extends ObjectType> List<SearchItemDefinition> createAttributeDefinitionList() {
+//
+//        List<SearchItemDefinition> map = new ArrayList<>();
+//
+//        RefinedObjectClassDefinition ocDef = null;
+//        try {
+//
+//            if (getKind() != null) {
+//
+//                ocDef = getDefinitionByKind();
+//
+//            } else if (getObjectClass() != null) {
+//                ocDef = getDefinitionByObjectClass();
+//
+//            }
+//        } catch (SchemaException e) {
+//            warn("Could not get determine object class definition");
+//            return map;
+//        }
+//
+//        if (ocDef == null) {
+//            return map;
+//        }
+//
+//        for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
+//            map.add(new SearchItemDefinition(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def, null));
+//        }
+//
+//        return map;
+//    }
+    
     private <T extends ObjectType> List<? super AbstractSearchItemWrapper> createAttributeSearchItemWrappers() {
 
         List<? super AbstractSearchItemWrapper> map = new ArrayList<>();
