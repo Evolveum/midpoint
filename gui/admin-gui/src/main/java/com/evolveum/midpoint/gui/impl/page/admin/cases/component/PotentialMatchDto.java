@@ -8,7 +8,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IdMatchCorrelationPotentialMatchType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
@@ -34,7 +37,7 @@ public class PotentialMatchDto implements Serializable {
     }
 
     public Serializable getAttributeValue(ItemPath path) {
-        Item pItem = shadowAttributesType.asPrismContainerValue().findItem(path);
+        Item pItem = findMatchingItem(path);
         Serializable value = pItem == null ? null : (Serializable) pItem.getRealValue();
 //                        String realValue;
         if (value instanceof RawType) {
@@ -45,6 +48,25 @@ public class PotentialMatchDto implements Serializable {
             }
         }
         return value;
+    }
+
+    private Item findMatchingItem(ItemPath path) {
+        Item exactMatch = shadowAttributesType.asPrismContainerValue().findItem(path);
+        if (exactMatch != null) {
+            return exactMatch;
+        }
+        ItemName name = path.asSingleName();
+        if (name == null) {
+            // Not bothering with the general case; we don't have nested attributes anyway
+            return null;
+        }
+
+        for (Item<?, ?> item : ((PrismContainerValue<?>) shadowAttributesType.asPrismContainerValue()).getItems()) {
+            if (QNameUtil.match(name, item.getElementName(), true)) {
+                return item;
+            }
+        }
+        return null;
     }
 
     public ShadowAttributesType getShadowAttributesType() {

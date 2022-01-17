@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -120,7 +121,7 @@ class IdMatchCorrelator implements Correlator {
         } else {
             beans.correlationCaseManager.createOrUpdateCase(
                     resourceObject,
-                    createSpecificCaseContext(mResult),
+                    createSpecificCaseContext(mResult, resourceObject),
                     result);
             return CorrelationResult.uncertain();
         }
@@ -146,17 +147,22 @@ class IdMatchCorrelator implements Correlator {
     /**
      * Converts internal {@link MatchingResult} into "externalized" {@link IdMatchCorrelationContextType} bean
      * to be stored in the correlation case.
+     *
+     * _Temporarily_ adding also "none of the above" potential match here.
      */
-    private @NotNull IdMatchCorrelationContextType createSpecificCaseContext(MatchingResult mResult) {
+    private @NotNull IdMatchCorrelationContextType createSpecificCaseContext(
+            @NotNull MatchingResult mResult, @NotNull ShadowType resourceObject) {
         IdMatchCorrelationContextType context = new IdMatchCorrelationContextType(PrismContext.get());
         for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
             context.getPotentialMatch().add(
-                    createPotentialMatchBean(potentialMatch));
+                    createPotentialMatchBeanForExistingId(potentialMatch));
         }
+        context.getPotentialMatch().add(
+                createPotentialMatchBeanForNewId(resourceObject));
         return context;
     }
 
-    private IdMatchCorrelationPotentialMatchType createPotentialMatchBean(PotentialMatch potentialMatch) {
+    private IdMatchCorrelationPotentialMatchType createPotentialMatchBeanForExistingId(PotentialMatch potentialMatch) {
         String id = potentialMatch.getReferenceId();
         return new IdMatchCorrelationPotentialMatchType(PrismContext.get())
                 .uri(qNameToUri(
@@ -164,6 +170,13 @@ class IdMatchCorrelator implements Correlator {
                 .confidence(potentialMatch.getConfidence())
                 .referenceId(id)
                 .attributes(potentialMatch.getAttributes());
+    }
+
+    private IdMatchCorrelationPotentialMatchType createPotentialMatchBeanForNewId(@NotNull ShadowType resourceObject) {
+        return new IdMatchCorrelationPotentialMatchType(PrismContext.get())
+                .uri(SchemaConstants.CORRELATION_NONE_URI)
+                .attributes(
+                        CloneUtil.clone(resourceObject.getAttributes()));
     }
 
     @Override
