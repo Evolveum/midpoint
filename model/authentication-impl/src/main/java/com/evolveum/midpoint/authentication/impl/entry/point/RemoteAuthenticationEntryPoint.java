@@ -18,8 +18,7 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 
-import com.evolveum.midpoint.authentication.impl.module.authentication.Saml2ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.impl.module.configurer.SamlModuleWebSecurityConfigurer;
+import com.evolveum.midpoint.authentication.api.config.RemoteModuleAuthentication;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -28,9 +27,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 /**
  * @author skublik
  */
-public class SamlAuthenticationEntryPoint extends WicketLoginUrlAuthenticationEntryPoint {
+public class RemoteAuthenticationEntryPoint extends WicketLoginUrlAuthenticationEntryPoint {
 
-    public SamlAuthenticationEntryPoint(String loginFormUrl) {
+    public RemoteAuthenticationEntryPoint(String loginFormUrl) {
         super(loginFormUrl);
     }
 
@@ -40,14 +39,14 @@ public class SamlAuthenticationEntryPoint extends WicketLoginUrlAuthenticationEn
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-            if (moduleAuthentication instanceof Saml2ModuleAuthenticationImpl) {
-                List<IdentityProvider> providers = ((Saml2ModuleAuthenticationImpl) moduleAuthentication).getProviders();
+            if (moduleAuthentication instanceof RemoteModuleAuthentication) {
+                List<IdentityProvider> providers = ((RemoteModuleAuthentication) moduleAuthentication).getProviders();
                 if (request.getSession().getAttribute("SPRING_SECURITY_LAST_EXCEPTION") == null) {
                     if (providers.size() == 1) {
                         response.sendRedirect(providers.get(0).getRedirectLink());
                         return;
                     }
-                } else if (SamlModuleWebSecurityConfigurer.SAML_LOGIN_PATH.equals(request.getServletPath())
+                } else if (getLoginFormUrl().equals(request.getServletPath())
                         && AuthenticationModuleState.LOGIN_PROCESSING.equals(moduleAuthentication.getState())) {
                     return;
                 }

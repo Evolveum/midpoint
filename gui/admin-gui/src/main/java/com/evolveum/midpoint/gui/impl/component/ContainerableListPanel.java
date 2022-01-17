@@ -720,32 +720,34 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             if (lookupTable == null) {
                 if (prismPropertyValue.getValue() == null) {
                     return "";
-                }
-                if (isPolyString(prismPropertyValue.getTypeName())) {
+                } else if (isPolyString(prismPropertyValue.getTypeName())) {
                     return WebComponentUtil.getTranslatedPolyString((PolyString) prismPropertyValue.getValue());
+                } else if (prismPropertyValue.getValue() instanceof Enum) {
+                    object = prismPropertyValue.getValue();
+                } else if (prismPropertyValue.getValue() instanceof ObjectType) {
+                    object = prismPropertyValue.getValue();
+                } else {
+                    return String.valueOf(prismPropertyValue.getValue());
                 }
-                if (prismPropertyValue.getValue() instanceof Enum) {
-                    return getPageBase().createStringResource((Enum)prismPropertyValue.getValue()).getString();
-                }
-                return String.valueOf(prismPropertyValue.getValue());
-            }
+            } else {
 
-            String lookupTableKey = prismPropertyValue.getValue().toString();
-            LookupTableType lookupTableObject = lookupTable.asObjectable();
-            String rowLabel = "";
-            for (LookupTableRowType lookupTableRow : lookupTableObject.getRow()) {
-                if (lookupTableRow.getKey().equals(lookupTableKey)) {
-                    return lookupTableRow.getLabel() != null ? lookupTableRow.getLabel().getOrig() : lookupTableRow.getValue();
+                String lookupTableKey = prismPropertyValue.getValue().toString();
+                LookupTableType lookupTableObject = lookupTable.asObjectable();
+                String rowLabel = "";
+                for (LookupTableRowType lookupTableRow : lookupTableObject.getRow()) {
+                    if (lookupTableRow.getKey().equals(lookupTableKey)) {
+                        return lookupTableRow.getLabel() != null ? lookupTableRow.getLabel().getOrig() : lookupTableRow.getValue();
+                    }
                 }
+                return rowLabel;
             }
-            return rowLabel;
         }
 
         if (object instanceof Enum) {
             return getPageBase().createStringResource((Enum)object).getString();
         }
         if (object instanceof ObjectType){
-            return WebComponentUtil.getDisplayName(((ObjectType)object).asPrismObject());
+            return getStringValueForObject((ObjectType)object);
         }
         if (object instanceof PrismObject){
             return WebComponentUtil.getDisplayName((PrismObject) object);
@@ -760,6 +762,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             return WebComponentUtil.getDisplayName(((ObjectReferenceType) object));
         }
         return object.toString();
+    }
+
+    protected String getStringValueForObject(ObjectType object) {
+        return WebComponentUtil.getDisplayName(object.asPrismObject());
     }
 
     private boolean isPolyString(QName typeName) {

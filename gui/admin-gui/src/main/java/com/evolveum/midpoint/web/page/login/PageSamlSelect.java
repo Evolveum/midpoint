@@ -13,6 +13,7 @@ import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 
 /**
@@ -27,11 +28,9 @@ public class PageSamlSelect extends AbstractPageRemoteAuthenticationSelect imple
     public PageSamlSelect() {
     }
 
-    protected boolean existRemoteAuthentication(ModuleAuthentication actualModule) {
-        return AuthenticationModuleNameConstants.SAML_2.equals(actualModule.getNameOfModuleType())
-                && (actualModule.getAuthentication() instanceof Saml2AuthenticationToken
-                || (actualModule.getAuthentication() instanceof AnonymousAuthenticationToken
-                && actualModule.getAuthentication().getDetails() instanceof Saml2AuthenticationToken));
+    @Override
+    protected Class<? extends Authentication> getSupportedAuthToken() {
+        return Saml2AuthenticationToken.class;
     }
 
     @Override

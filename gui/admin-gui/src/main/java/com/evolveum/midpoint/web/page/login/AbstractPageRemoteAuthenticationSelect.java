@@ -7,10 +7,12 @@
 package com.evolveum.midpoint.web.page.login;
 
 import com.evolveum.midpoint.authentication.api.IdentityProvider;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.config.RemoteModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -21,8 +23,10 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -53,17 +57,32 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
         });
         MidpointForm<?> form = new MidpointForm<>(ID_LOGOUT_FORM);
         ModuleAuthentication actualModule = AuthUtil.getProcessingModuleIfExist();
-        form.add(new VisibleBehaviour(() -> existRemoteAuthentication(actualModule)));
-        form.add(AttributeModifier.replace("action",
-                (IModel<String>) () -> existRemoteAuthentication(actualModule) ?
-                        SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), actualModule) : ""));
+        if (actualModule != null) {
+            Authentication actualAuthentication = actualModule.getAuthentication();
+            String authName = actualModule.getNameOfModuleType();
+            form.add(new VisibleBehaviour(() -> existRemoteAuthentication(actualAuthentication, authName)));
+            String prefix = actualModule.getPrefix();
+            form.add(AttributeModifier.replace("action",
+                    (IModel<String>) () -> existRemoteAuthentication(actualAuthentication, authName) ?
+                            SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), prefix) : ""));
+        } else {
+            form.add(new VisibleBehaviour(() -> false));
+        }
         add(form);
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
         form.add(csrfField);
     }
 
-    abstract protected boolean existRemoteAuthentication(ModuleAuthentication actualModule);
+    abstract protected Class<? extends Authentication> getSupportedAuthToken();
+
+    private boolean existRemoteAuthentication(Authentication actualAuth, String actualModuleName) {
+        return getClass().getAnnotation(PageDescriptor.class).authModule().equals(actualModuleName)
+                && (getSupportedAuthToken().isAssignableFrom(actualAuth.getClass())
+                || (actualAuth instanceof AnonymousAuthenticationToken
+                && actualAuth.getDetails() != null
+                && getSupportedAuthToken().isAssignableFrom(actualAuth.getDetails().getClass())));
+    }
 
     private List<IdentityProvider> getProviders() {
         List<IdentityProvider> providers = new ArrayList<>();

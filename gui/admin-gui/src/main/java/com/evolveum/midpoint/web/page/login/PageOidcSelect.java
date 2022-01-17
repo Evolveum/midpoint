@@ -12,6 +12,7 @@ import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 
 import java.io.Serializable;
@@ -28,11 +29,9 @@ public class PageOidcSelect extends AbstractPageRemoteAuthenticationSelect imple
     public PageOidcSelect() {
     }
 
-    protected boolean existRemoteAuthentication(ModuleAuthentication actualModule) {
-        return AuthenticationModuleNameConstants.OIDC.equals(actualModule.getNameOfModuleType())
-                && (actualModule.getAuthentication() instanceof OAuth2LoginAuthenticationToken
-                || (actualModule.getAuthentication() instanceof AnonymousAuthenticationToken
-                && actualModule.getAuthentication().getDetails() instanceof OAuth2LoginAuthenticationToken));
+    @Override
+    protected Class<? extends Authentication> getSupportedAuthToken(){
+        return OAuth2LoginAuthenticationToken.class;
     }
 
     @Override

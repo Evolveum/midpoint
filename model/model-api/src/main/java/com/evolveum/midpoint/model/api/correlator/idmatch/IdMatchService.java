@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.model.api.correlator.idmatch;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +26,8 @@ public interface IdMatchService {
      *
      * @param attributes Attributes of an account that should be matched.
      */
-    @NotNull MatchingResult executeMatch(@NotNull ShadowAttributesType attributes, @NotNull OperationResult result);
+    @NotNull MatchingResult executeMatch(@NotNull ShadowAttributesType attributes, @NotNull OperationResult result)
+            throws CommunicationException, SchemaException;
 
     /**
      * Resolves a pending match.
@@ -37,5 +40,5 @@ public interface IdMatchService {
             @NotNull ShadowAttributesType attributes,
             @Nullable String matchRequestId,
             @Nullable String referenceId,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result) throws CommunicationException;
 }

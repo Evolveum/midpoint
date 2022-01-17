@@ -171,7 +171,7 @@ class IdMatchCorrelator implements Correlator {
             @NotNull PrismObject<CaseType> aCase,
             @NotNull AbstractWorkItemOutputType output,
             @NotNull Task task,
-            @NotNull OperationResult result) throws SchemaException {
+            @NotNull OperationResult result) throws SchemaException, CommunicationException {
         ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(aCase);
         ShadowAttributesType attributes = MiscUtil.requireNonNull(shadow.getAttributes(),
                 () -> new IllegalStateException("No attributes in shadow " + shadow + " in " + aCase));

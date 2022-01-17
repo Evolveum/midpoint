@@ -193,11 +193,15 @@ class ColumnDataConverter<C extends Containerable> {
                     LOGGER.error("Couldn't convert delta from ObjectDeltaOperationType to ObjectDeltaOperation {}", realValue);
                     return "";
                 }
+            } if (realValue instanceof ObjectType) {
+                return ReportUtils.prettyPrintForReport((ObjectType) realValue, reportService.getLocalizationService());
             } else {
                 return ReportUtils.prettyPrintForReport(realValue);
             }
         } else if (value instanceof PrismReferenceValue) {
             return getObjectNameFromRef(value.getRealValue());
+        } if (value instanceof ObjectType) {
+            return ReportUtils.prettyPrintForReport((ObjectType) value, reportService.getLocalizationService());
         } else {
             return ReportUtils.prettyPrintForReport(value);
         }
