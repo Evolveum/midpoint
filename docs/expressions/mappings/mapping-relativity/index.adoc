@@ -68,7 +68,19 @@ MidPoint mappings are designed to work correctly with the xref:/midpoint/referen
 Simply speaking the mapping does not just maps the source values to the target values.
 It also maps the corresponding deltas.
 
-TODO: better explanation:
+.Mapping delta processing: initial setup
+image::mapping-delta-processing-1.png[Mapping delta processing: initial setup]
+
+.Mapping delta processing: transforming values
+image::mapping-delta-processing-2.png[Mapping delta processing: transforming values]
+
+.Mapping delta processing: applying delta
+image::mapping-delta-processing-3.png[Mapping delta processing: applying delta]
+
+
+// TODO: this is simplified
+
+// TODO: better explanation:
 
 // TODO: picture
 
@@ -77,7 +89,13 @@ TODO: better explanation:
 * correct support for multi-value properties
 
 
+TODO: Relativity mechanism is not perfect.
 
+* Target values may be inconsistent, e.g. there may be extra value.
+Simple add/delete of values will not fix that.
+
+* One value may be produced by several mappings.
+Executing mappings in isolation may destroy values.
 
 // TODO
 
@@ -314,6 +332,20 @@ But it is important to keep in mind that mapping is much more than just its expr
 There are other settings such as mapping _range_. A condition that is `false` will inactivate all the aspects of the mapping.
 Whereas mapping expression can only control the value that the mapping produces.
 But it cannot control other processing of that value that takes place in the mapping.
+
+== Delta Set Triples
+
+// TODO
+
+
+.Constructing delta set triple
+image::mapping-delta-processing-4.png[Constructing delta set triple]
+
+.Merging delta set triples
+image::mapping-delta-processing-5.png[Merging delta set triples]
+
+// TODO: why we need zero set? Not that much for keeping target attribute values (range is better for that).
+// Mostly for not removing a value by a mapping, while the same value is still provided by other mapping.
 
 == Limitations
 
