@@ -100,11 +100,11 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
             }
 
             @Override
-            protected boolean checkViewAfterInicialize() {
+            protected boolean checkViewAfterInitialize() {
                 if (checkViewAfterInitialize) {
                     return true;
                 }
-                return super.checkViewAfterInicialize();
+                return super.checkViewAfterInitialize();
             }
         };
         table.setOutputMarkupId(true);

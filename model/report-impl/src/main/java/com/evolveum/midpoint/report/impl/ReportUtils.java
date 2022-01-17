@@ -9,6 +9,7 @@ package com.evolveum.midpoint.report.impl;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
@@ -30,10 +31,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.report.impl.controller.*;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -64,6 +67,7 @@ import java.util.MissingResourceException;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.WordUtils;
+import org.springframework.boot.web.servlet.server.Session;
 
 /**
  * Utility methods for report. Mostly pretty print functions. Do not use any
@@ -269,6 +273,26 @@ public class ReportUtils {
             sb.append(prv.getOid());
         }
         return sb.toString();
+    }
+
+    public static String prettyPrintForReport(ObjectType object, LocalizationService localizationService) {
+        if (object == null) {
+            return "";
+        }
+        String name = PolyString.getOrig(object.getName());
+
+        PolyStringType displayName = ObjectTypeUtil.getDisplayName(object);
+        if (displayName != null) {
+            if (localizationService != null) {
+                String translatedValue = localizationService.translate(PolyString.toPolyString(displayName), Locale.getDefault(), true);
+                if (StringUtils.isNotEmpty(translatedValue)) {
+                    name = translatedValue;
+                }
+            } else {
+                name = PolyString.getOrig(ObjectTypeUtil.getDisplayName(object));
+            }
+        }
+        return name + " (" + object.getOid() + ")";
     }
 
     public static String prettyPrintUsersForReport(List<ObjectReferenceType> userRefList) {
