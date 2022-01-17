@@ -41,7 +41,7 @@ public class PotentialMatch implements DebugDumpable {
         this.attributes = attributes;
     }
 
-    public int getConfidence() {
+    public Integer getConfidence() {
         return confidence;
     }
 

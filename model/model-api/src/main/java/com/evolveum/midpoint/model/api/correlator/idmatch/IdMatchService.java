@@ -40,5 +40,5 @@ public interface IdMatchService {
             @NotNull ShadowAttributesType attributes,
             @Nullable String matchRequestId,
             @Nullable String referenceId,
-            @NotNull OperationResult result) throws CommunicationException;
+            @NotNull OperationResult result) throws CommunicationException, SchemaException;
 }

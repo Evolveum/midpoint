@@ -220,7 +220,7 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
 
     @Nullable
     private Integer sendOperatorResponse(int i, MatchingResult matchingResult, UncertainWithResolution uncertainWithResolution,
-            OperationResult result) throws CommunicationException {
+            OperationResult result) throws CommunicationException, SchemaException {
         String resolvedId;
         Integer operatorResponse = uncertainWithResolution.getOperatorResponse();
         if (operatorResponse == null) {

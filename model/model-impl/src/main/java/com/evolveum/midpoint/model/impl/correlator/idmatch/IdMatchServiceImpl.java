@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -29,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.IdMatchCorrelatorTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -45,6 +48,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 public class IdMatchServiceImpl implements IdMatchService {
 
@@ -57,8 +61,6 @@ public class IdMatchServiceImpl implements IdMatchService {
 
     private static final Trace LOGGER = TraceManager.getTrace(IdMatchServiceImpl.class);
 
-    private static final String SOR_LABEL_TO_USE = "sor"; // TODO make configurable!
-
     /** URL where the service resides. */
     @NotNull private final String url;
 
@@ -68,10 +70,27 @@ public class IdMatchServiceImpl implements IdMatchService {
     /** Password used to access the service. */
     @Nullable private final ProtectedStringType password;
 
-    private IdMatchServiceImpl(@NotNull String url, @Nullable String username, @Nullable ProtectedStringType password) {
+    /** SOR Label to be used in ID Match requests. */
+    @NotNull private final String sorLabel;
+
+    private static final String DEFAULT_SOR_LABEL = "sor";
+
+    /** A shadow attribute to be used as SOR ID in the requests. */
+    @NotNull private final QName sorIdAttribute;
+
+    private static final QName DEFAULT_SOR_ID_ATTRIBUTE = SchemaConstants.ICFS_UID;
+
+    private IdMatchServiceImpl(
+            @NotNull String url,
+            @Nullable String username,
+            @Nullable ProtectedStringType password,
+            @Nullable String sorLabel,
+            @Nullable QName sorIdAttribute) {
         this.url = url;
         this.username = username;
         this.password = password;
+        this.sorLabel = Objects.requireNonNullElse(sorLabel, DEFAULT_SOR_LABEL);
+        this.sorIdAttribute = Objects.requireNonNullElse(sorIdAttribute, DEFAULT_SOR_ID_ATTRIBUTE);
     }
 
     @Override
@@ -301,7 +320,7 @@ public class IdMatchServiceImpl implements IdMatchService {
      * a new ID), and `matchRequestId` should be present (if previously returned by the ID Match service).
      */
     private JsonRequest generateJsonRequest(@NotNull PrismContainerValue<ShadowAttributesType> attributes,
-            @Nullable String referenceId, @Nullable String matchRequestId) {
+            @Nullable String referenceId, @Nullable String matchRequestId) throws SchemaException {
 
         try {
             JsonFactory factory = new JsonFactory(); // todo from jackson-core?
@@ -317,14 +336,14 @@ public class IdMatchServiceImpl implements IdMatchService {
             generator.writeFieldName("sorAttributes");
             generator.writeStartObject();
 
-            String sorId = null;
+            List<Item<?, ?>> sorIdentifiersFound = new ArrayList<>();
 
             for (Item<?, ?> item : attributes.getItems()) {
                 String elementName = fromMidPointAttributeName(item.getElementName());
-                String elementRealValue = item.getRealValue(String.class);
+                String elementRealValue = getStringValue(item);
 
-                if (SchemaConstants.ICFS_UID.equals(item.getElementName())) {
-                    sorId = elementRealValue; // TODO make this configurable
+                if (QNameUtil.match(sorIdAttribute, item.getElementName())) {
+                    sorIdentifiersFound.add(item);
                 }
 
                 generator.writeFieldName(elementName.toLowerCase());
@@ -338,7 +357,14 @@ public class IdMatchServiceImpl implements IdMatchService {
             }
             generator.writeEndObject();
             generator.close();
-            return new JsonRequest(SOR_LABEL_TO_USE, sorId, String.valueOf(jsonString));
+
+            Item<?, ?> sorId = MiscUtil.extractSingletonRequired(
+                    sorIdentifiersFound,
+                    () -> new SchemaException("Ambiguous SOR Identifier attribute '" + sorIdAttribute
+                            + "', multiple values were found: " + sorIdentifiersFound),
+                    () -> new SchemaException("No value for SOR Identifier attribute '" + sorIdAttribute + "' found"));
+            String sorIdValue = getStringValue(sorId);
+            return new JsonRequest(sorLabel, sorIdValue, String.valueOf(jsonString));
         } catch (IOException e) {
             // We really don't expect IOException here. Let's not bother with it, and throw
             // a SystemException, because this is most probably some weirdness.
@@ -346,12 +372,25 @@ public class IdMatchServiceImpl implements IdMatchService {
         }
     }
 
-    public JsonRequest generateMatchRequest(@NotNull PrismContainerValue<ShadowAttributesType> attributes) {
+    // TEMPORARY!
+    private String getStringValue(Item<?, ?> item) {
+        Object realValue = item.getRealValue();
+        if (realValue instanceof String) {
+            return (String) realValue;
+        } else if (realValue instanceof RawType) {
+            return ((RawType) realValue).extractString();
+        } else {
+            throw new UnsupportedOperationException("Non-string attributes are not supported: " + item);
+        }
+    }
+
+    public JsonRequest generateMatchRequest(@NotNull PrismContainerValue<ShadowAttributesType> attributes)
+            throws SchemaException {
         return generateJsonRequest(attributes, null, null);
     }
 
     public JsonRequest generateResolveRequest(@NotNull PrismContainerValue<ShadowAttributesType> attributes,
-            @NotNull String referenceId, @Nullable String matchRequestId) {
+            @NotNull String referenceId, @Nullable String matchRequestId) throws SchemaException {
         return generateJsonRequest(attributes, referenceId, matchRequestId);
     }
 
@@ -360,7 +399,7 @@ public class IdMatchServiceImpl implements IdMatchService {
             @NotNull ShadowAttributesType attributes,
             @Nullable String matchRequestId,
             @Nullable String referenceId,
-            @NotNull OperationResult result) throws CommunicationException {
+            @NotNull OperationResult result) throws CommunicationException, SchemaException {
 
         String nativeReferenceId = referenceId != null ? referenceId : "new";
         //noinspection unchecked
@@ -378,7 +417,9 @@ public class IdMatchServiceImpl implements IdMatchService {
                 MiscUtil.requireNonNull(configuration.getUrl(),
                         () -> new ConfigurationException("No URL in ID Match service configuration")),
                 configuration.getUsername(),
-                configuration.getPassword());
+                configuration.getPassword(),
+                configuration.getSorLabel(),
+                configuration.getSorIdentifierAttribute());
     }
 
     /**
@@ -389,6 +430,6 @@ public class IdMatchServiceImpl implements IdMatchService {
             @NotNull String url,
             @Nullable String username,
             @Nullable ProtectedStringType password) {
-        return new IdMatchServiceImpl(url, username, password);
+        return new IdMatchServiceImpl(url, username, password, null, null);
     }
 }
