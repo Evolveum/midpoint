@@ -11,7 +11,7 @@ import java.util.Collections;
 
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
-import com.evolveum.midpoint.authentication.impl.entry.point.SamlAuthenticationEntryPoint;
+import com.evolveum.midpoint.authentication.impl.entry.point.RemoteAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.saml.MidpointMetadataRelyingPartyRegistrationResolver;
 import com.evolveum.midpoint.authentication.impl.saml.MidpointSaml2LoginConfigurer;
 import com.evolveum.midpoint.authentication.impl.saml.MidpointSaml2LogoutRequestResolver;
@@ -80,8 +80,8 @@ public class SamlModuleWebSecurityConfigurer<C extends SamlModuleWebSecurityConf
     }
 
     @Override
-    protected AuthenticationEntryPoint getAuthEntryPoint() {
-        return new SamlAuthenticationEntryPoint(SAML_LOGIN_PATH);
+    protected String getAuthEntryPointUrl() {
+        return SAML_LOGIN_PATH;
     }
 
     @Override

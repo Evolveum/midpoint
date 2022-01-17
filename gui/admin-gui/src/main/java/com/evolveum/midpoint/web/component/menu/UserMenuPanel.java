@@ -93,7 +93,7 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
         MidpointForm<?> form = new MidpointForm<>(ID_LOGOUT_FORM);
         form.add(AttributeModifier.replace("action",
                 (IModel<String>) () -> SecurityUtils.getPathForLogoutWithContextPath(
-                        getRequest().getContextPath(), getAuthenticatedModule())));
+                        getRequest().getContextPath(), getAuthenticatedModule().getPrefix())));
         add(form);
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);

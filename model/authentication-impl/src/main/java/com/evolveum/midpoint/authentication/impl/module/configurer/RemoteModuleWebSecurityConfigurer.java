@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 
+import com.evolveum.midpoint.authentication.impl.entry.point.RemoteAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.module.configuration.RemoteModuleWebSecurityConfiguration;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +79,7 @@ public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWe
             }
         };
         getOrApply(http, exceptionConfigurer)
-                .authenticationEntryPoint(getAuthEntryPoint());
+                .authenticationEntryPoint(new RemoteAuthenticationEntryPoint(getAuthEntryPointUrl()));
 
         http.logout().clearAuthentication(true)
                 .logoutRequestMatcher(new AntPathRequestMatcher(getPrefix() + "/logout"))
@@ -87,7 +88,7 @@ public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWe
                 .logoutSuccessHandler(getLogoutRequestSuccessHandler());
     }
 
-    protected abstract AuthenticationEntryPoint getAuthEntryPoint();
+    protected abstract String getAuthEntryPointUrl();
 
     protected abstract LogoutSuccessHandler getLogoutRequestSuccessHandler();
 

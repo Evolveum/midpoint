@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.entry.point.RemoteAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.entry.point.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
@@ -68,8 +69,8 @@ public class OidcModuleWebSecurityConfigurer<C extends OidcModuleWebSecurityConf
     }
 
     @Override
-    protected AuthenticationEntryPoint getAuthEntryPoint() {
-        return new WicketLoginUrlAuthenticationEntryPoint(OIDC_LOGIN_PATH);
+    protected String getAuthEntryPointUrl() {
+        return OIDC_LOGIN_PATH;
     }
 
     @Override
