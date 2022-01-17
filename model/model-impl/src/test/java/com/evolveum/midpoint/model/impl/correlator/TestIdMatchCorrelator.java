@@ -14,6 +14,9 @@ import com.evolveum.midpoint.model.api.correlator.Correlator;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
@@ -57,7 +60,7 @@ public class TestIdMatchCorrelator extends AbstractCorrelatorOrMatcherTest {
 
     /** Temporary. */
     @Test
-    public void test001Sanity() {
+    public void test001Sanity() throws SchemaException, CommunicationException {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();

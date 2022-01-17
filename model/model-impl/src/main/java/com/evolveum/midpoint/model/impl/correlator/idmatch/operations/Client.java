@@ -1,13 +1,24 @@
 package com.evolveum.midpoint.model.impl.correlator.idmatch.operations;
 
+import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchServiceImpl;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.constants.Channel;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.constants.MatchStatus;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.data.ListResponse;
+import com.evolveum.midpoint.model.impl.correlator.idmatch.data.structure.JsonRequest;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.operations.auth.AuthenticationProvider;
+
+import com.evolveum.midpoint.util.exception.CommunicationException;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
 public class Client {
+
+    private static final Trace LOGGER = TraceManager.getTrace(Client.class);
 
     private final ApacheApiRequest apachePutRequest;
     private final ApacheApiRequest apachePostRequest;
@@ -28,16 +39,15 @@ public class Client {
         return responseCode;
     }
 
-    public void setResponseCode(String responseCode) {
+    private void setResponseCode(String responseCode) {
         this.responseCode = responseCode;
     }
-
 
     public String getEntity() {
         return entity;
     }
 
-    public void setEntity(String entity) {
+    private void setEntity(String entity) {
         this.entity = entity;
     }
 
@@ -60,20 +70,24 @@ public class Client {
         httpClientSuper = new HttpBuilder(this.authenticationProvider);
     }
 
-    public void peoplePut(String sorLabel, String sorId, String object) {
+    public void peoplePut(@NotNull JsonRequest jsonRequest) throws CommunicationException {
+
+        String sorLabel = jsonRequest.getSorLabel();
+        String sorId = jsonRequest.getSorId();
+        String objectToSend = jsonRequest.getObjectToSend();
 
         StringBuilder urlSuffix = new StringBuilder(sorLabel + "/" + sorId);
         StringBuilder url = new StringBuilder(urlPrefix + Channel.URL_PREFIX_MAIN_OPERATIONS.getUrl());
 
         try {
-            apachePutRequest.doRequest(url.toString(), urlSuffix.toString(), object);
-
+            LOGGER.info("Invoking peoplePut with url = `{}`, urlSuffix = `{}`, object:\n{}",
+                    url, urlSuffix, objectToSend); // TODO trace
+            apachePutRequest.doRequest(url.toString(), urlSuffix.toString(), objectToSend);
             setResponses(apachePutRequest);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new CommunicationException("Couldn't invoke ID Match service: " + e.getMessage(), e);
         }
     }
-
 
     public void listPeople(String sorLabel) {
 
@@ -117,6 +131,7 @@ public class Client {
         StringBuilder url = new StringBuilder(urlPrefix + Channel.URL_PREFIX_GET_MATCH_REQUEST_MATCH_ID.getUrl());
 
         try {
+            LOGGER.info("Getting match request {}", id);
             apacheGetRequest.doRequest(url.toString(), id, "");
             setResponses(apacheGetRequest);
         } catch (IOException e) {
@@ -162,11 +177,14 @@ public class Client {
     private void setResponses(ApacheApiRequest apacheApiRequest) {
         if (!apacheApiRequest.listResponse().isEmpty()) {
             listResponse = apacheApiRequest.listResponse().get(0);
-            //System.out.printf("%s\n %s \n %s \n %n", "Response code: " + listResponse.getResponseCode(), "Message: " + listResponse.getMessage(), "Entity: " + listResponse.getEntity());
+            LOGGER.info("Response code: {}\nMessage: {}\n Entity:\n{}",
+                    listResponse.getResponseCode(), listResponse.getMessage(), listResponse.getEntity());
             setResponseCode(listResponse.getResponseCode());
             setEntity(listResponse.getEntity());
             setMessage(listResponse.getMessage());
-        } else {System.out.println(NO_RESPONSE_MESSAGES);}
+        } else {
+            LOGGER.info(NO_RESPONSE_MESSAGES); // TODO trace
+        }
     }
 
     public void close() {
@@ -177,9 +195,8 @@ public class Client {
         return message;
     }
 
-    public void setMessage(String message) {
+    private void setMessage(String message) {
         this.message = message;
     }
-
 
 }

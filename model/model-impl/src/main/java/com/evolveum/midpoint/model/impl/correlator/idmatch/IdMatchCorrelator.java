@@ -11,7 +11,9 @@ import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IdMatchCorrelatorType;
@@ -53,7 +55,7 @@ class IdMatchCorrelator implements Correlator {
     }
 
     @Override
-    public CorrelationResult correlate(@NotNull ShadowType resourceObject, @NotNull Task task, @NotNull OperationResult result) {
+    public CorrelationResult correlate(@NotNull ShadowType resourceObject, @NotNull Task task, @NotNull OperationResult result) throws SchemaException, CommunicationException {
 
         LOGGER.trace("Correlating the resource object:\n{}", resourceObject.debugDumpLazily(1));
 

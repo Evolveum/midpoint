@@ -1,0 +1,22 @@
+{
+  "sorAttributes": {
+    "dateofbirth": "2004-02-06",
+    "nationalid": "0402068231",
+    "test": "?1,4:new",
+    "identifiers": [
+      {
+        "identifier": "5",
+        "type": "sor"
+      }
+    ],
+    "givenname": "Ian",
+    "familyname": "Smith"
+  },
+  "meta": {
+    "requestTime": "2022-01-16T15:12:14Z",
+    "matchRequest": "249",
+    "sorLabel": "sor",
+    "sorId": "5"
+  },
+  "referenceId": "new"
+}

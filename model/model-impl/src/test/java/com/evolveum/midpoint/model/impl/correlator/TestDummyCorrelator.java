@@ -9,6 +9,9 @@ package com.evolveum.midpoint.model.impl.correlator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
@@ -50,7 +53,7 @@ public class TestDummyCorrelator extends AbstractCorrelatorOrMatcherTest {
 
     /** Temporary. */
     @Test
-    public void test001Sanity() {
+    public void test001Sanity() throws SchemaException, CommunicationException {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
