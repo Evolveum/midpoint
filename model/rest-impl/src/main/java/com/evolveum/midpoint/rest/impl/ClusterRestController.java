@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,27 +13,27 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.DefinitionProcessingOption;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.*;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.TerminateSessionEvent;
+import com.evolveum.midpoint.authentication.api.config.NodeAuthenticationToken;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.util.ClusterServiceConsts;
-import com.evolveum.midpoint.authentication.api.config.NodeAuthenticationToken;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.schema.DefinitionProcessingOption;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -44,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManage
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * REST service used for inter-cluster communication.
@@ -235,7 +236,7 @@ public class ClusterRestController extends AbstractRestController {
 
     @GetMapping(
             value = ModelPublicConstants.CLUSTER_REPORT_FILE_PATH,
-            produces = "application/octet-stream")
+            produces = { "application/octet-stream", MimeTypeUtils.ALL_VALUE })
     public ResponseEntity<?> getReportFile(
             @RequestParam(ModelPublicConstants.CLUSTER_REPORT_FILE_FILENAME_PARAMETER) String fileName) {
         Task task = initRequest();
@@ -293,7 +294,7 @@ public class ClusterRestController extends AbstractRestController {
     @GetMapping(value = TaskConstants.GET_TASK_REST_PATH + "{oid}")
     public ResponseEntity<?> getTask(@PathVariable("oid") String oid, @RequestParam(value = "include", required = false) List<String> include) {
         Task task = initRequest();
-        OperationResult result = createSubresult(task, OPERATION_GET_REPORT_FILE);
+        OperationResult result = createSubresult(task, OPERATION_GET_TASK);
 
         ResponseEntity<?> response;
         try {
@@ -347,7 +348,7 @@ public class ClusterRestController extends AbstractRestController {
 
     /**
      * @return trace directory if selector is "trace, import directory if selector is "import", export directory
-     *         otherwise
+     * otherwise
      */
     private Path reportDirectory(String selector) {
 
