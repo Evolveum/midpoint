@@ -28,7 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationRequestFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -82,7 +81,7 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);
 
-        ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication(configuration);
+        ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication(configuration, request);
         moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         for (Filter f : filter.getFilters()){
@@ -94,12 +93,13 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 
-    public ModuleAuthentication createEmptyModuleAuthentication(SamlModuleWebSecurityConfiguration configuration) {
+    public ModuleAuthentication createEmptyModuleAuthentication(SamlModuleWebSecurityConfiguration configuration, ServletRequest request) {
         Saml2ModuleAuthentication moduleAuthentication = new Saml2ModuleAuthentication();
         List<IdentityProvider> providers = new ArrayList<>();
         configuration.getRelyingPartyRegistrationRepository().forEach(
                 p -> {
-                    String authRequestPrefixUrl = "/midpoint" + configuration.getPrefix() + SamlModuleWebSecurityConfiguration.REQUEST_PROCESSING_URL_SUFFIX;
+                    String authRequestPrefixUrl = request.getServletContext().getContextPath() + configuration.getPrefix()
+                            + SamlModuleWebSecurityConfiguration.REQUEST_PROCESSING_URL_SUFFIX;
                     SamlMidpointAdditionalConfiguration config = configuration.getAdditionalConfiguration().get(p.getRegistrationId());
                     IdentityProvider mp = new IdentityProvider()
                                 .setLinkText(config.getLinkText())
