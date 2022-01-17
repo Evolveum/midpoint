@@ -154,11 +154,11 @@ public class SecurityUtils {
         return null;
     }
 
-    public static String getPathForLogoutWithContextPath(String contextPath, @NotNull ModuleAuthentication moduleAuthentication) {
-        return "/" + AuthUtil.stripSlashes(contextPath) + getPathForLogout(moduleAuthentication);
+    public static String getPathForLogoutWithContextPath(String contextPath, @NotNull String prefix) {
+        return "/" + AuthUtil.stripSlashes(contextPath) + getPathForLogout(prefix);
     }
 
-    private static String getPathForLogout(@NotNull ModuleAuthentication moduleAuthentication) {
-        return "/" + AuthUtil.stripSlashes(moduleAuthentication.getPrefix()) + DEFAULT_LOGOUT_PATH;
+    private static String getPathForLogout(@NotNull String prefix) {
+        return "/" + AuthUtil.stripSlashes(prefix) + DEFAULT_LOGOUT_PATH;
     }
 }

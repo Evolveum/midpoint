@@ -207,6 +207,6 @@ public class PageError extends PageBase {
         if (moduleAuthentication == null) {
             return SecurityUtils.DEFAULT_LOGOUT_PATH;
         }
-        return SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), moduleAuthentication);
+        return SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), moduleAuthentication.getPrefix());
     }
 }
