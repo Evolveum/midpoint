@@ -68,44 +68,97 @@ MidPoint mappings are designed to work correctly with the xref:/midpoint/referen
 Simply speaking the mapping does not just maps the source values to the target values.
 It also maps the corresponding deltas.
 
+Let's explain that using an example of project membership management.
+User extended property `projects` (`extension/projects`) contains names of projects that a user belongs to.
+We need to map that information into LDAP server, specifically an attribute `organization`.
+We want all the project names converted to lower case and prefixed with string `proj-`.
+Both the source and target properties are multi-valued.
+The target LDAP attribute may contain other values as well, values that describe organizational membership that is not related to projects.
+The mapping should not change these values.
+
+This can be implemented by a simple outbound mapping for `organization` LDAP property, setting user's property as source, specifying a simple expression to transform the value.
+
+[source,xml]
+----
+<resource>
+    <name>LDAP Server</name>
+    ...
+    <attribute>
+        <ref>ri:organization</ref>
+        <outbound>
+            <source>
+                <path>extension/projects</path>
+            </source>
+            <expression>
+                <code>
+                    "proj-" + input.toLowerCase()
+                </code>
+            </expression>
+        </outbound>
+    </attribute>
+    ...
+</resource>
+----
+
+The mapping reacts to changes in mapping source.
+The source property `projects` contained two values, `Alpha` and `Bravo`.
+In this example, new value `Charlie` is added, and existing value `Bravo` is removed.
+The setup and initial change is illustrated below.
+
 .Mapping delta processing: initial setup
 image::mapping-delta-processing-1.png[Mapping delta processing: initial setup]
+
+The mapping reacts to the xref:/midpoint/devel/prism/concepts/deltas/[delta] of the source item.
+Mapping expression is used to transform every changed value, computing output value.
 
 .Mapping delta processing: transforming values
 image::mapping-delta-processing-2.png[Mapping delta processing: transforming values]
 
+Output values that were produced from source values which were _added_ to the source, will be added to the target attribute.
+Output values that were produced from source values which were _removed_ to the source, will be removed from the target attribute.
+The computed output values are consolidated into a target delta, which is applied by executing an operation on the LDAP server:
+
 .Mapping delta processing: applying delta
 image::mapping-delta-processing-3.png[Mapping delta processing: applying delta]
 
+This is the basic principle of mapping relativity.
+Mapping is processing values that were changed.
+The other, unrelated, values of the target attribute (`corp-example` and `corp-acme`) are left untouched.
+If we would process the source values in an _absolute_ rather than relative way, we might have removed such values.
+Relativistic processing solves that problem.
+Also, there is no need for transactions or locking.
+As we are processing the changes, several changes to the same target attribute can be processed in parallel (in the usual case).
 
-// TODO: this is simplified
+The description above is considerably simplified.
+More details will be provided below.
+Yet, even such simplified explanation gives a good overview of the basic principle.
 
-// TODO: better explanation:
+However, such a simple relativity mechanism is not perfect.
+There are some drawbacks:
 
-// TODO: picture
-
-* Picture how a delta is translated through mapping
-
-* correct support for multi-value properties
-
-
-TODO: Relativity mechanism is not perfect.
-
-* Target values may be inconsistent, e.g. there may be extra value.
-Simple add/delete of values will not fix that.
+* Target values may be inconsistent, e.g. there may be extra value not known to midPoint.
+Perhaps this value was manually set by system administrator by mistake.
+Maybe the system was restored from backup, reviving a value that was deleted after the backup was taken.
+Or it may be an attacker setting an illegal value.
+Simple relativistic add/delete of values will not fix that, as such value does not have corresponding value in mapping source property.
+Quite obviously, we have to consider values of a target attribute, at least in some cases.
 
 * One value may be produced by several mappings.
-Executing mappings in isolation may destroy values.
+For example, membership in some projects may be managed manually, or information about project membership is compiled from two systems, with some data overlap.
+If a value is produced by two mapping, executing one of the mappings in isolation may destroy value, as it may think that the value should be removed, while other mappings may still want to keep it.
 
-// TODO
+// TODO: any other issues?
+
+MidPoint does solve all the issues, at least to some degree.
+Simply speaking, midPoint does consider existing values of a target property when it is available.
+MidPoint usually executes all the mappings, even those where the source values were not changed, to make sure that all the values from all the mappings are properly merged and considered.
+The details are provided below.
 
 == Mapping Source
 
 Mapping source is the fundamental part in mapping relativity mechanism.
 Change of mapping source values triggers evaluation of the mapping.
 Moreover, the changes of mapping source dictate how many times will be the mapping expression evaluated, and how the evaluation results will be handled.
-
-// TODO
 
 The source can be defined by the mapping by simply specifying the path of the item which the source should represent:
 
@@ -137,71 +190,65 @@ Like this:
 MidPoint will take care that the variable `organization` will be filled with appropriate value, the the expression will be executed as many times as needed and that the result of the expression will be interpreted in a proper way to maintain the relative change model.
 All that the mapping definition needs is proper definition of sources and an expression to transform a single value.
 
-// TODO: mapping reacts to changes in source values
-
 
 == Scripting Expressions in Mappings
 
-Most expression types used in mappings are built to work with deltas `(asIs` expressions, `path` expressions) and they do it correctly and efficiently.
-However scripting expressions are different.
+Many expression types used in mappings are built to work with deltas `(asIs` expressions, `path` expressions), and they do it correctly and efficiently.
+However, scripting expressions are different.
 Scripting languages are not designed to work with deltas.
-The variables and return values of scripting languages are simple static values.
-Therefore we need a little trick to make them work correctly with deltas without sacrificing the simplicity and convenience of traditional scripting approach: Scripting expression is usually evaluated individually for every applicable value.
-The applicable value is either old or new value of the property or value added or removed by the delta.
-The mapping knows which expression input values were added, removed or stay unchanged and therefore it can assume the same also for expression output values and construct the resulting delta.
-In other words the delta is first decomposed into individual values, then an expression is evaluated for each of these values and then resulting values are composed back to a delta.
+The variables and return values of scripting languages are usually simple scalar values.
+Therefore, we need a little trick to make them work correctly with deltas without sacrificing the simplicity and convenience of traditional scripting approach: Scripting expression is usually evaluated individually for every applicable value.
+The value passed to scripting expression is either old or new value of the property or value added or removed by the delta.
+The mapping knows which expression input values were added, removed or stayed unchanged, and therefore it can assume the same also for expression output values and construct the resulting delta.
+In other words the delta is first decomposed into individual values, then an expression is evaluated for each of these values and then resulting values are composed back to a delta (or rather a _triple_).
 
-TODO: picture
+.Mapping delta processing: transforming values
+image::mapping-delta-processing-2.png[Mapping delta processing: transforming values]
 
-This approach may be quite simple for a single changed property.
-But it gets considerably complicated when multiple changes occur at the same time.
+This approach may be quite simple for a single mapping source.
+But it gets much more complex when changes in multiple mapping sources occur at the same time.
 In such a case the input deltas needs to be decomposed into combinations of values from all the deltas and then composed back.
-MidPoint mappings fully support this mechanism also for multi-value properties.
+MidPoint mappings fully support this mechanism, even for multiple multi-valued sources.
 
-
-=== Script Expression Sources
+=== Declaration of Script Expression Sources
 
 For the scripting expression to work correctly the mapping must be able to identify what was changed and which part of the change is important for the script.
 E.g. it is not sufficient to know that user properties `fullName`, `familyName` and `employeeType` changed (as represented in xref:/midpoint/devel/prism/concepts/deltas/[object delta]). The mapping must know that only the `fullName` property is important for the script.
 Otherwise the mapping would need to combine all the changes from all the applicable deltas and execute the script for all the applicable combinations.
-The number of possible combinations can be significantly large if multiple multi-value properties change.
-As the script in this case only cares about the value of `fullName` attribute then most of such executions will be pointless anyway and the results would be discarded.
+The number of possible combinations can be very large if multiple multi-value properties change.
+As the script only cares about the value of `fullName` attribute, then most of such executions will be pointless anyway and the results would be discarded.
 Which is obviously a waste of resources.
-But the mapping does not know which script executions to discard until it has the return value - unless there is way to specify that only the `fullName` property is interesting for the script.
+Yet, the mapping does not know which script executions to discard until it has the return value - unless there is way to specify that only the `fullName` property is interesting for the script.
 There is no generic implicit way how to do it with a scripting language code that will work sufficiently well for all supported scripting languages.
-Therefore an explicit method is needed: mapping `source` definition.
+Therefore, an explicit method is needed: mapping `source` definition.
 
 The `source` definition tells the mapping that only a specific properties are interesting for the mapping.
-Therefore the script evaluation code in the mapping knows how to efficiently construct input values for the script, when to evaluate it and, most importantly, when there is no need to evaluate it.
-Therefore correct specification of `source` in a mapping that contains a scripting expression is critical for correct evaluation of such expression.
+Therefore, the script evaluation code in the mapping knows how to efficiently construct input values for the script, when to evaluate it and, most importantly, when there is no need to evaluate it.
+Therefore, correct specification of `source` in a mapping that contains a scripting expression is critical for correct evaluation of such expression.
 If a `source` declaration is missing then a script may not be invoked at all and will not pass a value to the output.
 If too many `source` declarations are present for a script then the script may be invoked too often which might result in waste of system resources.
 
-TODO: better explanation:
-
-* Picture how a delta is translated through SCRIPTING mapping
-
-* relative and absolute mode
-
 === Expression null Values
 
-Mappings usually work only with values that are non-null.
+Mappings usually work only with non-null values.
 The mapping simply ignores all properties and deltas without a value.
-Therefore a script will usually not be executed with all its input values set to `null`. However there are two cases when mapping needs to deal with empty values:
+Therefore, a script will usually not be executed if all its input values would be set to `null`.
+However, there are two cases when mapping needs to deal with `null` or empty values:
 
 * when a change causes empty property to become non-empty,
 
 * when a change causes non-empty values to become empty.
 
-E.g. these cases needs to be handled for scripts that supply a default values for empty properties.
-In this case the script must be executed with a `null` input parameter otherwise the script would not have any chance to produce a value.
-Similar reasoning also applies to mapping conditions that checks for "negative" cases, e.g. a condition that will assign a default role if no other role is assigned to a user.
+E.g. these cases need to be handled for scripts that supply a default values for empty properties.
+In this case the script must be executed with a `null` input parameter, otherwise the script would not have any chance to produce a value.
+Similar reasoning also applies to mapping conditions that checks for "negative" cases.
+E.g. a condition that will assign a default role if no other role is assigned to a user.
 
-Therefore a script needs to check for `null` input values to be able to correctly respond to all situations.
-However this may make scripting code ugly and complex, littered with checks for null inputs.
-Therefore there is a way how to avoid invoking script with `null` inputs:
+Such script needs to check for `null` input values to be able to correctly respond to all situations.
+However, always passing `null` values to a script may make scripting code ugly and complex, littered with checks for `null` inputs.
+Therefore, there is a way to avoid invoking script with `null` inputs:
 
-.Avoid passign null values to script
+.Avoid passing `null` values to script
 [source,xml]
 ----
 <mapping>
@@ -215,10 +262,10 @@ Therefore there is a way how to avoid invoking script with `null` inputs:
 </mapping>
 ----
 
-Please note that this setting will skip execution of a script if *all* inputs are null.
-This means that the script will be executed with non-null values only if there is a single mapping source.
-If there are several mapping sources then the script still may be executed with `null` inputs, e.g. in case that one source is `null` while the others are non-null.
-In such a case this setting will make the script execution more efficient (skipping some executions) however proper checking for null values is still needed.
+Please note that this setting will skip execution of a script if *all* its inputs are null.
+This means that the script will be executed with non-null values only in case there is a single mapping source.
+If there are several mapping sources then the script still may get executed with `null` inputs, e.g. in case that one source is `null` while the others are non-null.
+In such a case, this setting will make the script execution more efficient (skipping some executions) however proper checking for null values is still needed.
 
 There is also a convenient xref:/midpoint/reference/expressions/expressions/script/functions/[script function]`basic.isEmpty()` that can provide null-safe check for empty value:
 
@@ -235,107 +282,65 @@ There is also a convenient xref:/midpoint/reference/expressions/expressions/scri
 </mapping>
 ----
 
-== Mapping Condition
+=== Absolute Script Execution Mode
 
-Mapping conditions are also _relative_. This means that the condition is not evaluated for simple `true` or `false` value.
-MidPoint is watching how the condition value changes:
-
-[%autowidth]
-|===
-| Old value of condition | New value of condition | Effect | Description
-
-| true
-| true
-| No change +
-(value present)
-| Mapping is active and there is no change to this situation.
-The value that the mapping produces is added or removed as expected (based on the source delta).
-No special handling for this situation. +
-This is also the *default* interpretation if no condition is present.
-
-
-| true
-| false
-| Value removed
-| Mapping becomes inactive.
-The mapping (most likely) produced some value before this change happened.
-And now it is not producing any such value.
-Therefore midPoint will try to remove the value that was produced by the mapping. +
-The value is removed even if there is no change in the value produced by mapping expression.
-This is understandable, as the entire mapping becomes inactive.
-Any values that were previously produced by the mapping should be removed.
-
-
-| false
-| true
-| Value added
-| Mapping becomes active.
-The mapping produced no values before this change happened.
-But now the mapping is producing some values (most likely).
-Therefore such values should be added. +
-The value is added even if there is no change in the value produced by mapping expression.
-This is understandable, as the entire mapping becomes active.
-Any values of the mapping in its previous inactive state were ignored.
-Therefore they should be added now when the mapping becomes active.
-
-
-| false
-| false
-| No change +
-(value not present)
-| Mapping is inactive and there is no change to this situation.
-Mapping values were ignored before, they are also ignored after.
-Nothing to do.
-
-
-|===
-
-This is a very intentional behavior.
-It is designed to enable simple mappings that behave in a relativistic way.
-For example:
+Relative evaluation mode of an expression as described above is the default behavior of mappings because it works well in most cases.
+However, there may be cases when we need to process all the values and output a new set of values.
+This may be needed because the values depend on each other, because we want to select just one of several values to map multi-value input to a single-value output or for other exotic cases.
+In cases like this the mapping may be switched to _absolute_ mode:
 
 [source,xml]
 ----
-<item>
-    <ref>organization<ref>
-    <mapping>
-        <source>
-            <path>costCenter</path>
-         </source>
-         <expression>
-	         <value>ACME, Inc.</value>
-         </expression>
-         <condition>
-             <script>
-                 <code>costCenter.startsWith('A')</code>
-             </script>
-         </condition>
-    </mapping>
-</item>
+<inbound>
+    <expression>
+        <script>
+            <relativityMode>absolute</relativityMode>
+            <code>basic.determineLdapSingleAttributeValue(basic.getAttributeStringValues(account, 'dn'), 'uid', input)</code>
+        </script>
+    </expression>
+    <target>
+        <path>name</path>
+    </target>
+</inbound>
 ----
 
-This xref:/midpoint/reference/expressions/object-template/[object template] mapping will set the organization property of a user to `ACME, Inc.` in case that the cost center code starts with letter A. Mapping expression is completely static literal value.
-Yet the mapping is behaving in the usual relativistic way because there is an condition.
-When the condition becomes `true` then `ACME, Inc.` is added.
-When the condition becomes `false` then `ACME, Inc.` is removed.
-This is perhaps simple and intuitive.
+The `determineLdapSingleAttributeValue()` function above accepts a list of all LDAP attribute values as an input.
+It will then select only one value and return that as an output.
+This approach can be used to reduce typical LDAP multi-value attributes to a single-value midPoint properties.
 
-What may be very confusing is when (relativistic) conditions are combines with (relativistic) expressions.
-This approach may even be needed to implement some special cases.
-But it should not be required in the common case.
-The rule of the thumb is to use either complex condition or complex expression, but not both - at least until you know precisely what you are doing.
+== Relativity of Mapping Condition
 
-A clever reader may wonder why are conditions needed at all.
-Complex expressions may implement all the logic that is usually placed into the condition.
-And clever reader might be right for most of the cases.
-But it is important to keep in mind that mapping is much more than just its expression.
-There are other settings such as mapping _range_. A condition that is `false` will inactivate all the aspects of the mapping.
-Whereas mapping expression can only control the value that the mapping produces.
-But it cannot control other processing of that value that takes place in the mapping.
+Mapping conditions are also _relative_.
+This means that the condition is not evaluated for simple `true` or `false` value.
+MidPoint is watching how the condition value _changes_.
+When mapping condition changes from `false` to `true`, the values produced by mapping are added.
+When condition changes from `true` to `false`, the values are removed.
+
+Please see xref:../condition/[] page for the details.
+
 
 == Delta Set Triples
 
-// TODO
+Mapping output is used to create output deltas, which are applied to output properties in the final steps of xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[clockwork processing].
+However, mapping output is not used to create deltas directly.
+There is one quite important intermediary step.
+Output of mappings that target the same property has to be merged, before the deltas can be created.
+It would not be easy to merge the deltas, as deltas do not have complete information.
+For example, deltas do not contain information about the data that were not changed.
+Therefore, there is a special-purpose data structure in midPoint called _delta set triple_, or just _triple_ for short.
+
+The triple is relatively simple data structure.
+It contains three sets (hence the name):
+
+* *Plus set*: set of values that should be added.
+
+* *Zero set*: set of values that are unchanged.
+
+* *Minus set*: set of values that should be removed.
+
+Every midPoint mapping produces its output as a _triple_. 
+
+// TODO TODO TODO TODO
 
 
 .Constructing delta set triple
@@ -346,6 +351,26 @@ image::mapping-delta-processing-5.png[Merging delta set triples]
 
 // TODO: why we need zero set? Not that much for keeping target attribute values (range is better for that).
 // Mostly for not removing a value by a mapping, while the same value is still provided by other mapping.
+
+// TODO: consolitation, filtering of duplicate changes, etc.
+
+== Existing Values of Target Item
+
+How do we consider existing values of target (when available):
+
+* Filtering out redundant changes
+
+* Applying range
+
+Strong and weak mappings are forcing read of current values.
+
+== TODO
+
+Currently executing all mappings, to make sure all output values are properly merged.
+This is not very "relativistic".
+This can change, once we have full provenance information - at least for inbound and object template mappings.
+For outboudn, we have no place to record the provenance, unless we are going for (almost) full caching in shadow.
+This is something to consider.
 
 == Limitations
 
@@ -358,6 +383,8 @@ Please see xref:/midpoint/features/planned/complete-relativity/[Complete Relativ
 == See Also
 
 * xref:/midpoint/reference/concepts/relativity/[Relativity]
+
+* xref:../condition/[]
 
 * xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 

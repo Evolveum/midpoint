@@ -12,6 +12,114 @@ The expression may still be evaluated, e.g. to get negative values for the delta
 
 TODO: good and bad examples for condition use.
 
+== Relativity of Mapping Condition
+
+Mapping conditions are also _relative_.
+This means that the condition is not evaluated for simple `true` or `false` value.
+MidPoint is watching how the condition value _changes_:
+
+[%autowidth]
+|===
+| Old value of condition | New value of condition | Effect | Description
+
+| `true`
+| `true`
+| No change +
+(value present)
+| Mapping is active, and there is no change to this situation.
+The value that the mapping produces is added or removed as expected (based on the source delta).
+No special handling for this situation. +
+This is also the *default* interpretation if no condition is present.
+
+| `true`
+| `false`
+| Value removed
+| Mapping becomes inactive.
+The mapping (most likely) produced some value before this change happened.
+And now it is not producing any such value.
+Therefore, midPoint will try to remove the value that was produced by the mapping. +
+The value is removed even if there is no change in the value produced by mapping expression.
+This is expected, as the entire mapping becomes inactive.
+Any values that were previously produced by the mapping should be removed.
+
+| `false`
+| `true`
+| Value added
+| Mapping becomes active.
+The mapping produced no values before this change happened.
+But now, the mapping is producing some values (most likely).
+Therefore, such values should be added. +
+The value is added even if there is no change in the value produced by mapping expression.
+This is expected, as the entire mapping becomes active.
+Any values of the mapping in its previous inactive state were ignored.
+Therefore, they should be added now when the mapping becomes active.
+
+| `false`
+| `false`
+| No change +
+(value not present)
+| Mapping is inactive and there is no change to this situation.
+Mapping values were ignored before, they are also ignored after.
+Nothing to do.
+
+|===
+
+This is a very intentional behavior.
+It is designed to enable simple mappings that behave in a relativistic way.
+For example:
+
+[source,xml]
+----
+<item>
+    <ref>organization<ref>
+    <mapping>
+        <source>
+            <path>costCenter</path>
+         </source>
+         <expression>
+	         <value>ACME, Inc.</value>
+         </expression>
+         <condition>
+             <script>
+                 <code>costCenter.startsWith('A')</code>
+             </script>
+         </condition>
+    </mapping>
+</item>
+----
+
+// TODO TODO TODO TODO
+
+This xref:/midpoint/reference/expressions/object-template/[object template] mapping will set the organization property of a user to `ACME, Inc.` in case that the cost center code starts with letter A.
+In this case, the expression is completely static literal value.
+Yet the mapping is behaving in the usual relativistic way, because there is a condition.
+When the condition becomes `true` then `ACME, Inc.` value is added.
+When the condition becomes `false` then `ACME, Inc.` value is removed.
+In this case, the use of condition is simple and intuitive.
+
+What may be very confusing is when (relativistic) conditions are combines with (relativistic) expressions.
+Such a complex approach may be needed to implement some special cases.
+However, it should not be required in the common case.
+The rule of the thumb is to use either complex condition or complex expression, but not both - at least until you know precisely what you are doing.
+
+== TODO
+
+A clever reader may wonder why are conditions needed at all.
+Complex expressions may implement all the logic that is usually placed into the condition.
+And clever reader might be right for most of the cases.
+But it is important to keep in mind that mapping is much more than just its expression.
+There are other settings such as mapping _range_. A condition that is `false` will inactivate all the aspects of the mapping.
+Whereas mapping expression can only control the value that the mapping produces.
+But it cannot control other processing of that value that takes place in the mapping.
+
+
+== Rule of the Thumb
+
+// TODO
+
+The rule of the thumb is to use either complex condition or complex expression, but not both - at least until you know precisely what you are doing.
+
+
 == Condition and Range
 
 TODO

@@ -1167,8 +1167,8 @@ See xref:practices/removing-values/[].
 
 == Absolute Script Evaluation Mode
 
-The relative evaluation mode described above is the default behavior of mappings because it works well in vast majority of cases.
-But there may be cases when we need to process all the values and output a new set of values.
+Relative evaluation mode of an expression as described above is the default behavior of mappings because it works well in most cases.
+However, there may be cases when we need to process all the values and output a new set of values.
 This may be needed because the values depend on each other, because we want to select just one of several values to map multi-value input to a single-value output or for other exotic cases.
 In cases like this the mapping may be switched to _absolute_ mode:
 
@@ -1189,7 +1189,7 @@ In cases like this the mapping may be switched to _absolute_ mode:
 
 The `determineLdapSingleAttributeValue()` function above accepts a list of all LDAP attribute values as an input.
 It will then select only one value and return that as an output.
-Therefore this approach can be used to reduce typical LDAP multi-value attributes to a single-value midPoint properties.
+This approach can be used to reduce typical LDAP multi-value attributes to a single-value midPoint properties.
 
 
 == TODO
