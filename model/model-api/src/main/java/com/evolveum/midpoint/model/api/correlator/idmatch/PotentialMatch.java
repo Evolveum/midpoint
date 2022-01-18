@@ -12,6 +12,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -26,16 +27,16 @@ public class PotentialMatch implements DebugDumpable {
     private final Integer confidence;
 
     /**
-     * Reference ID. If a record comes from ID Match without reference ID, it is not included here.
+     * Reference ID. Null value means "create a new identity". (If the service provides such option.)
      */
-    @NotNull private final String referenceId;
+    @Nullable private final String referenceId;
 
     /**
      * Attributes of the identity.
      */
     @NotNull private final ShadowAttributesType attributes;
 
-    public PotentialMatch(Integer confidence, @NotNull String referenceId, @NotNull ShadowAttributesType attributes) {
+    public PotentialMatch(Integer confidence, @Nullable String referenceId, @NotNull ShadowAttributesType attributes) {
         this.confidence = confidence;
         this.referenceId = referenceId;
         this.attributes = attributes;
@@ -45,8 +46,13 @@ public class PotentialMatch implements DebugDumpable {
         return confidence;
     }
 
-    public @NotNull String getReferenceId() {
+    public @Nullable String getReferenceId() {
         return referenceId;
+    }
+
+    /** Is this the option to create a new reference ID (i.e. new identity)? */
+    public boolean isNewIdentity() {
+        return referenceId == null;
     }
 
     public @NotNull ShadowAttributesType getAttributes() {
@@ -67,7 +73,7 @@ public class PotentialMatch implements DebugDumpable {
         }
         PotentialMatch that = (PotentialMatch) o;
         return Objects.equals(confidence, that.confidence)
-                && referenceId.equals(that.referenceId)
+                && Objects.equals(referenceId, that.referenceId)
                 && attributes.equals(that.attributes);
     }
 

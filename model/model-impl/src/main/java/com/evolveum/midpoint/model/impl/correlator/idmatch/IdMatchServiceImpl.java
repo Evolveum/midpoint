@@ -50,7 +50,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * An interface from midPoint to real ID Match service.
+ */
 public class IdMatchServiceImpl implements IdMatchService {
+
+    private static final Trace LOGGER = TraceManager.getTrace(IdMatchServiceImpl.class);
 
     private static final String REFERENCE_REQUEST_ID = "referenceId";
     private static final String MATCH_REQUEST_ID = "matchRequest";
@@ -59,7 +64,11 @@ public class IdMatchServiceImpl implements IdMatchService {
     private static final String MAPPED_ICFS_NAME = "icfs_name"; // temporary
     private static final String MAPPED_ICFS_UID = "icfs_uid"; // temporary
 
-    private static final Trace LOGGER = TraceManager.getTrace(IdMatchServiceImpl.class);
+    /**
+     * Value get from or sent to ID Match Service denoting the fact that a new reference ID is to be or should be created.
+     * Part of ID Match API.
+     */
+    private static final String NEW_REFERENCE_ID = "new";
 
     /** URL where the service resides. */
     @NotNull private final String url;
@@ -78,6 +87,12 @@ public class IdMatchServiceImpl implements IdMatchService {
     /** A shadow attribute to be used as SOR ID in the requests. */
     @NotNull private final QName sorIdAttribute;
 
+    /**
+     * Should we return "none of the above matches" option among potential matches? (Under assumption that
+     * ID Match service provides us with such option?)
+     */
+    private final boolean includeNoneMatchesOption;
+
     private static final QName DEFAULT_SOR_ID_ATTRIBUTE = SchemaConstants.ICFS_UID;
 
     private IdMatchServiceImpl(
@@ -85,12 +100,14 @@ public class IdMatchServiceImpl implements IdMatchService {
             @Nullable String username,
             @Nullable ProtectedStringType password,
             @Nullable String sorLabel,
-            @Nullable QName sorIdAttribute) {
+            @Nullable QName sorIdAttribute,
+            boolean includeNoneMatchesOption) {
         this.url = url;
         this.username = username;
         this.password = password;
         this.sorLabel = Objects.requireNonNullElse(sorLabel, DEFAULT_SOR_LABEL);
         this.sorIdAttribute = Objects.requireNonNullElse(sorIdAttribute, DEFAULT_SOR_ID_ATTRIBUTE);
+        this.includeNoneMatchesOption = includeNoneMatchesOption;
     }
 
     @Override
@@ -165,6 +182,9 @@ public class IdMatchServiceImpl implements IdMatchService {
     /**
      * Creates a list of potential matches from the ID Match response.
      *
+     * All options presented by the ID Match service are converted. So if there is an option to create a new identity,
+     * it is included in the returned value as well.
+     *
      * Expected entity (see `entityObject` variable):
      *
      * ----
@@ -203,12 +223,10 @@ public class IdMatchServiceImpl implements IdMatchService {
 
     private List<PotentialMatch> createPotentialMatches(String entity) throws SchemaException, JSONException {
         LOGGER.info("Creating potential matches from:\n{}", entity);
-        System.out.println("Creating potential matches from: "+ entity);
         List<PotentialMatch> potentialMatches = new ArrayList<>();
 
         JSONObject entityObject = new JSONObject(entity);
         JSONArray candidatesArray = entityObject.getJSONArray(CANDIDATES);
-        System.out.println("Candidates array: " + candidatesArray);
 
         for (int i = 0; i < candidatesArray.length(); i++) {
             potentialMatches.addAll(
@@ -229,10 +247,13 @@ public class IdMatchServiceImpl implements IdMatchService {
     private List<PotentialMatch> createPotentialMatches(Object candidate) throws SchemaException, JSONException {
         JSONObject jsonObject = MiscUtil.castSafely(candidate, JSONObject.class);
 
-        String referenceId = jsonObject.getString(REFERENCE_REQUEST_ID);
-        if (referenceId == null || referenceId.isEmpty() || referenceId.equals("new")) {
-            return List.of(); // Temporary: "new reference ID" should be NOT included among potential matches
+        String rawReferenceId = jsonObject.getString(REFERENCE_REQUEST_ID);
+        String referenceId = fromRawReferenceId(rawReferenceId);
+        if (referenceId == null && !includeNoneMatchesOption) {
+            LOGGER.trace("Skipping 'none matches' option: {}", candidate);
+            return List.of();
         }
+
         if (jsonObject.has("sorRecords")) {
             List<PotentialMatch> potentialMatches = new ArrayList<>();
             JSONArray sorRecordsArray = jsonObject.getJSONArray("sorRecords");
@@ -248,6 +269,17 @@ public class IdMatchServiceImpl implements IdMatchService {
                     createPotentialMatchFromSorAttributes(referenceId, jsonObject.getJSONObject("sorAttributes")));
         } else {
             throw new IllegalStateException("Unexpected candidate: neither sorRecords nor sorAttributes present: " + candidate);
+        }
+    }
+
+    /**
+     * Treats empty/"new" reference ID as no reference ID.
+     */
+    private String fromRawReferenceId(String rawReferenceId) {
+        if (rawReferenceId != null && !rawReferenceId.isEmpty() && !rawReferenceId.equals(NEW_REFERENCE_ID)) {
+            return rawReferenceId;
+        } else {
+            return null;
         }
     }
 
@@ -401,7 +433,7 @@ public class IdMatchServiceImpl implements IdMatchService {
             @Nullable String referenceId,
             @NotNull OperationResult result) throws CommunicationException, SchemaException {
 
-        String nativeReferenceId = referenceId != null ? referenceId : "new";
+        String nativeReferenceId = referenceId != null ? referenceId : NEW_REFERENCE_ID;
         //noinspection unchecked
         JsonRequest request = generateResolveRequest(
                 attributes.asPrismContainerValue(), nativeReferenceId, matchRequestId);
@@ -419,7 +451,8 @@ public class IdMatchServiceImpl implements IdMatchService {
                 configuration.getUsername(),
                 configuration.getPassword(),
                 configuration.getSorLabel(),
-                configuration.getSorIdentifierAttribute());
+                configuration.getSorIdentifierAttribute(),
+                Boolean.TRUE.equals(configuration.isUseReturnedValuesAsBase())); // default is "false"
     }
 
     /**
@@ -430,6 +463,13 @@ public class IdMatchServiceImpl implements IdMatchService {
             @NotNull String url,
             @Nullable String username,
             @Nullable ProtectedStringType password) {
-        return new IdMatchServiceImpl(url, username, password, null, null);
+        return new IdMatchServiceImpl(
+                url,
+                username,
+                password,
+                null,
+                null,
+                false // Our tests currently expect that "none matches" option is not included.
+        );
     }
 }

@@ -38,6 +38,10 @@ public class MatchingResult implements DebugDumpable {
 
     /**
      * A list of potential matches (non-empty when uncertain situation occurred, empty otherwise).
+     *
+     * Note that "create new identity" may or may not be present among the matches. This depends
+     * solely on the approach taken by ID Match service used. MidPoint treats such option according
+     * to its configuration. (At least for now.)
      */
     @NotNull private final Collection<PotentialMatch> potentialMatches;
 

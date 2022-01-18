@@ -23439,6 +23439,17 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="useReturnedValuesAsBase" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If true, then values returned from ID Match service (i.e. name-normalized
+                                and filtered) are presented to the user as attribute values of the account that is to
+                                be correlated. If false (the default), values from midPoint (i.e. original ones) are used.
+
+                                This option is here just to experiment with various approaches in midPoint 4.5-M1.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="url" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

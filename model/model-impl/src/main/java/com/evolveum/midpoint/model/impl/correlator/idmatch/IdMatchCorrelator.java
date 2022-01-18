@@ -47,6 +47,7 @@ class IdMatchCorrelator implements Correlator {
     /**
      * Configuration of the this correlator.
      */
+    @SuppressWarnings({ "FieldCanBeLocal", "unused" }) // temporary
     @NotNull private final IdMatchCorrelatorType configuration;
 
     /**
@@ -148,31 +149,40 @@ class IdMatchCorrelator implements Correlator {
      * Converts internal {@link MatchingResult} into "externalized" {@link IdMatchCorrelationContextType} bean
      * to be stored in the correlation case.
      *
-     * _Temporarily_ adding also "none of the above" potential match here.
+     * _Temporarily_ adding also "none of the above" potential match here. (If it is not present among options returned
+     * from the ID Match service.)
      */
     private @NotNull IdMatchCorrelationContextType createSpecificCaseContext(
             @NotNull MatchingResult mResult, @NotNull ShadowType resourceObject) {
         IdMatchCorrelationContextType context = new IdMatchCorrelationContextType(PrismContext.get());
+        boolean newIdentityOptionPresent = false;
         for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
+            if (potentialMatch.isNewIdentity()) {
+                newIdentityOptionPresent = true;
+            }
             context.getPotentialMatch().add(
-                    createPotentialMatchBeanForExistingId(potentialMatch));
+                    createPotentialMatchBeanFromReturnedMatch(potentialMatch));
         }
-        context.getPotentialMatch().add(
-                createPotentialMatchBeanForNewId(resourceObject));
+        if (!newIdentityOptionPresent) {
+            context.getPotentialMatch().add(
+                    createPotentialMatchBeanForNewIdentity(resourceObject));
+        }
         return context;
     }
 
-    private IdMatchCorrelationPotentialMatchType createPotentialMatchBeanForExistingId(PotentialMatch potentialMatch) {
-        String id = potentialMatch.getReferenceId();
+    private IdMatchCorrelationPotentialMatchType createPotentialMatchBeanFromReturnedMatch(PotentialMatch potentialMatch) {
+        @Nullable String id = potentialMatch.getReferenceId();
+        String optionUri = id != null ?
+                qNameToUri(new QName(SchemaConstants.CORRELATION_NS, SchemaConstants.CORRELATION_OPTION_PREFIX + id)) :
+                SchemaConstants.CORRELATION_NONE_URI;
         return new IdMatchCorrelationPotentialMatchType(PrismContext.get())
-                .uri(qNameToUri(
-                        new QName(SchemaConstants.CORRELATION_NS, SchemaConstants.CORRELATION_OPTION_PREFIX + id)))
+                .uri(optionUri)
                 .confidence(potentialMatch.getConfidence())
                 .referenceId(id)
                 .attributes(potentialMatch.getAttributes());
     }
 
-    private IdMatchCorrelationPotentialMatchType createPotentialMatchBeanForNewId(@NotNull ShadowType resourceObject) {
+    private IdMatchCorrelationPotentialMatchType createPotentialMatchBeanForNewIdentity(@NotNull ShadowType resourceObject) {
         return new IdMatchCorrelationPotentialMatchType(PrismContext.get())
                 .uri(SchemaConstants.CORRELATION_NONE_URI)
                 .attributes(

@@ -50,6 +50,13 @@ public class PotentialMatchDto implements Serializable {
         return value;
     }
 
+    /**
+     * This method falls back to case-insensitive search. This is needed if we try to compare
+     * midPoint shadow with options returned from ID Match (a kind of apples-vs-oranges situation,
+     * because COmanage Match does not support uppercase characters in attribute names). But when midPoint
+     * is switched to provide ID Match-returned value for the basis of comparison, then the case
+     * ignorance is not necessary.
+     */
     private Item findMatchingItem(ItemPath path) {
         Item exactMatch = shadowAttributesType.asPrismContainerValue().findItem(path);
         if (exactMatch != null) {
