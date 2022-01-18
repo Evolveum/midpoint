@@ -28,6 +28,7 @@ public class ProjectSearchItemWrapper extends AbstractRoleSearchItemWrapper{
         return !getSearchConfig().isIndirect();
     }
 
+    @Override
     public boolean isVisible() {
         return !getSearchConfig().isIndirect();
     }

@@ -53,10 +53,6 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
         return true;
     }
 
-//    public boolean isApplyFilter() {
-//        return true;
-//    }
-
     public DisplayableValue<T> getValue() {
         if (value == null) {
             setValue(getDefaultValue());

@@ -530,7 +530,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         this.fullText = fullText;
     }
 
-    public PropertySearchItemWrapper findSpecialItem(ItemPath path) {
+    public PropertySearchItemWrapper findPropertyItemByPath(ItemPath path) {
         for (AbstractSearchItemWrapper searchItemWrapper : getItems()) {
             if (!(searchItemWrapper instanceof PropertySearchItemWrapper)) {
                 continue;

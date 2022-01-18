@@ -20,8 +20,10 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +49,19 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
     @Override
     public DisplayableValue<T> getDefaultValue() {
         return new SearchValue<>();
+    }
+
+    @Override
+    public boolean canRemoveSearchItem() {
+        return !isResourceRefSearchItem();
+    }
+
+    private boolean isObjectClassSearchItem() {
+        return ShadowType.F_OBJECT_CLASS.equivalent(searchItem.getPath().getItemPath());
+    }
+
+    private boolean isResourceRefSearchItem() {
+        return ShadowType.F_RESOURCE_REF.equivalent(searchItem.getPath().getItemPath());
     }
 
     @Override

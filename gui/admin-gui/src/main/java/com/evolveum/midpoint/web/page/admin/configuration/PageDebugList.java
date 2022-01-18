@@ -11,18 +11,6 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
-
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.web.component.dialog.*;
-
-import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.web.component.search.refactored.ObjectTypeSearchItemWrapper;
-import com.evolveum.midpoint.web.component.search.refactored.PropertySearchItemWrapper;
-
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -40,12 +28,19 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
@@ -59,9 +54,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -69,11 +61,21 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.TwoValueLinkPanel;
+import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
+import com.evolveum.midpoint.web.component.dialog.DeleteAllPanel;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.search.ObjectClassSearchItem;
+import com.evolveum.midpoint.web.component.search.PropertySearchItem;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.web.component.search.refactored.ObjectTypeSearchItemWrapper;
+import com.evolveum.midpoint.web.component.search.refactored.PropertySearchItemWrapper;
 import com.evolveum.midpoint.web.component.search.refactored.Search;
-import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugButtonPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugSearchFragment;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
@@ -87,8 +89,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
@@ -863,12 +863,10 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private ObjectReferenceType getResourceRefFromSearch() {
         Search search = searchModel.getObject();
-        AbstractSearchItemWrapper searchItem = search.findSpecialItem(ShadowType.F_RESOURCE_REF);
-        if (searchItem instanceof PropertySearchItemWrapper) {
-            DisplayableValue<ObjectReferenceType> displayableValue = ((PropertySearchItemWrapper) searchItem).getValue();
-            if (displayableValue != null) {
-                return displayableValue.getValue();
-            }
+        AbstractSearchItemWrapper searchItem = search.findPropertyItemByPath(ShadowType.F_RESOURCE_REF);
+        DisplayableValue<ObjectReferenceType> displayableValue = searchItem.getValue();
+        if (displayableValue != null) {
+            return displayableValue.getValue();
         }
         return null;
     }

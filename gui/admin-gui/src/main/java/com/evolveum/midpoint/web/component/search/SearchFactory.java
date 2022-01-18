@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.Model;
@@ -202,6 +204,10 @@ public class SearchFactory {
         ));
         FIXED_SEARCH_ITEMS.put(OrgType.class, Arrays.asList(
                 ItemPath.create(OrgType.F_PARENT_ORG_REF)
+        ));
+        FIXED_SEARCH_ITEMS.put(ShadowType.class, Arrays.asList(
+                ItemPath.create(ShadowType.F_RESOURCE_REF),
+                ItemPath.create(ShadowType.F_OBJECT_CLASS)
         ));
     }
 
@@ -504,7 +510,7 @@ public class SearchFactory {
         } else if (QNameUtil.match(itemDef.getTypeName(), DOMUtil.XSD_DATETIME)) {
             itemWrapper = new DateSearchItemWrapper(item);
         } else if (ShadowType.F_OBJECT_CLASS.equivalent(item.getPath().getItemPath())) {
-//            item = new ObjectClassSearchItem(this, itemToRemove);
+            itemWrapper = new ObjectClassSearchItemWrapper(item);
         } else {
             itemWrapper = new TextSearchItemWrapper(item, itemDef);
         }

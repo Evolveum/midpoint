@@ -99,7 +99,7 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
 
                 @Override
                 public boolean isEnabled() {
-                    return getModelObject().isEnabled();
+                    return isFieldEnabled();
                 }
 
                 @Override
@@ -122,6 +122,10 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
         removeButton.add(new VisibleBehaviour(() -> canRemoveSearchItem()));
         removeButton.setOutputMarkupId(true);
         searchItemContainer.add(removeButton);
+    }
+
+    protected boolean isFieldEnabled (){
+        return getModelObject().isEnabled();
     }
 
     protected WebMarkupContainer getSearchItemContainer() {

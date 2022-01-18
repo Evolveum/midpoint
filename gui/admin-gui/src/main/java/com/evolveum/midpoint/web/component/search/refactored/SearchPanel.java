@@ -796,17 +796,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }
 
         private void initOidSearchLayout() {
-            OidSearchItemWrapper item = findOidSearchItem();
+            OidSearchItemWrapper item = getModelObject().findOidSearchItemWrapper();
             add(createSearchItemPanel(ID_OID_ITEM, Model.of(item)));
-        }
-
-        private OidSearchItemWrapper findOidSearchItem() {
-            for (AbstractSearchItemWrapper item : getModelObject().getItems()) {
-                if (item instanceof OidSearchItemWrapper) {
-                    return (OidSearchItemWrapper)item;
-                }
-            }
-            return null;
         }
     }
 }
