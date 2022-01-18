@@ -18,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -26,10 +25,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -122,42 +118,5 @@ public class CorrelatorUtil {
                         ObjectTypeUtil.getObjectFromReference(aCase.asObjectable().getObjectRef()),
                         ShadowType.class),
                 () -> new IllegalStateException("No shadow object in " + aCase));
-    }
-
-    /**
-     * Finds the appropriate object type definition, and then the correlators definition.
-     *
-     * Temporary and very crude implementation.
-     */
-    @SuppressWarnings("WeakerAccess")
-    public static @NotNull CorrelatorsType getCorrelatorsBeanForShadow(
-            @NotNull ShadowType shadow,
-            @NotNull ModelBeans beans,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
-        String resourceOid = ShadowUtil.getResourceOidRequired(shadow);
-        ResourceType resource =
-                beans.provisioningService.getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
-
-        // We expect that the shadow is classified + reasonably fresh (= not legacy), so it has kind+intent present.
-        ShadowKindType kind = MiscUtil.requireNonNull(shadow.getKind(), () -> new IllegalStateException("No kind in " + shadow));
-        String intent = MiscUtil.requireNonNull(shadow.getIntent(), () -> new IllegalStateException("No intent in " + shadow));
-        // TODO check for "unknown" ?
-
-        // We'll look for type definition in the future (after synchronization is integrated into it).
-//        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
-//        ResourceObjectTypeDefinition typeDefinition = schema.findObjectTypeDefinitionRequired(kind, intent);
-
-        for (ObjectSynchronizationType config : resource.getSynchronization().getObjectSynchronization()) {
-            if (config.getKind() == kind && intent.equals(config.getIntent())) {
-                return MiscUtil.requireNonNull(
-                        config.getCorrelators(),
-                        () -> new IllegalStateException("No correlators in " + config));
-            }
-        }
-        throw new IllegalStateException(
-                "No " + kind + "/" + intent + " (kind/intent) definition in " + resource + " (for " + shadow + ")");
     }
 }

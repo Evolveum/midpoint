@@ -82,6 +82,9 @@ class FilterCorrelator implements Correlator {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
+        correlationContext.setManualCorrelationConfiguration(
+                configuration.getManual());
+
         LOGGER.trace("Correlating the resource object:\n{}\nwith context:\n{}",
                 resourceObject.debugDumpLazily(1),
                 correlationContext.debugDumpLazily(1));
@@ -130,7 +133,8 @@ class FilterCorrelator implements Correlator {
             List<F> confirmedCandidates = confirmCandidates(candidates, result);
             // TODO selection expression
 
-            return CorrelatorUtil.createCorrelationResult(confirmedCandidates);
+            return beans.builtInCaseManager.createCorrelationResultOrCase(
+                    resourceObject, confirmedCandidates, correlationContext, result);
         }
 
         private @NotNull List<F> findCandidatesUsingConditionalFilters(OperationResult result)

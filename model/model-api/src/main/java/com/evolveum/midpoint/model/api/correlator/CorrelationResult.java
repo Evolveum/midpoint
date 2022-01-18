@@ -81,9 +81,8 @@ public class CorrelationResult implements Serializable, DebugDumpable {
         NO_OWNER,
 
         /**
-         * The situation is not certain.
+         * The situation is not certain. (Correlation case may or may not be created.)
          */
         UNCERTAIN
-
     }
 }

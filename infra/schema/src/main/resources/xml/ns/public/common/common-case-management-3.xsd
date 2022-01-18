@@ -1311,6 +1311,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="refreshWhenOpened" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should be the case automatically refreshed when opened in GUI?
+                        NOT IMPLEMENTED YET
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="correlatorPart" type="tns:AbstractCorrelationContextType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1358,8 +1366,8 @@
                             minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Potential matches among which (if any) the user should decide. Should be at least one,
-                                otherwise there's nothing to decide.
+                                Potential matches among which (if any) the user should decide. Should be at least two,
+                                otherwise there's nothing to decide. (TODO: decide on the "create new option").
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1398,7 +1406,7 @@
             <xsd:element name="referenceId" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Reference ID of the entity.
+                        Reference ID of the entity. Null if we want to create a new entity. (TODO: decide on the nullness.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1407,6 +1415,75 @@
                     <xsd:documentation>
                         Attributes of the entity.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="BuiltInCorrelationContextType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Parts of the context specific to built-in correlation mechanism.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCorrelationContextType">
+                <xsd:sequence>
+                    <xsd:element name="potentialMatch" type="tns:BuiltInCorrelationPotentialMatchType"
+                            minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Potential matches among which (if any) the user should decide. Should be at least two,
+                                otherwise there's nothing to decide. (TODO: decide on the "create new option").
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="builtInCorrelationContext" type="tns:BuiltInCorrelationContextType"/>
+
+    <xsd:complexType name="BuiltInCorrelationPotentialMatchType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A potential match found by ID Match service.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="uri" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        URI used to reference this option in the work item outcome.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="confidence" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        An integer between 0 and 100. TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="candidateOwnerRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The candidate owner. Null if a new owner has to be created. (TODO reconsider this)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

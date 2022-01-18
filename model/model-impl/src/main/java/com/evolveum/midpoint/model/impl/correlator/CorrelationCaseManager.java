@@ -21,9 +21,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.correlator.Correlator;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
-import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.sync.CorrelationService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -56,8 +54,7 @@ public class CorrelationCaseManager {
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
-    @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
-    @Autowired private ModelBeans beans;
+    @Autowired private CorrelationService correlationService;
 
     /**
      * Creates or updates a correlation case for given correlation operation that finished in "uncertain" state.
@@ -263,8 +260,9 @@ public class CorrelationCaseManager {
             SecurityViolationException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OP_PERFORM_COMPLETION_IN_CORRELATOR);
         try {
-            Correlator correlator = instantiateCorrelator(aCase, task, result);
-            correlator.resolve(aCase, output, task, result);
+            correlationService
+                    .instantiateCorrelator(aCase, task, result)
+                    .resolve(aCase, output, task, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -272,13 +270,5 @@ public class CorrelationCaseManager {
             result.close();
         }
         return result;
-    }
-
-    private Correlator instantiateCorrelator(PrismObject<CaseType> aCase, Task task, OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
-        ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(aCase);
-        CorrelatorsType correlatorsBean = CorrelatorUtil.getCorrelatorsBeanForShadow(shadow, beans, task, result);
-        return correlatorFactoryRegistry.instantiateCorrelator(correlatorsBean, task, result);
     }
 }

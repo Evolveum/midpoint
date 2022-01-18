@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.impl.correlator.BuiltInCaseManager;
 import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
@@ -123,4 +124,5 @@ public class ModelBeans {
     @Autowired public SecurityHelper securityHelper;
     @Autowired public CorrelatorFactoryRegistry correlatorFactoryRegistry;
     @Autowired public CorrelationCaseManager correlationCaseManager;
+    @Autowired public BuiltInCaseManager builtInCaseManager;
 }

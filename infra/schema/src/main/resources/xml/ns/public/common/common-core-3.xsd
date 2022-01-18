@@ -23364,6 +23364,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="manual" type="c:ManualCorrelationConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of the (optional) manual configuration.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -23401,6 +23408,13 @@
                             </xsd:annotation>
                         </xsd:element>
                     </xsd:choice>
+                    <xsd:element name="manual" type="c:ManualCorrelationConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of the (optional) manual configuration.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -23485,6 +23499,83 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="idMatchCorrelator" type="tns:IdMatchCorrelatorType"/>
+
+    <xsd:complexType name="ManualCorrelationConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of manual correlation - to be used with user-based correlators,
+                like `filter` or `expression`.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="enabled" type="tns:ManualCorrelationEnabledType" minOccurs="0" default="whenRequested">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is manual correlation enabled?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO assignee, etc -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ManualCorrelationEnabledType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Is manual correlation enabled? (For e.g. filter and expression correlators.)
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="always">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The manual correlation will always be applied if there are at least two options.
+                        (I.e. at least one candidate owner found.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="whenMoreCandidates">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The manual correlation will be applied if more than one candidate owner was found.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WHEN_MORE_CANDIDATES"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="whenRequested">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The manual correlation will be applied if requested by the script code.
+                        See `manualCorrelationContext` expression variable. TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WHEN_REQUESTED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="never">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The manual correlation will never be applied.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEVER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <!--<xsd:complexType name="CorrelationRequestType">-->
     <!--    <xsd:annotation>-->

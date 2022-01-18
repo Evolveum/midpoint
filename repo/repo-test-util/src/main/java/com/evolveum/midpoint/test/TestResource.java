@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -85,5 +86,13 @@ public class TestResource<T extends ObjectType> {
         }
         TestSpringBeans.getObjectImporter()
                 .importObject(object, task, result);
+    }
+
+    /**
+     * Reloads the object from the repository.
+     */
+    public void reload(OperationResult result) throws SchemaException, IOException, ObjectNotFoundException {
+        object = TestSpringBeans.getCacheRepositoryService()
+                .getObject(getType(), oid, null, result);
     }
 }

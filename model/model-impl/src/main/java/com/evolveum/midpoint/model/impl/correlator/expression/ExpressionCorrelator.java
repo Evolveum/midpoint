@@ -72,6 +72,9 @@ class ExpressionCorrelator implements Correlator {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
+        correlationContext.setManualCorrelationConfiguration(
+                configuration.getManual());
+
         LOGGER.trace("Correlating the resource object:\n{}\nwith context:\n{}",
                 resourceObject.debugDumpLazily(1),
                 correlationContext.debugDumpLazily(1));
@@ -90,7 +93,7 @@ class ExpressionCorrelator implements Correlator {
         throw new IllegalStateException("The resolve() method should not be called for this correlator");
     }
 
-    private class Correlation<F extends ObjectType> {
+    private class Correlation<F extends FocusType> {
 
         @NotNull private final ShadowType resourceObject;
         @NotNull private final CorrelationContext correlationContext;
@@ -116,8 +119,9 @@ class ExpressionCorrelator implements Correlator {
         public CorrelationResult execute(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
-            return CorrelatorUtil.createCorrelationResult(
-                    findCandidatesUsingExpressions(result));
+            List<F> candidateOwners = findCandidatesUsingExpressions(result);
+            return beans.builtInCaseManager.createCorrelationResultOrCase(
+                    resourceObject, candidateOwners, correlationContext, result);
         }
 
         private @NotNull List<F> findCandidatesUsingExpressions(OperationResult result)

@@ -10,15 +10,12 @@ package com.evolveum.midpoint.model.api.correlator;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelationStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * The context of the correlation operation(s).
@@ -55,6 +52,11 @@ public class CorrelationContext implements DebugDumpable {
      */
     private AbstractCorrelationStateType correlationState;
 
+    /**
+     * User scripts can request manual correlation here.
+     */
+    @NotNull private final ManualCorrelationContext manualCorrelationContext = new ManualCorrelationContext();
+
     public CorrelationContext(
             @NotNull Class<? extends ObjectType> focusType,
             @NotNull ResourceType resource,
@@ -90,6 +92,35 @@ public class CorrelationContext implements DebugDumpable {
         this.correlationState = correlationState;
     }
 
+    public @NotNull ManualCorrelationContext getManualCorrelationContext() {
+        return manualCorrelationContext;
+    }
+
+    public void setManualCorrelationConfiguration(ManualCorrelationConfigurationType configuration) {
+        manualCorrelationContext.setConfiguration(configuration);
+    }
+
+    /**
+     * Instructs the correlator that the manual correlation should be carried out. If there's only one option,
+     * an error should be signalled.
+     */
+    @SuppressWarnings("unused") // called from scripts
+    public void requestManualCorrelation() {
+        manualCorrelationContext.setRequested(true);
+    }
+
+    /**
+     * Instructs the correlator that the manual correlation should be carried out. Provides explicit list of potential matches
+     * to display.
+     *
+     * If there's only one option, an error should be signalled.
+     */
+    @SuppressWarnings("unused") // called from scripts
+    public void requestManualCorrelation(List<BuiltInCorrelationPotentialMatchType> potentialMatches) {
+        manualCorrelationContext.setRequested(true);
+        manualCorrelationContext.setPotentialMatches(potentialMatches);
+    }
+
     @Override
     public String toString() {
         return "CorrelationContext("
@@ -105,7 +136,8 @@ public class CorrelationContext implements DebugDumpable {
         DebugUtil.debugDumpWithLabelLn(sb, "resource", String.valueOf(resource), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectTypeDefinition", String.valueOf(objectTypeDefinition), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "systemConfiguration", String.valueOf(systemConfiguration), indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "correlationState", correlationState, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "correlationState", correlationState, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "manualCorrelationContext", manualCorrelationContext, indent + 1);
         return sb.toString();
     }
 }
