@@ -551,40 +551,46 @@ public class SearchFactory {
         config.setScopeConfiguration(combineScopeSearchItem(config.getScopeConfiguration(), customConfig.getScopeConfiguration()));
         if (customConfig.getObjectTypeConfiguration() != null) {
             ObjectTypeSearchItemConfigurationType objectTypeConfig = combineCustomUserInterfaceFeatureType(config.getObjectTypeConfiguration(), customConfig.getObjectTypeConfiguration());
-            if (customConfig.getObjectTypeConfiguration().getDefaultValue() != null) {
-                objectTypeConfig.setDefaultValue(customConfig.getObjectTypeConfiguration().getDefaultValue());
-            } else if (config.getObjectTypeConfiguration() != null) {
-                objectTypeConfig.setDefaultValue(config.getObjectTypeConfiguration().getDefaultValue());
-            }
-            if (CollectionUtils.isNotEmpty(customConfig.getObjectTypeConfiguration().getSupportedTypes())) {
-                objectTypeConfig.createSupportedTypesList().addAll(customConfig.getObjectTypeConfiguration().getSupportedTypes());
-            } else if (config.getObjectTypeConfiguration() != null) {
-                objectTypeConfig.createSupportedTypesList().addAll(config.getObjectTypeConfiguration().getSupportedTypes());
+            if (objectTypeConfig != customConfig.getObjectTypeConfiguration()) {
+                if (customConfig.getObjectTypeConfiguration().getDefaultValue() != null) {
+                    objectTypeConfig.setDefaultValue(customConfig.getObjectTypeConfiguration().getDefaultValue());
+                } else if (config.getObjectTypeConfiguration() != null) {
+                    objectTypeConfig.setDefaultValue(config.getObjectTypeConfiguration().getDefaultValue());
+                }
+                if (CollectionUtils.isNotEmpty(customConfig.getObjectTypeConfiguration().getSupportedTypes())) {
+                    objectTypeConfig.createSupportedTypesList().addAll(customConfig.getObjectTypeConfiguration().getSupportedTypes());
+                } else if (config.getObjectTypeConfiguration() != null) {
+                    objectTypeConfig.createSupportedTypesList().addAll(config.getObjectTypeConfiguration().getSupportedTypes());
+                }
             }
             config.setObjectTypeConfiguration(objectTypeConfig);
         }
         if (customConfig.getRelationConfiguration() != null) {
             RelationSearchItemConfigurationType relationConfig = combineCustomUserInterfaceFeatureType(config.getRelationConfiguration(),
                     customConfig.getRelationConfiguration());
-            if (customConfig.getRelationConfiguration().getDefaultValue() != null) {
-                relationConfig.setDefaultValue(customConfig.getRelationConfiguration().getDefaultValue());
-            } else if (config.getRelationConfiguration() != null) {
-                relationConfig.setDefaultValue(config.getRelationConfiguration().getDefaultValue());
-            }
-            if (CollectionUtils.isNotEmpty(customConfig.getRelationConfiguration().getSupportedRelations())) {
-                relationConfig.createSupportedRelationsList().addAll(customConfig.getRelationConfiguration().getSupportedRelations());
-            } else if (config.getRelationConfiguration() != null) {
-                relationConfig.createSupportedRelationsList().addAll(config.getRelationConfiguration().getSupportedRelations());
+            if (relationConfig != customConfig.getRelationConfiguration()) {
+                if (customConfig.getRelationConfiguration().getDefaultValue() != null) {
+                    relationConfig.setDefaultValue(customConfig.getRelationConfiguration().getDefaultValue());
+                } else if (config.getRelationConfiguration() != null) {
+                    relationConfig.setDefaultValue(config.getRelationConfiguration().getDefaultValue());
+                }
+                if (CollectionUtils.isNotEmpty(customConfig.getRelationConfiguration().getSupportedRelations())) {
+                    relationConfig.createSupportedRelationsList().addAll(customConfig.getRelationConfiguration().getSupportedRelations());
+                } else if (config.getRelationConfiguration() != null) {
+                    relationConfig.createSupportedRelationsList().addAll(config.getRelationConfiguration().getSupportedRelations());
+                }
             }
             config.setRelationConfiguration(relationConfig);
         }
         if (customConfig.getIndirectConfiguration() != null) {
             IndirectSearchItemConfigurationType indirectConfig = combineCustomUserInterfaceFeatureType(config.getIndirectConfiguration(),
                     customConfig.getIndirectConfiguration());
-            if (customConfig.getIndirectConfiguration().isIndirect() != null) {
-                indirectConfig.setIndirect(customConfig.getIndirectConfiguration().isIndirect());
-            } else if (config.getIndirectConfiguration() != null) {
-                indirectConfig.setIndirect(config.getIndirectConfiguration().isIndirect());
+            if (indirectConfig != config.getIndirectConfiguration()) {
+                if (customConfig.getIndirectConfiguration().isIndirect() != null) {
+                    indirectConfig.setIndirect(customConfig.getIndirectConfiguration().isIndirect());
+                } else if (config.getIndirectConfiguration() != null) {
+                    indirectConfig.setIndirect(config.getIndirectConfiguration().isIndirect());
+                }
             }
             config.setIndirectConfiguration(indirectConfig);
         }
@@ -615,10 +621,12 @@ public class SearchFactory {
 
     public static ScopeSearchItemConfigurationType combineScopeSearchItem(ScopeSearchItemConfigurationType scope1, ScopeSearchItemConfigurationType scope2) {
         ScopeSearchItemConfigurationType scopeConfig = combineCustomUserInterfaceFeatureType(scope1, scope2);
-        if (scope2 != null && scope2.getDefaultValue() != null) {
-            scopeConfig.setDefaultValue(scope2.getDefaultValue());
-        } else if (scope1 != null) {
-            scopeConfig.setDefaultValue(scope1.getDefaultValue());
+        if (scopeConfig != scope2) {
+            if (scope2 != null && scope2.getDefaultValue() != null) {
+                scopeConfig.setDefaultValue(scope2.getDefaultValue());
+            } else if (scope1 != null) {
+                scopeConfig.setDefaultValue(scope1.getDefaultValue());
+            }
         }
         return scopeConfig;
     }

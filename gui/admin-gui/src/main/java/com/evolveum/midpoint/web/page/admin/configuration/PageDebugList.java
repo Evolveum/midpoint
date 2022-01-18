@@ -192,7 +192,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private List<QName> getAllowedTypes() {
         List<QName> choices = new ArrayList<>();
         WebComponentUtil.createObjectTypesList().stream()
-                .forEach(type -> choices.add(WebComponentUtil.classToQName(PrismContext.get(), type.getClassDefinition())));
+                .forEach(type -> choices.add(type.getTypeQName()));
         return choices;
     }
 
