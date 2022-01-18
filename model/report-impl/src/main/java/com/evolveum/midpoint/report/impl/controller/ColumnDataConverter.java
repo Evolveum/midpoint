@@ -15,6 +15,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -22,6 +24,7 @@ import com.evolveum.midpoint.task.api.RunningTask;
 
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -179,7 +182,25 @@ class ColumnDataConverter<C extends Containerable> {
             Object realValue = ((PrismPropertyValue<?>) value).getRealValue();
             if (realValue == null) {
                 return "";
-            } else if (realValue instanceof Collection) {
+            }
+            PrismObject<LookupTableType> lookupTable = null;
+            try {
+                lookupTable = loadLookupTable((PrismPropertyValue) value);
+            } catch (SchemaException | ObjectNotFoundException e) {
+                LOGGER.error("Couldn't load lookupTable. Message: {}", e.getMessage());
+            }
+            if (lookupTable != null) {
+                String lookupTableKey = realValue.toString();
+                LookupTableType lookupTableObject = lookupTable.asObjectable();
+                String rowLabel = "";
+                for (LookupTableRowType lookupTableRow : lookupTableObject.getRow()) {
+                    if (lookupTableRow.getKey().equals(lookupTableKey)) {
+                        return lookupTableRow.getLabel() != null ? lookupTableRow.getLabel().getOrig() : lookupTableRow.getValue();
+                    }
+                }
+                return rowLabel;
+            }
+            if (realValue instanceof Collection) {
                 throw new IllegalStateException("Collection in a prism property? " + value);
             } else if (realValue instanceof Enum) {
                 return ReportUtils.prettyPrintForReport((Enum<?>) realValue);
@@ -258,5 +279,43 @@ class ColumnDataConverter<C extends Containerable> {
             LOGGER.error("Couldn't execute expression " + expression, e);
             return List.of();
         }
+    }
+
+    private PrismObject<LookupTableType> loadLookupTable(PrismPropertyValue value)
+            throws SchemaException, ObjectNotFoundException {
+        String lookupTableOid = getValueEnumerationRefOid(value);
+        if (lookupTableOid == null) {
+            return null;
+        }
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                reportService.getSchemaService().getOperationOptionsBuilder()
+                .item(LookupTableType.F_ROW)
+                .retrieveQuery()
+                .asc(LookupTableRowType.F_LABEL)
+                .end()
+                .build();
+        return reportService.getRepositoryService().getObject(LookupTableType.class,
+                lookupTableOid, options, result);
+    }
+
+    private String getValueEnumerationRefOid(PrismPropertyValue value) {
+        if (value == null) {
+            return null;
+        }
+        if (value.getParent() == null) {
+            return null;
+        }
+        Itemable item = value.getParent();
+        ItemDefinition<?> def = item.getDefinition();
+        if (def == null) {
+            return null;
+        }
+
+        PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
+        if (valueEnumerationRef == null) {
+            return null;
+        }
+
+        return valueEnumerationRef.getOid();
     }
 }
