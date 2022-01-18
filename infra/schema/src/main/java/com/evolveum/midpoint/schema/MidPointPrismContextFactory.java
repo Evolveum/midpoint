@@ -75,6 +75,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         context.setParsingMigrator(new MidpointParsingMigrator());
         context.setValueMetadataFactory(new MidpointValueMetadataFactory(context));
         context.setProvenanceEquivalenceStrategy(MidpointProvenanceEquivalenceStrategy.INSTANCE);
+        context.registerQueryExpressionFactory(new PrismQueryExpressionSupport());
         return context;
     }
 
