@@ -90,6 +90,10 @@ public class ReportFunctions {
 
         List<PrismObject<O>> objects = new ArrayList<>();
 
+        if (refs == null) {
+            return objects;
+        }
+
         for (ObjectReferenceType ref : refs) {
             Class<O> clazz = getClassForType(ref.getType());
             if (!clazz.equals(type)) {
