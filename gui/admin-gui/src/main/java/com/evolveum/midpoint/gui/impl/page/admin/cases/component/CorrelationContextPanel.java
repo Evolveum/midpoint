@@ -39,6 +39,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         display = @PanelDisplay(label = "PageCase.correlationContextPanel", order = 40))
 public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, CaseDetailsModels> {
 
+    private static final String ID_ACTIONS = "actions";
+    private static final String ID_ACTION = "action";
+    private static final String ID_REFERENCE_IDS = "referenceIds";
+    private static final String ID_REFERENCE_ID = "referenceId";
+
     public CorrelationContextPanel(String id, CaseDetailsModels model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
@@ -56,11 +61,11 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
         };
         add(headers);
 
-        ListView<PotentialMatchDto> actions = new ListView<>("actions", new PropertyModel<>(correlationCtxModel, "potentialMatches")) {
+        ListView<PotentialMatchDto> actions = new ListView<>(ID_ACTIONS, new PropertyModel<>(correlationCtxModel, "potentialMatches")) {
 
             @Override
             protected void populateItem(ListItem<PotentialMatchDto> item) {
-                AjaxButton actionButton = new AjaxButton("action") {
+                AjaxButton actionButton = new AjaxButton(ID_ACTION) {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -87,6 +92,15 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
             }
         };
         add(actions);
+
+        ListView<PotentialMatchDto> referenceIds = new ListView<>(ID_REFERENCE_IDS, new PropertyModel<>(correlationCtxModel, "potentialMatches")) {
+
+            @Override
+            protected void populateItem(ListItem<PotentialMatchDto> item) {
+                item.add(new Label(ID_REFERENCE_ID, item.getModelObject().getReferenceId()));
+            }
+        };
+        add(referenceIds);
 
         ListView<ItemPath> a = new ListView<>("rows", new PropertyModel<>(correlationCtxModel, "attributes")) {
 
