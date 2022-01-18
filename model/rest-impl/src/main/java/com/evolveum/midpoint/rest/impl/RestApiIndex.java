@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -61,7 +62,8 @@ public class RestApiIndex extends AbstractRestController {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping(produces = MediaType.TEXT_PLAIN_VALUE)
+    @GetMapping(
+            produces = { MediaType.TEXT_HTML_VALUE, MediaType.TEXT_PLAIN_VALUE, MimeTypeUtils.ALL_VALUE })
     public String indexHtml(HttpServletRequest request) {
         StringBuilder html = new StringBuilder("<!DOCTYPE html><html>"
                 + "<head><meta charset='UTF-8'><title>REST-ish API</title>"
