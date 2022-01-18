@@ -13,7 +13,7 @@
     <parent>
         <artifactId>repo</artifactId>
         <groupId>com.evolveum.midpoint.repo</groupId>
-        <version>4.5-SNAPSHOT</version>
+        <version>4.5-M1</version>
     </parent>
 
     <artifactId>security-impl</artifactId>
@@ -51,7 +51,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
-            <version>4.5-SNAPSHOT</version>
+            <version>4.5-M1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
