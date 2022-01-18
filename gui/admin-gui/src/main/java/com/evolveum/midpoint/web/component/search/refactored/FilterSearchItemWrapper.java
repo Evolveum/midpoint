@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchFilterParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -65,7 +66,7 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap var) {
         PrismContext ctx = PrismContext.get();
         VariablesMap variables = getFilterVariables();
-        if (isEnabled() && isApplyFilter()) {
+        if (isEnabled() && isApplyFilter(SearchBoxModeType.BASIC)) {
             SearchFilterType filter = getSearchItem().getFilter();
             if (filter == null && getSearchItem().getFilterExpression() != null) {
                 ItemDefinition outputDefinition = ctx.definitionFactory().createPropertyDefinition(

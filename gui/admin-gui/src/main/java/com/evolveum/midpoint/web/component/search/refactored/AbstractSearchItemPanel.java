@@ -135,7 +135,7 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
     protected abstract Component initSearchItemField();
 
     protected boolean canRemoveSearchItem() {
-        return true; //getModelObject().canRemoveSearchItem();
+        return getModelObject().canRemoveSearchItem();
     }
 
     protected IModel<String> createLabelModel() {

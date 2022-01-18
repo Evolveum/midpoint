@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.search.refactored;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
 public class IndirectSearchItemWrapper extends AbstractRoleSearchItemWrapper {
@@ -62,7 +63,7 @@ public class IndirectSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     }
 
     @Override
-    public boolean isApplyFilter() {
+    public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
         return true;
     }
 }

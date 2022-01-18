@@ -421,6 +421,9 @@ public class SearchFactory {
             return;
         }
         SearchBoxConfigurationType config = searchConfigWrapper.getConfig();
+        if (config.getObjectTypeConfiguration() != null) {
+            searchConfigWrapper.addSearchItem(new ObjectTypeSearchItemWrapper(config.getObjectTypeConfiguration()));
+        }
         if (config.getSearchItems() != null && config.getSearchItems().getSearchItem() != null) {
             config.getSearchItems().getSearchItem().forEach(item -> {
                 if (item.getPath() != null) {
@@ -439,9 +442,6 @@ public class SearchFactory {
         }
         if (config.getScopeConfiguration() != null) {
             searchConfigWrapper.addSearchItem(new ScopeSearchItemWrapper(searchConfigWrapper));
-        }
-        if (config.getObjectTypeConfiguration() != null) {
-            searchConfigWrapper.addSearchItem(new ObjectTypeSearchItemWrapper(config.getObjectTypeConfiguration()));
         }
         if (config.getRelationConfiguration() != null) {
             searchConfigWrapper.addSearchItem(new RelationSearchItemWrapper(searchConfigWrapper));

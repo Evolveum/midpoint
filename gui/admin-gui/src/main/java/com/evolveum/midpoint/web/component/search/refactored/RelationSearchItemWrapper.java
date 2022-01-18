@@ -10,6 +10,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -68,7 +69,7 @@ public class RelationSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     }
 
     @Override
-    public boolean isApplyFilter() {
+    public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
         return !getSearchConfig().getScope().equals(SearchBoxScopeType.SUBTREE);
     }
 }

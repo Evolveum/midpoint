@@ -139,7 +139,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public Class<C> getTypeClass() {
-        return searchConfigModel.getObject().getTypeClass();
+        return SearchBoxModeType.OID.equals(getSearchMode()) ? (Class<C> )  ObjectType.class : searchConfigModel.getObject().getTypeClass();
     }
 
     public SearchBoxConfigurationType getConfig() {
@@ -173,7 +173,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public ObjectQuery createObjectQuery(VariablesMap variables, PageBase pageBase, ObjectQuery customizeContentQuery) {
         LOGGER.debug("Creating query from {}", this);
         ObjectQuery query;
-        if (SearchBoxModeType.OID.equals(searchMode)) {
+        if (SearchBoxModeType.OID.equals(getSearchMode())) {
             query = createObjectQueryOid(pageBase);
         } else {
             query = createQueryFromDefaultItems(pageBase, variables);
@@ -227,13 +227,27 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     private ObjectQuery createObjectQueryOid(PageBase pageBase) {
-        if (StringUtils.isEmpty(oid)) {
+        OidSearchItemWrapper oidItem = findOidSearchItemWrapper();
+        if (oidItem == null) {
             return null;
         }
+        if (StringUtils.isEmpty(oidItem.getValue().getValue())) {
+            return pageBase.getPrismContext().queryFor(ObjectType.class).build();
+        }
         ObjectQuery query = pageBase.getPrismContext().queryFor(ObjectType.class)
-                .id(oid)
+                .id(oidItem.getValue().getValue())
                 .build();
         return query;
+    }
+
+    public OidSearchItemWrapper findOidSearchItemWrapper() {
+        List<AbstractSearchItemWrapper> items = searchConfigModel.getObject().getItemsList();
+        for (AbstractSearchItemWrapper item : items) {
+            if (item instanceof OidSearchItemWrapper) {
+                return (OidSearchItemWrapper) item;
+            }
+        }
+        return null;
     }
 
     private ObjectQuery createQueryFromDefaultItems(PageBase pageBase, VariablesMap variables) {
@@ -328,11 +342,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         List<ObjectFilter> conditions = new ArrayList<>();
         ObjectQuery query = null;
         for (AbstractSearchItemWrapper item : getItems()) {
-            if (item instanceof ObjectTypeSearchItemWrapper) {
-                query = pageBase.getPrismContext().queryFor((Class<? extends Containerable>) WebComponentUtil.qnameToClass(PrismContext.get(),
-                        ((ObjectTypeSearchItemWrapper)item).getValue().getValue())).build();
-            }
-            if (!item.isApplyFilter()) {
+            if (!item.isApplyFilter(getSearchMode())) {
                 continue;
             }
             ObjectFilter filter = item.createFilter(pageBase, defaultVariables);

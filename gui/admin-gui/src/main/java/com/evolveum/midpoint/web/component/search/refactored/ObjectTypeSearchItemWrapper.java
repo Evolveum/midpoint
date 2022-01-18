@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeSearchItemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -78,8 +79,8 @@ public class ObjectTypeSearchItemWrapper extends AbstractSearchItemWrapper<QName
     }
 
     @Override
-    public boolean isApplyFilter() {
-        return true;
+    public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
+        return !SearchBoxModeType.OID.equals(searchBoxMode);
     }
 
     @Override

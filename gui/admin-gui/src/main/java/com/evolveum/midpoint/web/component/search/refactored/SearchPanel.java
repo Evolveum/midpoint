@@ -18,6 +18,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.evolveum.midpoint.web.component.search.SearchValue;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -131,7 +133,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             @Override
             protected List<AbstractSearchItemWrapper> load() {
                 return getModelObject().getItems().stream().filter(item
-                        -> !(item instanceof OidSearchItemWrapper) && item.isApplyFilter())
+                        -> !(item instanceof OidSearchItemWrapper) && item.isApplyFilter(getModelObject().getSearchMode()))
                         .collect(Collectors.toList());
             }
         };
@@ -142,7 +144,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             @Override
             protected List<AbstractSearchItemWrapper> load() {
                 return getModelObject().getItems().stream().filter(item
-                        -> !item.isApplyFilter())
+                        -> !item.isApplyFilter(getModelObject().getSearchMode()))
                         .collect(Collectors.toList());
             }
         };
@@ -320,7 +322,11 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         if (searchType.equals(getModelObject().getSearchMode())) {
             return;
         }
+        if (SearchBoxModeType.OID.equals(searchType)) {
+            getModelObject().findOidSearchItemWrapper().setValue(new SearchValue<>());
+        }
         getModelObject().setSearchMode(searchType);
+        searchPerformed(target);
         refreshSearchForm(target);
     }
 

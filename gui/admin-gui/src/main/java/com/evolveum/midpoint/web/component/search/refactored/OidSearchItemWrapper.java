@@ -16,11 +16,12 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
 
-public class OidSearchItemWrapper extends AbstractSearchItemWrapper {
+public class OidSearchItemWrapper extends AbstractSearchItemWrapper<String> {
 
     @Override
     public Class<OidSearchItemPanel> getSearchItemPanelClass() {
@@ -48,17 +49,23 @@ public class OidSearchItemWrapper extends AbstractSearchItemWrapper {
     }
 
     @Override
-    public boolean isApplyFilter() {
-        return isVisible();
+    public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
+        return SearchBoxModeType.OID.equals(searchBoxMode);
     }
 
     @Override
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
-        if (StringUtils.isEmpty((String)getValue().getValue())) {
+        if (StringUtils.isEmpty(getValue().getValue())) {
             return null;
         }
         return pageBase.getPrismContext().queryFor(ObjectType.class)
-                .id((String)getValue().getValue())
+                .id(getValue().getValue())
                 .buildFilter();
     }
+
+    @Override
+    public boolean canRemoveSearchItem() {
+        return false;
+    }
+
 }

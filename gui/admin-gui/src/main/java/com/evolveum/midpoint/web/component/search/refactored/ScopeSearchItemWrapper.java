@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScopeSearchItemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
 import javax.xml.namespace.QName;
@@ -63,7 +64,7 @@ public class ScopeSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     }
 
     @Override
-    public boolean isApplyFilter() {
+    public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
         ScopeSearchItemConfigurationType config = getSearchConfig().getConfig().getScopeConfiguration();
         return  config != null && config.getDefaultValue() == SearchBoxScopeType.SUBTREE;
     }
