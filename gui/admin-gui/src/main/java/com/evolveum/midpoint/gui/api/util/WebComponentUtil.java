@@ -2831,7 +2831,18 @@ public final class WebComponentUtil {
         }
         String members = atLeastOneWithMembers ? ".members" : "";
         ObjectTypes objectType = ObjectTypes.getObjectType(abstractRoleTable.getType());
-        String propertyKeyPrefix = ObjectTypes.SERVICE.equals(objectType) ? "pageServices" : "pageRoles";
+        String propertyKeyPrefix = "";
+        switch (objectType) {
+            case SERVICE:
+                propertyKeyPrefix = "pageServices";
+                break;
+            case ROLE:
+                propertyKeyPrefix = "pageRoles";
+                break;
+            case ORG:
+                propertyKeyPrefix = "pageOrgs";
+                break;
+        }
 
         if (action.getRowModel() == null) {
             return pageBase.createStringResource(propertyKeyPrefix + ".message.confirmationMessageForMultipleObject" + members,
