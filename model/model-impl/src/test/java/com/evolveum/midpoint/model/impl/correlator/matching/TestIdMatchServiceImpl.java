@@ -17,8 +17,12 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  *
  * Not a part of test suite. Expects external ID Match service being available.
  *
- * TODO The ID Match service must be configured to behave just like {@link DummyIdMatchServiceImpl#executeMatch
- *  (ShadowAttributesType, OperationResult)} (see the description there)
+ * Requirements:
+ *
+ * 1) The ID Match service must be configured to behave just like {@link DummyIdMatchServiceImpl#executeMatch
+ * (ShadowAttributesType, OperationResult)} (see the description there).
+ *
+ * 2) The ID Match service database must be empty upon test start.
  *
  * The answers should be like described in {@link AbstractIdMatchServiceTest#FILE_ACCOUNTS}. If that would not be
  * possible, please create a copy of that file, and adapt it accordingly. We'll maintain both, or (even better) we'll
@@ -26,9 +30,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  */
 public class TestIdMatchServiceImpl extends AbstractIdMatchServiceTest {
 
-    private static final String URL = "todo";
-    private static final String USERNAME = "todo";
-    private static final String PASSWORD = "todo";
+    private static final String URL = "http://localhost:9090";
+    private static final String USERNAME = "administrator";
+    private static final String PASSWORD = "5ecr3t";
 
     protected IdMatchService createService() {
         return IdMatchServiceImpl.instantiate(URL, USERNAME, ProtectedStringType.fromClearValue(PASSWORD));

@@ -340,6 +340,13 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
+    public ShadowAsserter<RA> assertHasMatchRequestId() throws SchemaException {
+        assertThat(getIdMatchCorrelationStateRequired().getMatchRequestId())
+                .as("matchRequestId")
+                .isNotNull();
+        return this;
+    }
+
     private @NotNull AbstractCorrelationStateType getCorrelationStateRequired() {
         return Objects.requireNonNull(
                 getObjectable().getCorrelationState(), () -> "No correlation state in " + desc());

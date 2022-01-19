@@ -7,24 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.correlator;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRefWithFullObject;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import java.util.List;
-
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.correlator.Correlator;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-
-import com.evolveum.midpoint.schema.util.WorkItemId;
-
-import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.task.api.Task;
-
-import com.evolveum.midpoint.util.exception.*;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,18 +20,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.correlator.Correlator;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Manages correlation cases.
@@ -201,11 +198,18 @@ public class CorrelationCaseManager {
         CaseType aCase = findCorrelationCase(resourceObject, true, result);
         if (aCase != null) {
             LOGGER.debug("Marking correlation case as closed: {}", aCase);
-            List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(CaseType.class)
+            S_ItemEntry builder = prismContext.deltaFor(CaseType.class)
                     .item(CaseType.F_STATE)
-                    .replace(SchemaConstants.CASE_STATE_CLOSED)
-                    .asItemDeltas();
-            modifyCase(aCase, itemDeltas, result);
+                    .replace(SchemaConstants.CASE_STATE_CLOSED);
+            XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+            for (CaseWorkItemType workItem : aCase.getWorkItem()) {
+                if (workItem.getCloseTimestamp() == null) {
+                    builder = builder
+                            .item(CaseType.F_WORK_ITEM, workItem.getId(), CaseWorkItemType.F_CLOSE_TIMESTAMP)
+                            .replace(now);
+                }
+            }
+            modifyCase(aCase, builder.asItemDeltas(), result);
         }
     }
 

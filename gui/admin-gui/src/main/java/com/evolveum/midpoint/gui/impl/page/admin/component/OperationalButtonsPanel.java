@@ -243,6 +243,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         } catch (Throwable e) {
             result.recordFatalError("Cannot delete user " + getPrismObject() + ", " + e.getMessage(), e);
             LOGGER.error("Error while deleting user {}, {}", getPrismObject(), e.getMessage(), e);
+            target.add(getPageBase().getFeedbackPanel());
         }
 
         getPageBase().showResult(result);

@@ -32,18 +32,17 @@
                     <panelType>caseWorkItems</panelType>
                     <type>c:CaseType</type>
                 </panel>
-                <panel> <!-- TODO -->
-                    <identifier>approvalCase</identifier>
+                <panel>
+                    <identifier>correlationContext</identifier>
                     <display>
-                        <label>Approvals</label>
+                        <label>Correlation results</label>
                         <icon>
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>
                     </display>
-                    <displayOrder>1</displayOrder>
-                    <panelType>approvalCase</panelType>
+                    <displayOrder>40</displayOrder>
+                    <panelType>correlationContext</panelType>
                     <type>c:CaseType</type>
-                    <default>true</default>
                 </panel>
             </objectDetails>
         </adminGuiConfiguration>
