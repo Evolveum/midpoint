@@ -113,6 +113,12 @@ public class PageResources extends PageAdmin {
         MainObjectListPanel<ResourceType> table = new MainObjectListPanel<ResourceType>(ID_TABLE, ResourceType.class, getQueryOptions()) {
 
             @Override
+            protected void objectDetailsPerformed(AjaxRequestTarget target, ResourceType object) {
+                clearSessionStorageForResourcePage();
+                super.objectDetailsPerformed(target, object);
+            }
+
+            @Override
             protected UserProfileStorage.TableId getTableId() {
                 return UserProfileStorage.TableId.TABLE_RESOURCES;
             }
