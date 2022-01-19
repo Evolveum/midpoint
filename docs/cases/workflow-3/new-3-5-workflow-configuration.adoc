@@ -51,7 +51,7 @@ Items that can be configured are:
 | enabled
 | If false, workflows are disabled.
 Use this if you don't use approvals in your deployment.
-*Do not**use* this to temporarily turn off approving new requests - in such situation disable the workflow model hook instead (see below).
+*Do not use* this to temporarily turn off approving new requests - in such situation disable the workflow model hook instead (see below).
 
 
 | jdbcUrl, jdbcDriver, jdbcUsername, jdbcPassword
@@ -115,37 +115,33 @@ If the hook is not active, all requests simply bypass workflow processing, so th
 (This can be obviously dangerous from the security perspective, so be careful.)
 | true
 
-
 | processCheckInterval
 | This property is applicable to "dumb" wf processes, which require active shadowing tasks that repeatedly query their state.
 It sets the process instance check interval (in seconds).
 | 10
 
-
 | useLegacyApproversSpecification
-| How to deal with legacy approvers specifications, i.e. `approvalRef`, `approvalExpression`, `approvalSchema`, `automaticallyApproved` items in roles, orgs, and services ?The options are:
+a| How to deal with legacy approvers specifications, i.e. `approvalRef`, `approvalExpression`, `approvalSchema`, `automaticallyApproved` items in roles, orgs, and services ?The options are:
 
-** `never`: The legacy approvers specification is never used.
+* `never`: The legacy approvers specification is never used.
 
-** `always`: The legacy approvers specification is always used.
+* `always`: The legacy approvers specification is always used.
 It is used before any other (policy-based) approval actions.
 
-** `ifNoExplicitApprovalPolicyAction`: The legacy approvers specification is used if there's no explicit approval policy applicable to a given target.
+* `ifNoExplicitApprovalPolicyAction`: The legacy approvers specification is used if there's no explicit approval policy applicable to a given target.
 (This is the default setting.)
 
 
 | ifNoExplicitApprovalPolicyAction
 
-
 | useDefaultApprovalPolicyRules
-| Whether to use default approval policy rules.These default rules are: use users with the `approver` relation to approve any assignments of a given role/org/service.
+a| Whether to use default approval policy rules.These default rules are: use users with the `approver` relation to approve any assignments of a given role/org/service.
 Use users with the `owner` relation to approve any modification of a given focal object.The options are:
 
-** `never`: Default approval policy rules are never used.
+* `never`: Default approval policy rules are never used.
 
-** `ifNoApprovalPolicyAction`: Default approval policy rules are used if there are no applicable approval policy actions.
+* `ifNoApprovalPolicyAction`: Default approval policy rules are used if there are no applicable approval policy actions.
 (This is the default setting.)
-
 
 | ifNoApprovalPolicyAction
 
@@ -153,7 +149,6 @@ Use users with the `owner` relation to approve any modification of a given focal
 | primaryChangeProcessor, generalChangeProcessor
 | Configuration of these two change processors.
 |
-
 
 |===
 

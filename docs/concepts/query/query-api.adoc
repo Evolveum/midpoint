@@ -179,7 +179,9 @@ For single filter value: Accepts if one of the left-hand property values is the 
 
 * If left-hand item is a single-value property, it is simple _equals_ semantics.
 
-* If left-hand item is a multi-value property, it is _any equal_ semantics.
+* If left-hand item is a multi-value property, it is _any equals_ semantics.
+
+* If left-hand item is single-value property in multi-value container, it is _any equals_ semantis.
 
 For multiple filter values: Accepts if one of the left-hand property values is the same as any of the filter values.
 
@@ -399,16 +401,15 @@ This feature is a part of midPoint 3.4 and above.
 
 [WARNING]
 ====
-While `EXISTS` works as expected now with complex combination of conditions for the common
-multi-value container (like assignment in the example above), it does not properly work when
-preceded with `NOT`, see https://jira.evolveum.com/browse/MID-7203[MID-7203].
+While `EXISTS` works as expected with complex combination of conditions for the common multi-value container
+(like assignment in the example above), `NOT EXIST` behavior works properly only with the new Native repository.
+Native repository (available since midPoint 4.4) translates `EXISTS` filter to SQL `EXISTS` and `NOT`
+is applied to the SQL `EXISTS` resulting in `NOT EXISTS` query, which works as expected.
 
-`EXISTS` for the old Generic repo was implemented using `LEFT JOIN` which works fine for positive conditions,
-but does not work with `NOT` as usual in SQL.
+`EXISTS` for the old Generic repo was implemented using `LEFT JOIN` which works fine for positive
+conditions, but does not work with `NOT` as usual in SQL.
 `NOT EXISTS` is interpreted as "any of the entries does not match the condition inside".
-
-Good news is that with the new Native repository coming with midPoint 4.4, `EXISTS` is translated
-to SQL `EXISTS` and `NOT EXISTS` works as expected.
+See https://jira.evolveum.com/browse/MID-7203[MID-7203].
 ====
 
 == Differences in filter interpretation
@@ -1232,6 +1233,9 @@ Following is the example for using paging in the query.
 
 Using example above will return first 10 records ordered by `name` where `administrativeStatus` is set to `enabled`.
 
+[NOTE]
+Ordering objects by items inside multi-value container have unclear semantics and is not supported.
+
 == Org filter
 
 [NOTE]
@@ -1341,34 +1345,3 @@ ownes (the one pointing to *Org 1-1-1*) has different relation.
 ====
 
 // TODO mention extensions, xref:/midpoint/reference/schema/custom-schema-extension/
-
-== WIP: New repository changes
-
-// TODO merge into the text above
-
-[WARNING]
-====
-You can safely skip this section. You _should_ skip this section!
-
-This section is work in progress additions to this document that provides clarification
-and documents improvements related to the new Native repository coming in version 4.4.
-While not incorporated into the body of the document above, consider anything as work in progress
-on the implementation level as well.
-====
-
-* `EQ` for multi-value Polystrings with multiple values usint strict matching is not totally correct,
-because two separate ``IN``s are used - see
-https://github.com/Evolveum/midpoint/blob/65cd02e1091bfa2285fd63e1e4a039a6c6dfb550/repo/repo-sqale/src/test/java/com/evolveum/midpoint/repo/sqale/func/SqaleRepoSearchTest.java#L431[this test].
-
-* `EQ` multi-vs-multi works for cases like `subtype` or `policySituations`, see
-https://github.com/Evolveum/midpoint/blob/65cd02e1091bfa2285fd63e1e4a039a6c6dfb550/repo/repo-sqale/src/test/java/com/evolveum/midpoint/repo/sqale/func/SqaleRepoSearchTest.java#L448[tests from here].
-
-* Only `EQ` can be used with multi-value attribute (LHS), any other type of filter fails.
-However, single-value attribute in multi-value container for LHS works with other operations too
-with implicit `EXISTS` semantics.
-In other words - if the condition for the single-value attribute is met in _any_ of the containers,
-the object matches the filter and is returned (assuming other conditions match too, of course).
-
-* Document implicit `EXISTS` for multi-value container.
-Attributes from multi-value containers can't be used in ordering because of unclear semantics.
-(It is possible to order by them in `searchContainers` operation if they are the root of the query.)
