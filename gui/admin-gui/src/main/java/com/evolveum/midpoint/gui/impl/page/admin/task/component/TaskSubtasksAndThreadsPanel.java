@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
@@ -87,6 +88,11 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
             }
 
             @Override
+            protected List<Component> createToolbarButtonsList(String buttonId) {
+                return new ArrayList<>();
+            }
+
+            @Override
             protected List<IColumn<SelectableBean<TaskType>, String>> createDefaultColumns() {
                 List<IColumn<SelectableBean<TaskType>, String>> columns = super.createDefaultColumns();
 
@@ -133,6 +139,11 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
             @Override
             protected boolean isHeaderVisible() {
                 return false;
+            }
+
+            @Override
+            protected List<Component> createToolbarButtonsList(String buttonId) {
+                return new ArrayList<>();
             }
 
             @Override
