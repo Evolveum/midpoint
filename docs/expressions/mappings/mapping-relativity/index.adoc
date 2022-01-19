@@ -5,7 +5,7 @@
 :page-wiki-metadata-create-date: 2013-07-16T10:16:53.589+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2019-04-01T13:43:27.766+02:00
-:page-upkeep-status: orange
+:page-upkeep-status: green
 :page-toc: top
 
 == Motivation
@@ -338,39 +338,73 @@ It contains three sets (hence the name):
 
 * *Minus set*: set of values that should be removed.
 
-Every midPoint mapping produces its output as a _triple_. 
+Every midPoint mapping produces its output as a _triple_.
+The values that originated from _add_ part of the input delta usually end up in _plus_ set of the triple, the values that originated from _delete_ part of the delta usually end up in _minus_ part of the triple, and the original values of the source that were unchanged usually end up in _zero_ part of the triple.
+However, this can behaviour can be influenced by several factors, for example by the evaluation of mapping condition.
 
-// TODO TODO TODO TODO
-
+Processing of a scripting expression into a triple is illustrated in following diagram:
 
 .Constructing delta set triple
 image::mapping-delta-processing-4.png[Constructing delta set triple]
 
+Each mapping can produce the triples individually, without any regard for other mappings (except for _chaining_ of mapping evaluation due to dependencies on sources).
+Once all the triples are obtained, they can be merged to produce a delta:
+
 .Merging delta set triples
 image::mapping-delta-processing-5.png[Merging delta set triples]
 
-// TODO: why we need zero set? Not that much for keeping target attribute values (range is better for that).
-// Mostly for not removing a value by a mapping, while the same value is still provided by other mapping.
+Merging of triples is much easier than merging deltas.
+All values from all _plus_ sets can be used as an _add_ part of resulting deltas.
+However, the _minus_ set has to be treated differently.
+Only the values of the _minus_ set that are not part of any _plus_ or _zero_ set can be used for _delete_ values of resulting deltas.
+We do not want to remove a value that is added or marked to be kept by any other mapping.
 
-// TODO: consolitation, filtering of duplicate changes, etc.
+The _zero_ set of the triple is not used to produce the delta, not in a direct way.
+The _zero_ set values are there mostly to make sure that "legal" values will not be removed.
+The purpose of the _zero_ set is not meant to remove any excessive values that the target attribute might have.
+That is a responsibility of xref:../range/[range].
+The _zero_ set is there to keep mapping execution correct.
+
+The process of producing target deltas is called _consolidation_.
+Merging of triples is the core of the process, however there are additional steps.
+E.g. values of target item are considered (if available) to avoid redundant deltas.
+Merging of the triples may be a complex process on its own.
+For example, a _zero_ set produced by a mapping in a role that was just assigned has to be handled in a similar way than a _plus_ set.
+Even though the mapping is not indicating the value as new, the mapping itself is new, therefore the value has to be added (if not already present).
+This means that there are often _triples of triples_ in xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[projector computation].
+E.g. the outer triple indicates which assignments were added, removed or left unchanged.
+The inner triple contains results of mappings in that assignment.
 
 == Existing Values of Target Item
 
-How do we consider existing values of target (when available):
+Theoretically, mapping deals only with input data in a form of _sources_ and _variables_.
+This data should be sufficient to produce output _triple_ of the mapping.
+However, existing values of of target item are important for the process of triple _consolidation_ to produce deltas:
 
-* Filtering out redundant changes
+* Filtering out redundant changes.
+Consolidation process will remove values from _add_ part of the deltas, for the values that already exist in target items.
+Similarly, values that are not present in target item are removed from _delete_ part of the delta.
+This may result in an empty delta, in which case the delta is not executed at all.
 
-* Applying range
+* Applying xref:../range/[mapping range].
+Mapping may need to remove values that are not present in the _minus_ set of the triple.
+Any existing values of the target items that are not part present in either _zero_ or _plus_ set of the triple has to be removed.
 
-Strong and weak mappings are forcing read of current values.
+As a principle, existing values of target property are processed by xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[projector] only if they are available, only if they were already fetched.
+In that case processing of the values is very cheap, and there is no significant obstacle to process them.
+However, there are few cases when read of the target value is forced:
 
-== TODO
+* The item is target of _strong_ mapping.
+Strong mappings are supposed to make sure that specified values are set.
+Therefore the existing values need to be retrieved, to make sure that all values from the _zero_ set are present, and that all values in mapping range are properly removed.
 
-Currently executing all mappings, to make sure all output values are properly merged.
-This is not very "relativistic".
-This can change, once we have full provenance information - at least for inbound and object template mappings.
-For outboudn, we have no place to record the provenance, unless we are going for (almost) full caching in shadow.
-This is something to consider.
+* The item is target of _weak_ mapping.
+Weak mappings are to be activated only if target item contains no value.
+We need to know whether the target has a value in order to make this decision.
+
+* Reconciliation was explicitly requested.
+MidPoint reads the existing values in order to compare them.
+
 
 == Limitations
 
@@ -379,6 +413,23 @@ MidPoint evolution, and especially financial and scheduling constraints, forced 
 This does not affect correctness of midPoint computation, but it may affect performance.
 The deployments that rely on a lightweight processing of large number of small changes may be affected.
 Please see xref:/midpoint/features/planned/complete-relativity/[Complete Relativity] page for more details.
+
+Currently, midPoint is executing all mappings.
+There are several reasons:
+
+* Making sure all output values are properly merged.
+The reason is to make sure _zero_ set of all the mappings is properly processed, avoiding removal of "legal" value produced by one mapping by another mapping.
+This is means that the processing of mappings is not very "relativistic", as all the mappings are executed all the time.
+This can change, once we have full provenance information - at least for inbound and object template mappings.
+For outbound case, we have no place to record the provenance, unless we are going for (almost) full caching in shadow.
+This is something to consider.
+
+* Implementation simplicity.
+All the mappings are executed, even in cases where the results are discarded later (e.g. due to condition being false).
+It is easier to implement the system in this way.
+The execution of a mapping is usually very cheap, therefore there was not much motivation to optimize mapping execution.
+
+See also xref:../proposed-improvements/[].
 
 == See Also
 

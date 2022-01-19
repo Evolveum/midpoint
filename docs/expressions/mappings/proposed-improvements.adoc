@@ -1,0 +1,14 @@
+= Proposed Improvements in Mappings and Expressions
+:page-nav-title: Proposed Improvements
+
+* Use of value metadata.
+
+** Avoid execution of mappings where sources were not changed.
+The metadata may supplement the missing zero sets from execution of other mappings.
+I.e. the metadata will tell us whether this value was also produced by other mapping, and therefore it has to be kept instead of removing it.
+
+** Open question: metadata of account attributes for outbound mappings.
+
+* Implementation Optimization
+
+** Avoid execution of mapping expression in obvious cases (e.g. condition is `false` -> `false`)
