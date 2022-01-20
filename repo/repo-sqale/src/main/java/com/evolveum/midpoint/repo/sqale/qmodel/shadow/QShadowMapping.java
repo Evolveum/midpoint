@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -143,8 +144,8 @@ public class QShadowMapping
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         if (GetOperationOptions.isRaw(rootOptions)) {
             // If raw=true, we populate attributes with types cached in repository
-            applyShadowAttributesDefinitions(shadowType);
-            //return shadowType;
+            Jsonb rowAttributes = row.get(entityPath.attributes);
+            applyShadowAttributesDefinitions(shadowType, rowAttributes);
         }
 
         List<SelectorOptions<GetOperationOptions>> retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
@@ -152,8 +153,9 @@ public class QShadowMapping
             return shadowType;
         }
 
-        addIndexOnlyAttributes(shadowType, row, entityPath, retrieveOptions);
-
+        if (loadIndexOnly(retrieveOptions)) {
+            addIndexOnlyAttributes(shadowType, row, entityPath, retrieveOptions);
+        }
         return shadowType;
     }
 
@@ -203,7 +205,6 @@ public class QShadowMapping
         }
     }
 
-
     @Override
     public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(
             Collection<SelectorOptions<GetOperationOptions>> options,
@@ -223,13 +224,12 @@ public class QShadowMapping
         return ret;
     }
 
-
-
     @Override
     public @NotNull Path<?>[] selectExpressions(QShadow entity,
             Collection<SelectorOptions<GetOperationOptions>> options) {
         var retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
-        if (loadIndexOnly(retrieveOptions)) {
+        boolean isRaw = GetOperationOptions.isRaw(SelectorOptions.findRootOptions(options));
+        if (isRaw || loadIndexOnly(retrieveOptions)) {
             return new Path[] { entity.oid, entity.fullObject, entity.attributes };
         }
         return new Path[] { entity.oid, entity.fullObject };
@@ -251,20 +251,38 @@ public class QShadowMapping
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private void applyShadowAttributesDefinitions(ShadowType shadowType) throws SchemaException {
+    private void applyShadowAttributesDefinitions(ShadowType shadowType, Jsonb rowAttributes) throws SchemaException {
+        Map<QName, MExtItem> definitions = definitionsFrom(rowAttributes);
+
         if (shadowType.getAttributes() == null) {
             return;
         }
-        PrismContainerValue<?> attributesOld = shadowType.getAttributes().asPrismContainerValue();
+        PrismContainerValue<?> attributes = shadowType.getAttributes().asPrismContainerValue();
 
-        for (Item<?, ?> attribute : attributesOld.getItems()) {
+        for (Item<?, ?> attribute : attributes.getItems()) {
             ItemName itemName = attribute.getElementName();
-            MExtItem itemInfo = repositoryContext().getExtensionItem(
-                    MExtItem.itemNameKey(attribute.getElementName(), MExtItemHolderType.ATTRIBUTES));
+            MExtItem itemInfo = definitions.get(itemName);
             if (itemInfo != null && attribute.getDefinition() == null) {
                 ((Item) attribute).applyDefinition(definitionFrom(itemName, itemInfo, false), true);
             }
         }
+    }
+
+    private Map<QName, MExtItem> definitionsFrom(Jsonb rowAttributes) {
+        Map<QName, MExtItem> definitions = new HashMap<>();
+        if (rowAttributes == null) {
+            return definitions;
+        }
+        Map<String, Object> attributes = Jsonb.toMap(rowAttributes);
+
+        for (String id : attributes.keySet()) {
+            var extItem = repositoryContext().getExtensionItem(Integer.valueOf(id));
+            if (extItem != null) {
+                QName key = QNameUtil.uriToQName(extItem.itemName);
+                definitions.put(key, extItem);
+            }
+        }
+        return definitions;
     }
 
     private ItemDefinition<?> definitionFrom(QName name, MExtItem itemInfo, boolean indexOnly) {
