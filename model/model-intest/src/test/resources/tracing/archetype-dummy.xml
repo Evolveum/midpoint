@@ -1,0 +1,11 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="70f3f752-89fc-46e5-80f5-b15c2a4bd5e5">
+    <name>dummy</name>
+</archetype>

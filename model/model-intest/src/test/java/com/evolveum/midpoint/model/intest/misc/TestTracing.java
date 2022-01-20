@@ -61,6 +61,11 @@ public class TestTracing extends AbstractEmptyModelIntegrationTest {
     public static final ItemName NAME_EMBEDDED = new ItemName(CONTAINERS_NS, "embedded");
     public static final ItemName TYPE_MY_CONTAINER = new ItemName(CONTAINERS_NS, "MyContainerType");
 
+    private static final TestResource<TaskType> ARCHETYPE_DUMMY = new TestResource<>(
+            TEST_DIR, "archetype-dummy.xml", "70f3f752-89fc-46e5-80f5-b15c2a4bd5e5");
+    private static final TestResource<TaskType> TASK_RECOMPUTE_ADMINISTRATOR_TRACED = new TestResource<>(
+            TEST_DIR, "task-recompute-administrator-traced.xml", "80b30eb9-55d3-40dc-a674-cc1c9e0400d6");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
@@ -75,6 +80,7 @@ public class TestTracing extends AbstractEmptyModelIntegrationTest {
         repoAdd(USER_JIM, initResult);
         repoAdd(ROLE_CLASS_LESS_VALUES, initResult);
         repoAdd(FUNCTION_LIBRARY_HACKING, initResult);
+        repoAdd(ARCHETYPE_DUMMY, initResult);
     }
 
     @Override
@@ -159,6 +165,32 @@ public class TestTracing extends AbstractEmptyModelIntegrationTest {
                     .assertSize(1)
                     .value(0)
                         .assertItemsExactly(NAME_VALUE, NAME_EMBEDDED);
+
+        assertTraceCanBeParsed(result);
+    }
+
+    /**
+     * Tests basic tracing of a task.
+     *
+     * MID-7583.
+     */
+    @Test
+    public void test300TracingTaskBasic() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        deleteReportDataObjects(result);
+
+        when();
+        addObject(TASK_RECOMPUTE_ADMINISTRATOR_TRACED, task, result);
+
+        then();
+        waitForTaskFinish(TASK_RECOMPUTE_ADMINISTRATOR_TRACED.oid, false);
+
+        assertTask(TASK_RECOMPUTE_ADMINISTRATOR_TRACED.oid, "after")
+                .assertClosed()
+                .assertSuccess();
 
         assertTraceCanBeParsed(result);
     }
