@@ -24,6 +24,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -3338,6 +3340,19 @@ public final class WebComponentUtil {
                                     Map<QName, Object> extensionValues = prepareExtensionValues(oids);
                                     TaskType executorTask = pageBase.getModelInteractionService().submitTaskFromTemplate(
                                             templateOid, extensionValues, pageBase.createSimpleTask(operation), result);
+                                    ObjectSetBasedWorkDefinitionType workDef = ObjectSetUtil.getObjectSetDefinitionFromTask(executorTask);
+                                    QueryType query = (QueryType) extensionValues.get(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+                                    ObjectSetType objectSet = workDef.getObjects();
+                                    if (objectSet == null){
+                                        objectSet = new ObjectSetType();
+                                        objectSet.setType(ObjectType.COMPLEX_TYPE);
+                                    }
+                                    objectSet.setQuery(query);
+                                    workDef.setObjects(objectSet);
+                                    ObjectDelta<TaskType> delta = pageBase.getPrismContext().deltaFactory().object().createModifyDelta(executorTask.getOid(),
+                                            pageBase.getPrismContext().deltaFactory().container()
+                                                    .createModificationReplace(workDef.asPrismContainerValue().getPath(), TaskType.class, workDef.clone()), TaskType.class);
+                                    saveTask(delta, result, pageBase);
                                     result.setInProgress(); // this should be probably have been done in submitTaskFromTemplate
                                     result.setBackgroundTaskOid(executorTask.getOid());
                                 } else {
@@ -4178,7 +4193,17 @@ public final class WebComponentUtil {
             pageBase.error(pageBase.createStringResource("pageResource.message.invalidTaskSearch"));
         } else {
             oldTask = taskList.get(0);
-            saveTask(oldTask, result, pageBase);
+            PrismProperty<?> property = oldTask.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
+
+            if (property != null) {
+                Object value = property.getRealValue();
+
+                ObjectDelta<TaskType> delta = pageBase.getPrismContext().deltaFactory().object().createModifyDelta(oldTask.getOid(),
+                        pageBase.getPrismContext().deltaFactory().property()
+                                .createModificationDeleteProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition(), value),
+                        TaskType.class);
+                saveTask(delta, result, pageBase);
+            }
         }
 
         result.recomputeStatus();
@@ -4325,28 +4350,15 @@ public final class WebComponentUtil {
         return true;
     }
 
-    // FIXME this uses old-style token processing
-    private static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase) {
-        Task task = pageBase.createSimpleTask(pageBase.getClass().getName() + "." + "saveSyncTask");
-
-        PrismProperty<?> property = oldTask.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
-
-        if (property == null) {
-            return;
-        }
-        Object value = property.getRealValue();
-
-        ObjectDelta<TaskType> delta = pageBase.getPrismContext().deltaFactory().object().createModifyDelta(oldTask.getOid(),
-                pageBase.getPrismContext().deltaFactory().property()
-                        .createModificationDeleteProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition(), value),
-                TaskType.class);
+    private static void saveTask(ObjectDelta<TaskType> delta, OperationResult result, PageBase pageBase) {
+        Task opTask = pageBase.createSimpleTask(pageBase.getClass().getName() + "." + "saveTask");
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace(delta.debugDump());
         }
 
         try {
-            pageBase.getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+            pageBase.getModelService().executeChanges(MiscUtil.createCollection(delta), null, opTask, result);
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save task.", e);
             result.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntSaveTask").getString(), e);
