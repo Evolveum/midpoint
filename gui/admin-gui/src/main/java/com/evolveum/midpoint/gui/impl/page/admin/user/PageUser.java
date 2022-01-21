@@ -170,7 +170,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     }
 
     private ModelExecuteOptions getDelegationPreviewOptions() {
-        ModelExecuteOptions options = getExecuteChangesOptionsDto().createOptions(getPrismContext());
+        ModelExecuteOptions options = getProgressPanel().getExecuteOptions().createOptions(getPrismContext());
         options.getOrCreatePartialProcessing().setApprovals(PartialProcessingTypeType.PROCESS);
         return options;
     }
