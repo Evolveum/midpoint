@@ -2670,7 +2670,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
         for (PrismPropertyValue<PolyString> pval : ((PrismProperty<PolyString>) visitable).getValues()) {
             PolyString polyString = pval.getValue();
-            if (polyString.getOrig() == null) {
+            if (polyString != null && polyString.getOrig() == null) {
                 String orig = localizationService.translate(polyString);
                 LOGGER.trace("PPPP1: Filling out orig value of polyString {}: {}", polyString, orig);
                 polyString.setComputedOrig(orig);
