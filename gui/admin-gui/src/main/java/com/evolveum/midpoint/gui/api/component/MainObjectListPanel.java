@@ -197,7 +197,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 if (isCollectionViewPanelForCompiledView()) {
                     CompiledObjectCollectionView collectionView = getObjectCollectionView();
                     //HACK TODO clenup and think about generic mechanism for this
-                    if (!isViewForObjectCollectionType(collectionView, "00000000-0000-0000-0002-000000000007", ObjectCollectionType.COMPLEX_TYPE)) {
+                    if (isCollectionViewWithoutMorePossibleNewType(collectionView)) {
                         newObjectPerformed(target, null, collectionView);
                         return;
                     }
@@ -225,6 +225,10 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectEnabled));
         createNewObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         return createNewObjectButton;
+    }
+
+    protected boolean isCollectionViewWithoutMorePossibleNewType(CompiledObjectCollectionView collectionView) {
+        return true;
     }
 
     protected boolean showNewObjectCreationPopup() {
