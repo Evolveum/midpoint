@@ -222,7 +222,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
         Label hibernateParametersNote = new Label(ID_HIBERNATE_PARAMETERS_NOTE, createStringResource("PageRepositoryQuery.hibernateParametersNote",
                 WebComponentUtil.getMidpointCustomSystemName(PageRepositoryQuery.this, "midPoint")));
-        hibernateParametersNote.setVisible(isAdmin);
+        hibernateParametersNote.setVisible(isAdmin && !isNativeRepo());
         mainForm.add(hibernateParametersNote);
 
         Label queryVsFilterNote = new Label(ID_QUERY_VS_FILTER_NOTE, createStringResource("PageRepositoryQuery.queryVsFilterNote",
@@ -356,7 +356,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 queryPerformed(Action.EXECUTE_HIBERNATE, target);
             }
         };
-        executeHibernate.setVisible(isAdmin);
+        executeHibernate.setVisible(isAdmin && !isNativeRepo());
         mainForm.add(executeHibernate);
 
         Label resultLabel = new Label(ID_RESULT_LABEL, new IModel<String>() {
