@@ -52,6 +52,10 @@ public class SelectableFolderContent extends Folder<TreeSelectableBean<OrgType>>
 
     @Override
     protected void onClick(Optional<AjaxRequestTarget> optionalTarget) {
+        if (!optionalTarget.isPresent()) {
+            return;
+        }
+
         if (selected.getObject() != null) {
             tree.updateNode(selected.getObject(), optionalTarget.get());
         }
