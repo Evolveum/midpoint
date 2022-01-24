@@ -1086,31 +1086,23 @@ public final class WebComponentUtil {
             PageBase pageBase = getPageBase(component);
             TaskType task = taskModel.getObject().getValue();
             DisplayType display = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(task, pageBase);
-            return getTranslatedLabel(display, component);
+            return getTranslatedLabel(display);
         };
     }
 
     @Experimental
-    private static String getTranslatedLabel(DisplayType display, Component component) {
+    private static String getTranslatedLabel(DisplayType display) {
         if (display == null) {
             return "";
         }
         if (display.getLabel() != null) {
-            return getTranslatedPolyString(display.getLabel(), component);
+            return getTranslatedPolyString(display.getLabel());
         } else if (display.getSingularLabel() != null) {
-            return getTranslatedPolyString(display.getSingularLabel(), component);
+            return getTranslatedPolyString(display.getSingularLabel());
         } else if (display.getPluralLabel() != null) {
-            return getTranslatedPolyString(display.getPluralLabel(), component);
+            return getTranslatedPolyString(display.getPluralLabel());
         } else {
             return "";
-        }
-    }
-
-    private static String getTranslatedPolyString(@NotNull PolyStringType polyString, @NotNull Component component) {
-        if (polyString.getTranslation() != null && polyString.getTranslation().getKey() != null) {
-            return createStringResourceStatic(component, polyString.getTranslation().getKey()).getString();
-        } else {
-            return polyString.getOrig();
         }
     }
 
