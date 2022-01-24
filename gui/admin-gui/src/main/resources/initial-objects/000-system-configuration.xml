@@ -416,6 +416,96 @@
                 </collection>
             </objectCollectionView>
             <objectCollectionView>
+                <identifier>shadow-integrity-check-task-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <applicableForOperation>add</applicableForOperation>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000513" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>shadows-refresh-task-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <applicableForOperation>add</applicableForOperation>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000514" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>objects-delete-task-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <applicableForOperation>add</applicableForOperation>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000515" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>shadows-delete-long-time-not-updated-task-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <applicableForOperation>add</applicableForOperation>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000516" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>execute-change-task-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <applicableForOperation>add</applicableForOperation>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000517" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>execute-deltas-task-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <applicableForOperation>add</applicableForOperation>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000518" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>reindex-repository-task-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <applicableForOperation>add</applicableForOperation>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000519" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>object-integrity-check-task-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <applicableForOperation>add</applicableForOperation>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000522" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>validity-task-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <applicableForOperation>add</applicableForOperation>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000530" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>trigger-task-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <applicableForOperation>add</applicableForOperation>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000531" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
                 <identifier>certification-tasks-view</identifier>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
