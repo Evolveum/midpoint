@@ -506,6 +506,24 @@
                 </collection>
             </objectCollectionView>
             <objectCollectionView>
+                <identifier>propagation-task-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <applicableForOperation>add</applicableForOperation>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000532" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>multi-propagation-task-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <applicableForOperation>add</applicableForOperation>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000533" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
                 <identifier>certification-tasks-view</identifier>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
