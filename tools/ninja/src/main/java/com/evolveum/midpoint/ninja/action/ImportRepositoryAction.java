@@ -82,7 +82,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
 
     private ImportProducerWorker<ObjectType> importByFilter(ObjectFilter filter,
             boolean stopAfterFound, BlockingQueue<ObjectType> queue, OperationStatus status) {
-        return new ImportProducerWorker<>(context, options, queue, status, filter, stopAfterFound);
+        return new ImportProducerWorker<>(context, options, queue, status, filter, stopAfterFound, options.isContinueOnInputError());
     }
 
     private List<ImportRepositoryConsumerWorker> createConsumers(
