@@ -241,7 +241,9 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     private List<String> getSystemArchetypesList() {
         return Arrays.asList(
                 SystemObjectsType.ARCHETYPE_VALIDITY_SCANNER_TASK.value(),
-                SystemObjectsType.ARCHETYPE_TRIGGER_SCANNER_TASK.value());
+                SystemObjectsType.ARCHETYPE_TRIGGER_SCANNER_TASK.value(),
+                SystemObjectsType.ARCHETYPE_PROPAGATION_TASK.value(),
+                SystemObjectsType.ARCHETYPE_MULTI_PROPAGATION_TASK.value());
     }
 
     private List<CompiledObjectCollectionView> getNewTaskInfluencesList(List<String> oids) {

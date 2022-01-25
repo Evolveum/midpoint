@@ -30,6 +30,10 @@
                     <identifier>activity</identifier>
                     <visibility>hidden</visibility>
                 </panel>
+                <panel>
+                    <identifier>taskBasic</identifier>
+                    <default>true</default>
+                </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>

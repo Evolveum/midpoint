@@ -360,6 +360,10 @@ public class ProgressPanel extends BasePanel {
     public boolean isKeepDisplayingResults() {
         return executeOptions.isKeepDisplayingResults();
     }
+
+    public ExecuteChangeOptionsDto getExecuteOptions() {
+        return executeOptions;
+    }
     // mess
 
     public void addRefreshingProgressPanel() {
