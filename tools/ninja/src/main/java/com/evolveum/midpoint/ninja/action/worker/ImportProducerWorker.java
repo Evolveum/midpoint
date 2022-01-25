@@ -42,14 +42,18 @@ public class ImportProducerWorker<T extends Containerable>
 
     private final ObjectFilter filter;
     private final boolean stopAfterFound;
+    private boolean continueOnInputError;
+
+    private String currentOid = null;
 
     public ImportProducerWorker(
             NinjaContext context, BasicImportOptions options, BlockingQueue<T> queue,
-            OperationStatus operation, ObjectFilter filter, boolean stopAfterFound) {
+            OperationStatus operation, ObjectFilter filter, boolean stopAfterFound, boolean continueOnInputError) {
         super(context, options, queue, operation);
 
         this.filter = filter;
         this.stopAfterFound = stopAfterFound;
+        this.continueOnInputError = continueOnInputError;
     }
 
     @Override
@@ -119,6 +123,7 @@ public class ImportProducerWorker<T extends Containerable>
             @Override
             public EventResult preMarshall(Element objectElement, Node postValidationTree,
                     OperationResult objectResult) {
+                currentOid = objectElement.getAttribute("oid");
                 return EventResult.cont();
             }
 
@@ -144,22 +149,37 @@ public class ImportProducerWorker<T extends Containerable>
 
                     queue.put(object);
                 } catch (Exception ex) {
-                    throw new NinjaException("Couldn't import object, reason: " + ex.getMessage(), ex);
+                    throw new NinjaException(getErrorMessage() + ", reason: " + ex.getMessage(), ex);
                 }
-
+                currentOid = null;
                 return stopAfterFound ? EventResult.skipObject() : EventResult.cont();
             }
 
             @Override
-            public void handleGlobalError(OperationResult currentResult) {
-                operation.finish();
+            public void handleGlobalError(OperationResult currentResult, Exception cause) {
+                // This should not
+                // Should we log error?
+                operation.incrementError();
+                String message = getErrorMessage();
+                if (continueOnInputError) {
+
+                    if (context.isVerbose()) {
+                        context.getLog().error(message, cause);
+                    } else {
+                        context.getLog().error(message + ", reason: {}", cause.getMessage());
+                    }
+                } else {
+                    // We need to throw runtime exception in order to stop validator, otherwise validator will continue
+                    // fill queue and this may result in deadlock
+                    operation.finish();
+                    throw new NinjaException(message + ", reason: " + cause.getMessage(), cause);
+                }
             }
         };
 
         // FIXME: MID-5151: If validateSchema is false we are not validating unknown attributes on import
         LegacyValidator<?> validator = new LegacyValidator<>(prismContext, handler);
         validator.setValidateSchema(false);
-
         OperationResult result = operation.getResult();
 
         Charset charset = context.getCharset();
@@ -179,5 +199,13 @@ public class ImportProducerWorker<T extends Containerable>
         }
 
         return false;
+    }
+
+    private String getErrorMessage() {
+        if (currentOid != null && !currentOid.isBlank()) {
+            return "Couldn't import object with oid '" + currentOid + "'";
+        } else {
+            return "Couldn't import object";
+        }
     }
 }
