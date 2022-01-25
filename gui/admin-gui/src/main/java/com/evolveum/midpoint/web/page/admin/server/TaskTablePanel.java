@@ -11,6 +11,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconCssStyle;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -160,33 +161,103 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         getPageBase().showResult(result);
     }
 
+    protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
+        if (collectionView == null) {
+            collectionView = getObjectCollectionView();
+        }
+        try {
+            List<ObjectReferenceType> referenceList = new ArrayList<>();
+            referenceList.addAll(getNewObjectReferencesList(collectionView, relation));
+            if (referenceList.get(0) != null) {
+                String oid = referenceList.get(0).getOid();
+                if (getUtilityArchetypesList().contains(oid)) {
+                    referenceList.add(new ObjectReferenceType()
+                            .type(ArchetypeType.COMPLEX_TYPE)
+                            .oid(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()));
+                } else if (getSystemArchetypesList().contains(oid)) {
+                    referenceList.add(new ObjectReferenceType()
+                            .type(ArchetypeType.COMPLEX_TYPE)
+                            .oid(SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value()));
+                }
+            }
+            WebComponentUtil.initNewObjectWithReference(getPageBase(),
+                    relation != null && CollectionUtils.isNotEmpty(relation.getObjectTypes()) ?
+                            relation.getObjectTypes().get(0) : WebComponentUtil.classToQName(getPrismContext(), getType()),
+                    referenceList);
+        } catch (SchemaException ex) {
+            getPageBase().getFeedbackMessages().error(TaskTablePanel.this, ex.getUserFriendlyMessage());
+            target.add(getPageBase().getFeedbackPanel());
+        }
+    }
+
+    @Override
+    protected boolean isCollectionViewWithoutMorePossibleNewType(CompiledObjectCollectionView collectionView) {
+        if (isViewForObjectCollectionType(collectionView, "00000000-0000-0000-0002-000000000007", ObjectCollectionType.COMPLEX_TYPE)
+                || isViewForObjectCollectionType(collectionView, SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(), ArchetypeType.COMPLEX_TYPE)
+                || isViewForObjectCollectionType(collectionView, SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value(), ArchetypeType.COMPLEX_TYPE)){
+            return false;
+        }
+        return true;
+    }
+
     @Override
     protected @NotNull List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
         //HACK TODO clenup and think about generic mechanism for this
         CompiledObjectCollectionView objectCollectionView  = getObjectCollectionView();
-        if (!isViewForObjectCollectionType(objectCollectionView, "00000000-0000-0000-0002-000000000007", ObjectCollectionType.COMPLEX_TYPE)) {
-            return super.getNewObjectInfluencesList();
+
+        if (isViewForObjectCollectionType(objectCollectionView, "00000000-0000-0000-0002-000000000007", ObjectCollectionType.COMPLEX_TYPE)){
+            return getNewTaskInfluencesList(getReportArchetypesList());
         }
 
+        if (isViewForObjectCollectionType(objectCollectionView, SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(), ArchetypeType.COMPLEX_TYPE)) {
+            return getNewTaskInfluencesList(getUtilityArchetypesList());
+        }
+
+        if (isViewForObjectCollectionType(objectCollectionView, SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value(), ArchetypeType.COMPLEX_TYPE)) {
+            return getNewTaskInfluencesList(getSystemArchetypesList());
+        }
+        return super.getNewObjectInfluencesList();
+    }
+
+    private List<String> getReportArchetypesList() {
+        return Arrays.asList(
+                SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value(),
+                SystemObjectsType.ARCHETYPE_REPORT_IMPORT_CLASSIC_TASK.value(),
+                SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK.value());
+    }
+
+    private List<String> getUtilityArchetypesList() {
+        return Arrays.asList(
+                SystemObjectsType.ARCHETYPE_SHADOW_INTEGRITY_CHECK_TASK.value(),
+                SystemObjectsType.ARCHETYPE_SHADOWS_REFRESH_TASK.value(),
+                SystemObjectsType.ARCHETYPE_SHADOWS_DELETE_LONG_TIME_NOT_UPDATED_TASK.value(),
+                SystemObjectsType.ARCHETYPE_EXECUTE_CHANGE_TASK.value(),
+                SystemObjectsType.ARCHETYPE_EXECUTE_DETLAS_TASK.value(),
+                SystemObjectsType.ARCHETYPE_REINDEX_REPOSITORY_TASK.value(),
+                SystemObjectsType.ARCHETYPE_OBJECT_INTEGRITY_CHECK_TASK.value(),
+                SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value());
+    }
+
+    private List<String> getSystemArchetypesList() {
+        return Arrays.asList(
+                SystemObjectsType.ARCHETYPE_VALIDITY_SCANNER_TASK.value(),
+                SystemObjectsType.ARCHETYPE_TRIGGER_SCANNER_TASK.value(),
+                SystemObjectsType.ARCHETYPE_PROPAGATION_TASK.value(),
+                SystemObjectsType.ARCHETYPE_MULTI_PROPAGATION_TASK.value());
+    }
+
+    private List<CompiledObjectCollectionView> getNewTaskInfluencesList(List<String> oids) {
         List<CompiledObjectCollectionView> compiledObjectCollectionViews = getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(TaskType.COMPLEX_TYPE, OperationTypeType.ADD);
         List<CompiledObjectCollectionView> filteredObjectCollectionViews = new ArrayList<>();
         for (CompiledObjectCollectionView compiledObjectCollectionView : compiledObjectCollectionViews) {
-            if (isViewForObjectCollectionType(compiledObjectCollectionView, SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK.value(), ArchetypeType.COMPLEX_TYPE)) {
-                filteredObjectCollectionViews.add(compiledObjectCollectionView);
+            for (String oid :oids) {
+                if (isViewForObjectCollectionType(compiledObjectCollectionView, oid, ArchetypeType.COMPLEX_TYPE)) {
+                    filteredObjectCollectionViews.add(compiledObjectCollectionView);
+                }
             }
-
-            if (isViewForObjectCollectionType(compiledObjectCollectionView, SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value(), ArchetypeType.COMPLEX_TYPE)) {
-                filteredObjectCollectionViews.add(compiledObjectCollectionView);
-            }
-
-            if (isViewForObjectCollectionType(compiledObjectCollectionView, SystemObjectsType.ARCHETYPE_REPORT_IMPORT_CLASSIC_TASK.value(), ArchetypeType.COMPLEX_TYPE)) {
-                filteredObjectCollectionViews.add(compiledObjectCollectionView);
-            }
-
         }
         return filteredObjectCollectionViews;
     }
-
 
     private void synchronizeTasksPerformed(AjaxRequestTarget target) {
         Task opTask = createSimpleTask(OPERATION_SYNCHRONIZE_TASKS);

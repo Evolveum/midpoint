@@ -28,6 +28,8 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class ObjectSetUtil {
 
     public static @NotNull ObjectSetType fromLegacySource(@NotNull LegacyWorkDefinitionSource source) {
@@ -139,5 +141,37 @@ public class ObjectSetUtil {
 
     public static @NotNull ObjectSetType fromConfiguration(ObjectSetType configured) {
         return configured != null ? configured : new ObjectSetType(PrismContext.get());
+    }
+
+    public static ObjectSetBasedWorkDefinitionType getObjectSetDefinitionFromTask(TaskType task) {
+        if (java.util.Objects.isNull(task) || java.util.Objects.isNull(task.getActivity()) || Objects.isNull(task.getActivity().getWork())) {
+            return null;
+        }
+        WorkDefinitionsType work = task.getActivity().getWork();
+        if (!Objects.isNull(work.getIterativeScripting())){
+            return work.getIterativeScripting();
+        }
+        if (!Objects.isNull(work.getReindexing())){
+            return work.getReindexing();
+        }
+        if (!Objects.isNull(work.getIterativeChangeExecution())){
+            return work.getIterativeChangeExecution();
+        }
+        if (!Objects.isNull(work.getTriggerScan())){
+            return work.getTriggerScan();
+        }
+        if (!Objects.isNull(work.getRecomputation())){
+            return work.getRecomputation();
+        }
+        if (!Objects.isNull(work.getObjectIntegrityCheck())){
+            return work.getObjectIntegrityCheck();
+        }
+        if (!Objects.isNull(work.getFocusValidityScan())){
+            return work.getFocusValidityScan();
+        }
+        if (!Objects.isNull(work.getDeletion())){
+            return work.getDeletion();
+        }
+        return null;
     }
 }

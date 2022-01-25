@@ -48,7 +48,7 @@
     runs just under 900 tests, skips distribution and any common unit/IT tests (~1h50m):
     mvn clean install -P extratest,-dist -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
     (Skipping of default tests is managed by "extratest" profile.)
-    WARNING!!! Overriding failsafe/surefire.args when using "sqale" profile (new repository)
+    WARNING!!! Overriding failsafe/surefire.args when using "sqale" profile (new Native repository)
     effectively disables another important JVM argument for tests which must be added to mvn
     command line explicitly: -Dtest.config.file=test-config-new-repo.xml
 
@@ -79,9 +79,12 @@
     - Use profile "dbtest" to run additional tests intended for other than H2 databases.
     These tests are integration tests named in additional suite XML called "testng-db-specific.xml".
     Tests from main "testng-integration.xml" are run too.
-    - Use profile "sqale" to switch from old-repo tests (disables test execution for repo-sql-impl-test)
-    to new repository tests (enables tests in repo-sqale module).
+    - Use profile "sqale" to switch from old Generic repo tests (disables test execution for repo-sql-impl-test)
+    to the new Native repository tests (enables tests in repo-sqale module).
     Combine it with "dbtest" profile if additional tests (often taking longer) are desirable.
+    Also see the warning about overriding failsafe/surefire.args above.
+    - To run tests against new Native repository in the IDE, just use this VM option
+    in the run configuration: -Dtest.config.file=test-config-new-repo.xml
     - Tests using old repository support option -Dconfig=db-specific.properties to override default
     repository test setup (config.xml).
     This is not supported by new repository, but standard config.xml override mechanism can be used,
@@ -901,7 +904,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-databasetable</artifactId>
-                <version>1.4.9.0</version>
+                <version>1.4.9.1</version>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
