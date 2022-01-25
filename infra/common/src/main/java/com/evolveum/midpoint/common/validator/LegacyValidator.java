@@ -293,7 +293,7 @@ public class LegacyValidator<T extends Containerable> {
             // ex.getMessage()+" on line "+stream.getLocation().getLineNumber(),ex);
             validatorResult.recordFatalError("XML parsing error: " + ex.getMessage(), ex);
             if (handler != null) {
-                handler.handleGlobalError(validatorResult);
+                handler.handleGlobalError(validatorResult, ex);
             }
             return;
         }
@@ -316,7 +316,7 @@ public class LegacyValidator<T extends Containerable> {
         } catch (XMLStreamException ex) {
             validatorResult.recordFatalError("XML parsing error: " + ex.getMessage(), ex);
             if (handler != null) {
-                handler.handleGlobalError(validatorResult);
+                handler.handleGlobalError(validatorResult, ex);
             }
             objectResult.recordFatalError(ex);
             return EventResult.skipObject(ex.getMessage());
@@ -428,7 +428,7 @@ public class LegacyValidator<T extends Containerable> {
             }
             if (handler != null) {
                 try {
-                    handler.handleGlobalError(validatorResult);
+                    handler.handleGlobalError(validatorResult, ex);
                 } catch (RuntimeException e) {
                     // Make sure that unhandled exceptions are recorded in object result before they are rethrown
                     objectResult.recordFatalError("Internal error: handleGlobalError call failed: " + e.getMessage(), e);
