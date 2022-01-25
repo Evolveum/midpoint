@@ -436,3 +436,11 @@ jQuery(function ($) {
         }
     });
 });
+
+jQuery(function ($) {
+    var content = $(".content-wrapper");
+    var navigation = document.querySelector('[role="navigation"]');
+    if (content.length != 0 && navigation !== null) {
+        content.css( "padding-top", navigation.clientHeight);
+    }
+});
