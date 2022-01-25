@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2020 Evolveum and contributors
+ * Copyright (C) 2018-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.boot;
 
 import java.io.File;
 
+import com.google.common.base.Strings;
 import org.apache.catalina.Context;
 import org.apache.catalina.Engine;
 import org.apache.catalina.Valve;
@@ -41,13 +42,14 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
 
     private final SystemObjectCache systemObjectCache;
 
+    private String jvmRoute;
+
     public MidPointTomcatServletWebServerFactory(String contextPath, SystemObjectCache systemObjectCache) {
         this.contextPath = contextPath;
         this.systemObjectCache = systemObjectCache;
     }
 
     @Override
-
     protected TomcatWebServer getTomcatWebServer(Tomcat tomcat) {
 
         // We are setting up fake context here. This context does not really do anything.
@@ -100,7 +102,11 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
         customizeConnector(connector);
         tomcat.setConnector(connector);
         tomcat.getHost().setAutoDeploy(false);
-        configureEngine(tomcat.getEngine());
+        Engine engine = tomcat.getEngine();
+        if (!Strings.isNullOrEmpty(jvmRoute)) {
+            engine.setJvmRoute(jvmRoute);
+        }
+        configureEngine(engine);
         for (Connector additionalConnector : getAdditionalTomcatConnectors()) {
             tomcat.getService().addConnector(additionalConnector);
         }
@@ -118,5 +124,9 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
     @Override
     protected void postProcessContext(Context context) {
         context.setResources(new ExtractingRoot());
+    }
+
+    public void setJvmRoute(String jvmRoute) {
+        this.jvmRoute = jvmRoute;
     }
 }
