@@ -64,6 +64,9 @@ function initEditor(textAreaId, readonly, resize, height, minHeight, mode) {
     });
 
     //add editor to global map, so we can find it later
+    if ($.aceEditors === undefined) {
+        $.aceEditors = {}
+    }
     $.aceEditors[editorId] = editor;
 
     //todo handle readonly for text area [lazyman] add "disabled" class to .ace_scroller
