@@ -93,7 +93,13 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
         OperationResult result = createOperationResult("assertNewPropagationTask");
         PrismObject<TaskType> propTask = repositoryService.getObject(TaskType.class, getPropagationTaskOid(), null, result);
         display("Propagation task (new)", propTask);
-        SearchFilterType filterType = propTask.asObjectable().getObjectRef().getFilter();
+        SearchFilterType filterType = propTask.asObjectable()
+                .getActivity()
+                .getWork()
+                .getMultiPropagation()
+                .getResources()
+                .getQuery()
+                .getFilter();
         displayDumpable("Propagation task filter", filterType);
         assertFalse("Empty filter in propagation task",  FilterUtil.isFilterEmpty(filterType));
     }
@@ -101,8 +107,6 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
     @Override
     protected void assertFinishedPropagationTask(Task finishedTask, OperationResultStatusType expectedStatus) {
         super.assertFinishedPropagationTask(finishedTask, expectedStatus);
-        SearchFilterType filterType = finishedTask.getObjectRefOrClone().getFilter();
-        displayDumpable("Propagation task filter", filterType);
 
         assertEquals("Unexpected propagation task progress", 1, finishedTask.getLegacyProgress());
     }
