@@ -89,14 +89,28 @@ public class StatisticsLogger {
                     current.getAverageTime(), current.getAverageWallClockTime(end), current.getThroughput(end));
         }
 
-        String overallBrief = String.format(Locale.US, "Overall: processed %,d objects in %.1f seconds, got %,d errors. Real progress: %,d.",
-                overall.getItemsProcessed(), ActivityItemProcessingStatisticsUtil.toSeconds(overall.getWallClockTime()),
-                overall.getErrors(), overall.getProgress());
+        Long wallClockTime = overall.getWallClockTime();
+
+        // Wall-clock time information is not available e.g. for activities with persistent state (like LiveSync)
+        boolean hasWallClockTime = wallClockTime != null && wallClockTime > 0;
+
+        String wallClockTimeString;
+        if (hasWallClockTime) {
+            wallClockTimeString = String.format(Locale.US, " in %.1f seconds", ActivityItemProcessingStatisticsUtil.toSeconds(wallClockTime));
+        } else {
+            wallClockTimeString = "";
+        }
+        String overallBrief = String.format(Locale.US,
+                "Overall: processed %,d objects%s, got %,d errors. Real progress: %,d.",
+                overall.getItemsProcessed(), wallClockTimeString, overall.getErrors(), overall.getProgress());
         if (overall.getItemsProcessed() > 0) {
-            overallBrief += String.format(Locale.US, " Average processing time for one object: %,.1f milliseconds. "
-                            + "Wall clock average: %,.1f milliseconds, throughput: %,.1f items per minute.",
-                    overall.getAverageTime(), overall.getAverageWallClockTime(),
-                    overall.getThroughput());
+            overallBrief += String.format(Locale.US,
+                    " Average processing time for one object: %,.1f milliseconds.", overall.getAverageTime());
+            if (hasWallClockTime && overall.getAverageWallClockTime() != null) {
+                overallBrief += String.format(Locale.US,
+                        " Wall clock average: %,.1f milliseconds, throughput: %,.1f items per minute.",
+                        overall.getAverageWallClockTime(), overall.getThroughput());
+            }
         }
 
         String mainMessageAddition = "\n" + currentBrief + "\n" + overallBrief;

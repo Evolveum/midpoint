@@ -65,7 +65,7 @@ public final class LiveSyncActivityRun
 
     @Override
     public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
-        return new ActivityReportingCharacteristics()
+        return super.createReportingCharacteristics()
                 .determineOverallSizeDefault(ActivityOverallItemCountingOptionType.NEVER)
                 .bucketCompletionLoggingDefault(NONE) // To avoid log noise.
                 .actionsExecutedStatisticsSupported(true)
