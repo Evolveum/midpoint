@@ -140,7 +140,7 @@ public class ReconciliationActivityHandler
             XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
             reconState.setWorkStateItemRealValues(F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP, now);
             reconState.flushPendingTaskModifications(result);
-            LOGGER.info("Set recon start timestamp to {}", now);
+            LOGGER.debug("Set recon start timestamp to {}", now);
         }
     }
 
