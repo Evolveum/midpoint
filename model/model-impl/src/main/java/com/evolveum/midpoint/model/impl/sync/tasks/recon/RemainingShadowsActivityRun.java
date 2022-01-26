@@ -66,7 +66,7 @@ final class RemainingShadowsActivityRun
 
     @Override
     public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
-        return new ActivityReportingCharacteristics()
+        return super.createReportingCharacteristics()
                 .actionsExecutedStatisticsSupported(true)
                 .synchronizationStatisticsSupported(false);
         // TODO We will eventually want to provide sync statistics even for this part, in order to see transitions
