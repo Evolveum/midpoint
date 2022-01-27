@@ -70,7 +70,7 @@ public class MidPointObjectChecker implements IObjectChecker {
 
     private <O extends ObjectType> Result checkObject(PrismObject<O> object) {
 
-        LOGGER.info("Check for serialization of prism object: {}", object);
+        LOGGER.info("Check for serialization of prism object: {}, identity hash: {}", object, System.identityHashCode(object));
 //        if (object.canRepresent(ResourceType.class)) {
 //            return new Result( Result.Status.FAILURE, "Storage of ResourceType objects not allowed: "+object);
 //        }
