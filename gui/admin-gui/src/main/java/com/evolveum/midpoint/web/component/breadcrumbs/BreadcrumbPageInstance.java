@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.breadcrumbs;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.RestartResponseException;
@@ -16,12 +14,17 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Viliam Repan (lazyman)
  */
+@Deprecated
 public class BreadcrumbPageInstance extends Breadcrumb {
+
+    private static final long serialVersionUID = 1L;
 
     private final WebPage page;
 
@@ -37,6 +40,11 @@ public class BreadcrumbPageInstance extends Breadcrumb {
 
     public WebPage getPage() {
         return page;
+    }
+
+    @Override
+    public Class<? extends WebPage> getPageClass() {
+        return page.getClass();
     }
 
     @Override
@@ -61,9 +69,9 @@ public class BreadcrumbPageInstance extends Breadcrumb {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
+        if (!super.equals(o)) {return false;}
 
         BreadcrumbPageInstance that = (BreadcrumbPageInstance) o;
 

@@ -33,6 +33,7 @@ import java.util.Arrays;
  * @author semancik
  */
 public class Breadcrumb implements Serializable, DebugDumpable {
+
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOG = TraceManager.getTrace(Breadcrumb.class);
@@ -53,6 +54,10 @@ public class Breadcrumb implements Serializable, DebugDumpable {
     public Breadcrumb(IModel<String> labelModel, IModel<String> iconModel) {
         setLabel(new CachedModel(labelModel));
         setIcon(new CachedModel(iconModel));
+    }
+
+    public Class<? extends WebPage> getPageClass() {
+        return null;
     }
 
     public PageParameters getParameters() {

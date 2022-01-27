@@ -146,7 +146,6 @@ import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -3288,10 +3287,8 @@ public final class WebComponentUtil {
         }
         Breadcrumb previousBreadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
         Class<?> page = null;
-        if (previousBreadcrumb instanceof BreadcrumbPageClass) {
-            page = ((BreadcrumbPageClass) previousBreadcrumb).getPage();
-        } else if (previousBreadcrumb instanceof BreadcrumbPageInstance) {
-            page = ((BreadcrumbPageInstance) previousBreadcrumb).getPage().getClass();
+        if (previousBreadcrumb != null) {
+            page = previousBreadcrumb.getPageClass();
         }
         return page;
     }
