@@ -11,6 +11,10 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -21,9 +25,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.services.PageService;
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
@@ -305,15 +306,57 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
             if (AssignmentEditorDtoType.ORG_UNIT.equals(assignment.getType())){
                 PrismObject<OrgType> object = WebModelServiceUtils.loadObject(OrgType.class, assignment.getTargetRef().getOid(),
                         getPageBase(), task, result);
-                getPageBase().navigateToNext(new PageOrgUnit(object, false,true));
+                getPageBase().navigateToNext(new PageOrg(object) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected FocusDetailsModels<OrgType> createObjectDetailsModels(PrismObject<OrgType> object) {
+                        return new FocusDetailsModels<OrgType>(createPrismObjectModel(object), this) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected boolean isReadonly() {
+                                return true;
+                            }
+                        };
+                    }
+                });
             } else if (AssignmentEditorDtoType.ROLE.equals(assignment.getType())){
                 PrismObject<RoleType> object = WebModelServiceUtils.loadObject(RoleType.class, assignment.getTargetRef().getOid(),
                         getPageBase(), task, result);
-                getPageBase().navigateToNext(new PageRole(object, false, true));
+                getPageBase().navigateToNext(new PageRole(object)  {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected FocusDetailsModels<RoleType> createObjectDetailsModels(PrismObject<RoleType> object) {
+                        return new FocusDetailsModels<RoleType>(createPrismObjectModel(object), this) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected boolean isReadonly() {
+                                return true;
+                            }
+                        };
+                    }
+                });
             } else if (AssignmentEditorDtoType.SERVICE.equals(assignment.getType())){
                 PrismObject<ServiceType> object = WebModelServiceUtils.loadObject(ServiceType.class, assignment.getTargetRef().getOid(),
                         getPageBase(), task, result);
-                getPageBase().navigateToNext(new PageService(object, false,true));
+                getPageBase().navigateToNext(new PageService(object)  {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected FocusDetailsModels<ServiceType> createObjectDetailsModels(PrismObject<ServiceType> object) {
+                        return new FocusDetailsModels<ServiceType>(createPrismObjectModel(object), this) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected boolean isReadonly() {
+                                return true;
+                            }
+                        };
+                    }
+                });
             }
         } else {
             plusIconClicked = false;
