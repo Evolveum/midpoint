@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -985,8 +985,10 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         AuditEventRecordPropertyType prop1 = record1.getProperty().get(0);
         assertThat(prop1.getName()).isEqualTo("prop1");
         assertThat(prop1.getValue()).containsExactly("val1");
+        // Changed items are not returned, they are used for query only and can be found in deltas.
+        // Also, they may be stored in wrong format (e.g. "canonicalized").
+        assertThat(record1.getChangedItem()).isNullOrEmpty();
         // for other attributes we just use the size check, fetch mechanism is similar
-        assertThat(record1.getChangedItem()).hasSize(4);
         assertThat(record1.getDelta()).hasSize(3)
                 .allMatch(d -> d.getObjectDelta() != null);
         assertThat(record1.getReference()).hasSize(2);
