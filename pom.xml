@@ -243,7 +243,7 @@
         <maven.api.version>3.8.1</maven.api.version>
         <checkstyle.version>3.1.2</checkstyle.version>
         <xalan.version>2.7.2</xalan.version>
-        <xerces.version>2.12.1</xerces.version>
+        <xerces.version>2.12.2</xerces.version>
         <commons.csv.version>1.8</commons.csv.version>
         <j2html.version>1.4.0</j2html.version>
         <bouncycastle.version>1.69</bouncycastle.version>
