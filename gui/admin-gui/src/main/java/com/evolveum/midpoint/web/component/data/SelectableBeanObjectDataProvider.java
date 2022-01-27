@@ -11,6 +11,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -128,6 +131,17 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
             }
         }
         return true;
+    }
+
+    @Override
+    public IModel<SelectableBean<O>> model(SelectableBean<O> object) {
+        return new SelectableObjectModel<>(object) {
+
+            @Override
+            protected PageBase getPageBase() {
+                return SelectableBeanObjectDataProvider.this.getPageBase();
+            }
+        };
     }
 
     protected boolean isMemberPanel() {

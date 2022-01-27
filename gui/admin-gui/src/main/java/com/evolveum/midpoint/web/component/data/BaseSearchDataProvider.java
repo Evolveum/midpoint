@@ -97,4 +97,10 @@ public abstract class BaseSearchDataProvider<C extends Containerable, T extends 
     public void setCompiledObjectCollectionView(CompiledObjectCollectionView objectCollectionView) {
         this.objectCollectionView = objectCollectionView;
     }
+
+    @Override
+    public void detach() {
+        super.detach();
+        search.detach();
+    }
 }
