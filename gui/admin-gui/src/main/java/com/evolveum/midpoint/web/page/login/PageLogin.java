@@ -32,6 +32,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -56,7 +57,27 @@ public class PageLogin extends AbstractPageLogin {
     protected static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = DOT_CLASS + "loadPasswordResetPolicy";
     private static final String OPERATION_LOAD_REGISTRATION_POLICY = DOT_CLASS + "loadRegistrationPolicy";
 
+    private LoadableDetachableModel<SecurityPolicyType> securityPolicyModel;
+
     public PageLogin() {
+
+        securityPolicyModel = new LoadableDetachableModel<>() {
+            @Override
+            protected SecurityPolicyType load() {
+                Task task = createAnonymousTask(OPERATION_LOAD_RESET_PASSWORD_POLICY);
+                OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
+                try {
+                    return getModelInteractionService().getSecurityPolicy((PrismObject<? extends FocusType>) null, task, parentResult);
+                } catch (CommonException e) {
+                    LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
+                }
+                return null;
+            }
+        };
+    }
+
+    private SecurityPolicyType getSecurityPolicy() {
+        return securityPolicyModel.getObject();
     }
 
     @Override
@@ -71,21 +92,13 @@ public class PageLogin extends AbstractPageLogin {
         add(form);
 
         BookmarkablePageLink<String> link = new BookmarkablePageLink<>(ID_FORGET_PASSWORD, PageForgotPassword.class);
-        Task task = createAnonymousTask(OPERATION_LOAD_RESET_PASSWORD_POLICY);
-        OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
-        SecurityPolicyType securityPolicy = null;
-        try {
-            securityPolicy = getModelInteractionService().getSecurityPolicy((PrismObject<? extends FocusType>) null, task, parentResult);
-        } catch (CommonException e) {
-            LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
-        }
-        SecurityPolicyType finalSecurityPolicy = securityPolicy;
+
         link.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
-
+                SecurityPolicyType finalSecurityPolicy = getSecurityPolicy();
                 if (finalSecurityPolicy == null) {
                     return false;
                 }
@@ -111,6 +124,7 @@ public class PageLogin extends AbstractPageLogin {
                 return false;
             }
         });
+        SecurityPolicyType securityPolicy = getSecurityPolicy();
         if (securityPolicy != null && securityPolicy.getCredentialsReset() != null
                 && StringUtils.isNotBlank(securityPolicy.getCredentialsReset().getAuthenticationSequenceName())) {
             AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
@@ -193,5 +207,11 @@ public class PageLogin extends AbstractPageLogin {
         }
 
         return "./spring_security_login";
+    }
+
+    @Override
+    protected void onDetach() {
+        super.onDetach();
+        securityPolicyModel.detach();
     }
 }
