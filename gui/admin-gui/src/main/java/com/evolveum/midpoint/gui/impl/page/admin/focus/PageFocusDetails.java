@@ -289,7 +289,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         DetailsFragment detailsFragment = createDetailsFragment();
         replace(detailsFragment);
         target.add(detailsFragment);
-        navigateToNext(new PageFocusPreviewChanges(modelContextMap));
+        navigateToNext(new PageFocusPreviewChanges(modelContextMap, this));
     }
 
     protected void collectObjectsForPreview(Map<PrismObject<F>, ModelContext<? extends ObjectType>> modelContextMap) {

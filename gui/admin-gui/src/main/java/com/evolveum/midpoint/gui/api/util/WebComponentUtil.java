@@ -145,7 +145,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;

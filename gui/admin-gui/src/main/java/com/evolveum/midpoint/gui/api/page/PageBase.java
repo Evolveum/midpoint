@@ -19,7 +19,6 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,8 +32,6 @@ import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -127,7 +124,6 @@ import com.evolveum.midpoint.web.application.SimpleCounter;
 import com.evolveum.midpoint.web.boot.Wro4jConfig;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.BaseMenuItem;
@@ -337,11 +333,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected void createBreadcrumb() {
-        addBreadcrumb(new BreadcrumbPageClass(getPageTitleModel(), this.getClass(), getPageParameters()));
-    }
-
-    protected void createInstanceBreadcrumb() {
-        addBreadcrumb(new BreadcrumbPageInstance(getPageTitleModel(), this));
+        addBreadcrumb(new Breadcrumb(getPageTitleModel(), this.getClass(), getPageParameters()));
     }
 
     public void updateBreadcrumbParameters(String key, Object value) {

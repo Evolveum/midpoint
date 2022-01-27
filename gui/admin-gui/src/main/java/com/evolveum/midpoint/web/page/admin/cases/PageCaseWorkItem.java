@@ -132,11 +132,6 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         initLayout();
     }
 
-    @Override
-    protected void createBreadcrumb() {
-        createInstanceBreadcrumb();            // to preserve page state (e.g. approver's comment)
-    }
-
     private CaseType loadCaseIfNecessary() {
         if (caseModel.isLoaded()) {
             return caseModel.getObject();

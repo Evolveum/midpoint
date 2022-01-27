@@ -6,6 +6,22 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.focus;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -15,13 +31,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
@@ -30,30 +42,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerPreviewOutputType;
 
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author mederly
  */
 @PageDescriptor(
         urls = {
-                @Url (mountUrl = "/admin/previewChanges", matchUrlForSecurity = "/admin/previewChanges"),
+                @Url(mountUrl = "/admin/previewChanges", matchUrlForSecurity = "/admin/previewChanges"),
         },
         encoder = OnePageParameterEncoder.class,
         action = {
-            @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_PREVIEW_CHANGES_URL, label = "PageAdmin.auth.previewChanges.label", description = "PageAdmin.auth.previewChanges.description")
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_PREVIEW_CHANGES_URL, label = "PageAdmin.auth.previewChanges.label", description = "PageAdmin.auth.previewChanges.description")
         })
 public class PageFocusPreviewChanges<O extends ObjectType> extends PageBase {
     private static final long serialVersionUID = 1L;
@@ -67,20 +65,22 @@ public class PageFocusPreviewChanges<O extends ObjectType> extends PageBase {
 
     private Map<PrismObject<O>, ModelContext<O>> modelContextMap;
 
+    private PageBase previousPage;
+
     public PageFocusPreviewChanges() {
         throw new RestartResponseException(getApplication().getHomePage());
     }
 
-    public PageFocusPreviewChanges(Map<PrismObject<O>, ModelContext<O>> modelContextMap) {
+    public PageFocusPreviewChanges(Map<PrismObject<O>, ModelContext<O>> modelContextMap, PageBase previousPage) {
         this.modelContextMap = modelContextMap;
+        this.previousPage = previousPage;
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
-
 
     private void initLayout() {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
@@ -125,57 +125,54 @@ public class PageFocusPreviewChanges<O extends ObjectType> extends PageBase {
             List<EvaluatedTriggerGroupDto> triggerGroups = enforcements != null
                     ? Collections.singletonList(EvaluatedTriggerGroupDto.initializeFromRules(enforcements.getRule(), false, null))
                     : Collections.emptyList();
-            if (!EvaluatedTriggerGroupDto.isEmpty(triggerGroups)){
+            if (!EvaluatedTriggerGroupDto.isEmpty(triggerGroups)) {
                 return false;
             }
         }
         return true;
     }
 
-    private List<ITab> createTabs(){
+    private List<ITab> createTabs() {
         List<ITab> tabs = new ArrayList<>();
         modelContextMap.forEach((object, modelContext) -> {
 
-            tabs.add(
-                    new PanelTab(getTabPanelTitleModel(object)){
+            tabs.add(new PanelTab(getTabPanelTitleModel(object)) {
 
-                        private static final long serialVersionUID = 1L;
+                private static final long serialVersionUID = 1L;
 
-                        @Override
-                        public WebMarkupContainer createPanel(String panelId) {
-                            return new PreviewChangesTabPanel(panelId, Model.of(modelContext));
-                        }
-                    });
+                @Override
+                public WebMarkupContainer createPanel(String panelId) {
+                    return new PreviewChangesTabPanel(panelId, Model.of(modelContext));
+                }
+            });
         });
         return tabs;
     }
 
-    private IModel<String> getTabPanelTitleModel(PrismObject<? extends ObjectType> object){
+    private IModel<String> getTabPanelTitleModel(PrismObject<? extends ObjectType> object) {
         return Model.of(WebComponentUtil.getEffectiveName(object, AbstractRoleType.F_DISPLAY_NAME));
     }
 
-
     private void cancelPerformed(AjaxRequestTarget target) {
+        if (previousPage != null) {
+            setResponsePage(previousPage);
+            return;
+        }
         redirectBack();
     }
 
     private void savePerformed(AjaxRequestTarget target) {
-        Breadcrumb bc = redirectBack();
-        if (bc instanceof BreadcrumbPageInstance) {
-            BreadcrumbPageInstance bcpi = (BreadcrumbPageInstance) bc;
-            WebPage page = bcpi.getPage();
-            if (page instanceof PageFocusDetails) {
-                ((PageFocusDetails) page).setSaveOnConfigure(true);
+        if (previousPage != null) {
+            setResponsePage(previousPage);
+
+            if (previousPage instanceof PageFocusDetails) {
+                ((PageFocusDetails) previousPage).setSaveOnConfigure(true);
             } else {
-                error("Couldn't save changes - unexpected referring page: " + page);
+                error("Couldn't save changes - unexpected referring page: " + previousPage);
             }
         } else {
+            Breadcrumb bc = redirectBack();
             error("Couldn't save changes - no instance for referring page; breadcrumb is " + bc);
         }
-    }
-
-    @Override
-    protected void createBreadcrumb() {
-        createInstanceBreadcrumb();
     }
 }

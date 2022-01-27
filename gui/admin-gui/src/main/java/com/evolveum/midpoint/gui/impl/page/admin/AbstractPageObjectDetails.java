@@ -92,6 +92,13 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         initLayout();
     }
 
+    @Override
+    protected void onDetach() {
+        objectDetailsModels.detach();
+
+        super.onDetach();
+    }
+
     protected boolean isAdd() {
         return isAdd;
     }
@@ -502,11 +509,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     public PrismObject<O> getPrismObject() {
         return getModelPrismObject();
-    }
-
-    @Override
-    protected void createBreadcrumb() {
-        createInstanceBreadcrumb();
     }
 
     protected SummaryPanelSpecificationType getSummaryPanelSpecification() {
