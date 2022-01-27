@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.MapUtils;
@@ -97,7 +98,11 @@ public class CustomFunctions {
                 .collect(Collectors.toList());
 
         LOGGER.trace("functions {}", functions);
-        ExpressionType expressionType = functions.iterator().next();
+        ExpressionType expressionType =
+                MiscUtil.extractSingletonRequired(
+                        functions,
+                        () -> new ExpressionEvaluationException(functions.size() + " functions named '" + functionName + "' present"),
+                        () -> new ExpressionEvaluationException("No function named '" + functionName + "' present"));
 
         LOGGER.trace("function to execute {}", expressionType);
 

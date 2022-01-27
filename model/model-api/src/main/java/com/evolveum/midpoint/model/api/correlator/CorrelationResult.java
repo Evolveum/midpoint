@@ -57,6 +57,10 @@ public class CorrelationResult implements Serializable, DebugDumpable {
         return owner;
     }
 
+    public boolean isUncertain() {
+        return status == Status.UNCERTAIN;
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);

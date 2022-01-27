@@ -5,18 +5,16 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.sync;
+package com.evolveum.midpoint.model.api.correlator;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.Correlator;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * TODO
@@ -25,19 +23,40 @@ public interface CorrelationService {
 
     /**
      * TODO
+     *
+     * Also - include preliminary focus here!
      */
-    CorrelationResult correlate(ShadowType shadow, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+    CorrelationResult correlate(ShadowType shadow, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
 
     /**
      * TODO
      */
-    Correlator instantiateCorrelator(PrismObject<CaseType> aCase, Task task, OperationResult result)
+    Correlator instantiateCorrelator(
+            @NotNull PrismObject<CaseType> aCase,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException;
+
+    /**
+     * TODO
+     */
     @NotNull Correlator instantiateCorrelator(
             @NotNull ShadowType shadow,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * TODO
+     */
+    @NotNull CorrelatorInstantiationContext getInstantiationContext(
+            @NotNull PrismObject<CaseType> aCase,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException;
 }

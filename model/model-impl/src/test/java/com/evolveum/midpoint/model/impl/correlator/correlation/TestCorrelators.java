@@ -158,14 +158,15 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 correlatorMap.get(correlatorName), () -> "unknown correlator " + correlatorName);
 
         CorrelationContext context = new CorrelationContext(
-                UserType.class,
+                account.getShadow(),
+                new UserType(prismContext), // TODO
                 RESOURCE_DETERMINISTIC.getResource().asObjectable(),
                 resourceObjectTypeDefinition,
                 systemConfiguration);
 
         then("correlating account #" + account.getNumber());
 
-        CorrelationResult correlationResult = correlator.correlate(account.getShadow(), context, task, result);
+        CorrelationResult correlationResult = correlator.correlate(context, task, result);
         assertCorrelationResult(correlationResult, account, result);
     }
 

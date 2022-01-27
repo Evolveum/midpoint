@@ -537,6 +537,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         ResourceType resource = change.getResource().asObjectable();
         setupResourceRefInShadowIfNeeded(resourceObject.asObjectable(), resource);
 
+        evaluatePreMappings(syncCtx, result);
+
         CorrelationResult correlationResult = correlate(syncCtx, result);
         LOGGER.trace("Correlation result:\n{}", correlationResult.debugDumpLazily(1));
 
@@ -567,12 +569,20 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
+    private <F extends FocusType> void evaluatePreMappings(SynchronizationContext<F> syncCtx, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        new PreMappingsEvaluation<>(syncCtx, beans)
+                .evaluate(result);
+    }
+
     private <F extends FocusType> CorrelationResult correlate(SynchronizationContext<F> syncCtx, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
 
         CorrelationContext correlationContext = new CorrelationContext(
-                syncCtx.getFocusClass(),
+                syncCtx.getShadowedResourceObject().asObjectable(),
+                syncCtx.getPreFocus(),
                 syncCtx.getResource().asObjectable(),
                 syncCtx.getObjectTypeDefinition(),
                 asObjectable(syncCtx.getSystemConfiguration()));
@@ -582,7 +592,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         syncCtx.setCorrelationContext(correlationContext);
 
         return correlatorFactoryRegistry.instantiateCorrelator(syncCtx.getCorrelators(), task, result)
-                .correlate(syncCtx.getShadowedResourceObject().asObjectable(), correlationContext, task, result);
+                .correlate(correlationContext, task, result);
     }
 
     // This is maybe not needed

@@ -45,6 +45,7 @@ public class BuiltInCaseManager {
 
     public <F extends FocusType> CorrelationResult createCorrelationResultOrCase(
             @NotNull ShadowType resourceObject,
+            @NotNull FocusType preFocus,
             @NotNull List<F> candidates,
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result) throws SchemaException {
@@ -53,6 +54,7 @@ public class BuiltInCaseManager {
             LOGGER.trace("Going to create or update correlation case for {}", resourceObject);
             beans.correlationCaseManager.createOrUpdateCase(
                     resourceObject,
+                    preFocus,
                     createCaseContextBean(candidates, correlationContext),
                     result);
             return CorrelationResult.uncertain();
@@ -63,11 +65,11 @@ public class BuiltInCaseManager {
         }
     }
 
-    private <F extends FocusType> BuiltInCorrelationContextType createCaseContextBean(
+    private <F extends FocusType> PotentialOwnersType createCaseContextBean(
             List<F> candidates, CorrelationContext correlationContext) {
-        BuiltInCorrelationContextType context = new BuiltInCorrelationContextType(PrismContext.get());
+        PotentialOwnersType context = new PotentialOwnersType(PrismContext.get());
         if (correlationContext.getManualCorrelationContext().getPotentialMatches() != null) {
-            context.getPotentialMatch().addAll(
+            context.getPotentialOwner().addAll(
                     CloneUtil.cloneCollectionMembers(
                             correlationContext.getManualCorrelationContext().getPotentialMatches()));
         } else {
@@ -76,22 +78,22 @@ public class BuiltInCaseManager {
         return context;
     }
 
-    private <F extends FocusType> void createDefaultPotentialMatches(BuiltInCorrelationContextType context, List<F> candidates) {
+    private <F extends FocusType> void createDefaultPotentialMatches(PotentialOwnersType context, List<F> candidates) {
         for (F candidate : candidates) {
-            context.getPotentialMatch().add(
+            context.getPotentialOwner().add(
                     createPotentialMatch(candidate));
         }
-        context.getPotentialMatch().add(
+        context.getPotentialOwner().add(
                 createPotentialMatch(null));
     }
 
-    private BuiltInCorrelationPotentialMatchType createPotentialMatch(@Nullable FocusType candidate) {
+    private PotentialOwnerType createPotentialMatch(@Nullable FocusType candidate) {
         String optionUri = candidate != null ?
                 qNameToUri(
                         new QName(SchemaConstants.CORRELATION_NS,
                                 SchemaConstants.CORRELATION_OPTION_PREFIX + candidate.getOid())) :
                 SchemaConstants.CORRELATION_NONE_URI;
-        return new BuiltInCorrelationPotentialMatchType(PrismContext.get())
+        return new PotentialOwnerType(PrismContext.get())
                 .uri(optionUri)
                 .candidateOwnerRef(ObjectTypeUtil.createObjectRef(candidate));
     }

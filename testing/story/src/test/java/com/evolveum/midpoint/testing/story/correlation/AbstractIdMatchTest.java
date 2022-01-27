@@ -242,6 +242,8 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                 .workItems()
                     .assertWorkItems(1);
         // @formatter:on
+
+        displayValue("correlation case", prismContext.xmlSerializer().serializeRealValue(correlationCase));
     }
 
     /**

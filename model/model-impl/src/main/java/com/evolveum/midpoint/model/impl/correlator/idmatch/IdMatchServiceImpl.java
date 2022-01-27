@@ -50,6 +50,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 /**
  * An interface from midPoint to real ID Match service.
  */
@@ -82,10 +84,13 @@ public class IdMatchServiceImpl implements IdMatchService {
     /** SOR Label to be used in ID Match requests. */
     @NotNull private final String sorLabel;
 
-    private static final String DEFAULT_SOR_LABEL = "sor";
+    private static final String DEFAULT_SOR_LABEL = "midpoint";
 
-    /** A shadow attribute to be used as SOR ID in the requests. */
-    @NotNull private final QName sorIdAttribute;
+    /** Value serving as a prefix for SOR IDs generated. */
+    @Nullable private final String sorIdPrefix;
+
+    /** A property to be used as part of the SOR ID in the requests. */
+    @NotNull private final QName sorIdAttributeName;
 
     /**
      * Should we return "none of the above matches" option among potential matches? (Under assumption that
@@ -100,13 +105,15 @@ public class IdMatchServiceImpl implements IdMatchService {
             @Nullable String username,
             @Nullable ProtectedStringType password,
             @Nullable String sorLabel,
-            @Nullable QName sorIdAttribute,
+            @Nullable String sorIdPrefix,
+            @Nullable QName sorIdAttributeName,
             boolean includeNoneMatchesOption) {
         this.url = url;
         this.username = username;
         this.password = password;
         this.sorLabel = Objects.requireNonNullElse(sorLabel, DEFAULT_SOR_LABEL);
-        this.sorIdAttribute = Objects.requireNonNullElse(sorIdAttribute, DEFAULT_SOR_ID_ATTRIBUTE);
+        this.sorIdPrefix = sorIdPrefix;
+        this.sorIdAttributeName = Objects.requireNonNullElse(sorIdAttributeName, DEFAULT_SOR_ID_ATTRIBUTE);
         this.includeNoneMatchesOption = includeNoneMatchesOption;
     }
 
@@ -374,7 +381,7 @@ public class IdMatchServiceImpl implements IdMatchService {
                 String elementName = fromMidPointAttributeName(item.getElementName());
                 String elementRealValue = getStringValue(item);
 
-                if (QNameUtil.match(sorIdAttribute, item.getElementName())) {
+                if (QNameUtil.match(sorIdAttributeName, item.getElementName())) {
                     sorIdentifiersFound.add(item);
                 }
 
@@ -390,18 +397,31 @@ public class IdMatchServiceImpl implements IdMatchService {
             generator.writeEndObject();
             generator.close();
 
-            Item<?, ?> sorId = MiscUtil.extractSingletonRequired(
+            Item<?, ?> sorIdAttribute = MiscUtil.extractSingletonRequired(
                     sorIdentifiersFound,
-                    () -> new SchemaException("Ambiguous SOR Identifier attribute '" + sorIdAttribute
+                    () -> new SchemaException("Ambiguous SOR Identifier attribute '" + sorIdAttributeName
                             + "', multiple values were found: " + sorIdentifiersFound),
-                    () -> new SchemaException("No value for SOR Identifier attribute '" + sorIdAttribute + "' found"));
-            String sorIdValue = getStringValue(sorId);
+                    () -> new SchemaException("No value for SOR Identifier attribute '" + sorIdAttributeName + "' found"));
+            String sorIdAttributeValue =
+                    MiscUtil.requireNonNull(
+                            getStringValue(sorIdAttribute),
+                            () -> new SchemaException("No value for SOR ID attribute: " + sorIdAttributeName));
+            String sorIdValue = createSorIdValue(sorIdAttributeValue);
             return new JsonRequest(sorLabel, sorIdValue, String.valueOf(jsonString));
         } catch (IOException e) {
             // We really don't expect IOException here. Let's not bother with it, and throw
             // a SystemException, because this is most probably some weirdness.
             throw new SystemException("Unexpected IOException: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Creates SOR ID value (like ais:1000234) to be passed to ID Match Service.
+     *
+     * Temporary implementation, limited to using a given prefix.
+     */
+    private @NotNull String createSorIdValue(@NotNull String sorIdAttributeValue) {
+        return emptyIfNull(sorIdPrefix) + sorIdAttributeValue;
     }
 
     // TEMPORARY!
@@ -451,8 +471,9 @@ public class IdMatchServiceImpl implements IdMatchService {
                 configuration.getUsername(),
                 configuration.getPassword(),
                 configuration.getSorLabel(),
+                configuration.getSorIdentifierPrefix(),
                 configuration.getSorIdentifierAttribute(),
-                Boolean.TRUE.equals(configuration.isUseReturnedValuesAsBase())); // default is "false"
+                true);
     }
 
     /**
@@ -467,6 +488,7 @@ public class IdMatchServiceImpl implements IdMatchService {
                 url,
                 username,
                 password,
+                null,
                 null,
                 null,
                 false // Our tests currently expect that "none matches" option is not included.

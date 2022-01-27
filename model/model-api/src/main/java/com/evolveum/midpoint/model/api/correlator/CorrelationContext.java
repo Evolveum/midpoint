@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.api.correlator;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -24,12 +25,20 @@ import java.util.List;
  *
  * TODO resolve naming conflict with CorrelationContextType
  */
-public class CorrelationContext implements DebugDumpable {
+public class CorrelationContext implements DebugDumpable, Cloneable {
 
     /**
-     * What type of focus object(s) are we correlating against.
+     * Shadowed resource object to be correlated.
      */
-    @NotNull private final Class<? extends ObjectType> focusType;
+    @NotNull private final ShadowType resourceObject;
+
+    /**
+     * Focus that was created using pre-mappings.
+     * May be empty (but not null) if there are no such mappings.
+     *
+     * TODO better name
+     */
+    @NotNull private final FocusType preFocus;
 
     /**
      * Resource on which the correlated shadow resides.
@@ -54,22 +63,33 @@ public class CorrelationContext implements DebugDumpable {
 
     /**
      * User scripts can request manual correlation here.
+     * TODO adapt / remove
      */
     @NotNull private final ManualCorrelationContext manualCorrelationContext = new ManualCorrelationContext();
 
     public CorrelationContext(
-            @NotNull Class<? extends ObjectType> focusType,
+            @NotNull ShadowType resourceObject,
+            @NotNull FocusType preFocus,
             @NotNull ResourceType resource,
             @NotNull ResourceObjectTypeDefinition objectTypeDefinition,
             @Nullable SystemConfigurationType systemConfiguration) {
-        this.focusType = focusType;
+        this.resourceObject = resourceObject;
+        this.preFocus = preFocus;
         this.resource = resource;
         this.objectTypeDefinition = objectTypeDefinition;
         this.systemConfiguration = systemConfiguration;
     }
 
-    @NotNull public Class<? extends ObjectType> getFocusType() {
-        return focusType;
+    public @NotNull ShadowType getResourceObject() {
+        return resourceObject;
+    }
+
+    public @NotNull FocusType getPreFocus() {
+        return preFocus;
+    }
+
+    public @NotNull Class<? extends ObjectType> getFocusType() {
+        return preFocus.getClass();
     }
 
     public @NotNull ResourceType getResource() {
@@ -116,7 +136,7 @@ public class CorrelationContext implements DebugDumpable {
      * If there's only one option, an error should be signalled.
      */
     @SuppressWarnings("unused") // called from scripts
-    public void requestManualCorrelation(List<BuiltInCorrelationPotentialMatchType> potentialMatches) {
+    public void requestManualCorrelation(List<PotentialOwnerType> potentialMatches) {
         manualCorrelationContext.setRequested(true);
         manualCorrelationContext.setPotentialMatches(potentialMatches);
     }
@@ -124,7 +144,7 @@ public class CorrelationContext implements DebugDumpable {
     @Override
     public String toString() {
         return "CorrelationContext("
-                + focusType.getSimpleName() + ", "
+                + getFocusType().getSimpleName() + ", "
                 + objectTypeDefinition.getHumanReadableName() + "@" + resource
                 + ')';
     }
@@ -132,12 +152,26 @@ public class CorrelationContext implements DebugDumpable {
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "focusType", focusType, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "preFocus", preFocus, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "focusType", getFocusType(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "resource", String.valueOf(resource), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectTypeDefinition", String.valueOf(objectTypeDefinition), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "systemConfiguration", String.valueOf(systemConfiguration), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "correlationState", correlationState, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "manualCorrelationContext", manualCorrelationContext, indent + 1);
         return sb.toString();
+    }
+
+    /**
+     * A simple shallow clone. Use with care.
+     */
+    @Override
+    public CorrelationContext clone() {
+        try {
+            return (CorrelationContext) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new SystemException(e);
+        }
     }
 }

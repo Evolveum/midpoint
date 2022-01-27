@@ -8905,6 +8905,26 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="preMappingsSimulation" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TEMPORARY
+
+                        Simulates execution of so-called pre-mappings (inbound mappings executed before synchronization
+                        starts). An expression that returns a focus object.
+
+                        Later on, this will be replaced by real execution of (some or all) inbound mappings.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="correlationProperties" type="tns:CorrelationPropertiesDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies how to transform a shadow or a user into an object for ID Match (to match or update).
+                        HIGHLY EXPERIMENTAL. May be changed or even removed later.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="correlators" type="tns:CorrelatorsType" minOccurs="0"> <!-- TODO name? -->
                 <xsd:annotation>
                     <xsd:documentation>
@@ -23441,26 +23461,23 @@
                     <xsd:element name="sorLabel" type="xsd:string" minOccurs="0" default="sor">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Label for this System of Record. Default is "sor" (TODO revise the default).
+                                Label for this System of Record. Default is "sor" (TODO will be "midPoint").
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="sorIdentifierPrefix" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                First part of the SOR identifier. Used to distinguish between various source systems
+                                with overlapping primary ID spaces.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="sorIdentifierAttribute" type="xsd:QName" minOccurs="0" default="icfs:uid">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Attribute that is sent as SOR identifier. Default is "icfs:uid". (TODO revise the default.
-                                Is it possible for it to be the current primary identifier?)
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="useReturnedValuesAsBase" type="xsd:boolean" minOccurs="0" default="false">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                If true, then values returned from ID Match service (i.e. name-normalized
-                                and filtered) are presented to the user as attribute values of the account that is to
-                                be correlated. If false (the default), values from midPoint (i.e. original ones) are used.
-
-                                This option is here just to experiment with various approaches in midPoint 4.5-M1.
+                                Attribute whose value provides the base of the SOR identifier. Default is "icfs:uid".
+                                (TODO revise the default. Is it possible for it to be the current primary identifier?)
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -23486,6 +23503,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <!-- TODO operator -->
+                    <!-- TODO referenceId mapping -->
                     <xsd:element name="followOn" type="tns:CorrelatorsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -23499,6 +23517,89 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="idMatchCorrelator" type="tns:IdMatchCorrelatorType"/>
+
+    <xsd:complexType name="CorrelationPropertiesDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                What properties take part in the correlation?
+
+                VERY EXPERIMENTAL. WILL CHANGE.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:element name="property" type="tns:CorrelationPropertyDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Properties that take part in the correlation.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="mirrored" type="xsd:boolean" minOccurs="0" default="true">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Are properties mirrored, i.e. is the source property automatically considered to
+                            be a secondary target one (or even primary, if there's no explicit primary property defined)?
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="CorrelationPropertyDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Property that takes part in the correlation.
+
+                VERY EXPERIMENTAL. WILL CHANGE.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="source" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path to the property that is the source of the comparison.
+                        This property is taken from the object whose owner we try to find.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="primaryTarget" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path to the property that is the primary target of the comparison.
+                        This property is taken from the potential (candidate) owner.
+
+                        The meaning of "primary" is that it will be displayed in the GUI at a prominent place.
+                        Also, the correlator(s) may interpret it in their own way.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="secondaryTarget" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path to the property that is the secondary target of the comparison.
+                        This property is taken from the potential (candidate) owner.
+
+                        The meaning of "primary" is that it will be displayed in the GUI at less prominent place (if at all).
+                        Also, the correlator(s) may interpret it in their own way.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 
     <xsd:complexType name="ManualCorrelationConfigurationType">
         <xsd:annotation>

@@ -10,14 +10,15 @@ package com.evolveum.midpoint.model.api.correlator;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.BuiltInCorrelationPotentialMatchType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ManualCorrelationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PotentialOwnerType;
 
 import java.util.List;
 
 /**
  * Here can the user script in the correlator request the manual resolution. (Plus provide additional information.)
+ *
+ * TODO Future of this class is uncertain.
  */
 public class ManualCorrelationContext implements DebugDumpable {
 
@@ -33,8 +34,9 @@ public class ManualCorrelationContext implements DebugDumpable {
 
     /**
      * Explicit list of potential matches provided by the user code.
+     * TODO
      */
-    private List<BuiltInCorrelationPotentialMatchType> potentialMatches;
+    private List<PotentialOwnerType> potentialMatches;
 
     public ManualCorrelationConfigurationType getConfiguration() {
         return configuration;
@@ -52,11 +54,11 @@ public class ManualCorrelationContext implements DebugDumpable {
         this.requested = requested;
     }
 
-    public List<BuiltInCorrelationPotentialMatchType> getPotentialMatches() {
+    public List<PotentialOwnerType> getPotentialMatches() {
         return potentialMatches;
     }
 
-    public void setPotentialMatches(List<BuiltInCorrelationPotentialMatchType> potentialMatches) {
+    public void setPotentialMatches(List<PotentialOwnerType> potentialMatches) {
         this.potentialMatches = potentialMatches;
     }
 

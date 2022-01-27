@@ -75,7 +75,6 @@ class FilterCorrelator implements Correlator {
 
     @Override
     public CorrelationResult correlate(
-            @NotNull ShadowType resourceObject,
             @NotNull CorrelationContext correlationContext,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -85,11 +84,9 @@ class FilterCorrelator implements Correlator {
         correlationContext.setManualCorrelationConfiguration(
                 configuration.getManual());
 
-        LOGGER.trace("Correlating the resource object:\n{}\nwith context:\n{}",
-                resourceObject.debugDumpLazily(1),
-                correlationContext.debugDumpLazily(1));
+        LOGGER.trace("Correlating:\n{}", correlationContext.debugDumpLazily(1));
 
-        return new Correlation<>(resourceObject, correlationContext, task)
+        return new Correlation<>(correlationContext, task)
                 .execute(result);
     }
 
@@ -113,10 +110,9 @@ class FilterCorrelator implements Correlator {
         @Nullable private final ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
         Correlation(
-                @NotNull ShadowType resourceObject,
                 @NotNull CorrelationContext correlationContext,
                 @NotNull Task task) {
-            this.resourceObject = resourceObject;
+            this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
             this.task = task;
             this.contextDescription =
@@ -134,7 +130,11 @@ class FilterCorrelator implements Correlator {
             // TODO selection expression
 
             return beans.builtInCaseManager.createCorrelationResultOrCase(
-                    resourceObject, confirmedCandidates, correlationContext, result);
+                    resourceObject,
+                    correlationContext.getPreFocus(),
+                    confirmedCandidates,
+                    correlationContext,
+                    result);
         }
 
         private @NotNull List<F> findCandidatesUsingConditionalFilters(OperationResult result)

@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.model.impl.sync.CorrelationService;
+import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -45,7 +45,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
  * Scenario:
  *
  * - users: X, Y, Z
- * - accounts: a1, a2, a3, ...
+ * - accounts: dynamically created - one for each test
  *
  * Correlators returns various combinations for users for individual accounts (see the individual tests).
  * Manual cases are sometimes created, and sometimes also resolved.
@@ -195,7 +195,9 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
 
         then();
         assertCorrelationResult(correlationResult, UNCERTAIN, null);
-        assertCorrelationCase(accountName, task, result);
+        var aCase = assertCorrelationCase(accountName, task, result);
+
+        displayValue("case", prismContext.xmlSerializer().serialize(aCase.asPrismObject()));
     }
 
     private CaseType assertCorrelationCase(String accountName, Task task, OperationResult result) throws CommonException {

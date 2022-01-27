@@ -119,4 +119,16 @@ public class CorrelatorUtil {
                         ShadowType.class),
                 () -> new IllegalStateException("No shadow object in " + aCase));
     }
+
+    public static @NotNull FocusType getPreFocusFromCorrelationCase(@NotNull PrismObject<CaseType> aCase) throws SchemaException {
+        CorrelationContextType correlationContext =
+                MiscUtil.requireNonNull(
+                        aCase.asObjectable().getCorrelationContext(),
+                        () -> new IllegalStateException("No correlation context in " + aCase));
+        return MiscUtil.requireNonNull(
+                MiscUtil.castSafely(
+                        ObjectTypeUtil.getObjectFromReference(correlationContext.getPreFocusRef()),
+                        FocusType.class),
+                () -> new IllegalStateException("No pre-focus object in " + aCase));
+    }
 }

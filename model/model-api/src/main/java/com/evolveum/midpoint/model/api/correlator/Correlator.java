@@ -13,7 +13,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -29,13 +28,14 @@ public interface Correlator {
      *
      * We assume that the correlator is already configured. See {@link CorrelatorFactory}.
      *
-     * @param resourceObject Resource object to correlate (should contain attributes, and be shadowed)
      * @param correlationContext Additional information about the overall context for correlation (e.g. type of focal objects)
      * @param task Task in context of which the correlation takes place
      * @param result Operation result where the method should record its operation
      */
-    CorrelationResult correlate(@NotNull ShadowType resourceObject, @NotNull CorrelationContext correlationContext,
-            @NotNull Task task, @NotNull OperationResult result)
+    CorrelationResult correlate(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
 
