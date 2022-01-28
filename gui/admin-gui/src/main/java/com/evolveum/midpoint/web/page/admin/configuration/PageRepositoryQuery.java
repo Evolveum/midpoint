@@ -21,7 +21,6 @@ import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -108,13 +107,12 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     private static final String ID_EDITOR_MIDPOINT = "editorMidPoint";
     private static final String ID_QUERY_EDITOR = "queryEditor";
     private static final String ID_QUERY_LABEL = "queryLabel";
-    private static final String ID_HIBERNATE_PARAMETERS = "hibernateParameters";
+    private static final String ID_PARAMETERS = "parameters";
     private static final String ID_RESULT_LABEL = "resultLabel";
     private static final String ID_RESULT_TEXT = "resultText";
     private static final String ID_QUERY_SAMPLE = "querySample";
     private static final String ID_OBJECT_TYPE = "objectType";
     private static final String ID_DISTINCT = "distinct";
-    private static final String ID_HIBERNATE_PARAMETERS_CONTAINER = "hibernateParametersContainer";
     private static final String ID_HIBERNATE_PARAMETERS_NOTE = "hibernateParametersNote";
     private static final String ID_INCOMPLETE_RESULTS_NOTE = "incompleteResultsNote";
     private static final String ID_VIEW_BUTTON_PANEL = "viewButtonPanel";
@@ -219,22 +217,17 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         editorHibernate.setMode(null);
         mainForm.add(editorHibernate);
 
-        WebMarkupContainer hibernateParametersContainer = new WebMarkupContainer(ID_HIBERNATE_PARAMETERS_CONTAINER);
-        hibernateParametersContainer.setOutputMarkupId(true);
-        hibernateParametersContainer.setVisible(!isNativeRepo());
-        mainForm.add(hibernateParametersContainer);
-
-        AceEditor hibernateParameters = new AceEditor(ID_HIBERNATE_PARAMETERS, new PropertyModel<>(model, RepoQueryDto.F_HIBERNATE_PARAMETERS));
+        AceEditor hibernateParameters = new AceEditor(ID_PARAMETERS, new PropertyModel<>(model, RepoQueryDto.F_HIBERNATE_PARAMETERS));
         hibernateParameters.setReadonly(true);
         hibernateParameters.setHeight(100);
         hibernateParameters.setResizeToMaxHeight(false);
         hibernateParameters.setMode(null);
-        hibernateParametersContainer.add(hibernateParameters);
+        mainForm.add(hibernateParameters);
 
         Label hibernateParametersNote = new Label(ID_HIBERNATE_PARAMETERS_NOTE, createStringResource("PageRepositoryQuery.hibernateParametersNote",
                 WebComponentUtil.getMidpointCustomSystemName(PageRepositoryQuery.this, "midPoint")));
         hibernateParametersNote.setVisible(isAdmin && !isNativeRepo());
-        hibernateParametersContainer.add(hibernateParametersNote);
+        mainForm.add(hibernateParametersNote);
 
         Label queryVsFilterNote = new Label(ID_QUERY_VS_FILTER_NOTE, createStringResource("PageRepositoryQuery.queryVsFilterNote",
                 WebComponentUtil.getMidpointCustomSystemName(PageRepositoryQuery.this, "midPoint")));
@@ -368,7 +361,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             }
         };
         executeHibernate.setVisible(isAdmin && !isNativeRepo());
-        hibernateParametersContainer.add(executeHibernate);
+        mainForm.add(executeHibernate);
 
         Label resultLabel = new Label(ID_RESULT_LABEL, new IModel<String>() {
             @Override
