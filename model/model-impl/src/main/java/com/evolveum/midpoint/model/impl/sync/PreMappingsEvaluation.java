@@ -12,15 +12,13 @@ import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalH
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MatchingUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -29,9 +27,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.Objects;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
@@ -65,7 +60,7 @@ class PreMappingsEvaluation<F extends FocusType> {
         ObjectSynchronizationType config = syncCtx.getObjectSynchronizationBean();
         if (config == null || config.getPreMappingsSimulation() == null) {
             LOGGER.trace("No pre-mapping simulation specified, doing simple 'copy attributes' operation");
-            copyAttributes();
+            MatchingUtil.copyAttributes(preFocus, syncCtx.getShadowedResourceObject().asObjectable());
         } else {
             LOGGER.trace("Evaluating pre-mapping simulation expression");
             evaluateSimulationExpression(config.getPreMappingsSimulation(), result);
@@ -99,62 +94,5 @@ class PreMappingsEvaluation<F extends FocusType> {
                 asObjectable(syncCtx.getSystemConfiguration()));
         variables.put(ExpressionConstants.VAR_SYNCHRONIZATION_CONTEXT, syncCtx, CorrelationContext.class);
         return variables;
-    }
-
-    private void copyAttributes() throws SchemaException {
-        ShadowAttributesType attributes = syncCtx.getShadowedResourceObject().asObjectable().getAttributes();
-        if (attributes != null) {
-            //noinspection unchecked
-            for (Item<?, ?> attribute : (Collection<Item<?, ?>>) attributes.asPrismContainerValue().getItems()) {
-                LOGGER.debug("Converting {}", attribute);
-                putIntoFocus(attribute);
-            }
-        }
-    }
-
-    private void putIntoFocus(Item<?, ?> attributeItem) throws SchemaException {
-        if (!(attributeItem instanceof PrismProperty<?>)) {
-            LOGGER.trace("Not a property: {}", attributeItem);
-            return;
-        }
-        PrismProperty<?> attribute = (PrismProperty<?>) attributeItem;
-
-        PrismObject<? extends FocusType> preFocusObject = preFocus.asPrismObject();
-
-        PrismObjectDefinition<? extends FocusType> def =
-                Objects.requireNonNull(
-                        preFocusObject.getDefinition(),
-                        () -> "no definition for pre-focus in " + syncCtx);
-
-        String localName = attribute.getElementName().getLocalPart();
-        ItemName directPath = new ItemName("", localName);
-        PrismPropertyDefinition<?> directDef = def.findPropertyDefinition(directPath);
-        if (directDef != null) {
-            if (preFocusObject.findItem(directPath) == null) {
-                preFocusObject.add(
-                        createPropertyClone(attribute, directDef));
-            }
-            return;
-        }
-
-        ItemPath extensionPath = ItemPath.create(ObjectType.F_EXTENSION, directPath);
-        PrismPropertyDefinition<Object> extensionDef = def.findPropertyDefinition(extensionPath);
-        if (extensionDef != null) {
-            if (preFocusObject.findItem(extensionPath) == null) {
-                preFocusObject.getOrCreateExtension().getValue()
-                        .add(createPropertyClone(attribute, extensionDef));
-            }
-            return;
-        }
-
-        LOGGER.trace("{} has no definition in focus", localName);
-    }
-
-    @NotNull
-    private PrismProperty<?> createPropertyClone(PrismProperty<?> attribute, PrismPropertyDefinition<?> directDef) throws SchemaException {
-        PrismProperty<?> property = directDef.instantiate();
-        //noinspection unchecked,rawtypes
-        property.addAll((Collection) CloneUtil.cloneCollectionMembers(attribute.getValues()));
-        return property;
     }
 }

@@ -8,12 +8,15 @@
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+
+import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -53,6 +56,10 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     private static final String ID_COLUMN = "column";
 
     private static final String OP_LOAD = CorrelationContextPanel.class.getName() + ".load";
+
+    // Move into properties
+    private static final String TEXT_CREATE_NEW = "Create new";
+    private static final String TEXT_CORRELATE = "Correlate";
 
     @SuppressWarnings("unused") // called by the framework
     public CorrelationContextPanel(String id, CaseDetailsModels model, ContainerPanelConfigurationType config) {
@@ -101,7 +108,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
 
                 actionButton.add(
                         new Label(ID_ACTION_LABEL,
-                                item.getModelObject().isNewOwner() ? "Create new owner" : "Use this owner"));
+                                item.getModelObject().isNewOwner() ? TEXT_CREATE_NEW : TEXT_CORRELATE));
 
                 item.add(actionButton);
             }
@@ -113,7 +120,21 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
 
             @Override
             protected void populateItem(ListItem<CorrelationOptionDto> item) {
-                item.add(new Label(ID_NAME, item.getModelObject().getReferenceId()));
+                // A full-object reference to the candidate owner
+                ReadOnlyModel<ObjectReferenceType> referenceModel = new ReadOnlyModel<>(
+                        () -> {
+                            CorrelationOptionDto optionDto = item.getModelObject();
+                            if (!optionDto.isNewOwner()) {
+                                return ObjectTypeUtil.createObjectRefWithFullObject(
+                                        optionDto.getObject());
+                            } else {
+                                // GUI cannot currently open object that does not exist in the repository.
+                                return null;
+                            }
+                        }
+                );
+                item.add(
+                        new LinkedReferencePanel<>(ID_NAME, referenceModel));
             }
         };
         add(referenceIds);

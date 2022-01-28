@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.impl.correlator.expression;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,9 +48,9 @@ public class ExpressionCorrelatorFactory implements CorrelatorFactory<Expression
 
     @Override
     public @NotNull ExpressionCorrelator instantiate(
-            @NotNull ExpressionCorrelatorType configuration,
+            @NotNull CorrelatorContext<ExpressionCorrelatorType> context,
             @NotNull Task task,
             @NotNull OperationResult result) throws ConfigurationException {
-        return new ExpressionCorrelator(configuration, beans);
+        return new ExpressionCorrelator(context.getConfigurationBean(), beans);
     }
 }

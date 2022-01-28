@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlator.correlation;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.Correlator;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
+import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
@@ -19,6 +16,7 @@ import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchCorrelatorFact
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MatchingUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -130,7 +128,8 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         for (File correlatorFile : CORRELATOR_FILES) {
             AbstractCorrelatorType configBean = prismContext.parserFor(correlatorFile)
                     .parseRealValue(AbstractCorrelatorType.class);
-            Correlator correlator = correlatorFactoryRegistry.instantiateCorrelator(configBean, task, result);
+            Correlator correlator = correlatorFactoryRegistry.instantiateCorrelator(
+                    CorrelatorContext.create(configBean), task, result);
             correlatorMap.put(configBean.getName(), correlator);
         }
     }
@@ -157,9 +156,12 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         Correlator correlator = Objects.requireNonNull(
                 correlatorMap.get(correlatorName), () -> "unknown correlator " + correlatorName);
 
+        UserType preFocus = new UserType(prismContext);
+        MatchingUtil.copyAttributes(preFocus, account.getShadow());
+
         CorrelationContext context = new CorrelationContext(
                 account.getShadow(),
-                new UserType(prismContext), // TODO
+                preFocus,
                 RESOURCE_DETERMINISTIC.getResource().asObjectable(),
                 resourceObjectTypeDefinition,
                 systemConfiguration);

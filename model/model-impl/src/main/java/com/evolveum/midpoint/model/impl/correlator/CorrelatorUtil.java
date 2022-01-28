@@ -7,22 +7,14 @@
 
 package com.evolveum.midpoint.model.impl.correlator;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -77,39 +69,6 @@ public class CorrelatorUtil {
         variables.put(ExpressionConstants.VAR_CORRELATION_STATE, correlationContext.getCorrelationState(),
                 AbstractCorrelationStateType.class);
         return variables;
-    }
-
-    /**
-     * Extracts {@link CorrelatorConfiguration} objects from given "correlators" structure (both typed and untyped).
-     */
-    public static @NotNull Collection<CorrelatorConfiguration> getConfigurations(@NotNull CorrelatorsType correlation) {
-        List<CorrelatorConfiguration> configurations =
-                Stream.of(
-                                correlation.getNone().stream(),
-                                correlation.getFilter().stream(),
-                                correlation.getExpression().stream(),
-                                correlation.getIdMatch().stream())
-                        .flatMap(s -> s)
-                        .map(CorrelatorConfiguration.TypedCorrelationConfiguration::new)
-                        .collect(Collectors.toCollection(ArrayList::new));
-
-        if (correlation.getExtension() != null) {
-            //noinspection unchecked
-            Collection<Item<?, ?>> items = correlation.getExtension().asPrismContainerValue().getItems();
-            for (Item<?, ?> item : items) {
-                for (PrismValue value : item.getValues()) {
-                    // TODO better type safety checks (provide specific exceptions)
-                    if (value instanceof PrismContainerValue) {
-                        //noinspection unchecked
-                        configurations.add(
-                                new CorrelatorConfiguration.UntypedCorrelationConfiguration(
-                                        item.getElementName(),
-                                        ((PrismContainerValue<AbstractCorrelatorType>) value)));
-                    }
-                }
-            }
-        }
-        return configurations;
     }
 
     public static @NotNull ShadowType getShadowFromCorrelationCase(@NotNull PrismObject<CaseType> aCase) throws SchemaException {

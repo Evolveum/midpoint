@@ -9,20 +9,15 @@ package com.evolveum.midpoint.model.api.correlator;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorsType;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
 
 /**
  * A registry of correlator factories.
- *
- * TODO decide on the fate of instantiation method variants
  */
 public interface CorrelatorFactoryRegistry {
 
@@ -34,49 +29,11 @@ public interface CorrelatorFactoryRegistry {
     void registerFactory(@NotNull QName name, @NotNull CorrelatorFactory<?, ?> factory);
 
     /**
-     * Finds a correlator factory by configuration item name.
-     *
-     * @param name The configuration item name. Must be qualified.
-     *
-     * @throws IllegalStateException If such factory cannot be found.
-     */
-    CorrelatorFactory<?, ?> getFactoryByConfigurationItemName(@NotNull QName name);
-
-    /**
      * Convenience method to look up a correlator factory based on the specific (typed) configuration,
      * and then instantiate the correlator.
      */
     <CB extends AbstractCorrelatorType> @NotNull Correlator instantiateCorrelator(
-            @NotNull CB correlatorConfiguration,
+            @NotNull CorrelatorContext<CB> correlatorContext,
             @NotNull Task task,
             @NotNull OperationResult result) throws ConfigurationException;
-
-    /**
-     * Convenience method to look up a correlator factory based on the specific (untyped) configuration
-     * and configuration item name, and then instantiate the correlator.
-     */
-    @NotNull Correlator instantiateCorrelator(
-            @NotNull AbstractCorrelatorType correlatorConfiguration,
-            @NotNull QName configurationItemName,
-            @NotNull Task task,
-            @NotNull OperationResult result) throws ConfigurationException;
-
-    /**
-     * Convenience method to look up a correlator factory based on the specific (typed or untyped) configuration,
-     * and then instantiate the correlator.
-     */
-    @NotNull Correlator instantiateCorrelator(
-            @NotNull CorrelatorConfiguration configuration,
-            @NotNull Task task,
-            @NotNull OperationResult result) throws ConfigurationException;
-
-    /**
-     * Convenience method to look up a correlator factory based on the specific configuration,
-     * and then instantiate the correlator.
-     */
-    @NotNull Correlator instantiateCorrelator(
-            @NotNull CorrelatorsType correlation,
-            @NotNull Task task,
-            @NotNull OperationResult result) throws ConfigurationException;
-
 }

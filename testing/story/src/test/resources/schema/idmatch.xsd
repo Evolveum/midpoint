@@ -24,6 +24,7 @@
       <!--<xsd:element name="referenceId" type="xsd:string" minOccurs="0"/>-->
       <xsd:element name="nationalId" type="xsd:string" minOccurs="0"/>
       <xsd:element name="dateOfBirth" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="aisId" type="xsd:string" minOccurs="0"/> <!-- just to copy the attribute during fake pre-mapping -->
     </xsd:sequence>
   </xsd:complexType>
 </xsd:schema>

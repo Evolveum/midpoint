@@ -17,6 +17,7 @@ import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistency
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 
@@ -34,9 +35,6 @@ import org.springframework.stereotype.Service;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
@@ -591,7 +589,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         syncCtx.setCorrelationContext(correlationContext);
 
-        return correlatorFactoryRegistry.instantiateCorrelator(syncCtx.getCorrelators(), task, result)
+        CorrelatorContext<?> correlatorContext =
+                CorrelatorContext.create(syncCtx.getCorrelators(), syncCtx.getObjectSynchronizationBean());
+        return correlatorFactoryRegistry.instantiateCorrelator(correlatorContext, task, result)
                 .correlate(correlationContext, task, result);
     }
 

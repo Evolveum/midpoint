@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.impl.correlator.filter;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,9 +48,9 @@ public class FilterCorrelatorFactory implements CorrelatorFactory<FilterCorrelat
 
     @Override
     public @NotNull FilterCorrelator instantiate(
-            @NotNull FilterCorrelatorType configuration,
+            @NotNull CorrelatorContext<FilterCorrelatorType> context,
             @NotNull Task task,
             @NotNull OperationResult result) throws ConfigurationException {
-        return new FilterCorrelator(configuration, beans);
+        return new FilterCorrelator(context.getConfigurationBean(), beans);
     }
 }

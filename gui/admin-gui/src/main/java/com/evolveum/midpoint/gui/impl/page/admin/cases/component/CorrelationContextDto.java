@@ -14,7 +14,7 @@ import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorInstantiationContext;
+import com.evolveum.midpoint.model.api.correlator.FullCorrelationContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,11 +36,12 @@ public class CorrelationContextDto implements Serializable {
     static final String F_CORRELATION_OPTIONS = "correlationOptions";
     static final String F_CORRELATION_PROPERTIES = "correlationProperties";
 
-    private static final String HEADER_NEW_OWNER = "New owner";
-    private static final String HEADER_SUGGESTION = "Suggestion %d";
+    // TODO move into properties
+    private static final String TEXT_BEING_CORRELATED = "Object being correlated";
+    private static final String TEXT_CANDIDATE = "Candidate owner %d";
 
     /**
-     * Headers for individual options: "New owner", "Suggestion 1", "Suggestion 2", ...
+     * Headers for individual options.
      */
     private final List<String> optionHeaders = new ArrayList<>();
 
@@ -104,11 +105,11 @@ public class CorrelationContextDto implements Serializable {
         int suggestionNumber = 1;
         for (PotentialOwnerType potentialOwner : context.getPotentialOwners().getPotentialOwner()) {
             if (SchemaConstants.CORRELATION_NONE_URI.equals(potentialOwner.getUri())) {
-                optionHeaders.add(0, HEADER_NEW_OWNER);
+                optionHeaders.add(0, TEXT_BEING_CORRELATED);
                 correlationOptions.add(0,
                         new CorrelationOptionDto(context.getPreFocusRef()));
             } else {
-                optionHeaders.add(String.format(HEADER_SUGGESTION, suggestionNumber));
+                optionHeaders.add(String.format(TEXT_CANDIDATE, suggestionNumber));
                 correlationOptions.add(
                         new CorrelationOptionDto(potentialOwner));
                 suggestionNumber++;
@@ -118,8 +119,8 @@ public class CorrelationContextDto implements Serializable {
 
     private void createCorrelationPropertiesDefinitions(CaseType aCase, PageBase pageBase, Task task, OperationResult result)
             throws CommonException {
-        CorrelatorInstantiationContext instantiationContext =
-                pageBase.getCorrelationService().getInstantiationContext(aCase.asPrismObject(), task, result);
+        FullCorrelationContext instantiationContext =
+                pageBase.getCorrelationService().getFullCorrelationContext(aCase.asPrismObject(), task, result);
         CorrelationPropertiesDefinitionType propertiesBean = instantiationContext.synchronizationBean.getCorrelationProperties();
         CorrelationOptionDto newOwnerOption = getNewOwnerOption();
         if (propertiesBean != null) {

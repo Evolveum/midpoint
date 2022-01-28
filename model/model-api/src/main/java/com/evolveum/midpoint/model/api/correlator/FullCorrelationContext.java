@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorsType;
@@ -14,13 +16,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizatio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
- * TODO Rename/delete this class
+ * Full context needed to carry out correlation-related operations on a shadow.
+ *
+ * TODO decide on the fate of this class
+ *
+ * @see CorrelatorContext
+ * @see CorrelationContext
  */
 @Experimental
-public class CorrelatorInstantiationContext {
+public class FullCorrelationContext {
 
     @NotNull public final ShadowType shadow;
     @NotNull public final ResourceType resource;
@@ -28,7 +33,7 @@ public class CorrelatorInstantiationContext {
     @NotNull public final ObjectSynchronizationType synchronizationBean;
     @NotNull public final CorrelatorsType correlators;
 
-    public CorrelatorInstantiationContext(
+    public FullCorrelationContext(
             @NotNull ShadowType shadow,
             @NotNull ResourceType resource,
             @NotNull ResourceObjectTypeDefinition typeDefinition,
@@ -39,5 +44,9 @@ public class CorrelatorInstantiationContext {
         this.typeDefinition = typeDefinition;
         this.synchronizationBean = synchronizationBean;
         this.correlators = correlators;
+    }
+
+    public @NotNull CorrelatorConfiguration getCorrelatorConfiguration() {
+        return CorrelatorConfiguration.getConfiguration(correlators);
     }
 }

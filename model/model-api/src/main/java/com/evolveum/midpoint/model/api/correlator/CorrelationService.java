@@ -53,7 +53,7 @@ public interface CorrelationService {
     /**
      * TODO
      */
-    @NotNull CorrelatorInstantiationContext getInstantiationContext(
+    @NotNull FullCorrelationContext getFullCorrelationContext(
             @NotNull PrismObject<CaseType> aCase,
             @NotNull Task task,
             @NotNull OperationResult result)

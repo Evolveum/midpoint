@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.impl.correlator.idmatch.data.structure.JsonRe
 import com.evolveum.midpoint.model.impl.correlator.idmatch.operations.Client;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -429,6 +430,8 @@ public class IdMatchServiceImpl implements IdMatchService {
         Object realValue = item.getRealValue();
         if (realValue instanceof String) {
             return (String) realValue;
+        } else if (realValue instanceof PolyString) {
+            return ((PolyString) realValue).getOrig();
         } else if (realValue instanceof RawType) {
             return ((RawType) realValue).extractString();
         } else {

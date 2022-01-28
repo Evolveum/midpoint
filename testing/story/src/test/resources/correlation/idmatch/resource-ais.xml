@@ -125,7 +125,7 @@
             <correlators>
                 <idMatch>
                     <!-- <sorLabel>midpoint</sorLabel> -->   <!-- this is the default -->
-                    <sorIdentifierAttribute>ri:aisId</sorIdentifierAttribute>
+                    <sorIdentifierAttribute>aisId</sorIdentifierAttribute>
                     <!-- URL and credentials are ignored when dummy ID Match Service implementation is used.
                          They are used only when running TestIdMatchReal (not part of the test suite). -->
                     <url>http://localhost:9090/match/api/1</url>

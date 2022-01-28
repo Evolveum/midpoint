@@ -7,6 +7,17 @@
 
 package com.evolveum.midpoint.model.test.idmatch;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchService;
 import com.evolveum.midpoint.model.api.correlator.idmatch.MatchingResult;
 import com.evolveum.midpoint.model.api.correlator.idmatch.PotentialMatch;
@@ -14,25 +25,16 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * A dummy implementation of {@link IdMatchService} used to test IdMatchCorrelator without actual ID Match Service.
  */
 public class DummyIdMatchServiceImpl implements IdMatchService {
+
+    private static final Trace LOGGER = TraceManager.getTrace(DummyIdMatchServiceImpl.class);
 
     private static final String ATTR_GIVEN_NAME = "givenName";
     private static final String ATTR_FAMILY_NAME = "familyName";
@@ -60,6 +62,7 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
         String familyName = getValue(attributes, ATTR_FAMILY_NAME);
         String dateOfBirth = getValue(attributes, ATTR_DATE_OF_BIRTH);
         String nationalId = getValue(attributes, ATTR_NATIONAL_ID);
+        LOGGER.info("Looking for {}:{}:{}:{}", givenName, familyName, dateOfBirth, nationalId);
 
         // 1. familyName + dateOfBirth + nationalId match -> automatic match
         Set<String> fullMatch = records.stream()
@@ -71,6 +74,7 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
                 .map(r -> r.referenceId)
                 .collect(Collectors.toSet());
         if (!fullMatch.isEmpty()) {
+            LOGGER.info("Full match(es):\n{}", String.join("\n", fullMatch));
             assertThat(fullMatch).as("Fully matching reference IDs").hasSize(1);
             return MatchingResult.forReferenceId(fullMatch.iterator().next());
         }
@@ -83,6 +87,8 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
                         || r.matchesGivenName(givenName) && r.matchesFamilyName(familyName) && r.matchesDateOfBirth(dateOfBirth)))
                 .collect(Collectors.toList());
         if (!approximateMatches.isEmpty()) {
+            LOGGER.info("Approximate match(es):\n{}",
+                    approximateMatches.stream().map(String::valueOf).collect(Collectors.joining("\n")));
             Collection<PotentialMatch> potentialMatches = approximateMatches.stream()
                     .map(this::createPotentialMatch)
                     .collect(Collectors.toSet());
@@ -97,6 +103,7 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
             }
         }
 
+        LOGGER.info("No match");
         // No match (for sure)
         String referenceId = UUID.randomUUID().toString();
         records.add(new Record(attributes, referenceId, null));
@@ -142,8 +149,13 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
     }
 
     private static String getValue(ShadowAttributesType attributes, String name) {
-        PrismProperty<?> attribute = attributes.asPrismContainerValue().findProperty(new ItemName(NS_RI, name));
-        return attribute != null ? attribute.getRealValue(String.class) : null;
+        PrismProperty<?> attribute = attributes.asPrismContainerValue().findProperty(new ItemName(name));
+        if (attribute == null) {
+            return null;
+        } else {
+            Object realValue = attribute.getRealValue();
+            return realValue != null ? realValue.toString() : null;
+        }
     }
 
     /** Used for manual setup of the matcher state. */

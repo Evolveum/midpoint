@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +55,7 @@ public class CorrelationCaseManager {
             CorrelationCaseManager.class.getName() + ".performCompletionInCorrelator";
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired private ModelService modelService;
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
     @Autowired private CorrelationService correlationService;
@@ -262,6 +264,10 @@ public class CorrelationCaseManager {
         } catch (ObjectAlreadyExistsException e) {
             throw new SystemException("Unexpected exception: " + e.getMessage(), e);
         }
+
+        // We try to re-import the object. This should be made configurable.
+        String shadowOid = aCase.asObjectable().getObjectRef().getOid();
+        modelService.importFromResource(shadowOid, task, result);
     }
 
     private OperationResult performCompletionInCorrelator(

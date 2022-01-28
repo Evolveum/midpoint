@@ -31,7 +31,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static com.evolveum.midpoint.util.MiscUtil.*;
 import static com.evolveum.midpoint.util.QNameUtil.qNameToUri;
@@ -48,8 +50,7 @@ class IdMatchCorrelator implements Correlator {
     /**
      * Configuration of the this correlator.
      */
-    @SuppressWarnings({ "FieldCanBeLocal", "unused" }) // temporary
-    @NotNull private final IdMatchCorrelatorType configuration;
+    @NotNull private final CorrelatorContext<IdMatchCorrelatorType> correlatorContext;
 
     /**
      * Configuration of a follow-on correlator (used to find real account owner based on matched identity).
@@ -68,10 +69,12 @@ class IdMatchCorrelator implements Correlator {
      *                        Used for unit testing.
      */
     IdMatchCorrelator(
-            @NotNull IdMatchCorrelatorType configuration,
+            @NotNull CorrelatorContext<IdMatchCorrelatorType> correlatorContext,
             @Nullable IdMatchService serviceOverride,
             ModelBeans beans) throws ConfigurationException {
-        this.configuration = configuration;
+        IdMatchCorrelatorType configuration = correlatorContext.getConfigurationBean();
+
+        this.correlatorContext = correlatorContext;
         this.service = instantiateService(configuration, serviceOverride);
         this.beans = beans;
 
@@ -86,8 +89,6 @@ class IdMatchCorrelator implements Correlator {
             throws ConfigurationException {
         if (serviceOverride != null) {
             return serviceOverride;
-        } else if (TemporaryIdMatchServiceImpl.URL.equals(configuration.getUrl())) {
-            return TemporaryIdMatchServiceImpl.INSTANCE;
         } else {
             return IdMatchServiceImpl.instantiate(configuration);
         }
@@ -97,7 +98,8 @@ class IdMatchCorrelator implements Correlator {
             throws ConfigurationException {
         configCheck(configuration.getFollowOn() != null,
                 "No 'follow on' correlator configured in %s", configuration);
-        Collection<CorrelatorConfiguration> followOnConfigs = CorrelatorUtil.getConfigurations(configuration.getFollowOn());
+        Collection<CorrelatorConfiguration> followOnConfigs =
+                CorrelatorConfiguration.getConfigurations(configuration.getFollowOn());
         configCheck(followOnConfigs.size() == 1, "Not a single 'follow on' correlator configured: %s",
                 followOnConfigs);
         return followOnConfigs.iterator().next();
@@ -167,7 +169,8 @@ class IdMatchCorrelator implements Correlator {
                 SecurityViolationException, ObjectNotFoundException {
 
             return beans.correlatorFactoryRegistry
-                    .instantiateCorrelator(followOnCorrelatorConfiguration, task, result)
+                    .instantiateCorrelator(
+                            correlatorContext.spawn(followOnCorrelatorConfiguration), task, result)
                     .correlate(correlationContext, task, result);
         }
 
@@ -239,7 +242,8 @@ class IdMatchCorrelator implements Correlator {
                             .referenceId(referenceId));
 
             CorrelationResult correlationResult = beans.correlatorFactoryRegistry
-                    .instantiateCorrelator(followOnCorrelatorConfiguration, task, result)
+                    .instantiateCorrelator(
+                            correlatorContext.spawn(followOnCorrelatorConfiguration), task, result)
                     .correlate(clonedContext, task, result);
 
             stateCheck(!correlationResult.isUncertain(),
@@ -294,11 +298,37 @@ class IdMatchCorrelator implements Correlator {
      */
     private ShadowAttributesType prepareAttributes(@NotNull FocusType preFocus) throws SchemaException {
         ShadowAttributesType attributes = new ShadowAttributesType(PrismContext.get());
-        for (PrismProperty<?> property : MatchingUtil.getSingleValuedProperties(preFocus)) {
+        for (PrismProperty<?> property : getCorrelationProperties(preFocus)) {
             //noinspection unchecked
             attributes.asPrismContainerValue().add(
                     property.clone());
         }
         return attributes;
+    }
+
+    private @NotNull List<PrismProperty<?>> getCorrelationProperties(@NotNull FocusType preFocus) {
+        List<CorrelationPropertyDefinitionType> explicitDefinitions = getExplicitPropertyDefinitions();
+        if (!explicitDefinitions.isEmpty()) {
+            List<PrismProperty<?>> properties = new ArrayList<>();
+            for (CorrelationPropertyDefinitionType explicitDefinition : explicitDefinitions) {
+                PrismProperty<?> matching = MatchingUtil.findProperty(preFocus, explicitDefinition.getSource().getItemPath());
+                if (matching != null) {
+                    properties.add(matching);
+                }
+            }
+            return properties;
+        } else {
+            // Fallback: take all single-valued properties from the focus
+            return MatchingUtil.getSingleValuedProperties(preFocus);
+        }
+    }
+
+    private List<CorrelationPropertyDefinitionType> getExplicitPropertyDefinitions() {
+        ObjectSynchronizationType synchronizationBean = correlatorContext.getSynchronizationBean();
+        if (synchronizationBean != null && synchronizationBean.getCorrelationProperties() != null) {
+            return synchronizationBean.getCorrelationProperties().getProperty();
+        } else {
+            return List.of();
+        }
     }
 }

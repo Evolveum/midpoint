@@ -9,22 +9,19 @@ package com.evolveum.midpoint.model.impl.correlator;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
+import com.evolveum.midpoint.model.api.correlator.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorsType;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration.TypedCorrelationConfiguration;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration.UntypedCorrelationConfiguration;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.correlator.Correlator;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorFactory;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -47,25 +44,40 @@ public class CorrelatorFactoryRegistryImpl implements CorrelatorFactoryRegistry 
     }
 
     @Override
-    public CorrelatorFactory<?, ?> getFactoryByConfigurationItemName(@NotNull QName name) {
-        argCheck(QNameUtil.isQualified(name), "Unqualified configuration item name: " + name);
-        return MiscUtil.requireNonNull(
-                factories.get(name),
-                () -> new IllegalStateException("No correlator factory for configuration item '" + name + "'"));
-    }
-
-    @Override
     public <CB extends AbstractCorrelatorType> @NotNull Correlator instantiateCorrelator(
-            @NotNull CB correlatorConfiguration,
+            @NotNull CorrelatorContext<CB> correlatorContext,
             @NotNull Task task,
             @NotNull OperationResult result) throws ConfigurationException {
-        //noinspection unchecked
-        CorrelatorFactory<?, CB> factory = (CorrelatorFactory<?, CB>)
-                findByConfigurationBeanType(correlatorConfiguration.getClass());
-        return factory.instantiate(correlatorConfiguration, task, result);
+        CorrelatorFactory<?, CB> factory = getCorrelatorFactory(correlatorContext);
+        return factory.instantiate(correlatorContext, task, result);
     }
 
-    private <CB extends AbstractCorrelatorType> @NotNull CorrelatorFactory<?, CB> findByConfigurationBeanType(
+    private <CB extends AbstractCorrelatorType> CorrelatorFactory<?, CB> getCorrelatorFactory(
+            @NotNull CorrelatorContext<CB> correlatorContext) {
+        CorrelatorConfiguration configuration = correlatorContext.getConfiguration();
+        CB configurationBean = correlatorContext.getConfigurationBean();
+
+        if (configuration == null) {
+            //noinspection unchecked
+            return (CorrelatorFactory<?, CB>)
+                    getFactoryByConfigurationBeanType(configurationBean.getClass());
+        } else if (configuration instanceof TypedCorrelationConfiguration) {
+            // Actually, configurationBean == configuration.configurationBean!
+            //noinspection unchecked
+            return (CorrelatorFactory<?, CB>)
+                    getFactoryByConfigurationBeanType(configuration.getConfigurationBean().getClass());
+        } else if (configuration instanceof UntypedCorrelationConfiguration) {
+            //noinspection unchecked
+            return (CorrelatorFactory<?, CB>)
+                    getFactoryByConfigurationItemName(
+                            ((UntypedCorrelationConfiguration) configuration).getConfigurationItemName());
+        } else {
+            throw new IllegalArgumentException("Unsupported correlator configuration: "
+                    + MiscUtil.getValueWithClass(configuration));
+        }
+    }
+
+    private <CB extends AbstractCorrelatorType> @NotNull CorrelatorFactory<?, CB> getFactoryByConfigurationBeanType(
             @NotNull Class<CB> type) {
         //noinspection unchecked
         return MiscUtil.extractSingletonRequired(
@@ -77,48 +89,10 @@ public class CorrelatorFactoryRegistryImpl implements CorrelatorFactoryRegistry 
                 () -> new IllegalArgumentException("No correlator factory for configuration " + type));
     }
 
-    @Override
-    public @NotNull Correlator instantiateCorrelator(
-            @NotNull AbstractCorrelatorType correlatorConfiguration,
-            @NotNull QName configurationItemName,
-            @NotNull Task task,
-            @NotNull OperationResult result) throws ConfigurationException {
-        //noinspection unchecked
-        return ((CorrelatorFactory<?, AbstractCorrelatorType>) getFactoryByConfigurationItemName(configurationItemName))
-                .instantiate(correlatorConfiguration, task, result);
-    }
-
-    @Override
-    public @NotNull Correlator instantiateCorrelator(
-            @NotNull CorrelatorsType correlation,
-            @NotNull Task task,
-            @NotNull OperationResult result) throws ConfigurationException {
-        Collection<CorrelatorConfiguration> configurations = CorrelatorUtil.getConfigurations(correlation);
-        argCheck(!configurations.isEmpty(), "No correlator configurations in %s", correlation);
-        argCheck(configurations.size() == 1, "Multiple correlator configurations in %s", correlation);
-        CorrelatorConfiguration configuration = configurations.iterator().next();
-        return instantiateCorrelator(configuration, task, result);
-    }
-
-    @Override
-    public @NotNull Correlator instantiateCorrelator(
-            @NotNull CorrelatorConfiguration configuration,
-            @NotNull Task task,
-            @NotNull OperationResult result) throws ConfigurationException {
-        if (configuration instanceof CorrelatorConfiguration.TypedCorrelationConfiguration) {
-            return instantiateCorrelator(
-                    configuration.getConfigurationBean(),
-                    task,
-                    result);
-        } else if (configuration instanceof CorrelatorConfiguration.UntypedCorrelationConfiguration) {
-            return instantiateCorrelator(
-                    configuration.getConfigurationBean(),
-                    ((CorrelatorConfiguration.UntypedCorrelationConfiguration) configuration).getConfigurationItemName(),
-                    task,
-                    result);
-        } else {
-            throw new IllegalArgumentException("Unsupported correlator configuration: "
-                    + MiscUtil.getValueWithClass(configuration));
-        }
+    private CorrelatorFactory<?, ?> getFactoryByConfigurationItemName(@NotNull QName name) {
+        argCheck(QNameUtil.isQualified(name), "Unqualified configuration item name: " + name);
+        return MiscUtil.requireNonNull(
+                factories.get(name),
+                () -> new IllegalStateException("No correlator factory for configuration item '" + name + "'"));
     }
 }

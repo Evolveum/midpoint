@@ -8,16 +8,14 @@
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
 import java.io.Serializable;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.MatchingUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -85,11 +83,7 @@ public class CorrelationOptionDto implements Serializable {
     }
 
     private @NotNull Set<String> getValuesForPath(ItemPath path) {
-        return object.getAllValues(path).stream()
-                .filter(Objects::nonNull)
-                .map(PrismValue::getRealValue)
-                .map(String::valueOf)
-                .collect(Collectors.toSet());
+        return MatchingUtil.getValuesForPath(object, path);
     }
 
     public @NotNull PrismObject<?> getObject() {
