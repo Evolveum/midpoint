@@ -100,7 +100,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
     }
 
     protected boolean isEditRawButtonVisible() {
-        return isEditingObject();
+        return isEditingObject() && !isReadonly();
     }
 
     private void createBackButton(RepeatingView repeatingView) {
@@ -136,7 +136,11 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
     }
 
     protected boolean isDeleteButtonVisible() {
-        return isEditingObject();
+        return isEditingObject() && !isReadonly();
+    }
+
+    protected boolean isReadonly() {
+        return getModelObject().isReadOnly();
     }
 
     protected void addButtons(RepeatingView repeatingView) {
