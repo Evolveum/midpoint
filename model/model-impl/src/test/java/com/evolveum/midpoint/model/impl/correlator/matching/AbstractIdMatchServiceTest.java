@@ -20,11 +20,15 @@ import java.util.stream.Collectors;
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.midpoint.model.api.correlator.idmatch.*;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -37,14 +41,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchService;
-import com.evolveum.midpoint.model.api.correlator.idmatch.MatchingResult;
-import com.evolveum.midpoint.model.api.correlator.idmatch.PotentialMatch;
 import com.evolveum.midpoint.model.impl.correlator.matching.ExpectedMatchingResult.UncertainWithResolution;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
 /**
  * Isolated testing of the ID Match service: either "real" or the dummy one.
@@ -129,10 +129,11 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
         // 1. Push the account to the matcher
 
         MatchingTestingAccount account = accounts.get(i);
-        ShadowAttributesType attributes = account.getAttributes();
-        displayDumpable("Account attributes", attributes);
+        MatchingRequest request = new MatchingRequest(
+                createMatchObject(account.getShadow()));
+        displayDumpable("Matching request", request);
 
-        MatchingResult matchingResult = service.executeMatch(attributes, result);
+        MatchingResult matchingResult = service.executeMatch(request, result);
 
         then("account #" + (i+1));
 
@@ -233,7 +234,7 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
                     .isNotNull();
         }
         service.resolve(
-                accounts.get(i).getAttributes(),
+                createMatchObject(accounts.get(i).getShadow()),
                 matchingResult.getMatchRequestId(),
                 resolvedId,
                 result);
@@ -247,7 +248,9 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
     private String checkResponseApplied(int i, Integer operatorResponse, OperationResult result)
             throws SchemaException, CommunicationException {
         MatchingTestingAccount account = accounts.get(i);
-        MatchingResult reMatchingResult = service.executeMatch(account.getAttributes(), result);
+        MatchingRequest request = new MatchingRequest(
+                createMatchObject(account.getShadow()));
+        MatchingResult reMatchingResult = service.executeMatch(request, result);
         displayDumpable("Matching result after operator decision", reMatchingResult);
 
         String referenceIdAfterRetry = reMatchingResult.getReferenceId();
@@ -259,5 +262,12 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
             assertExistingIdentifier(referenceIdAfterRetry, operatorResponse);
         }
         return referenceIdAfterRetry;
+    }
+
+    private IdMatchObject createMatchObject(ShadowType shadow) throws SchemaException {
+        String uid = MiscUtil.requireNonNull(
+                ShadowUtil.getAttributeValue(shadow, SchemaConstants.ICFS_UID),
+                () -> "no UID attribute in " + shadow);
+        return IdMatchObject.create(uid, shadow.getAttributes());
     }
 }

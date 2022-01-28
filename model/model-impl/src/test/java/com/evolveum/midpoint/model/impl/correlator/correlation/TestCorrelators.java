@@ -118,7 +118,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     /**
      * We need specific records in our ID Match service.
      */
-    private void initDummyIdMatchService() {
+    private void initDummyIdMatchService() throws SchemaException {
         ShadowType ian200 = CorrelatorTestUtil.findAccount(allAccounts, 200).getShadow();
         dummyIdMatchService.addRecord(ian200.getAttributes(), "9481", null);
         idMatchCorrelatorFactory.setServiceOverride(dummyIdMatchService);

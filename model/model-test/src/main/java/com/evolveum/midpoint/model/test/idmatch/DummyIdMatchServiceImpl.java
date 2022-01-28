@@ -18,15 +18,15 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchService;
-import com.evolveum.midpoint.model.api.correlator.idmatch.MatchingResult;
-import com.evolveum.midpoint.model.api.correlator.idmatch.PotentialMatch;
+import com.evolveum.midpoint.model.api.correlator.idmatch.*;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IdMatchAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
 /**
@@ -57,7 +57,8 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
      * - otherwise no match is reported
      */
     @Override
-    public @NotNull MatchingResult executeMatch(@NotNull ShadowAttributesType attributes, @NotNull OperationResult result) {
+    public @NotNull MatchingResult executeMatch(@NotNull MatchingRequest request, @NotNull OperationResult result) {
+        IdMatchAttributesType attributes = request.getObject().getAttributes();
         String givenName = getValue(attributes, ATTR_GIVEN_NAME);
         String familyName = getValue(attributes, ATTR_FAMILY_NAME);
         String dateOfBirth = getValue(attributes, ATTR_DATE_OF_BIRTH);
@@ -132,8 +133,7 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
 
     @Override
     public void resolve(
-            @NotNull ShadowAttributesType attributes,
-            @Nullable String matchRequestId,
+            @NotNull IdMatchObject idMatchObject, @Nullable String matchRequestId,
             @Nullable String referenceId,
             @NotNull OperationResult result) {
         argCheck(matchRequestId != null, "Match request ID must be provided");
@@ -148,7 +148,7 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
                 referenceId : UUID.randomUUID().toString();
     }
 
-    private static String getValue(ShadowAttributesType attributes, String name) {
+    private static String getValue(IdMatchAttributesType attributes, String name) {
         PrismProperty<?> attribute = attributes.asPrismContainerValue().findProperty(new ItemName(name));
         if (attribute == null) {
             return null;
@@ -159,17 +159,26 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
     }
 
     /** Used for manual setup of the matcher state. */
-    public void addRecord(@NotNull ShadowAttributesType attributes, @Nullable String referenceId, @Nullable String matchId) {
-        records.add(new Record(attributes, referenceId, matchId));
+    public void addRecord(@NotNull ShadowAttributesType attributes, @Nullable String referenceId, @Nullable String matchId)
+            throws SchemaException {
+        IdMatchAttributesType repackaged =
+                IdMatchObject.create("dummy", attributes).getAttributes();
+        addRecord(repackaged, referenceId, matchId);
+    }
+
+    /** Used for manual setup of the matcher state. */
+    public void addRecord(@NotNull IdMatchAttributesType attributes, @Nullable String referenceId, @Nullable String matchId) {
+        records.add(
+                new Record(attributes, referenceId, matchId));
     }
 
     private static class Record {
-        private final ShadowAttributesType attributes;
+        private final IdMatchAttributesType attributes;
         private String referenceId;
         private final String matchId;
 
         private Record(
-                @NotNull ShadowAttributesType attributes,
+                @NotNull IdMatchAttributesType attributes,
                 String referenceId,
                 String matchId) {
             this.attributes = attributes;
@@ -178,19 +187,19 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
         }
 
         private boolean matchesGivenName(String value) {
-            return Objects.equals(value, getValue(this.attributes, ATTR_GIVEN_NAME));
+            return Objects.equals(value, getValue(attributes, ATTR_GIVEN_NAME));
         }
 
         private boolean matchesFamilyName(String value) {
-            return Objects.equals(value, getValue(this.attributes, ATTR_FAMILY_NAME));
+            return Objects.equals(value, getValue(attributes, ATTR_FAMILY_NAME));
         }
 
         private boolean matchesDateOfBirth(String value) {
-            return Objects.equals(value, getValue(this.attributes, ATTR_DATE_OF_BIRTH));
+            return Objects.equals(value, getValue(attributes, ATTR_DATE_OF_BIRTH));
         }
 
         private boolean matchesNationalId(String value) {
-            return Objects.equals(value, getValue(this.attributes, ATTR_NATIONAL_ID));
+            return Objects.equals(value, getValue(attributes, ATTR_NATIONAL_ID));
         }
 
         boolean hasReferenceId() {
@@ -201,7 +210,7 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
             return Objects.equals(value, matchId);
         }
 
-        public @NotNull ShadowAttributesType getAttributes() {
+        public @NotNull IdMatchAttributesType getAttributes() {
             return attributes;
         }
     }

@@ -7,18 +7,24 @@
 
 package com.evolveum.midpoint.model.impl.correlator.idmatch;
 
+import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.QNameUtil.qNameToUri;
+import static com.evolveum.midpoint.util.QNameUtil.uriToQName;
+
+import java.util.Collection;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.correlator.*;
-import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchService;
-import com.evolveum.midpoint.model.api.correlator.idmatch.MatchingResult;
-import com.evolveum.midpoint.model.api.correlator.idmatch.PotentialMatch;
+import com.evolveum.midpoint.model.api.correlator.idmatch.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MatchingUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -26,18 +32,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static com.evolveum.midpoint.util.MiscUtil.*;
-import static com.evolveum.midpoint.util.QNameUtil.qNameToUri;
-import static com.evolveum.midpoint.util.QNameUtil.uriToQName;
 
 /**
  * A correlator based on an external service providing ID Match API.
@@ -135,8 +129,12 @@ class IdMatchCorrelator implements Correlator {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
 
-            ShadowAttributesType attributes = prepareAttributes(correlationContext.getPreFocus());
-            MatchingResult mResult = service.executeMatch(attributes, result);
+            MatchingRequest mRequest =
+                    new MatchingRequest(
+                            prepareIdMatchObject(
+                                    correlationContext.getPreFocus(),
+                                    correlationContext.getResourceObject()));
+            MatchingResult mResult = service.executeMatch(mRequest, result);
             LOGGER.trace("Matching result:\n{}", mResult.debugDumpLazily(1));
 
             IdMatchCorrelationStateType correlationState = createCorrelationState(mResult);
@@ -267,14 +265,19 @@ class IdMatchCorrelator implements Correlator {
             @NotNull OperationResult result) throws SchemaException, CommunicationException {
         ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(aCase);
         FocusType preFocus = CorrelatorUtil.getPreFocusFromCorrelationCase(aCase);
-        ShadowAttributesType attributes = prepareAttributes(preFocus);
+        IdMatchObject idMatchObject = prepareIdMatchObject(preFocus, shadow);
         IdMatchCorrelationStateType state = MiscUtil.requireNonNull(
                 MiscUtil.castSafely(shadow.getCorrelationState(), IdMatchCorrelationStateType.class),
                 () -> new IllegalStateException("No correlation state in shadow " + shadow + " in " + aCase));
         String matchRequestId = state.getMatchRequestId();
         String correlatedReferenceId = getCorrelatedReferenceId(aCase, output);
 
-        service.resolve(attributes, matchRequestId, correlatedReferenceId, result);
+        service.resolve(idMatchObject, matchRequestId, correlatedReferenceId, result);
+    }
+
+    private IdMatchObject prepareIdMatchObject(@NotNull FocusType preFocus, @NotNull ShadowType shadow) throws SchemaException {
+        return new IdMatchObjectCreator(correlatorContext, preFocus, shadow)
+                .create();
     }
 
     private String getCorrelatedReferenceId(PrismObject<CaseType> aCase, AbstractWorkItemOutputType output)
@@ -291,44 +294,4 @@ class IdMatchCorrelator implements Correlator {
         }
     }
 
-    /**
-     * Extracts attributes that are to be used by ID Match Service from the pre-focus object.
-     *
-     * (Eventually, here will be also real focus object - later - when updating the ID Match data.)
-     */
-    private ShadowAttributesType prepareAttributes(@NotNull FocusType preFocus) throws SchemaException {
-        ShadowAttributesType attributes = new ShadowAttributesType(PrismContext.get());
-        for (PrismProperty<?> property : getCorrelationProperties(preFocus)) {
-            //noinspection unchecked
-            attributes.asPrismContainerValue().add(
-                    property.clone());
-        }
-        return attributes;
-    }
-
-    private @NotNull List<PrismProperty<?>> getCorrelationProperties(@NotNull FocusType preFocus) {
-        List<CorrelationPropertyDefinitionType> explicitDefinitions = getExplicitPropertyDefinitions();
-        if (!explicitDefinitions.isEmpty()) {
-            List<PrismProperty<?>> properties = new ArrayList<>();
-            for (CorrelationPropertyDefinitionType explicitDefinition : explicitDefinitions) {
-                PrismProperty<?> matching = MatchingUtil.findProperty(preFocus, explicitDefinition.getSource().getItemPath());
-                if (matching != null) {
-                    properties.add(matching);
-                }
-            }
-            return properties;
-        } else {
-            // Fallback: take all single-valued properties from the focus
-            return MatchingUtil.getSingleValuedProperties(preFocus);
-        }
-    }
-
-    private List<CorrelationPropertyDefinitionType> getExplicitPropertyDefinitions() {
-        ObjectSynchronizationType synchronizationBean = correlatorContext.getSynchronizationBean();
-        if (synchronizationBean != null && synchronizationBean.getCorrelationProperties() != null) {
-            return synchronizationBean.getCorrelationProperties().getProperty();
-        } else {
-            return List.of();
-        }
-    }
 }

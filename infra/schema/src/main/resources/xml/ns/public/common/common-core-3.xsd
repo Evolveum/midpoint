@@ -23473,10 +23473,10 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="sorIdentifierAttribute" type="xsd:QName" minOccurs="0" default="icfs:uid">
+                    <xsd:element name="sorIdentifierProperty" type="t:ItemPathType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Attribute whose value provides the base of the SOR identifier. Default is "icfs:uid".
+                                Attribute whose value provides the base of the SOR identifier. Default is "$shadow/icfs:uid".
                                 (TODO revise the default. Is it possible for it to be the current primary identifier?)
                             </xsd:documentation>
                         </xsd:annotation>
@@ -23981,6 +23981,23 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="idMatchCorrelationState" type="tns:IdMatchCorrelationStateType"/>
+
+    <xsd:complexType name="IdMatchAttributesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Attributes to be sent to the external ID Match service.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
+            </xsd:any>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="idMatchAttributes" type="tns:IdMatchAttributesType" />
 
     <xsd:complexType name="SchemaFilesType">
         <xsd:sequence>
