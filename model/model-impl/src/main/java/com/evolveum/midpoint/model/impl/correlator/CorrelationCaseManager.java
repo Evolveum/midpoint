@@ -15,7 +15,10 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,6 +62,7 @@ public class CorrelationCaseManager {
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
     @Autowired private CorrelationService correlationService;
+    @Autowired private ProvisioningService provisioningService;
 
     /**
      * Creates or updates a correlation case for given correlation operation that finished in "uncertain" state.
@@ -276,6 +280,7 @@ public class CorrelationCaseManager {
             SecurityViolationException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OP_PERFORM_COMPLETION_IN_CORRELATOR);
         try {
+            applyShadowDefinition(aCase, task, result);
             correlationService
                     .instantiateCorrelator(aCase, task, result)
                     .resolve(aCase, output, task, result);
@@ -286,5 +291,20 @@ public class CorrelationCaseManager {
             result.close();
         }
         return result;
+    }
+
+    /**
+     * Applies the correct definition to the shadow embedded in the case.objectRef.
+     */
+    private void applyShadowDefinition(PrismObject<CaseType> aCase, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException {
+        ShadowType shadow =
+                MiscUtil.requireNonNull(
+                        MiscUtil.castSafely(
+                                ObjectTypeUtil.getObjectFromReference(aCase.asObjectable().getObjectRef()),
+                                ShadowType.class),
+                        () -> "No embedded shadow in " + aCase);
+        provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
     }
 }
