@@ -14,6 +14,8 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -31,6 +33,9 @@ import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.catalina.User;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -172,12 +177,7 @@ public class PageUsers extends PageAdmin {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null){
-                            updateActivationPerformed(target, true, null);
-                        } else {
-                            SelectableBean<UserType> rowDto = getRowModel().getObject();
-                            updateActivationPerformed(target, true, rowDto.getValue());
-                        }
+                        updateActivationPerformed(target, true, (SelectableObjectModel<UserType>) getRowModel());
                     }
                 };
             }
@@ -206,12 +206,7 @@ public class PageUsers extends PageAdmin {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            updateActivationPerformed(target, false, null);
-                        } else {
-                            SelectableBean<UserType> rowDto = getRowModel().getObject();
-                            updateActivationPerformed(target, false, rowDto.getValue());
-                        }
+                        updateActivationPerformed(target, false, (SelectableObjectModel<UserType>) getRowModel());
                     }
                 };
             }
@@ -442,15 +437,16 @@ public class PageUsers extends PageAdmin {
      * users.
      */
     private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling,
-            UserType selectedUser) {
-        List<UserType> users = getTable().isAnythingSelected(target, selectedUser);
+            SelectableObjectModel<UserType> selectedUser) {
+        List<SelectableObjectModel<UserType>> users = isAnythingSelected(target, selectedUser);
         if (users.isEmpty()) {
             return;
         }
+//        List<SelectableObjectModel<UserType>> users = (List<SelectableObjectModel<UserType>>) TableUtil.getSelectedModels(getTable().getTable().getDataTable());
 
         String operation = enabling ? OPERATION_ENABLE_USERS : OPERATION_DISABLE_USERS;
         OperationResult result = new OperationResult(operation);
-        for (UserType user : users) {
+        for (SelectableObjectModel<UserType> user : users) {
             operation = enabling ? OPERATION_ENABLE_USER : OPERATION_DISABLE_USER;
             OperationResult subResult = result.createSubresult(operation);
             try {
@@ -482,5 +478,25 @@ public class PageUsers extends PageAdmin {
         target.add(getFeedbackPanel());
         getTable().clearCache();
         getTable().refreshTable(target);
+    }
+
+    /**
+     * This method check selection in table. If selectedObject != null than it
+     * returns only this object.
+     */
+    public List<SelectableObjectModel<UserType>> isAnythingSelected(AjaxRequestTarget target, SelectableObjectModel<UserType> selectedObject) {
+        List<SelectableObjectModel<UserType>>  users;
+        if (selectedObject != null) {
+            users = new ArrayList<>();
+            users.add(selectedObject);
+        } else {
+            users = TableUtil.getSelectedModels(getTable().getTable().getDataTable());
+//            if (users.isEmpty() && StringUtils.isNotEmpty(getNothingSelectedMessage())) {
+//                warn(getNothingSelectedMessage());
+//                target.add(getFeedbackPanel());
+//            }
+        }
+
+        return users;
     }
 }

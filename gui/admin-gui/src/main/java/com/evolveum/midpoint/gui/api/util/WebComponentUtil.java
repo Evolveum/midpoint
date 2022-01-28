@@ -1707,11 +1707,11 @@ public final class WebComponentUtil {
         BaseSortableDataProvider<T> provider = (BaseSortableDataProvider<T>) dataTable.getDataProvider();
 
         List<T> selected = new ArrayList<>();
-        for (T bean : provider.getAvailableData()) {
-            if (bean.isSelected()) {
-                selected.add(bean);
-            }
-        }
+//        for (T bean : provider.getAvailableData()) {
+//            if (bean.isSelected()) {
+//                selected.add(bean);
+//            }
+//        }
 
         return selected;
     }

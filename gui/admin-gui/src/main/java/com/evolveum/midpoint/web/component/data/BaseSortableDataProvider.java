@@ -133,7 +133,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return application.getAuditService();
     }
 
-    public List<T> getAvailableData() {
+    protected List<T> getAvailableData() {
         if (availableData == null) {
             availableData = new ArrayList<>();
         }
@@ -372,9 +372,9 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return useCache;
     }
 
-    @Override
-    public void detach() {
-        super.detach();
-        availableData = new ArrayList<>();
-    }
+//    @Override
+//    public void detach() {
+//        super.detach();
+////        availableData = new ArrayList<>();
+//    }
 }

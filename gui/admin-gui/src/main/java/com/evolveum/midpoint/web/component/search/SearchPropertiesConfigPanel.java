@@ -373,7 +373,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
     }
 
     private boolean isPropertyAlreadyAdded(ItemPath itemName) {
-        List<SelectableBean<ValueSearchFilterItem>> properties = provider.getAvailableData();
+        List<SelectableBean<ValueSearchFilterItem>> properties = new ArrayList<>();//provider.getAvailableData();
         for (SelectableBean<ValueSearchFilterItem> prop : properties) {
             if (ItemPathComparatorUtil.equivalent(prop.getValue().getPropertyPath(), itemName)) {
                 return true;

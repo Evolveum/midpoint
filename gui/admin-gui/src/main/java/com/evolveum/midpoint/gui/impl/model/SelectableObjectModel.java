@@ -22,6 +22,8 @@ public class SelectableObjectModel<O extends ObjectType> extends LoadableDetacha
     private String oid;
     private Class<O> type;
 
+    private boolean selected;
+
     public SelectableObjectModel(SelectableBean<O> object) {
         super(object);
     }
@@ -32,16 +34,23 @@ public class SelectableObjectModel<O extends ObjectType> extends LoadableDetacha
         Task task = pageBase.createSimpleTask("load object");
         OperationResult result = task.getResult();
         PrismObject<O> object = WebModelServiceUtils.loadObject(type, oid, pageBase, task, result);
+        result.computeStatusIfUnknown();
+        SelectableBeanImpl selectableBean;
         if (object != null) {
-            new SelectableBeanImpl<>(object.asObjectable());
+             selectableBean = new SelectableBeanImpl<>(object.asObjectable());
+            selectableBean.setSelected(selected);
+        } else {
+            selectableBean = new SelectableBeanImpl<>(null);
         }
-        return new SelectableBeanImpl<>(null);
+        selectableBean.setResult(result);
+        return selectableBean;
     }
 
     @Override
     protected void onDetach() {
         if (isAttached()) {
             SelectableBean<O> seletableBean = getObject();
+            selected = seletableBean.isSelected();
             O object = seletableBean.getValue();
             if (object != null) {
                 oid = object.getOid();
@@ -54,4 +63,25 @@ public class SelectableObjectModel<O extends ObjectType> extends LoadableDetacha
         throw new UnsupportedOperationException("Must be implemented in caller.");
     }
 
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public String getOid() {
+        if (isAttached()) {
+            getObject().getValue().getOid();
+        }
+        return oid;
+    }
+
+    public Class<O> getType() {
+        if (isAttached()) {
+            getObject().getValue().getClass();
+        }
+        return type;
+    }
 }

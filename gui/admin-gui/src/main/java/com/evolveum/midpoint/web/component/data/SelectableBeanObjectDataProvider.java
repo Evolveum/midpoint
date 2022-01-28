@@ -156,4 +156,10 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     protected List<O> searchObjects(Class<? extends O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommonException {
         return getModel().searchObjects(type, query, options, task, result).map(prismObject -> prismObject.asObjectable());
     }
+
+    @Override
+    public void detach() {
+        super.detach();
+        getAvailableData().clear();
+    }
 }
