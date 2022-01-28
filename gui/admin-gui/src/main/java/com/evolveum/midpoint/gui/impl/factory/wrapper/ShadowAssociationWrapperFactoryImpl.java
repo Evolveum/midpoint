@@ -263,7 +263,8 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
 
         for (PrismContainerValue<ShadowAssociationType> associationValue : item.getValues()) {
             ShadowAssociationType shadowAssociation = associationValue.asContainerable();
-            if (shadowAssociation.getName().equals(def.getName())) {
+            if (shadowAssociation.getName().equals(def.getName())
+                    && associationValue.contains(ShadowAssociationType.F_SHADOW_REF)) {
                 shadowAss.add(associationValue.findReference(ShadowAssociationType.F_SHADOW_REF).getValue().clone());
             }
         }
