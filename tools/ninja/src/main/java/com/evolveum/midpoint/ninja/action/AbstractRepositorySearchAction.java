@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -56,7 +56,7 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions> ex
     protected abstract Runnable createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation);
 
     protected String getOperationName() {
-        return this.getClass().getName() + "." + getOperationShortName();
+        return getClass().getName() + "." + getOperationShortName();
     }
 
     @Override
@@ -157,7 +157,7 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions> ex
         List<SearchProducerWorker> shadowProducers = new ArrayList<>();
 
         try {
-            RepositoryService repository = this.context.getRepository();
+            RepositoryService repository = context.getRepository();
 
             Collection<SelectorOptions<GetOperationOptions>> opts =
                     SelectorOptions.createCollection(GetOperationOptions.createRaw());
