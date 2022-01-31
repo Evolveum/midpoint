@@ -11,6 +11,7 @@ import java.util.Iterator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 
 import org.apache.commons.lang3.StringUtils;
@@ -101,7 +102,12 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
     }
 
     protected boolean isEditRawButtonVisible() {
-        return isEditingObject() && !isReadonly();
+        return isEditingObject() && !isReadonly() && isDebugPageAuthorized();
+    }
+
+    private boolean isDebugPageAuthorized() {
+        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
+                AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUGS_URL, AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL);
     }
 
     private void createBackButton(RepeatingView repeatingView) {
