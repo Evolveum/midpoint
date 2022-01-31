@@ -10,6 +10,7 @@ import java.util.Iterator;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 
 import org.apache.commons.lang3.StringUtils;
@@ -136,7 +137,11 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
     }
 
     protected boolean isDeleteButtonVisible() {
-        return isEditingObject() && !isReadonly();
+        return isEditingObject() && !isReadonly() && isAuthorizedToDelete();
+    }
+
+    private boolean isAuthorizedToDelete() {
+        return getPageBase().isAuthorized(ModelAuthorizationAction.DELETE, getModelObject().getObject());
     }
 
     protected boolean isReadonly() {
