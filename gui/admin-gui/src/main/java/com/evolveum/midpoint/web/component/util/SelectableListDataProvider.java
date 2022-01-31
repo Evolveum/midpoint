@@ -100,7 +100,7 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
     }
 
     protected W createObjectWrapper(T object) {
-        return (W) new SelectableBeanImpl<>(object);
+        return (W) new SelectableBeanImpl<>(Model.of(object));
     }
 
     @Override

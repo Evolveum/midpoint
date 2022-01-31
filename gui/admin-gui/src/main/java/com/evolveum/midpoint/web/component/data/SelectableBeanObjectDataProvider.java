@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 
 import org.apache.wicket.Component;
@@ -71,17 +72,20 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     }
 
     public SelectableBean<O> createDataObjectWrapper(O obj) {
-        SelectableBean<O> selectable = new SelectableBeanImpl<>(obj);
-
-        if (!WebComponentUtil.isSuccessOrHandledError(obj.getFetchResult())) {
-            try {
-                if (obj.getFetchResult() != null && !OperationResultImportanceType.MINOR.equals(obj.getFetchResult().getImportance())) {
-                    selectable.setResult(obj.getFetchResult());
-                }
-            } catch (SchemaException e) {
-                throw new SystemException(e.getMessage(), e);
+        SelectableObjectModel<O> model = new SelectableObjectModel<O>(obj, getOptions()) {
+            @Override
+            protected O load() {
+                PageBase pageBase = getPageBase();
+                Task task = pageBase.createSimpleTask("load object");
+                OperationResult result = task.getResult();
+                PrismObject<O> object = WebModelServiceUtils.loadObject(getType(), getOid(), getOptions(), pageBase, task, result);
+                result.computeStatusIfUnknown();
+                return object.asObjectable();
             }
-        }
+        };
+        SelectableBean<O> selectable = new SelectableBeanImpl<>(model);
+        //TODO result
+
         for (O s : getSelected()) {
             if (s.getOid().equals(obj.getOid())) {
                 selectable.setSelected(true);
@@ -135,13 +139,14 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
     @Override
     public IModel<SelectableBean<O>> model(SelectableBean<O> object) {
-        return new SelectableObjectModel<>(object) {
-
-            @Override
-            protected PageBase getPageBase() {
-                return SelectableBeanObjectDataProvider.this.getPageBase();
-            }
-        };
+        return new Model<>(object);
+//        return new SelectableObjectModel<>(object) {
+//
+//            @Override
+//            protected PageBase getPageBase() {
+//                return SelectableBeanObjectDataProvider.this.getPageBase();
+//            }
+//        };
     }
 
     protected boolean isMemberPanel() {

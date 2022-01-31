@@ -177,7 +177,7 @@ public class PageUsers extends PageAdmin {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        updateActivationPerformed(target, true, (SelectableObjectModel<UserType>) getRowModel());
+                        updateActivationPerformed(target, true, getRowModel());
                     }
                 };
             }
@@ -206,7 +206,7 @@ public class PageUsers extends PageAdmin {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        updateActivationPerformed(target, false, (SelectableObjectModel<UserType>) getRowModel());
+                        updateActivationPerformed(target, false, getRowModel());
                     }
                 };
             }
@@ -437,8 +437,8 @@ public class PageUsers extends PageAdmin {
      * users.
      */
     private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling,
-            SelectableObjectModel<UserType> selectedUser) {
-        List<SelectableObjectModel<UserType>> users = isAnythingSelected(target, selectedUser);
+            IModel<SelectableBean<UserType>> selectedUser) {
+        List<SelectableBean<UserType>> users = isAnythingSelected(target, selectedUser);
         if (users.isEmpty()) {
             return;
         }
@@ -446,14 +446,14 @@ public class PageUsers extends PageAdmin {
 
         String operation = enabling ? OPERATION_ENABLE_USERS : OPERATION_DISABLE_USERS;
         OperationResult result = new OperationResult(operation);
-        for (SelectableObjectModel<UserType> user : users) {
+        for (SelectableBean<UserType> user : users) {
             operation = enabling ? OPERATION_ENABLE_USER : OPERATION_DISABLE_USER;
             OperationResult subResult = result.createSubresult(operation);
             try {
                 Task task = createSimpleTask(operation);
 
                 ObjectDelta objectDelta = WebModelServiceUtils.createActivationAdminStatusDelta(
-                        UserType.class, user.getOid(), enabling, getPrismContext());
+                        UserType.class, user.getValue().getOid(), enabling, getPrismContext());
 
                 ExecuteChangeOptionsDto executeOptions = getTable().getExecuteOptions();
                 ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
@@ -484,11 +484,11 @@ public class PageUsers extends PageAdmin {
      * This method check selection in table. If selectedObject != null than it
      * returns only this object.
      */
-    public List<SelectableObjectModel<UserType>> isAnythingSelected(AjaxRequestTarget target, SelectableObjectModel<UserType> selectedObject) {
-        List<SelectableObjectModel<UserType>>  users;
+    public List<SelectableBean<UserType>> isAnythingSelected(AjaxRequestTarget target, IModel<SelectableBean<UserType>> selectedObject) {
+        List<SelectableBean<UserType>>  users;
         if (selectedObject != null) {
             users = new ArrayList<>();
-            users.add(selectedObject);
+            users.add(selectedObject.getObject());
         } else {
             users = TableUtil.getSelectedModels(getTable().getTable().getDataTable());
 //            if (users.isEmpty() && StringUtils.isNotEmpty(getNothingSelectedMessage())) {

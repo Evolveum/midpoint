@@ -17,6 +17,7 @@ import java.util.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -216,7 +217,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     }
 
     public SelectableBean<C> createDataObjectWrapper(C obj) {
-        SelectableBean<C> selectable = new SelectableBeanImpl<>(obj);
+        SelectableBean<C> selectable = new SelectableBeanImpl<>(Model.of(obj));
 
         for (C s : selected) {
             if (s.asPrismContainerValue().equivalent(obj.asPrismContainerValue())) {

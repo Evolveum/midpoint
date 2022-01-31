@@ -18,16 +18,19 @@ import java.util.List;
 
 public class TableUtil {
 
-    public static <T extends ObjectType> List<SelectableObjectModel<T>> getSelectedModels(DataTable table) {
-        List<SelectableObjectModel<T>> objects = new ArrayList<>();
-        table.visitChildren(SelectableDataTable.SelectableRowItem.class, new IVisitor<SelectableDataTable.SelectableRowItem, Void>() {
+    public static <T extends ObjectType> List<SelectableBean<T>> getSelectedModels(DataTable table) {
+        List<SelectableBean<T>> objects = new ArrayList<>();
+        table.visitChildren(SelectableDataTable.SelectableRowItem.class, new IVisitor<SelectableDataTable.SelectableRowItem<SelectableBean<T>>, Void>() {
 
             @Override
-            public void component(SelectableDataTable.SelectableRowItem row, IVisit<Void> visit) {
-                SelectableObjectModel<T> model = (SelectableObjectModel<T>) row.getModel();
-                if (model.isSelected()) {
-                    objects.add((SelectableObjectModel<T>) row.getModel());
+            public void component(SelectableDataTable.SelectableRowItem<SelectableBean<T>> row, IVisit<Void> visit) {
+                if (row.getModelObject().isSelected()) {
+                    objects.add(row.getModel().getObject());
                 }
+//                SelectableObjectModel<T> model = (SelectableObjectModel<T>) row.getModel();
+//                if (model.isSelected()) {
+//                    objects.add((SelectableObjectModel<T>) row.getModel());
+//                }
             }
         });
         return objects;
