@@ -53,7 +53,7 @@ import java.util.List;
 
 @PanelType(name = "schemaHandling")
 @PanelInstance(identifier = "schemaHandling", applicableForType = ResourceType.class,
-        display = @PanelDisplay(label = "PageResource.tab.schemaHandling", icon = GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM, order = 80))
+        display = @PanelDisplay(label = "PageResource.tab.schemaHandling", icon = GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM, order = 90))
 public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
     private static final String ID_TABLE = "table";
