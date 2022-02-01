@@ -507,8 +507,13 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         for (FilterSearchItem item : getFilterItems()) {
             SearchFilterParameterType functionParameter = item.getPredefinedFilter().getParameter();
             if (functionParameter != null && functionParameter.getType() != null) {
-                Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(functionParameter.getType());
-                TypedValue value = new TypedValue(item.getInput() != null ? item.getInput().getValue() : null, inputClass);
+                TypedValue value;
+                if (item.getInput() == null || item.getInput().getValue() == null) {
+                    Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(functionParameter.getType());
+                    value = new TypedValue(null, inputClass);
+                } else {
+                    value = new TypedValue(item.getInput().getValue(), item.getInput().getValue().getClass());
+                }
                 variables.put(functionParameter.getName(), value);
             }
         }
