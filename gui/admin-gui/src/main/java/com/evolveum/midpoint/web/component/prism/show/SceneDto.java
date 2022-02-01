@@ -83,8 +83,8 @@ public class SceneDto implements Serializable {
             Collator collator = WebComponentUtil.getCollator();
             Comparator<? super SceneItemDto> comparator =
                     (s1, s2) -> {
-                        String name1 = PageBase.createStringResourceStatic(null, s1.getName()).getString();
-                        String name2 = PageBase.createStringResourceStatic(null, s2.getName()).getString();
+                        String name1 = PageBase.createStringResourceStatic(s1.getName()).getString();
+                        String name2 = PageBase.createStringResourceStatic(s2.getName()).getString();
                         return collator.compare(name1, name2);
                     };
             itemsClone.sort(comparator);
@@ -111,7 +111,7 @@ public class SceneDto implements Serializable {
 
     private String resolve(String name, Component component, boolean namesAreResourceKeys) {
         if (namesAreResourceKeys) {
-            return PageBase.createStringResourceStatic(component, name).getString();
+            return PageBase.createStringResourceStatic(name).getString();
         } else {
             return name;
         }

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.page;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -41,6 +43,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.protocol.http.WebSession;
@@ -170,6 +173,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_DEBUG_BAR = "debugBar";
     private static final String ID_CLEAR_CACHE = "clearCssCache";
+    private static final String ID_DUMP_PAGE_TREE = "dumpPageTree";
     private static final String ID_CART_BUTTON = "cartButton";
     private static final String ID_CART_ITEMS_COUNT = "itemsCount";
     private static final String ID_SIDEBAR_MENU = "sidebarMenu";
@@ -590,7 +594,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public static StringResourceModel createStringResourceStatic(Component component, Enum<?> e) {
         String resourceKey = createEnumResourceKey(e);
-        return createStringResourceStatic(component, resourceKey);
+        return createStringResourceStatic(resourceKey);
     }
 
     public static String createEnumResourceKey(Enum<?> e) {
@@ -679,14 +683,26 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         pageTitleReal.setRenderBodyOnly(true);
         pageTitle.add(pageTitleReal);
 
-        IModel<List<Breadcrumb>> breadcrumbsModel = new IModel<>() {
+        LoadableDetachableModel<List<Breadcrumb>> breadcrumbsModel = new LoadableDetachableModel<List<Breadcrumb>>() {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public List<Breadcrumb> getObject() {
+            protected List<Breadcrumb> load() {
                 return getBreadcrumbs();
             }
+
+            @Override
+            protected void onDetach() {
+                for (Breadcrumb b : getObject()) {
+                    b.detach();
+                }
+            }
+
+            //            @Override
+//            public List<Breadcrumb> getObject() {
+//                return getBreadcrumbs();
+//            }
         };
 
         ListView<Breadcrumb> breadcrumbs = new ListView<>(ID_BREADCRUMB, breadcrumbsModel) {
@@ -695,14 +711,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             @Override
             protected void populateItem(ListItem<Breadcrumb> item) {
-                final Breadcrumb dto = item.getModelObject();
+//                final Breadcrumb dto = item.getModelObject();
 
                 AjaxLink<String> bcLink = new AjaxLink<>(ID_BC_LINK) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        redirectBackToBreadcrumb(dto);
+                        redirectBackToBreadcrumb(item.getModelObject());
                     }
                 };
                 item.add(bcLink);
@@ -711,7 +727,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
                     @Override
                     public boolean isEnabled() {
-                        return dto.isUseLink();
+                        return item.getModelObject().isUseLink();
                     }
                 });
 
@@ -721,23 +737,23 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
                     @Override
                     public boolean isVisible() {
-                        return dto.getIcon() != null && dto.getIcon().getObject() != null;
+                        return item.getModelObject().getIcon() != null && item.getModelObject().getIcon().getObject() != null;
                     }
                 });
-                bcIcon.add(AttributeModifier.replace("class", dto.getIcon()));
+                bcIcon.add(AttributeModifier.replace("class", item.getModelObject().getIcon()));
                 bcLink.add(bcIcon);
 
-                Label bcName = new Label(ID_BC_NAME, dto.getLabel());
+                Label bcName = new Label(ID_BC_NAME, item.getModelObject().getLabel());
                 bcLink.add(bcName);
 
-                item.add(new VisibleEnableBehaviour() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible() {
-                        return dto.isVisible();
-                    }
-                });
+//                item.add(new VisibleEnableBehaviour() {
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public boolean isVisible() {
+//                        return item.getModelObject().isVisible();
+//                    }
+//                });
             }
         };
         breadcrumbs.add(new VisibleBehaviour(() -> !isErrorPage()));
@@ -1075,6 +1091,24 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
         debugBar.add(clearCache);
+
+        AjaxButton dumpPageTree = new AjaxButton(ID_DUMP_PAGE_TREE, createStringResource("PageBase.dumpPageTree")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                dumpPageTree(target);
+            }
+        };
+        debugBar.add(dumpPageTree);
+    }
+
+    private void dumpPageTree(AjaxRequestTarget target) {
+        try (PrintWriter pw = new PrintWriter(System.out)) {
+            new PageStructureDump().dumpStructure(this, pw);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     protected void clearLessJsCache(AjaxRequestTarget target) {
@@ -1163,7 +1197,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public IModel<String> getPageTitleModel() {
-        return (IModel<String>) get(ID_TITLE).getDefaultModel();
+        String title = (String) get(ID_TITLE).getDefaultModel().getObject();
+        return Model.of(title);
     }
 
     public String getString(String resourceKey, Object... objects) {
@@ -1171,7 +1206,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
+        return new StringResourceModel(resourceKey).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
 
@@ -1185,7 +1220,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         if (polystringKey != null) {
             resourceKey = localizationService.translate(polystringKey, WebComponentUtil.getCurrentLocale(), true);
         }
-        return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
+        return new StringResourceModel(resourceKey).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
 
@@ -1194,7 +1229,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         if (polystringKey != null) {
             resourceKey = localizationService.translate(PolyString.toPolyString(polystringKey), WebComponentUtil.getCurrentLocale(), true);
         }
-        return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
+        return new StringResourceModel(resourceKey).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
 
@@ -1204,9 +1239,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     @NotNull
-    public static StringResourceModel createStringResourceStatic(Component component, String resourceKey,
+    public static StringResourceModel createStringResourceStatic(String resourceKey,
             Object... objects) {
-        return new StringResourceModel(resourceKey, component).setModel(new Model<String>())
+        return new StringResourceModel(resourceKey).setModel(new Model<String>())
                 .setDefaultValue(resourceKey).setParameters(objects);
     }
 

@@ -222,7 +222,7 @@ public class PageTasks extends PageAdmin {
         List<Object> localizationObjects = new ArrayList<>();
         String key = TaskTypeUtil.createScheduledToRunAgain(taskModel.getObject().getValue(), localizationObjects);
 
-        return PageBase.createStringResourceStatic(this, key, localizationObjects.isEmpty() ? null : localizationObjects.toArray())
+        return PageBase.createStringResourceStatic(key, localizationObjects.isEmpty() ? null : localizationObjects.toArray())
                 .getString();
     }
 

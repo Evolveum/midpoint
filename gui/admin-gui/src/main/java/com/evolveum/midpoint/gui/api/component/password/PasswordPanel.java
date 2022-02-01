@@ -155,11 +155,11 @@ public class PasswordPanel extends InputPanel {
         password1.add(AttributeAppender.append("onfocus", "initPasswordValidation({\n"
                 + "container: $('#progress-bar-container'),\n"
                 + "hierarchy: {\n"
-                + "    '0': ['progress-bar-danger', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.veryWeak").getString() + "'],\n"
-                + "    '25': ['progress-bar-danger', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.weak").getString() + "'],\n"
-                + "    '50': ['progress-bar-warning', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.good").getString() + "'],\n"
-                + "    '75': ['progress-bar-success', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.strong").getString() + "'],\n"
-                + "    '100': ['progress-bar-success', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.veryStrong").getString() + "']\n"
+                + "    '0': ['progress-bar-danger', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.veryWeak").getString() + "'],\n"
+                + "    '25': ['progress-bar-danger', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.weak").getString() + "'],\n"
+                + "    '50': ['progress-bar-warning', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.good").getString() + "'],\n"
+                + "    '75': ['progress-bar-success', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.strong").getString() + "'],\n"
+                + "    '100': ['progress-bar-success', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.veryStrong").getString() + "']\n"
                 + "}\n"
                 + "})"));
         password1.setRequired(false);
@@ -193,7 +193,7 @@ public class PasswordPanel extends InputPanel {
             }
 
             if (!Objects.equals(s1, s2)) {
-                return PageBase.createStringResourceStatic(null, "passwordPanel.error").getString();
+                return PageBase.createStringResourceStatic("passwordPanel.error").getString();
             }
             return "";
         };

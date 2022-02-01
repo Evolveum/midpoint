@@ -114,7 +114,7 @@ public class ExpressionVariableEditorDialog extends ModalWindow {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return PageBase.createStringResourceStatic(this, resourceKey, objects);
+        return PageBase.createStringResourceStatic(resourceKey, objects);
         // return new StringResourceModel(resourceKey, this, null, resourceKey,
         // objects);
     }

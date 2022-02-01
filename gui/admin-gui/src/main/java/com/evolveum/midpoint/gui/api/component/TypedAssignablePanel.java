@@ -552,6 +552,6 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
     @Override
     public StringResourceModel getTitle() {
-        return PageBase.createStringResourceStatic(TypedAssignablePanel.this, "TypedAssignablePanel.selectObjects");
+        return PageBase.createStringResourceStatic("TypedAssignablePanel.selectObjects");
     }
 }

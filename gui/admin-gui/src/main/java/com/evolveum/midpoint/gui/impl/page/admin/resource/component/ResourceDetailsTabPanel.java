@@ -141,7 +141,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
         tableColumns.addAll(ColumnUtils.createColumns(columns));
 
         PropertyColumn tasksColumn = new PropertyColumn(
-                PageBase.createStringResourceStatic(this, "ResourceType.tasks"), "definedTasks") {
+                PageBase.createStringResourceStatic("ResourceType.tasks"), "definedTasks") {
 
             @Override
             public void populateItem(Item item, String componentId, final IModel rowModel) {

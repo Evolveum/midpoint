@@ -268,7 +268,7 @@ public class AssignmentInfoDto extends Selectable<AssignmentInfoDto> implements 
         }
         String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(relation);
         return StringUtils.isNotEmpty(relationDisplayName) ?
-                PageBase.createStringResourceStatic(component, relationDisplayName) :
-                PageBase.createStringResourceStatic(component, relation.getLocalPart());
+                PageBase.createStringResourceStatic(relationDisplayName) :
+                PageBase.createStringResourceStatic(relation.getLocalPart());
     }
 }

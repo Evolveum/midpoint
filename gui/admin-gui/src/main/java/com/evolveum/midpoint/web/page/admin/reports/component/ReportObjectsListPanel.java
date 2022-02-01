@@ -324,7 +324,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     public void checkView() {
         if (!hasView()) {
-            getSession().warn(PageBase.createStringResourceStatic(null, "ReportObjectsListPanel.message.defineType").getString());
+            getSession().warn(PageBase.createStringResourceStatic("ReportObjectsListPanel.message.defineType").getString());
         }
     }
 

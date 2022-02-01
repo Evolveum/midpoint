@@ -101,7 +101,7 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
             key = getSearch().getTypeClass().getSimpleName() + '.' + getDefinition().getDef().getItemName().getLocalPart();
         }
 
-        StringResourceModel nameModel = PageBase.createStringResourceStatic(null, key);
+        StringResourceModel nameModel = PageBase.createStringResourceStatic(key);
         if (nameModel != null) {
             if (StringUtils.isNotEmpty(nameModel.getString())) {
                 return nameModel.getString();
