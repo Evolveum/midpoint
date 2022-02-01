@@ -61,7 +61,7 @@ The only limit is overall thread pool size.
 | Execution of tasks in the group that is named after the node (e.g. NodeC) is also not limited.
 
 
-| \*
+| *
 | 0
 | Execution of any other tasks is forbidden on this node.
 
@@ -166,7 +166,7 @@ The format is:
 
 .. <group>:<n> (meaning a limit of `n` for this particular group)
 
-.. or <group>:\* (meaning no limit for this particular group)
+.. or <group>:* (meaning no limit for this particular group)
 
 .. or <group> (meaning no limit for this particular group),
 

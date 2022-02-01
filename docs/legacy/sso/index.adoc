@@ -100,9 +100,9 @@ MidPoit does not yet support STS and/or OAuth.
 Therefore the services are still limited to username/password authentication.
 However do not forget to specify SSO enforcement exceptions (e.g. non-enforcement list) for the service URLs:
 
-.. /model/\* and /ws/\* for web services
+.. `++/model/*++` and `++/ws/*++` for web services
 
-.. /rest/\* for REST service
+.. `++/rest/*++` for REST service
 
 == See Also
 

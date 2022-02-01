@@ -358,16 +358,16 @@ image::image2016-9-7-17-5-0.png[]
 
 For each file, four results are provided:
 
-. local version of the file, normalized into midPoint representation: macros resolved, parsed and reserialized by midPoint (\*.local.xml),
+. local version of the file, normalized into midPoint representation: macros resolved, parsed and reserialized by midPoint (`*.local.xml`),
 
-. remote version of the file (\*.remote.xml),
+. remote version of the file (`*.remote.xml`),
 
-. delta from local to remote version (\*.local-to-remote.xml),
+. delta from local to remote version (`*.local-to-remote.xml`),
 
-. delta from remote to local version (\*.remote-to-local.xml).
+. delta from remote to local version (`*.remote-to-local.xml`).
 
 These files can be accessed by clicking on links in the console window, of by directly opening the files in "diff" directory.
-Note that it is possible to use Eclipse mechanisms to compare local and remote versions of the file, leading to a graphical information about the changes:
+Note that it is possible to use Eclipse mechanisms to compare local and remote versions of the file, leading to graphical information about the changes:
 
 image::image2016-9-20-10-2-48.png[]
 

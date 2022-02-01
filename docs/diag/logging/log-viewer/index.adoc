@@ -259,7 +259,7 @@ It is either current line, whole log entry, or header (first line) of the log en
 If not specified, a reasonable default is used (most often "line", but e.g. in %kill-entry the whole entry is considered by default).
 
 Text is either plain text (for containing/not-containing operator) or a regular expression (for matching/not-matching operator).
-Do not forget to include .\* at beginning and end if you want to match for something inside a line/entry.
+Do not forget to include `.*` at beginning and end if you want to match for something inside a line/entry.
 
 ====
 
@@ -655,7 +655,8 @@ To ensure completeness of the data it is advised to have only following class lo
 
 ----
 
-Other class loggers of type com.evolveum.midpoint.model.\* should be removed from systems configuration as they would interfere with com.evolveum.midpoint.model classLogger.
+Other class loggers of type `com.evolveum.midpoint.model.*` should be removed from systems configuration
+as they would interfere with `classLogger` for `com.evolveum.midpoint.model`.
 
 
 == Concluding remark

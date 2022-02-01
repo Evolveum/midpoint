@@ -41,9 +41,11 @@ link:https://mariadb.com/kb/en/mariadb-connector-j-155-release-notes/[Release no
 
 ----
 
-Please check  also \*/apache-tomcat/bin/catalina.bat to point to correct midpoint home location *(please set your own path):*
+Please check  also `++*/apache-tomcat/bin/catalina.bat++` to point to correct midpoint home location *(please set your own path):*
 
+----
 set JAVA_OPTS=%JAVA_OPTS% -Dmidpoint.home=c:/midpoint_3_Node2 -XX:MaxPermSize=1024m
+----
 
 
 == Driver
@@ -61,15 +63,15 @@ GRANT ALL on midpoint.* TO 'midpoint'@'localhost';
 use midpoint;
 ----
 
-Use proper sql script based on the distribution your are using either stable or snapshot: +
+Use proper sql script based on the distribution you are using either stable or snapshot: +
     For stable release check: +
     - the latest midpoint link:http://www.evolveum.com/downloads/midpoint/3.4/[http://www.evolveum.com/downloads/midpoint/3.4/] +
     - and download midpoint-3.4-dist.zip +
-    - Execute MySQL database script located in: \*\midpoint-3.4-dist.zip\config\sql_all\mysql-3.4-all.sql +
+    - Execute MySQL database script located in: `*\midpoint-3.4-dist.zip\config\sql_all\mysql-3.4-all.sql` +
     For snapshot check: +
     - the latest commit number on link:https://bamboo.evolveum.com/browse/MID-TRUNK/latestSuccessful[https://bamboo.evolveum.com/browse/MID-TRUNK/latestSuccessful] +
     - and download it via link:http://athena.evolveum.com/builds/master/[http://athena.evolveum.com/builds/master/] where .zip file should be selected (midpoint-3.5-SNAPSHOT-dist.zip). +
-    - Execute MySQL database script located in: \*\midpoint-3.5-SNAPSHOT-dist.zip\config\sql_all\mysql-3.4-all.sql (or mysql-3.5-all, whatever will be present)
+    - Execute MySQL database script located in: `*\midpoint-3.5-SNAPSHOT-dist.zip\config\sql_all\mysql-3.4-all.sql` (or mysql-3.5-all, whatever will be present)
 
 After starting tomcat in Windows via apache-tomcat\bin\startup.bat or Linux via apache-tomcat\bin\startup.sh open midpoint in browser link:http://localhost:8080/midpoint/admin/[http://localhost:8080/midpoint/admin/] Login:administrator Pass:5ecr3t and create new user.
 Check in MySQL table m_user where new user should be created: `select * from m_user`

@@ -66,9 +66,9 @@ Default: the same as for repository configuration (it is true if hibernateHbm2dd
 
 
 | autoDeploymentFrom
-| MidPoint automatically deploys new versions of BPMN processes at startup.
+a| MidPoint automatically deploys new versions of BPMN processes at startup.
 Here you can specify the location from which the deploy is done.
-Default: classpath\*:processes/\*.bpmn20.xml.
+Default: `++classpath*:processes/*.bpmn20.xml++`.
 
 
 |===

@@ -56,9 +56,9 @@ Default: the same as for repository configuration (it is true if hibernateHbm2dd
 
 
 | autoDeploymentFrom
-| MidPoint automatically deploys new versions of BPMN processes at startup.
+a| MidPoint automatically deploys new versions of BPMN processes at startup.
 Here you can specify the location from which the deploy is done.
-Default: classpath\*:processes/\*.bpmn20.xml.
+Default: `classpath*:processes/*.bpmn20.xml`.
 
 
 |===
@@ -190,22 +190,22 @@ Use at least the following content: <enabled>true</enabled>.
 
 | addAbstractRoleAbstractRoleAssignmentAspect
 | Manages creation of role/org assignment to a role/org.
-| (\*2)
+| (*2)
 
 
 | modifyAbstractRoleAbstractRoleAssignmentAspect
 | Manages modification of role/org assignment to a role/org.
-| (\*2)
+| (*2)
 
 
 | addAbstractRoleResourceAssignmentAspect
 | Manages creation of resource assignment to a role/org.
-| (\*2)
+| (*2)
 
 
 | modifyAbstractRoleResourceAssignmentAspect
 | Manages modification of resource assignment to a role/org.
-| (\*2)
+| (*2)
 
 
 | addAbstractRoleAspect
@@ -220,7 +220,7 @@ Use at least the following content: <enabled>true</enabled>.
 
 | addResourceAspect
 | Manages creation of a new resource.
-| (\*3)
+| (*3)
 
 
 | modifyAbstractRoleAspect
