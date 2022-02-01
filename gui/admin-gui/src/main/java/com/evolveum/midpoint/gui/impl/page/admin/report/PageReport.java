@@ -19,6 +19,9 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
@@ -56,6 +59,8 @@ import java.util.Collection;
                 label = "PageReport.auth.report.label",
                 description = "PageReport.auth.report.description") })
 public class PageReport extends PageAssignmentHolderDetails<ReportType, AssignmentHolderDetailsModel<ReportType>> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(PageReport.class);
 
     private static final String ID_TABLE_CONTAINER = "tableContainer";
     private static final String ID_TABLE_BOX = "tableBox";
@@ -182,11 +187,14 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
     }
 
     private PrismObject<ReportType> getReport(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
-        if (getModelObjectType().getOid() != null) {
-            return getModelPrismObject();
+        try {
+            if (getModelObjectType().getOid() != null) {
+                return getModelWrapperObject().getObjectApplyDelta();
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't apply deltas to report.", e);
         }
         return (PrismObject<ReportType>) executedDeltas.iterator().next().getObjectDelta().getObjectToAdd();
-
     }
 
     private void runReport(PrismObject<ReportType> report, PrismContainer<ReportParameterType> reportParam) {
