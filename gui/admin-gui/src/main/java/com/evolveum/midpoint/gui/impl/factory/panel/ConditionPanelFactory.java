@@ -21,7 +21,7 @@ import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 @Component
-public class ConditionPanelFactory extends AbstractGuiComponentFactory<ExpressionType> implements Serializable {
+public class ConditionPanelFactory extends AbstractGuiComponentFactory<ExpressionType> {
 
     @PostConstruct
     public void register() {
@@ -30,12 +30,7 @@ public class ConditionPanelFactory extends AbstractGuiComponentFactory<Expressio
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ExpressionType> panelCtx) {
-        AceEditorPanel conditionPanel = new AceEditorPanel(panelCtx.getComponentId(), null, new ExpressionModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 200) {
-            @Override
-            protected boolean isResizeToMaxHeight() {
-                return false;
-            }
-        };
+        AceEditorPanel conditionPanel = new AceEditorPanel(panelCtx.getComponentId(), null, new ExpressionModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 200);
         conditionPanel.getEditor().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         conditionPanel.getEditor().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         return conditionPanel;

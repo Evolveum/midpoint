@@ -30,6 +30,7 @@ import java.util.function.Function;
  * @author skublik
  */
 
+//TODO FIXME Serializable !!!!!
 @Component
 public class TenantRefWrapperFactory extends PrismReferenceWrapperFactory<ObjectReferenceType> implements Serializable{
 

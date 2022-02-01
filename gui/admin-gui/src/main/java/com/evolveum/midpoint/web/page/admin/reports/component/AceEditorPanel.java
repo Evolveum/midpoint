@@ -69,7 +69,4 @@ public class AceEditorPanel extends BasePanel<String> {
         return (AceEditor)get(ID_EDITOR);
     }
 
-    protected boolean isResizeToMaxHeight() {
-        return true;
-    }
 }
