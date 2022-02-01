@@ -38,7 +38,7 @@ public class CorrelationContextDto implements Serializable {
 
     // TODO move into properties
     private static final String TEXT_BEING_CORRELATED = "Object being correlated";
-    private static final String TEXT_CANDIDATE = "Candidate owner %d";
+    private static final String TEXT_CANDIDATE = "Correlation candidate %d";
 
     /**
      * Headers for individual options.
