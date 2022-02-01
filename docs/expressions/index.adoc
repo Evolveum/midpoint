@@ -85,10 +85,9 @@ include::../_reference-disclaimer.adoc[]
 
 * link:/book/practical-identity-management-with-midpoint.html#_mappings["Mappipngs" section in midPoint book]
 
-* xref:/midpoint/reference/expressions/using-mappings-and-expressions/[Using Mappings and Expressions]
-
 * xref:/midpoint/reference/expressions/mappings/[Mapping]
 
 * xref:/midpoint/reference/expressions/expressions/[Expression]
 
 * xref:/midpoint/reference/expressions/mappings/mapping-evaluation-examples/[Mapping Evaluation Examples]
+

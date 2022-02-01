@@ -568,6 +568,36 @@ This link will be displayed only if the user has authorization that allow the ac
 Secondly, inclusion of default forms and the `automatic` visibility mode of widgets are authorization-sensitive.
 This means that form or widget will be displayed only if the user has access to the data that are displayed.
 
+== Localization
+
+Localization service will try to translate all *PolyString* keys automatically with fallback translation with value of key (for example for DisplayType/label).
+
+[source, xml]
+----
+<display>
+    <!-- translated to "Color" -->
+    <label>RichHyperlinkType.color</label>
+</display>
+
+<display>
+    <!-- result will be "Some fallback used if key is not found" -->
+    <label>
+        <t:orig>
+            ignored polystring origin
+        </t:orig>
+        <t:translation>
+            <t:key>RichHyperlinkType.color1</t:key>
+            <t:fallback>Some fallback used if key is not found</t:fallback>
+        </t:translation>
+    </label>
+</display>
+
+<display>
+    <!-- translation service will obviously fail to translate, result will be "not translated at all" -->
+    <label>not translated at all</label>
+</display>
+----
+
 == Feedback Messages Hook
 
 Feedback messages hook configuration allows operation result preprocessing before it's shown in GUI.

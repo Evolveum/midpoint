@@ -89,4 +89,4 @@ With midPoint up and running you now have time to migrate the old audit records.
 The process can be done in a single export/import for smaller audit sizes (up to a million of entries), or iteratively for lager audits.
 It is even possible to drop the imported audit if anything goes wrong and start again - this is especially easy with partitioning.
 
-Check xref:/midpoint/reference/repository/native-audit/#audit-migration-from-other-database[Audit migration from other databases] section from xref:xref:/midpoint/reference/repository/native-audit/[Native PostgreSQL Audit Trail] document for more details.
+Check xref:/midpoint/reference/repository/native-audit/#audit-migration-from-other-database[Audit migration from other databases] section from xref:/midpoint/reference/repository/native-audit/[Native PostgreSQL Audit Trail] document for more details.

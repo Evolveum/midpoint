@@ -108,6 +108,8 @@ export PGPASSWORD=password
 psql -h localhost midpoint midpoint -f postgres-new.sql -f postgres-new-audit.sql
 ----
 
+NOTE: Replace `master` in the URLs with appropriate midPoint version.
+
 If you plan to use https://www.postgresql.org/docs/13/pgstatstatements.html[statement statistics extension]
 (not discussed here), initialize it like this:
 
@@ -137,6 +139,73 @@ The following commands can be used in the bash on the database VM:
 wget -q https://raw.githubusercontent.com/Evolveum/midpoint/master/config/sql/native-new/postgres-new-quartz.sql
 psql -h localhost midpoint midpoint -f postgres-new-quartz.sql
 ----
+
+=== Installing As Non-Superuser
+
+The instruction above assume that database user `midpoint` is a database superuser.
+This is a very convenient method.
+However, it is likely to be a security concern, especially in case that midPoint is sharing database engine with other applications.
+Following steps describe the process of database initialization without granting superuser privileges to midPoint user.
+
+. Connect to `psql` utility as superuser (`postgres`).
+Execute following commands.
+
+. Create user without superuser privileges:
++
+[source,sql]
+----
+CREATE USER midpoint WITH PASSWORD 'password' LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE;
+----
++
+Or alternatively use `createuser` utility:
++
+[source,bash]
+----
+sudo -u postgres createuser --pwprompt --no-superuser --no-createdb --no-createrole midpoint
+----
+
+. Create `midpoint` database with `midpoint` user as an owner:
++
+[source,sql]
+----
+CREATE DATABASE midpoint WITH OWNER = midpoint ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' CONNECTION LIMIT = -1;
+----
+
+. As database superuser (`postgres`) connect to the new database:
++
+[source,sql]
+----
+\c midpoint
+----
+
+. Execute the commands that create database extensions. Such commands require superuser privileges:
++
+[source,sql]
+----
+CREATE EXTENSION IF NOT EXISTS intarray;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+DO $$
+BEGIN
+    PERFORM pg_get_functiondef('gen_random_uuid()'::regprocedure);
+    RAISE NOTICE 'gen_random_uuid already exists, skipping create EXTENSION pgcrypto';
+EXCEPTION WHEN undefined_function THEN
+    CREATE EXTENSION pgcrypto;
+END
+$$;
+----
+
+. Run the rest of the SQL script as user `midpoint`:
++
+[source,bash]
+----
+psql -h localhost -U midpoint midpoint -f doc/config/sql/native-new/postgres-new.sql
+----
++
+There may be errors indicating problems with creating database extensions, caused by the script attempting to execute a privileged operation.
+You can ignore such errors, as the extensions were created by superuser in previous step.
+
+. Continue installation process normally, which means executing the audit SQL script `postgres-new-audit.sql`
+
 
 == Example config.xml
 
