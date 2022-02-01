@@ -67,13 +67,13 @@ public class BasePanel<T> extends Panel {
     }
 
     public StringResourceModel createStringResource(String resourceKey, IModel<?> model, Object... objects) {
-        return new StringResourceModel(resourceKey, this).setModel(model)
+        return new StringResourceModel(resourceKey).setModel(model)
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this).setModel(null)
+        return new StringResourceModel(resourceKey).setModel(null)
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
@@ -84,7 +84,7 @@ public class BasePanel<T> extends Panel {
             // TODO later: use polystringKey.getKey()
             resourceKey = polystringKey.getOrig();
         }
-        return new StringResourceModel(resourceKey, this).setModel(null)
+        return new StringResourceModel(resourceKey).setModel(null)
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
@@ -95,7 +95,7 @@ public class BasePanel<T> extends Panel {
             // TODO later: use polystringKey.getKey()
             resourceKey = polystringKey.getOrig();
         }
-        return new StringResourceModel(resourceKey, this).setModel(null)
+        return new StringResourceModel(resourceKey).setModel(null)
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
     }

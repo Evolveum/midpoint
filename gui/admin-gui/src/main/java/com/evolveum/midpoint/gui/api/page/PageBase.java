@@ -683,27 +683,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         pageTitleReal.setRenderBodyOnly(true);
         pageTitle.add(pageTitleReal);
 
-        LoadableDetachableModel<List<Breadcrumb>> breadcrumbsModel = new LoadableDetachableModel<List<Breadcrumb>>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<Breadcrumb> load() {
-                return getBreadcrumbs();
-            }
-
-            @Override
-            protected void onDetach() {
-                for (Breadcrumb b : getObject()) {
-                    b.detach();
-                }
-            }
-
-            //            @Override
-//            public List<Breadcrumb> getObject() {
-//                return getBreadcrumbs();
-//            }
-        };
+        IModel<List<Breadcrumb>> breadcrumbsModel = () -> getBreadcrumbs();
 
         ListView<Breadcrumb> breadcrumbs = new ListView<>(ID_BREADCRUMB, breadcrumbsModel) {
 
@@ -746,14 +726,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 Label bcName = new Label(ID_BC_NAME, item.getModelObject().getLabel());
                 bcLink.add(bcName);
 
-//                item.add(new VisibleEnableBehaviour() {
-//                    private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    public boolean isVisible() {
-//                        return item.getModelObject().isVisible();
-//                    }
-//                });
+                item.add(new VisibleEnableBehaviour() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public boolean isVisible() {
+                        return item.getModelObject().isVisible();
+                    }
+                });
             }
         };
         breadcrumbs.add(new VisibleBehaviour(() -> !isErrorPage()));
