@@ -71,7 +71,7 @@ If both schemas are to be applied, first apply main repository schema followed b
 See xref:/midpoint/reference/repository/native-audit[Native PostgreSQL Audit Trail] for details how
 to set it up in a database xref:/midpoint/reference/repository/native-audit/#sql-audit-using-its-own-database[separate from the main repository].
 Be aware that with new repository *both databases have to be PostgreSQL databases.*
-It is possible to use different versions for each database as long as they are supported (12 or higher).
+It is possible to use different versions for each database as long as they are supported (13 or higher).
 
 [IMPORTANT]
 If you want to migrate your old audit records to the new database and keep event record IDs unique,
