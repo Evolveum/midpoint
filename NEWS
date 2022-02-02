@@ -1,14 +1,14 @@
-midPoint 4.4 "Tesla"
-----------------------
+midPoint 4.4.1 "Tesla" Update 1
+-------------------------------
 
-Release 4.4 is thirty-seventh midPoint release code-named Tesla.
-The 4.4 release brings major performance and scalability improvements implemented in scope of
-midScale project. In addition to that there are significant user experience and reporting
-improvements.
+Release 4.4.1 is is a thirty-ninth midPoint release.
+It is the first maintenance update for 4.4.x version family code-named _Tesla_.
+The 4.4.1 release brings improvements for migration to native PostgreSQL repository
+ and miscellaneous bugfixes and minor improvements.
 
-Release date: 26th November 2021
-Release type: Long-term support release
+Release date: 2nd January 2022
+Release type: Long-term support maintenance release
 End of support: 26th November 2024
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.4/
+https://docs.evolveum.com/midpoint/release/4.4.1/
