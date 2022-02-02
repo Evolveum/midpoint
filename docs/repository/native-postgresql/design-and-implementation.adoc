@@ -311,4 +311,243 @@ FOR UPDATE is used only for modifyObject operation, there is minimal gap possibl
 atomically, and the default transaction isolation level does not prevent from reading the row during that time either.
 It only blocks the same modifyObject on the very same row - which is exactly what we want.
 Also, serializable isolation reports the errors that are rather confusing for our users/customers.
+
+== Unsorted notes originally in midpoint repo/repo-sqale/README.adoc (now removed)
+
+=== Other technical problems
+
+* https://vsevolod.net/postgresql-jsonb-index/[This post] points to various indexing/planning problems, i.e. planner guessing many more rows to be returned.
+Also, JIT slowing down execution of queries was mentioned.
+
+* Pure GIN index can get big depending on the number of different values used.
+It's tricky to use as only some operators are supported - contains/equals are possible, but not comparison or LIKE.
+It can still help with other operations by selecting only relevant rows containing the attribute (with any value) and then adding the condition of interest.
+
+TODO SEE: https://stackoverflow.com/a/49826693/658826
+TODO also: https://stackoverflow.com/a/12612255 see arrays, composite types, hstore options
+
+=== GIN indexes
+
+Using https://www.postgresql.org/docs/13/gin-intro.html[GIN indexes] is tricky.
+Where clauses have to follow certain forms to benefit from https://www.postgresql.org/docs/13/datatype-json.html#JSON-INDEXING[JSONB indexing].
+For example:
+
+[source,sql]
+----
+-- with this index
+CREATE INDEX m_user_ext_idx ON m_user USING gin(ext);
+
+-- the following where does not use it
+select * from m_user
+    where ext->>'email' = 'user11666123@mycompany.com';
+
+-- but this one does (found entry can have other attributes just fine)
+select * from m_user
+    where ext @> '{"email": "user11666123@mycompany.com"}'
+----
+
+Alternatively, more specific GIN indexes can be added, but I'd not recommend this by default.
+If some high-business-value custom query takes longer it may benefit from the manually added index, typically function based with some JSON selector inside.
+It is however not recommended as a preventive measure, because this would require many indexes.
+Also, joining multiple indexes during an execution can take longer than using single (seemingly less efficient) index, see https://medium.com/plangrid-technology/indexing-with-postgres-when-less-is-more-7337d6f09048[this story].
+Finally, each index incurs a penalty for updates and inserts and takes additional space.
+
+Just for example, the following indexes could be created for each attribute (doesn't mean they should):
+
+* `((ext->>'attr'))` for conditions on `ext->>'attr'` of any kind, but mostly comparison.
+* TODO... lower (or upper)
+* TODO min/max functional for arrays (https://dba.stackexchange.com/a/202761/157622[this answer]).
+* trigram index for "endsWith"?
+
+All these indexes could be made much smaller by adding `WHERE ext ? 'attr'`.
+The condition then must be used in the query too, which should not be a problem.
+I recommend to use `ext?'attr'` in the query in any case because even without these indexes it can benefit from the generic GIN index a lot.
+
+== TODO
+
+== PostgreSQL table inheritance
+
+https://www.postgresql.org/docs/current/ddl-inherit.html[Table inheritance] is a nice mechanism that allows creating table hierarchies, so we see all objects in one table and various subtypes in inherited tables.
+*It is also an implicit method for partitioning*, at least from the perspective of the parent table(s).
+
+* We need "abstract" tables like `m_object`.
+Alternative would be a view with `SELECT ... UNION` and common columns have to be repeated in DDL.
+Ideally we don't want to insert into abstract tables, we can use `check (false) no inherit` for this.
+"Check false" always fails, but this is not inherited by sub-tables.
+Updates of common columns or deletes on abstract tables still work with expected results (not possible with view without additional measures like triggers).
+
+* PKs, FKs and most of other constraints must be declared on each sub-table.
+Only check and not-null constraints are inherited, unless `no inherit` is declared.
+See https://www.postgresql.org/docs/current/ddl-inherit.html#DDL-INHERIT-CAVEATS[inheritance caveats].
+
+* To assure globally unique PKs we have to use triggers on sub-tables or separate OID-pool table.
+We chose the separate table solution after See http://blog.ioguix.net/postgresql/2015/02/05/Partitionning-and-constraints-part-1.html[this post]
+for more - especially the solution towards the end with advisory locks.
+The part with the support for other types is also handy, because UUID is bigger than bigint for lock.
+
+* UUID is far from the first recommendation for a PK, but it's impractical to use anything else for midPoint.
+Even with additional serial PK the objects are searched by their OID, so it would have to be indexed and its uniqueness assured and then it can just be PK directly.
+Smaller PK could be beneficial only as FK from other tables, e.g. instead of `targetRef_oid` for associations.
+This could still mean that we need to follow the FK to resolve it to OID which we use in application.
+
+* We want to generate OID in the database, so `DEFAULT gen_random_uuid()` is used for `OID`
+column directly in the master table `m_object`.
+
+* To assure unique OIDs we will use separate `m_object_oid` table.
+Triggers for insert and delete will assure the consistency between this and `m_object` hierarchy.
+For inserts we have to generate OID if its not provided or use the one that is - in both cases the new OID is inserted into `m_object_oid`.
+Updates of OID are forbidden which is also guarded by a trigger, otherwise it would be able to change OID to already existing OID from another table (PK does not allow it for the same table).
+
+* Can we partition inherited table?
+Like `m_shadow`.
+*No, this is not possible.* Options:
+** Using "application managed partitioning" with inheritance as needed.
+We prefer this, it is more cumbersome, but possibly more flexible.
+It also allows adding different extensions for different tables, e.g. based on resource.
+** Shadow would not be part of `m_object` hierarchy.
+
+* Foreign key can't be used against `m_object.oid` because it does not enforce index (by itself).
+Perhaps we want to introduce `m_object_oid` table that would own the unique pool of OIDs and could be used for referencing FKs.
+Referencing only some types of objects (e.g. just focuses) is probably mission impossible.
+
+
+* TODO: membership searches on abstract tables (e.g. focus), EXPLAIN, performance?
+
+* TODO: logging of all statements for experiments?
+https://www.postgresql.org/docs/current/runtime-config-logging.html
+https://stackoverflow.com/questions/722221/how-to-log-postgresql-queries
+
+* TODO: tablespaces?
+
+* The default `public` schema is used for all midpoint objects, that's OK.
+
+== Maintenance
+
+We may need regular `ANALYZE` and/or `VACUUM`.
+This should be run regularly - can it be done in DB or should MP call this or something else will trigger it?
+
+== Performance drop with volume
+
+TL/DR:
+
+* After first million, insert performance drops.
+* So does query, but if it uses an index, not that significantly.
+* Count queries suffer with volume - avoid count whenever possible.
+* Avoid solutions where number of inherited tables affects the performance, e.g. unique over hierarchy - perhaps externalize it to dedicated table.
+* Nothing was optimized, it was just couple of experiments to get a feeling for it.
+* After mass-deletes, performance can still be slow before `VACUUM` and/or `ANALYZE` is not ran.
+
+Tested on VirtualBox, 2 GB RAM, 60+ GB disk.
+
+Insert performance measurements:
+
+[source,sql]
+----
+INSERT INTO m_user (nameNorm, nameOrig, version)
+  VALUES ('user-' || LPAD(r::text, 10, '0'), 'user-' || LPAD(r::text, 10, '0'), 1);
+----
+
+Both name columns are indexed, `nameNorm` is also unique.
+Loop is used to INSERT the rows, which is slower than `INSERT from SELECT` with `generate_series`, but closer to real scenario that uses separate statements (although there are no round-trips here).
+
+Effect of the number of inherited tables on INSERT performance.
+`VACUUM` was used after massive deletes, otherwise the times for 10M were similar to 40M.
+This should not be problematic when separate `m_object_oid` table is used now.
+
+|===
+| Inherited{nbsp}tables / Existing rows | 4 | 50 | 100
+
+| 0 | 6s | 6s | 6s
+| 1M | 6s | - | 6s
+| 10M | 29/14/14s | - | 28/12/27s
+| 40M | 74/70/72s | 70s | 70s
+|===
+
+Conclusion - as there is no check against `m_object` there is no negative impact of the hierarchy on the performance.
+
+Table sizes after x inserts (index means PK index):
+
+|===
+| Inserted rows total | User table/index size | OID table/index size | DB size
+
+| 0 | | |
+| 1M | 96/30 MB | 42/30 MB | 266 MB
+| 10M | 965/446 MB | 422/446 MB | 2888 MB
+| 40M | 3858/1721 MB | 1689/1721 MB | 11 GB
+|===
+
+With user's names formatted like `user-0000000001` both name indexes had 1269 MB at 40M rows.
+
+== Performance of searching for unused OIDs
+
+If delete is not guarded by a trigger, `m_object_oid` can have unused OIDs.
+It's crucial to use the right select/delete construction to find/delete them.
+With 26M rows naive approach with `NOT IN` to delete 200k unused OIDs took over 1h without finishing.
+Following output shows the plan for `NOT IN`, `LEFT JOIN` and `NOT EXISTS`.
+Latter two use `Parallel Hash Anti Join` which is good, `NOT IN` uses `Parallel Seq Scan` which is not.
+`NOT EXISTS` is practical for `DELETE`/`UPDATE` and perfectly valid to use.
+The previous problem (deleting 200k unused OIDs from 26M total) was solved in around 150s.
+
+[source,sql]
+----
+EXPLAIN -- (ANALYZE, BUFFERS, FORMAT TEXT) with analyze it's super slow, EXPLAIN is enough here
+select * FROM m_object_oid WHERE OID NOT IN (SELECT oid from m_object);
+
+Gather  (cost=1000.00..5431677337728.88 rows=13150078 width=16)
+  Workers Planned: 2
+  ->  Parallel Seq Scan on m_object_oid  (cost=0.00..5431676021721.08 rows=5479199 width=16)
+        Filter: (NOT (SubPlan 1))
+        SubPlan 1
+          ->  Materialize  (cost=0.00..925576.32 rows=26300117 width=16)
+                ->  Append  (cost=0.00..665656.73 rows=26300117 width=16)
+                      ->  Seq Scan on m_object m_object_1  (cost=0.00..0.00 rows=1 width=16)
+                      ->  Seq Scan on m_resource m_object_2  (cost=0.00..10.10 rows=10 width=16)
+                      ->  Seq Scan on m_focus m_object_3  (cost=0.00..0.00 rows=1 width=16)
+                      ->  Seq Scan on m_shadow m_object_4  (cost=0.00..10.10 rows=10 width=16)
+                      ->  Seq Scan on m_user m_object_5  (cost=0.00..534135.95 rows=26300095 width=16)
+JIT:
+  Functions: 14
+"  Options: Inlining true, Optimization true, Expressions true, Deforming true"
+
+EXPLAIN select count(oo.oid) FROM m_object_oid oo
+left join m_object o on o.oid = oo.oid
+WHERE o.oid is null;
+
+Gather  (cost=627018.54..1217367.23 rows=38 width=16)
+  Workers Planned: 2
+  ->  Parallel Hash Anti Join  (cost=626018.54..1216363.43 rows=16 width=16)
+        Hash Cond: (oo.oid = o.oid)
+        ->  Parallel Seq Scan on m_object_oid oo  (cost=0.00..251746.98 rows=10958398 width=16)
+        ->  Parallel Hash  (cost=435530.76..435530.76 rows=10958383 width=16)
+              ->  Parallel Append  (cost=0.00..435530.76 rows=10958383 width=16)
+                    ->  Seq Scan on m_object o_1  (cost=0.00..0.00 rows=1 width=16)
+                    ->  Seq Scan on m_focus o_3  (cost=0.00..0.00 rows=1 width=16)
+                    ->  Parallel Seq Scan on m_user o_5  (cost=0.00..380718.73 rows=10958373 width=16)
+                    ->  Parallel Seq Scan on m_resource o_2  (cost=0.00..10.06 rows=6 width=16)
+                    ->  Parallel Seq Scan on m_shadow o_4  (cost=0.00..10.06 rows=6 width=16)
+JIT:
+  Functions: 18
+"  Options: Inlining true, Optimization true, Expressions true, Deforming true"
+
+EXPLAIN
+delete FROM m_object_oid oo
+where not exists (select * from m_object o where o.oid = oo.oid);
+
+Gather  (cost=627018.54..1217367.23 rows=38 width=16)
+  Workers Planned: 2
+  ->  Parallel Hash Anti Join  (cost=626018.54..1216363.43 rows=16 width=16)
+        Hash Cond: (oo.oid = o.oid)
+        ->  Parallel Seq Scan on m_object_oid oo  (cost=0.00..251746.98 rows=10958398 width=16)
+        ->  Parallel Hash  (cost=435530.76..435530.76 rows=10958383 width=16)
+              ->  Parallel Append  (cost=0.00..435530.76 rows=10958383 width=16)
+                    ->  Seq Scan on m_object o_1  (cost=0.00..0.00 rows=1 width=16)
+                    ->  Seq Scan on m_focus o_3  (cost=0.00..0.00 rows=1 width=16)
+                    ->  Parallel Seq Scan on m_user o_5  (cost=0.00..380718.73 rows=10958373 width=16)
+                    ->  Parallel Seq Scan on m_resource o_2  (cost=0.00..10.06 rows=6 width=16)
+                    ->  Parallel Seq Scan on m_shadow o_4  (cost=0.00..10.06 rows=6 width=16)
+JIT:
+  Functions: 18
+"  Options: Inlining true, Optimization true, Expressions true, Deforming true"
+----
+
 ////
