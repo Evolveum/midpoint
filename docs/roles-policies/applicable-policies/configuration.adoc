@@ -64,7 +64,7 @@ Therefore the complete configuration may look like this:
 </org>
 ----
 
- .Meta role for manager approval
+.Meta role for manager approval
 [source,xml]
 ----
 <role oid="4798bd8e-23a3-11e8-a502-e32261e4ecff">

@@ -276,7 +276,7 @@ The following formats and related media types are supported:
 | Format | Media type
 
 | XML
-| `application/xml`, `application/*+xml`, `text/xml`
+| `application/xml`, `++application/*+xml++`, `text/xml`
 
 
 | JSON
@@ -284,8 +284,8 @@ The following formats and related media types are supported:
 
 
 | YAML
-| `application/yaml`, `application/yml`, `application/\*+yaml`, `application/*+yml` +
-`text/yaml`, `text/yml`, `text/\*+yaml`, `text/*+yml` +
+| `application/yaml`, `application/yml`, `++application/*+yaml++`, `++application/*+yml++`,
+`text/yaml`, `text/yml`, `++text/*+yaml++`, `++text/*+yml++` +
 Note: There is no official registered media type.
 
 

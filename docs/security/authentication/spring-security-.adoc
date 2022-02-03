@@ -142,7 +142,7 @@ The configuration depends on the application server or web container that is use
 ----
 
 Possible values for the option are (for now) ldap and cas.
-According to this configuration one of the ctx-web-security-\*.xml configuration is applied.
+According to this configuration one of the `++ctx-web-security-*.xml++` configuration is applied.
 If this option is not specified, the default (ctx-web-security-basic.xml) is used.
 
 ==== Configuration properties

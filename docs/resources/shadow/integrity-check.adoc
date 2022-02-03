@@ -55,7 +55,7 @@ In future, we'll check that setting automatically, but currently we do not.)
 
 | uniqueness
 | Checks whether there are more shadows (of given resource+kind) bound to specific identifier value, e.g. icfs:name or icfs:uid or whatever.
-| diagnose + fix (\*)
+| diagnose + fix (++*++)
 
 
 | intents
@@ -92,7 +92,7 @@ Because of the performance implications, this check is not carried out by defaul
 
 |===
 
-(\*) Note that the test checking for uniqueness is implemented purely in RAM, so it works for shadow sets of reasonable size (e.g. 100K entries, depending on amount of your heap).
+(++*++) Note that the test checking for uniqueness is implemented purely in RAM, so it works for shadow sets of reasonable size (e.g. 100K entries, depending on amount of your heap).
 It is faster and simpler to implement.
 If necessary, just log a JIRA issue to implement more general solution that would work with shadow sets of any size.
 

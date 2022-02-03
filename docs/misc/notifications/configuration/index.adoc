@@ -449,35 +449,35 @@ This has a slightly different meaning depending on the event category:
 
 [%autowidth]
 |===
-| Name | Expression | Meaning for user events | Meaning for account events | Meaning for workflow events****
+| Name | Expression | Meaning for user events | Meaning for account events | Meaning for workflow events++****++
 
 | success
 | event.isSuccess()
-| All modifications were carried out successfully\*.
+| All modifications were carried out successfully.++*++
 .2+| The operation was successful.
 .2+| The request was approved.
 
 
 | alsoSuccess
 | event.isAlsoSuccess()
-| At least one modification was carried out successfully\*.
+| At least one modification was carried out successfully.++*++
 
 
 | onlyFailure
 | event.isOnlyFailure()
-| All modifications failed\**.
+| All modifications failed.++**++
 .2+| The operation was unsuccessful.
 .2+| The request was denied.
 
 
 | failure
 | event.isFailure()
-| At least one modification failed\**.
+| At least one modification failed.++**++
 
 
 | inProgress
 | event.isInProgress()
-| At least one modification is in progress\***.
+| At least one modification is in progress.++***++
 | The operation is in progress.
 | The result of request is not known.
 
@@ -485,15 +485,15 @@ This has a slightly different meaning depending on the event category:
 
 
 
-(*) The result is either SUCCESS, WARNING, or NOT_APPLICABLE.
+(++*++) The result is either SUCCESS, WARNING, or NOT_APPLICABLE.
 
-(**) The result is either FATAL_ERROR, PARTIAL_ERROR or NOT_APPLICABLE.
+(++**++) The result is either FATAL_ERROR, PARTIAL_ERROR or NOT_APPLICABLE.
 
-(\***) The result is IN_PROGRESS.
+(++***++) The result is IN_PROGRESS.
 
 Please note that we take into account only user (i.e. focus) modifications, *not* modifications of user's accounts.
 
-(\****) Alternatively, it is possible to use the following expressions for workflow events: event.isApproved(), event.isRejected(), event.isResultKnown().
+(++****++) Alternatively, it is possible to use the following expressions for workflow events: event.isApproved(), event.isRejected(), event.isResultKnown().
 
 
 === operation filter

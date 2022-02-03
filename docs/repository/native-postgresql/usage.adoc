@@ -4,23 +4,6 @@
 :page-nav-title: Usage
 :page-since: "4.4"
 
-== Changes from old to new repository
-
-What is similar and what is different when configuring midPoint for the new repository?
-
-* New repository supports *only PostgreSQL database* of version 13 and later.
-* The database must be installed and prepared as described below.
-The setup for Postgres is fairly similar to the old repo, just different schema files are used.
-* Most of the repository configuration in `config.xml` works as before.
-New repo doesn't use Hibernate, so any Hibernate related configuration is ignored.
-See this xref:/midpoint/reference/repository/configuration/[Repository Configuration] document for details.
-* Main difference in `config.xml` is to use `<type>native</type>` instead of
-`<repositoryServiceFactoryClass>` element (which does not work with new repo).
-Definitely don't try to use both `<repositoryServiceFactoryClass>` and `<type>` simultaneously!
-* For the xref:../../native-audit/[SQL audit] replace old repository value in `auditServiceFactoryClass`
-with `com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory`.
-Audit factory class for SQL auditing must match the used repository.
-
 == Database setup
 
 === Installation
@@ -88,29 +71,38 @@ If both schemas are to be applied, first apply main repository schema followed b
 See xref:/midpoint/reference/repository/native-audit[Native PostgreSQL Audit Trail] for details how
 to set it up in a database xref:/midpoint/reference/repository/native-audit/#sql-audit-using-its-own-database[separate from the main repository].
 Be aware that with new repository *both databases have to be PostgreSQL databases.*
-It is possible to use different versions for each database as long as they are supported (12 or higher).
+It is possible to use different versions for each database as long as they are supported (13 or higher).
 
 [IMPORTANT]
 If you want to migrate your old audit records to the new database and keep event record IDs unique,
 set the ID sequence in the new database as described in xref:/midpoint/reference/repository/native-audit/#audit-migration-from-other-database[Audit migration from other database].
 
-The location of the files will likely change, and it will be packed in the distribution as well.
-
-You can use any client to do this, or we can download the file on the VM and use it like this:
+We recommend using `psql` for database initialization like this:
 
 ----
-wget -q https://raw.githubusercontent.com/Evolveum/midpoint/master/config/sql/native-new/postgres-new.sql
-wget -q https://raw.githubusercontent.com/Evolveum/midpoint/master/config/sql/native-new/postgres-new-audit.sql
-# without this export psql will prompt for the password
 export PGPASSWORD=password
 # If you want to replace any previous tables in the schema, uncomment this drop too:
 #psql -h localhost midpoint midpoint -c "drop schema public cascade"
 psql -h localhost midpoint midpoint -f postgres-new.sql -f postgres-new-audit.sql
 ----
 
-NOTE: Replace `master` in the URLs with appropriate midPoint version.
+If you want to use different schema name than `public` you have to adjust the initialization commands.
 
-If you plan to use https://www.postgresql.org/docs/13/pgstatstatements.html[statement statistics extension]
+[IMPORTANT]
+====
+You can use other client than `psql`, but the client must send the commands to the server separately.
+E.g. IDEA Ultimate Edition or DataGrip from JetBrains work fine.
+
+Some clients, notably https://www.pgadmin.org/[pgAdmin], send the whole content in a single request.
+This does not go well with midPoint initalization script that calls procedure with `COMMIT` inside.
+You can execute `call` statements separately, but the same problem occurs for upgrade scripts
+where you'd need to execute each `call` separately.
+
+Alternatively, it seems that wrapping the content of the file with an https://www.postgresql.org/docs/current/sql-do.html[anonymous block]
+works, but we still recommend using tools that can execute files properly - that is `psql`.
+====
+
+If you plan to use https://www.postgresql.org/docs/current/pgstatstatements.html[statement statistics extension]
 (not discussed here), initialize it like this:
 
 ----
@@ -205,6 +197,7 @@ There may be errors indicating problems with creating database extensions, cause
 You can ignore such errors, as the extensions were created by superuser in previous step.
 
 . Continue installation process normally, which means executing the audit SQL script `postgres-new-audit.sql`
+and script for Quartz tables `postgres-new-quartz.sql`.
 
 
 == Example config.xml
@@ -214,11 +207,47 @@ You can also see it online https://github.com/Evolveum/midpoint/blob/master/conf
 If you use this example, don't forget to rename it to `config.xml` after dropping it to `midpoint.home`.
 
 Another example is https://github.com/virgo47/midpoint-vagrantboxes/blob/master/vagrant-midpoint-db-pg-new-repo/config.xml[here].
-The main difference when comparing it to the old repository is using the `type` element instead of `repositoryServiceFactoryClass` which does not work for new repository anymore.
+
+.Example config.xml for Native repository
+----
+<?xml version="1.0"?>
+<configuration>
+    <midpoint>
+        <webApplication>
+            <importFolder>${midpoint.home}/import</importFolder>
+        </webApplication>
+        <repository>
+            <type>native</type> <1>
+            <jdbcUrl>jdbc:postgresql://localhost:5432/midpoint</jdbcUrl>
+            <jdbcUsername>midpoint</jdbcUsername>
+            <jdbcPassword>password</jdbcPassword>
+        </repository>
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+            <auditService> <2>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+        </audit>
+        <icf>
+            <scanClasspath>true</scanClasspath>
+            <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
+        </icf>
+        <keystore>
+            <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
+            <keyStorePassword>changeit</keyStorePassword>
+            <encryptionKeyAlias>default</encryptionKeyAlias>
+        </keystore>
+    </midpoint>
+</configuration>
+----
+
+1. The main difference when comparing it to the old repository is using the `type` element instead of `repositoryServiceFactoryClass` which does not work for new repository anymore.
 Set the value of `type` element to `native` (values `sqale` or `scale` are also supported).
 *Do not* use `sql` which indicates old repo!
 
-Native repository comes with native SQL audit, so we need to change the audit factory class in
+2. Native repository comes with native SQL audit, so we need to change the audit factory class in
 `auditServiceFactoryClass` element from old repository value containing
 `...SqlAuditServiceFactory` to `com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory`.
 
