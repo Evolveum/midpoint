@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.gui.impl.component.search.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.Model;
@@ -37,7 +39,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.web.component.search.refactored.*;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -366,39 +367,39 @@ public class SearchFactory {
         });
     }
 
-    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.refactored.Search<C> createSearchNew(Class<C> type, ModelServiceLocator modelServiceLocator) {
+    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearchNew(Class<C> type, ModelServiceLocator modelServiceLocator) {
         return createSearchNew(type, null, modelServiceLocator);
     }
 
-    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.refactored.Search<C> createSearchNew(Class<C> type, String collectionViewName,  ModelServiceLocator modelServiceLocator) {
+    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearchNew(Class<C> type, String collectionViewName,  ModelServiceLocator modelServiceLocator) {
         return createSearchNew(type, collectionViewName, null, null, modelServiceLocator);
     }
 
-    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.refactored.Search<C> createSearchNew(Class<C> type, String collectionViewName,
+    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearchNew(Class<C> type, String collectionViewName,
             SearchBoxConfigurationType config, ModelServiceLocator modelServiceLocator) {
         return createSearchNew(type, collectionViewName, config, null, modelServiceLocator);
     }
 
-    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.refactored.Search<C> createSearchNew(Class<C> type, String collectionViewName,
+    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearchNew(Class<C> type, String collectionViewName,
             List<? super AbstractSearchItemWrapper> searchItemWrappers, ModelServiceLocator modelServiceLocator) {
         return createSearchNew(type, collectionViewName, null, searchItemWrappers, modelServiceLocator);
     }
 
-    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.refactored.Search<C> createSearchNew(Class<C> type, String collectionViewName,
+    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearchNew(Class<C> type, String collectionViewName,
             SearchBoxConfigurationType config, List<? super AbstractSearchItemWrapper> searchItemWrappers, ModelServiceLocator modelServiceLocator) {
         return createSearchNew(type, collectionViewName, config, searchItemWrappers, null, modelServiceLocator, Search.PanelType.DEFAULT);
     }
 
-    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.refactored.Search<C> createMemberPanelSearch(Class<C> type, ModelServiceLocator modelServiceLocator) {
+    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createMemberPanelSearch(Class<C> type, ModelServiceLocator modelServiceLocator) {
         return createMemberPanelSearch(type, null, modelServiceLocator);
     }
 
-   public static <C extends Containerable> com.evolveum.midpoint.web.component.search.refactored.Search<C> createMemberPanelSearch(Class<C> type,
+   public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createMemberPanelSearch(Class<C> type,
             SearchBoxConfigurationType config, ModelServiceLocator modelServiceLocator) {
         return createSearchNew(type, null, config, null, null, modelServiceLocator, Search.PanelType.MEMBER_PANEL);
     }
 
-    private static <C extends Containerable> com.evolveum.midpoint.web.component.search.refactored.Search<C> createSearchNew(Class<C> type, String collectionViewName, SearchBoxConfigurationType panelConfig,
+    private static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearchNew(Class<C> type, String collectionViewName, SearchBoxConfigurationType panelConfig,
             List<? super AbstractSearchItemWrapper> searchItemWrappers, ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator, Search.PanelType panelType) {
         SearchBoxConfigurationType searchBoxConfig = createDefaultSearchBoxConfiguration(type, discriminator, modelServiceLocator);
         searchBoxConfig = combineSearchBoxConfiguration(searchBoxConfig, panelConfig);
@@ -416,8 +417,8 @@ public class SearchFactory {
 //        if (Search.PanelType.MEMBER_PANEL.equals(panelType)) {
 //            searchConfigurationWrapper.getItemsList().addAll(createAbstractRoleSearchItemWrapperList(searchConfigurationWrapper));
 //        }
-        com.evolveum.midpoint.web.component.search.refactored.Search search =
-                new com.evolveum.midpoint.web.component.search.refactored.Search(Model.of(searchConfigurationWrapper));
+        com.evolveum.midpoint.gui.impl.component.search.Search search =
+                new com.evolveum.midpoint.gui.impl.component.search.Search(Model.of(searchConfigurationWrapper));
         return search;
     }
 

@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.search.refactored.Search;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 

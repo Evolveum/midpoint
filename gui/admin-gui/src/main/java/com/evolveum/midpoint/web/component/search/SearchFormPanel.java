@@ -14,8 +14,8 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.search.refactored.SearchPanel;
-import com.evolveum.midpoint.web.component.search.refactored.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 /**
  * @author Viliam Repan (lazyman)

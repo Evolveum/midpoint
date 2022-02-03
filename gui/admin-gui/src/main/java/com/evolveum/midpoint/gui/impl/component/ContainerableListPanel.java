@@ -13,10 +13,10 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 
-import com.evolveum.midpoint.web.component.search.refactored.ObjectCollectionSearchItemWrapper;
-import com.evolveum.midpoint.web.component.search.refactored.PropertySearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.ObjectCollectionSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.PropertySearchItemWrapper;
 
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 
@@ -84,7 +84,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.*;
-import com.evolveum.midpoint.web.component.search.refactored.Search;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;

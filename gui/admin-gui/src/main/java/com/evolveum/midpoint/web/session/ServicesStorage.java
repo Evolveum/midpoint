@@ -8,7 +8,7 @@ package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.web.component.search.refactored.Search;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 public class ServicesStorage implements PageStorage{
     private static final long serialVersionUID = 1L;

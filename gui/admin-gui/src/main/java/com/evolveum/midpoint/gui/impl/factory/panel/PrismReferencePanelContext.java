@@ -7,9 +7,8 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.util.Set;
-import java.util.function.Function;
 
-import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 
@@ -18,8 +17,6 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchItem;
 
 /**
  * @author katka

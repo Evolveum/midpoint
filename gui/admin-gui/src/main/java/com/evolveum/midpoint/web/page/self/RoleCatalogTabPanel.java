@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.web.page.self;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -17,27 +16,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.search.refactored.Search;
-import com.evolveum.midpoint.web.component.search.SearchItem;
-import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
-import com.evolveum.midpoint.web.component.search.SpecialSearchItem;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
-import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**

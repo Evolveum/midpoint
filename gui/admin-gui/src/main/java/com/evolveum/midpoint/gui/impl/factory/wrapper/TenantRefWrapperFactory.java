@@ -16,8 +16,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.search.*;
-import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.web.component.search.refactored.ChoicesSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.ChoicesSearchItemWrapper;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentResourcePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 

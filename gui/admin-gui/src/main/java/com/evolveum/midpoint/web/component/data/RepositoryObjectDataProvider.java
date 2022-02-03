@@ -11,7 +11,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.web.component.search.refactored.Search;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 

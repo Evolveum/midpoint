@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
