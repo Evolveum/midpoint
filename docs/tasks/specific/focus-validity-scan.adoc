@@ -3,8 +3,8 @@
 This activity executes validity scan on focal objects.
 
 It looks for objects whose xref:/midpoint/reference/concepts/activation/[validity] is assumed to be changed
-(for example because they crossed their `validTo` timestamp, causing switching the object from _active_ to
-_inactive_ effective activation state), and recomputes them. The recomputation applies the changes stemming
+(for example because they crossed their `validTo` timestamp, causing switching the object from _enabled_ to
+_disabled_ effective activation state), and recomputes them. The recomputation applies the changes stemming
 from the new activation state.
 
 The activity works in one of two modes: standard mode and custom validity constraint mode.
@@ -16,7 +16,8 @@ Normally, the validity scan activity recomputes all objects that have at least o
 of (`lastScanTimestamp`, `thisScanTimestamp`]. footnote:[Note that parentheses mean open interval, i.e. interval
 that does not contain its boundary, whereas square brackets denote closed interval, i.e. one that contains the
 boundary. For example, `(A,B\]` means values greater than `A`, and smaller or equal to `B`.]
-footnote:[For complete understanding see link:https://github.com/Evolveum/midpoint/blob/v4.4.1/model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/tasks/scanner/FocusValidityScanPartialRun.java#L115-L147[the source code]]
+footnote:[For complete understanding see
+link:https://github.com/Evolveum/midpoint/blob/v4.4.1/model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/tasks/scanner/FocusValidityScanPartialRun.java#L115-L147[the source code].]
 
 - `lastScanTimestamp` is the timestamp of last executed scan. It is stored in the task object
 in `activityState` container (or in task extension for versions before 4.4).
@@ -25,12 +26,12 @@ is determined when the scanning activity run starts.
 
 == Custom Validity Constraint Mode
 
-In _custom validity constraint mode_ the activity looks for objects that have specified property fall
-between (`lastScanTimestamp` - `offset`, `thisScanTimestamp` - `offset`] where `offset` is a value
+In this mode the activity looks for objects that have specified property fall
+between (`lastScanTimestamp` - `offset`, `thisScanTimestamp` - `offset`] where `offset` is the value
 given in the explicit validity constraint (the `activateOn` value).
 
 Then it recomputes these objects, with the explicitly added triggered validity policy rule.
-Note that this is an xref:/midpoint/versioning/experimental/[experimental functionality] (although turned on by default).
+Note that this is an xref:/midpoint/versioning/experimental/[experimental functionality].
 
 == Configuration Parameters
 
@@ -38,15 +39,15 @@ Note that this is an xref:/midpoint/versioning/experimental/[experimental functi
 [%autowidth]
 |===
 | Parameter | Description | Default value
-| `objects` | What xref:../object-set-specification/[objects] to scan. Normally, there is no need to specify the query. If it is present, the filter computed
+| `objects` | What xref:/midpoint/reference/tasks/activities/object-set-specification/[objects] to scan. Normally, there is no need to specify the query. If it is present, the filter computed
 by the activity (e.g. filtering on `validFrom` and `validTo` properties) is added to it as a conjunction. | All of `FocusType`.
-| `queryStyle` | How to find the objects. See below. | `singleQuery`
+| `queryStyle` | How to find the objects. See Performance Considerations below. | `singleQuery`
 | `validityConstraint` | Custom validity constraint. | None.
 |===
 
 == Distribution
 
-The activity supports multithreading and multi-node operation, although the latter is usually not necessary.
+The activity supports multithreaded and multi-node operation, although the latter is usually not necessary.
 
 == Performance Considerations
 
@@ -83,7 +84,7 @@ xref:/midpoint/reference/tasks/activities/distribution/[`distribution/subtasks`]
 </task>
 ----
 
-.Validity scanning task with separate queries and separate subtasks
+.Validity scanning task with separate queries running in separate subtasks
 [source,xml]
 ----
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
