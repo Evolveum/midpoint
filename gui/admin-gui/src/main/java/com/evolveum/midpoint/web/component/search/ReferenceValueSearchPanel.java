@@ -52,8 +52,7 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
     private <O extends ObjectType> void initLayout(){
         setOutputMarkupId(true);
 
-        AjaxButton selectObject = new AjaxButton(ID_SELECT_OBJECT_BUTTON,
-                createStringResource("ReferenceValueSearchPopupPanel.selectObject")) {
+        AjaxButton selectObject = new AjaxButton(ID_SELECT_OBJECT_BUTTON) {
 
             private static final long serialVersionUID = 1L;
 
@@ -71,9 +70,7 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
                     @Override
                     protected void onSelectPerformed(AjaxRequestTarget target, O object) {
                         getPageBase().hideMainPopup(target);
-                        if (ReferenceValueSearchPanel.this.getModel().getObject() == null) {
-                            ReferenceValueSearchPanel.this.getModel().setObject(new ObjectReferenceType());
-                        }
+                        ReferenceValueSearchPanel.this.getModel().setObject(new ObjectReferenceType());
                         ReferenceValueSearchPanel.this.getModelObject().setOid(object.getOid());
                         ReferenceValueSearchPanel.this.getModelObject().setTargetName(object.getName());
                         ReferenceValueSearchPanel.this.getModelObject().setType(
@@ -85,6 +82,8 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
                 getPageBase().showMainPopup(objectBrowserPanel, target);
             }
         };
+        selectObject.setOutputMarkupId(true);
+        selectObject.add(AttributeAppender.append("title", createStringResource("ReferenceValueSearchPopupPanel.selectObject")));
         add(selectObject);
     }
 
