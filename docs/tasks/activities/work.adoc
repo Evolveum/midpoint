@@ -133,31 +133,19 @@ but it is ignored.
 | Script to execute (`ExecuteScriptType`). Contains scripting expression, `input`, options`, and `variables`.
 | Obligatory.
 
-.3+| `focusValidityScan`
-.3+| Executes validity scan on focal objects. Works in one of two modes:
-
-In _standard mode_ it recomputes all objects that have at least one validity interval
-(`validFrom`/`validTo` for object or any of its assignments) falling into an interval of (`lastScanTimestamp`, `currentTime`],
-where `lastScanTimestamp` is the timestamp of last executed scan.
-
-In _custom validity constraint mode_, it looks for objects that have specified `property` fall between (`lastScanTimestamp`-`offset`, `currentTime`-`offset`]
-where `offset` is a value given in the explicit validity constraint (the `activateOn` value). It recomputes these objects, with the
-explicitly added triggered validity policy rule. Note that this is an *experimental* functionality.
-
+.3+| xref:/midpoint/reference/tasks/specific/focus-validity-scan/[`focusValidityScan`]
+.3+| Executes validity scan on focal objects.
 .3+| Predefined composite
 .3+| Y
 .3+| Y
 | `objects`
-| What xref:../object-set-specification/[objects] to scan. If a query is present, the filter computed
-by the activity is added to it (as a conjunction).
+| What xref:../object-set-specification/[objects] to scan.
 | All of `FocusType`.
 | `queryStyle`
-| How to find the objects: `singleQuery` - issues a single (combined) query, looking for objects and their assignments,
-or `separateObjectAndAssignmentQueries` - issues two queries: one for objects, another for assignments. The latter runs
-in two separate sub-activities.
+| How to find the objects: `singleQuery` or `separateObjectAndAssignmentQueries`.
 | `singleQuery`
 | `validityConstraint`
-| Custom validity constraint. See above.
+| Custom validity constraint.
 | None.
 
 | `triggerScan`
