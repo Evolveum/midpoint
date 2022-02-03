@@ -19159,6 +19159,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000508">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SINGLE_BULK_ACTION_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000509">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_ITERATIVE_BULK_ACTION_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000510">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -19180,17 +19194,52 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="00000000-0000-0000-0000-000000000508">
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000513">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_SINGLE_BULK_ACTION_TASK"/>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SHADOW_INTEGRITY_CHECK_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="00000000-0000-0000-0000-000000000509">
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000514">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_ITERATIVE_BULK_ACTION_TASK"/>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SHADOWS_REFRESH_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000515">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_OBJECTS_DELETE_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000516">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SHADOWS_DELETE_LONG_TIME_NOT_UPDATED_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000517">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_EXECUTE_CHANGE_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000518">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_EXECUTE_DETLAS_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000519">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_REINDEX_REPOSITORY_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -19208,6 +19257,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000522">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_OBJECT_INTEGRITY_CHECK_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000528">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -19219,6 +19275,34 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_SYSTEM_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000530">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_VALIDITY_SCANNER_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000531">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_TRIGGER_SCANNER_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000532">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_PROPAGATION_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000533">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_MULTI_PROPAGATION_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -23412,6 +23496,8 @@
             <xsd:documentation>
                 Correlation using ID Match service.
                 See https://spaces.at.internet2.edu/display/cifer/SOR-Registry+Strawman+ID+Match+API.
+
+                This structure is temporary/experimental. It will be changed before 4.5 release.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
@@ -23422,6 +23508,32 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractCorrelatorType">
                 <xsd:sequence>
+                    <xsd:element name="sorLabel" type="xsd:string" minOccurs="0" default="sor">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Label for this System of Record. Default is "sor" (TODO revise the default).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="sorIdentifierAttribute" type="xsd:QName" minOccurs="0" default="icfs:uid">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Attribute that is sent as SOR identifier. Default is "icfs:uid". (TODO revise the default.
+                                Is it possible for it to be the current primary identifier?)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="useReturnedValuesAsBase" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If true, then values returned from ID Match service (i.e. name-normalized
+                                and filtered) are presented to the user as attribute values of the account that is to
+                                be correlated. If false (the default), values from midPoint (i.e. original ones) are used.
+
+                                This option is here just to experiment with various approaches in midPoint 4.5-M1.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="url" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -23761,4 +23873,20 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="idMatchCorrelationState" type="tns:IdMatchCorrelationStateType"/>
+
+    <xsd:complexType name="SchemaFilesType">
+        <xsd:sequence>
+            <xsd:element name="schema" type="tns:SchemaFileType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="schemaFiles" type="tns:SchemaFilesType"/>
+
+    <xsd:complexType name="SchemaFileType">
+        <xsd:sequence>
+            <xsd:element name="fileName" type="xsd:string"/>
+            <xsd:element name="namespace" type="xsd:string"/>
+            <xsd:element name="usualPrefix" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>

@@ -167,7 +167,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     }
 
     public ResourceObjectDefinition getDefinitionByKind() throws SchemaException {
-        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resourceModel.getObject());
+        ResourceSchema refinedSchema = getRefinedSchema();
         if (refinedSchema == null) {
             warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
             return null;
@@ -176,13 +176,17 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     }
 
     public ResourceObjectDefinition getDefinitionByObjectClass() throws SchemaException {
-        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resourceModel.getObject());
+        ResourceSchema refinedSchema = getRefinedSchema();
         if (refinedSchema == null) {
             warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
             return null;
         }
         return refinedSchema.findDefinitionForObjectClass(getObjectClass());
 
+    }
+
+    protected ResourceSchema getRefinedSchema() throws SchemaException {
+        return ResourceSchemaFactory.getCompleteSchema(resourceModel.getObject());
     }
 
     private UserProfileStorage.TableId getTableId() {

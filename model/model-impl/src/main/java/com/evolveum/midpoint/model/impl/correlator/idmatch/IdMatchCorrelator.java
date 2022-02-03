@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -46,6 +47,7 @@ class IdMatchCorrelator implements Correlator {
     /**
      * Configuration of the this correlator.
      */
+    @SuppressWarnings({ "FieldCanBeLocal", "unused" }) // temporary
     @NotNull private final IdMatchCorrelatorType configuration;
 
     /**
@@ -120,7 +122,7 @@ class IdMatchCorrelator implements Correlator {
         } else {
             beans.correlationCaseManager.createOrUpdateCase(
                     resourceObject,
-                    createSpecificCaseContext(mResult),
+                    createSpecificCaseContext(mResult, resourceObject),
                     result);
             return CorrelationResult.uncertain();
         }
@@ -146,24 +148,45 @@ class IdMatchCorrelator implements Correlator {
     /**
      * Converts internal {@link MatchingResult} into "externalized" {@link IdMatchCorrelationContextType} bean
      * to be stored in the correlation case.
+     *
+     * _Temporarily_ adding also "none of the above" potential match here. (If it is not present among options returned
+     * from the ID Match service.)
      */
-    private @NotNull IdMatchCorrelationContextType createSpecificCaseContext(MatchingResult mResult) {
+    private @NotNull IdMatchCorrelationContextType createSpecificCaseContext(
+            @NotNull MatchingResult mResult, @NotNull ShadowType resourceObject) {
         IdMatchCorrelationContextType context = new IdMatchCorrelationContextType(PrismContext.get());
+        boolean newIdentityOptionPresent = false;
         for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
+            if (potentialMatch.isNewIdentity()) {
+                newIdentityOptionPresent = true;
+            }
             context.getPotentialMatch().add(
-                    createPotentialMatchBean(potentialMatch));
+                    createPotentialMatchBeanFromReturnedMatch(potentialMatch));
+        }
+        if (!newIdentityOptionPresent) {
+            context.getPotentialMatch().add(
+                    createPotentialMatchBeanForNewIdentity(resourceObject));
         }
         return context;
     }
 
-    private IdMatchCorrelationPotentialMatchType createPotentialMatchBean(PotentialMatch potentialMatch) {
-        String id = potentialMatch.getReferenceId();
+    private IdMatchCorrelationPotentialMatchType createPotentialMatchBeanFromReturnedMatch(PotentialMatch potentialMatch) {
+        @Nullable String id = potentialMatch.getReferenceId();
+        String optionUri = id != null ?
+                qNameToUri(new QName(SchemaConstants.CORRELATION_NS, SchemaConstants.CORRELATION_OPTION_PREFIX + id)) :
+                SchemaConstants.CORRELATION_NONE_URI;
         return new IdMatchCorrelationPotentialMatchType(PrismContext.get())
-                .uri(qNameToUri(
-                        new QName(SchemaConstants.CORRELATION_NS, SchemaConstants.CORRELATION_OPTION_PREFIX + id)))
+                .uri(optionUri)
                 .confidence(potentialMatch.getConfidence())
                 .referenceId(id)
                 .attributes(potentialMatch.getAttributes());
+    }
+
+    private IdMatchCorrelationPotentialMatchType createPotentialMatchBeanForNewIdentity(@NotNull ShadowType resourceObject) {
+        return new IdMatchCorrelationPotentialMatchType(PrismContext.get())
+                .uri(SchemaConstants.CORRELATION_NONE_URI)
+                .attributes(
+                        CloneUtil.clone(resourceObject.getAttributes()));
     }
 
     @Override
@@ -171,7 +194,7 @@ class IdMatchCorrelator implements Correlator {
             @NotNull PrismObject<CaseType> aCase,
             @NotNull AbstractWorkItemOutputType output,
             @NotNull Task task,
-            @NotNull OperationResult result) throws SchemaException {
+            @NotNull OperationResult result) throws SchemaException, CommunicationException {
         ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(aCase);
         ShadowAttributesType attributes = MiscUtil.requireNonNull(shadow.getAttributes(),
                 () -> new IllegalStateException("No attributes in shadow " + shadow + " in " + aCase));

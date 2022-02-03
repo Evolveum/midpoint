@@ -17,6 +17,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.update.ExtensionUpdateContext;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
@@ -57,6 +59,11 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
             return; // not-indexed, no action
         }
 
+        // If the extension is single value (and we know it now, we should proceed with deletion of
+        // multivalue variant and vice-versa (this variants may be indroduced during raw import
+        // or changes in multiplicity of extension definition or resource definition
+        context.deleteItem(reverseCardinality(extProcessor, extItemInfo.item));
+
         if (realValues == null || realValues.isEmpty()) {
             context.deleteItem(extItemInfo.getId());
             return;
@@ -64,5 +71,17 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
 
         // changed value
         context.setChangedItem(extItemInfo.getId(), extProcessor.extItemValue(item, extItemInfo));
+    }
+
+    private String reverseCardinality(ExtensionProcessor extProcessor, MExtItem extItem) {
+        var reverseCardinality = MExtItemCardinality.SCALAR.equals(extItem.cardinality) ? MExtItemCardinality.ARRAY : MExtItemCardinality.SCALAR;
+        var reverseKey = new MExtItem.Key();
+        reverseKey.cardinality = reverseCardinality;
+        reverseKey.itemName = extItem.itemName;
+        reverseKey.valueType = extItem.valueType;
+        reverseKey.holderType = extItem.holderType;
+        // FIXME: Use search rather (do not create additional MExtItem)
+        var reverseItem = context.repositoryContext().resolveExtensionItem(reverseKey);
+        return String.valueOf(reverseItem.id);
     }
 }

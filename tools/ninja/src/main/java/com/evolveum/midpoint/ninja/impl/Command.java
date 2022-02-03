@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,7 +15,7 @@ import com.evolveum.midpoint.ninja.action.trace.EditTraceAction;
 import com.evolveum.midpoint.ninja.opts.*;
 
 /**
- * @author Viliam Repan (lazyman)
+ * Enumeration of Ninja commands (or actions).
  */
 public enum Command {
 
@@ -30,6 +30,8 @@ public enum Command {
     VERIFY("verify", VerifyOptions.class, VerifyRepositoryAction.class, null),
 
     KEYS("keys", ListKeysOptions.class, ListKeysRepositoryAction.class, null),
+
+    INFO("info", Object.class, InfoRepositoryAction.class, null),
 
     IMPORT_AUDIT("importAudit", ImportAuditOptions.class, ImportAuditRepositoryAction.class, null),
 

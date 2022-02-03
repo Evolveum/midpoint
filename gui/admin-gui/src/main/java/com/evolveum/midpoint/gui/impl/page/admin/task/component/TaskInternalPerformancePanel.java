@@ -35,9 +35,7 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Locale;
+import java.util.*;
 
 @PanelType(name = "internalPerformance")
 @PanelInstance(identifier = "internalPerformance", applicableForType = TaskType.class, childOf = TaskPerformancePanel.class,
@@ -59,9 +57,8 @@ public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskTy
     private final IModel<SortBy> sortByModel = Model.of(SortBy.NAME);
 
     protected void initLayout() {
-
         DropDownChoicePanel<Format> formatPanel =
-                WebComponentUtil.createEnumPanel(Format.class, ID_FORMAT, formatModel, this, false);
+                WebComponentUtil.createEnumPanel(Format.class, ID_FORMAT, createFormatListModel(), formatModel, this, false);
         formatPanel.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -95,6 +92,13 @@ public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskTy
         informationText.setMode(null);
         add(informationText);
 
+    }
+
+    private IModel<List<Format>> createFormatListModel() {
+        List<Format> formatList = new ArrayList<>();
+        Collections.addAll(formatList, Format.values());
+        formatList.remove(Format.RAW);
+        return Model.ofList(formatList);
     }
 
     private IModel<String> createStringModel() {

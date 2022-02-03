@@ -363,7 +363,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
             runAsChecked(() -> {
                 ObjectDelta<UserType> userDelta;
-                Task task = createSimpleTask(OPERATION_SAVE_USER);
+                Task task = createSimpleTask(OPERATION_SAVE_USER, null);
                 task.setChannel(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
                 try {
                     userDelta = prepareUserDelta(task, result);
@@ -555,5 +555,10 @@ public class PageSelfRegistration extends PageAbstractFlow {
     @Override
     protected ObjectReferenceType getCustomFormRef() {
         return getSelfRegistrationConfiguration().getFormRef();
+    }
+
+    @Override
+    public Task createSimpleTask(String operation) {
+        return createAnonymousTask(operation);
     }
 }

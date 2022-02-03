@@ -8,6 +8,11 @@ package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.toModelExecutionOptionsBean;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPhase;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType.RUNNABLE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -25,6 +30,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -222,7 +229,6 @@ public final class WebComponentUtil {
 
     private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP;
     private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> CREATE_NEW_OBJECT_PAGE_MAP;
-
 
     private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP_NEW;
 
@@ -703,8 +709,8 @@ public final class WebComponentUtil {
         IterativeChangeExecutionWorkDefinitionType workDef =
                 new IterativeChangeExecutionWorkDefinitionType(PrismContext.get())
                         .beginObjects()
-                            .type(applicableType)
-                            .query(pageBase.getQueryConverter().createQueryType(query))
+                        .type(applicableType)
+                        .query(pageBase.getQueryConverter().createQueryType(query))
                         .<IterativeChangeExecutionWorkDefinitionType>end()
                         .delta(DeltaConvertor.toObjectDeltaType(delta))
                         .executionOptions(toModelExecutionOptionsBean(options));
@@ -1084,31 +1090,23 @@ public final class WebComponentUtil {
             PageBase pageBase = getPageBase(component);
             TaskType task = taskModel.getObject().getValue();
             DisplayType display = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(task, pageBase);
-            return getTranslatedLabel(display, component);
+            return getTranslatedLabel(display);
         };
     }
 
     @Experimental
-    private static String getTranslatedLabel(DisplayType display, Component component) {
+    private static String getTranslatedLabel(DisplayType display) {
         if (display == null) {
             return "";
         }
         if (display.getLabel() != null) {
-            return getTranslatedPolyString(display.getLabel(), component);
+            return getTranslatedPolyString(display.getLabel());
         } else if (display.getSingularLabel() != null) {
-            return getTranslatedPolyString(display.getSingularLabel(), component);
+            return getTranslatedPolyString(display.getSingularLabel());
         } else if (display.getPluralLabel() != null) {
-            return getTranslatedPolyString(display.getPluralLabel(), component);
+            return getTranslatedPolyString(display.getPluralLabel());
         } else {
             return "";
-        }
-    }
-
-    private static String getTranslatedPolyString(@NotNull PolyStringType polyString, @NotNull Component component) {
-        if (polyString.getTranslation() != null && polyString.getTranslation().getKey() != null) {
-            return createStringResourceStatic(component, polyString.getTranslation().getKey()).getString();
-        } else {
-            return polyString.getOrig();
         }
     }
 
@@ -2492,7 +2490,7 @@ public final class WebComponentUtil {
 
     public static String createHumanReadableByteCount(long bytes) {
         int unit = 1024;
-        if (bytes < unit) { return bytes + "B"; }
+        if (bytes < unit) {return bytes + "B";}
         int exp = (int) (Math.log(bytes) / Math.log(unit));
         char pre = "KMGTPE".charAt(exp - 1);
         return String.format("%.1f%sB", bytes / Math.pow(unit, exp), pre);
@@ -2507,7 +2505,6 @@ public final class WebComponentUtil {
             table.getDataTable().setCurrentPage(0);
             return;
         }
-
 
         long itemsPerPage = table.getDataTable().getItemsPerPage();
         long page = ((paging.getOffset() + itemsPerPage) / itemsPerPage) - 1;
@@ -2905,7 +2902,18 @@ public final class WebComponentUtil {
         }
         String members = atLeastOneWithMembers ? ".members" : "";
         ObjectTypes objectType = ObjectTypes.getObjectType(abstractRoleTable.getType());
-        String propertyKeyPrefix = ObjectTypes.SERVICE.equals(objectType) ? "pageServices" : "pageRoles";
+        String propertyKeyPrefix = "";
+        switch (objectType) {
+            case SERVICE:
+                propertyKeyPrefix = "pageServices";
+                break;
+            case ROLE:
+                propertyKeyPrefix = "pageRoles";
+                break;
+            case ORG:
+                propertyKeyPrefix = "pageOrgs";
+                break;
+        }
 
         if (action.getRowModel() == null) {
             return pageBase.createStringResource(propertyKeyPrefix + ".message.confirmationMessageForMultipleObject" + members,
@@ -3389,7 +3397,7 @@ public final class WebComponentUtil {
                             OperationResult result = new OperationResult(operation);
                             try {
                                 Collection<String> oids;
-                                if (getRowModel() != null){
+                                if (getRowModel() != null) {
                                     oids = Collections.singletonList(getRowModel().getObject().getValue().getOid());
                                 } else {
                                     oids = CollectionUtils.emptyIfNull(selectedObjectsSupplier.get())
@@ -3399,11 +3407,37 @@ public final class WebComponentUtil {
                                             .collect(Collectors.toSet());
                                 }
                                 if (!oids.isEmpty()) {
-                                    Map<QName, Object> extensionValues = prepareExtensionValues(oids);
-                                    TaskType executorTask = pageBase.getModelInteractionService().submitTaskFromTemplate(
-                                            templateOid, extensionValues, pageBase.createSimpleTask(operation), result);
-                                    result.setInProgress(); // this should be probably have been done in submitTaskFromTemplate
-                                    result.setBackgroundTaskOid(executorTask.getOid());
+                                    @NotNull Item<PrismValue, ItemDefinition> extensionQuery = prepareExtensionValues(oids);
+
+                                    MidPointPrincipal principal = pageBase.getPrincipal();
+                                    if (principal == null) {
+                                        throw new SecurityViolationException("No current user");
+                                    }
+                                    TaskType newTask = pageBase.getModelService().getObject(TaskType.class, templateOid,
+                                            createCollection(createExecutionPhase()), pageBase.createSimpleTask(operation), result).asObjectable();
+                                    newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
+                                    newTask.setOid(null);
+                                    newTask.setTaskIdentifier(null);
+                                    newTask.setOwnerRef(createObjectRef(principal.getFocus()));
+                                    newTask.setExecutionState(RUNNABLE);
+                                    newTask.setSchedulingState(READY);
+                                    newTask.asPrismObject().getOrCreateExtension().add(extensionQuery);
+                                    ObjectSetBasedWorkDefinitionType workDef = ObjectSetUtil.getObjectSetDefinitionFromTask(newTask);
+                                    QueryType query = (QueryType) extensionQuery.getRealValue();
+                                    ObjectSetType objectSet = workDef.getObjects();
+                                    if (objectSet == null) {
+                                        objectSet = new ObjectSetType();
+                                        objectSet.setType(ObjectType.COMPLEX_TYPE);
+                                    }
+                                    objectSet.setQuery(query);
+                                    workDef.setObjects(objectSet);
+                                    ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
+                                    Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = saveTask(delta, result, pageBase);
+                                    String newTaskOid = ObjectDeltaOperation.findAddDeltaOid(executedChanges, newTask.asPrismObject());
+                                    newTask.setOid(newTaskOid);
+                                    newTask.setTaskIdentifier(newTaskOid);
+                                    result.setInProgress();
+                                    result.setBackgroundTaskOid(newTask.getOid());
                                 } else {
                                     result.recordWarning(pageBase.createStringResource("WebComponentUtil.message.createMenuItemsFromActions.warning").getString());
                                 }
@@ -3427,15 +3461,23 @@ public final class WebComponentUtil {
                  */
 
                 @NotNull
-                private Map<QName, Object> prepareExtensionValues(Collection<String> oids) throws SchemaException {
-                    Map<QName, Object> extensionValues = new HashMap<>();
+                private Item<PrismValue, ItemDefinition> prepareExtensionValues(Collection<String> oids) throws SchemaException {
                     PrismContext prismContext = pageBase.getPrismContext();
                     ObjectQuery objectQuery = prismContext.queryFor(ObjectType.class)
                             .id(oids.toArray(new String[0]))
                             .build();
                     QueryType queryBean = pageBase.getQueryConverter().createQueryType(objectQuery);
-                    extensionValues.put(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, queryBean);
-                    return extensionValues;
+                    PrismContainerDefinition<?> extDef = PrismContext.get().getSchemaRegistry()
+                            .findObjectDefinitionByCompileTimeClass(TaskType.class).findContainerDefinition(TaskType.F_EXTENSION);
+                    ItemDefinition<Item<PrismValue, ItemDefinition>> def = extDef != null
+                            ? extDef.findItemDefinition(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY)
+                            : null;
+                    if (def == null) {
+                        throw new SchemaException("No definition of " + SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY + " in the extension");
+                    }
+                    Item<PrismValue, ItemDefinition> extensionItem = def.instantiate();
+                    extensionItem.add(prismContext.itemFactory().createValue(queryBean));
+                    return extensionItem;
                 }
             });
         });
@@ -3850,7 +3892,7 @@ public final class WebComponentUtil {
         String iconColor = getIconColor(basicIconDisplayType);
 
         CompositedIconBuilder builder = iconBuilder.setBasicIcon(
-                getIconCssClass(basicIconDisplayType), IconCssStyle.IN_ROW_STYLE)
+                        getIconCssClass(basicIconDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(StringUtils.isNotEmpty(iconColor) ? iconColor : "");
 
         StringBuilder title = new StringBuilder(getOrigStringFromPolyOrEmpty(basicIconDisplayType.getTooltip()));
@@ -3921,7 +3963,7 @@ public final class WebComponentUtil {
             } else {
                 builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_LEFT_STYLE);
             }
-            if (StringUtils.isNotBlank(title)){
+            if (StringUtils.isNotBlank(title)) {
                 title = title + "\n " + pageBase.createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
             } else {
                 title = pageBase.createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
@@ -4122,7 +4164,7 @@ public final class WebComponentUtil {
         IconType icon = new IconType();
         if (LockoutStatusType.LOCKED == activation.getLockoutStatus()) {
             icon.setCssClass(GuiStyleConstants.CLASS_LOCK_STATUS);
-        }  else if (ActivationStatusType.ENABLED == status) {
+        } else if (ActivationStatusType.ENABLED == status) {
             return null;
         } else if (ActivationStatusType.DISABLED == status) {
             icon.setCssClass(GuiStyleConstants.CLASS_BAN);
@@ -4228,7 +4270,7 @@ public final class WebComponentUtil {
         String handlerUri = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3";
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resourceOid);
-        PrismObject<TaskType> oldTask;
+        PrismObject<TaskType> task;
 
         OperationResult result = new OperationResult(pageBase.getClass().getName() + "." + "deleteSyncToken");
         ObjectQuery query = pageBase.getPrismContext().queryFor(TaskType.class)
@@ -4241,8 +4283,18 @@ public final class WebComponentUtil {
         if (taskList.size() != 1) {
             pageBase.error(pageBase.createStringResource("pageResource.message.invalidTaskSearch"));
         } else {
-            oldTask = taskList.get(0);
-            saveTask(oldTask, result, pageBase);
+            task = taskList.get(0);
+            PrismProperty<?> property = task.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
+
+            if (property != null) {
+                Object value = property.getRealValue();
+
+                ObjectDelta<TaskType> delta = pageBase.getPrismContext().deltaFactory().object().createModifyDelta(task.getOid(),
+                        pageBase.getPrismContext().deltaFactory().property()
+                                .createModificationDeleteProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition(), value),
+                        TaskType.class);
+                saveTask(delta, result, pageBase);
+            }
         }
 
         result.recomputeStatus();
@@ -4348,6 +4400,7 @@ public final class WebComponentUtil {
      * it's expected that the list of AssignmentObjectRelation will be pre-prepared in such manner that each AssignmentObjectRelation
      * in the list will contain only one object type, one relation and one archetypeRef. This methods compares only the first
      * items in these lists
+     *
      * @param list
      * @param relation
      * @return
@@ -4389,33 +4442,22 @@ public final class WebComponentUtil {
         return true;
     }
 
-    // FIXME this uses old-style token processing
-    private static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase) {
-        Task task = pageBase.createSimpleTask(pageBase.getClass().getName() + "." + "saveSyncTask");
-
-        PrismProperty<?> property = oldTask.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
-
-        if (property == null) {
-            return;
-        }
-        Object value = property.getRealValue();
-
-        ObjectDelta<TaskType> delta = pageBase.getPrismContext().deltaFactory().object().createModifyDelta(oldTask.getOid(),
-                pageBase.getPrismContext().deltaFactory().property()
-                        .createModificationDeleteProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition(), value),
-                TaskType.class);
+    private static Collection<ObjectDeltaOperation<? extends ObjectType>> saveTask(ObjectDelta<TaskType> delta, OperationResult result, PageBase pageBase) {
+        Task opTask = pageBase.createSimpleTask(pageBase.getClass().getName() + "." + "saveTask");
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace(delta.debugDump());
         }
 
+        Collection<ObjectDeltaOperation<? extends ObjectType>> ret = null;
         try {
-            pageBase.getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+            ret = pageBase.getModelService().executeChanges(MiscUtil.createCollection(delta), null, opTask, result);
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save task.", e);
             result.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntSaveTask").getString(), e);
         }
         result.recomputeStatus();
+        return ret;
     }
 
     // TODO: use LocalizationService.translate(polyString) instead
@@ -5012,8 +5054,8 @@ public final class WebComponentUtil {
 
         Locale locale = null;
         if (principal instanceof GuiProfiledPrincipal
-                && ((GuiProfiledPrincipal)principal).getCompiledGuiProfile().getLocale() != null) {
-            locale = ((GuiProfiledPrincipal)principal).getCompiledGuiProfile().getLocale();
+                && ((GuiProfiledPrincipal) principal).getCompiledGuiProfile().getLocale() != null) {
+            locale = ((GuiProfiledPrincipal) principal).getCompiledGuiProfile().getLocale();
         } else {
             F focus = (F) principal.getFocus();
             if (focus == null) {
@@ -5196,7 +5238,7 @@ public final class WebComponentUtil {
 
         if (!((Set<?>) value).isEmpty()) {
             if (!(((Set<?>) value).iterator().next() instanceof PrismPropertyValue)
-                    || !(((PrismPropertyValue)(((Set<?>) value).iterator().next())).getValue() instanceof DisplayableValue)) {
+                    || !(((PrismPropertyValue) (((Set<?>) value).iterator().next())).getValue() instanceof DisplayableValue)) {
                 LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
                 pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
                 return allowedValues;
@@ -5243,7 +5285,7 @@ public final class WebComponentUtil {
         return layerIconMap;
     }
 
-    public static <T extends AssignmentHolderType> void addNewArchetype(PrismObjectWrapper<T> object, String archetypeOid, AjaxRequestTarget target, PageBase pageBase){
+    public static <T extends AssignmentHolderType> void addNewArchetype(PrismObjectWrapper<T> object, String archetypeOid, AjaxRequestTarget target, PageBase pageBase) {
         try {
             PrismContainerWrapper<AssignmentType> archetypeAssignment = object.findContainer(TaskType.F_ASSIGNMENT);
             PrismContainerValue<AssignmentType> archetypeAssignmentValue = archetypeAssignment.getItem().createNewValue();

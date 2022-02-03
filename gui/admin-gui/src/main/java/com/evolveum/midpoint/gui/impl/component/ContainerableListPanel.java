@@ -18,6 +18,8 @@ import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemW
 import com.evolveum.midpoint.web.component.search.refactored.ObjectCollectionSearchItemWrapper;
 import com.evolveum.midpoint.web.component.search.refactored.PropertySearchItemWrapper;
 
+import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -86,7 +88,6 @@ import com.evolveum.midpoint.web.component.search.refactored.Search;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -1299,7 +1300,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         report.getArchetypeRef()
                 .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value(), ObjectTypes.ARCHETYPE));
 
-        PageReport pageReport = new PageReport(report.asPrismObject(), true);
+        PageReport pageReport = new PageReport(report.asPrismObject());
         getPageBase().navigateToNext(pageReport);
     }
 

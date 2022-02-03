@@ -54,5 +54,11 @@ public interface EventHandler<T extends Containerable> {
      *
      * @param currentResult Operation result pointing to the particular error.
      */
-    void handleGlobalError(OperationResult currentResult);
+    default void handleGlobalError(OperationResult currentResult) {
+
+    }
+
+    default void handleGlobalError(OperationResult currentResult, Exception ex) {
+        handleGlobalError(currentResult);
+    }
 }

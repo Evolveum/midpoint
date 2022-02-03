@@ -82,7 +82,7 @@ public class ReferenceConverter implements IConverter<ObjectReferenceType> {
 
     @Override
     public String convertToString(ObjectReferenceType ref, Locale arg1) {
-        return ref != null ? WebComponentUtil.getName(ref) : "";
+        return ref != null && (ref.getTargetName() != null || ref.getObject() != null) ? WebComponentUtil.getName(ref) : "";
     }
 
     protected <O extends ObjectType> Class<O> getReferenceTargetObjectType() {

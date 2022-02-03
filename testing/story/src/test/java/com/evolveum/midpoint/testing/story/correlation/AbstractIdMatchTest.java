@@ -230,7 +230,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                 .display()
                 .assertSynchronizationSituation(DISPUTED)
                 .assertMatchReferenceId(null) // not matched yet
-                .assertMatchRequestId("0");
+                .assertHasMatchRequestId();
 
         CaseType correlationCase = correlationCaseManager.findCorrelationCase(newShadow.asObjectable(), false, result);
         assertThat(correlationCase).as("case").isNotNull();
@@ -388,7 +388,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                 .display()
                 .assertSynchronizationSituation(DISPUTED)
                 .assertMatchReferenceId(null) // not matched yet
-                .assertMatchRequestId("1");
+                .assertHasMatchRequestId();
 
         CaseType correlationCase = correlationCaseManager.findCorrelationCase(newShadow.asObjectable(), true, result);
         assertThat(correlationCase).as("case").isNotNull();
@@ -418,10 +418,4 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                 () -> new AssertionError("No user with email: " + email))
                 .asObjectable();
     }
-
-    protected abstract void resolve(
-            @NotNull ShadowAttributesType attributes,
-            @Nullable String matchRequestId,
-            @Nullable String referenceId,
-            @NotNull OperationResult result);
 }

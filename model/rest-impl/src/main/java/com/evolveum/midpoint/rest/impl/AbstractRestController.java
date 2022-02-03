@@ -133,6 +133,12 @@ public class AbstractRestController {
     }
 
     protected ResponseEntity<?> handleExceptionNoLog(OperationResult result, Throwable t) {
+        if (result.isEmpty()) {
+            result.recordFatalError("Unknown exception occurred", t);
+        } else {
+            result.computeStatus();
+        }
+
         return createErrorResponseBuilder(result, t);
     }
 

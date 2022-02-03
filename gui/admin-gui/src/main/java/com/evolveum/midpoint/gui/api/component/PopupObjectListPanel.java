@@ -13,6 +13,12 @@ import java.util.List;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 
+import com.evolveum.midpoint.web.component.search.Search;
+
+import com.evolveum.midpoint.web.session.ObjectListStorage;
+
+import com.evolveum.midpoint.web.session.PageStorage;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -34,6 +40,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     private static final long serialVersionUID = 1L;
 
     private boolean multiselect;
+    private ObjectListStorage storage;
 
     /**
      * @param defaultType specifies type of the object that will be selected by default
@@ -122,6 +129,14 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 
     protected String getStorageKey() {
         return null;
+    }
+
+    @Override
+    public PageStorage getPageStorage() {
+        if (storage == null) {
+            storage = new ObjectListStorage();
+        }
+        return storage;
     }
 
     public boolean isMultiselect() {

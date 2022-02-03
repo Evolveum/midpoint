@@ -302,7 +302,16 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
         ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, loadResourceModel(),
-                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration());
+                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration()){
+            @Override
+            protected ResourceSchema getRefinedSchema() throws SchemaException {
+                try {
+                    return super.getRefinedSchema();
+                } catch (SchemaException e) {
+                    return getObjectDetailsModels().getRefinedSchema();
+                }
+            }
+        };
         resourceContent.setOutputMarkupId(true);
         return resourceContent;
 
@@ -312,7 +321,16 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
         ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, loadResourceModel(),
-                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration());
+                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration()){
+            @Override
+            protected ResourceSchema getRefinedSchema() throws SchemaException {
+                try {
+                    return super.getRefinedSchema();
+                } catch (SchemaException e) {
+                    return getObjectDetailsModels().getRefinedSchema();
+                }
+            }
+        };
         repositoryContent.setOutputMarkupId(true);
         return repositoryContent;
     }

@@ -12,10 +12,6 @@ import com.evolveum.midpoint.model.test.idmatch.DummyIdMatchServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class TestIdMatchDummy extends AbstractIdMatchTest {
@@ -29,13 +25,5 @@ public class TestIdMatchDummy extends AbstractIdMatchTest {
         super.initSystem(initTask, initResult);
 
         idMatchCorrelatorFactory.setServiceOverride(dummyIdMatchService);
-    }
-
-    protected void resolve(
-            @NotNull ShadowAttributesType attributes,
-            @Nullable String matchRequestId,
-            @Nullable String referenceId,
-            @NotNull OperationResult result) {
-        dummyIdMatchService.resolve(attributes, matchRequestId, referenceId, result);
     }
 }

@@ -48,7 +48,7 @@ public final class ImportActivityRun
 
     @Override
     public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
-        return new ActivityReportingCharacteristics()
+        return super.createReportingCharacteristics()
                 .actionsExecutedStatisticsSupported(true)
                 .synchronizationStatisticsSupported(true);
     }

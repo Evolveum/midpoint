@@ -112,11 +112,16 @@ public class MExtItem {
 
     /** Creates ext item key from item definition and holder type. */
     public static Key keyFrom(ItemDefinition<?> definition, MExtItemHolderType holderType) {
+        return keyFrom(definition, holderType,
+                definition.getMaxOccurs() == 1 ? MExtItemCardinality.SCALAR : MExtItemCardinality.ARRAY);
+    }
+
+    /** Creates ext item key from item definition and holder type. */
+    public static Key keyFrom(ItemDefinition<?> definition, MExtItemHolderType holderType, MExtItemCardinality cardinality) {
         MExtItem.Key key = new MExtItem.Key();
         key.itemName = QNameUtil.qNameToUri(definition.getItemName());
         key.valueType = QNameUtil.qNameToUri(definition.getTypeName());
-        key.cardinality = definition.getMaxOccurs() == 1
-                ? MExtItemCardinality.SCALAR : MExtItemCardinality.ARRAY;
+        key.cardinality = cardinality;
         key.holderType = holderType;
 
         return key;

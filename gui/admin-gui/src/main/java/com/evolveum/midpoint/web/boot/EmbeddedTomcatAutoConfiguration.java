@@ -1,15 +1,16 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.boot;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import javax.servlet.Servlet;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-
+import com.google.common.base.Strings;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.coyote.UpgradeProtocol;
@@ -29,8 +30,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 
 /**
  * Custom configuration (factory) for embedded tomcat factory.
@@ -45,8 +45,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Import(BeanPostProcessorsRegistrar.class)
 public class EmbeddedTomcatAutoConfiguration {
 
-    private static final Trace LOGGER = TraceManager.getTrace(EmbeddedTomcatAutoConfiguration.class);
-
     @Profile("!test")
     @Configuration
     @ConditionalOnClass({ Servlet.class, Tomcat.class, UpgradeProtocol.class })
@@ -59,6 +57,12 @@ public class EmbeddedTomcatAutoConfiguration {
         @Value("${server.tomcat.ajp.port:9090}")
         private int port;
 
+        @Value("${server.tomcat.ajp.address:}")
+        private String address;
+
+        @Value("${server.tomcat.ajp.jvmRoute:}")
+        private String jvmRoute;
+
         @Value("${server.tomcat.ajp.secret:}")
         private String secret;
 
@@ -69,22 +73,26 @@ public class EmbeddedTomcatAutoConfiguration {
         private SystemObjectCache systemObjectCache;
 
         @Bean
-        public TomcatServletWebServerFactory tomcatEmbeddedServletContainerFactory() {
+        public TomcatServletWebServerFactory tomcatEmbeddedServletContainerFactory() throws UnknownHostException {
             MidPointTomcatServletWebServerFactory tomcat = new MidPointTomcatServletWebServerFactory(contextPath, systemObjectCache);
 
             if (enableAjp) {
                 Connector ajpConnector = new Connector("AJP/1.3");
                 AjpNioProtocol protocol = (AjpNioProtocol) ajpConnector.getProtocolHandler();
                 protocol.setSecret(secret);
+                if (!Strings.isNullOrEmpty(address)) {
+                    protocol.setAddress(InetAddress.getByName(address));
+                }
                 ajpConnector.setPort(port);
                 ajpConnector.setSecure(false);
                 ajpConnector.setScheme("http");
                 ajpConnector.setAllowTrace(false);
+
                 tomcat.addAdditionalTomcatConnectors(ajpConnector);
+                tomcat.setJvmRoute(jvmRoute); // will be set on Engine there
             }
 
             return tomcat;
         }
-
     }
 }
