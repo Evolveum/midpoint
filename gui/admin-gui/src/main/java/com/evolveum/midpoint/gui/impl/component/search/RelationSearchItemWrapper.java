@@ -46,7 +46,7 @@ public class RelationSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     public String getName() {
         if (getSearchConfig().getConfig().getRelationConfiguration() == null
                 || getSearchConfig().getConfig().getRelationConfiguration().getDisplay() == null) {
-            return "";
+            return "relationDropDownChoicePanel.relation";
         }
         return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getRelationConfiguration().getDisplay().getLabel());
     }
@@ -55,7 +55,7 @@ public class RelationSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     public String getHelp() {
         if (getSearchConfig().getConfig().getRelationConfiguration() == null
                 || getSearchConfig().getConfig().getRelationConfiguration().getDisplay() == null) {
-            return "";
+            return "relationDropDownChoicePanel.tooltip.relation";
         }
         return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getRelationConfiguration().getDisplay().getHelp());
     }

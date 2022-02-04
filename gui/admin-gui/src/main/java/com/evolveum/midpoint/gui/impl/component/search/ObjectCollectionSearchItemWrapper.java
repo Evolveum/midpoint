@@ -36,6 +36,7 @@ public class ObjectCollectionSearchItemWrapper extends AbstractSearchItemWrapper
         Validate.notNull(objectCollectionView, "Collection must not be null.");
         this.objectCollectionView = objectCollectionView;
         setApplyFilter(true);
+        setVisible(true);
     }
 
     @Override

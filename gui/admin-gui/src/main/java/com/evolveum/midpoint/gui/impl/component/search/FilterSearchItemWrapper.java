@@ -39,6 +39,7 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
         this.searchItem = searchItem;
         this.typeClass = typeClass;
         setApplyFilter(true);
+        setVisible(true);
     }
 
     public Class<FilterSearchItemPanel> getSearchItemPanelClass() {

@@ -492,7 +492,7 @@ public class SearchFactory {
         if (itemDef instanceof PrismReferenceDefinition) {
             itemWrapper = new ReferenceSearchItemWrapper(item, (PrismReferenceDefinition)itemDef, type);
             if (item.isVisibleByDefault() != null && item.isVisibleByDefault().booleanValue()) {
-                itemWrapper.setApplyFilter(true);
+                itemWrapper.setVisible(true);
             }
             return itemWrapper;
         }
@@ -516,7 +516,7 @@ public class SearchFactory {
             itemWrapper = new TextSearchItemWrapper(item, itemDef);
         }
         if (item.isVisibleByDefault() != null && item.isVisibleByDefault().booleanValue()) {
-            itemWrapper.setApplyFilter(true);
+            itemWrapper.setVisible(true);
         }
         itemWrapper.setItemDef(itemDef);
         return itemWrapper;

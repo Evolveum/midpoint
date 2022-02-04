@@ -86,6 +86,11 @@ public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWr
         return filter;
     }
 
+    @Override
+    public boolean canRemoveSearchItem() {
+        return false;
+    }
+
     private <R extends AbstractRoleType> R getParentVariables(VariablesMap variables) {
         if (variables == null) {
             return null;

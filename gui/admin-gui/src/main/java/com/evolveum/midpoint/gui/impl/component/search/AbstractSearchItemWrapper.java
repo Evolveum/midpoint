@@ -28,6 +28,7 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
     private DisplayableValue<T> value;
     private boolean applyFilter;
     private boolean selected;
+    private boolean visible;
 
     public abstract Class<? extends AbstractSearchItemPanel> getSearchItemPanelClass();
 
@@ -42,7 +43,11 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
     public abstract ObjectFilter createFilter(PageBase pageBase, VariablesMap variables);
 
     public boolean isVisible() {
-        return true;
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
     }
 
     public boolean isEnabled() {
@@ -65,7 +70,7 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
     }
 
     public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
-        return applyFilter;
+        return isVisible();
     }
 
     public void setApplyFilter(boolean applyFilter) {
