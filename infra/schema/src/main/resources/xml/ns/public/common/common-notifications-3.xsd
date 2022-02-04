@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!--suppress XmlUnusedNamespaceDeclaration -->
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-            elementFormDefault="qualified"
-            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="2.0">
+        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+        elementFormDefault="qualified"
+        xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+        jaxb:extensionBindingPrefixes="xjc"
+        jaxb:version="2.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -29,7 +29,158 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
 
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
+
+    <!-- region persistent objects/containers -->
+    <!--
+    TODO: Can this fully replace NotificationMessageType? It better does. Planned AFTER MessageTemplates (lower).
+    <xsd:complexType name="MessageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Message to be send via some transport.
+                Structure is a container stored in the repository.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:displayName>MessageType.details</a:displayName>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+             transport/deliver related properties
+            <xsd:element name="transportName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="deliveryState" type="tns:MessageDeliveryStateType" minOccurs="0"/>
+            <xsd:element name="deliveryRetries" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="deliveryErrorMessage" type="xsd:string" minOccurs="0"/>
+             message content properties
+            <xsd:element name="from" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="to" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="cc" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="bcc" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="subject" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="body" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="contentType" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="attachment" type="tns:NotificationMessageAttachmentType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="MessageDeliveryStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Enumeration of possible delivery states of the message.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="unsent">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Message waiting for sending or resending (retry).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNSENT"/>
+                        <a:displayName>MessageDeliveryStateType.unsent</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="sent">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Message was sent - this is considered an ideal final state.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SENT"/>
+                        <a:displayName>MessageDeliveryStateType.sent</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="failed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Message delivery failed, even after retries - this is a final state.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FAILED"/>
+                        <a:displayName>MessageDeliveryStateType.failed</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    -->
+
+    <!--
+    <xsd:complexType name="MessageTemplateContentType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Message to be send via some transport.
+                Structure is a container stored in the repository.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:displayName>MessageTemplateContentType.details</a:displayName>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="subjectExpression" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to construct the subject of the message that is to be sent.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="subjectPrefix" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Simpler alternative to subjectExpression: the subject itself will be constructed by the notifier,
+                        but it will be prefixed by value specified here.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bodyExpression" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to construct the body (text) of the message that is to be sent.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="contentType" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Body content type, e.g. text/plain (the default), text/html, and so on.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="contentTypeExpression" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression returning body content type, e.g. text/plain (the default), text/html, and so on.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="attachment" type="tns:NotificationMessageAttachmentType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Message attachment(s) to be sent out.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="attachmentExpression" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        An expression that returns message attachment(s) to be sent out.
+                        Returned objects should be of type NotificationMessageAttachmentType.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    -->
+
+    <!-- endregion -->
 
     <xsd:complexType name="NotificationTransportConfigurationType">
         <xsd:annotation>
@@ -52,10 +203,10 @@
             <xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        When this transport don't have definision blackList, whiteList or recipient FilterExpression,
-            instead of sending message via this transport, writes it to a file. Useful for debugging.
-            When is defined one of whiteList, blackList or recipientFilterExpression, the messages
-            for allowed recipient are sended, and the messages for forbidden recipients are writed to a file.
+                        When this transport don't have definition blackList, whiteList or recipient FilterExpression,
+                        instead of sending message via this transport, writes it to a file. Useful for debugging.
+                        When is defined one of whiteList, blackList or recipientFilterExpression, the messages
+                        for allowed recipient are sent, and the messages for forbidden recipients are written to a file.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>NotificationTransportConfigurationType.redirectToFile</a:displayName>
@@ -121,7 +272,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="name" type="xsd:string" />
+        <xsd:attribute name="name" type="xsd:string"/>
     </xsd:complexType>
 
     <xsd:complexType name="MailConfigurationType">
@@ -513,7 +664,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="name" type="xsd:string" />
+        <xsd:attribute name="name" type="xsd:string"/>
     </xsd:complexType>
 
     <xsd:complexType name="NotificationConfigurationType">
@@ -528,8 +679,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="handler" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded"/>       <!-- implicit fork -->
-            <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0">    <!-- TODO consider more mail transports in the future -->
+            <xsd:element name="handler" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded"/> <!-- implicit fork -->
+            <!-- TODO add notificationTransportConfiguration section. -->
+            <!-- For compatibility, but use separate messageTransportConfiguration. -->
+            <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>NotificationConfigurationType.mail</a:displayName>
@@ -628,14 +781,28 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         A chain of handlers (usually filters and notifiers) to be evaluated, one after another.
+
+                        DEPRECATED: Configuration can be rewritten without it, probably more clearly.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.5</a:deprecatedSince>
+                        <!--TODO: <a:plannedRemoval>4.6</a:plannedRemoval>-->
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="forked" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         A set of handlers to be evaluated without any relation among them (like a fork prongs).
+
+                        DEPRECATED: Just use multiple notifiers in a handler directly to the same effect.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.5</a:deprecatedSince>
+                        <!--TODO: <a:plannedRemoval>4.6</a:plannedRemoval>-->
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="simpleUserNotifier" type="tns:SimpleUserNotifierType" minOccurs="0" maxOccurs="unbounded">
@@ -694,14 +861,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-             <xsd:element name="passwordResetNotifier" type="tns:PasswordResetNotifierType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="passwordResetNotifier" type="tns:PasswordResetNotifierType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-             <xsd:element name="accountActivationNotifier" type="tns:AccountActivationNotifierType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="accountActivationNotifier" type="tns:AccountActivationNotifierType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -852,13 +1019,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <!--<xsd:enumeration value="workflowProcessStageEvent">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:appinfo>-->
-                        <!--<jaxb:typesafeEnumMember name="WORKFLOW_PROCESS_STAGE_EVENT"/>-->
-                    <!--</xsd:appinfo>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:enumeration>-->
             <xsd:enumeration value="workflowEvent">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -1021,7 +1181,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:EventHandlerType">
                 <xsd:sequence>
-                     <xsd:element name="fromExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="fromExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 from address
@@ -1055,7 +1215,7 @@
                     <xsd:element name="contentTypeExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                               contentType used in email
+                                contentType used in email
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1133,7 +1293,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="transport" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element name="transport" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1143,14 +1303,14 @@
         <xsd:complexContent>
             <xsd:extension base="tns:EventHandlerType">
                 <xsd:sequence>
-                     <xsd:element name="expression" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="expression" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Generates resulting NotificationMessageType object. Expects an "event" variable.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="transport" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element name="transport" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1259,7 +1419,7 @@
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:GeneralNotifierType">
-                 <xsd:sequence>
+                <xsd:sequence>
                     <xsd:element name="confirmationMethod" type="tns:RegistrationConfirmationMethodType" minOccurs="0">
                     </xsd:element>
                 </xsd:sequence>
@@ -1452,6 +1612,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <!-- TODO remove after complete migration to MessageType -->
     <xsd:complexType name="NotificationMessageType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1464,14 +1625,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="from" type="xsd:string" minOccurs="0" />
-            <xsd:element name="to" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
-            <xsd:element name="cc" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
-            <xsd:element name="bcc" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
-            <xsd:element name="subject" type="xsd:string" minOccurs="0" />
-            <xsd:element name="body" type="xsd:string" minOccurs="0" />
-            <xsd:element name="contentType" type="xsd:string" minOccurs="0" />
-            <xsd:element name="attachment" type="tns:NotificationMessageAttachmentType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="from" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="to" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="cc" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="bcc" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="subject" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="body" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="contentType" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="attachment" type="tns:NotificationMessageAttachmentType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
