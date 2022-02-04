@@ -45,7 +45,7 @@ This is how you disable the auto-scaling. (Note it is enabled by default.)
 |===
 | Parameter | Description | Default
 | `tasks`
-| xref:../object-set-specification/[Tasks] that should be considered for auto-scaling.
+| xref:/midpoint/reference/tasks/activities/object-set-specification/[Tasks] that should be considered for auto-scaling.
 | All eligible tasks.
 | `minReconciliationInterval`
 | Minimal interval between reconciliations, i.e. it will not reconcile workers if this time has not elapsed since the last one.
