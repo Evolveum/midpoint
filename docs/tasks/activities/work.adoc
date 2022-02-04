@@ -206,48 +206,107 @@ appended to the default time-scanning query.
 | How "stale" must be a shadow to be deleted.
 | Obligatory.
 
-| `objectIntegrityCheck`
-| x
-| Simple
-| N
-| N
-| x
-| x
-| x
+.2+| `objectIntegrityCheck`
+.2+| The purpose of this activity is to detect and optionally fix anomalies in repository objects.
+However, currently its only function is to display information about objects size.
+.2+| Simple
+.2+| N
+.2+| N
+| `objects`
+| What xref:../object-set-specification/[objects] to analyze.
+| All objects in repository.
+| `histogramColumns`
+| Number of columns in the histograms of object sizes.
+| 80
 
-| `shadowIntegrityCheck`
-| x
-| Simple
-| N
-| N
-| x
-| x
-| x
+.5+| `shadowIntegrityCheck`
+.5+| The purpose of this activity is to detect and optionally anomalies in resource object shadows
+stored in the repository. See xref:/midpoint/reference/resources/shadow/integrity-check/[the details].
+.5+| Simple
+.5+| N
+.5+| N
+| `shadows`
+| What xref:../object-set-specification/[shadows] to analyze.
+| All shadows.
+| `aspectsToDiagnose`
+| Aspects that should be diagnosed.
+| All.
+| `aspectsToFix`
+| Aspects that should be fixed.
+| None.
+| `duplicateShadowsResolver`
+| Class name of the duplicate shadows resolver to be used.
+| Built-in one.
+| `checkDuplicatesOnPrimaryIdentifiersOnly`
+| Whether to check uniqueness on primary identifiers (or on secondary ones as well).
+| `false` (meaning all identifiers)
 
-| `activityAutoScaling`
-| x
-| Simple
-| Y
-| Y
-| x
-| x
-| x
+.4+| `activityAutoScaling`
+.4+| Adapts running activities to the current cluster configuration by executing "reconcile workers" operation
+when the cluster state changes (i.e. a node goes up or down).
+.4+| Simple
+.4+| Y
+.4+| Y
+| `tasks`
+| xref:../object-set-specification/[Tasks] that should be considered for auto-scaling.
+(Any task must be multi-node, running, and the auto-scaling for it must not be disabled.)
+| All eligible tasks.
+| `minReconciliationInterval`
+| Minimal interval between reconciliations, i.e. it will not reconcile workers if this time has not elapsed since the last one.
+| 0
+| `maxReconciliationInterval`
+| Maximal interval between reconciliations, i.e. it will _always_ reconcile workers after this time has elapsed since the last one.
+| infinity
+| `skipInitialReconciliation`
+| Whether to skip initial reconciliation of the workers on the activity start.
+| `false`
 
-| `noOp`
-| x
+| `propagation`
+| TODO
 | Simple
-| Y
-| Y
-| x
-| x
-| x
+|
+|
+|
+|
+|
+
+| `multiPropagation`
+| TODO
+| Simple
+|
+|
+|
+|
+|
+
+.3+| `noOp`
+.3+| "No operation" activity to be used for demonstration and testing purposes. It consists of a set of numbered steps,
+each taking a given time.
+.3+| Simple
+.3+| Y
+.3+| Y
+| `delay`
+| Duration of each step in milliseconds.
+| 0
+| `steps`
+| Number of steps.
+| 1
+| `stepInterruptibility`
+| Should a step of this activity be interruptible? Value of `none` means that
+the activity is not interruptible, except at step boundaries. If `hard` is used,
+the activity can be interrupted only in "hard" way, i.e. by sending the Java interrupt signal.
+Finally, `full` means that the activity can be interrupted any time.
+| `none`
 
 | `extension`
-| x
+| This is a place for customer-provided activities.
 | Simple
-| -
-| -
-| x
-| x
-| x
+|
+|
+|
+|
+|
 |===
+
+Customer-provided activities can have any configuration items and distribution (multi-threading,
+clustering) properties.
