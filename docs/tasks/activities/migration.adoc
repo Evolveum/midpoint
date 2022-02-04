@@ -6,9 +6,15 @@
 TIP: *TL;DR* There is xref:/midpoint/tools/studio/usage/#upgrade-task-objects-to-use-activity-midpoint-4-4[a migration tool]
 available. Besides, be sure to re-import all the tasks.
 
-== Legacy Task Definition Style
+== Theory
 
-In midPoint 4.3 and before, the definition of the _work_ done by a task was based on the following items:
+Here we explain the differences between the legacy and new task definition styles, the reasons for migration,
+and so on. Read this section if you want to have the complete information. Otherwise, you can skip to the
+next section on doing the migration.
+
+=== Legacy Task Definition Style
+
+In midPoint 4.3 and before, the definition of the _work_ to be done by a task was based on the following items:
 
 * `handlerUri` specifying what should be done (e.g. recomputation, import, reconciliation, and so on),
 * `objectRef` providing the related object - typically the resource that we should import from, or reconcile with,
@@ -24,12 +30,12 @@ _Error handling_ was driven by a task property of `errorHandlingStrategy`.
 
 _Thresholds_ were configured in quite a complex way.
 
-== New Task Definition Style
+=== New Task Definition Style
 
 Starting from 4.4, the definition of the work and its various execution aspects is concentrated
 in a single place: xref:/midpoint/reference/tasks/activities/#configuring-the-activities[the `<activity>` item].
 
-== Support of the Legacy Task Definition Style
+=== Support of the Legacy Task Definition Style
 
 In 4.4 the following parts of legacy task definition style are supported:
 
@@ -42,15 +48,18 @@ This support is limited, though:
 
 * Tasks defined in this way are correctly executed, respecting the settings.
 * However, in GUI it is not possible to view or edit this kind of configuration. We are limited
-to the use of XML viewing and editing to do that.
+to the use of XML viewing and editing to do that. (Alternatively, if you switch the whole GUI
+to the legacy mode, then you'll be able to see your legacy tasks. But we don't recommend doing this.)
 
 As for the advanced distribution features, i.e. buckets, worker tasks, and task partitions,
 the legacy style of configuration is _no longer supported_. The users have to migrate these
 definitions to the new style.
 
-== Migration from the Legacy to the New Style
+=== Details on How to Migrate from the Legacy to the New Style
 
-=== Migration of the Work Definition
+Here we describe how to do the migration, if you decide to do that manually.
+
+==== Migration of the Work Definition
 
 1. Create appropriate `activity/work/X` item, according to the specific type of the activity,
 given by `handlerUri`. For example, use `reconciliation` for reconciliation activity,
@@ -97,7 +106,7 @@ An example:
 </task>
 ----
 
-=== Migration of the Distribution Definition (Except for Partitioning)
+==== Migration of the Distribution Definition (Except for Partitioning)
 
 1. Create `activity/distribution` container.
 2. Migrate `workerThreads` property by simply copying it from the task extension to this container.
@@ -237,7 +246,7 @@ configuration.
 - Handler URI of `http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3` in the `workers` section
 is the real one. It is translated to `iterativeScripting` work definition. (And removed from `workers` section when migrating.)
 
-=== Migration of the Partitioning Definition
+==== Migration of the Partitioning Definition
 
 There are two kinds of legacy definitions using partitioning:
 
@@ -246,7 +255,7 @@ There are two kinds of legacy definitions using partitioning:
 
 These correspond to predefined and custom composite activities.
 
-==== Migration of the Partitioning Definition (Predefined Tasks)
+===== Migration of the Partitioning Definition (Predefined Tasks)
 
 In this case, `workManagement/partitions` is translated into `activity/tailoring/change`.
 
@@ -354,7 +363,7 @@ behavior of task partitioning.
 We see that instead of using `index=2` we now have `reference=resourceObjects`. Instead of referencing to existing partitions
 by number (1, 2, 3), we reference sub-activities by their identifiers (`operationCompletion`, `resourceObjects`, `remainingShadows`).
 
-==== Migration of the Partitioning Definition (Custom Tasks)
+===== Migration of the Partitioning Definition (Custom Tasks)
 
 NOTE: This functionality is _experimental_.
 
@@ -471,24 +480,74 @@ As an example, let us consider a task that imports first from resource A, then f
 </task>
 ----
 
-=== Migration Using MidPoint Studio
+== Doing the Migration
 
-MidPoint Studio offers an assistance to the task configuration migration:
-xref:/midpoint/tools/studio/usage/#upgrade-task-objects-to-use-activity-midpoint-4-4[a tool] that
-does the migration for you. (Be sure to check the task after migration, though.)
+How to practically do the migration?
 
-== Migration of Run-Time Data
+Imagine you run a 4.0.x or 4.3.x system (minimal supported versions are 4.0.4 and 4.3.2).
+Here we describe how the migration could look like. We will use MidPoint Studio for the work.
 
-There were significant changes in run-time data related to the task/activity execution, like
-progress, statistics (items processed, synchronization statistics, actions executed, ...),
-bucket state, and so on.
+1. *Before you stop the system for the last time,* you need to:
 
-Because of this, it is _strongly advised_ that any tasks are re-imported, without any run-time
-information.
+ - Suspend all running tasks. This is necessary to avoid their unintended execution
+after the upgraded system is started for the first time.
+ - Download (export) all tasks you want to preserve - at least ones that contain `workManagement`
+item (i.e. clustered and partitioned tasks). This item will be inaccessible after the upgrade.
+Download or export can be done either via midPoint Studio or directly via midPoint GUI.
+You may skip downloading the tasks if you maintain them outside midPoint, e.g. in midPoint
+Studio or a similar tool.
 
-The only exception to this rule is substantial state information for recurring tasks, like
-token for live synchronization, or last scan timestamp for scanner tasks (validity, trigger,
-shadow refresh). Although this information can be migrated manually, it is also possible to simply
-keep it "as is" in its original place - i.e. in the task extension. When the task will run under
-midPoint 4.4, it will fetch the values from the extension, and store updated ones to the correct
-place.
+2. Now you do the traditional upgrade actions, not related specifically to tasks.
+
+3. When the midPoint 4.4.x is started again (and all the other required upgrade actions are done),
+you may start migrating your tasks.
++
+There are two options here:
++
+* either you start with tasks maintained outside midPoint (this is an easier way),
+* or you don't have them (or don't want to use them), and you need to start with tasks that you have downloaded.
+
+4. Prepare the tasks for migration.
++
+If the tasks contain state data (e.g. if they were exported from midPoint), these data should be deleted.
+It is because some of them - e.g. `structuredProgress` or `workState` - were removed in 4.4, therefore you might
+not be able to import the tasks into midPoint.
++
+In midPoint Studio, the clean-up can be done by invoking `Other actions` -> `Cleanup File` action.footnote:[It seems
+that currently the `structuredProgress` and `expectedTotal` are not removed. So please remove them manually.] You can
+clean up individual files, or whole directories.
+
+5. Migrate the tasks.
++
+Tasks can be migrated using `Other actions` -> `Upgrade task to activity (4.4)` action. You can migrate individual files,
+or whole directories.
++
+Then inspect the migrated tasks, to make sure they were transformed correctly. You should also open the console view
+of the plugin (`Console` tab in `MidPoint` tool window) to see if there were any errors reported. We also recommend you
+to backup the original tasks just in case the migration would not be successful.
++
+NOTE: Do not migrate subtasks. These will be re-created automatically.
++
+[NOTE]
+====
+System tasks (cleanup, validity scanner, and trigger scanner) cannot be migrated automatically (yet). You can
+either migrate them manually, or simply delete and re-import them from initial objects.
+
+But beware, for deployments with many objects (like millions) you might want to preserve the last scan timestamp,
+to avoid scanning all objects for validity when the new task starts.
+====
+
+6. Re-import the tasks.
++
+Now you should delete your tasks in midPoint repository, and import the migrated versions from the Studio.
++
+Then resume them (gradually) and check if they work as expected.
+
+[NOTE]
+====
+It is not strictly necessary to migrate live synchronization tokens and last scan timestamps
+in scanner tasks (validity, trigger, shadow refresh). Although this information can be migrated
+manually, it is also possible to simply keep it "as is" in its original place - i.e. in the task
+extension. When the task will run under midPoint 4.4, it will fetch the values from the extension,
+and store updated ones to the correct place.
+====

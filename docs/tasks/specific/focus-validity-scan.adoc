@@ -90,7 +90,7 @@ xref:/midpoint/reference/tasks/activities/distribution/[`distribution/subtasks`]
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
     <name>Validity Scanner</name>
-    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionState>runnable</executionState>
 
     <schedule>
