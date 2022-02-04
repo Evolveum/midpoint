@@ -63,6 +63,7 @@ If there are several pending deltas then they are all merged together and execut
 The propagation task definition is very simple.
 All that is needed is to specify correct handler and to point to the resource:
 
+.Notation before 4.4
 [source,xml]
 ----
 <task>
@@ -73,7 +74,22 @@ All that is needed is to specify correct handler and to point to the resource:
 </task>
 ----
 
-The propagation task is quiet efficient and it can run frequently (every few minutes) - as long as there is a reasonable amount of pending operations in the shadow objects.
+.Notation in 4.4 and after
+[source,xml]
+----
+<task>
+    ...
+    <activity>
+        <work>
+            <propagation>
+                <resourceRef oid="f34328fa-f229-11e7-8cc9-e3f77b478e97"/>
+            </propagation>
+        </work>
+    </activity>
+</task>
+----
+
+The propagation task is quite efficient and it can run frequently (every few minutes) - as long as there is a reasonable amount of pending operations in the shadow objects.
 
 It is also a good idea to specify a grace period for pending operations so the executed pending operations will get cleaned up when they are not needed.
 This is illustrated in the resource configuration example above.
@@ -94,6 +110,7 @@ The usual set-up is to have one propagation task for each resource.
 But it is quite likely that there may be many manual resources which leads to many propagation tasks to maintain.
 Therefore there is an experimental support for multi-resource propagation task:
 
+.Notation before 4.4
 [source,xml]
 ----
 <task>
@@ -113,6 +130,30 @@ Therefore there is an experimental support for multi-resource propagation task:
 ----
 
 Please note the difference in task handler URI (`handler-3` versus `multi-handler-3`).
+
+.Notation in 4.4 and after
+[source,xml]
+----
+<task>
+    ...
+    <activity>
+        <work>
+            <multiPropagation>
+                <resources>
+                    <query>
+                        <q:filter>
+                            <q:equal>
+                                <q:path>extension/provisioning</q:path>
+                                <q:value>propagated</q:value>
+                            </q:equal>
+                        </q:filter>
+                    </query>
+                </resources>
+            </multiPropagation>
+        </work>
+    </activity>
+</task>
+----
 
 == Limitations
 

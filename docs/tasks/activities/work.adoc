@@ -219,9 +219,9 @@ However, currently its only function is to display information about objects siz
 | Number of columns in the histograms of object sizes.
 | 80
 
-.5+| `shadowIntegrityCheck`
+.5+| xref:/midpoint/reference/resources/shadow/integrity-check/[`shadowIntegrityCheck`]
 .5+| The purpose of this activity is to detect and optionally anomalies in resource object shadows
-stored in the repository. See xref:/midpoint/reference/resources/shadow/integrity-check/[the details].
+stored in the repository.
 .5+| Simple
 .5+| N
 .5+| N
@@ -261,23 +261,23 @@ when the cluster state changes (i.e. a node goes up or down).
 | Whether to skip initial reconciliation of the workers on the activity start.
 | `false`
 
-| `propagation`
-| TODO
+| xref:/midpoint/reference/resources/propagation/configuration/[`propagation`]
+| Executes eligible pending operations on a resource.
 | Simple
-|
-|
-|
-|
-|
+| Y
+| Y
+| `resourceRef`
+| Resource on which the operation propagation should be done.
+| Obligatory.
 
-| `multiPropagation`
-| TODO
+| xref:/midpoint/reference/resources/propagation/configuration/[`multiPropagation`]
+| Executes eligible pending operations on set of resources.
 | Simple
-|
-|
-|
-|
-|
+| Y
+| Yfootnote:[What can be distributed are _resource_, not individual shadows on the resource.]
+| `resources`
+| Set of resources on which the operation propagation should be done.
+| All resources.
 
 .3+| `noOp`
 .3+| "No operation" activity to be used for demonstration and testing purposes. It consists of a set of numbered steps,
