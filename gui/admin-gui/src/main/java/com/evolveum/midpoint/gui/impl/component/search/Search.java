@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -138,7 +140,12 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public Class<C> getTypeClass() {
-        return SearchBoxModeType.OID.equals(getSearchMode()) ? (Class<C> )  ObjectType.class : searchConfigModel.getObject().getTypeClass();
+        ObjectTypeSearchItemWrapper objectTypeWrapper = findObjectTypeSearchItemWrapper();
+        if (objectTypeWrapper != null) {
+            return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), objectTypeWrapper.getValue().getValue());
+        }
+        return SearchBoxModeType.OID.equals(getSearchMode()) ? (Class<C> )  ObjectType.class
+                : searchConfigModel.getObject().getTypeClass();
     }
 
     public SearchBoxConfigurationType getConfig() {
@@ -244,6 +251,16 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         for (AbstractSearchItemWrapper item : items) {
             if (item instanceof OidSearchItemWrapper) {
                 return (OidSearchItemWrapper) item;
+            }
+        }
+        return null;
+    }
+
+    public ObjectTypeSearchItemWrapper findObjectTypeSearchItemWrapper() {
+        List<AbstractSearchItemWrapper> items = searchConfigModel.getObject().getItemsList();
+        for (AbstractSearchItemWrapper item : items) {
+            if (item instanceof ObjectTypeSearchItemWrapper) {
+                return (ObjectTypeSearchItemWrapper) item;
             }
         }
         return null;

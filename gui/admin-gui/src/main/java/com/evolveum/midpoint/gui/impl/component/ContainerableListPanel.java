@@ -1107,11 +1107,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     public void refreshTable(AjaxRequestTarget target) {
         BoxedTablePanel<PO> table = getTable();
         //todo implement isTypeChanged for new search
-//        if (searchModel.getObject().isTypeChanged()){
-//            resetTable(target);
-//        } else {
+        if (searchModel.getObject().isTypeChanged()){
+            resetTable(target);
+        } else {
             saveSearchModel(getCurrentTablePaging());
-//        }
+        }
         target.add(table);
         target.add(getFeedbackPanel());
     }

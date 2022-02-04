@@ -18,15 +18,15 @@ public class IndirectSearchItemWrapper extends AbstractRoleSearchItemWrapper {
         super(searchConfig);
     }
 
-    @Override
-    public boolean isEnabled() {
-        return getSearchConfig().isSearchScope(SearchBoxScopeType.SUBTREE);
-    }
+//    @Override
+//    public boolean isEnabled() {
+//        return getSearchConfig().isSearchScope(SearchBoxScopeType.SUBTREE);
+//    }
 
     public boolean isVisible() {
         return getSearchConfig().getConfig().getRelationConfiguration() != null
                 && getSearchConfig().getConfig().getRelationConfiguration().getSupportedRelations() != null
-                && !getSearchConfig().isSearchScope(SearchBoxScopeType.SUBTREE);
+                && getSearchConfig().isSearchScope(SearchBoxScopeType.SUBTREE);
     }
 
     @Override

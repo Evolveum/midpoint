@@ -11,6 +11,8 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
@@ -30,8 +32,18 @@ public class ScopeSearchItemPanel extends AbstractSearchItemPanel<ScopeSearchIte
         DropDownChoicePanel inputPanel = new DropDownChoicePanel(ID_SEARCH_ITEM_FIELD,
                 new PropertyModel(getModel(), ScopeSearchItemWrapper.F_SEARCH_CONFIG + "." + SearchConfigurationWrapper.F_SCOPE),
                 Model.of(Arrays.asList(SearchBoxScopeType.values())), new EnumChoiceRenderer(), false);
-        inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
-        inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 88px; max-width: 400px !important;"));
+        inputPanel.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                SearchPanel panel = findParent(SearchPanel.class);
+                panel.searchPerformed(target);
+            }
+        });
+//        inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
+//        inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 88px; max-width: 400px !important;"));
         inputPanel.setOutputMarkupId(true);
         return inputPanel;
     }
