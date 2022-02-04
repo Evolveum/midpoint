@@ -3,8 +3,7 @@
 :page-since: "4.4"
 :page-upkeep-status: green
 
-TIP: *TL;DR* There is xref:/midpoint/tools/studio/usage/#upgrade-task-objects-to-use-activity-midpoint-4-4[a migration tool]
-available. Besides, be sure to re-import all the tasks.
+TIP: *TL;DR* See xref:#_doing_the_migration[Doing the migration] section.
 
 == Theory
 
@@ -480,20 +479,21 @@ As an example, let us consider a task that imports first from resource A, then f
 </task>
 ----
 
+[#_doing_the_migration]
 == Doing the Migration
 
 How to practically do the migration?
 
 Imagine you run a 4.0.x or 4.3.x system (minimal supported versions are 4.0.4 and 4.3.2).
-Here we describe how the migration could look like. We will use MidPoint Studio for the work.
+Here we describe how the migration could look like.We will use MidPoint Studio for the work.
 
 1. *Before you stop the system for the last time,* you need to:
 
- - Suspend all running tasks. This is necessary to avoid their unintended execution
+- Suspend all running tasks.This is necessary to avoid their unintended execution
 after the upgraded system is started for the first time.
- - Download (export) all tasks you want to preserve - at least ones that contain `workManagement`
+- Download (export) all tasks you want to preserve - at least the ones that contain `workManagement`
 item (i.e. clustered and partitioned tasks). This item will be inaccessible after the upgrade.
-Download or export can be done either via midPoint Studio or directly via midPoint GUI.
+Download or export can be done either via midPoint Studio or via midPoint GUI.
 You may skip downloading the tasks if you maintain them outside midPoint, e.g. in midPoint
 Studio or a similar tool.
 
