@@ -485,7 +485,7 @@ As an example, let us consider a task that imports first from resource A, then f
 How to practically do the migration?
 
 Imagine you run a 4.0.x or 4.3.x system (minimal supported versions are 4.0.4 and 4.3.2).
-Here we describe how the migration could look like.We will use MidPoint Studio for the work.
+Here we describe how the migration could look like. We will use MidPoint Studio for the work.
 
 1. *Before you stop the system for the last time,* you need to:
 
@@ -519,8 +519,9 @@ clean up individual files, or whole directories.
 
 5. Migrate the tasks.
 +
-Tasks can be migrated using `Other actions` -> `Upgrade task to activity (4.4)` action. You can migrate individual files,
-or whole directories.
+Tasks can be migrated using `Other actions` ->
+xref:/midpoint/tools/studio/usage/#upgrade-task-objects-to-use-activity-midpoint-4-4[`Upgrade task to activity (4.4)`] action.
+You can migrate individual files, or whole directories.
 +
 Then inspect the migrated tasks, to make sure they were transformed correctly. You should also open the console view
 of the plugin (`Console` tab in `MidPoint` tool window) to see if there were any errors reported. We also recommend you
