@@ -177,7 +177,7 @@ tailoring:
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-    <name>Reconciliation Simulate Execute: Dummy</name>
+    <name>Reconciliation in Preview and Execution Mode</name>
 
     ...
 

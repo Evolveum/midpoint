@@ -241,7 +241,7 @@ stored in the repository.
 | Whether to check uniqueness on primary identifiers (or on secondary ones as well).
 | `false` (meaning all identifiers)
 
-.4+| `activityAutoScaling`
+.4+| xref:/midpoint/reference/tasks/auto-scaling/[`activityAutoScaling`]
 .4+| Adapts running activities to the current cluster configuration by executing "reconcile workers" operation
 when the cluster state changes (i.e. a node goes up or down).
 .4+| Simple
