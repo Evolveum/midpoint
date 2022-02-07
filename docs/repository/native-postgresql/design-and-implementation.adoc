@@ -179,7 +179,7 @@ If totally transactional reports are necessary, they must be preformed on SQL le
 
 Example - let's add `operationalState` column for `m_node` table.
 
-* Let's start in the SQL schema, locate the table `m_node` and add `operationalState` column to it.
+. Let's start in the SQL schema, locate the table `m_node` and add `operationalState` column to it.
 Consider logical order of the columns - even though it's not relevant for upgraded DB,
 it is relevant for future readability.
 Notice, how columns for items from subcontainers are grouped in existing tables.
@@ -188,7 +188,7 @@ The same name will be used in so called "M-class" (`MNode` in our example).
 Sometimes the name contains container name prefix, this is not used for metadata, activation
 and similar common containers - even these are still pure camel-case names.
 
-* What type is it?
+. What type is it?
 Simple things are easy (`TEXT`, `INTEGER`), some items require multiple columns (references,
 poly-strings), follow the patterns used previously for such cases.
 Our `operationalState` is enum type - great!
@@ -197,7 +197,7 @@ Some multi-value types can be represented by arrays like `TEXT[]` or `JSONB` col
 If we're talking about whole new multi-value container, whoa-whoa... that's out of scope of this
 humble instruction sheet!
 
-* If the type is previously unused enum, we've got just a bit more work to do.
+. If the type is previously unused enum, we've got just a bit more work to do.
 First we need to add `CREATE TYPE` for it to the schema.
 Find the section with custom types, read its intro comment and add the enum specification.
 Very likely it will be "schema enum", not specialized repository internal enum - that's typical.
@@ -207,22 +207,22 @@ Copy/paste the values to avoid any mistake... other than copy/paste error, that 
 Don't forget to mention this enum in the `SqaleRepoContext` constructor.
 Alphabetic order, please!
 
-* Let's change the "M-class", `MNode` in our example.
+. Let's change the "M-class", `MNode` in our example.
 Simply add public field for the column, like `public NodeOperationalStateType operationalState`.
 Keep the order consistent with the table.
 BTW, "M" does *not* stand for "mapping", we will see mapping class later.
 
-* Now it's great time to update `SqaleRepoAddDeleteObjectTest`!
+. Now it's great time to update `SqaleRepoAddDeleteObjectTest`!
 Find the method testing mapping for this class and add value and assert for the new item.
 Feel free to add the method if this entity/object type is not yet tested - just like
 https://github.com/Evolveum/midpoint/commit/8165c46f5f5e775de8dd41a982f4caa86e208314[I did].
 Run the test, it should fail for the new attribute, which is a good sign.
 
-* We need to declare the new column in a "Q-class" which extends from Querydsl type hierarchy.
+. We need to declare the new column in a "Q-class" which extends from Querydsl type hierarchy.
 Technically it's mapping for Querydsl, but it's still not "our" mapping for midPoint (soon, I promise!).
 For our example, it's `QNode` - and there are two sections:
 
-** First, static column metadata, find good example from other class if necessary.
+.. First, static column metadata, find good example from other class if necessary.
 In our case, I'll add:
 +
 [source,java]
@@ -232,7 +232,8 @@ public static final ColumnMetadata OPERATIONAL_STATE =
 ----
 +
 For enum types we use `Types.OTHER`, again, see existing examples from other classes for your type.
-** Next, we add non-static column (or attribute) path:
+
+.. Next, we add non-static column (or attribute) path:
 +
 [source,java]
 ----
@@ -240,7 +241,7 @@ public final EnumPath<NodeOperationalStateType> operationalState =
   createEnum("operationalState", NodeOperationalStateType.class, OPERATIONAL_STATE);
 ----
 +
-The name of the column (the same like the name of the field in M-class) appears twice here,
+The name of the column (the same as the name of the field in M-class) appears twice here,
 because we want the same name again for Q-class paths.
 Previously specified column metadata are used.
 As before, see examples from other Q-classes to use the right `create*` method and path type.
@@ -249,7 +250,7 @@ As before, see examples from other Q-classes to use the right `create*` method a
 Keep the order consistent with SQL and M-class in both sections.
 Good, now Querydsl knows what to do with our field in the M-class.
 
-* Now it's time to add the insert code.
+. Now it's time to add the insert code.
 Finally, we're getting to the "mapping class" - `QNodeMapping` in our case.
 Locate `toRowObjectWithoutFullObject` and add the following line there:
 +
@@ -262,7 +263,7 @@ As always, follow the order from SQL and M-class.
 The code for enum and many other types is as trivial as shown above, but there is great support
 for refs, poly-strings and many more too - just find the examples in other Q-Mapping classes.
 
-* *Nearly there!*
+. *Nearly there!*
 We still need one more thing to support searching and modifications too.
 Go to the constructor of the mapping class (`QNodeMapping` for us) and add (respecting the right
 order again, of course!):
@@ -279,13 +280,97 @@ Just be sure to use the right item name (`F_OPERATIONAL_STATE` imported statical
 proper mapper method (`enumMapper`) and proper path (`q.operationalState`, which is that final
 non-static field we added on the Q-class).
 
-* And SQL alter script, of course!
-OK, the alter script is not yet in place (this is written before 4.4 is out), but find it and
-add the modification there using the newest fashionable method available.
-Hopefully, it's something utilizing `apply_change` and - for your sake - same examples are already available.
+. And SQL alter script, of course!
+Finally, we need to prepare SQL command for upgrade script `postgres-new-upgrade.sql`.
+Prepare the right `ALTER` command and test it on an existing database without the change.
+Wrap the change inside `apply_change` call - use the examples already available in the file.
+Don't forget to bump the change identifier.
+Revert the change and test it again by calling the `apply_change` procedure from the upgrade script.
+Check that the change was applied and also that subsequent call skips the change.
 
 To see the whole success story, check https://github.com/Evolveum/midpoint/commit/1a7c2e43c93d9b090b73c64a347b142c033c7d0a[this commit]
 (add-test was committed separately and linked previously).
+
+=== How to add a new persisted type?
+
+Example - let's add persistence for `MessageTemplateType`.
+This is a simple example, only minimal `m_message_template` table will be added, without special persistence
+for its containers, because these are not searchable (full text can be used for that, if required).
+
+. New persisted object type must be declared.
+Add the new value `MESSAGE_TEMPLATE` to the `ObjectType` enum in `postgres-new.sql`.
+This value will be later added in the `MObjectType` Java enum, but that requires some other classes we don't have yet.
+
+. Also, prepare and test upgrade command to the same effect before the bottom comment in `postgres-new-upgrade.sql`.
+We will wrap this inside `apply_change` so it is executed only if not applied yet.
+Still, we will write it in an idempotent fashion (`IF NOTE EXISTS`), because we can and it is always more flexible:
++
+[source,sql]
+----
+-- MID-7484, always add some relevant comment or a related Jira issue
+-- We add the new enum value in separate change, because it must be committed before it is used.
+call apply_change(2, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MESSAGE_TEMPLATE' AFTER 'LOOKUP_TABLE';
+$aa$);
+----
++
+As described in the comment, we make this a separate change, because the `apply_change` procedure
+manages the commits and we can't use `COMMIT` inside the change block.
+
+. Continue with the table definition in `postgres-new.sql`.
+Again, this one is very simple, we can copy/paste and carefully modify existing simple tables like `m_dashboard` for instance.
+Use search to be sure all `m_dashboard` strings are replaced with `m_message_template` as appropriate,
+especially for the trigger and index names.
+Replace the object type values in the `objectType` column definition.
++
+Place the tables in the proper section (region in IDEA).
+This can be "OTHER object tables", but we will create new region in this case, as we plan more Notification related tables in the future.
+Example for the complete table with triggers and indexes can be seen
+https://github.com/Evolveum/midpoint/blob/7a7c337d50b6cea1ad7c898b780f308c415c7cb5/config/sql/native-new/postgres-new.sql#L1647-L1669[here].
+
+. Add the same creation statements in the upgrade script `postgres-new-upgrade.sql` just after the `ALTER` from the previous step.
+
+. Now it's time to add the mapping Java classes to the native repository module `repo-sqale`.
+For a minimal mapping example see the classes in the package named `com.evolveum.midpoint.repo.sqale.qmodel.node`.
+Typically, three classes are needed:
+// using -- for the nested blocks to make adding two paragraphs after it cleaner
++
+--
+.. Plain bean representing the row in the database - so called "M-class", e.g. `MNode`.
+.. Querydsl mapping for the table, which is traditionally prefixed with `Q`, e.g. `QNode`.
+.. Finally, midPoint specific mapping which is named like the "Q-class", but with `Mapping` suffix, e.g. `QNodeMapping`.
+--
++
+In our case, the situation is even simpler, because there is no additional column mapping for our new table.
+We can use `MObject` as our M-bean, this mapping is similar to the mapping for `m_dashboard`, so we will copy and paste these classes.
+After replacing all the "dashboards" with "messageTemplates" (including the proper table names) we are done with the mapping classes.
++
+Obviously, mapping for more complicated objects with sub-containers stored in dedicated tables is more complicated.
+Existing classes should be used as examples; also see the section about adding the new column for tips about column vs Java types.
+
+. With the Java mapping classes ready, we can add the value inside `MObjectType`.
+Respectfully, we will conform to the alphabetical order and add the following code after the lookup table line:
++
+[source,java]
+----
+MESSAGE_TEMPLATE(QMessageTemplate.class, MessageTemplateType.class),
+----
+
+. New mapping for object must be also registered in `SqaleRepositoryBeanConfig.sqlRepoContext()` method.
+Find the right place (again, typically alphabetically) and add the following line:
++
+[source,java]
+----
+.register(MessageTemplateType.COMPLEX_TYPE, QMessageTemplateMapping.init(repositoryContext))
+----
+
+. Finally, we will add a simple add (insert) test for the class.
+This proves that the midPoint can add objects of this type.
+Because there are no columns specific to this type, we simply test that the row is added,
+as we presume we can trust the existing code handling the super-type columns (already tested).
+In more interesting cases you may also add a search test into `SqaleRepoSearchTest`, etc.
+
+The whole example can be found in https://github.com/Evolveum/midpoint/commit/7a7c337d50b6cea1ad7c898b780f308c415c7cb5[this commit].
 
 === Possible future improvements
 
@@ -395,7 +480,7 @@ column directly in the master table `m_object`.
 
 * To assure unique OIDs we will use separate `m_object_oid` table.
 Triggers for insert and delete will assure the consistency between this and `m_object` hierarchy.
-For inserts we have to generate OID if its not provided or use the one that is - in both cases the new OID is inserted into `m_object_oid`.
+For inserts we have to generate OID if it's not provided or use the one that is - in both cases the new OID is inserted into `m_object_oid`.
 Updates of OID are forbidden which is also guarded by a trigger, otherwise it would be able to change OID to already existing OID from another table (PK does not allow it for the same table).
 
 * Can we partition inherited table?
