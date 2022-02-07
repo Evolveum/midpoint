@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,14 +8,14 @@
 -- @formatter:off because of terribly unreliable IDEA reformat for SQL
 -- This is the update script for the MAIN REPOSITORY, it will not work for a separate audit database.
 -- It is safe to run this script repeatedly, so if you're not sure you're up to date.
+-- DO NOT use explicit COMMIT commands inside the apply_change blocks - leave that to the procedure.
+-- If necessary, split your changes into multiple apply_changes calls to enforce the commit
+-- before another change - for example when adding values to the custom enum types.
 
--- SCHEMA-COMMIT is a commit which should be used to initialize the DB for testing changes below it.
+-- SCHEMA-COMMIT is a Git commit which should be used to initialize the DB for testing changes below it.
 -- Check out that commit and initialize a fresh DB with postgres-new-audit.sql to test upgrades.
 
--- Initializing the last change number used in postgres-new-upgrade.sql.
-call apply_change(0, $$ SELECT 1 $$, true);
-
--- SCHEMA-COMMIT 4.0: commit 69e8c29b
+-- SCHEMA-COMMIT 4.4: commit 69e8c29b
 
 -- changes for 4.4.1
 
@@ -42,6 +42,39 @@ CREATE TRIGGER m_org_mark_refresh_tr
 CREATE TRIGGER m_org_mark_refresh_trunc_tr
     AFTER TRUNCATE ON m_org
     FOR EACH STATEMENT EXECUTE FUNCTION mark_org_closure_for_refresh_org();
+$aa$);
+
+-- SCHEMA-COMMIT 4.4.1: commit de18c14f
+
+-- changes for 4.5
+
+-- MID-7484
+-- We add the new enum value in separate change, because it must be committed before it is used.
+call apply_change(2, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MESSAGE_TEMPLATE' AFTER 'LOOKUP_TABLE';
+$aa$);
+
+call apply_change(3, $aa$
+CREATE TABLE m_message_template (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('MESSAGE_TEMPLATE') STORED
+        CHECK (objectType = 'MESSAGE_TEMPLATE')
+)
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_message_template_oid_insert_tr BEFORE INSERT ON m_message_template
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_message_template_update_tr BEFORE UPDATE ON m_message_template
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_message_template_oid_delete_tr AFTER DELETE ON m_message_template
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+CREATE INDEX m_message_template_nameOrig_idx ON m_message_template (nameOrig);
+CREATE UNIQUE INDEX m_message_template_nameNorm_key ON m_message_template (nameNorm);
+CREATE INDEX m_message_template_policySituation_idx
+    ON m_message_template USING gin(policysituations gin__int_ops);
+CREATE INDEX m_message_template_createTimestamp_idx ON m_message_template (createTimestamp);
+CREATE INDEX m_message_template_modifyTimestamp_idx ON m_message_template (modifyTimestamp);
 $aa$);
 
 -- WRITE CHANGES ABOVE ^^

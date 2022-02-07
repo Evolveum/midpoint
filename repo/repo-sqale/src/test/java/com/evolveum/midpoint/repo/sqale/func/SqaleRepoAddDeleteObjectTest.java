@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -53,6 +53,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.MLookupTableRow;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRow;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.MNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNode;
+import com.evolveum.midpoint.repo.sqale.qmodel.notification.QMessageTemplate;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.MReportData;
@@ -2427,10 +2428,30 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(candidateRefRow.workItemCid).isEqualTo(42);
     }
 
+    @Test
+    public void test860MessageTemplate() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("message template");
+        String objectName = "messageTemplate" + getTestNumber();
+        var messageTemplate = new MessageTemplateType(prismContext)
+                .name(objectName)
+                .defaultContent(new MessageTemplateContentType(prismContext))
+                ;
+
+        when("adding it to the repository");
+        repositoryService.addObject(messageTemplate.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertThatOperationResult(result).isSuccess();
+
+        MObject row = selectObjectByOid(QMessageTemplate.class, messageTemplate.getOid());
+        assertThat(row).isNotNull(); // no additional columns
+    }
     // endregion
 
     // region delete tests
-    // when we get here we have couple of users and some other types stored in the repository
+    // when we get here we have a couple of users and some other types stored in the repository
     @Test
     public void test900DeleteOfNonexistentObjectFails() {
         OperationResult result = createOperationResult();

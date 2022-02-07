@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTable;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNode;
+import com.evolveum.midpoint.repo.sqale.qmodel.notification.QMessageTemplate;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrg;
 import com.evolveum.midpoint.repo.sqale.qmodel.other.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
@@ -40,6 +41,12 @@ import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * Definition enum, counterpart for our custom Postgres type `ObjectType`.
+ * The enum values are rarely used directly, except for some abstract types.
+ * They are however used for the mapping between Q-classes and schema types using the static methods
+ * provided on this enum class.
+ */
 public enum MObjectType {
 
     // mapping of codes and schema types must be unique
@@ -59,6 +66,7 @@ public enum MObjectType {
     FUNCTION_LIBRARY(QFunctionLibrary.class, FunctionLibraryType.class),
     GENERIC_OBJECT(QGenericObject.class, GenericObjectType.class),
     LOOKUP_TABLE(QLookupTable.class, LookupTableType.class),
+    MESSAGE_TEMPLATE(QMessageTemplate.class, MessageTemplateType.class),
     NODE(QNode.class, NodeType.class),
     OBJECT(QObject.CLASS, ObjectType.class),
     OBJECT_COLLECTION(QObjectCollection.class, ObjectCollectionType.class),
