@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -21,7 +21,6 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
@@ -144,7 +143,7 @@ public class QAuditEventRecordMapping
                 .message(row.message);
 
         mapDeltas(record, row.deltas);
-        mapChangedItems(record, row.changedItemPaths);
+        // Changed items are only for searching, we don't want to reconstruct them, they are even "canonicalized".
         mapRefValues(record, row.refValues);
         mapProperties(record, row.properties);
         mapResourceOids(record, row.resourceOids);
@@ -158,17 +157,6 @@ public class QAuditEventRecordMapping
 
         for (MAuditDelta delta : deltas) {
             record.delta(QAuditDeltaMapping.get().toSchemaObject(delta));
-        }
-    }
-
-    private void mapChangedItems(AuditEventRecordType record, String[] changedItemPaths) {
-        if (changedItemPaths == null) {
-            return;
-        }
-
-        for (String changedItemPath : changedItemPaths) {
-            ItemPath itemPath = ItemPath.create(changedItemPath);
-            record.getChangedItem().add(new ItemPathType(itemPath));
         }
     }
 

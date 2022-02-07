@@ -259,7 +259,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     private void refreshPanel(AjaxRequestTarget target) {
-        target.add(PrismContainerValuePanel.this.findParent(ItemPanel.class));
+        target.add(PrismContainerValuePanel.this);
         target.add(getPageBase().getFeedbackPanel());
     }
 

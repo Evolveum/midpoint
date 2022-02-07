@@ -105,8 +105,9 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     private static final String ID_USE_IN_OBJECT_LIST = "useInObjectList";
     private static final String ID_EXECUTE_HIBERNATE = "executeHibernate";
     private static final String ID_EDITOR_MIDPOINT = "editorMidPoint";
-    private static final String ID_EDITOR_HIBERNATE = "editorHibernate";
-    private static final String ID_HIBERNATE_PARAMETERS = "hibernateParameters";
+    private static final String ID_QUERY_EDITOR = "queryEditor";
+    private static final String ID_QUERY_LABEL = "queryLabel";
+    private static final String ID_PARAMETERS = "parameters";
     private static final String ID_RESULT_LABEL = "resultLabel";
     private static final String ID_RESULT_TEXT = "resultText";
     private static final String ID_QUERY_SAMPLE = "querySample";
@@ -206,14 +207,17 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         editorMidPoint.setResizeToMaxHeight(false);
         mainForm.add(editorMidPoint);
 
-        AceEditor editorHibernate = new AceEditor(ID_EDITOR_HIBERNATE, new PropertyModel<>(model, RepoQueryDto.F_HIBERNATE_QUERY));
+        Label queryLabel = new Label(ID_QUERY_LABEL, createQueryLabelModel());
+        mainForm.add(queryLabel);
+
+        AceEditor editorHibernate = new AceEditor(ID_QUERY_EDITOR, new PropertyModel<>(model, RepoQueryDto.F_HIBERNATE_QUERY));
         editorHibernate.setHeight(300);
         editorHibernate.setResizeToMaxHeight(false);
         editorHibernate.setReadonly(!isAdmin);
         editorHibernate.setMode(null);
         mainForm.add(editorHibernate);
 
-        AceEditor hibernateParameters = new AceEditor(ID_HIBERNATE_PARAMETERS, new PropertyModel<>(model, RepoQueryDto.F_HIBERNATE_PARAMETERS));
+        AceEditor hibernateParameters = new AceEditor(ID_PARAMETERS, new PropertyModel<>(model, RepoQueryDto.F_HIBERNATE_PARAMETERS));
         hibernateParameters.setReadonly(true);
         hibernateParameters.setHeight(100);
         hibernateParameters.setResizeToMaxHeight(false);
@@ -222,7 +226,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
         Label hibernateParametersNote = new Label(ID_HIBERNATE_PARAMETERS_NOTE, createStringResource("PageRepositoryQuery.hibernateParametersNote",
                 WebComponentUtil.getMidpointCustomSystemName(PageRepositoryQuery.this, "midPoint")));
-        hibernateParametersNote.setVisible(isAdmin);
+        hibernateParametersNote.setVisible(isAdmin && !isNativeRepo());
         mainForm.add(hibernateParametersNote);
 
         Label queryVsFilterNote = new Label(ID_QUERY_VS_FILTER_NOTE, createStringResource("PageRepositoryQuery.queryVsFilterNote",
@@ -267,7 +271,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         };
         midPointQueryButtonBar.add(executeMidPoint);
 
-        AjaxSubmitButton compileMidPoint = new AjaxSubmitButton(ID_COMPILE_MIDPOINT, createStringResource("PageRepositoryQuery.button.translate")) {
+        AjaxSubmitButton compileMidPoint = new AjaxSubmitButton(ID_COMPILE_MIDPOINT, createCompileMidpointLabelModel()) {
             @Override
             protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
@@ -356,7 +360,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 queryPerformed(Action.EXECUTE_HIBERNATE, target);
             }
         };
-        executeHibernate.setVisible(isAdmin);
+        executeHibernate.setVisible(isAdmin && !isNativeRepo());
         mainForm.add(executeHibernate);
 
         Label resultLabel = new Label(ID_RESULT_LABEL, new IModel<String>() {
@@ -400,6 +404,14 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         });
         mainForm.add(resultText);
 
+    }
+
+    private IModel<String> createCompileMidpointLabelModel() {
+        return isNativeRepo() ? createStringResource("PageRepositoryQuery.button.translate.SQL") : createStringResource("PageRepositoryQuery.button.translate");
+    }
+
+    private IModel<String> createQueryLabelModel() {
+        return isNativeRepo() ? createStringResource("PageRepositoryQuery.sqlQuery") : createStringResource("PageRepositoryQuery.hibernateQuery");
     }
 
     private void useInObjectListPerformed(AjaxRequestTarget target) {

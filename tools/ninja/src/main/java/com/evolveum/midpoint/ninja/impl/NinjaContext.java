@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -55,6 +55,8 @@ public class NinjaContext {
     private Log log;
 
     private GenericXmlApplicationContext context;
+
+    private MidpointConfiguration midpointConfiguration;
 
     private RepositoryService repository;
 
@@ -117,6 +119,7 @@ public class NinjaContext {
 
         context = ctx;
 
+        midpointConfiguration = context.getBean(MidpointConfiguration.class);
         repository = connectRepo ? context.getBean(REPOSITORY_SERVICE_BEAN, RepositoryService.class) : null;
         auditService = connectRepo ? context.getBean(AUDIT_SERVICE_BEAN, AuditService.class) : null;
     }
@@ -138,6 +141,8 @@ public class NinjaContext {
             System.setProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_PASSWORD,
                     options.getPassword());
         }
+
+        // TODO how to override audit repo? the same options?
     }
 
     private String getDatabase(String url) {
@@ -188,6 +193,10 @@ public class NinjaContext {
 
     public JCommander getJc() {
         return jc;
+    }
+
+    public MidpointConfiguration getMidpointConfiguration() {
+        return midpointConfiguration;
     }
 
     public RepositoryService getRepository() {

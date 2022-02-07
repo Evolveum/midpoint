@@ -372,11 +372,10 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
             String numberMessage;
             String description = null;
 
-            ResourceType resource = getObjectDetailsModels().getObjectType();
             Integer progress = null;
             ResourceSchema refinedSchema;
             try {
-                refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+                refinedSchema = getObjectDetailsModels().getRefinedSchema();
                 if (refinedSchema != null) {
                     backgroundColor = "bg-purple";
                     icon = "fa fa-cubes";
