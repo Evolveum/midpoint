@@ -111,12 +111,10 @@
     </xsd:simpleType>
     -->
 
-    <!--
     <xsd:complexType name="MessageTemplateContentType">
         <xsd:annotation>
             <xsd:documentation>
-                Message to be send via some transport.
-                Structure is a container stored in the repository.
+                Specifies the content of the message used with a transport mechanism, for instance mail.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -178,8 +176,70 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    -->
 
+    <xsd:complexType name="LocalizedMessageTemplateContentType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Single language localization for the message template.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:displayName>LocalizedMessageTemplateContentType.details</a:displayName>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:MessageTemplateContentType">
+                <xsd:sequence>
+                    <xsd:element name="language" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Indicates the language used for the message template content.
+                                The format is IETF language tag defined in BCP 47, where underscore is used as a subtag separator.
+                                This is usually a ISO 639-1 two-letter language code optionally followed by ISO 3166-1
+                                two letter country code separated by underscore.
+                                The languages that do not have country-specific variants are usually specified by using
+                                a two-letter country code ("sk", "cs", "tr").
+                                Languages with country-specific variants have country-specific subtags ("pt_BR", "zn_CN").
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="MessageTemplateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Localizable template of the message used with a transport mechanism, for instance mail.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AssignmentHolderType">
+                <xsd:sequence>
+                    <xsd:element name="defaultContent" type="tns:MessageTemplateContentType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The default message content if localization is not used or not found.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="localizedContent" type="tns:LocalizedMessageTemplateContentType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Set of other localized contents, which is content extended with a language tag.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="messageTemplate" type="tns:MessageTemplateType"/>
     <!-- endregion -->
 
     <xsd:complexType name="NotificationTransportConfigurationType">
