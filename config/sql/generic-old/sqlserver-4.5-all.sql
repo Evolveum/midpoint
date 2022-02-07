@@ -1224,7 +1224,7 @@ CREATE UNIQUE INDEX uc_connector_type_version_host
 
 
 BEGIN TRANSACTION
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.4');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.5');
 COMMIT;
 
 --# thanks to George Papastamatopoulos for submitting this ... and Marko Lahma for

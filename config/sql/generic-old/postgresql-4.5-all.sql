@@ -1214,7 +1214,7 @@ CREATE INDEX iOrgOrgTypeOid ON M_ORG_ORG_TYPE(ORG_OID);
 CREATE INDEX iServiceTypeOid ON M_SERVICE_TYPE(SERVICE_OID);
 CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID);
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.4');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.5');
 
 -- Thanks to Patrick Lightbody for submitting this...
 --

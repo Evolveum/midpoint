@@ -1195,6 +1195,6 @@ ALTER TABLE m_user
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.4');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.5');
 
 COMMIT;

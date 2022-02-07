@@ -1221,7 +1221,7 @@ CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID) INITRANS 30;
 CREATE UNIQUE INDEX uc_connector_type_version_host
   ON m_connector  (connectorType, connectorVersion, nvl(connectorHostRef_targetOid,0));
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.4');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.5');
 
 --
 -- A hint submitted by a user: Oracle DB MUST be created as "shared" and the
