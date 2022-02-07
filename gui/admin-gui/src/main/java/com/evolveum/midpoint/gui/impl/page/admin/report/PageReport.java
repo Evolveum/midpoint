@@ -207,6 +207,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
         } finally {
             saveAndRunResult.computeStatusIfUnknown();
             saveAndRunResult.setBackgroundTaskOid(task.getOid());
+            showResult(saveAndRunResult);
             redirectBack();
         }
     }
