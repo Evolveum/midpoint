@@ -14,7 +14,8 @@ or decreased. It should be done also when the cluster configuration changes, e.g
 This up/down-scaling was present in midPoint since 3.8 (as an experimental feature) in the form of _workers
 reconciliation_ process. In 4.4 the following changes were done:
 
-1. New auto-scaling activity was created. It periodically scans for tasks that are autoscaling-enabled
+1. New xref:/midpoint/reference/tasks/auto-scaling/[auto-scaling activity] was created.
+It periodically scans for tasks that are autoscaling-enabled
 and invokes workers reconciliation process on them, if the cluster state has changed in the meanwhile.
 (Note that we currently do not support auto-scaling triggered by changes in activity distribution
 definition. The user is responsible for reconciling the workers manually in that cases.)

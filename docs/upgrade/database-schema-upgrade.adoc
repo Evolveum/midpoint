@@ -21,7 +21,7 @@ These scripts contain a set of SQL commands (usually `ALTER TABLE` commands) tha
 The scripts are designed to be non-desctructive, therefore they can safely be executed over a database that is populated with data.
 (Of course, the usual backup routine is strongly recommended.)
 
-=== The right process for the rigth repository
+=== The right process for the right repository
 
 Since version 4.4, midPoint features two SQL repository implementations and these have different upgrade procedures.
 It is absolutely critical to use the right upgrade script for the right repository.

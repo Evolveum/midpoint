@@ -133,31 +133,19 @@ but it is ignored.
 | Script to execute (`ExecuteScriptType`). Contains scripting expression, `input`, options`, and `variables`.
 | Obligatory.
 
-.3+| `focusValidityScan`
-.3+| Executes validity scan on focal objects. Works in one of two modes:
-
-In _standard mode_ it recomputes all objects that have at least one validity interval
-(`validFrom`/`validTo` for object or any of its assignments) falling into an interval of (`lastScanTimestamp`, `currentTime`],
-where `lastScanTimestamp` is the timestamp of last executed scan.
-
-In _custom validity constraint mode_, it looks for objects that have specified `property` fall between (`lastScanTimestamp`-`offset`, `currentTime`-`offset`]
-where `offset` is a value given in the explicit validity constraint (the `activateOn` value). It recomputes these objects, with the
-explicitly added triggered validity policy rule. Note that this is an *experimental* functionality.
-
+.3+| xref:/midpoint/reference/tasks/specific/focus-validity-scan/[`focusValidityScan`]
+.3+| Executes validity scan on focal objects.
 .3+| Predefined composite
 .3+| Y
 .3+| Y
 | `objects`
-| What xref:../object-set-specification/[objects] to scan. If a query is present, the filter computed
-by the activity is added to it (as a conjunction).
+| What xref:../object-set-specification/[objects] to scan.
 | All of `FocusType`.
 | `queryStyle`
-| How to find the objects: `singleQuery` - issues a single (combined) query, looking for objects and their assignments,
-or `separateObjectAndAssignmentQueries` - issues two queries: one for objects, another for assignments. The latter runs
-in two separate sub-activities.
+| How to find the objects: `singleQuery` or `separateObjectAndAssignmentQueries`.
 | `singleQuery`
 | `validityConstraint`
-| Custom validity constraint. See above.
+| Custom validity constraint.
 | None.
 
 | `triggerScan`
@@ -218,48 +206,107 @@ appended to the default time-scanning query.
 | How "stale" must be a shadow to be deleted.
 | Obligatory.
 
-| `objectIntegrityCheck`
-| x
-| Simple
-| N
-| N
-| x
-| x
-| x
+.2+| `objectIntegrityCheck`
+.2+| The purpose of this activity is to detect and optionally fix anomalies in repository objects.
+However, currently its only function is to display information about objects size.
+.2+| Simple
+.2+| N
+.2+| N
+| `objects`
+| What xref:../object-set-specification/[objects] to analyze.
+| All objects in repository.
+| `histogramColumns`
+| Number of columns in the histograms of object sizes.
+| 80
 
-| `shadowIntegrityCheck`
-| x
-| Simple
-| N
-| N
-| x
-| x
-| x
+.5+| xref:/midpoint/reference/resources/shadow/integrity-check/[`shadowIntegrityCheck`]
+.5+| The purpose of this activity is to detect and optionally anomalies in resource object shadows
+stored in the repository.
+.5+| Simple
+.5+| N
+.5+| N
+| `shadows`
+| What xref:../object-set-specification/[shadows] to analyze.
+| All shadows.
+| `aspectsToDiagnose`
+| Aspects that should be diagnosed.
+| All.
+| `aspectsToFix`
+| Aspects that should be fixed.
+| None.
+| `duplicateShadowsResolver`
+| Class name of the duplicate shadows resolver to be used.
+| Built-in one.
+| `checkDuplicatesOnPrimaryIdentifiersOnly`
+| Whether to check uniqueness on primary identifiers (or on secondary ones as well).
+| `false` (meaning all identifiers)
 
-| `activityAutoScaling`
-| x
-| Simple
-| Y
-| Y
-| x
-| x
-| x
+.4+| xref:/midpoint/reference/tasks/auto-scaling/[`activityAutoScaling`]
+.4+| Adapts running activities to the current cluster configuration by executing "reconcile workers" operation
+when the cluster state changes (i.e. a node goes up or down).
+.4+| Simple
+.4+| Y
+.4+| Y
+| `tasks`
+| xref:../object-set-specification/[Tasks] that should be considered for auto-scaling.
+(Any task must be multi-node, running, and the auto-scaling for it must not be disabled.)
+| All eligible tasks.
+| `minReconciliationInterval`
+| Minimal interval between reconciliations, i.e. it will not reconcile workers if this time has not elapsed since the last one.
+| 0
+| `maxReconciliationInterval`
+| Maximal interval between reconciliations, i.e. it will _always_ reconcile workers after this time has elapsed since the last one.
+| infinity
+| `skipInitialReconciliation`
+| Whether to skip initial reconciliation of the workers on the activity start.
+| `false`
 
-| `noOp`
-| x
+| xref:/midpoint/reference/resources/propagation/configuration/[`propagation`]
+| Executes eligible pending operations on a resource.
 | Simple
 | Y
 | Y
-| x
-| x
-| x
+| `resourceRef`
+| Resource on which the operation propagation should be done.
+| Obligatory.
+
+| xref:/midpoint/reference/resources/propagation/configuration/[`multiPropagation`]
+| Executes eligible pending operations on set of resources.
+| Simple
+| Y
+| Yfootnote:[What can be distributed are _resource_, not individual shadows on the resource.]
+| `resources`
+| Set of resources on which the operation propagation should be done.
+| All resources.
+
+.3+| `noOp`
+.3+| "No operation" activity to be used for demonstration and testing purposes. It consists of a set of numbered steps,
+each taking a given time.
+.3+| Simple
+.3+| Y
+.3+| Y
+| `delay`
+| Duration of each step in milliseconds.
+| 0
+| `steps`
+| Number of steps.
+| 1
+| `stepInterruptibility`
+| Should a step of this activity be interruptible? Value of `none` means that
+the activity is not interruptible, except at step boundaries. If `hard` is used,
+the activity can be interrupted only in "hard" way, i.e. by sending the Java interrupt signal.
+Finally, `full` means that the activity can be interrupted any time.
+| `none`
 
 | `extension`
-| x
+| This is a place for customer-provided activities.
 | Simple
-| -
-| -
-| x
-| x
-| x
+|
+|
+|
+|
+|
 |===
+
+Customer-provided activities can have any configuration items and distribution (multi-threading,
+clustering) properties.
