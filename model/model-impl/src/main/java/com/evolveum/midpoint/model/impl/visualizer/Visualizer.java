@@ -24,6 +24,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -668,6 +670,10 @@ public class Visualizer {
     private SceneDeltaItemImpl createSceneDeltaItem(PropertyDelta<?> delta, SceneImpl owningScene, VisualizationContext context, Task task,
             OperationResult result) throws SchemaException {
         SceneDeltaItemImpl si = createSceneDeltaItemCommon(delta, owningScene);
+        if (delta.isDelete() && CollectionUtils.isEmpty(delta.getEstimatedOldValues()) &&
+                CollectionUtils.isNotEmpty(delta.getValuesToDelete())) {
+            delta.setEstimatedOldValues((Collection) delta.getValuesToDelete());
+        }
         si.setOldValues(toSceneItemValues(delta.getEstimatedOldValues()));
 
         PrismProperty property = prismContext.itemFactory().createProperty(delta.getElementName());
@@ -773,6 +779,10 @@ public class Visualizer {
             OperationResult result)
             throws SchemaException {
         SceneDeltaItemImpl di = createSceneDeltaItemCommon(delta, owningScene);
+        if (delta.isDelete() && CollectionUtils.isEmpty(delta.getEstimatedOldValues()) &&
+                CollectionUtils.isNotEmpty(delta.getValuesToDelete())) {
+            delta.setEstimatedOldValues((Collection) delta.getValuesToDelete());
+        }
         di.setOldValues(toSceneItemValuesRef(delta.getEstimatedOldValues(), context, task, result));
 
         PrismReference reference = prismContext.itemFactory().createReference(delta.getElementName());

@@ -23,6 +23,19 @@
             </icon>
         </display>
         <!-- no configuration yet -->
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>TaskType</type>
+                <panel>
+                    <identifier>activity</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel>
+                    <identifier>taskBasic</identifier>
+                    <default>true</default>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
     </archetypePolicy>
     <assignment>
         <assignmentRelation>
