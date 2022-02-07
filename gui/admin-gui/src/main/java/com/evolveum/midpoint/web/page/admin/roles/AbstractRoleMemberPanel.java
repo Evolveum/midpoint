@@ -9,7 +9,9 @@ package com.evolveum.midpoint.web.page.admin.roles;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.web.security.util.GuiAuthorizationConstants;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -48,8 +50,6 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -323,7 +323,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     private <AH extends AssignmentHolderType> Search<AH> createMemberSearch(Class<AH> type) {
         MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
         if (memberPanelStorage == null) { //normally, this should not happen
-            return SearchFactory.createMemberPanelSearch(type, getPageBase());
+            return SearchFactory.createMemberPanelSearch(new SearchConfigurationWrapper<>(type, null), getPageBase());
 //            return SearchFactory.createSearch(new ContainerTypeSearchItem<>(type), null, null,
 //                    null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
         }
@@ -332,7 +332,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             return memberPanelStorage.getSearch();
         }
 
-        return SearchFactory.createMemberPanelSearch(getDefaultObjectTypeClass(), createSearchConfig(), getPageBase());
+        return SearchFactory.createMemberPanelSearch(createSearchConfigWrapper(), getPageBase());
 //        Search<AH> search = SearchFactory.createSearch(createSearchTypeItem(getSearchBoxConfiguration()), null, null,
 //                null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
 //        search.addCompositedSpecialItem(createMemberSearchPanel(search, memberPanelStorage));
@@ -343,7 +343,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 //        return search;
     }
 
-    private SearchBoxConfigurationType createSearchConfig() {
+    private <C extends Containerable> SearchConfigurationWrapper<C> createSearchConfigWrapper() {
         SearchBoxConfigurationType searchConfig = new SearchBoxConfigurationType();
         ObjectTypeSearchItemConfigurationType objTypeConfig = new ObjectTypeSearchItemConfigurationType();
         objTypeConfig.getSupportedTypes().addAll(getDefaultSupportedObjectTypes(false));
@@ -355,12 +355,17 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         searchConfig.setRelationConfiguration(relationConfig);
 
         SearchBoxConfigurationHelper searchBoxCofig = new SearchBoxConfigurationHelper(searchConfig);
-        searchConfig.setScopeConfiguration(searchBoxCofig.getDefaultSearchScopeConfiguration());
-        searchConfig.setProjectConfiguration(searchBoxCofig.getDefaultProjectConfiguration());
         searchConfig.setIndirectConfiguration(searchBoxCofig.getDefaultIndirectConfiguration());
-        searchConfig.setTenantConfiguration(searchBoxCofig.getDefaultTenantConfiguration());
 
-        return searchConfig;
+        if (isOrg()) {
+            searchConfig.setScopeConfiguration(searchBoxCofig.getDefaultSearchScopeConfiguration());
+        }
+        if (!isNotRole()) {
+            searchConfig.setProjectConfiguration(searchBoxCofig.getDefaultProjectConfiguration());
+            searchConfig.setTenantConfiguration(searchBoxCofig.getDefaultTenantConfiguration());
+        }
+
+        return new SearchConfigurationWrapper(getDefaultObjectTypeClass(), searchConfig);
     }
 
     private <AH extends AssignmentHolderType> ContainerTypeSearchItem<AH> createSearchTypeItem(SearchBoxConfigurationHelper memberPanelStorage) {

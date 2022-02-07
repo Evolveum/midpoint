@@ -41,7 +41,7 @@ public class TenantSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     public String getName() {
         if (getSearchConfig().getConfig().getTenantConfiguration() == null
                 || getSearchConfig().getConfig().getTenantConfiguration().getDisplay() == null) {
-            return "";
+            return "abstractRoleMemberPanel.tenant";
         }
         return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getTenantConfiguration().getDisplay().getLabel());
     }

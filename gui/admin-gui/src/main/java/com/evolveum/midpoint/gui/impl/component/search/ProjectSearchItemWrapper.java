@@ -44,7 +44,7 @@ public class ProjectSearchItemWrapper extends AbstractRoleSearchItemWrapper{
     public String getName() {
         if (getSearchConfig().getConfig().getProjectConfiguration() == null
                 || getSearchConfig().getConfig().getProjectConfiguration().getDisplay() == null) {
-            return "";
+            return "abstractRoleMemberPanel.project";
         }
         return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getProjectConfiguration().getDisplay().getLabel());
     }

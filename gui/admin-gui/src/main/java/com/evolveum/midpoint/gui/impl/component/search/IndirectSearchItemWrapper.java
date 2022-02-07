@@ -26,7 +26,7 @@ public class IndirectSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     public boolean isVisible() {
         return getSearchConfig().getConfig().getRelationConfiguration() != null
                 && getSearchConfig().getConfig().getRelationConfiguration().getSupportedRelations() != null
-                && getSearchConfig().isSearchScope(SearchBoxScopeType.SUBTREE);
+                && !getSearchConfig().isSearchScope(SearchBoxScopeType.SUBTREE);
     }
 
     @Override
@@ -64,6 +64,6 @@ public class IndirectSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     @Override
     public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
-        return true;
+        return isVisible();
     }
 }

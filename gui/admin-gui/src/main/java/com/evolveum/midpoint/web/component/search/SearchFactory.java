@@ -390,6 +390,19 @@ public class SearchFactory {
         return createSearchNew(type, collectionViewName, config, searchItemWrappers, null, modelServiceLocator, Search.PanelType.DEFAULT);
     }
 
+    /**
+     * use this method to create a search
+     * @param searchConfig
+     * @param modelServiceLocator
+     * @param <C>
+     * @return
+     */
+    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearch(
+            SearchConfigurationWrapper<C> searchConfig, ModelServiceLocator modelServiceLocator) {
+        return createSearchNew(searchConfig.getTypeClass(), searchConfig.getCollectionViewName(),
+                searchConfig.getConfig(), searchConfig.getItemsList(), null, modelServiceLocator, Search.PanelType.DEFAULT);
+    }
+
     public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createMemberPanelSearch(Class<C> type, ModelServiceLocator modelServiceLocator) {
         return createMemberPanelSearch(type, null, modelServiceLocator);
     }
@@ -397,6 +410,12 @@ public class SearchFactory {
    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createMemberPanelSearch(Class<C> type,
             SearchBoxConfigurationType config, ModelServiceLocator modelServiceLocator) {
         return createSearchNew(type, null, config, null, null, modelServiceLocator, Search.PanelType.MEMBER_PANEL);
+    }
+
+   public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createMemberPanelSearch(
+           SearchConfigurationWrapper<C> searchConfig, ModelServiceLocator modelServiceLocator) {
+        return createSearchNew(searchConfig.getTypeClass(), searchConfig.getCollectionViewName(),
+                searchConfig.getConfig(), searchConfig.getItemsList(), null, modelServiceLocator, Search.PanelType.MEMBER_PANEL);
     }
 
     private static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearchNew(Class<C> type, String collectionViewName, SearchBoxConfigurationType panelConfig,
@@ -600,7 +619,7 @@ public class SearchFactory {
                     customConfig.getProjectConfiguration()));
         }
         if (customConfig.getTenantConfiguration() != null) {
-            config.setProjectConfiguration(combineCustomUserInterfaceFeatureType(config.getTenantConfiguration(),
+            config.setTenantConfiguration(combineCustomUserInterfaceFeatureType(config.getTenantConfiguration(),
                     customConfig.getTenantConfiguration()));
         }
         if (customConfig.getDefaultScope() != null) {

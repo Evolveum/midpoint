@@ -14,6 +14,7 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
     private Class<C> typeClass;
     private List<AbstractSearchItemWrapper> itemsList = new ArrayList<>();
     private SearchBoxModeType searchBoxMode;
+    private String collectionViewName;
 
     public static final String F_INDIRECT = "config.indirectConfiguration.indirect";
     public static final String F_SCOPE = "config.scopeConfiguration.defaultValue";
@@ -25,8 +26,13 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
     private ObjectReferenceType tenantRef;
 
     public SearchConfigurationWrapper(Class<C> typeClass, SearchBoxConfigurationType config) {
+        this(typeClass, config, null);
+    }
+
+    public SearchConfigurationWrapper(Class<C> typeClass, SearchBoxConfigurationType config, String collectionViewName) {
         this.config = config;
         this.typeClass = typeClass;
+        this.collectionViewName = collectionViewName;
         searchBoxMode = config.getDefaultMode();
     }
 
@@ -44,6 +50,14 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
 
     public void setSearchBoxMode(SearchBoxModeType searchBoxMode) {
         this.searchBoxMode = searchBoxMode;
+    }
+
+    public String getCollectionViewName() {
+        return collectionViewName;
+    }
+
+    public void setCollectionViewName(String collectionViewName) {
+        this.collectionViewName = collectionViewName;
     }
 
     public Class<C> getTypeClass() {

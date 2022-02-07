@@ -27,7 +27,7 @@ public class TenantSearchItemPanel extends AbstractSearchItemPanel<TenantSearchI
     @Override
     protected Component initSearchItemField() {
         ReferenceValueSearchPanel searchItemField = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
-                new PropertyModel<>(getModel(), SearchConfigurationWrapper.F_TENANT),
+                new PropertyModel<>(getModel(), ProjectSearchItemWrapper.F_SEARCH_CONFIG + "." + SearchConfigurationWrapper.F_TENANT),
                 getTenantDefinition()) {
 
             @Override
