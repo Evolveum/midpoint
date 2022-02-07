@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
@@ -23,6 +24,8 @@ import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -241,7 +244,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
             @Override
             protected Search createSearch(Class<O> type) {
                 String collectionName = isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null;
-                return SearchFactory.createSearchNew(type, collectionName, new ArrayList<>(getSpecialSearchItemWrappers()), getPageBase());
+                return SearchFactory.createSearch(createSearchConfigWrapper(type, collectionName), getPageBase());
 //                Search search = super.createSearch(type);
 //                getSpecialSearchItemWrappers()
 //                        .forEach(function -> search.addSpecialItem(function.apply(search)));
@@ -250,6 +253,13 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
         };
         listPanel.setOutputMarkupId(true);
         return listPanel;
+    }
+
+    private SearchConfigurationWrapper<O> createSearchConfigWrapper(Class<O> type, String collectionViewName) {
+        SearchBoxConfigurationType searchBoxConfig = SearchFactory.createDefaultSearchBoxConfiguration(type, null, getPageBase());
+        SearchConfigurationWrapper<O> searchConfigWrapper = new SearchConfigurationWrapper<>(type, searchBoxConfig, collectionViewName);
+        searchConfigWrapper.getItemsList().addAll(new ArrayList(getSpecialSearchItemWrappers()));
+        return searchConfigWrapper;
     }
 
     protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {

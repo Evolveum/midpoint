@@ -10,12 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.web.component.*;
 
 import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -70,11 +73,19 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     @Override
     protected Search createSearch(Class<C> type) {
-        PrismContainerDefinition<C> containerDefinition = getTypeDefinitionForSearch();
-        return SearchFactory.createSearchNew(type, null, null, initSearchableItemWrappers(containerDefinition), getPageBase());
+        return SearchFactory.createSearch(createSearchConfigWrapper(type), getPageBase());
 //        return SearchFactory.createContainerSearch(createTypeSearchItem(type, containerDefinition), getTypeDefinitionForSearch(),
 //                getDefaultSearchItem(), initSearchableItems(containerDefinition), getPageBase(), false);
     }
+
+    private SearchConfigurationWrapper<C> createSearchConfigWrapper(Class<C> type) {
+        SearchBoxConfigurationType searchBoxConfig = SearchFactory.createDefaultSearchBoxConfiguration(type, null, getPageBase());
+        SearchConfigurationWrapper<C> searchConfigWrapper = new SearchConfigurationWrapper<>(type, searchBoxConfig);
+        PrismContainerDefinition<C> containerDefinition = getTypeDefinitionForSearch();
+        searchConfigWrapper.getItemsList().addAll((List<AbstractSearchItemWrapper>)initSearchableItemWrappers(containerDefinition));
+        return searchConfigWrapper;
+    }
+
 
     protected PrismContainerDefinition<C> getTypeDefinitionForSearch() {
         return getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());

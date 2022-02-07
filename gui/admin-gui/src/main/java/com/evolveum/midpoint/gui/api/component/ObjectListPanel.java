@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 
@@ -79,7 +80,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     protected Search createSearch(Class<O> type) {
 //        ContainerTypeSearchItem<O> typeSearchItem = new ContainerTypeSearchItem<>(new SearchValue<>(type, ""));
         String collectionName = isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null;
-        return SearchFactory.createSearchNew(type, collectionName, getPageBase());
+        return SearchFactory.createSearch(type, collectionName, getPageBase());
     }
 
     protected List<ItemPath> getFixedSearchItems() {

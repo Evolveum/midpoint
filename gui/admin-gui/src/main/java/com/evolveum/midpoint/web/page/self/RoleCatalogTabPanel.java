@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 
 import org.apache.commons.lang3.StringUtils;
@@ -153,7 +154,7 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
 //        Search search = super.createSearch();
 //        search.addSpecialItem(createScopeItem(search));
 //        return search;
-        return SearchFactory.createSearchNew(getQueryClass(), null, createSearchConfig(), getPageBase());
+        return SearchFactory.createSearch(createSearchConfigWrapper(), getPageBase());
     }
 
 //    private SearchItem createScopeItem(Search search) {
@@ -189,9 +190,9 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
 //        };
 //    }
 
-    private SearchBoxConfigurationType createSearchConfig() {
+    private SearchConfigurationWrapper createSearchConfigWrapper() {
         SearchBoxConfigurationType config = new SearchBoxConfigurationType();
         config.setScopeConfiguration(SearchFactory.createScopeSearchItem());
-        return config;
+        return new SearchConfigurationWrapper(getQueryClass(), config);
     }
 }

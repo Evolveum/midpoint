@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
+
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -141,8 +143,7 @@ public class PageDebugList extends PageAdminConfiguration {
 //                    defaultType.setVisible(true);
 //                    search = SearchFactory.createSearch(defaultType, PageDebugList.this, true);
 //                    configureSearch(search);
-                    search = SearchFactory.createSearchNew(confDialogModel.getObject().getType(), null,
-                            createSearchConfig(SystemConfigurationType.COMPLEX_TYPE), PageDebugList.this);
+                    search = SearchFactory.createSearch(createSearchConfigWrapper(confDialogModel.getObject().getType(), SystemConfigurationType.COMPLEX_TYPE), PageDebugList.this);
                     storage.setSearch(search);
                 }
                 return search;
@@ -161,7 +162,7 @@ public class PageDebugList extends PageAdminConfiguration {
         initLayout();
     }
 
-    private SearchBoxConfigurationType createSearchConfig(QName defaultValue) {
+    private SearchConfigurationWrapper createSearchConfigWrapper(Class<? extends Containerable> type, QName defaultValue) {
         SearchBoxConfigurationType config = new SearchBoxConfigurationType();
         config.createAllowedModeList().add(SearchBoxModeType.BASIC);
         config.createAllowedModeList().add(SearchBoxModeType.ADVANCED);
@@ -170,7 +171,7 @@ public class PageDebugList extends PageAdminConfiguration {
                 .defaultValue(defaultValue);
         objectTypeConfig.getSupportedTypes().addAll(getAllowedTypes());
         config.setObjectTypeConfiguration(objectTypeConfig);
-        return config;
+        return new SearchConfigurationWrapper(type, config);
     }
 
 //    private List<DisplayableValue<Class<? extends ObjectType>>> getAllowedTypes() {
@@ -528,9 +529,9 @@ public class PageDebugList extends PageAdminConfiguration {
         Table table = getListTable();
         if (searchModel.getObject().isTypeChanged()) {
             ObjectTypeSearchItemWrapper objectType = searchModel.getObject().getObjectTypeSearchItemWrapper();
-            Search search = SearchFactory.createSearchNew(
-                    (Class<? extends Containerable>) WebComponentUtil.qnameToClass(PrismContext.get(), objectType.getValue().getValue()),
-                    null, createSearchConfig(objectType.getValue().getValue()), PageDebugList.this);
+            Class<? extends Containerable> type =
+                    (Class<? extends Containerable>) WebComponentUtil.qnameToClass(PrismContext.get(), objectType.getValue().getValue());
+            Search search = SearchFactory.createSearch(createSearchConfigWrapper(type, objectType.getValue().getValue()), PageDebugList.this);
 //            Search search = SearchFactory.createSearch(getTypeItem(), PageDebugList.this, true);
             searchModel.setObject(search);//TODO: this is veeery ugly, available definitions should refresh when the type changed
 //            configureSearch(search);

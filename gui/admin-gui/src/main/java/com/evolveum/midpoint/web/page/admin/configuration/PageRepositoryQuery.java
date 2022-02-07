@@ -21,6 +21,8 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -445,7 +447,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 target.add(getFeedbackPanel());
                 return;
             }
-            Search search = SearchFactory.createSearchNew(request.getType(), null, createSearchConfig(), this);
+            Search search = SearchFactory.createSearch(createSearchConfigWrapper(request.getType()), this);
             search.setAdvancedQuery(filterAsString);
 //            search.setSearchType(SearchBoxModeType.ADVANCED);
             if (!search.isAdvancedQueryValid(getPrismContext())) {
@@ -603,10 +605,10 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         return sb.toString();
     }
 
-    private SearchBoxConfigurationType createSearchConfig() {
+    private SearchConfigurationWrapper createSearchConfigWrapper(Class<? extends ObjectType> type) {
         SearchBoxConfigurationType config = new SearchBoxConfigurationType();
         config.createAllowedModeList().add(SearchBoxModeType.ADVANCED);
         config.setDefaultMode(SearchBoxModeType.ADVANCED);
-        return config;
+        return new SearchConfigurationWrapper(type, config);
     }
 }

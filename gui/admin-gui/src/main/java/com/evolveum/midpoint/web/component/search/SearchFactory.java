@@ -368,10 +368,10 @@ public class SearchFactory {
     }
 
     public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearchNew(Class<C> type, ModelServiceLocator modelServiceLocator) {
-        return createSearchNew(type, null, modelServiceLocator);
+        return createSearch(type, null, modelServiceLocator);
     }
 
-    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearchNew(Class<C> type, String collectionViewName,  ModelServiceLocator modelServiceLocator) {
+    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearch(Class<C> type, String collectionViewName,  ModelServiceLocator modelServiceLocator) {
         return createSearchNew(type, collectionViewName, null, null, modelServiceLocator);
     }
 
@@ -738,7 +738,7 @@ public class SearchFactory {
         return item;
     }
 
-    private static <C extends Containerable> SearchBoxConfigurationType createDefaultSearchBoxConfiguration(Class<C> type,
+    public static <C extends Containerable> SearchBoxConfigurationType createDefaultSearchBoxConfiguration(Class<C> type,
             ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
         SearchBoxConfigurationType config = new SearchBoxConfigurationType();
         PrismContainerDefinition<C> def = null;

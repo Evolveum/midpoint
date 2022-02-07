@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -61,7 +62,14 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 //        List<SearchItemDefinition> availableDefs = new ArrayList<>();
 //        availableDefs.addAll(createAttributeDefinitionList());
 //        return new Search(new ContainerTypeSearchItem(ShadowType.class), availableDefs);
-        return SearchFactory.createSearchNew(ShadowType.class, null, createAttributeSearchItemWrappers(), getPageBase());
+        return SearchFactory.createSearch(createSearchConfigWrapper(), getPageBase());
+    }
+
+    private SearchConfigurationWrapper createSearchConfigWrapper() {
+        SearchBoxConfigurationType config = SearchFactory.createDefaultSearchBoxConfiguration(ShadowType.class, null, getPageBase());
+        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(ShadowType.class, config);
+        searchConfigWrapper.getItemsList().addAll(createAttributeSearchItemWrappers());
+        return searchConfigWrapper;
     }
 
     //    private <T extends ObjectType> List<SearchItemDefinition> createAttributeDefinitionList() {
