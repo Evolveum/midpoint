@@ -59,7 +59,17 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
         // So without this the TomcatRootValve will not work.
 
         RootRootContext rootRootContext = new RootRootContext();
-        tomcat.getHost().addChild(rootRootContext);
+        try {
+            tomcat.getHost().addChild(rootRootContext);
+        } catch (Exception e) {
+            String error = e.getMessage();
+            if (error != null && error.contains("Child name [] is not unique")) {
+                // Safely ignored, this covers Boot config: server.servlet.context-path=/
+                logger.debug("Ignoring duplicate root, probably root context is explicitly configured");
+            } else {
+                throw e;
+            }
+        }
 
         return super.getTomcatWebServer(tomcat);
     }
