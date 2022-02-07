@@ -320,8 +320,8 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         GuiObjectListViewType viewType = new GuiObjectListViewType();
         viewType.setIdentifier(getViewIdentifier());
         viewType.setType(getContainerType());
-        viewType.setAdditionalPanels(getAdditionalPanels());
-        viewType.setDisplay(getDisplay());
+        viewType.setAdditionalPanels(getAdditionalPanels() != null ? getAdditionalPanels().clone() : null);
+        viewType.setDisplay(getDisplay() != null ? getDisplay().clone() : null);
         for (GuiObjectColumnType column : getColumns()) {
             viewType.column(column.clone());
         }
@@ -331,10 +331,10 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         viewType.setDistinct(getDistinct());
         viewType.setDisableSorting(isDisableSorting());
         viewType.setDisableCounting(isDisableCounting());
-        viewType.setSearchBoxConfiguration(getSearchBoxConfiguration());
+        viewType.setSearchBoxConfiguration(getSearchBoxConfiguration() != null ? getSearchBoxConfiguration().clone() : null);
         viewType.setDisplayOrder(getDisplayOrder());
         viewType.setRefreshInterval(getRefreshInterval());
-        viewType.setPaging(getPaging());
+        viewType.setPaging(getPaging()!= null ? getPaging().clone() : null);
         viewType.setVisibility(getVisibility());
         viewType.setApplicableForOperation(getApplicableForOperation());
         viewType.setIncludeDefaultColumns(getIncludeDefaultColumns());

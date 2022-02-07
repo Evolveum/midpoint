@@ -103,7 +103,7 @@ public class CollectionExportController<C extends Containerable> implements Expo
     /**
      * Values of report parameters.
      */
-    private VariablesMap parameters;
+    protected VariablesMap parameters;
 
     // Useful Spring beans
     protected final ReportServiceImpl reportService;
@@ -164,7 +164,7 @@ public class CollectionExportController<C extends Containerable> implements Expo
         dataSource.initialize(searchSpec.type, searchSpec.query, searchSpec.options);
     }
 
-    private void initializeParameters(List<SearchFilterParameterType> parametersDefinitions) {
+    protected void initializeParameters(List<SearchFilterParameterType> parametersDefinitions) {
         VariablesMap parameters = new VariablesMap();
         if (reportParameters != null) {
             PrismContainerValue<ReportParameterType> reportParamsValue = reportParameters.asPrismContainerValue();

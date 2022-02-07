@@ -71,6 +71,7 @@ public class DashboardExportController<C extends Containerable> extends Collecti
 
         columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
 
+        this.parameters = new VariablesMap();
         initializeDataSource(task, result);
     }
 

@@ -34,26 +34,26 @@ public interface RemoteAuthenticationFilter extends Filter {
             throws IOException, ServletException;
 
     String getErrorMessageKeyNotResponse();
-    
+
     void doAuth(ServletRequest req, ServletResponse res, FilterChain chain) throws ServletException, IOException;
 
     default void doRemoteFilter(ServletRequest req, ServletResponse res, FilterChain chain)
             throws IOException, ServletException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean sendedRequest = false;
+        boolean sentRequest = false;
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             RemoteModuleAuthenticationImpl moduleAuthentication = (RemoteModuleAuthenticationImpl) mpAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication != null && RequestState.SENDED.equals(moduleAuthentication.getRequestState())) {
-                sendedRequest = true;
+                sentRequest = true;
             }
             boolean requiresAuthentication = requiresAuth((HttpServletRequest) req, (HttpServletResponse) res);
 
-            if (!requiresAuthentication && sendedRequest) {
+            if (!requiresAuthentication && sentRequest) {
                 AuthenticationServiceException exception = new AuthenticationServiceException(getErrorMessageKeyNotResponse());
                 unsuccessfulAuth((HttpServletRequest) req, (HttpServletResponse) res, exception);
             } else {
-                if (moduleAuthentication != null && requiresAuthentication && sendedRequest) {
+                if (moduleAuthentication != null && requiresAuthentication && sentRequest) {
                     moduleAuthentication.setRequestState(RequestState.RECEIVED);
                 }
                 doAuth(req, res, chain);
