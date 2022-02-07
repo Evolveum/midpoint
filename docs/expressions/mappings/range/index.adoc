@@ -1,4 +1,6 @@
 = Mapping Range
+:page-upkeep-status: green
+
 
 The _range_ of a mapping (in a mathematical sense) is a set of values that are considered to be valid outputs of the mapping.
 Definition of mapping range is not important for evaluation of mapping expression.

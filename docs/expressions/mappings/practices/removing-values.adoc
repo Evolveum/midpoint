@@ -11,11 +11,11 @@ For that we need to compute a state of attribute values as it _should be_. This 
 But there are also similar cases that apply even in a case of relativistic processing, e.g. if a mapping won't produce a value that it has produced before.
 
 There cases are all about removing existing values.
-Currently midPoint does not record xref:/midpoint/features/planned/data-provenance/[data provenance], therefore we do not know whether a specific value was produced by the mapping or entered by the user.
-Therefore we do not have a simple and reliable way how to decide whether to remove a particular value or not.
+Currently, midPoint does not record xref:/midpoint/features/planned/data-provenance/[data provenance], therefore we do not know whether a specific value was produced by the mapping or entered by the user.
+Therefore, we do not have a simple and reliable way how to decide whether to remove a particular value or not.
 But even if we had support for data provenance there would always be corner cases such as migrations, connecting of a new resources, data errors and so on.
-Therefore a mechanism is needed for a mapping to decide when to remove a particular value and when to keep it.
-And indeed, there is such a mechanism: mapping _range_.
+Therefore, a mechanism is needed for a mapping to decide when to remove a particular value and when to keep it.
+Indeed, there is such a mechanism: mapping _range_.
 
 As described above, mapping _range_ is used to define a set of value that the mapping is supposed to produce.
 This can be used to define whether mapping should remove particular existing value or whether the value should be kept unchanged.
