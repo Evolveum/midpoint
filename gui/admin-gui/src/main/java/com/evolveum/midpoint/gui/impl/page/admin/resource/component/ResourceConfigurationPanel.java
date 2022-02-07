@@ -53,7 +53,7 @@ public class ResourceConfigurationPanel extends AbstractObjectMainPanel<Resource
 
         List<ITab> tabs = createConfigurationTabs();
 
-        Label label = new Label(ID_NO_CONNECTOR, createStringResource("ReosurceConfigurationPanel.no.connector.selected"));
+        Label label = new Label(ID_NO_CONNECTOR, createStringResource("ResourceConfigurationPanel.no.connector.selected"));
         label.setOutputMarkupId(true);
         label.add(new VisibleBehaviour(() -> tabs.isEmpty()));
         add(label);
@@ -75,7 +75,7 @@ public class ResourceConfigurationPanel extends AbstractObjectMainPanel<Resource
         try {
             configurationValue = configuration.getValue();
         } catch (SchemaException e) {
-            LOGGER.error("Cannot get value for conenctor configuration, {}", e.getMessage(), e);
+            LOGGER.error("Cannot get value for connector configuration, {}", e.getMessage(), e);
             getSession().error("A problem occurred while getting value for connector configuration, " + e.getMessage());
             return null;
         }
