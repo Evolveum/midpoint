@@ -2436,8 +2436,11 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         String objectName = "messageTemplate" + getTestNumber();
         var messageTemplate = new MessageTemplateType(prismContext)
                 .name(objectName)
-                .defaultContent(new MessageTemplateContentType(prismContext))
-                ;
+                .defaultContent(new MessageTemplateContentType(prismContext)
+                        .subjectPrefix("subject-prefix"))
+                .localizedContent(new LocalizedMessageTemplateContentType(prismContext)
+                        .language("sk_SK")
+                        .subjectPrefix("Oné"));
 
         when("adding it to the repository");
         repositoryService.addObject(messageTemplate.asPrismObject(), null, result);

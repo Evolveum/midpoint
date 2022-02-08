@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.common.tasks;
+package com.evolveum.midpoint.repo.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -89,19 +89,19 @@ public class AbstractRepoCommonTest extends AbstractIntegrationTest {
     }
 
     // TODO deduplicate with model integration test
-    ActivityPerformanceInformationAsserter<Void> assertPerformance(String rootOid, String message)
+    protected ActivityPerformanceInformationAsserter<Void> assertPerformance(String rootOid, String message)
             throws SchemaException, ObjectNotFoundException {
         return assertPerformance(
                 activityManager.getPerformanceInformation(rootOid, getTestOperationResult()),
                 message);
     }
 
-    void setDiscriminator(ObjectType object, int value) throws SchemaException {
+    protected void setDiscriminator(ObjectType object, int value) throws SchemaException {
         ObjectTypeUtil.setExtensionPropertyRealValues(
                 prismContext, object.asPrismContainerValue(), EXT_DISCRIMINATOR, value);
     }
 
-    void assertExecutions(List<? extends ObjectType> objects, int taskRuns) {
+    protected void assertExecutions(List<? extends ObjectType> objects, int taskRuns) {
         List<String> roleNames = objects.stream()
                 .map(r -> r.getName().getOrig())
                 .collect(Collectors.toList());
