@@ -384,8 +384,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
             @Override
             public Search<AbstractRoleType> getObject() {
-//                return getRoleCatalogStorage().getSearch();
-                return null;
+                return getRoleCatalogStorage().getSearch();
             }
         };
         ObjectDataProvider provider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(AbstractShoppingCartTabPanel.this,
