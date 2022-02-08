@@ -749,6 +749,12 @@ CREATE TABLE m_value_policy (
   oid       VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
+CREATE TABLE m_message_template (
+  name_norm VARCHAR2(255 CHAR),
+  name_orig VARCHAR2(255 CHAR),
+  oid       VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (oid)
+) INITRANS 30;
 CREATE INDEX iCertCampaignNameOrig
   ON m_acc_cert_campaign (name_orig) INITRANS 30;
 ALTER TABLE m_acc_cert_campaign
@@ -1019,6 +1025,10 @@ CREATE INDEX iValuePolicyNameOrig
   ON m_value_policy (name_orig) INITRANS 30;
 ALTER TABLE m_value_policy
   ADD CONSTRAINT uc_value_policy_name UNIQUE (name_norm);
+CREATE INDEX iMessageTemplateNameOrig
+  ON m_message_template (name_orig) INITRANS 30;
+ALTER TABLE m_message_template
+  ADD CONSTRAINT uc_message_template_name UNIQUE (name_norm);
 ALTER TABLE m_acc_cert_campaign
   ADD CONSTRAINT fk_acc_cert_campaign FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_acc_cert_case
@@ -1191,6 +1201,8 @@ ALTER TABLE m_user
   ADD CONSTRAINT fk_user FOREIGN KEY (oid) REFERENCES m_focus;
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
+ALTER TABLE m_message_template
+  ADD CONSTRAINT fk_message_template FOREIGN KEY (oid) REFERENCES m_object;
 
 -- Indices for foreign keys; maintained manually
 CREATE INDEX iUserEmployeeTypeOid ON M_USER_EMPLOYEE_TYPE(USER_OID) INITRANS 30;

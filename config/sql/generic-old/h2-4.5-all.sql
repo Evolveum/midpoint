@@ -756,6 +756,12 @@ CREATE TABLE m_value_policy (
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
+CREATE TABLE m_message_template (
+    name_norm VARCHAR(255),
+    name_orig VARCHAR(255),
+    oid       VARCHAR(36) NOT NULL,
+    PRIMARY KEY (oid)
+);
 CREATE INDEX iCertCampaignNameOrig
   ON m_acc_cert_campaign (name_orig);
 ALTER TABLE m_acc_cert_campaign
@@ -1022,6 +1028,10 @@ CREATE INDEX iValuePolicyNameOrig
   ON m_value_policy (name_orig);
 ALTER TABLE m_value_policy
   ADD CONSTRAINT uc_value_policy_name UNIQUE (name_norm);
+CREATE INDEX iMessageTemplateNameOrig
+  ON m_message_template (name_orig);
+ALTER TABLE m_message_template
+  ADD CONSTRAINT uc_message_template_name UNIQUE (name_norm);
 ALTER TABLE m_acc_cert_campaign
   ADD CONSTRAINT fk_acc_cert_campaign FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_acc_cert_case
@@ -1194,6 +1204,8 @@ ALTER TABLE m_user
   ADD CONSTRAINT fk_user FOREIGN KEY (oid) REFERENCES m_focus;
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
+ALTER TABLE m_message_template
+  ADD CONSTRAINT fk_message_template FOREIGN KEY (oid) REFERENCES m_object;
 
 INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.5');
 
