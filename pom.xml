@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -250,7 +250,6 @@
         <commons.csv.version>1.8</commons.csv.version>
         <j2html.version>1.4.0</j2html.version>
         <bouncycastle.version>1.69</bouncycastle.version>
-        <protobuf.version>3.17.3</protobuf.version>
         <javax.persistence.version>2.2</javax.persistence.version>
 
         <asciidoclet.version>1.5.6</asciidoclet.version>
@@ -1282,12 +1281,6 @@
                         <artifactId>slf4j-log4j12</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <!-- used by both wro4j-extensions/com.github.sommeri:less4j and mysql driver -->
-            <dependency>
-                <groupId>com.google.protobuf</groupId>
-                <artifactId>protobuf-java</artifactId>
-                <version>${protobuf.version}</version>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>

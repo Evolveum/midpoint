@@ -555,16 +555,12 @@ public class OrgClosureManager {
         try {
             int count;
 
-            if (isMySqlCompatible() || isOracle() || isSQLServer()) {
+            if (isOracle() || isSQLServer()) {
 
                 long startUpsert = System.currentTimeMillis();
                 String upsertQueryText;
 
-                if (isMySqlCompatible()) {
-                    upsertQueryText = "insert into " + CLOSURE_TABLE_NAME + " (descendant_oid, ancestor_oid, val) " +
-                            "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta " +
-                            "on duplicate key update " + CLOSURE_TABLE_NAME + ".val = " + CLOSURE_TABLE_NAME + ".val + values(val)";
-                } else if (isSQLServer()) {
+                if (isSQLServer()) {
                     // TODO try if this one (without prefixes in INSERT clause does not work for Oracle)
                     upsertQueryText = "merge into " + CLOSURE_TABLE_NAME + " closure " +
                             "using (select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ") delta " +
@@ -580,7 +576,7 @@ public class OrgClosureManager {
                             "when not matched then insert (closure.descendant_oid, closure.ancestor_oid, closure.val) " +
                             "values (delta.descendant_oid, delta.ancestor_oid, delta.val)";
                 }
-                NativeQuery upsertQuery = session.createNativeQuery(upsertQueryText);
+                NativeQuery<?> upsertQuery = session.createNativeQuery(upsertQueryText);
                 int countUpsert = upsertQuery.executeUpdate();
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Added/updated {} records to closure table ({} ms)", countUpsert, System.currentTimeMillis() - startUpsert);
@@ -711,12 +707,9 @@ public class OrgClosureManager {
     private void dropDeltaTableIfNecessary(Session session, String deltaTempTableName) {
         // postgresql deletes the table automatically on commit
         // in H2 we delete the table after whole closure operation (after commit)
-        if (isMySqlCompatible()) {
-            NativeQuery dropQuery = session.createNativeQuery("drop temporary table " + deltaTempTableName);
-            dropQuery.executeUpdate();
-        } else if (isSQLServer()) {
+        if (isSQLServer()) {
             // TODO drop temporary if using SQL Server
-            NativeQuery dropQuery = session.createNativeQuery(
+            NativeQuery<?> dropQuery = session.createNativeQuery(
                     "if (exists (" +
                             "select * " +
                             "from sys.tables " +
@@ -829,31 +822,16 @@ public class OrgClosureManager {
                         "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
                         "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
             } else if (isSQLServer()) {
-                // delete is the same as for MySQL
                 deleteFromClosureQueryText = "delete " + CLOSURE_TABLE_NAME + " from " + CLOSURE_TABLE_NAME + " " +
                         "inner join " + deltaTempTableName + " td on " +
                         "td.descendant_oid = " + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid = " + CLOSURE_TABLE_NAME + ".ancestor_oid and " +
                         "td.val = " + CLOSURE_TABLE_NAME + ".val";
-                // update is also done via inner join (as in MySQL), but using slightly different syntax
                 updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
                         "set " + CLOSURE_TABLE_NAME + ".val = " + CLOSURE_TABLE_NAME + ".val - td.val " +
                         "from " + CLOSURE_TABLE_NAME + " " +
                         "inner join " + deltaTempTableName + " td " +
                         "on td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and " +
                         "td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid";
-            } else if (isMySqlCompatible()) {
-                // http://stackoverflow.com/questions/652770/delete-with-join-in-mysql
-                // TODO consider this for other databases as well
-                deleteFromClosureQueryText = "delete " + CLOSURE_TABLE_NAME + " from " + CLOSURE_TABLE_NAME + " " +
-                        "inner join " + deltaTempTableName + " td on " +
-                        "td.descendant_oid = " + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid = " + CLOSURE_TABLE_NAME + ".ancestor_oid and " +
-                        "td.val = " + CLOSURE_TABLE_NAME + ".val";
-                // it is not possible to use temporary table twice in a query
-                // TODO consider using this in postgresql as well...
-                updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME +
-                        " join " + deltaTempTableName + " td " +
-                        "on td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid " +
-                        "set " + CLOSURE_TABLE_NAME + ".val = " + CLOSURE_TABLE_NAME + ".val - td.val";
             } else {
                 throw new UnsupportedOperationException("Org. closure manager - unsupported database operation");
             }
@@ -987,8 +965,6 @@ public class OrgClosureManager {
                 int c = q.executeUpdate();
                 LOGGER.trace("Deleted {} rows from temporary table {}", c, deltaTempTableName);
                 createTablePrefix = "insert into " + deltaTempTableName + " ";
-            } else if (isMySqlCompatible()) {
-                createTablePrefix = "create temporary table " + deltaTempTableName + " engine=memory as ";            // engine=memory is questionable because of missing tansactionality (but the transactionality is needed in the main table, not the delta table...)
             } else if (isOracle()) {
                 // todo skip if this is first in this transaction
                 NativeQuery q = session.createNativeQuery("delete from " + deltaTempTableName);
@@ -1016,8 +992,6 @@ public class OrgClosureManager {
                 LOGGER.trace("Index created in {} ms", System.currentTimeMillis() - start);
             }
         }
-
-        // TODO index for MySQL !!!
 
         if (DUMP_TABLES) {
             dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
@@ -1238,10 +1212,6 @@ public class OrgClosureManager {
         } else {
             return new ArrayList<>();
         }
-    }
-
-    private boolean isMySqlCompatible() {
-        return baseHelper.getConfiguration().isUsingMySqlCompatible();
     }
 
     private boolean isOracle() {

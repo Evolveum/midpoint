@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -76,9 +76,6 @@ public abstract class TemporaryTableDialect {
                 return new H2TempTableDialect();
             case POSTGRESQL:
                 return new PostgreSQLTempTableDialect();
-            case MYSQL:
-            case MARIADB:
-                return new MysqlTempTableDialect();
             case ORACLE:
                 return new OracleTempTableDialect();
             case SQLSERVER:
@@ -108,20 +105,6 @@ public abstract class TemporaryTableDialect {
         public boolean dropTemporaryTableAfterUse() {
             return false;
         }
-    }
-
-    private static class MysqlTempTableDialect extends TemporaryTableDialect {
-
-        @Override
-        public String getCreateTemporaryTableString() {
-            return "create temporary table if not exists";
-        }
-
-        @Override
-        public String getDropTemporaryTableString() {
-            return "drop temporary table";
-        }
-
     }
 
     private static class PostgreSQLTempTableDialect extends TemporaryTableDialect {

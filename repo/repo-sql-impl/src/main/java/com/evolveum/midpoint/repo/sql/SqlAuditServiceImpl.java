@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -869,21 +869,12 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private String createDeleteQuery(
             String objectTable, String tempTable, ColumnMetadata idColumn) {
-        if (sqlConfiguration().isUsingMySqlCompatible()) {
-            return createDeleteQueryAsJoin(objectTable, tempTable, idColumn);
-        } else if (sqlConfiguration().isUsingPostgreSQL()) {
+        if (sqlConfiguration().isUsingPostgreSQL()) {
             return createDeleteQueryAsJoinPostgreSQL(objectTable, tempTable, idColumn);
         } else {
             // todo consider using join for other databases as well
             return createDeleteQueryAsSubquery(objectTable, tempTable, idColumn);
         }
-    }
-
-    private String createDeleteQueryAsJoin(
-            String objectTable, String tempTable, ColumnMetadata idColumn) {
-        return "DELETE FROM main, temp USING " + objectTable + " AS main"
-                + " INNER JOIN " + tempTable + " as temp"
-                + " WHERE main." + idColumn.getName() + " = temp.id";
     }
 
     private String createDeleteQueryAsJoinPostgreSQL(

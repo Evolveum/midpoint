@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,7 +15,6 @@ import org.hibernate.dialect.H2Dialect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.sql.util.MidPointMySQLDialect;
 import com.evolveum.midpoint.repo.sql.util.MidPointOracleDialect;
 import com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect;
 import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
@@ -26,10 +25,6 @@ public enum Database {
     // Order of dialects is important, the first value is the default.
     H2("org.h2.Driver",
             H2Dialect.class.getName()),
-    MYSQL("com.mysql.cj.jdbc.Driver",
-            MidPointMySQLDialect.class.getName(),
-            org.hibernate.dialect.MySQLDialect.class.getName(),
-            org.hibernate.dialect.MySQLInnoDBDialect.class.getName()),
     POSTGRESQL("org.postgresql.Driver",
             MidPointPostgreSQLDialect.class.getName(),
             org.hibernate.dialect.PostgreSQLDialect.class.getName(),
@@ -43,9 +38,7 @@ public enum Database {
             org.hibernate.dialect.Oracle9Dialect.class.getName(),
             org.hibernate.dialect.Oracle8iDialect.class.getName(),
             org.hibernate.dialect.Oracle9iDialect.class.getName(),
-            org.hibernate.dialect.Oracle10gDialect.class.getName()),
-    MARIADB("org.mariadb.jdbc.Driver",
-            MidPointMySQLDialect.class.getName());
+            org.hibernate.dialect.Oracle10gDialect.class.getName());
 
     @NotNull List<String> drivers;
     @NotNull List<String> dialects;
