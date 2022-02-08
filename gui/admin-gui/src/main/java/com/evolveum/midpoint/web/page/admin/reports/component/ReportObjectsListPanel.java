@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.Containerable;
@@ -35,6 +36,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -51,6 +54,7 @@ import java.util.*;
 
 public class ReportObjectsListPanel<C extends Containerable> extends ContainerableListPanel<C, SelectableBean<C>> {
 
+    private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(ReportObjectsListPanel.class);
 
     private final IModel<ReportType> report;
@@ -133,7 +137,8 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     @Override
     protected ISelectableDataProvider<C, SelectableBean<C>> createProvider() {
-        SelectableBeanContainerDataProvider<C> provider = new SelectableBeanContainerDataProvider<>(this, getSearchModel(), null, false) {
+        SelectableBeanContainerDataProvider<C> provider = new SelectableBeanContainerDataProvider<C>(this, getSearchModel(), null, false) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public List<SelectableBean<C>> createDataObjectWrappers(Class<? extends C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
@@ -247,14 +252,14 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     @Override
     protected SearchFormPanel initSearch(String headerId) {
-//        return new SearchFormPanel<>(headerId, getSearchModel()) {
-//            @Override
-//            protected void searchPerformed(AjaxRequestTarget target) {
-//                refreshTable(target);
-//            }
-//        };
+        return new SearchFormPanel(headerId, getSearchModel()) {
+            private static final long serialVersionUID = 1L;
 
-        return null;
+            @Override
+            protected void searchPerformed(AjaxRequestTarget target) {
+                refreshTable(target);
+            }
+        };
     }
 
     @Override
@@ -262,7 +267,41 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 //        return SearchFactory.createSearchForReport(type,
 //                getReport().getObjectCollection() == null ? Collections.emptyList() : getReport().getObjectCollection().getParameter(),
 //                getPageBase());
-        return null;
+        return SearchFactory.createSearch(createSearchConfigurationWrapper(type), getPageBase());
+    }
+
+    private SearchConfigurationWrapper<C> createSearchConfigurationWrapper(Class<C> type) {
+        SearchBoxConfigurationType searchBoxConfiguration = new SearchBoxConfigurationType();
+        searchBoxConfiguration.setDefaultMode(SearchBoxModeType.BASIC);
+        searchBoxConfiguration.getAllowedMode().add(SearchBoxModeType.BASIC);
+        searchBoxConfiguration.setAllowToConfigureSearchItems(false);
+
+        List<SearchFilterParameterType> parameters = getReport().getObjectCollection() == null ?
+                Collections.emptyList() : getReport().getObjectCollection().getParameter();
+        List<SearchItemType> searchItems = new ArrayList<>();
+        parameters.forEach(parameter -> {
+            SearchItemType searchItemType = new SearchItemType();
+            searchItemType.setParameter(parameter);
+            searchItemType.setVisibleByDefault(true);
+            if (parameter.getDisplay() != null) {
+                if (parameter.getDisplay().getLabel() != null) {
+                    searchItemType.setDisplayName(parameter.getDisplay().getLabel());
+                } else {
+                    searchItemType.setDisplayName(new PolyStringType(parameter.getName()));
+                }
+                if (parameter.getDisplay().getHelp() != null) {
+                    searchItemType.setDescription(
+                            getPageBase().getLocalizationService().translate(parameter.getDisplay().getHelp().toPolyString()));
+                }
+            }
+            searchItems.add(searchItemType);
+        });
+
+        SearchItemsType searchItemsType = new SearchItemsType();
+        searchItemsType.createSearchItemList().addAll(searchItems);
+        searchBoxConfiguration.setSearchItems(searchItemsType);
+
+        return new SearchConfigurationWrapper<>(type, searchBoxConfiguration);
     }
 
     @Override
