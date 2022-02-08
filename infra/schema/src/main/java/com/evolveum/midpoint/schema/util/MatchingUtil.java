@@ -121,7 +121,7 @@ public class MatchingUtil {
         String localName = attribute.getElementName().getLocalPart();
         ItemName directPath = new ItemName("", localName);
         PrismPropertyDefinition<?> directDef = def.findPropertyDefinition(directPath);
-        if (directDef != null) {
+        if (directDef != null && isCompatible(attribute, directDef)) {
             if (preFocusObject.findItem(directPath) == null) {
                 preFocusObject.add(
                         createPropertyClone(attribute, directDef));
@@ -131,7 +131,7 @@ public class MatchingUtil {
 
         ItemPath extensionPath = ItemPath.create(ObjectType.F_EXTENSION, directPath);
         PrismPropertyDefinition<Object> extensionDef = def.findPropertyDefinition(extensionPath);
-        if (extensionDef != null) {
+        if (extensionDef != null && isCompatible(attribute, extensionDef)) {
             if (preFocusObject.findItem(extensionPath) == null) {
                 preFocusObject.getOrCreateExtension().getValue()
                         .add(createPropertyClone(attribute, extensionDef));
@@ -140,6 +140,20 @@ public class MatchingUtil {
         }
 
         LOGGER.trace("{} has no definition in focus", localName);
+    }
+
+    /** Can we copy the attribute to the target (knowing its definition)? */
+    private static boolean isCompatible(PrismProperty<?> attribute, PrismPropertyDefinition<?> targetDef) {
+        Class<?> targetType = targetDef.getTypeClassIfKnown();
+        if (targetType == null) {
+            return true; // most probably ok
+        }
+        for (Object realValue : attribute.getRealValues()) {
+            if (!targetType.isAssignableFrom(realValue.getClass())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @SuppressWarnings("unchecked")
