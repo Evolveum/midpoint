@@ -27,7 +27,15 @@ public class ObjectTypeSearchItemPanel<T> extends AbstractSearchItemPanel<Object
     protected Component initSearchItemField() {
         DropDownChoicePanel choices = new DropDownChoicePanel(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), ObjectTypeSearchItemWrapper.F_VALUE),
                 Model.ofList(getModelObject().getAvailableValues()),
-                new QNameObjectTypeChoiceRenderer());
+                new QNameObjectTypeChoiceRenderer(), getModelObject().isAllowAllTypesSearch()) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getNullValidDisplayValue() {
+                return getString("ObjectTypes.all");
+            }
+        };
 //        choices.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
         choices.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 

@@ -82,7 +82,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         SearchBoxConfigurationType searchBoxConfig = SearchFactory.createDefaultSearchBoxConfiguration(type, null, getPageBase());
         SearchConfigurationWrapper<C> searchConfigWrapper = new SearchConfigurationWrapper<>(type, searchBoxConfig);
         PrismContainerDefinition<C> containerDefinition = getTypeDefinitionForSearch();
-        searchConfigWrapper.getItemsList().addAll((List<AbstractSearchItemWrapper>)initSearchableItemWrappers(containerDefinition));
+        List<AbstractSearchItemWrapper> items = (List<AbstractSearchItemWrapper>)initSearchableItemWrappers(containerDefinition);
+        if (items != null) {
+            searchConfigWrapper.getItemsList().addAll(items);
+        }
         return searchConfigWrapper;
     }
 

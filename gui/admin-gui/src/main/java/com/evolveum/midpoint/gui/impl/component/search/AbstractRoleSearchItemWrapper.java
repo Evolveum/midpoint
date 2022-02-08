@@ -46,8 +46,8 @@ public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWr
         }
 
         Class type = getSearchConfig().getTypeClass();
-        SearchBoxScopeType scope = getSearchConfig().getConfig().getScopeConfiguration().getDefaultValue();
-        if (SearchBoxScopeType.SUBTREE == scope) {
+        ScopeSearchItemWrapper scope = getScopeSearchItemWrapper();
+        if (scope != null && SearchBoxScopeType.SUBTREE.equals(scope.getValue().getValue())) {
             ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, (QName) null);
             return pageBase.getPrismContext().queryFor(type).isChildOf(ref.asReferenceValue()).buildFilter();
         }
@@ -105,6 +105,56 @@ public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWr
 
     public SearchConfigurationWrapper getSearchConfig() {
         return searchConfig;
+    }
+
+    private ScopeSearchItemWrapper getScopeSearchItemWrapper() {
+        List<AbstractSearchItemWrapper> items = searchConfig.getItemsList();
+        for (AbstractSearchItemWrapper item : items) {
+            if (item instanceof ScopeSearchItemWrapper) {
+                return (ScopeSearchItemWrapper) item;
+            }
+        }
+        return null;
+    }
+
+    private RelationSearchItemWrapper getRelationSearchItemWrapper() {
+        List<AbstractSearchItemWrapper> items = searchConfig.getItemsList();
+        for (AbstractSearchItemWrapper item : items) {
+            if (item instanceof RelationSearchItemWrapper) {
+                return (RelationSearchItemWrapper) item;
+            }
+        }
+        return null;
+    }
+
+    private IndirectSearchItemWrapper getIndirectSearchItemWrapper() {
+        List<AbstractSearchItemWrapper> items = searchConfig.getItemsList();
+        for (AbstractSearchItemWrapper item : items) {
+            if (item instanceof IndirectSearchItemWrapper) {
+                return (IndirectSearchItemWrapper) item;
+            }
+        }
+        return null;
+    }
+
+    private ProjectSearchItemWrapper getProjectSearchItemWrapper() {
+        List<AbstractSearchItemWrapper> items = searchConfig.getItemsList();
+        for (AbstractSearchItemWrapper item : items) {
+            if (item instanceof ProjectSearchItemWrapper) {
+                return (ProjectSearchItemWrapper) item;
+            }
+        }
+        return null;
+    }
+
+    private TenantSearchItemWrapper getTenantSearchItemWrapper() {
+        List<AbstractSearchItemWrapper> items = searchConfig.getItemsList();
+        for (AbstractSearchItemWrapper item : items) {
+            if (item instanceof TenantSearchItemWrapper) {
+                return (TenantSearchItemWrapper) item;
+            }
+        }
+        return null;
     }
 
 //    public void setSearchConfig(SearchConfigurationWrapper searchConfig) {

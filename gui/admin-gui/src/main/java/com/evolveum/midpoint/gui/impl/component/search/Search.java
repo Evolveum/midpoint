@@ -141,7 +141,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public Class<C> getTypeClass() {
         ObjectTypeSearchItemWrapper objectTypeWrapper = findObjectTypeSearchItemWrapper();
-        if (objectTypeWrapper != null) {
+        if (objectTypeWrapper != null && objectTypeWrapper.getValue().getValue() != null) {
             return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), objectTypeWrapper.getValue().getValue());
         }
         return SearchBoxModeType.OID.equals(getSearchMode()) ? (Class<C> )  ObjectType.class
@@ -182,7 +182,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         if (SearchBoxModeType.OID.equals(getSearchMode())) {
             query = createObjectQueryOid(pageBase);
         } else {
-            query = createQueryFromDefaultItems(pageBase, variables);
+            query = createObjectTypeItemQuery(pageBase);
             ObjectQuery searchTypeQuery = null;
             if (SearchBoxModeType.ADVANCED.equals(searchMode) || SearchBoxModeType.AXIOM_QUERY.equals(searchMode)) {
                 searchTypeQuery = createObjectQueryAdvanced(pageBase);
@@ -266,7 +266,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return null;
     }
 
-    private ObjectQuery createQueryFromDefaultItems(PageBase pageBase, VariablesMap variables) {
+    private ObjectQuery createObjectTypeItemQuery(PageBase pageBase) {
 //        List<SearchItem> specialItems = getSpecialItems();
 //        if (specialItems.isEmpty()) {
 //            if (compositedSpecialItems == null) {
@@ -274,7 +274,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 //            }
 //        }
 
-        List<ObjectFilter> conditions = new ArrayList<>();
+//        List<ObjectFilter> conditions = new ArrayList<>();
 //        if (compositedSpecialItems instanceof AbstractRoleCompositedSearchItem) {
 //            ObjectFilter filter = ((AbstractRoleCompositedSearchItem) compositedSpecialItems).createFilter(pageBase, variables);
 //            if (filter != null) {
@@ -310,15 +310,15 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         } else {
             query = pageBase.getPrismContext().queryFactory().createQuery();
         }
-        switch (conditions.size()) {
-            case 0:
-                query = null;
-                break;
-            default:
-                for (ObjectFilter filter : conditions) {
-                    query.addFilter(filter);
-                }
-        }
+//        switch (conditions.size()) {
+//            case 0:
+//                query = null;
+//                break;
+//            default:
+//                for (ObjectFilter filter : conditions) {
+//                    query.addFilter(filter);
+//                }
+//        }
         return query;
     }
 
@@ -357,13 +357,18 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
         List<ObjectFilter> conditions = new ArrayList<>();
         ObjectQuery query = null;
+        boolean abstractRoleFilterCheck = false;
         for (AbstractSearchItemWrapper item : getItems()) {
-            if (!item.isApplyFilter(getSearchMode())) {
+            if (!item.isApplyFilter(getSearchMode()) ||
+                    (item instanceof AbstractRoleSearchItemWrapper && abstractRoleFilterCheck)) {
                 continue;
             }
             ObjectFilter filter = item.createFilter(pageBase, defaultVariables);
             if (filter != null) {
                 conditions.add(filter);
+            }
+            if (item instanceof  AbstractRoleSearchItemWrapper) {
+                abstractRoleFilterCheck = true;
             }
         }
         if (query == null) {

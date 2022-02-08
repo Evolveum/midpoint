@@ -26,9 +26,15 @@ public class ObjectTypeSearchItemWrapper extends AbstractSearchItemWrapper<QName
     ObjectTypeSearchItemConfigurationType config;
     private QName oldType;
     private boolean typeChanged;
+    private boolean allowAllTypesSearch;
 
     public ObjectTypeSearchItemWrapper(ObjectTypeSearchItemConfigurationType config) {
+        this(config, false);
+    }
+
+    public ObjectTypeSearchItemWrapper(ObjectTypeSearchItemConfigurationType config, boolean allowAllTypesSearch) {
         this.config = config;
+        this.allowAllTypesSearch = allowAllTypesSearch;
     }
 
     public Class<ObjectTypeSearchItemPanel> getSearchItemPanelClass() {
@@ -92,5 +98,13 @@ public class ObjectTypeSearchItemWrapper extends AbstractSearchItemWrapper<QName
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
         return PrismContext.get().queryFor((Class<? extends Containerable>) WebComponentUtil.qnameToClass(PrismContext.get(), config.getDefaultValue()))
                 .buildFilter();
+    }
+
+    public boolean isAllowAllTypesSearch() {
+        return allowAllTypesSearch;
+    }
+
+    public void setAllowAllTypesSearch(boolean allowAllTypesSearch) {
+        this.allowAllTypesSearch = allowAllTypesSearch;
     }
 }

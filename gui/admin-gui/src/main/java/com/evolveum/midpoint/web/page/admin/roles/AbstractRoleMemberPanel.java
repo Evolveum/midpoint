@@ -365,7 +365,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             searchConfig.setTenantConfiguration(searchBoxCofig.getDefaultTenantConfiguration());
         }
 
-        return new SearchConfigurationWrapper(getDefaultObjectTypeClass(), searchConfig);
+        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(getDefaultObjectTypeClass(), searchConfig);
+        searchConfigWrapper.setAllowAllTypeSearch(true);
+        return searchConfigWrapper;
     }
 
     private <AH extends AssignmentHolderType> ContainerTypeSearchItem<AH> createSearchTypeItem(SearchBoxConfigurationHelper memberPanelStorage) {

@@ -15,6 +15,7 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
     private List<AbstractSearchItemWrapper> itemsList = new ArrayList<>();
     private SearchBoxModeType searchBoxMode;
     private String collectionViewName;
+    private boolean allowAllTypeSearch;
 
     public static final String F_INDIRECT = "config.indirectConfiguration.indirect";
     public static final String F_SCOPE = "config.scopeConfiguration.defaultValue";
@@ -133,5 +134,13 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
 
     public boolean isProjectEmpty() {
         return projectRef == null || projectRef.getOid() == null || projectRef.getOid() == null || projectRef.asReferenceValue().isEmpty();
+    }
+
+    public boolean isAllowAllTypeSearch() {
+        return allowAllTypeSearch;
+    }
+
+    public void setAllowAllTypeSearch(boolean allowAllTypeSearch) {
+        this.allowAllTypeSearch = allowAllTypeSearch;
     }
 }
