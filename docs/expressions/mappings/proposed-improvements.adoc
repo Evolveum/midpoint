@@ -12,3 +12,11 @@ I.e. the metadata will tell us whether this value was also produced by other map
 * Implementation Optimization
 
 ** Avoid execution of mapping expression in obvious cases (e.g. condition is `false` -> `false`)
+
+* Deprecation/removal +
+Should we deprecate/remove following items?
+
+** MappingType.authoritative - somehow replaced by range (but not entirely)
+
+** MappingType.exclusive - naturally enforced for single-valued items, do we need this also for multi-value?
+

@@ -29,6 +29,8 @@ The condition is not "turning off" the mapping, it only influences the way expre
 Mapping range, and most of other aspects of the mapping are applied even if the condition is evaluated to `false`.
 More on that below.
 
+At most one condition can be defined in a mapping.
+
 TIP: A clever reader may wonder why are conditions needed at all.
 Complex expressions may implement all the logic that is usually placed into the condition.
 And clever reader might be right for most of the cases.
@@ -149,6 +151,8 @@ Condition does not mean that the expression is skipped.
 Expression may be evaluated even if condition is `false`.
 The expression may still be evaluated, e.g. to get negative values for the delta.
 
+Condition applies entire mapping, it applies to all the values processed by a mapping.
+The condition does not work for individual values.
 
 == Rule of the Thumb
 
@@ -431,6 +435,24 @@ This will not really work.
 Weak mappings should be used for that purpose instead.
 
 // TODO: more bad examples?
+
+== Notes
+
+[NOTE]
+.Conditions and ranges in midPoint 4.0 and earlier
+====
+In midPoint 4.0 and earlier, the mapping range was *not* applied consistently when the condition was `false`.
+Some mappings in some cases applied the range, other mappings did not.
+This was incorrect behavior (bug), and it was corrected in midPoint 4.1.
+
+The incorrect behavior was perhaps based on the approach that if the condition evaluates to `false` then the system will "pretend that the mapping does not exist at all".
+This was even documented in this page in earlier versions of midPoint.
+However, this approach was a leftover from the times when midPoint did not have mapping ranges and the documentation was incorrect.
+We understand that some deployments relied on this behavior, and we would like to apologize for any inconvenience.
+However, our policy is not to maintain "compatible bugs", therefore we have corrected the behavior of mappings in all the places to make midPoint behavior consistent.
+
+If you need to "turn off" the mapping completely, the proper way is to set the condition both in the `condition` part of the mapping and in the range specification, i.e. making the mapping non-authoritative (having empty range) when the condition is false.
+====
 
 
 == See Also

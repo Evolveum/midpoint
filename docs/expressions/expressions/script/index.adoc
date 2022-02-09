@@ -151,9 +151,32 @@ On the other hand, in relative approach, each value in UID attribute would be pr
 
 The input to this script is a list of all input values.
 The output is a list of new values.
-MidPoint always operates in xref:/midpoint/reference/concepts/relativity/[relative mode], therefore at the end of the evaluation midPoint will diff the value to create a xref:/midpoint/devel/prism/concepts/deltas/[delta]. This does not change anything about that.
-However this mode of expression operation can be an advantage if you need to process all values as a group instead of processing every value one by one.
+MidPoint always operates in xref:/midpoint/reference/concepts/relativity/[relative mode], therefore at the end of the evaluation midPoint will diff the value to create a xref:/midpoint/devel/prism/concepts/deltas/[delta].
+This does not change anything about that.
+However, this mode of expression operation can be an advantage if you need to process all values as a group instead of processing every value one by one.
 E.g. in case that you want to choose a particular value or your algorithm depends on other values in some way.
+
+Absolute evaluation mode is especially useful for selecting the most significant value from a multi-valued item:
+
+[source,xml]
+----
+<inbound>
+    <expression>
+        <script>
+            <relativityMode>absolute</relativityMode>
+            <code>basic.determineLdapSingleAttributeValue(basic.getAttributeStringValues(account, 'dn'), 'uid', input)</code>
+        </script>
+    </expression>
+    <target>
+        <path>name</path>
+    </target>
+</inbound>
+----
+
+The `determineLdapSingleAttributeValue()` function above accepts a list of all LDAP attribute values as an input.
+It will then select only one value and return that as an output.
+This approach can be used to reduce typical LDAP multi-value attributes to a single-value midPoint properties.
+
 
 == Security of Script Expressions
 

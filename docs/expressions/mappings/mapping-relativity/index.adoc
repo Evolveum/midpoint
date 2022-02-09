@@ -64,6 +64,10 @@ This is the functionality of midPoint xref:/midpoint/reference/expressions/mappi
 
 == Relativity Mechanism
 
+// Similar description is on the mapping introduction page.
+// However, it is not easy to merge them.
+// Maybe it is good that there are two descriptions of the mechanism, the other is much shorter, this one is longer with pictures.
+
 MidPoint mappings are designed to work correctly with the xref:/midpoint/reference/concepts/relativity/[relative change model] that is a fundamental principle of midPoint operation.
 Simply speaking the mapping does not just maps the source values to the target values.
 It also maps the corresponding deltas.
