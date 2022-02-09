@@ -160,7 +160,7 @@ The condition does not work for individual values.
 The rule of the thumb is to use either complex condition or complex expression, but not both - at least until you know precisely what you are doing.
 
 If the thing that you are trying to achieve is difficult to achieve by using the condition, then perhaps condition is not the right method to achieve your goal.
-Try to re-thing the problem, consider using roles or policy rules.
+Try to re-think the problem, consider using roles or policy rules.
 Maybe the mapping strength is wrong.
 Maybe the mapping is not in the right place.
 Consider moving the mapping to inbound part of the processing.
