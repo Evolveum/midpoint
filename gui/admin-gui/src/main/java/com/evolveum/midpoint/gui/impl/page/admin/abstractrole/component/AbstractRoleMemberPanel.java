@@ -6,16 +6,38 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
@@ -34,7 +56,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.web.security.util.GuiAuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -57,41 +78,19 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
 import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
+import com.evolveum.midpoint.web.security.util.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.*;
 
 @PanelType(name = "members")
 @PanelInstances(instances = {
@@ -402,25 +401,39 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     private SearchConfigurationWrapper createSearchConfigWrapper() {
-        SearchBoxConfigurationType searchConfig = new SearchBoxConfigurationType();
-        ObjectTypeSearchItemConfigurationType objTypeConfig = new ObjectTypeSearchItemConfigurationType();
-        objTypeConfig.getSupportedTypes().addAll(getDefaultSupportedObjectTypes(false));
-        objTypeConfig.setDefaultValue(WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType()));
-        searchConfig.setObjectTypeConfiguration(objTypeConfig);
+        SearchBoxConfigurationType searchConfig = getAdditionalPanelConfig();
+        if (searchConfig == null) {
+            searchConfig = new SearchBoxConfigurationType();
+        }
+        if (searchConfig.getObjectTypeConfiguration() == null) {
+            ObjectTypeSearchItemConfigurationType objTypeConfig = new ObjectTypeSearchItemConfigurationType();
+            objTypeConfig.getSupportedTypes().addAll(getDefaultSupportedObjectTypes(false));
+            objTypeConfig.setDefaultValue(WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType()));
+            searchConfig.setObjectTypeConfiguration(objTypeConfig);
+        }
 
-        RelationSearchItemConfigurationType relationConfig = new RelationSearchItemConfigurationType();
-        relationConfig.getSupportedRelations().addAll(getSupportedRelations());
-        searchConfig.setRelationConfiguration(relationConfig);
+        if (searchConfig.getRelationConfiguration() == null) {
+            RelationSearchItemConfigurationType relationConfig = new RelationSearchItemConfigurationType();
+            relationConfig.getSupportedRelations().addAll(getSupportedRelations());
+            searchConfig.setRelationConfiguration(relationConfig);
+        }
 
-        SearchBoxConfigurationHelper searchBoxCofig = new SearchBoxConfigurationHelper(searchConfig);
-        searchConfig.setIndirectConfiguration(searchBoxCofig.getDefaultIndirectConfiguration());
+        SearchBoxConfigurationHelper searchBoxCofig = getSearchBoxConfiguration();
+        if (searchConfig.getIndirectConfiguration() == null) {
+            searchConfig.setIndirectConfiguration(searchBoxCofig.getDefaultIndirectConfiguration());
+        }
 
-        if (isOrg()) {
+        if (searchConfig.getScopeConfiguration() == null && isOrg()) {
             searchConfig.setScopeConfiguration(searchBoxCofig.getDefaultSearchScopeConfiguration());
         }
-        if (!isNotRole()) {
+        if (searchConfig.getProjectConfiguration() == null && !isNotRole()) {
             searchConfig.setProjectConfiguration(searchBoxCofig.getDefaultProjectConfiguration());
+        }
+        if (searchConfig.getTenantConfiguration() == null && !isNotRole()) {
             searchConfig.setTenantConfiguration(searchBoxCofig.getDefaultTenantConfiguration());
+        }
+        if (additionalPanelConfig != null) {
+            searchConfig.setAllowToConfigureSearchItems(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
         }
         SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(getDefaultObjectTypeClass(), searchConfig);
         searchConfigWrapper.setAllowAllTypeSearch(true);

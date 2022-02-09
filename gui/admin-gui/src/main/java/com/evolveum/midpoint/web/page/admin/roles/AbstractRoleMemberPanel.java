@@ -343,28 +343,42 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 //        return search;
     }
 
-    private <C extends Containerable> SearchConfigurationWrapper<C> createSearchConfigWrapper() {
-        SearchBoxConfigurationType searchConfig = new SearchBoxConfigurationType();
-        ObjectTypeSearchItemConfigurationType objTypeConfig = new ObjectTypeSearchItemConfigurationType();
-        objTypeConfig.getSupportedTypes().addAll(getDefaultSupportedObjectTypes(false));
-        objTypeConfig.setDefaultValue(WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType()));
-        searchConfig.setObjectTypeConfiguration(objTypeConfig);
+    private SearchConfigurationWrapper createSearchConfigWrapper() {
+        GuiObjectListPanelConfigurationType objectList = getAdditionalPanelConfig();
+        SearchBoxConfigurationType searchConfig = objectList != null ? objectList.getSearchBoxConfiguration() : new SearchBoxConfigurationType();
+        if (searchConfig == null) {
+            searchConfig = new SearchBoxConfigurationType();
+        }
+        if (searchConfig.getObjectTypeConfiguration() == null) {
+            ObjectTypeSearchItemConfigurationType objTypeConfig = new ObjectTypeSearchItemConfigurationType();
+            objTypeConfig.getSupportedTypes().addAll(getDefaultSupportedObjectTypes(false));
+            objTypeConfig.setDefaultValue(WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType()));
+            searchConfig.setObjectTypeConfiguration(objTypeConfig);
+        }
 
-        RelationSearchItemConfigurationType relationConfig = new RelationSearchItemConfigurationType();
-        relationConfig.getSupportedRelations().addAll(getSupportedRelations());
-        searchConfig.setRelationConfiguration(relationConfig);
+        if (searchConfig.getRelationConfiguration() == null) {
+            RelationSearchItemConfigurationType relationConfig = new RelationSearchItemConfigurationType();
+            relationConfig.getSupportedRelations().addAll(getSupportedRelations());
+            searchConfig.setRelationConfiguration(relationConfig);
+        }
 
-        SearchBoxConfigurationHelper searchBoxCofig = new SearchBoxConfigurationHelper(searchConfig);
-        searchConfig.setIndirectConfiguration(searchBoxCofig.getDefaultIndirectConfiguration());
+        SearchBoxConfigurationHelper searchBoxCofig = getSearchBoxConfiguration();
+        if (searchConfig.getIndirectConfiguration() == null) {
+            searchConfig.setIndirectConfiguration(searchBoxCofig.getDefaultIndirectConfiguration());
+        }
 
-        if (isOrg()) {
+        if (searchConfig.getScopeConfiguration() == null && isOrg()) {
             searchConfig.setScopeConfiguration(searchBoxCofig.getDefaultSearchScopeConfiguration());
         }
-        if (!isNotRole()) {
+        if (searchConfig.getProjectConfiguration() == null && !isNotRole()) {
             searchConfig.setProjectConfiguration(searchBoxCofig.getDefaultProjectConfiguration());
+        }
+        if (searchConfig.getTenantConfiguration() == null && !isNotRole()) {
             searchConfig.setTenantConfiguration(searchBoxCofig.getDefaultTenantConfiguration());
         }
-
+        if (additionalPanelConfig != null && additionalPanelConfig.getSearchBoxConfiguration() != null) {
+            searchConfig.setAllowToConfigureSearchItems(!Boolean.FALSE.equals(additionalPanelConfig.getSearchBoxConfiguration().isAllowToConfigureSearchItems()));
+        }
         SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(getDefaultObjectTypeClass(), searchConfig);
         searchConfigWrapper.setAllowAllTypeSearch(true);
         return searchConfigWrapper;
