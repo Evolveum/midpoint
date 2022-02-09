@@ -14488,6 +14488,18 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="messageTransportConfiguration" type="tns:MessageTransportConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A configuration for message transports, e.g. mail, sms, etc.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <!-- TODO add the displayName localization -->
+                                <a:displayName>SystemConfigurationType.messageTransportConfiguration</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="workflowConfiguration" type="tns:WfConfigurationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>

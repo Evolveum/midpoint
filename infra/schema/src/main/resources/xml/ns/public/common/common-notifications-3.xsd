@@ -242,11 +242,23 @@
     <xsd:element name="messageTemplate" type="tns:MessageTemplateType"/>
     <!-- endregion -->
 
+    <!-- region Pre-4.5 transport configuration, inside the notification config (DEPRECATED) -->
+    <!--
+    These notifiers also use "name" attribute, which is not our typical style,
+    so the new types were created with name element.
+    -->
     <xsd:complexType name="NotificationTransportConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 Configuration that is common to all notification transports.
+
+                DEPRECATED: Use new messageTransportConfiguration instead.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.5</a:deprecatedSince>
+                <!--TODO: <a:plannedRemoval>4.6</a:plannedRemoval>-->
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="debug" type="xsd:boolean" minOccurs="0">
@@ -262,6 +274,7 @@
             </xsd:element>
             <xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
+                    <!-- TODO: check implementation and reconsider, redirectToFile should not depend on black/whiteLists -->
                     <xsd:documentation>
                         When this transport don't have definition blackList, whiteList or recipient FilterExpression,
                         instead of sending message via this transport, writes it to a file. Useful for debugging.
@@ -339,9 +352,14 @@
         <xsd:annotation>
             <xsd:documentation>
                 Where and how to send mail notifications (or any other mail messages).
+
+                DEPRECATED: Use new messageTransportConfiguration instead.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:displayName>MailConfigurationType.details</a:displayName>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.5</a:deprecatedSince>
+                <!--TODO: <a:plannedRemoval>4.6</a:plannedRemoval>-->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -499,9 +517,11 @@
             <xsd:documentation>
                 Where and how to send SMS notifications (or any other SMS).
             </xsd:documentation>
-            <!--<xsd:appinfo>-->
-            <!--<a:container/>-->
-            <!--</xsd:appinfo>-->
+            <xsd:appinfo>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.5</a:deprecatedSince>
+                <!--TODO: <a:plannedRemoval>4.6</a:plannedRemoval>-->
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:NotificationTransportConfigurationType">
@@ -534,6 +554,9 @@
             <xsd:appinfo>
                 <!--<a:container/>-->
                 <a:displayName>FileConfigurationType.details</a:displayName>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.5</a:deprecatedSince>
+                <!--TODO: <a:plannedRemoval>4.6</a:plannedRemoval>-->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -554,14 +577,17 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="CustomTransportConfigurationType">
+    <!-- TODO: rename to Legacy* -->
+    <xsd:complexType name="LegacyCustomTransportConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
             </xsd:documentation>
-            <!--<xsd:appinfo>-->
-            <!--<a:container/>-->
-            <!--</xsd:appinfo>-->
+            <xsd:appinfo>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.5</a:deprecatedSince>
+                <!--TODO: <a:plannedRemoval>4.6</a:plannedRemoval>-->
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:NotificationTransportConfigurationType">
@@ -726,6 +752,7 @@
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string"/>
     </xsd:complexType>
+    <!-- endregion -->
 
     <xsd:complexType name="NotificationConfigurationType">
         <xsd:annotation>
@@ -741,17 +768,45 @@
         <xsd:sequence>
             <xsd:element name="handler" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded"/> <!-- implicit fork -->
             <!-- TODO add notificationTransportConfiguration section. -->
-            <!-- For compatibility, but use separate messageTransportConfiguration. -->
+
+            <!-- Left for compatibility, but use new messageTransportConfiguration. -->
             <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>NotificationConfigurationType.mail</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.5</a:deprecatedSince>
+                        <!--TODO: <a:plannedRemoval>4.6</a:plannedRemoval>-->
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="sms" type="tns:SmsConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="file" type="tns:FileConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="customTransport" type="tns:CustomTransportConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="sms" type="tns:SmsConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.5</a:deprecatedSince>
+                        <!--TODO: <a:plannedRemoval>4.6</a:plannedRemoval>-->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="file" type="tns:FileConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.5</a:deprecatedSince>
+                        <!--TODO: <a:plannedRemoval>4.6</a:plannedRemoval>-->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="customTransport" type="tns:LegacyCustomTransportConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.5</a:deprecatedSince>
+                        <!--TODO: <a:plannedRemoval>4.6</a:plannedRemoval>-->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType"/>
@@ -760,7 +815,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 An event handler. It can contain conditions (general expressions or lists of event categories, operation types,
-                success/failure statuses, and so on), subhandlers (chained or forked), and various kinds of notifiers.
+                success/failure statuses, and so on), and one or more notifiers of various kinds.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -1235,8 +1290,7 @@
     </xsd:simpleType>
 
 
-    <!-- notifiers -->
-
+    <!-- region Notifiers -->
     <xsd:complexType name="GeneralNotifierType">
         <xsd:complexContent>
             <xsd:extension base="tns:EventHandlerType">
@@ -1671,8 +1725,9 @@
 
         </xsd:restriction>
     </xsd:simpleType>
+    <!-- endregion -->
 
-    <!-- TODO remove after complete migration to MessageType -->
+    <!-- TODO remove after complete migration to persistent MessageType OR just rename it to (Transport)MessageType? -->
     <xsd:complexType name="NotificationMessageType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1755,4 +1810,291 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <!-- region Newer 4.5 message transport schema -->
+    <!-- TODO add translation for added displayName-s -->
+    <xsd:complexType name="MessageTransportConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A configuration for message transports.
+                It defines various transports through which the midPoint can send messages, e.g. reports, notifications, etc.
+
+                NOTE: This replaces the configuration previously placed inside NotificationConfigurationType.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:displayName>MessageTransportConfigurationType.details</a:displayName>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="mail" type="tns:MailTransportConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>MessageTransportConfigurationType.mail</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="sms" type="tns:SmsTransportConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="file" type="tns:FileTransportConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="customTransport" type="tns:CustomTransportConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="messageTransportConfiguration" type="tns:MessageTransportConfigurationType"/>
+
+    <xsd:complexType name="GeneralTransportConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration that is common to all transport configurations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Mandatory name of the transport - MUST be unique for each configured message transport.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GeneralTransportConfigurationType.name</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!--
+            TODO add recipientAddressExpression (FocusType -> string).
+             This will allow the processing of the event with notifiers only returning recipient user
+             with common logic how to obtain the address for them left to the transport configuration.
+             Notifier (or other mechanism using the transport) still may return the recipient address
+             (as a string), in which case it is used directly.
+            -->
+            <xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <!-- TODO: check implementation and reconsider the original comment, redirectToFile should not depend on black/whiteLists -->
+                    <xsd:documentation>
+                        All the messages are redirected into a specified file - useful for debugging.
+                        Messages that are blacklisted are indicated so, but are still written to the file as well.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GeneralTransportConfigurationType.redirectToFile</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="logToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        In addition to sending message via this transport, writes it to a file. Useful for debugging.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GeneralTransportConfigurationType.logToFile</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="blackList" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Addresses that are on a "black list". If a message contains one or more addresses that are blacklisted,
+                        it is stored into file specified in "redirectToFile" and either not sent at all (if no other addresses
+                        remain) or sent without blacklisted addresses.
+
+                        An address can contain "*" character, that matches any substring, e.g. "*@acme.org".
+
+                        At most one of "blackList", "whiteList" and "recipientFilterExpression" can be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GeneralTransportConfigurationType.blackList</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="whiteList" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Addresses that are on a "white list". If specified, then all addresses are blacklisted, except for
+                        those that match a white list entry.
+
+                        An address can contain "*" character, that matches any substring, e.g. "*@acme.org".
+
+                        At most one of "blackList", "whiteList" and "recipientFilterExpression" can be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GeneralTransportConfigurationType.whiteList</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="recipientFilterExpression" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        An expression that decides whether the recipient address is allowed to pass through or it should
+                        be blacklisted. The expression expects input value in "recipientAddress" variable (usually a String),
+                        and should provide a boolean value: "true" means "pass through", "false" means "block".
+
+                        At most one of "blackList", "whiteList" and "recipientFilterExpression" can be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GeneralTransportConfigurationType.whiteList</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="debug" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Enables debugging specific for a given transport (if supported by it).
+                        For example, when used for mail transport it enables debugging of javamail - sending
+                        diagnostics to standard output (console).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GeneralTransportConfigurationType.debug</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MailTransportConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Where and how to send mail messages (or any other mail messages).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:displayName>MailTransportConfigurationType.details</a:displayName>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralTransportConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="server" type="tns:MailServerConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of a particular mail server host. If there are more of them, they are tried
+                                one after another. If there is none, mail messages are not sent.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="defaultFrom" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What to put into "From" field of mail messages (unless overridden by specific situation).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>MailTransportConfigurationType.defaultFrom</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SmsTransportConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Where and how to send SMS messages (or any other SMS).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralTransportConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="gateway" type="tns:SmsGatewayConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of a particular mail server host. If there are more of them, they are tried
+                                one after another. If there is none, mail messages are not sent.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="defaultFrom" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What to put into "From" field of SMS, if supported by the gateway.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="FileTransportConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Where and how to store "file" messages.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:displayName>FileTransportConfigurationType.details</a:displayName>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralTransportConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="file" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                File that stores all the "sent" messages.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>FileTransportConfigurationType.file</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <!-- TODO: first rename the original to Legacy, this is a good name and we want to use it -->
+    <xsd:complexType name="CustomTransportConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Custom type transport that can be realized either as a Java class (e.g. using overlay
+                mechanism) specified in `type` element or via `expression`.
+                If both are used, the `type` element takes preference.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralTransportConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="type" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Fully qualified class name of the transport implementation.
+                                <!-- TODO: extending from what, etc... -->
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CustomTransportConfigurationType.type</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that processes incoming message, typically a script that sends the message.
+                                Inside the expression a single-valued `message` variable is available.
+                                For maximum flexibility, `event` (in case of notifications) or other contextual variable
+                                may be available too, but it is preferred to work only with the provided `message`.
+                                Should not return anything.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CustomTransportConfigurationType.expression</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <!-- endregion -->
 </xsd:schema>
