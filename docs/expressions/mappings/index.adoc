@@ -229,7 +229,7 @@ This source will be accessible under the name `lastName` in the mapping expressi
 
 In some cases, the primary input to an expression is accessible under name `input`.
 This approach is applied in cases when there is only a single source for a mapping (by definition), such as _inbound_ mappings applied to a single attribute.
-Similar approach is applied to stand-alone expression, where there is no obvios name for expression input.
+Similar approach is applied to stand-alone expression, where there is no obvious name for expression input.
 
 
 === Mapping Domain

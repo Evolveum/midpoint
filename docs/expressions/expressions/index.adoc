@@ -224,7 +224,7 @@ If no value policy is defined and the expression cannot determine the policy aut
 .Password policies and generate expression
 ====
 When a generate expression without any parameters (`<generate/>`) is used to generate a password it will choose password policy automatically.
-When such an expression is used in a mapping it will choose password policy appropriate for the* mapping target*. This makes perfect sense, as the generated value must be a valid value for the target property.
+When such an expression is used in a mapping it will choose password policy appropriate for the *mapping target*. This makes perfect sense, as the generated value must be a valid value for the target property.
 Which means that is the generate expression is used in the outbound mapping, it will use resource password policy.
 But if it is used in the inbound mapping, it will use user password policy.
 Because in the *inbound* case the target attribute is *user* password, not resource account password.
