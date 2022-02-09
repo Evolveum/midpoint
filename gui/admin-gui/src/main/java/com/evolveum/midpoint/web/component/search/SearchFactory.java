@@ -664,7 +664,7 @@ public class SearchFactory {
             if (item != null) {
                 combineSearchItem(item, customItem);
             } else {
-                searchItems.getSearchItem().add(customItem);
+                searchItems.getSearchItem().add(customItem.clone());
             }
         });
         return searchItems;
