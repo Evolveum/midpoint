@@ -518,7 +518,7 @@ See xref:/midpoint/reference/synchronization/flavors/[Synchronization Flavors] p
 
 * link:https://svn.evolveum.com/midpoint/trunk/infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd[Common XSD Schema] has a lot of in-line documentation.
 
-* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]
 
 * xref:/midpoint/reference/concepts/query/xml-query-language/[XML Object Query]
 

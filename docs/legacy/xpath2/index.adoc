@@ -38,7 +38,7 @@ Press `Evaluate` and you should see the obvious result at the bottom of the scre
 
 XPath expressions in midPoint are not very useful without variables.
 All the real expressions are using at least one variable, this is kind of a parameters or arguments to the expression.
-For a list of common variables please see the xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions] page.
+For a list of common variables please see the xref:/midpoint/reference/expressions/[Mappings and Expressions] page.
 However, the XPath debug page is quite dumb in that aspect, it will not automatically assign any variable.
 You have to specify the values for all the variables you use in debug pages.
 You can use four fields for that, as shown in the picture above.

@@ -29,7 +29,7 @@ The sequence in it self is a very simple object:
 The sequence remembers just one important value: the counter.
 The counter value is assigned to the next object, then the counter value is (atomically) incremented.
 There are also other settings such as the maximum counter value, settings that influence the use of reclaimed values and so on.
-This may seem simple, but the real power in using sequences are in combination with xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]. The sequence can easily be used in a mapping:
+This may seem simple, but the real power in using sequences are in combination with xref:/midpoint/reference/expressions/[Mappings and Expressions]. The sequence can easily be used in a mapping:
 
 [source,xml]
 ----

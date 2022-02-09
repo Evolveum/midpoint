@@ -335,7 +335,7 @@ Even if condition is false, only the expression is affected.
 Other parts of the mapping work normally.
 Please see xref:../condition/[] page for the details.
 
-Please see xref:../practices/removing-values/[] for guidance of range usage in practical cases.
+Please see xref:../../practices/removing-values/[] for guidance of range usage in practical cases.
 
 == Terminology
 
@@ -381,6 +381,6 @@ However, this is not a significant difference for the purpose of this explanatio
 
 == See Also
 
-* xref:../[]
+* xref:/midpoint/reference/expressions/mappings/[]
 
-* xref:../practices/removing-values/[]
+* xref:../../practices/removing-values/[]

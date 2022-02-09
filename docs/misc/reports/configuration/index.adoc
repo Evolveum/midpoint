@@ -202,7 +202,7 @@ Example:
 
 == Security Of Report Expressions
 
-Reports often use xref:/midpoint/reference/expressions/introduction/[expressions].
+Reports often use xref:/midpoint/reference/expressions/[expressions].
 Expressions allow to customize midPoint behavior and they are essential for the success of midPoint deployments.
 However, the expressions are very powerful and they may even be too powerful for some use cases.
 The expressions can use general-purpose scripting languages such as Groovy or JavaScript.

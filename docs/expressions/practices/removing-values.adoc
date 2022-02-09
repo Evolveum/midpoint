@@ -3,7 +3,7 @@
 :page-upkeep-status: green
 
 Mappings are designed in such a way to be easy to merge output from several mappings.
-This is ideal method to support multi-valued data in a relativistic way (see xref:../mapping-relativity/[]).
+This is ideal method to support multi-valued data in a relativistic way (see xref:../mappings/mapping-relativity/[]).
 However, there are cases when we need to do more than just relativistically transform input to output.
 MidPoint also needs a way how to _reconcile_ values.
 E.g. midPoint needs a method to say which values of a resource attribute are legal and which are illegal.
@@ -18,7 +18,7 @@ Moreover, even if we had support for data provenance, there would always be corn
 Therefore, a mechanism is needed for a mapping to decide when to remove a particular value and when to keep it.
 There is such a mechanism in midPoint: mapping _range_.
 
-As described above, mapping xref:../range/[range] is used to define a set of value that the mapping is supposed to produce.
+As described above, mapping xref:../mappings/range/[range] is used to define a set of value that the mapping is supposed to produce.
 This can be used to define whether mapping should remove particular existing value or whether the value should be kept unchanged.
 Let's demonstrate this principle using an example.
 Let's have a property with existing values [ `A`, `B` ].
@@ -72,4 +72,6 @@ If the range definition is change to include the old value then such value will 
 
 ==  See Also
 
-* xref:../../range/[]
+* xref:../mappings/range/[]
+
+* xref:/midpoint/reference/expressions/mappings/[]

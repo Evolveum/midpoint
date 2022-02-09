@@ -9,7 +9,7 @@ This page describes common mapping-related situations that may be perceived as p
 Conditions are not supposed to be turning mapping off.
 Conditions are supposed to behave in a relativistic way, removing the values provided by the expression when the condition turns to `false`.
 
-Please see xref:../condition/[] for more details.
+Please see xref:../mappings/condition/[] for more details.
 
 
 == Range is evaluated even if mapping condition is false
@@ -17,7 +17,7 @@ Please see xref:../condition/[] for more details.
 That is correct, it is supposed to.
 As conditions are not turning the mapping "off" (see above), mapping range still applies.
 
-Please see xref:../range/[] for more details.
+Please see xref:../mappings/range/[] for more details.
 
 
 == Expressions are evaluated for null inputs
@@ -65,4 +65,4 @@ For that we need to evaluate the condition both for the old value and the new va
 
 ==  See Also
 
-* xref:../../[]
+* xref:/midpoint/reference/expressions/mappings/[]

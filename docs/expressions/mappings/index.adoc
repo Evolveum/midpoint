@@ -181,7 +181,7 @@ Smart reaction to changes is one of the reasons for requiring explicit definitio
 Without such definitions it is not (realistically) possible to reliably determine how and when the expression should be re-evaluated.
 
 The sources themselves are delta-aware.
-The source does not specify the value only, it also specifies previous value, and the way how the value changed (xref:/devel/prism/concepts/deltas/[delta]).
+The source does not specify the value only, it also specifies previous value, and the way how the value changed (xref:/midpoint/devel/prism/concepts/deltas/[delta]).
 This allows mapping to be smart, re-computing only some values.
 Even more importantly, source deltas are taken into consideration when mapping is evaluated.
 Therefore, mapping can figure out how target value have changed, and apply the changes in a smart way (see xref:mapping-relativity/[]).
@@ -649,7 +649,7 @@ Please see xref:condition/[] page for more details on mapping conditions.
 
 == Examples
 
-Following example provides xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound] mapping that is using xref:/midpoint/reference/expressions/script/[script expression] written in Groovy language.
+Following example provides xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound] mapping that is using xref:/midpoint/reference/expressions/expressions/script/[script expression] written in Groovy language.
 The expression concatenates two string literals and the value of `name` property from the `focus` variable.
 The mapping is _weak_ which means it will only be applied if there is no value already present (it constructs _default_ value).
 
@@ -1156,7 +1156,7 @@ The `tolerant` setting was removed in midPoint 4.0.
 
 ==  See Also
 
-* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]
 
 * xref:../variables/[]
 
@@ -1164,6 +1164,6 @@ The `tolerant` setting was removed in midPoint 4.0.
 
 * xref:mapping-relativity/[]
 
-* xref:practices/removing-values/[]
+* xref:../practices/removing-values/[]
 
 * xref:/midpoint/reference/expressions/mappings/mapping-evaluation-examples/[Mapping Evaluation Examples]

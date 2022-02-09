@@ -218,7 +218,7 @@ MidPoint is a very flexible system.
 Being an identity management system, all the flexibility is needed to allow practical and efficient deployments.
 However, with great power comes great responsibility.
 
-One of the most powerful parts of midPoint are xref:/midpoint/reference/expressions/introduction/[mappings and expressions]. Expressions allow to customize midPoint behavior and they are essential for the success of midPoint deployments.
+One of the most powerful parts of midPoint are xref:/midpoint/reference/expressions/[mappings and expressions]. Expressions allow to customize midPoint behavior and they are essential for the success of midPoint deployments.
 However, the expressions are very powerful and they may even be too powerful for some use cases.
 The expressions can use general-purpose scripting languages such as Groovy or JavaScript.
 Therefore such expressions have almost unlimited capabilities.

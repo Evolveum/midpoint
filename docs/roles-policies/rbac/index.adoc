@@ -46,7 +46,7 @@ The simple approach leads to xref:/iam/role-explosion/[role explosion]. The role
 MidPoint role can also specific attributes for the account, e.g. a specific text in the account description field.
 Attribute values implied by the roles may be fixed (static), but that is usually not sufficient to avoid a role explosion problem.
 More frequently the implied attributes are derived from other values, e.g. fields of the User object.
-xref:/midpoint/reference/expressions/introduction/[Mappings and expressions] are used to define dynamic implied account attributes.
+xref:/midpoint/reference/expressions/[Mappings and expressions] are used to define dynamic implied account attributes.
 The expression model is extensible, there are several supported scripting languages and even more expression languages may be added in the future.
 
 Implied account attributes usually do not need to define the entire set of account attributes.
@@ -133,4 +133,4 @@ See xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Ro
 
 * xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
-* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]

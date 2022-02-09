@@ -115,7 +115,7 @@ The mugs of all captains should come with owner's name on it, so no scurvy seado
 
 ****
 
-xref:/midpoint/reference/expressions/introduction/[Mappings and expressions] are used to define dynamic implied account attributes.
+xref:/midpoint/reference/expressions/[Mappings and expressions] are used to define dynamic implied account attributes.
 xref:/midpoint/reference/concepts/item-path/[Simple paths] are perhaps the most easy to use and most useful in common situations.
 There are also xref:/midpoint/reference/expressions/expressions/script/[scripting expressions] for more complex cases.
 The default expression language is Groovy, chosen for its similarity to Java.
@@ -174,7 +174,7 @@ Mapping target is also determined implicitly by the context.
 
 image::rbac-5.png[]
 
-Please see the xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions] page for explanation of basic principles of mapping mechanism.
+Please see the xref:/midpoint/reference/expressions/[Mappings and Expressions] page for explanation of basic principles of mapping mechanism.
 
 Implied account attributes usually do not need to define the entire set of account attributes.
 There may be other roles that may assign different attributes to the same account, more values to the same attributes of the account and even conflicting values.
@@ -358,4 +358,4 @@ If those conditions depend only on the environment or properties of the focus th
 
 * xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
 
-* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]

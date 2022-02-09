@@ -1,4 +1,5 @@
 = Mapping Condition
+:page-upkeep-status: green
 
 Mapping condition is a mechanism for easy implementation of mappings that provide _conditional values_.
 This means a value that is present when certain condition is _true_, while it is not present if the condition is _false_.
@@ -457,6 +458,6 @@ If you need to "turn off" the mapping completely, the proper way is to set the c
 
 == See Also
 
-* xref:../[]
+* xref:/midpoint/reference/expressions/mappings/[]
 
 * xref:../range/[]

@@ -13,7 +13,7 @@
 == Introduction
 
 Object template is an object that holds a set of rules how a specific object type (e.g. user) should be constructed.
-It usually contains xref:/midpoint/reference/expressions/introduction/[mappings] that either compute user properties or assign accounts and roles to the user (usually with a condition).
+It usually contains xref:/midpoint/reference/expressions/[mappings] that either compute user properties or assign accounts and roles to the user (usually with a condition).
 
 User template can be used for a variety of very interesting identity management configuration.
 For example:
@@ -142,6 +142,6 @@ Inbound mappings will make sure that these data are as fresh as possible.
 
 == See Also
 
-* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]
 
 * xref:/midpoint/reference/synchronization/examples/[Synchronization Examples]

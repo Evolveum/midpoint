@@ -1,5 +1,6 @@
 = Proposed Improvements in Mappings and Expressions
 :page-nav-title: Proposed Improvements
+:page-display-order: 900
 
 * Use of value metadata.
 
@@ -19,4 +20,9 @@ Should we deprecate/remove following items?
 ** MappingType.authoritative - somehow replaced by range (but not entirely)
 
 ** MappingType.exclusive - naturally enforced for single-valued items, do we need this also for multi-value?
+
+
+== Questions
+
+* Mapping constraints: are they "turning mapping off"? Or are they relativistic (like condition)?
 

@@ -18,7 +18,7 @@ Therefore this page explains what roles, services and orgs have in common and ho
 Roles give _privileges_ to users (or other objects).
 Roles enable users to do something that they would not be able to do without the role.
 Roles can be xref:/midpoint/reference/roles-policies/rbac/[very flexible and dynamic]. There can be hierarchical roles, conditional roles, parametric roles, etc.
-Generally speaking roles can contain xref:/midpoint/reference/expressions/introduction/[mappings and expressions] to create a very dynamic structures.
+Generally speaking roles can contain xref:/midpoint/reference/expressions/[mappings and expressions] to create a very dynamic structures.
 Roles can be personalized for each particular user, e.g. by using xref:/midpoint/reference/roles-policies/assignment/[assignment parameters].
 
 * *xref:/midpoint/reference/misc/services/[Services]* are used to represent servers, mobile devices, printers, virtual machines, "things" (as in IoT) and other objects whose are not entirely users, orgs or roles.
