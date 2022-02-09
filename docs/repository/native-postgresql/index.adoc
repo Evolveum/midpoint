@@ -23,6 +23,9 @@ TIP: Native PostgreSQL repository implementation is nick-named "sqale" (read "sc
 The implementation can be found in `repo-sqale` component.
 It was developed in midPoint 4.3 and 4.4 as a part of xref:/midpoint/projects/midscale/[midScale project].
 
+Besides this documentation, you can also review the https://youtu.be/5ld4U7AqCck[webinar about the Native Repository]
+(which is a bit longer as it goes quite in-depth) or the https://docs.evolveum.com/talks/files/2022-01-native-repository.pdf[slides].
+
 == Compared to the Generic repository
 
 This is just a short list of the main differences.
@@ -46,3 +49,6 @@ the differences are mentioned in the xref:/midpoint/reference/concepts/query/que
 
 * xref:/midpoint/reference/repository/repository-database-support/[Repository Database Support]
 discusses old and new repository and our support strategy.
+
+* https://youtu.be/5ld4U7AqCck[Native Repository webinar]
+and https://docs.evolveum.com/talks/files/2022-01-native-repository.pdf[slides]

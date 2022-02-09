@@ -4,6 +4,15 @@
 :page-display-order: 99
 :page-since: "4.4"
 
+[TIP]
+You can learn a lot from the https://youtu.be/5ld4U7AqCck[Native Repository webinar] video
+(from the series prepared after LTS 4.4 release, see https://docs.evolveum.com/talks/[Talks] for more)
+or go through the https://docs.evolveum.com/talks/files/2022-01-native-repository.pdf[slides].
+The webinar goes quite in-depth about the role of the repository in midPoint, its evolution,
+motivation for the rework, the changes in the new repository, database table structure and more.
+Second half focuses on the usage - how to configure midPoint for the repository, tuning it, etc.
+Finally, the webinar closes with section dedicated to the Native SQL audit and its partitioning.
+
 == Repository responsibilities
 
 These are based on https://github.com/Evolveum/midpoint/blob/master/repo/repo-api/src/main/java/com/evolveum/midpoint/repo/api/RepositoryService.java[RepositoryService]
@@ -329,6 +338,8 @@ Example for the complete table with triggers and indexes can be seen
 https://github.com/Evolveum/midpoint/blob/7a7c337d50b6cea1ad7c898b780f308c415c7cb5/config/sql/native-new/postgres-new.sql#L1647-L1669[here].
 
 . Add the same creation statements in the upgrade script `postgres-new-upgrade.sql` just after the `ALTER` from the previous step.
+You can use a single `apply_change` block for it, unless commit is required after any of the statements.
+As always, use a new change number (first parameter) for each change.
 
 . Now it's time to add the mapping Java classes to the native repository module `repo-sqale`.
 For a minimal mapping example see the classes in the package named `com.evolveum.midpoint.repo.sqale.qmodel.node`.
@@ -636,3 +647,8 @@ JIT:
 ----
 
 ////
+
+== See also
+
+* https://youtu.be/5ld4U7AqCck[Native Repository webinar]
+and https://docs.evolveum.com/talks/files/2022-01-native-repository.pdf[slides]
