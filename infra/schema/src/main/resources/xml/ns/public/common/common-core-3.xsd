@@ -7191,23 +7191,34 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                           Authoritative flag controls the way how mapping is used to
-                           remove values. It does not influence adding of values. If mapping is
-                           authoritative then it will add value and also remove the value. If mapping
-                           is not authoritative it will only add the value.
+                            Authoritative flag controls the way how mapping is used to remove values.
+                            It does not influence adding of values.
+                            If mapping is authoritative then it will add value and also remove the value.
+                            If mapping is not authoritative it will only add the value.
                         </p>
 
                         <p>
-                           Non-authoritative mappings are used if there are several possible sources
-                           for a particular value. E.g. the value may be added by the mapping and
-                           also added directly on the resource by system administrator. In this case
-                           midPoint cannot remove the value when the assignment (or role) containing
-                           the mapping is removed because the value might have been added manually.
-                           Other settings, such as tolerance may apply on attribute level.
+                            Non-authoritative mappings are used if there are several possible sources for a particular value.
+                            E.g. the value may be added by the mapping and also added directly on the resource by system administrator.
+                            In this case midPoint cannot remove the value when the assignment (or role) containing
+                            the mapping is removed because the value might have been added manually.
+                            Other settings, such as tolerance may apply on attribute level.
                         </p>
 
                         <p>
                             The default value for authoritative flag is true.
+                        </p>
+
+                        <p>
+                            Development note: Even though there is an overlap with mapping range, we still need this option.
+                            Empty mapping range may avoid deletion of values that are not produced by a mapping.
+                            However, the mapping may still create delete deltas in a "relative" way.
+                            Setting authoritative to false disables that, making sure the mapping will never remove a value.
+                            However, it is not clear how many people are actually using this feature.
+                            This feature was designed in early stages of midPoint development.
+                            We have more sophisticated mechanisms now.
+                            Therefore, it is not clear whether this option is still needed.
+                            Should it be a candidate for deprecation?
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -7225,6 +7236,9 @@
                         </p>
                         <p>
                             The default value for exclusive flag is false.
+                        </p>
+                        <p>
+                            Development note: Naturally enforced for single-valued items, do we need this also for multi-value?
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -8195,7 +8209,9 @@
             <xsd:element name="relativityMode" type="tns:TransformExpressionRelativityModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Relativity mode of an expression, whether expression is processed in relative or absolute more.
+                        In relative mode the inputs are provided to the expression one-by-one.
+                        In absolute mode all inputs are provided to the expression at the same time.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
