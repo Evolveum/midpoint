@@ -990,6 +990,9 @@ public class SearchFactory {
 
         List<ItemDefinition<?>> searchableDefinitions = new ArrayList<>();
 
+        if (containerDef == null) {
+            return searchableDefinitions;
+        }
         PrismContainerDefinition ext = containerDef.findContainerDefinition(ObjectType.F_EXTENSION);
         if (ext != null && ext.getDefinitions() != null) {
             searchableDefinitions.addAll(((List<ItemDefinition<?>>) ext.getDefinitions()).stream()
