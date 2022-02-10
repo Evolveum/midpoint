@@ -239,7 +239,7 @@ The HR department is in an process to migrate all systems from the old legacy co
 However, this process takes years and years, with no end in sight.
 Therefore, both `jobCode` and `legacyCode` has to work at the same time.
 Some jobs have both the new code and old code.
-New codes are continually introduces, while the legacy codes are slowly removed - without any notice.
+New codes are continually introduced, while the legacy codes are slowly removed - without any notice.
 Therefore, the best strategy is to set up an algorithm that can work with both codes at the same time.
 This is one of the rare cases when use of mappings with overlapping ranges is appropriate.
 
