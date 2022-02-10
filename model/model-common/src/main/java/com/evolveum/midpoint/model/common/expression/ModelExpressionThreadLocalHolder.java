@@ -43,25 +43,25 @@ import org.jetbrains.annotations.NotNull;
 public class ModelExpressionThreadLocalHolder {
 
     private static final ThreadLocal<Deque<ExpressionEnvironment<?, ?, ?>>>
-            expressionEnvironmentStackTl = new ThreadLocal<>();
+            EXPRESSION_ENVIRONMENT_STACK_TL = new ThreadLocal<>();
 
     public static void pushExpressionEnvironment(ExpressionEnvironment<?, ?, ?> env) {
-        Deque<ExpressionEnvironment<?, ?, ?>> stack = expressionEnvironmentStackTl.get();
+        Deque<ExpressionEnvironment<?, ?, ?>> stack = EXPRESSION_ENVIRONMENT_STACK_TL.get();
         if (stack == null) {
             stack = new ArrayDeque<>();
-            expressionEnvironmentStackTl.set(stack);
+            EXPRESSION_ENVIRONMENT_STACK_TL.set(stack);
         }
         stack.push(env);
     }
 
     public static void popExpressionEnvironment() {
-        Deque<ExpressionEnvironment<?, ?, ?>> stack = expressionEnvironmentStackTl.get();
+        Deque<ExpressionEnvironment<?, ?, ?>> stack = EXPRESSION_ENVIRONMENT_STACK_TL.get();
         stack.pop();
     }
 
     public static <F extends ObjectType, V extends PrismValue, D extends ItemDefinition<?>>
     ExpressionEnvironment<F, V, D> getExpressionEnvironment() {
-        Deque<ExpressionEnvironment<?, ?, ?>> stack = expressionEnvironmentStackTl.get();
+        Deque<ExpressionEnvironment<?, ?, ?>> stack = EXPRESSION_ENVIRONMENT_STACK_TL.get();
         if (stack == null) {
             return null;
         }

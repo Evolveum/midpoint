@@ -108,8 +108,15 @@ public class MappingEvaluator {
         } catch (Exception e) {
             task.recordStateMessage("Evaluation of mapping " + mapping.getMappingContextDescription() + " finished with error in "
                     + (System.currentTimeMillis() - start) + " ms.");
-            MiscUtil.throwAsSame(e, e.getMessage() + " in " + mapping.getContextDescription());
-            throw e; // To make compiler happy
+            //noinspection IfStatementWithIdenticalBranches
+            if (e instanceof ExpressionEvaluationException) {
+                // The exception probably contains the correct context description
+                throw e;
+            } else {
+                // Let us add the context information , as it is probably not there
+                MiscUtil.throwAsSame(e, e.getMessage() + " in " + mapping.getContextDescription());
+                throw e; // To make compiler happy
+            }
         } finally {
             ModelExpressionThreadLocalHolder.popExpressionEnvironment();
             recordMappingOperation(mapping, task, start);
