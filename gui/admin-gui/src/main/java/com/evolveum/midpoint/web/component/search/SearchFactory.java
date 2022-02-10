@@ -399,8 +399,8 @@ public class SearchFactory {
         SearchBoxConfigurationType searchBoxConfig = createDefaultSearchBoxConfiguration(searchConfigurationWrapper.getTypeClass(), discriminator, modelServiceLocator);
         searchBoxConfig = combineSearchBoxConfiguration(searchBoxConfig, searchConfigurationWrapper.getConfig());
 
-        QName typeQname = WebComponentUtil.classToQName(PrismContext.get(), (Class<? extends ObjectType>) searchConfigurationWrapper.getTypeClass());
         if (searchConfigurationWrapper.getTypeClass().isAssignableFrom(ObjectType.class)) {
+            QName typeQname = WebComponentUtil.classToQName(PrismContext.get(), (Class<? extends ObjectType>) searchConfigurationWrapper.getTypeClass());
             SearchBoxConfigurationType configuredSearchBoxConfig = getSearchBoxConfiguration(modelServiceLocator,
                     typeQname, searchConfigurationWrapper.getCollectionViewName(), panelType);
             searchBoxConfig = combineSearchBoxConfiguration(searchBoxConfig, configuredSearchBoxConfig);
@@ -413,8 +413,11 @@ public class SearchFactory {
         createSearchItemWrapperList(searchConfigurationWrapper.getTypeClass(), searchConfigurationWrapper, discriminator, modelServiceLocator);
         com.evolveum.midpoint.gui.impl.component.search.Search search =
                 new com.evolveum.midpoint.gui.impl.component.search.Search(Model.of(searchConfigurationWrapper));
-        search.getConfig().setAllowToConfigureSearchItems(
-                isAllowToConfigureSearchItems(modelServiceLocator, typeQname, searchConfigurationWrapper.getCollectionViewName(), panelType));
+        if (searchConfigurationWrapper.getTypeClass().isAssignableFrom(ObjectType.class)) {
+            QName typeQname = WebComponentUtil.classToQName(PrismContext.get(), (Class<? extends ObjectType>) searchConfigurationWrapper.getTypeClass());
+            search.getConfig().setAllowToConfigureSearchItems(
+                    isAllowToConfigureSearchItems(modelServiceLocator, typeQname, searchConfigurationWrapper.getCollectionViewName(), panelType));
+        }
         return search;
     }
 
