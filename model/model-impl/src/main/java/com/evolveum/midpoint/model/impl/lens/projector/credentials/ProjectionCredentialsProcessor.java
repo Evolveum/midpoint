@@ -17,9 +17,13 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -38,10 +42,6 @@ import com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluato
 import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingInitializer;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingOutputProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingTimeEval;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
@@ -79,12 +79,13 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(ProjectionCredentialsProcessor.class);
 
     @Autowired private PrismContext prismContext;
-    @Autowired private MappingEvaluator mappingEvaluator;
+    @Autowired private ProjectionMappingSetEvaluator projectionMappingSetEvaluator;
     @Autowired private ValuePolicyProcessor valuePolicyProcessor;
     @Autowired private Protector protector;
     @Autowired private OperationalDataManager operationalDataManager;
     @Autowired private ModelObjectResolver modelObjectResolver;
     @Autowired private ClockworkMedic medic;
+    @Autowired private ContextLoader contextLoader;
 
     @ProcessorMethod
     public <F extends FocusType> void processProjectionCredentials(LensContext<F> context,
@@ -248,10 +249,43 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
                     return true;
                 };
 
+        String projCtxDesc = projCtx.toHumanReadableString();
+        PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
 
-        mappingEvaluator.evaluateOutboundMapping(context, projCtx, outboundMappingBeans,
-                SchemaConstants.PATH_PASSWORD_VALUE, initializer, processor,
-                now, MappingTimeEval.CURRENT, evaluateWeak, "password mapping", task, result);
+        MappingInitializer<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> internalInitializer =
+                builder -> {
+
+                    builder.addVariableDefinitions(ModelImplUtils.getDefaultVariablesMap(context, projCtx, true));
+
+                    builder.mappingKind(MappingKindType.OUTBOUND);
+                    builder.originType(OriginType.OUTBOUND);
+                    builder.implicitTargetPath(SchemaConstants.PATH_PASSWORD_VALUE);
+                    builder.originObject(projCtx.getResource());
+
+                    initializer.initialize(builder);
+
+                    return builder;
+                };
+
+        MappingEvaluatorParams<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>, ShadowType, F> params = new MappingEvaluatorParams<>();
+        params.setMappingTypes(outboundMappingBeans);
+        params.setMappingDesc("password mapping" + " in projection " + projCtxDesc);
+        params.setNow(now);
+        params.setInitializer(internalInitializer);
+        params.setProcessor(processor);
+        params.setTargetLoader(new ProjectionMappingLoader<>(projCtx, contextLoader));
+        params.setAPrioriTargetObject(shadowNew);
+        params.setAPrioriTargetDelta(LensUtil.findAPrioriDelta(context, projCtx));
+        params.setTargetContext(projCtx);
+        params.setDefaultTargetItemPath(SchemaConstants.PATH_PASSWORD_VALUE);
+        if (context.getFocusContext() != null) {
+            params.setSourceContext(context.getFocusContext().getObjectDeltaObjectAbsolute());
+        }
+        params.setEvaluateCurrent(MappingTimeEval.CURRENT);
+        params.setEvaluateWeak(evaluateWeak);
+        params.setContext(context);
+        params.setHasFullTargetObject(projCtx.hasFullShadow());
+        projectionMappingSetEvaluator.evaluateMappingsToTriples(params, task, result);
 
     }
 

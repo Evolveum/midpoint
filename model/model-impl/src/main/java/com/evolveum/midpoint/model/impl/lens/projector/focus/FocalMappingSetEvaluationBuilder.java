@@ -14,14 +14,18 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.FocalMappingEvaluationRequest;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.TargetObjectSpecification;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
 
-public final class MappingSetEvaluationBuilder<F extends AssignmentHolderType, T extends AssignmentHolderType> {
+/**
+ * Builder for {@link FocalMappingSetEvaluation} objects.
+ *
+ * @param <F> type of the focus, in which the whole operation is carried out, i.e. type of {@link LensContext}
+ * @param <T> type of the target object
+ */
+public final class FocalMappingSetEvaluationBuilder<F extends AssignmentHolderType, T extends AssignmentHolderType> {
 
     ModelBeans beans;
     LensContext<F> context;
@@ -29,77 +33,77 @@ public final class MappingSetEvaluationBuilder<F extends AssignmentHolderType, T
     ObjectTemplateMappingEvaluationPhaseType phase;
     ObjectDeltaObject<F> focusOdo;
     TargetObjectSpecification<T> targetSpecification;
-    MappingSetEvaluation.TripleCustomizer<?, ?> tripleCustomizer;
-    MappingSetEvaluation.EvaluatedMappingConsumer mappingConsumer;
+    FocalMappingSetEvaluation.TripleCustomizer<?, ?> tripleCustomizer;
+    FocalMappingSetEvaluation.EvaluatedMappingConsumer mappingConsumer;
     int iteration;
     String iterationToken;
     MappingEvaluationEnvironment env;
     OperationResult result;
 
-    MappingSetEvaluationBuilder() {
+    FocalMappingSetEvaluationBuilder() {
     }
 
-    public MappingSetEvaluationBuilder<F, T> beans(ModelBeans val) {
+    public FocalMappingSetEvaluationBuilder<F, T> beans(ModelBeans val) {
         beans = val;
         return this;
     }
 
-    public MappingSetEvaluationBuilder<F, T> context(LensContext<F> val) {
+    public FocalMappingSetEvaluationBuilder<F, T> context(LensContext<F> val) {
         context = val;
         return this;
     }
 
-    MappingSetEvaluationBuilder<F, T> evaluationRequests(List<? extends FocalMappingEvaluationRequest<?, ?>> val) {
+    FocalMappingSetEvaluationBuilder<F, T> evaluationRequests(List<? extends FocalMappingEvaluationRequest<?, ?>> val) {
         evaluationRequests = val;
         return this;
     }
 
-    MappingSetEvaluationBuilder<F, T> phase(ObjectTemplateMappingEvaluationPhaseType val) {
+    FocalMappingSetEvaluationBuilder<F, T> phase(ObjectTemplateMappingEvaluationPhaseType val) {
         phase = val;
         return this;
     }
 
-    MappingSetEvaluationBuilder<F, T> focusOdo(ObjectDeltaObject<F> val) {
+    FocalMappingSetEvaluationBuilder<F, T> focusOdo(ObjectDeltaObject<F> val) {
         focusOdo = val;
         return this;
     }
 
-    MappingSetEvaluationBuilder<F, T> targetSpecification(TargetObjectSpecification<T> val) {
+    FocalMappingSetEvaluationBuilder<F, T> targetSpecification(TargetObjectSpecification<T> val) {
         targetSpecification = val;
         return this;
     }
 
-    MappingSetEvaluationBuilder<F, T> tripleCustomizer(MappingSetEvaluation.TripleCustomizer<?, ?> val) {
+    FocalMappingSetEvaluationBuilder<F, T> tripleCustomizer(FocalMappingSetEvaluation.TripleCustomizer<?, ?> val) {
         tripleCustomizer = val;
         return this;
     }
 
-    MappingSetEvaluationBuilder<F, T> mappingConsumer(MappingSetEvaluation.EvaluatedMappingConsumer val) {
+    FocalMappingSetEvaluationBuilder<F, T> mappingConsumer(FocalMappingSetEvaluation.EvaluatedMappingConsumer val) {
         mappingConsumer = val;
         return this;
     }
 
-    public MappingSetEvaluationBuilder<F, T> iteration(int val) {
+    public FocalMappingSetEvaluationBuilder<F, T> iteration(int val) {
         iteration = val;
         return this;
     }
 
-    public MappingSetEvaluationBuilder<F, T> iterationToken(String val) {
+    public FocalMappingSetEvaluationBuilder<F, T> iterationToken(String val) {
         iterationToken = val;
         return this;
     }
 
-    public MappingSetEvaluationBuilder<F, T> env(MappingEvaluationEnvironment val) {
+    public FocalMappingSetEvaluationBuilder<F, T> env(MappingEvaluationEnvironment val) {
         env = val;
         return this;
     }
 
-    public MappingSetEvaluationBuilder<F, T> result(OperationResult val) {
+    public FocalMappingSetEvaluationBuilder<F, T> result(OperationResult val) {
         result = val;
         return this;
     }
 
-    public MappingSetEvaluation<F, T> build() {
-        return new MappingSetEvaluation<>(this);
+    public FocalMappingSetEvaluation<F, T> build() {
+        return new FocalMappingSetEvaluation<>(this);
     }
 }

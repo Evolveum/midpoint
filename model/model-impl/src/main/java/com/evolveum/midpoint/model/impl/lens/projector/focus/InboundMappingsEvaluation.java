@@ -60,7 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
- * Evaluation of inbound mappings.
+ * Evaluation of inbound mappings from all projections in given lens context.
  *
  * Responsibility of this class:
  *
@@ -154,6 +154,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
 
         private final ResourceObjectDefinition projectionDefinition;
 
+        /** Should we stop processing this projection? E.g. if we cannot load it. */
         private boolean stop;
 
         private ProjectionMappingsCollector(LensProjectionContext projectionContext) throws SchemaException {
@@ -245,15 +246,17 @@ class InboundMappingsEvaluation<F extends FocusType> {
             return ObjectDelta.isDelete(projectionContext.getSyncDelta()) || ObjectDelta.isDelete(projectionContext.getPrimaryDelta());
         }
 
-        private <V extends PrismValue, D extends ItemDefinition> void collectAttributeInbounds(QName attributeName)
+        private <T> void collectAttributeInbounds(QName attributeName)
                 throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
                 SecurityViolationException, CommunicationException {
 
-            final ItemDelta<V, D> attributeAPrioriDelta;
+            PropertyDelta<T> attributeAPrioriDelta;
             if (aPrioriDelta != null) {
-                attributeAPrioriDelta = aPrioriDelta.findItemDelta(ItemPath.create(SchemaConstants.C_ATTRIBUTES, attributeName));
-                if (attributeAPrioriDelta == null && !projectionContext.isFullShadow() &&
-                        !LensUtil.hasDependentContext(context, projectionContext)) {
+                attributeAPrioriDelta =
+                        aPrioriDelta.findPropertyDelta(ItemPath.create(SchemaConstants.C_ATTRIBUTES, attributeName));
+                if (attributeAPrioriDelta == null
+                        && !projectionContext.isFullShadow()
+                        && !LensUtil.hasDependentContext(context, projectionContext)) {
                     LOGGER.trace("Skipping inbound for {} in {}: Not a full shadow and account a priori delta exists, "
                                     + "but doesn't have change for the attribute.",
                             attributeName, projectionContext.getResourceShadowDiscriminator());
@@ -263,7 +266,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 attributeAPrioriDelta = null;
             }
 
-            ResourceAttributeDefinition<?> attributeDef = findAttributeDefinition(attributeName);
+            ResourceAttributeDefinition<T> attributeDef = findAttributeDefinition(attributeName);
 
             if (attributeDef.isIgnored(LayerType.MODEL)) {
                 LOGGER.trace("Skipping inbound for attribute {} in {} because the attribute is ignored",
@@ -299,8 +302,9 @@ class InboundMappingsEvaluation<F extends FocusType> {
                     return;
                 }
 
-                if (attributeAPrioriDelta == null && !projectionContext.isFullShadow() &&
-                        !LensUtil.hasDependentContext(context, projectionContext)) {
+                if (attributeAPrioriDelta == null
+                        && !projectionContext.isFullShadow()
+                        && !LensUtil.hasDependentContext(context, projectionContext)) {
                     LOGGER.trace("Skipping inbound for {} in {}: Not a full shadow and no a priori delta for processed property.",
                             attributeName, projectionContext.getResourceShadowDiscriminator());
                     return;
@@ -319,7 +323,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                     return;
                 }
 
-                PrismProperty currentAttribute = getCurrentAttribute(attributeName);
+                PrismProperty<T> currentAttribute = getCurrentAttribute(attributeName);
                 LOGGER.trace("Collecting attribute inbound mapping for {}. Relevant values are:\n"
                                 + "- a priori delta:\n{}\n"
                                 + "- a priori attribute delta:\n{}\n"
@@ -328,15 +332,20 @@ class InboundMappingsEvaluation<F extends FocusType> {
                         DebugUtil.debugDumpLazily(attributeAPrioriDelta, 1),
                         DebugUtil.debugDumpLazily(currentAttribute, 1));
 
-                //noinspection unchecked
-                collectMapping(inboundMappingBean, attributeName, currentAttribute, attributeAPrioriDelta, (D) attributeDef,
+                collectMapping(
+                        inboundMappingBean,
+                        attributeName,
+                        currentAttribute,
+                        attributeAPrioriDelta,
+                        attributeDef,
                         null);
             }
         }
 
         @NotNull
-        private ResourceAttributeDefinition<?> findAttributeDefinition(QName attributeName) {
-            return java.util.Objects.requireNonNull(
+        private <T> ResourceAttributeDefinition<T> findAttributeDefinition(QName attributeName) {
+            //noinspection unchecked
+            return (ResourceAttributeDefinition<T>) java.util.Objects.requireNonNull(
                     projectionDefinition.findAttributeDefinition(attributeName),
                     () -> "No definition for attribute " + attributeName);
         }
@@ -349,7 +358,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
         }
 
         @Nullable
-        private PrismProperty getCurrentAttribute(QName attributeName) {
+        private <T> PrismProperty<T> getCurrentAttribute(QName attributeName) {
             if (currentProjection != null) {
                 return currentProjection.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName));
             } else {
@@ -643,7 +652,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
 //                }
 //            }
 
-            MappingInitializer<PrismValue, ItemDefinition> initializer =
+            MappingInitializer<PrismValue, ItemDefinition<?>> initializer =
                     (builder) -> {
                         if (projectionContext.getObjectNew() == null) {
                             projectionContext.recompute();
@@ -748,7 +757,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                         return false;
                     };
 
-            MappingEvaluatorParams<PrismValue, ItemDefinition, F, F> params = new MappingEvaluatorParams<>();
+            MappingEvaluatorParams<PrismValue, ItemDefinition<?>, F, F> params = new MappingEvaluatorParams<>();
             params.setMappingTypes(inboundMappingBeans);
             params.setMappingDesc("inbound mapping for " + sourcePath + " in " + projectionContext.getResource());
             params.setNow(env.now);
@@ -761,13 +770,18 @@ class InboundMappingsEvaluation<F extends FocusType> {
             params.setEvaluateCurrent(MappingTimeEval.CURRENT);
             params.setContext(context);
             params.setHasFullTargetObject(true);
-            beans.mappingEvaluator.evaluateMappingSetProjection(params, env.task, result);
+            beans.projectionMappingSetEvaluator.evaluateMappingsToTriples(params, env.task, result);
         }
 
-        private <V extends PrismValue, D extends ItemDefinition> void collectMapping(MappingType inboundMappingBean,
-                QName projectionItemName, Item<V, D> currentProjectionItem, ItemDelta<V, D> itemAPrioriDelta,
-                D itemDefinition, VariableProducer variableProducer) throws ObjectNotFoundException, SchemaException,
-                ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+        private <V extends PrismValue, D extends ItemDefinition<?>> void collectMapping(
+                MappingType inboundMappingBean,
+                QName projectionItemName,
+                Item<V, D> currentProjectionItem,
+                ItemDelta<V, D> itemAPrioriDelta,
+                D itemDefinition,
+                VariableProducer variableProducer)
+                throws ObjectNotFoundException, SchemaException, ConfigurationException, CommunicationException,
+                SecurityViolationException, ExpressionEvaluationException {
 
             if (currentProjectionItem != null && currentProjectionItem.hasRaw()) {
                 throw new SystemException("Property " + currentProjectionItem + " has raw parsing state, such property cannot be used in inbound expressions");
@@ -793,7 +807,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 beans.projectionValueMetadataCreator.setValueMetadata(itemAPrioriDelta, projectionContext, env, result);
             }
 
-            Source<V, D> defaultSource = new Source<>(currentProjectionItem, itemAPrioriDelta, null, ExpressionConstants.VAR_INPUT_QNAME, itemDefinition);
+            Source<V, D> defaultSource = new Source<>(
+                    currentProjectionItem, itemAPrioriDelta, null, ExpressionConstants.VAR_INPUT_QNAME, itemDefinition);
             defaultSource.recompute();
 
             MappingBuilder<V, D> builder = beans.mappingFactory.<V, D>createMappingBuilder()
@@ -823,11 +838,16 @@ class InboundMappingsEvaluation<F extends FocusType> {
             if (!context.getFocusContext().isDelete()) {
                 assert focus != null;
                 TypedValue<PrismObject<F>> targetContext = new TypedValue<>(focus);
-                VariablesMap variables = builder.getVariables();
-                Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingBean.getTarget(), targetContext,
-                        variables, beans.mappingFactory.getObjectResolver(), "resolving target values",
-                        beans.prismContext, env.task, result);
-                builder.originalTargetValues(originalValues);
+                builder.originalTargetValues(
+                        ExpressionUtil.computeTargetValues(
+                                inboundMappingBean.getTarget(),
+                                targetContext,
+                                builder.getVariables(),
+                                beans.mappingFactory.getObjectResolver(),
+                                "resolving target values",
+                                beans.prismContext,
+                                env.task,
+                                result));
             }
 
             MappingImpl<V, D> mapping = builder.build();
@@ -997,7 +1017,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition> void mergeMappingOutput(MappingImpl<V, D> mapping,
+    private <V extends PrismValue, D extends ItemDefinition<?>> void mergeMappingOutput(MappingImpl<V, D> mapping,
             ItemPath targetPath, boolean allToDelete) {
 
         DeltaSetTriple<ItemValueWithOrigin<V, D>> ivwoTriple = ItemValueWithOrigin.createOutputTriple(mapping, beans.prismContext);
@@ -1089,7 +1109,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
         }
     }
 
-    static class InboundMappingStruct<V extends PrismValue, D extends ItemDefinition> {
+    static class InboundMappingStruct<V extends PrismValue, D extends ItemDefinition<?>> {
         private final MappingImpl<V, D> mapping;
         private final LensProjectionContext projectionContext;
 

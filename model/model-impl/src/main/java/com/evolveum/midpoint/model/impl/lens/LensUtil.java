@@ -745,7 +745,7 @@ public class LensUtil {
         }
     }
 
-    public static <V extends PrismValue,D extends ItemDefinition> MappingBuilder<V,D> addAssignmentPathVariables(MappingBuilder<V,D> builder, AssignmentPathVariables assignmentPathVariables, PrismContext prismContext) {
+    public static <V extends PrismValue,D extends ItemDefinition<?>> MappingBuilder<V,D> addAssignmentPathVariables(MappingBuilder<V,D> builder, AssignmentPathVariables assignmentPathVariables, PrismContext prismContext) {
         VariablesMap variablesMap = new VariablesMap();
         ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variablesMap, prismContext);
         return builder.addVariableDefinitions(variablesMap);

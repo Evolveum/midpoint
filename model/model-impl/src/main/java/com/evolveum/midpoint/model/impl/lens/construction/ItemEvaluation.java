@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * @param <RD> Refined definition for attribute/association.
  */
-abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismValue, D extends ItemDefinition, RD> {
+abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismValue, D extends ItemDefinition<?>, RD> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemEvaluation.class);
 
@@ -115,7 +115,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         this.mappingKind = mappingKind;
     }
 
-    public MappingImpl<V, D> getEvaluatedMapping() {
+    MappingImpl<V, D> getEvaluatedMapping() {
         return evaluatedMapping;
     }
 

@@ -1138,7 +1138,7 @@ public interface MidpointFunctions {
 
     ModelProjectionContext getProjectionContext();
 
-    <V extends PrismValue, D extends ItemDefinition> Mapping<V,D> getMapping();
+    <V extends PrismValue, D extends ItemDefinition<?>> Mapping<V, D> getMapping();
 
     Object executeAdHocProvisioningScript(ResourceType resource, String language, String code)
             throws SchemaException, ObjectNotFoundException,

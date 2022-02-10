@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
+import com.evolveum.midpoint.model.impl.lens.projector.focus.FocalMappingSetEvaluation;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 /**
- *  Tells MappingSetEvaluator how to find target object.
+ *  Tells {@link FocalMappingSetEvaluation} how to find target object.
  *
  *  It can be either the source object itself (standard template mappings, assigned focus mappings)
  *  or another object (persona mappings). It can be fixed or derived from current ODO that is being updated

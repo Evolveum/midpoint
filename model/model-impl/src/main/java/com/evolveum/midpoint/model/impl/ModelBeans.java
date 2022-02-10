@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionValueMetadataCreator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
@@ -88,6 +89,7 @@ public class ModelBeans {
     @Autowired public MatchingRuleRegistry matchingRuleRegistry;
     @Autowired public AutoAssignMappingCollector autoAssignMappingCollector;
     @Autowired public MappingEvaluator mappingEvaluator;
+    @Autowired public ProjectionMappingSetEvaluator projectionMappingSetEvaluator;
     @Autowired public MappingFactory mappingFactory;
     @Autowired public ModelCommonBeans commonBeans;
     @Autowired public ContextLoader contextLoader;

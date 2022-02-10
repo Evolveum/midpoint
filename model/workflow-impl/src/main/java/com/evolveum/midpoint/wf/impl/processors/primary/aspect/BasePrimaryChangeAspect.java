@@ -14,9 +14,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
@@ -109,14 +107,22 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
         return createRelationResolver(object != null ? object.asPrismObject() : null, result);
     }
 
-    private <O extends ObjectType, F extends ObjectType> List<ObjectReferenceType> resolveReferenceFromFilter(Class<O> clazz, SearchFilterType filter, String sourceDescription,
-            LensContext<F> lensContext, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ExpressionEnvironment<F,?,?> env = new ExpressionEnvironment<>();
-        env.setLensContext(lensContext);
-        env.setCurrentResult(result);
-        env.setCurrentTask(task);
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
+    private <O extends ObjectType, F extends ObjectType> List<ObjectReferenceType> resolveReferenceFromFilter(
+            Class<O> clazz,
+            SearchFilterType filter,
+            String sourceDescription,
+            LensContext<F> lensContext,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+
+        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
+                new ExpressionEnvironment.ExpressionEnvironmentBuilder<F, PrismValue, ItemDefinition<?>>()
+                        .lensContext(lensContext)
+                        .currentResult(result)
+                        .currentTask(task)
+                        .build());
         try {
 
             PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
