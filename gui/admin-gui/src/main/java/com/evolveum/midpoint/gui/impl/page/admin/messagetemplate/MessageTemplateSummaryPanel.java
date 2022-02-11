@@ -16,13 +16,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.messagetemplate;
 
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MessageTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
-
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -51,15 +50,5 @@ public class MessageTemplateSummaryPanel extends ObjectSummaryPanel<MessageTempl
     @Override
     protected boolean isIdentifierVisible() {
         return false;
-    }
-
-    @Override
-    protected IModel<String> getTitleModel() {
-        return Model.of("title");
-    }
-
-    @Override
-    protected IModel<String> getTitle2Model() {
-        return super.getTitle2Model();
     }
 }
