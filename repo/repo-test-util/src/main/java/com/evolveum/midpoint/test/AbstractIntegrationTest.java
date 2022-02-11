@@ -132,9 +132,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
-/**
- * @author Radovan Semancik
- */
 @Listeners({ CurrentTestResultHolder.class })
 public abstract class AbstractIntegrationTest extends AbstractSpringTest
         implements InfraTestMixin {
@@ -225,13 +222,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      */
     @PostConstruct
     public void initSystem() throws Exception {
-        TestSpringBeans.setApplicationContext(
-                Objects.requireNonNull(applicationContext, "No Spring application context present"));
-        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         if (initSystemExecuted) {
             logger.trace("initSystem: already called for class {} - IGNORING", getClass().getName());
             return;
         }
+
+        TestSpringBeans.setApplicationContext(
+                Objects.requireNonNull(applicationContext, "No Spring application context present"));
+        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         initSystemExecuted = true;
 
         // Check whether we are already initialized
