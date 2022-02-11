@@ -8,11 +8,7 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AceEditor;
-
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -43,7 +39,6 @@ public class AceEditorPanel extends BasePanel<String> {
         initLayout(minSize);
     }
 
-
     private void initLayout(int minSize) {
         WebMarkupContainer titleContainer = new WebMarkupContainer(ID_TITLE_CONTAINER);
         titleContainer.setOutputMarkupId(true);
@@ -54,22 +49,12 @@ public class AceEditorPanel extends BasePanel<String> {
         title.setOutputMarkupId(true);
         titleContainer.add(title);
 
-        AceEditor editor = new AceEditor(ID_EDITOR, getModel());
-        editor.setReadonly(false);
-        if (minSize > 0) {
-            editor.setMinHeight(minSize);
-        }
-        editor.setResizeToMaxHeight(minSize == 0);
-//        editor.setResizeToMaxHeight(isResizeToMaxHeight());
+        SimpleAceEditorPanel editor = new SimpleAceEditorPanel(ID_EDITOR, getModel(), minSize);
         add(editor);
-        editor.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
     }
 
-    public AceEditor getEditor(){
-        return (AceEditor)get(ID_EDITOR);
-    }
-
-    protected boolean isResizeToMaxHeight() {
-        return true;
+    public AceEditor getEditor() {
+        SimpleAceEditorPanel panel = (SimpleAceEditorPanel) get(ID_EDITOR);
+        return panel != null ? panel.getEditor() : null;
     }
 }

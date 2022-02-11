@@ -89,15 +89,8 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
             }
         }
         AceEditorPanel expressionField = new AceEditorPanel(ID_EXPRESSION_FIELD, null,
-                new ExpressionModel(Model.of(expressionType), getPageBase()), 200) {
+                new ExpressionModel(Model.of(expressionType), getPageBase()), 200);
 
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected boolean isResizeToMaxHeight() {
-                return false;
-            }
-        };
         expressionField.getEditor().add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
             private static final long serialVersionUID = 1L;
 
