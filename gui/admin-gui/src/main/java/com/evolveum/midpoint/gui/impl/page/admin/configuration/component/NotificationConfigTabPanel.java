@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2020 Evolveum and contributors
+ * Copyright (C) 2018-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,8 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -37,6 +35,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
@@ -90,9 +89,6 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
     private static final String ID_FILE_PATH = "filePath";
     private static final String ID_REMOVE_BUTTON = "removeButton";
 
-//    private MailConfigurationType mailConfigType;
-//    private List<MailServerConfiguration> mailServers;
-
     public NotificationConfigTabPanel(String id, IModel<PrismContainerWrapper<NotificationConfigurationType>> model) {
         super(id, model);
     }
@@ -114,13 +110,19 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
     protected void initLayout() {
 
-        PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfig = PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_MAIL);
+        PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfig =
+                PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_MAIL);
 
         add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig));
 
         PropertyModel<MailConfigurationType> mailConfigType = new ItemRealValueModel<>(new PropertyModel<>(mailConfig, "values[0]"));
 
         if (mailConfigType.getObject() == null) {
+            // TODO: This fails for deprecated "mail" element if it's missing, so it's not deprecated yet.
+            //  Reason: mailConfig.getObject() == null
+            //  Root cause: ItemWrapperFactoryImpl.skipCreateWrapper() has a code to skip empty & deprecated stuff.
+            //  The object for mailConfig can't be created with createItemWrapper either as it would be skipped again and return null.
+            //  Let's create new GUI for the new transport configuration first without to-be deprecated components.
             mailConfigType.setObject(new MailConfigurationType());
         }
 
@@ -144,7 +146,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         files.setOutputMarkupId(true);
         add(files);
 
-        ListView<PrismPropertyValueWrapper<FileConfigurationType>> values = new ListView<PrismPropertyValueWrapper<FileConfigurationType>>("values",
+        ListView<PrismPropertyValueWrapper<FileConfigurationType>> values = new ListView<>("values",
                 new PropertyModel<>(fileConfig, "values")) {
             private static final long serialVersionUID = 1L;
 
@@ -155,7 +157,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
                 item.add(createHeader(ID_VALUE_HEADER, fileConfigType == null || fileConfigType.getName() == null || fileConfigType.getName().isEmpty() ? (FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details") : fileConfigType.getName()));
 
-                AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
+                AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -174,7 +176,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
-                        ((FileConfigurationType) item.getModelObject().getRealValue()).setName(name.getModelObject());
+                        item.getModelObject().getRealValue().setName(name.getModelObject());
                     }
                 });
                 item.add(name);
@@ -204,7 +206,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         values.setReuseItems(true);
         files.add(values);
 
-        AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
+        AjaxLink<Void> addButton = new AjaxLink<>(ID_ADD_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -228,8 +230,8 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         List<MailServerConfiguration> mailServers = getListOfMailServerConfiguration(mailConfigType.getObject().getServer());
         PageStorage pageStorage = getPageBase().getSessionStorage().getNotificationConfigurationTabMailServerTableStorage();
-        ISortableDataProvider<MailServerConfiguration, String> provider = new ListDataProvider<MailServerConfiguration>(this,
-                new ListModel<MailServerConfiguration>(mailServers) {
+        ISortableDataProvider<MailServerConfiguration, String> provider = new ListDataProvider<>(this,
+                new ListModel<>(mailServers) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -253,9 +255,8 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             }
         };
 
-        UserProfileStorage userProfile = getPageBase().getSessionStorage().getUserProfile();
         UserProfileStorage.TableId tableId = UserProfileStorage.TableId.NOTIFICATION_TAB_MAIL_SERVER_TABLE;
-        BoxedTablePanel<MailServerConfiguration> table = new BoxedTablePanel<MailServerConfiguration>(ID_MAIL_SERVERS_TABLE, provider, initMailServersColumns(), tableId) {
+        BoxedTablePanel<MailServerConfiguration> table = new BoxedTablePanel<>(ID_MAIL_SERVERS_TABLE, provider, initMailServersColumns(), tableId) {
 
             private static final long serialVersionUID = 1L;
 
@@ -315,7 +316,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         List<IColumn<MailServerConfiguration, String>> columns = new ArrayList<>();
         columns.add(new CheckBoxHeaderColumn<>());
 
-        columns.add(new IconColumn<MailServerConfiguration>(Model.of("")) {
+        columns.add(new IconColumn<>(Model.of("")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -326,7 +327,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         });
 
-        columns.add(new EditableAjaxLinkColumn<MailServerConfiguration>(createStringResource("MailServerConfigurationType.host")) {
+        columns.add(new EditableAjaxLinkColumn<>(createStringResource("MailServerConfigurationType.host")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -348,7 +349,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             }
         });
 
-        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.port")) {
+        columns.add(new EditableColumn<>(createStringResource("MailServerConfigurationType.port")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -366,7 +367,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             }
         });
 
-        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.username")) {
+        columns.add(new EditableColumn<>(createStringResource("MailServerConfigurationType.username")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -384,7 +385,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             }
         });
 
-        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.password")) {
+        columns.add(new EditableColumn<>(createStringResource("MailServerConfigurationType.password")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -400,7 +401,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             }
         });
 
-        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.transportSecurity")) {
+        columns.add(new EditableColumn<>(createStringResource("MailServerConfigurationType.transportSecurity")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -458,7 +459,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
     }
 
     private ColumnMenuAction<MailServerConfiguration> createDeleteColumnAction() {
-        return new ColumnMenuAction<MailServerConfiguration>() {
+        return new ColumnMenuAction<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -498,7 +499,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
     }
 
     private ColumnMenuAction<MailServerConfiguration> createEditColumnAction() {
-        return new ColumnMenuAction<MailServerConfiguration>() {
+        return new ColumnMenuAction<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -575,5 +576,4 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         }
 
     }
-
 }
