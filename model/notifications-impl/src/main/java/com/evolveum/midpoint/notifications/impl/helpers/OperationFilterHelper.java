@@ -7,41 +7,39 @@
 
 package com.evolveum.midpoint.notifications.impl.helpers;
 
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseEventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
-import org.springframework.stereotype.Component;
 
-/**
- * @author mederly
- */
 @Component
 public class OperationFilterHelper extends BaseNotificationHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationFilterHelper.class);
 
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType) {
+    public boolean processEvent(Event event, BaseEventHandlerType eventHandlerConfig) {
 
-        if (eventHandlerType.getOperation().isEmpty()) {
+        if (eventHandlerConfig.getOperation().isEmpty()) {
             return true;
         }
 
-        logStart(LOGGER, event, eventHandlerType, eventHandlerType.getOperation());
+        logStart(LOGGER, event, eventHandlerConfig, eventHandlerConfig.getOperation());
 
         boolean retval = false;
 
-        for (EventOperationType eventOperationType : eventHandlerType.getOperation()) {
+        for (EventOperationType eventOperationType : eventHandlerConfig.getOperation()) {
             if (eventOperationType == null) {
-                LOGGER.warn("Filtering on null eventOperationType; filter = " + eventHandlerType);
+                LOGGER.warn("Filtering on null eventOperationType; filter = " + eventHandlerConfig);
             } else if (event.isOperationType(eventOperationType)) {
                 retval = true;
                 break;
             }
         }
 
-        logEnd(LOGGER, event, eventHandlerType, retval);
+        logEnd(LOGGER, event, eventHandlerConfig, retval);
         return retval;
     }
 }
