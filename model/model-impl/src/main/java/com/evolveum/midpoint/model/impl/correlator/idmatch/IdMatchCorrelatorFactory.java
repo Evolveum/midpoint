@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.correlator.CorrelatorFactory;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchService;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -52,7 +53,7 @@ public class IdMatchCorrelatorFactory implements CorrelatorFactory<IdMatchCorrel
 
     @Override
     public @NotNull IdMatchCorrelator instantiate(
-            @NotNull IdMatchCorrelatorType configuration,
+            @NotNull CorrelatorContext<IdMatchCorrelatorType> configuration,
             @NotNull Task task,
             @NotNull OperationResult result) throws ConfigurationException {
         return new IdMatchCorrelator(configuration, serviceOverride, beans);

@@ -16,7 +16,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.H2Templates;
-import com.querydsl.sql.MySQLTemplates;
 import com.querydsl.sql.PostgreSQLTemplates;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,11 +39,6 @@ public enum QuerydslUtils {
             case H2:
                 querydslConfiguration =
                         new Configuration(H2Templates.DEFAULT);
-                break;
-            case MYSQL:
-            case MARIADB:
-                querydslConfiguration =
-                        new Configuration(MySQLTemplates.DEFAULT);
                 break;
             case POSTGRESQL:
                 querydslConfiguration =

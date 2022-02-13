@@ -1,41 +1,37 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.helpers;
+
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
-import org.springframework.stereotype.Component;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseEventHandlerType;
 
-/**
- * @author mederly
- */
 @Component
 public abstract class BaseNotificationHelper {
 
-    protected void logStart(Trace LOGGER, Event event, EventHandlerType eventHandlerType) {
-        logStart(LOGGER, event, eventHandlerType, null);
+    protected void logStart(Trace LOGGER, Event event, BaseEventHandlerType eventHandlerConfig) {
+        logStart(LOGGER, event, eventHandlerConfig, null);
     }
 
-    protected void logStart(Trace LOGGER, Event event, EventHandlerType eventHandlerType, Object additionalData) {
+    protected void logStart(Trace LOGGER, Event event, BaseEventHandlerType eventHandlerConfig, Object additionalData) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Starting processing event " + event + " with handler " +
-                    eventHandlerType.getClass() + " (name: " + eventHandlerType.getName() +
+                    eventHandlerConfig.getClass() + " (name: " + eventHandlerConfig.getName() +
                     (additionalData != null ? (", parameters: " + additionalData) :
-                                             (", configuration: " + eventHandlerType)) +
+                            (", configuration: " + eventHandlerConfig)) +
                     ")");
         }
     }
 
-    public void logEnd(Trace LOGGER, Event event, EventHandlerType eventHandlerType, boolean result) {
+    public void logEnd(Trace LOGGER, Event event, BaseEventHandlerType eventHandlerConfig, boolean result) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Finishing processing event " + event + " result = " + result);
         }
     }
-
 }

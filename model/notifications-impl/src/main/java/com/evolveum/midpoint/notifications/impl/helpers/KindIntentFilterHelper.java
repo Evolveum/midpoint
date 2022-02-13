@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2014 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.helpers;
 
 import org.springframework.stereotype.Component;
@@ -13,7 +12,7 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseEventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 @Component
@@ -21,9 +20,9 @@ public class KindIntentFilterHelper extends BaseNotificationHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(KindIntentFilterHelper.class);
 
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType) {
+    public boolean processEvent(Event event, BaseEventHandlerType eventHandlerConfig) {
 
-        if (eventHandlerType.getObjectKind().isEmpty() && eventHandlerType.getObjectIntent().isEmpty()) {
+        if (eventHandlerConfig.getObjectKind().isEmpty() && eventHandlerConfig.getObjectIntent().isEmpty()) {
             return true;
         }
 
@@ -32,15 +31,15 @@ public class KindIntentFilterHelper extends BaseNotificationHelper {
         }
         ResourceObjectEvent resourceObjectEvent = (ResourceObjectEvent) event;
 
-        logStart(LOGGER, event, eventHandlerType, eventHandlerType.getStatus());
+        logStart(LOGGER, event, eventHandlerConfig, eventHandlerConfig.getStatus());
 
         boolean retval = true;
 
-        if (!eventHandlerType.getObjectKind().isEmpty()) {
+        if (!eventHandlerConfig.getObjectKind().isEmpty()) {
             retval = false;
-            for (ShadowKindType shadowKindType : eventHandlerType.getObjectKind()) {
+            for (ShadowKindType shadowKindType : eventHandlerConfig.getObjectKind()) {
                 if (shadowKindType == null) {
-                    LOGGER.warn("Filtering on null shadowKindType; filter = " + eventHandlerType);
+                    LOGGER.warn("Filtering on null shadowKindType; filter = " + eventHandlerConfig);
                 } else if (resourceObjectEvent.isShadowKind(shadowKindType)) {
                     retval = true;
                     break;
@@ -50,11 +49,11 @@ public class KindIntentFilterHelper extends BaseNotificationHelper {
 
         if (retval) {
             // now check the intent
-            if (!eventHandlerType.getObjectIntent().isEmpty()) {
+            if (!eventHandlerConfig.getObjectIntent().isEmpty()) {
                 retval = false;
-                for (String intent : eventHandlerType.getObjectIntent()) {
+                for (String intent : eventHandlerConfig.getObjectIntent()) {
                     if (intent == null) {
-                        LOGGER.warn("Filtering on null intent; filter = " + eventHandlerType);
+                        LOGGER.warn("Filtering on null intent; filter = " + eventHandlerConfig);
                     } else if (resourceObjectEvent.isShadowIntent(intent)) {
                         retval = true;
                         break;
@@ -63,7 +62,7 @@ public class KindIntentFilterHelper extends BaseNotificationHelper {
             }
         }
 
-        logEnd(LOGGER, event, eventHandlerType, retval);
+        logEnd(LOGGER, event, eventHandlerConfig, retval);
         return retval;
     }
 }

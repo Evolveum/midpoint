@@ -16,7 +16,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -31,8 +30,10 @@ class DummyCorrelator implements Correlator {
     }
 
     @Override
-    public CorrelationResult correlate(@NotNull ShadowType resourceObject, @NotNull CorrelationContext correlationContext,
-            @NotNull Task task, @NotNull OperationResult result) {
+    public CorrelationResult correlate(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         // TODO
         return CorrelationResult.uncertain();
     }

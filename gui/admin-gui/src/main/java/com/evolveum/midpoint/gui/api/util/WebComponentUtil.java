@@ -30,6 +30,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplate;
+import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplates;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -264,6 +266,7 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ShadowType.class, PageShadow.class);
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectCollectionType.class, com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection.class);
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectTemplateType.class, com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(MessageTemplateType.class, PageMessageTemplate.class);
     }
 
     static {
@@ -281,6 +284,7 @@ public final class WebComponentUtil {
         OBJECT_LIST_PAGE_MAP.put(ServiceType.class, PageServices.class);
         OBJECT_LIST_PAGE_MAP.put(ResourceType.class, PageResources.class);
         OBJECT_LIST_PAGE_MAP.put(TaskType.class, PageTasks.class);
+        OBJECT_LIST_PAGE_MAP.put(PageMessageTemplate.class, PageMessageTemplates.class);
     }
 
     private static final Map<TableId, String> STORAGE_TABLE_ID_MAP;
@@ -5356,8 +5360,7 @@ public final class WebComponentUtil {
                 panel.setOutputMarkupId(true);
                 return panel;
             } catch (Throwable e) {
-                e.printStackTrace();
-                LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.");
+                LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
             }
         }
 
@@ -5367,7 +5370,7 @@ public final class WebComponentUtil {
             return panel;
         } catch (Throwable e) {
             e.printStackTrace();
-            LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.");
+            LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
         }
         return null;
     }

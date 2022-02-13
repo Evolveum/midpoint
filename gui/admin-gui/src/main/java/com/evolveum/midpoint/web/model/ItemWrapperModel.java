@@ -90,6 +90,8 @@ public abstract class ItemWrapperModel<C extends Containerable, IW extends ItemW
                 return null;
             }
 
+            // TODO this should most definitely add parent wrapper to newly created item wrapper otherwise localization
+            // keys are mostly useless (unless nicely specified in XSD, which is not very often)
             return createItemWrapper(def.instantiate(), pageBase);
         } catch (SchemaException e) {
             LOGGER.error("Cannot get {} with path {} from parent {}\nReason: {}", ItemWrapper.class, path,
@@ -97,7 +99,6 @@ public abstract class ItemWrapperModel<C extends Containerable, IW extends ItemW
             return null;
         }
     }
-
     private ItemWrapper createItemWrapper(Item i, PageBase pageBase) throws SchemaException {
         Task task = pageBase.createSimpleTask("Create wrapper for column header");
         return pageBase.createItemWrapper(i, ItemStatus.NOT_CHANGED, new WrapperContext(task, task.getResult()));

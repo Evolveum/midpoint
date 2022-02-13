@@ -15,6 +15,19 @@
 
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 
+    <xsd:complexType name="UserExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:UserType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <!-- this is to auto-create pre-focus objects in TestCorrelators -->
+            <xsd:element name="dateOfBirth" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="nationalId" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="CorrelationExtensionType">
         <xsd:annotation>
             <xsd:appinfo>

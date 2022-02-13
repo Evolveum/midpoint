@@ -227,6 +227,7 @@ public class GuiStyleConstants {
     public static final String EVO_CASE_OBJECT_ICON = "fe fe-case";
     public static final String EVO_CASE_THICK_ICON = "fe fe-case_thick";
     public static final String EVO_ARCHETYPE_TYPE_ICON = "fe fe-archetype_smooth";
+    public static final String EVO_MESSAGE_TEMPLATE_TYPE_ICON = "fa fa-book";
 
     public static final String GREEN_COLOR = "color-green";
     public static final String YELLOW_COLOR = "color-yellow";

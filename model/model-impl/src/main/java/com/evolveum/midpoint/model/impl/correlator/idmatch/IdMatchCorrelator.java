@@ -7,34 +7,31 @@
 
 package com.evolveum.midpoint.model.impl.correlator.idmatch;
 
+import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.QNameUtil.qNameToUri;
+import static com.evolveum.midpoint.util.QNameUtil.uriToQName;
+
+import java.util.Collection;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.correlator.*;
-import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchService;
-import com.evolveum.midpoint.model.api.correlator.idmatch.MatchingResult;
-import com.evolveum.midpoint.model.api.correlator.idmatch.PotentialMatch;
+import com.evolveum.midpoint.model.api.correlator.idmatch.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.Collection;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
-import static com.evolveum.midpoint.util.QNameUtil.qNameToUri;
-import static com.evolveum.midpoint.util.QNameUtil.uriToQName;
 
 /**
  * A correlator based on an external service providing ID Match API.
@@ -47,8 +44,7 @@ class IdMatchCorrelator implements Correlator {
     /**
      * Configuration of the this correlator.
      */
-    @SuppressWarnings({ "FieldCanBeLocal", "unused" }) // temporary
-    @NotNull private final IdMatchCorrelatorType configuration;
+    @NotNull private final CorrelatorContext<IdMatchCorrelatorType> correlatorContext;
 
     /**
      * Configuration of a follow-on correlator (used to find real account owner based on matched identity).
@@ -67,10 +63,12 @@ class IdMatchCorrelator implements Correlator {
      *                        Used for unit testing.
      */
     IdMatchCorrelator(
-            @NotNull IdMatchCorrelatorType configuration,
+            @NotNull CorrelatorContext<IdMatchCorrelatorType> correlatorContext,
             @Nullable IdMatchService serviceOverride,
             ModelBeans beans) throws ConfigurationException {
-        this.configuration = configuration;
+        IdMatchCorrelatorType configuration = correlatorContext.getConfigurationBean();
+
+        this.correlatorContext = correlatorContext;
         this.service = instantiateService(configuration, serviceOverride);
         this.beans = beans;
 
@@ -85,8 +83,6 @@ class IdMatchCorrelator implements Correlator {
             throws ConfigurationException {
         if (serviceOverride != null) {
             return serviceOverride;
-        } else if (TemporaryIdMatchServiceImpl.URL.equals(configuration.getUrl())) {
-            return TemporaryIdMatchServiceImpl.INSTANCE;
         } else {
             return IdMatchServiceImpl.instantiate(configuration);
         }
@@ -96,97 +92,169 @@ class IdMatchCorrelator implements Correlator {
             throws ConfigurationException {
         configCheck(configuration.getFollowOn() != null,
                 "No 'follow on' correlator configured in %s", configuration);
-        Collection<CorrelatorConfiguration> followOnConfigs = CorrelatorUtil.getConfigurations(configuration.getFollowOn());
+        Collection<CorrelatorConfiguration> followOnConfigs =
+                CorrelatorConfiguration.getConfigurations(configuration.getFollowOn());
         configCheck(followOnConfigs.size() == 1, "Not a single 'follow on' correlator configured: %s",
                 followOnConfigs);
         return followOnConfigs.iterator().next();
     }
 
     @Override
-    public CorrelationResult correlate(@NotNull ShadowType resourceObject, @NotNull CorrelationContext correlationContext,
-            @NotNull Task task, @NotNull OperationResult result) throws ConfigurationException, SchemaException,
+    public CorrelationResult correlate(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws ConfigurationException, SchemaException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
 
-        LOGGER.trace("Correlating the resource object:\n{}", resourceObject.debugDumpLazily(1));
+        LOGGER.trace("Correlating:\n{}", correlationContext.debugDumpLazily(1));
 
-        MatchingResult mResult = service.executeMatch(resourceObject.getAttributes(), result);
-        LOGGER.trace("Matching result:\n{}", mResult.debugDumpLazily(1));
+        return new Correlation(correlationContext, task)
+                .execute(result);
+    }
 
-        IdMatchCorrelationStateType correlationState = createCorrelationState(mResult);
-        correlationContext.setCorrelationState(correlationState);
-        resourceObject.setCorrelationState(correlationState.clone()); // we also need the state in the shadow in the case object
+    private class Correlation {
+        @NotNull private final ShadowType resourceObject;
+        @NotNull private final CorrelationContext correlationContext;
+        @NotNull private final Task task;
 
-        if (mResult.getReferenceId() != null) {
-            beans.correlationCaseManager.closeCaseIfExists(resourceObject, result);
-            return correlateUsingKnownReferenceId(resourceObject, correlationContext, task, result);
-        } else {
-            beans.correlationCaseManager.createOrUpdateCase(
-                    resourceObject,
-                    createSpecificCaseContext(mResult, resourceObject),
-                    result);
-            return CorrelationResult.uncertain();
+        Correlation(
+                @NotNull CorrelationContext correlationContext,
+                @NotNull Task task) {
+            this.resourceObject = correlationContext.getResourceObject();
+            this.correlationContext = correlationContext;
+            this.task = task;
         }
-    }
 
-    private @NotNull IdMatchCorrelationStateType createCorrelationState(MatchingResult mResult) {
-        IdMatchCorrelationStateType state = new IdMatchCorrelationStateType(PrismContext.get());
-        state.setReferenceId(mResult.getReferenceId());
-        state.setMatchRequestId(mResult.getMatchRequestId());
-        return state;
-    }
+        public CorrelationResult execute(OperationResult result)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException {
 
-    private CorrelationResult correlateUsingKnownReferenceId(
-            ShadowType resourceObject, CorrelationContext correlationContext, Task task, OperationResult result)
-            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            MatchingRequest mRequest =
+                    new MatchingRequest(
+                            prepareIdMatchObject(
+                                    correlationContext.getPreFocus(),
+                                    correlationContext.getResourceObject()));
+            MatchingResult mResult = service.executeMatch(mRequest, result);
+            LOGGER.trace("Matching result:\n{}", mResult.debugDumpLazily(1));
 
-        return beans.correlatorFactoryRegistry
-                .instantiateCorrelator(followOnCorrelatorConfiguration, task, result)
-                .correlate(resourceObject, correlationContext, task, result);
-    }
+            IdMatchCorrelationStateType correlationState = createCorrelationState(mResult);
+            correlationContext.setCorrelationState(correlationState);
+            // we also need the state in the shadow in the case object
+            resourceObject.setCorrelationState(correlationState.clone());
 
-    /**
-     * Converts internal {@link MatchingResult} into "externalized" {@link IdMatchCorrelationContextType} bean
-     * to be stored in the correlation case.
-     *
-     * _Temporarily_ adding also "none of the above" potential match here. (If it is not present among options returned
-     * from the ID Match service.)
-     */
-    private @NotNull IdMatchCorrelationContextType createSpecificCaseContext(
-            @NotNull MatchingResult mResult, @NotNull ShadowType resourceObject) {
-        IdMatchCorrelationContextType context = new IdMatchCorrelationContextType(PrismContext.get());
-        boolean newIdentityOptionPresent = false;
-        for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
-            if (potentialMatch.isNewIdentity()) {
-                newIdentityOptionPresent = true;
+            if (mResult.getReferenceId() != null) {
+                beans.correlationCaseManager.closeCaseIfExists(resourceObject, result);
+                return correlateUsingKnownReferenceId(result);
+            } else {
+                beans.correlationCaseManager.createOrUpdateCase(
+                        resourceObject,
+                        correlationContext.getPreFocus(),
+                        createPotentialOwnersBean(mResult, result),
+                        result);
+                return CorrelationResult.uncertain();
             }
-            context.getPotentialMatch().add(
-                    createPotentialMatchBeanFromReturnedMatch(potentialMatch));
         }
-        if (!newIdentityOptionPresent) {
-            context.getPotentialMatch().add(
-                    createPotentialMatchBeanForNewIdentity(resourceObject));
+
+        private @NotNull IdMatchCorrelationStateType createCorrelationState(MatchingResult mResult) {
+            IdMatchCorrelationStateType state = new IdMatchCorrelationStateType(PrismContext.get());
+            state.setReferenceId(mResult.getReferenceId());
+            state.setMatchRequestId(mResult.getMatchRequestId());
+            return state;
         }
-        return context;
-    }
 
-    private IdMatchCorrelationPotentialMatchType createPotentialMatchBeanFromReturnedMatch(PotentialMatch potentialMatch) {
-        @Nullable String id = potentialMatch.getReferenceId();
-        String optionUri = id != null ?
-                qNameToUri(new QName(SchemaConstants.CORRELATION_NS, SchemaConstants.CORRELATION_OPTION_PREFIX + id)) :
-                SchemaConstants.CORRELATION_NONE_URI;
-        return new IdMatchCorrelationPotentialMatchType(PrismContext.get())
-                .uri(optionUri)
-                .confidence(potentialMatch.getConfidence())
-                .referenceId(id)
-                .attributes(potentialMatch.getAttributes());
-    }
+        private CorrelationResult correlateUsingKnownReferenceId(OperationResult result)
+                throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+                SecurityViolationException, ObjectNotFoundException {
 
-    private IdMatchCorrelationPotentialMatchType createPotentialMatchBeanForNewIdentity(@NotNull ShadowType resourceObject) {
-        return new IdMatchCorrelationPotentialMatchType(PrismContext.get())
-                .uri(SchemaConstants.CORRELATION_NONE_URI)
-                .attributes(
-                        CloneUtil.clone(resourceObject.getAttributes()));
+            return beans.correlatorFactoryRegistry
+                    .instantiateCorrelator(
+                            correlatorContext.spawn(followOnCorrelatorConfiguration), task, result)
+                    .correlate(correlationContext, task, result);
+        }
+
+        /**
+         * Converts internal {@link MatchingResult} into "externalized" {@link PotentialOwnersType} bean
+         * to be stored in the correlation case.
+         *
+         * _Temporarily_ adding also "none of the above" potential match here. (If it is not present among options returned
+         * from the ID Match service.)
+         */
+        private @NotNull PotentialOwnersType createPotentialOwnersBean(
+                @NotNull MatchingResult mResult,
+                @NotNull OperationResult result)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException {
+            PotentialOwnersType context = new PotentialOwnersType(PrismContext.get());
+            boolean newIdentityOptionPresent = false;
+            for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
+                if (potentialMatch.isNewIdentity()) {
+                    newIdentityOptionPresent = true;
+                }
+                PotentialOwnerType potentialMatchBean = createPotentialMatchBeanFromReturnedMatch(potentialMatch, result);
+                if (potentialMatchBean != null) {
+                    context.getPotentialOwner().add(potentialMatchBean);
+                }
+            }
+            if (!newIdentityOptionPresent) {
+                context.getPotentialOwner().add(
+                        createPotentialMatchBeanForNewIdentity());
+            }
+            return context;
+        }
+
+        private @Nullable PotentialOwnerType createPotentialMatchBeanFromReturnedMatch(
+                @NotNull PotentialMatch potentialMatch,
+                @NotNull OperationResult result)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException {
+            @Nullable String id = potentialMatch.getReferenceId();
+            if (id != null) {
+                String optionUri = qNameToUri(
+                        new QName(SchemaConstants.CORRELATION_NS, SchemaConstants.CORRELATION_OPTION_PREFIX + id));
+                ObjectReferenceType candidateOwnerRef = getCandidateOwnerRef(id, result);
+                if (candidateOwnerRef == null) {
+                    LOGGER.warn("Non-null reference ID {} contained in {} yields no owner reference. Ignoring this match.",
+                            id, potentialMatch);
+                    return null;
+                } else {
+                    return new PotentialOwnerType(PrismContext.get())
+                            .uri(optionUri)
+                            .confidence(potentialMatch.getConfidence())
+                            .candidateOwnerRef(candidateOwnerRef);
+                }
+            } else {
+                return new PotentialOwnerType(PrismContext.get())
+                        .uri(SchemaConstants.CORRELATION_NONE_URI)
+                        .confidence(potentialMatch.getConfidence());
+            }
+        }
+
+        private @Nullable ObjectReferenceType getCandidateOwnerRef(String referenceId, OperationResult result)
+                throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+                SecurityViolationException, ObjectNotFoundException {
+
+            // We create a context with a fake state having the referenceId we want to resolve
+            CorrelationContext clonedContext = correlationContext.clone();
+            clonedContext.setCorrelationState(
+                    new IdMatchCorrelationStateType(PrismContext.get())
+                            .referenceId(referenceId));
+
+            CorrelationResult correlationResult = beans.correlatorFactoryRegistry
+                    .instantiateCorrelator(
+                            correlatorContext.spawn(followOnCorrelatorConfiguration), task, result)
+                    .correlate(clonedContext, task, result);
+
+            stateCheck(!correlationResult.isUncertain(),
+                    "Unexpected uncertain correlation result for candidate reference ID %s: %s",
+                    referenceId, correlationResult);
+
+            return ObjectTypeUtil.createObjectRef(correlationResult.getOwner());
+        }
+
+        private PotentialOwnerType createPotentialMatchBeanForNewIdentity() {
+            return new PotentialOwnerType(PrismContext.get())
+                    .uri(SchemaConstants.CORRELATION_NONE_URI);
+        }
     }
 
     @Override
@@ -196,15 +264,20 @@ class IdMatchCorrelator implements Correlator {
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, CommunicationException {
         ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(aCase);
-        ShadowAttributesType attributes = MiscUtil.requireNonNull(shadow.getAttributes(),
-                () -> new IllegalStateException("No attributes in shadow " + shadow + " in " + aCase));
+        FocusType preFocus = CorrelatorUtil.getPreFocusFromCorrelationCase(aCase);
+        IdMatchObject idMatchObject = prepareIdMatchObject(preFocus, shadow);
         IdMatchCorrelationStateType state = MiscUtil.requireNonNull(
                 MiscUtil.castSafely(shadow.getCorrelationState(), IdMatchCorrelationStateType.class),
                 () -> new IllegalStateException("No correlation state in shadow " + shadow + " in " + aCase));
         String matchRequestId = state.getMatchRequestId();
         String correlatedReferenceId = getCorrelatedReferenceId(aCase, output);
 
-        service.resolve(attributes, matchRequestId, correlatedReferenceId, result);
+        service.resolve(idMatchObject, matchRequestId, correlatedReferenceId, result);
+    }
+
+    private IdMatchObject prepareIdMatchObject(@NotNull FocusType preFocus, @NotNull ShadowType shadow) throws SchemaException {
+        return new IdMatchObjectCreator(correlatorContext, preFocus, shadow)
+                .create();
     }
 
     private String getCorrelatedReferenceId(PrismObject<CaseType> aCase, AbstractWorkItemOutputType output)
@@ -220,4 +293,5 @@ class IdMatchCorrelator implements Correlator {
             throw new SchemaException("Unsupported outcome URI: " + outcomeUri);
         }
     }
+
 }

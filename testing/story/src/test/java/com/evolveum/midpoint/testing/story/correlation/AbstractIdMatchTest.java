@@ -242,6 +242,8 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                 .workItems()
                     .assertWorkItems(1);
         // @formatter:on
+
+        displayValue("correlation case", prismContext.xmlSerializer().serializeRealValue(correlationCase));
     }
 
     /**
@@ -293,11 +295,9 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                     .end()
                     .synchronizationStatistics()
                         .display()
-                        // three imported accounts (Ian, Mary, Jan)
-                        .assertTransition(LINKED, LINKED, LINKED, null, 3, 0, 0)
-                        // newly resolved account
-                        .assertTransition(DISPUTED, UNLINKED, LINKED, null, 1, 0, 0)
-                        .assertTransitions(2)
+                        // three imported accounts (Ian, Mary, Jan) + resolved account (reimport was done when correlating)
+                        .assertTransition(LINKED, LINKED, LINKED, null, 4, 0, 0)
+                        .assertTransitions(1)
                     .end();
         // @formatter:on
 

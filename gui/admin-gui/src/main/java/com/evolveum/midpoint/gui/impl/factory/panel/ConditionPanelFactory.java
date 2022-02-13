@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import java.io.Serializable;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.stereotype.Component;
 
@@ -30,14 +32,12 @@ public class ConditionPanelFactory extends AbstractGuiComponentFactory<Expressio
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ExpressionType> panelCtx) {
-        AceEditorPanel conditionPanel = new AceEditorPanel(panelCtx.getComponentId(), null, new ExpressionModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 200) {
-            @Override
-            protected boolean isResizeToMaxHeight() {
-                return false;
-            }
-        };
+        SimpleAceEditorPanel conditionPanel = new SimpleAceEditorPanel(panelCtx.getComponentId(),
+                new ExpressionModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 200);
+
         conditionPanel.getEditor().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         conditionPanel.getEditor().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+
         return conditionPanel;
     }
 

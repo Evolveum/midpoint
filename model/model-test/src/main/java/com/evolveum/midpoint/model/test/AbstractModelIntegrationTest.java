@@ -284,6 +284,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     public DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
         resource.controller = dummyResourceCollection.initDummyResource(resource.name, resource.file, resource.oid,
                 resource.controllerInitLambda, task, result);
+        resource.reload(result); // To have schema, etc
         return resource.controller;
     }
 

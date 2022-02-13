@@ -14,6 +14,12 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +27,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.correlator.Correlator;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
-import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -54,10 +58,11 @@ public class CorrelationCaseManager {
             CorrelationCaseManager.class.getName() + ".performCompletionInCorrelator";
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired private ModelService modelService;
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
-    @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
-    @Autowired private ModelBeans beans;
+    @Autowired private CorrelationService correlationService;
+    @Autowired private ProvisioningService provisioningService;
 
     /**
      * Creates or updates a correlation case for given correlation operation that finished in "uncertain" state.
@@ -66,15 +71,16 @@ public class CorrelationCaseManager {
      */
     public void createOrUpdateCase(
             @NotNull ShadowType resourceObject,
-            @NotNull AbstractCorrelationContextType correlatorSpecificContext,
+            @NotNull FocusType preFocus,
+            @NotNull PotentialOwnersType correlatorSpecificContext,
             @NotNull OperationResult result)
             throws SchemaException {
         checkOid(resourceObject);
         CaseType aCase = findCorrelationCase(resourceObject, true, result);
         if (aCase == null) {
-            createCase(resourceObject, correlatorSpecificContext, result);
+            createCase(resourceObject, preFocus, correlatorSpecificContext, result);
         } else {
-            updateCase(aCase, correlatorSpecificContext, result);
+            updateCase(aCase, preFocus, correlatorSpecificContext, result);
         }
     }
 
@@ -83,7 +89,7 @@ public class CorrelationCaseManager {
     }
 
     private void createCase(
-            ShadowType resourceObject, AbstractCorrelationContextType correlatorSpecificContext, OperationResult result)
+            ShadowType resourceObject, FocusType preFocus, PotentialOwnersType potentialOwners, OperationResult result)
             throws SchemaException {
         String assigneeOid = SystemObjectsType.USER_ADMINISTRATOR.value(); // temporary
         CaseType newCase = new CaseType(prismContext)
@@ -93,7 +99,8 @@ public class CorrelationCaseManager {
                 .assignment(new AssignmentType(prismContext)
                         .targetRef(createArchetypeRef()))
                 .correlationContext(new CorrelationContextType(prismContext)
-                        .correlatorPart(correlatorSpecificContext))
+                        .preFocusRef(ObjectTypeUtil.createObjectRefWithFullObject(preFocus))
+                        .potentialOwners(potentialOwners))
                 .state(SchemaConstants.CASE_STATE_OPEN)
                 .workItem(new CaseWorkItemType(PrismContext.get())
                         .name(getWorkItemName(resourceObject))
@@ -136,16 +143,22 @@ public class CorrelationCaseManager {
                 .type(ArchetypeType.COMPLEX_TYPE);
     }
 
-    private void updateCase(CaseType aCase, AbstractCorrelationContextType correlatorSpecificContext, OperationResult result)
+    private void updateCase(
+            CaseType aCase, FocusType preFocus, PotentialOwnersType correlatorSpecificContext, OperationResult result)
             throws SchemaException {
-        if (aCase.getCorrelationContext() != null &&
-                java.util.Objects.equals(aCase.getCorrelationContext().getCorrelatorPart(), correlatorSpecificContext)) {
+        CorrelationContextType ctx = aCase.getCorrelationContext();
+        ObjectReferenceType preFocusRef = createObjectRefWithFullObject(preFocus);
+        if (ctx != null
+                && java.util.Objects.equals(ctx.getPotentialOwners(), correlatorSpecificContext)
+                && java.util.Objects.equals(ctx.getPreFocusRef(), preFocusRef)) { // TODO is this comparison correct?
             LOGGER.trace("No need to update the case {}", aCase);
             return;
         }
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(CaseType.class)
-                .item(CaseType.F_CORRELATION_CONTEXT, CorrelationContextType.F_CORRELATOR_PART)
+                .item(CaseType.F_CORRELATION_CONTEXT, CorrelationContextType.F_POTENTIAL_OWNERS)
                 .replace(correlatorSpecificContext)
+                .item(CaseType.F_CORRELATION_CONTEXT, CorrelationContextType.F_PRE_FOCUS_REF)
+                .replace(preFocusRef)
                 .asItemDeltas();
         modifyCase(aCase, itemDeltas, result);
     }
@@ -255,6 +268,10 @@ public class CorrelationCaseManager {
         } catch (ObjectAlreadyExistsException e) {
             throw new SystemException("Unexpected exception: " + e.getMessage(), e);
         }
+
+        // We try to re-import the object. This should be made configurable.
+        String shadowOid = aCase.asObjectable().getObjectRef().getOid();
+        modelService.importFromResource(shadowOid, task, result);
     }
 
     private OperationResult performCompletionInCorrelator(
@@ -263,8 +280,10 @@ public class CorrelationCaseManager {
             SecurityViolationException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OP_PERFORM_COMPLETION_IN_CORRELATOR);
         try {
-            Correlator correlator = instantiateCorrelator(aCase, task, result);
-            correlator.resolve(aCase, output, task, result);
+            applyShadowDefinition(aCase, task, result);
+            correlationService
+                    .instantiateCorrelator(aCase, task, result)
+                    .resolve(aCase, output, task, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -274,11 +293,18 @@ public class CorrelationCaseManager {
         return result;
     }
 
-    private Correlator instantiateCorrelator(PrismObject<CaseType> aCase, Task task, OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
-        ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(aCase);
-        CorrelatorsType correlatorsBean = CorrelatorUtil.getCorrelatorsBeanForShadow(shadow, beans, task, result);
-        return correlatorFactoryRegistry.instantiateCorrelator(correlatorsBean, task, result);
+    /**
+     * Applies the correct definition to the shadow embedded in the case.objectRef.
+     */
+    private void applyShadowDefinition(PrismObject<CaseType> aCase, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException {
+        ShadowType shadow =
+                MiscUtil.requireNonNull(
+                        MiscUtil.castSafely(
+                                ObjectTypeUtil.getObjectFromReference(aCase.asObjectable().getObjectRef()),
+                                ShadowType.class),
+                        () -> "No embedded shadow in " + aCase);
+        provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
     }
 }

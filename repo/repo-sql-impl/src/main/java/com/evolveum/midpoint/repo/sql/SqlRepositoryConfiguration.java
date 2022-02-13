@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -218,8 +218,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
 
     public static final String PROPERTY_TEXT_INFO_COLUMN_SIZE = "textInfoColumnSize";
 
-    private static final String UTF8MB4 = "utf8mb4";
-
     /*
      * Most of the properties below is final to make the code clean and readable.
      * Exceptions (mainly due to testing facilitation) are marked.
@@ -290,7 +288,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
     @NotNull private final IncompatibleSchemaAction incompatibleSchemaAction;
     private final String schemaVersionIfMissing;
     private final String schemaVersionOverride;
-    private final String schemaVariant; // e.g. "utf8mb4" for MySQL/MariaDB
+    private final String schemaVariant;
 
     private boolean enableNoFetchExtensionValuesInsertion;
     private boolean enableNoFetchExtensionValuesDeletion;
@@ -432,7 +430,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         enableNoFetchExtensionValuesDeletion = configuration.getBoolean(PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_DELETION, false);
         enableIndexOnlyItems = configuration.getBoolean(PROPERTY_ENABLE_INDEX_ONLY_ITEMS, false);
 
-        int maxTextSize = isUsingMySqlCompatible() && UTF8MB4.equalsIgnoreCase(schemaVariant) ? 191 : 255;
+        int maxTextSize = 255;
         textInfoColumnSize = configuration.getInt(PROPERTY_TEXT_INFO_COLUMN_SIZE, maxTextSize);
     }
 
@@ -554,22 +552,15 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = true;
             defaultReadOnlyTransactionStatement = null; // h2 does not support read only transactions
-        } else if (isUsingMySqlCompatible()) {
-            defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
-            defaultLockForUpdateViaHibernate = false;
-            defaultLockForUpdateViaSql = true;
-            // SET TRANSACTION READ ONLY should work too, but we had obscure problem when first
-            // read-only transaction read JDBC metadata, the following RW transaction was still RO.
-            // Mysterious problem: https://stackoverflow.com/a/63580806/658826
-            defaultReadOnlyTransactionStatement = "START TRANSACTION READ ONLY";
         } else if (isUsingOracle()) {
             /*
              * Isolation of SERIALIZABLE causes false ORA-8177 (serialization) exceptions even for single-thread scenarios
              * since midPoint 3.8 and/or Oracle 12c (to be checked more precisely).
              *
-             * READ_COMMITTED is currently a problem for MySQL and PostgreSQL because of org closure conflicts. However,
-             * in case of Oracle (and SQL Server and H2) we explicitly lock the whole M_ORG_CLOSURE_TABLE during closure
-             * updates. Therefore we can use READ_COMMITTED isolation for Oracle.
+             * READ_COMMITTED is currently a problem for PostgreSQL because of org closure conflicts.
+             * However, in case of Oracle (and SQL Server and H2) we explicitly lock the whole
+             * M_ORG_CLOSURE_TABLE during closure updates.
+             * Therefore, we can use READ_COMMITTED isolation for Oracle.
              *
              * (This is maybe the optimal solution also for other databases - to be researched later.)
              */
@@ -892,6 +883,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         return schemaVersionOverride;
     }
 
+    // TODO: Previously used for MySQL/MariaDB, do we still need it?
     public String getSchemaVariant() {
         return schemaVariant;
     }

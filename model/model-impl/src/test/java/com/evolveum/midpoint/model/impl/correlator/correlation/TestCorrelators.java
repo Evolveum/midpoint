@@ -7,17 +7,16 @@
 
 package com.evolveum.midpoint.model.impl.correlator.correlation;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.Correlator;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
+import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
+import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
 import com.evolveum.midpoint.model.test.idmatch.DummyIdMatchServiceImpl;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchCorrelatorFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MatchingUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -43,12 +42,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * The tests are based on {@link #FILE_ACCOUNTS} with source data plus expected correlation results.
  * See the description in the file itself.
+ *
+ * Correlation cases: tests if they are created (or not), but does not check their content.
+ * This is done in {@link TestExpressionCorrelator}.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestCorrelators extends AbstractInternalModelIntegrationTest {
 
-    protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "correlator/correlation");
+    protected static final File TEST_DIR =
+            new File(MidPointTestConstants.TEST_RESOURCES_DIR, "correlator/correlation/correlators");
 
     private static final DummyTestResource RESOURCE_DETERMINISTIC = new DummyTestResource(
             TEST_DIR, "resource-dummy-correlation.xml",
@@ -75,6 +78,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
 
     @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
     @Autowired private IdMatchCorrelatorFactory idMatchCorrelatorFactory;
+    @Autowired private CorrelationCaseManager correlationCaseManager;
 
     /** Used for correlation context construction. */
     private ResourceObjectTypeDefinition resourceObjectTypeDefinition;
@@ -114,7 +118,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     /**
      * We need specific records in our ID Match service.
      */
-    private void initDummyIdMatchService() {
+    private void initDummyIdMatchService() throws SchemaException {
         ShadowType ian200 = CorrelatorTestUtil.findAccount(allAccounts, 200).getShadow();
         dummyIdMatchService.addRecord(ian200.getAttributes(), "9481", null);
         idMatchCorrelatorFactory.setServiceOverride(dummyIdMatchService);
@@ -124,7 +128,8 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         for (File correlatorFile : CORRELATOR_FILES) {
             AbstractCorrelatorType configBean = prismContext.parserFor(correlatorFile)
                     .parseRealValue(AbstractCorrelatorType.class);
-            Correlator correlator = correlatorFactoryRegistry.instantiateCorrelator(configBean, task, result);
+            Correlator correlator = correlatorFactoryRegistry.instantiateCorrelator(
+                    CorrelatorContext.create(configBean), task, result);
             correlatorMap.put(configBean.getName(), correlator);
         }
     }
@@ -151,19 +156,25 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         Correlator correlator = Objects.requireNonNull(
                 correlatorMap.get(correlatorName), () -> "unknown correlator " + correlatorName);
 
+        UserType preFocus = new UserType(prismContext);
+        MatchingUtil.copyAttributes(preFocus, account.getShadow());
+
         CorrelationContext context = new CorrelationContext(
-                UserType.class,
+                account.getShadow(),
+                preFocus,
                 RESOURCE_DETERMINISTIC.getResource().asObjectable(),
                 resourceObjectTypeDefinition,
                 systemConfiguration);
 
         then("correlating account #" + account.getNumber());
 
-        CorrelationResult correlationResult = correlator.correlate(account.getShadow(), context, task, result);
-        assertCorrelationResult(correlationResult, account);
+        CorrelationResult correlationResult = correlator.correlate(context, task, result);
+        assertCorrelationResult(correlationResult, account, result);
     }
 
-    private void assertCorrelationResult(CorrelationResult correlationResult, CorrelationTestingAccount account) {
+    private void assertCorrelationResult(
+            CorrelationResult correlationResult, CorrelationTestingAccount account, OperationResult result)
+            throws SchemaException {
 
         displayDumpable("Correlation result", correlationResult);
 
@@ -176,6 +187,14 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             assertThat(realOwner).as("correlated owner").isNotNull();
             String expectedOwnerName = account.getExpectedOwnerName();
             assertThat(realOwner.getName().getOrig()).as("owner name").isEqualTo(expectedOwnerName);
+        }
+
+        CaseType correlationCase = correlationCaseManager.findCorrelationCase(account.getShadow(), false, result);
+        if (account.shouldCorrelationCaseExist()) {
+            assertThat(correlationCase).as("correlation case").isNotNull();
+            displayDumpable("Correlation case", correlationCase);
+        } else {
+            assertThat(correlationCase).as("correlation case").isNull();
         }
     }
 }

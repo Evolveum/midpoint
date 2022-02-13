@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -68,15 +68,13 @@ public class TransactionSerializationProblemDetector {
         // error messages / error codes / SQL states listed below we consider related to locking
         // (sql states should be somewhat standardized; sql error codes are vendor-specific)
 
-        boolean mySqlCompatible = configuration.isUsingMySqlCompatible();
         boolean h2 = configuration.isUsingH2();
         boolean oracle = configuration.isUsingOracle();
         boolean sqlServer = configuration.isUsingSQLServer();
 
         return "40001".equals(sqlException.getSQLState()) // serialization failure in PostgreSQL - http://www.postgresql.org/docs/9.1/static/transaction-iso.html - and probably also in other systems
                 || "40P01".equals(sqlException.getSQLState()) // deadlock in PostgreSQL
-                || mySqlCompatible && messageContains(sqlException.getMessage(), MY_SQL_SERIALIZATION_ERRORS)
-                || h2 && messageContains(sqlException.getMessage(), H_2_SERIALIZATION_ERRORS)
+                || h2 && messageContains(sqlException.getMessage(), H2_SERIALIZATION_ERRORS)
                 || h2 && sqlException.getErrorCode() == 50200 // table timeout lock in H2, 50200 is LOCK_TIMEOUT_1 error code
                 || h2 && sqlException.getErrorCode() == 40001 // DEADLOCK_1 in H2
                 || oracle && sqlException.getErrorCode() == 8177 // ORA-08177: can't serialize access for this transaction in Oracle
@@ -97,23 +95,13 @@ public class TransactionSerializationProblemDetector {
         return false;
     }
 
-    private static final String[] MY_SQL_SERIALIZATION_ERRORS = {
-            // strange exception occurring in MySQL when doing multithreaded org closure maintenance
-            // alternatively we might check for error code = 1030, sql state = HY000
-            // but that would cover all cases of "Got error XYZ from storage engine"
-            "Got error -1 from storage engine",
-
-            // Another error that cannot be detected using standard mechanisms (MID-5561)
-            "Lock wait timeout exceeded"
-    };
-
-    private static final String[] H_2_SERIALIZATION_ERRORS = {
+    private static final String[] H2_SERIALIZATION_ERRORS = {
             // this is some recent H2 weirdness (MID-3969)
             "Referential integrity constraint violation: \"FK_AUDIT_ITEM: PUBLIC.M_AUDIT_ITEM FOREIGN KEY(RECORD_ID) REFERENCES PUBLIC.M_AUDIT_EVENT(ID)"
     };
 
     private static final Pattern[] OK_PATTERNS = new Pattern[] {
-            Pattern.compile(".*Duplicate entry '.*' for key 'iExtItemDefinition'.*"), // MySQL
+            Pattern.compile(".*Duplicate entry '.*' for key 'iExtItemDefinition'.*"), // reportedly MySQL, but left here to die with the generic repo
             Pattern.compile(".*ORA-00001:.*\\.IEXTITEMDEFINITION\\).*") // Oracle
     };
 

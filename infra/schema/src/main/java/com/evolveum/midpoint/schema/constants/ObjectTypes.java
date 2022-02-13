@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -106,6 +106,9 @@ public enum ObjectTypes {
 
     DASHBOARD(DashboardType.COMPLEX_TYPE, SchemaConstantsGenerated.C_DASHBOARD, DashboardType.class, ObjectManager.MODEL,
             "dashboards"),
+
+    MESSAGE_TEMPLATE(MessageTemplateType.COMPLEX_TYPE, SchemaConstantsGenerated.C_MESSAGE_TEMPLATE, MessageTemplateType.class, ObjectManager.MODEL,
+            "messageTemplates"),
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");

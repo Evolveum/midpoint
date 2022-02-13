@@ -35,7 +35,7 @@
                 <panel>
                     <identifier>correlationContext</identifier>
                     <display>
-                        <label>Correlation results</label>
+                        <label>Correlation</label>
                         <icon>
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>

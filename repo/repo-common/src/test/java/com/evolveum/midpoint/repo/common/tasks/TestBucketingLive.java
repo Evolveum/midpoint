@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.repo.common.AbstractRepoCommonTest;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
 
 import org.springframework.test.annotation.DirtiesContext;

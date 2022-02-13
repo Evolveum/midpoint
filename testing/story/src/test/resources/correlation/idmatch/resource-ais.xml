@@ -124,11 +124,10 @@
             <intent>default</intent>
             <correlators>
                 <idMatch>
-                    <sorLabel>sor</sorLabel> <!-- this is the default testing configuration of ID Match demo -->
-                    <sorIdentifierAttribute>ri:aisId</sorIdentifierAttribute>
+                    <sorIdentifierProperty>$shadow/attributes/ri:aisId</sorIdentifierProperty>
                     <!-- URL and credentials are ignored when dummy ID Match Service implementation is used.
                          They are used only when running TestIdMatchReal (not part of the test suite). -->
-                    <url>http://localhost:9090</url>
+                    <url>http://localhost:9090/match/api/1</url>
                     <username>administrator</username>
                     <password><clearValue>5ecr3t</clearValue></password>
                     <followOn>

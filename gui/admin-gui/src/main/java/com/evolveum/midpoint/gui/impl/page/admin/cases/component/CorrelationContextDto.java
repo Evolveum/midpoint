@@ -9,76 +9,149 @@ package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.correlator.FullCorrelationContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IdMatchCorrelationContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IdMatchCorrelationPotentialMatchType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * Represents the whole correlation context: a set of options, including "new owner" one.
+ */
 public class CorrelationContextDto implements Serializable {
 
-    private final List<String> matchHeaders = new ArrayList<>();
-    private final List<ItemPath> attributes = new ArrayList<>();
-    private final List<PotentialMatchDto> potentialMatches = new ArrayList<>();
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationContextDto.class);
 
-    private PotentialMatchDto origin;
+    static final String F_OPTION_HEADERS = "optionHeaders";
+    static final String F_CORRELATION_OPTIONS = "correlationOptions";
+    static final String F_CORRELATION_PROPERTIES = "correlationProperties";
 
-    public CorrelationContextDto(IdMatchCorrelationContextType idMatchCorrelationContext) {
-        List<IdMatchCorrelationPotentialMatchType> idMatches = idMatchCorrelationContext.getPotentialMatch();
-        loadPotentialMatchesHeader(idMatches);
+    // TODO move into properties
+    private static final String TEXT_BEING_CORRELATED = "Object being correlated";
+    private static final String TEXT_CANDIDATE = "Correlation candidate %d";
+
+    /**
+     * Headers for individual options.
+     */
+    private final List<String> optionHeaders = new ArrayList<>();
+
+    /**
+     * All correlation options. Correspond to columns in the correlation options table.
+     *
+     * The first one is the "new owner" option.
+     */
+    private final List<CorrelationOptionDto> correlationOptions = new ArrayList<>();
+
+    /**
+     * Properties that will be presented by the GUI. Obtained either from the correlation configuration
+     * or determined dynamically.
+     *
+     * Correspond to rows in the correlation options table.
+     */
+    private final List<CorrelationPropertyDefinition> correlationProperties = new ArrayList<>();
+
+    CorrelationContextDto(CaseType aCase, PageBase pageBase, Task task, OperationResult result) throws CommonException {
+        load(aCase, pageBase, task, result);
     }
 
-    private void loadPotentialMatchesHeader(List<IdMatchCorrelationPotentialMatchType> potentialMatchTypes) {
+    private void load(CaseType aCase, PageBase pageBase, Task task, OperationResult result) throws CommonException {
+        resolveObjectsInCorrelationContext(aCase.getCorrelationContext(), pageBase, task, result);
+        createCorrelationOptions(aCase.getCorrelationContext());
+        createCorrelationPropertiesDefinitions(aCase, pageBase, task, result);
+    }
 
-        int i = 1;
-        for (IdMatchCorrelationPotentialMatchType potentialMatch : potentialMatchTypes) {
-            if (SchemaConstants.CORRELATION_NONE_URI.equals(potentialMatch.getUri())) {
-                origin = new PotentialMatchDto(potentialMatch);
-                origin.setOrigin(true);
+    private void resolveObjectsInCorrelationContext(CorrelationContextType correlationContext, PageBase pageBase, Task task, OperationResult result) {
+        for (PotentialOwnerType potentialOwner : correlationContext.getPotentialOwners().getPotentialOwner()) {
+            resolve(potentialOwner.getCandidateOwnerRef(), "candidate " + potentialOwner.getUri(), pageBase, task, result);
+        }
+    }
+
+    private void resolve(ObjectReferenceType ref, String desc, PageBase pageBase, Task task, OperationResult result) {
+        LOGGER.trace("Resolving {}: {}", desc, ref);
+        if (ref == null || ref.getOid() == null) {
+            LOGGER.trace("Null ref or no OID");
+            return;
+        }
+        if (ref.getObject() != null) {
+            LOGGER.trace("Already resolved");
+            return;
+        }
+        ref.asReferenceValue().setObject(
+                loadObject(ref.getOid(), pageBase, task, result));
+    }
+
+    private PrismObject<?> loadObject(String oid, PageBase pageBase, Task task, OperationResult result) {
+        try {
+            return pageBase.getModelService()
+                    .getObject(FocusType.class, oid, null, task, result);
+        } catch (Exception e) {
+            result.recordFatalError(e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve focus {}", e, oid);
+            return null;
+        }
+    }
+
+    private void createCorrelationOptions(CorrelationContextType context) {
+        int suggestionNumber = 1;
+        for (PotentialOwnerType potentialOwner : context.getPotentialOwners().getPotentialOwner()) {
+            if (SchemaConstants.CORRELATION_NONE_URI.equals(potentialOwner.getUri())) {
+                optionHeaders.add(0, TEXT_BEING_CORRELATED);
+                correlationOptions.add(0,
+                        new CorrelationOptionDto(context.getPreFocusRef()));
             } else {
-                parsePotentialMatch(potentialMatch, i);
-                i++;
+                optionHeaders.add(String.format(TEXT_CANDIDATE, suggestionNumber));
+                correlationOptions.add(
+                        new CorrelationOptionDto(potentialOwner));
+                suggestionNumber++;
             }
-
-        }
-
-        matchHeaders.add(0, "Origin");
-        parseAttributeNames(origin);
-        potentialMatches.add(0, origin);
-    }
-
-    public boolean match(Serializable value, ItemPath path) {
-        Serializable originValue = origin.getAttributeValue(path);
-        return Objects.equals(value, originValue);
-    }
-
-    private void parsePotentialMatch(IdMatchCorrelationPotentialMatchType potentialMatch, int iterator) {
-        PotentialMatchDto potentialMatchDto = new PotentialMatchDto(potentialMatch);
-
-        matchHeaders.add("Suggestion " + iterator);
-        potentialMatches.add(potentialMatchDto);
-    }
-
-    private void parseAttributeNames(PotentialMatchDto origin) {
-        if (origin == null) {
-            return;
-        }
-        ShadowAttributesType shadowAttributes = origin.getShadowAttributesType();
-        if (shadowAttributes == null) {
-            return;
-        }
-        Collection<Item<?, ?>> items = shadowAttributes.asPrismContainerValue().getItems();
-        for (Item item : items) {
-            attributes.add(item.getElementName());
         }
     }
 
-    public List<PotentialMatchDto> getPotentialMatches() {
-        return potentialMatches;
+    private void createCorrelationPropertiesDefinitions(CaseType aCase, PageBase pageBase, Task task, OperationResult result)
+            throws CommonException {
+        FullCorrelationContext instantiationContext =
+                pageBase.getCorrelationService().getFullCorrelationContext(aCase.asPrismObject(), task, result);
+        CorrelationPropertiesDefinitionType propertiesBean = instantiationContext.synchronizationBean.getCorrelationProperties();
+        CorrelationOptionDto newOwnerOption = getNewOwnerOption();
+        if (propertiesBean != null) {
+            PrismObject<?> preFocus = newOwnerOption != null ? newOwnerOption.getObject() : null;
+            CorrelationPropertyDefinition.fillFromConfiguration(correlationProperties, propertiesBean, preFocus);
+        } else {
+            if (newOwnerOption == null) {
+                LOGGER.warn("Couldn't create property definitions from 'new owner' focus object because there's none");
+            } else {
+                CorrelationPropertyDefinition.fillFromObject(correlationProperties, newOwnerOption.getObject());
+            }
+        }
+    }
+
+    @Nullable CorrelationOptionDto getNewOwnerOption() {
+        if (correlationOptions.isEmpty()) {
+            return null;
+        }
+        CorrelationOptionDto first = correlationOptions.get(0);
+        return first.isNewOwner() ? first : null;
+    }
+
+    public List<CorrelationOptionDto> getCorrelationOptions() {
+        return correlationOptions;
+    }
+
+    public List<String> getOptionHeaders() {
+        return optionHeaders;
+    }
+
+    public List<CorrelationPropertyDefinition> getCorrelationProperties() {
+        return correlationProperties;
     }
 }

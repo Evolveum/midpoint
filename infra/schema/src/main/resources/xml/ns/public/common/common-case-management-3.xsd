@@ -1311,10 +1311,30 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="correlatorPart" type="tns:AbstractCorrelationContextType" minOccurs="0">
+            <xsd:element name="refreshWhenOpened" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Parts of the context specific to a given correlation.
+                        Should be the case automatically refreshed when opened in GUI?
+                        NOT IMPLEMENTED YET
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="preFocusRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object being correlated - after transformation from resource object to "partial focus object".
+
+                        TODO better name
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="potentialOwners" type="tns:PotentialOwnersType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO (also the name)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1323,56 +1343,35 @@
     </xsd:complexType>
     <xsd:element name="correlationContext" type="tns:CorrelationContextType" />
 
-    <xsd:complexType name="AbstractCorrelationContextType">
+    <xsd:complexType name="PotentialOwnersType">
         <xsd:annotation>
             <xsd:documentation>
-                Parts of the context specific to a given correlator.
+                TODO (also rename this class if needed)
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
-                <a:experimental>true</a:experimental>
                 <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <!-- anything here? -->
+            <xsd:element name="potentialOwner" type="tns:PotentialOwnerType"
+                    minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Potential matches among which (if any) the user should decide. Should be at least two,
+                        otherwise there's nothing to decide. (TODO: decide on the "create new option").
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="potentialOwners" type="tns:PotentialOwnersType"/>
 
-    <xsd:complexType name="IdMatchCorrelationContextType">
+    <xsd:complexType name="PotentialOwnerType">
         <xsd:annotation>
             <xsd:documentation>
-                Parts of the context specific to ID Match correlator.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractCorrelationContextType">
-                <xsd:sequence>
-                    <xsd:element name="potentialMatch" type="tns:IdMatchCorrelationPotentialMatchType"
-                            minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Potential matches among which (if any) the user should decide. Should be at least one,
-                                otherwise there's nothing to decide.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="idMatchCorrelationContext" type="tns:IdMatchCorrelationContextType"/>
-
-    <xsd:complexType name="IdMatchCorrelationPotentialMatchType">
-        <xsd:annotation>
-            <xsd:documentation>
-                A potential match found by ID Match service.
+                TODO (also rename this class if needed)
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
@@ -1385,28 +1384,25 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         URI used to reference this option in the work item outcome.
+                        TODO remove if this is going to be stored directly in the shadow
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="confidence" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        An integer between 0 and 100.
+                        An integer between 0 and 100. TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="referenceId" type="xsd:string" minOccurs="0">
+            <xsd:element name="candidateOwnerRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Reference ID of the entity.
+                        The candidate owner. Null if a new owner has to be created. (TODO reconsider this)
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="attributes" type="c:ShadowAttributesType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Attributes of the entity.
-                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

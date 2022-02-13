@@ -1,17 +1,13 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.cxf.common.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -30,12 +26,14 @@ import com.evolveum.midpoint.notifications.impl.formatters.ValueFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
 import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -118,8 +116,10 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             variables.put(ExpressionConstants.VAR_TRANSPORT_NAME, transportName, String.class);
             Transport transport = transportRegistry.getTransport(transportName);
 
-            List<String> recipientsAddresses = getRecipientsAddresses(event, notifierConfig, variables,
-                    getDefaultRecipient(event, notifierConfig, result), transportName, transport, task, result);
+            List<String> recipientsAddresses = getRecipientsAddresses(
+                    event, notifierConfig, variables,
+                    getDefaultRecipient(event, notifierConfig, result),
+                    transportName, transport, task, result);
             result.addArbitraryObjectCollectionAsContext("recipientAddress", recipientsAddresses);
 
             if (!recipientsAddresses.isEmpty()) {
@@ -203,8 +203,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
      * 1) quick
      * 2) safe - it should not make any assumptions about event content that would cause it to throw an exception
      * 3) filter out events that obviously do not match the notifier - e.g. simpleUserNotifier should ensure that
-     *    the focus type is really UserType; this allows nested filters to assume existence of
-     *    e.g. requestee.fullName element.
+     * the focus type is really UserType; this allows nested filters to assume existence of
+     * e.g. requestee.fullName element.
      */
     protected boolean quickCheckApplicability(E event, N generalNotifierType, OperationResult result) {
         return true;
@@ -382,5 +382,4 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
         body.append("Channel: ").append(event.getChannel()).append("\n\n");
     }
-
 }

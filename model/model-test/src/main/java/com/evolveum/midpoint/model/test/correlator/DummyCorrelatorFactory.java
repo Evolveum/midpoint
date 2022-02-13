@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.test.correlator;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -40,10 +42,10 @@ public class DummyCorrelatorFactory implements CorrelatorFactory<DummyCorrelator
 
     @Override
     public @NotNull DummyCorrelator instantiate(
-            @NotNull AbstractCorrelatorType configuration,
+            @NotNull CorrelatorContext<AbstractCorrelatorType> configuration,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        return new DummyCorrelator(configuration);
+        return new DummyCorrelator(configuration.getConfigurationBean());
     }
 
     @Override

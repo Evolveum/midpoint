@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2019 Evolveum and contributors
+ * Copyright (C) 2019-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -42,6 +41,8 @@ public final class MidpointTestContextWithTask implements MidpointTestContext {
      */
     private final OperationResult result;
 
+    private final String originalThreadName;
+
     private MidpointTestContextWithTask(
             Class<?> testClass, String methodName, Task task, OperationResult result) {
 
@@ -49,6 +50,7 @@ public final class MidpointTestContextWithTask implements MidpointTestContext {
         this.methodName = methodName;
         this.task = task;
         this.result = result;
+        this.originalThreadName = Thread.currentThread().getName();
     }
 
     @Override
@@ -74,6 +76,7 @@ public final class MidpointTestContextWithTask implements MidpointTestContext {
 
         MidpointTestContextWithTask ctx =
                 new MidpointTestContextWithTask(testClass, methodName, task, result);
+        Thread.currentThread().setName(ctx.getTestName());
         TEST_CONTEXT_THREAD_LOCAL.set(ctx);
         return ctx;
     }
@@ -83,6 +86,7 @@ public final class MidpointTestContextWithTask implements MidpointTestContext {
     }
 
     public static void destroy() {
+        Thread.currentThread().setName(get().originalThreadName);
         TEST_CONTEXT_THREAD_LOCAL.remove();
     }
 }

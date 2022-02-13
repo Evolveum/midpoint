@@ -14,6 +14,7 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
@@ -292,6 +293,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
 
+    @SpringBean private CorrelationService correlationService;
+
     private List<Breadcrumb> breadcrumbs;
 
     private boolean initialized = false;
@@ -507,6 +510,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public AdminGuiConfigurationMergeManager getAdminGuiConfigurationMergeManager() {
         return adminGuiConfigurationMergeManager;
+    }
+
+    @Override
+    public CorrelationService getCorrelationService() {
+        return correlationService;
     }
 
     @NotNull

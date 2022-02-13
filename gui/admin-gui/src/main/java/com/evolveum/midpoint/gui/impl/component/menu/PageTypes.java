@@ -10,6 +10,8 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype;
+import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplate;
+import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplates;
 import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
 import com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
@@ -48,6 +50,7 @@ public enum PageTypes {
     RESOURCE("resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResources.class, PageResource.class, PageResourceWizard.class, ResourceType.COMPLEX_TYPE),
     CASE("cases", GuiStyleConstants.EVO_CASE_OBJECT_ICON, PageCases.class, null, null, CaseType.COMPLEX_TYPE),
     ARCHETYPE("archetypes", GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON, PageArchetypes.class, PageArchetype.class, com.evolveum.midpoint.web.page.admin.archetype.PageArchetype.class, ArchetypeType.COMPLEX_TYPE),
+    MESSAGE_TEMPLATES("messageTemplates", GuiStyleConstants.EVO_MESSAGE_TEMPLATE_TYPE_ICON, PageMessageTemplates.class, PageMessageTemplate.class, null, MessageTemplateType.COMPLEX_TYPE),
     OBJECT_COLLECTION("objectCollections", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON, PageObjectCollections.class, PageObjectCollection.class, com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection.class, ObjectCollectionType.COMPLEX_TYPE),
     OBJECT_TEMPLATE("objectTemplates", GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON, PageObjectTemplates.class, PageObjectTemplate.class, com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate.class, ObjectTemplateType.COMPLEX_TYPE),
     REPORT("reports", GuiStyleConstants.CLASS_REPORT_ICON, PageReports.class, PageReport.class, com.evolveum.midpoint.web.page.admin.reports.PageReport.class, ReportType.COMPLEX_TYPE);

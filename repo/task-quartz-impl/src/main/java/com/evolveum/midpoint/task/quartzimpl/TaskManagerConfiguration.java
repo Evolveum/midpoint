@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -415,16 +415,12 @@ public class TaskManagerConfiguration {
 
     private static final Map<SupportedDatabase, String> SCHEMAS = Map.ofEntries(
             entry(SupportedDatabase.H2, "tables_h2.sql"),
-            entry(SupportedDatabase.MYSQL, "tables_mysql_innodb.sql"),
-            entry(SupportedDatabase.MARIADB, "tables_mysql_innodb.sql"),
             entry(SupportedDatabase.POSTGRESQL, "tables_postgres.sql"),
             entry(SupportedDatabase.ORACLE, "tables_oracle.sql"),
             entry(SupportedDatabase.SQLSERVER, "tables_sqlServer.sql"));
 
     private static final Map<SupportedDatabase, String> DELEGATES = Map.ofEntries(
             entry(SupportedDatabase.H2, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate"),
-            entry(SupportedDatabase.MYSQL, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate"),
-            entry(SupportedDatabase.MARIADB, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate"),
             entry(SupportedDatabase.POSTGRESQL, "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate"),
             // TODO shouldn't we use OracleDelegate?
             entry(SupportedDatabase.ORACLE, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate"),
