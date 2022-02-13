@@ -80,7 +80,7 @@ public class ReferenceSearchItemWrapper<T extends Serializable> extends Property
                 && refValue.getObject() == null && refValue.getRelation() == null && refValue.getFilter() == null) {
             return null;
         }
-        RefFilter refFilter = (RefFilter) PrismContext.get().queryFor(ObjectType.class)
+        RefFilter refFilter = (RefFilter) PrismContext.get().queryFor(searchType)
                 .item(getSearchItem().getPath().getItemPath()).ref(refValue.clone())
                 .buildFilter();
         refFilter.setOidNullAsAny(true);

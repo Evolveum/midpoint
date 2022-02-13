@@ -578,16 +578,18 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
-    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("Search\n");
-        //todo implement
+        DebugUtil.debugDumpWithLabelLn(sb, "advancedQuery", advancedQuery, indent + 1);
+        DebugUtil.dumpObjectSizeEstimate(sb, "advancedQuery", advancedQuery, indent + 2);
+        DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "type", getTypeClass(), indent + 1);
+//        DebugUtil.dumpObjectSizeEstimate(sb, "allDefinitions", allDefinitions, indent + 2);
+//        DebugUtil.dumpObjectSizeEstimate(sb, "availableDefinitions", availableDefinitions, indent + 2);
+        DebugUtil.debugDumpWithLabelLn(sb, "objectCollectionSpecialItems", objectCollectionSearchItem, indent + 1);
+        DebugUtil.dumpObjectSizeEstimate(sb, "objectCollectionSpecialItemsSize", objectCollectionSearchItem, indent + 1);
         return sb.toString();
     }
 
