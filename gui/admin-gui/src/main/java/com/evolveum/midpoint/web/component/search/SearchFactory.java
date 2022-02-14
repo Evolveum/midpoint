@@ -398,7 +398,7 @@ public class SearchFactory {
         SearchBoxConfigurationType searchBoxConfig = createDefaultSearchBoxConfiguration(searchConfigurationWrapper.getTypeClass(), discriminator, modelServiceLocator);
         searchBoxConfig = combineSearchBoxConfiguration(searchBoxConfig, searchConfigurationWrapper.getConfig());
 
-        if (searchConfigurationWrapper.getTypeClass().isAssignableFrom(ObjectType.class)) {
+        if (ObjectType.class.isAssignableFrom(searchConfigurationWrapper.getTypeClass())) {
             QName typeQname = WebComponentUtil.classToQName(PrismContext.get(), (Class<? extends ObjectType>) searchConfigurationWrapper.getTypeClass());
             SearchBoxConfigurationType configuredSearchBoxConfig = getSearchBoxConfiguration(modelServiceLocator,
                     typeQname, searchConfigurationWrapper.getCollectionViewName(), panelType);
@@ -415,7 +415,7 @@ public class SearchFactory {
         }
         com.evolveum.midpoint.gui.impl.component.search.Search search =
                 new com.evolveum.midpoint.gui.impl.component.search.Search(Model.of(searchConfigurationWrapper));
-        if (searchConfigurationWrapper.getTypeClass().isAssignableFrom(ObjectType.class)) {
+        if (ObjectType.class.isAssignableFrom(searchConfigurationWrapper.getTypeClass())) {
             QName typeQname = WebComponentUtil.classToQName(PrismContext.get(), (Class<? extends ObjectType>) searchConfigurationWrapper.getTypeClass());
             search.getConfig().setAllowToConfigureSearchItems(
                     isAllowToConfigureSearchItems(modelServiceLocator, typeQname, searchConfigurationWrapper.getCollectionViewName(), panelType));
@@ -475,7 +475,7 @@ public class SearchFactory {
     private static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
             SearchItemType item, List<DisplayableValue> availableValues, ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
         PrismContainerDefinition<C> def = null;
-        if (type.isAssignableFrom(ObjectType.class)) {
+        if (ObjectType.class.isAssignableFrom(type)) {
             def = findObjectDefinition((Class<? extends ObjectType>) type, discriminator, modelServiceLocator);
         } else {
             def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
@@ -724,7 +724,7 @@ public class SearchFactory {
             ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
         SearchBoxConfigurationType config = new SearchBoxConfigurationType();
         PrismContainerDefinition<C> def = null;
-        if (type.isAssignableFrom(ObjectType.class)) {
+        if (ObjectType.class.isAssignableFrom(type)) {
             def = findObjectDefinition((Class<? extends ObjectType>) type, discriminator, modelServiceLocator);
         } else {
             def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
@@ -741,7 +741,7 @@ public class SearchFactory {
                     .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(item, null))
                     .description(item.getHelp());
 
-            if (type.isAssignableFrom(ObjectType.class)) {
+            if (ObjectType.class.isAssignableFrom(type)) {
                 config.defaultObjectType(WebComponentUtil.classToQName(PrismContext.get(), (Class<? extends ObjectType>) type));
             }
             searchItems.getSearchItem().add(searchItem);
@@ -751,7 +751,7 @@ public class SearchFactory {
                 .allowedMode(SearchBoxModeType.BASIC)
                 .allowedMode(SearchBoxModeType.ADVANCED);
 
-        if (type.isAssignableFrom(ObjectType.class) && isFullTextSearchEnabled(modelServiceLocator, (Class<? extends ObjectType>) type)) {
+        if (ObjectType.class.isAssignableFrom(type) && isFullTextSearchEnabled(modelServiceLocator, (Class<? extends ObjectType>) type)) {
             config.allowedMode(SearchBoxModeType.FULLTEXT);
         }
         return config;
