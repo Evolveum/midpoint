@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.messagetemplate;
 
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -40,6 +41,28 @@ public class TemplateContentDetailsPanel extends MultivalueContainerDetailsPanel
 
     @Override
     protected DisplayNamePanel<LocalizedMessageTemplateContentType> createDisplayNamePanel(String displayNamePanelId) {
-        return new DisplayNamePanel<>(displayNamePanelId, Model.of(getModelObject().getRealValue()));
+        // so far no display name panel needed
+        DisplayNamePanel d = new DisplayNamePanel<>(displayNamePanelId, Model.of(getModelObject().getRealValue())) {
+
+            @Override
+            protected IModel<String> createHeaderModel() {
+                return createStringResource("LocalizedMessageTemplateContentType.language");
+            }
+
+            @Override
+            protected IModel<String> getDescriptionLabelModel() {
+                return () -> getModelObject().getLanguage();
+            }
+
+            @Override
+            protected WebMarkupContainer createTypeImagePanel(String idTypeImage) {
+                WebMarkupContainer c = new WebMarkupContainer(idTypeImage);
+                c.setVisible(false);
+                return c;
+            }
+        };
+
+
+        return d;
     }
 }
