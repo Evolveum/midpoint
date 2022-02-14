@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.util.MatchingUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -60,7 +61,11 @@ class PreMappingsEvaluation<F extends FocusType> {
         ObjectSynchronizationType config = syncCtx.getObjectSynchronizationBean();
         if (config == null || config.getPreMappingsSimulation() == null) {
             LOGGER.trace("No pre-mapping simulation specified, doing simple 'copy attributes' operation");
-            MatchingUtil.copyAttributes(preFocus, syncCtx.getShadowedResourceObject().asObjectable());
+            try {
+                MatchingUtil.copyAttributes(preFocus, syncCtx.getShadowedResourceObject().asObjectable());
+            } catch (Throwable t) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute pre-mapping demo replacement, continuing without it", t);
+            }
         } else {
             LOGGER.trace("Evaluating pre-mapping simulation expression");
             evaluateSimulationExpression(config.getPreMappingsSimulation(), result);

@@ -1,0 +1,220 @@
+/*
+ * Copyright (C) 2010-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
+
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingInContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.processor.PropertyLimitations;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+
+/**
+ * The resource object being processed plus the necessary surroundings,
+ * like lens/projection context in the case of clockwork processing.
+ *
+ * There are a lot of abstract methods here, dealing with e.g. determining if the full shadow is (or has to be) loaded,
+ * methods for fetching the entitlements, and so on.
+ */
+abstract class Source implements DebugDumpable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(Source.class);
+
+    /**
+     * Current shadow object (in case of clockwork processing it may be full or repo-only, or maybe even null).
+     *
+     * TODO when it can be null?
+     */
+    PrismObject<ShadowType> currentShadow;
+
+    /**
+     * A priori delta is a delta that was executed in a previous "step".
+     * That means it is either delta from a previous wave or a sync delta (in wave 0).
+     */
+    @Nullable final ObjectDelta<ShadowType> aPrioriDelta;
+
+    /**
+     * Definition of resource object (object type or object class). Must not be null if the mappings are to be processed.
+     * See {@link #checkResourceObjectDefinitionPresent()}.
+     */
+    final ResourceObjectDefinition resourceObjectDefinition;
+
+    Source(
+            PrismObject<ShadowType> currentShadow,
+            @Nullable ObjectDelta<ShadowType> aPrioriDelta,
+            ResourceObjectDefinition resourceObjectDefinition) {
+        this.currentShadow = currentShadow;
+        this.aPrioriDelta = aPrioriDelta;
+        this.resourceObjectDefinition = resourceObjectDefinition;
+    }
+
+    /**
+     * Checks if we should process mappings from this source. This is mainly to avoid the cost of loading
+     * from resource if there's no explicit reason to do so. See the implementation for details.
+     */
+    abstract boolean isEligibleForInboundProcessing();
+
+    /**
+     * Resource object definition is absolutely necessary for mappings to be processed.
+     * We might consider even checking this at the very beginning (even before checking if we can process mappings),
+     * but let's be a bit forgiving.
+     */
+    void checkResourceObjectDefinitionPresent() {
+        if (resourceObjectDefinition == null) {
+            // Logging things here to log the context dump (it's not in the exception)
+            LOGGER.error("Definition for projection {} not found in the context, but it " +
+                    "should be there, dumping context:\n{}", getProjectionHumanReadableName(), getContextDump());
+            throw new IllegalStateException("Definition for projection " + getProjectionHumanReadableName()
+                    + " not found in the context, but it should be there");
+        }
+    }
+
+    /**
+     * Returns the resource object.
+     */
+    @NotNull abstract ResourceType getResource();
+
+    /**
+     * Dumps the current processing context, e.g. lens context.
+     */
+    abstract Object getContextDump();
+
+    /** Returns human-readable name of the context, for logging/reporting purposes. */
+    abstract String getProjectionHumanReadableName();
+
+    /** Returns human-readable name of the context, for logging/reporting purposes. */
+    Object getProjectionHumanReadableNameLazy() {
+        return DebugUtil.lazy(this::getProjectionHumanReadableName);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "projection on", getProjectionHumanReadableName(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "current shadow", currentShadow, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "a priori delta", aPrioriDelta, indent + 1);
+        return sb.toString();
+    }
+
+    /**
+     * True if we are running under clockwork.
+     */
+    abstract boolean isClockwork();
+
+    /**
+     * Is the current projection being deleted? I.e. it (may or may not) exist now, but is not supposed to exist
+     * after the clockwork is finished.
+     *
+     * Currently relevant only for clockwork-based execution. But (maybe soon) we'll implement it also for
+     * pre-mappings.
+     */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    abstract boolean isProjectionBeingDeleted();
+
+    /**
+     * Do we have the absolute state (i.e. full shadow) available?
+     */
+    abstract boolean isAbsoluteStateAvailable();
+
+    /**
+     * Adds value metadata to values in the current item and in a-priori delta.
+     * Currently relevant only for clockwork processing.
+     */
+    abstract <V extends PrismValue, D extends ItemDefinition<?>> void setValueMetadata(
+            Item<V, D> currentProjectionItem, ItemDelta<V, D> itemAPrioriDelta)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException;
+
+    /** TODO clarify */
+    abstract PrismObject<ShadowType> getResourceObjectNew();
+
+    abstract String getChannel();
+
+    /**
+     * Determines processing mode: delta, full state, or that the mapping(s) should be ignored.
+     *
+     * There are complex rules written to eliminate needless shadow fetch operations that are applied
+     * in the clockwork execution mode.
+     *
+     * TODO maybe we should rename this method to something like "is shadow loading requested"?
+     */
+    abstract @NotNull ProcessingMode getItemProcessingMode(
+            String itemDescription, ItemDelta<?, ?> itemAPrioriDelta,
+            List<MappingType> mappingBeans,
+            boolean ignored,
+            PropertyLimitations limitations);
+
+    /**
+     * Returns true if the mapping(s) for given item on this source should be skipped.
+     */
+    boolean shouldBeMappingSkipped(String itemDescription, boolean ignored, PropertyLimitations limitations) {
+        if (ignored) {
+            LOGGER.trace("Mapping(s) for {} will be skipped because the item is ignored", itemDescription);
+            return true;
+        }
+        if (isSourceNotReadable(limitations)) {
+            LOGGER.warn("Skipping inbound mapping(s) for {} in {} because it is not readable",
+                    itemDescription, getProjectionHumanReadableName());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isSourceNotReadable(PropertyLimitations limitations) {
+        if (limitations != null) {
+            PropertyAccessType access = limitations.getAccess();
+            if (access != null) {
+                return access.isRead() == null || !access.isRead();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Loads the full shadow, if appropriate conditions are fulfilled. See the implementation for details.
+     *
+     * Currently relevant only for clockwork-based execution.
+     */
+    abstract void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull Context context)
+            throws SchemaException, StopProcessingProjectionException;
+
+    /**
+     * Resolves the entitlements in the input data (a priori delta, current object).
+     * Used in request creator, called from mappings creator.
+     */
+    abstract void resolveInputEntitlements(
+            ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> associationAPrioriDelta,
+            Item<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> currentAssociation);
+
+    /**
+     * Provides the `entitlement` variable for mapping evaluation.
+     * Used in request creator, called from mapping evaluator (!).
+     */
+    abstract void getEntitlementVariableProducer(
+            @NotNull com.evolveum.midpoint.repo.common.expression.Source<?, ?> source, @Nullable PrismValue value, @NotNull VariablesMap variables);
+
+    /**
+     * Creates {@link InboundMappingInContext} object by providing the appropriate context to the mapping.
+     */
+    abstract <V extends PrismValue, D extends ItemDefinition<?>> InboundMappingInContext<V,D> createInboundMappingInContext(
+            MappingImpl<V, D> mapping);
+}

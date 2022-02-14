@@ -207,10 +207,10 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
 
     private ConfigurableValuePolicySupplier createValuePolicySupplier() {
         return new ConfigurableValuePolicySupplier() {
-            private ItemDefinition outputDefinition;
+            private ItemDefinition<?> outputDefinition;
 
             @Override
-            public void setOutputDefinition(ItemDefinition outputDefinition) {
+            public void setOutputDefinition(ItemDefinition<?> outputDefinition) {
                 this.outputDefinition = outputDefinition;
             }
 
@@ -219,7 +219,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
 
                 if (mappingBean.getExpression() != null) {
                     List<JAXBElement<?>> evaluators = mappingBean.getExpression().getExpressionEvaluator();
-                    for (JAXBElement jaxbEvaluator : evaluators) {
+                    for (JAXBElement<?> jaxbEvaluator : evaluators) {
                         Object object = jaxbEvaluator.getValue();
                         if (object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null) {
                             ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();

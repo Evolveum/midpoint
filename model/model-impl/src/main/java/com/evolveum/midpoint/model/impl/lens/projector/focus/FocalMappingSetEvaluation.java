@@ -229,7 +229,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
             private ItemDefinition<?> outputDefinition;
 
             @Override
-            public void setOutputDefinition(ItemDefinition outputDefinition) {
+            public void setOutputDefinition(ItemDefinition<?> outputDefinition) {
                 this.outputDefinition = outputDefinition;
             }
 

@@ -409,22 +409,19 @@ public class LensUtil {
         return false;
     }
 
-    public static <F extends ObjectType> boolean hasDependentContext(LensContext<F> context,
-            LensProjectionContext targetProjectionContext) {
-        for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-            for (ResourceObjectTypeDependencyType dependency: projectionContext.getDependencies()) {
-                if (isDependencyTargetContext(projectionContext, targetProjectionContext, dependency)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public static <F extends ObjectType> boolean isDependencyTargetContext(LensProjectionContext sourceProjContext, LensProjectionContext targetProjectionContext, ResourceObjectTypeDependencyType dependency) {
-        ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency,
-                sourceProjContext.getResource().getOid(), sourceProjContext.getKind());
-        return targetProjectionContext.compareResourceShadowDiscriminator(refDiscr, false);
+    /**
+     * Returns true if there is a dependency of `source` on `target` under given `dependency` configuration.
+     * (Meaning that `source` depends on `target`!)
+     *
+     * I.e. there is a `dependency` configuration in `source` context pointing to `target`.
+     */
+    public static <F extends ObjectType> boolean areDependent(
+            LensProjectionContext source,
+            LensProjectionContext target,
+            ResourceObjectTypeDependencyType dependency) {
+        ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(
+                dependency, source.getResource().getOid(), source.getKind());
+        return target.compareResourceShadowDiscriminator(refDiscr, false);
     }
 
     public static <F extends ObjectType> LensProjectionContext findLowerOrderContext(LensContext<F> context,

@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.ClockworkInboundsProcessing;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -41,7 +42,7 @@ import java.util.*;
  *
  * - outbound password mappings ({@link ProjectionCredentialsProcessor},
  * - outbound existence and activation mappings ({@link ActivationProcessor},
- * - inbound password and activation mappings ({@link InboundMappingsEvaluation}.
+ * - inbound password and activation mappings ({@link ClockworkInboundsProcessing}.
  *
  * TODO Consider merging evaluation of these special mappings with the evaluation of standard attribute/association mappings.
  *

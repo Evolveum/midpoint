@@ -1628,6 +1628,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public ShadowType resolveEntitlement(ShadowAssociationType shadowAssociationType) {
+        if (shadowAssociationType == null) {
+            LOGGER.trace("No association");
+            return null;
+        }
         ObjectReferenceType shadowRef = shadowAssociationType.getShadowRef();
         if (shadowRef == null) {
             LOGGER.trace("No shadowRef in association {}", shadowAssociationType);
