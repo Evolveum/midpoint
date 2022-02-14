@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
@@ -22,7 +20,6 @@ import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportService;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctions;
-import com.evolveum.midpoint.notifications.impl.api.transports.LegacyCustomTransport;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
 import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
@@ -53,7 +50,6 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
     @Autowired protected NotificationFunctions notificationsUtil;
     @Autowired protected TextFormatter textFormatter;
     @Autowired protected AggregatedEventHandler aggregatedEventHandler;
-    @Autowired private LegacyCustomTransport customTransport;
     @Autowired private TransportService transportService;
 
     @Override
@@ -78,11 +74,6 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
 
         if (applies) {
             VariablesMap variables = getDefaultVariables(event, result);
-
-            List<String> transports = new ArrayList<>(configuration.getTransport());
-            if (transports.isEmpty()) {
-                transports.add(customTransport.getName());
-            }
 
             reportNotificationStart(event);
             try {
