@@ -24,10 +24,13 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchFilterParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import java.io.Serializable;
 
 public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
 
@@ -46,16 +49,39 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
         return FilterSearchItemPanel.class;
     }
 
+    @Override
     public String getName() {
-        return "";
+        String name = searchItem.getDisplayName() != null ? WebComponentUtil.getTranslatedPolyString(searchItem.getDisplayName()) : null;
+        if (name == null && searchItem.getParameter() != null) {
+            DisplayType displayType = searchItem.getParameter().getDisplay();
+            if (displayType != null) {
+                name = WebComponentUtil.getTranslatedPolyString(displayType.getLabel());
+            }
+        }
+        return name != null ? name : "";
     }
 
     public String getHelp() {
-        return "";
+        String help = searchItem.getDescription();
+        if (help == null && searchItem.getParameter() != null) {
+            DisplayType displayType = searchItem.getParameter().getDisplay();
+            if (displayType != null) {
+                help = WebComponentUtil.getTranslatedPolyString(displayType.getHelp());
+            }
+        }
+        return help != null ? help : "";
     }
 
     public String getTitle() {
         return "";
+    }
+
+    public DisplayableValue getInput() {
+        return getValue();
+    }
+
+    public void setInput(DisplayableValue<? extends Serializable> input) {
+        setValue(input);
     }
 
     @Override
@@ -113,4 +139,5 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
     public SearchItemType getSearchItem() {
         return searchItem;
     }
+
 }

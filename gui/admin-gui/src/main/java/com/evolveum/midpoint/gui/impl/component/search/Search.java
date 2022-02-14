@@ -13,6 +13,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -39,9 +42,6 @@ import com.evolveum.midpoint.web.component.search.DateSearchItem;
 import com.evolveum.midpoint.web.component.search.ObjectCollectionSearchItem;
 import com.evolveum.midpoint.web.component.search.PropertySearchItem;
 import com.evolveum.midpoint.web.component.search.SearchValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 public class Search<C extends Containerable> implements Serializable, DebugDumpable {
@@ -397,14 +397,18 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public VariablesMap getFilterVariables(VariablesMap defaultVariables, PageBase pageBase) {
         VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
-//        for (FilterSearchItem item : getFilterItems()) {
-//            SearchFilterParameterType functionParameter = item.getPredefinedFilter().getParameter();
-//            if (functionParameter != null && functionParameter.getType() != null) {
-//                Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(functionParameter.getType());
-//                TypedValue value = new TypedValue(item.getInput() != null ? item.getInput().getValue() : null, inputClass);
-//                variables.put(functionParameter.getName(), value);
-//            }
-//        }
+        if (getConfig().getSearchItems() == null) {
+            return variables;
+        }
+        for (SearchItemType item : getConfig().getSearchItems().getSearchItem()) {
+            SearchFilterParameterType functionParameter = item.getParameter();
+            if (functionParameter != null && functionParameter.getType() != null) {
+                Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(functionParameter.getType());
+                TypedValue value = new TypedValue(//item.getInput() != null ? item.getInput().getValue() :
+                        null, inputClass);
+                variables.put(functionParameter.getName(), value);
+            }
+        }
         return variables;
     }
 

@@ -29,6 +29,7 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
     private boolean applyFilter;
     private boolean selected;
     private boolean visible;
+    private boolean canConfigure = true;
 
     public abstract Class<? extends AbstractSearchItemPanel> getSearchItemPanelClass();
 
@@ -55,7 +56,11 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
     }
 
     public boolean canRemoveSearchItem() {
-        return true;
+        return canConfigure;
+    }
+
+    public void setCanConfigure(boolean canConfigure) {
+        this.canConfigure = canConfigure;
     }
 
     public DisplayableValue<T> getValue() {

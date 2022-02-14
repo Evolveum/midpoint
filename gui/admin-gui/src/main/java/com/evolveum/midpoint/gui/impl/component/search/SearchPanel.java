@@ -425,7 +425,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             add(items);
 
             WebMarkupContainer moreGroup = new WebMarkupContainer(ID_MORE_GROUP);
-            moreGroup.add(createVisibleBehaviour(SearchBoxModeType.BASIC));
+            moreGroup.add(createMoreGroupVisibleBehaviour());
             add(moreGroup);
 
             AjaxLink<Void> more = new AjaxLink<Void>(ID_MORE) {
@@ -452,6 +452,12 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             moreGroup.add(more);
 
             initPopover();
+        }
+
+        private VisibleBehaviour createMoreGroupVisibleBehaviour() {
+            return new VisibleBehaviour(() -> (getModelObject().getConfig().isAllowToConfigureSearchItems() == null
+                    || getModelObject().getConfig().isAllowToConfigureSearchItems()) &&
+                    SearchBoxModeType.BASIC.equals(getModelObject().getSearchMode()));
         }
 
         private void initPopover() {

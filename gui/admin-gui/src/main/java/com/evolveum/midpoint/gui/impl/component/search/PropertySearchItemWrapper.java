@@ -53,7 +53,7 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
 
     @Override
     public boolean canRemoveSearchItem() {
-        return !isResourceRefSearchItem();
+        return super.canRemoveSearchItem() && !isResourceRefSearchItem();
     }
 
     private boolean isObjectClassSearchItem() {

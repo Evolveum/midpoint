@@ -11,11 +11,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
 import com.evolveum.midpoint.gui.impl.component.search.*;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -411,6 +410,9 @@ public class SearchFactory {
         searchConfigurationWrapper.setConfig(searchBoxConfig);
         searchConfigurationWrapper.setSearchBoxMode(searchBoxConfig.getDefaultMode());
         createSearchItemWrapperList(searchConfigurationWrapper.getTypeClass(), searchConfigurationWrapper, discriminator, modelServiceLocator);
+        if (searchBoxConfig.isAllowToConfigureSearchItems() != null && !searchBoxConfig.isAllowToConfigureSearchItems()) {
+            searchConfigurationWrapper.getItemsList().forEach(item -> item.setCanConfigure(false));
+        }
         com.evolveum.midpoint.gui.impl.component.search.Search search =
                 new com.evolveum.midpoint.gui.impl.component.search.Search(Model.of(searchConfigurationWrapper));
         if (searchConfigurationWrapper.getTypeClass().isAssignableFrom(ObjectType.class)) {
@@ -437,7 +439,7 @@ public class SearchFactory {
                     if (property != null) {
                         searchConfigWrapper.addSearchItem(property);
                     }
-                } else if (item.getFilter() != null) {
+                } else if (item.getFilter() != null || item.getParameter() != null) {
                     searchConfigWrapper.addSearchItem(new FilterSearchItemWrapper(item, searchConfigWrapper.getTypeClass()));
                 }
             });

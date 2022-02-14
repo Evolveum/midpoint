@@ -63,11 +63,15 @@ public class FilterSearchItemPanel extends AbstractSearchItemPanel<FilterSearchI
             }
         });
         checkPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        checkPanel.add(new VisibleBehaviour(this::canRemoveSearchItem));
+        checkPanel.add(new VisibleBehaviour(this::isCheckPanelVisible));
 
         checkPanel.setOutputMarkupId(true);
         getSearchItemContainer().add(checkPanel);
 
+    }
+
+    private boolean isCheckPanelVisible() {
+        return canRemoveSearchItem() && getModelObject().getSearchItem().getFilter() != null;
     }
 
     @Override
