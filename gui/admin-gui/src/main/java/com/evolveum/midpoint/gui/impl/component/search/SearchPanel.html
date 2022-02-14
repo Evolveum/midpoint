@@ -73,44 +73,42 @@
     </wicket:fragment>
 
     <wicket:fragment wicket:id="advancedSearchFragment" >
-        <div class="form-group pull-right" style="vertical-align: top; margin-top: -5px; display: grid;">
+        <div class="form-group pull-right" style="vertical-align: top; margin-top: -5px; display: grid; width: 60px;">
             <a class="btn btn-sm btn-link" wicket:id="debug" style="display: table-cell; vertical-align: top; padding: 0px;"/>
         </div>
-        <div class="form-group has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px; text-align-last: left;">
-                <textarea class="form-control input-sm" rows="2" wicket:id="advancedArea"
-                        style="width: 220px; height: 60px; overflow: hidden; float:right;"></textarea>
-            <input wicket:id="axiomQueryField" type="text" class="form-control input-sm"
-                    style="width: 91.6666667%; min-width: 300px; float:right;">
-            <label class="control-label col-lg-1" style="vertical-align: top; float:right; padding-right: 5px;">
+        <div class="form-group has-feedback" wicket:id="advancedGroup" style="float:right; padding-right: 5px; text-align-last: left;">
+            <label class="control-label pull-left" style="vertical-align: top; float:right; padding-right: 5px;">
                 <i id="advancedCheck" class="fa fa-lg" wicket:id="advancedCheck"/>
             </label>
-            <div wicket:id="advancedErrorGroup" style="float:right">
+            <div wicket:id="advancedErrorGroup" class="pull-left" style="float:right">
                 <span id="advancedError" class="help-block" wicket:id="advancedError" style="float:right"/>
             </div>
+            <textarea class="form-control input-sm" rows="2" wicket:id="advancedArea"
+                        style="margin-right: 30px; width: 220px; height: 60px; overflow: hidden; float:right;"></textarea>
+            <input wicket:id="axiomQueryField" type="text" class="form-control input-sm"
+                    style="width: 91.6666667%; min-width: 300px; float:right;">
         </div>
     </wicket:fragment>
 
-    <wicket:fragment wicket:id="axiomSearchFragment" >
-        <div class="form-group pull-right" style="vertical-align: top; margin-top: -5px; display: grid;">
-            <a class="btn btn-sm btn-link" wicket:id="debug" style="display: table-cell; vertical-align: top; padding: 0px;"/>
-        </div>
-        <div class="form-group has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px; text-align-last: left;">
-                <textarea class="form-control input-sm" rows="2" wicket:id="advancedArea"
-                        style="width: 220px; height: 60px; overflow: hidden; float:right;"></textarea>
-            <input wicket:id="axiomQueryField" type="text" class="form-control input-sm"
-                    style="width: 91.6666667%; min-width: 300px; float:right;">
-            <label class="control-label col-lg-1" style="vertical-align: top; float:right; padding-right: 5px;">
-                <i id="advancedCheck" class="fa fa-lg" wicket:id="advancedCheck"/>
-            </label>
-            <div wicket:id="advancedErrorGroup" style="float:right">
-                <span id="advancedError" class="help-block" wicket:id="advancedError" style="float:right"/>
-            </div>
-        </div>
-    </wicket:fragment>
+<!--    <wicket:fragment wicket:id="axiomSearchFragment" >-->
+<!--        <div class="form-group pull-right" style="vertical-align: top; margin-top: -5px; display: grid;">-->
+<!--            <a class="btn btn-sm btn-link" wicket:id="debug" style="display: table-cell; vertical-align: top; padding: 0px;"/>-->
+<!--        </div>-->
+<!--        <div class="form-group has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px; text-align-last: left;">-->
+<!--            <label class="control-label col-lg-1" style="vertical-align: top; float:right; padding-right: 5px;">-->
+<!--                <i id="advancedCheck" class="fa fa-lg" wicket:id="advancedCheck"/>-->
+<!--            </label>-->
+<!--            <div wicket:id="advancedErrorGroup" style="float:right">-->
+<!--                <span id="advancedError" class="help-block" wicket:id="advancedError" style="float:right"/>-->
+<!--            </div>-->
+<!--            <input wicket:id="axiomQueryField" type="text" class="form-control input-sm"-->
+<!--                    style="width: 91.6666667%; min-width: 300px; float:right;">-->
+<!--        </div>-->
+<!--    </wicket:fragment>-->
 
     <wicket:fragment wicket:id="fulltextSearchFragment">
         <div class="form-group" wicket:id="fullTextContainer" style="float:right; padding-right: 5px; text-align-last: left;">
-            <input wicket:id="fullTextField" type="text" class="form-control input-sm" style="width: 150px; min-width: 150px;">
+            <input wicket:id="fullTextField" type="text" class="form-control input-sm" style="margin-right: 20px; width: 150px; min-width: 150px;">
         </div>
     </wicket:fragment>
 
