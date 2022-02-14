@@ -753,6 +753,7 @@ public class SearchFactory {
 
         if (ObjectType.class.isAssignableFrom(type) && isFullTextSearchEnabled(modelServiceLocator, (Class<? extends ObjectType>) type)) {
             config.allowedMode(SearchBoxModeType.FULLTEXT);
+            config.setDefaultMode(SearchBoxModeType.FULLTEXT);
         }
         return config;
     }
