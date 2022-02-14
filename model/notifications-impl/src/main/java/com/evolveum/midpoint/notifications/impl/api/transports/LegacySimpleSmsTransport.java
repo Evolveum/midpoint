@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.api.transports;
 
 import static java.util.Collections.emptyList;
@@ -20,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
@@ -44,8 +42,7 @@ import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalH
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
-import com.evolveum.midpoint.notifications.impl.TransportRegistry;
+import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
 import com.evolveum.midpoint.notifications.impl.util.HttpUtil;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -57,9 +54,9 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -71,41 +68,32 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-/**
- * @author mederly
- */
+@Deprecated
 @Component
-public class SimpleSmsTransport implements Transport {
+public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfigurationType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SimpleSmsTransport.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LegacySimpleSmsTransport.class);
 
-    private static final String NAME = "sms";
+    public static final String NAME = "sms";
 
-    private static final String DOT_CLASS = SimpleSmsTransport.class.getName() + ".";
+    private static final String DOT_CLASS = LegacySimpleSmsTransport.class.getName() + ".";
 
     @Autowired protected PrismContext prismContext;
     @Autowired protected ExpressionFactory expressionFactory;
-    @Autowired private TransportRegistry transportRegistry;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
-    private RepositoryService cacheRepositoryService;
+    private RepositoryService repositoryService;
 
     @Autowired protected Protector protector;
 
-    @PostConstruct
-    public void init() {
-        transportRegistry.registerTransport(NAME, this);
-    }
-
     @Override
     public void send(Message message, String transportName, Event event, Task task, OperationResult parentResult) {
-
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
         result.addArbitraryObjectCollectionAsParam("message recipient(s)", message.getTo());
         result.addParam("message subject", message.getSubject());
 
-        SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, result);
+        SystemConfigurationType systemConfiguration = TransportUtil.getSystemConfiguration(repositoryService, result);
         if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
             String msg = "No notifications are configured. SMS notification to " + message.getTo() + " will not be sent.";
             LOGGER.warn(msg);
@@ -384,17 +372,19 @@ public class SimpleSmsTransport implements Transport {
     protected VariablesMap getDefaultVariables(String from, List<String> to, Message message) throws UnsupportedEncodingException {
         VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_FROM, from, String.class);
-        variables.put(ExpressionConstants.VAR_ENCODED_FROM, URLEncoder.encode(from, "US-ASCII"), String.class);
+        variables.put(ExpressionConstants.VAR_ENCODED_FROM,
+                URLEncoder.encode(from, StandardCharsets.US_ASCII), String.class);
         variables.put(ExpressionConstants.VAR_TO, to.get(0), String.class);
         variables.put(ExpressionConstants.VAR_TO_LIST, to, List.class);
         List<String> encodedTo = new ArrayList<>();
         for (String s : to) {
-            encodedTo.add(URLEncoder.encode(s, "US-ASCII"));
+            encodedTo.add(URLEncoder.encode(s, StandardCharsets.US_ASCII));
         }
         variables.put(ExpressionConstants.VAR_ENCODED_TO, encodedTo.get(0), String.class);
         variables.put(ExpressionConstants.VAR_ENCODED_TO_LIST, encodedTo, List.class);
         variables.put(ExpressionConstants.VAR_MESSAGE_TEXT, message.getBody(), String.class);
-        variables.put(ExpressionConstants.VAR_ENCODED_MESSAGE_TEXT, URLEncoder.encode(message.getBody(), "US-ASCII"), String.class);
+        variables.put(ExpressionConstants.VAR_ENCODED_MESSAGE_TEXT,
+                URLEncoder.encode(message.getBody(), StandardCharsets.US_ASCII), String.class);
         variables.put(ExpressionConstants.VAR_MESSAGE, message, Message.class);
         return variables;
     }
@@ -407,5 +397,15 @@ public class SimpleSmsTransport implements Transport {
     @Override
     public String getName() {
         return NAME;
+    }
+
+    @Override
+    public void init(GeneralTransportConfigurationType configuration, TransportSupport transportSupport) {
+        // not called for legacy transport component
+    }
+
+    @Override
+    public GeneralTransportConfigurationType getConfiguration() {
+        return null;
     }
 }

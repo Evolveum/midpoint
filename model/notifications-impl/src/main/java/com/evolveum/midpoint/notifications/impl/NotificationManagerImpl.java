@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl;
 
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +14,8 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
+import com.evolveum.midpoint.notifications.api.transports.TransportService;
+import com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -26,9 +27,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
-/**
- *
- */
 @Component
 public class NotificationManagerImpl implements NotificationManager {
 
@@ -39,14 +37,14 @@ public class NotificationManagerImpl implements NotificationManager {
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
 
-    @Autowired private TransportRegistry transportRegistry;
+    @Autowired private TransportService transportService;
     @Autowired private EventHandlerRegistry eventHandlerRegistry;
 
     private boolean disabled = false; // for testing purposes (in order for model-intest to run more quickly)
 
     @Override
     public void registerTransport(String name, Transport transport) {
-        transportRegistry.registerTransport(name, transport);
+        transportService.registerTransport(name, transport);
     }
 
     @Override
@@ -84,8 +82,7 @@ public class NotificationManagerImpl implements NotificationManager {
 
     private SystemConfigurationType getSystemConfiguration(Task task, OperationResult result) {
         boolean errorIfNotFound = !SchemaConstants.CHANNEL_INIT_URI.equals(task.getChannel());
-        return NotificationFunctionsImpl
-                .getSystemConfiguration(cacheRepositoryService, errorIfNotFound, result);
+        return TransportUtil.getSystemConfiguration(cacheRepositoryService, errorIfNotFound, result);
     }
 
     @Override

@@ -11,7 +11,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +21,7 @@ import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalH
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
-import com.evolveum.midpoint.notifications.impl.TransportRegistry;
+import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -42,24 +40,17 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LegacyCustomTransportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * TODO clean up
- *
- * @author mederly
- */
+@Deprecated
 @Component
-public class CustomTransport implements Transport {
+public class LegacyCustomTransport implements Transport<GeneralTransportConfigurationType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CustomTransport.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LegacyCustomTransport.class);
 
-    private static final String NAME = "custom";
+    public static final String NAME = "custom";
 
-    private static final String DOT_CLASS = CustomTransport.class.getName() + ".";
+    private static final String DOT_CLASS = LegacyCustomTransport.class.getName() + ".";
 
     @Autowired
     protected PrismContext prismContext;
@@ -71,13 +62,6 @@ public class CustomTransport implements Transport {
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
 
-    @Autowired private TransportRegistry transportRegistry;
-
-    @PostConstruct
-    public void init() {
-        transportRegistry.registerTransport(NAME, this);
-    }
-
     @Override
     public void send(Message message, String transportName, Event event, Task task, OperationResult parentResult) {
 
@@ -85,8 +69,8 @@ public class CustomTransport implements Transport {
         result.addArbitraryObjectCollectionAsParam("message recipient(s)", message.getTo());
         result.addParam("message subject", message.getSubject());
 
-        SystemConfigurationType systemConfiguration = NotificationFunctionsImpl
-                .getSystemConfiguration(cacheRepositoryService, result);
+        SystemConfigurationType systemConfiguration =
+                TransportUtil.getSystemConfiguration(cacheRepositoryService, result);
         if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
             String msg = "No notifications are configured. Custom notification to " + message.getTo() + " will not be sent.";
             LOGGER.warn(msg);
@@ -199,5 +183,15 @@ public class CustomTransport implements Transport {
     @Override
     public String getName() {
         return NAME;
+    }
+
+    @Override
+    public void init(GeneralTransportConfigurationType configuration, TransportSupport transportSupport) {
+        // not called for legacy transport component
+    }
+
+    @Override
+    public GeneralTransportConfigurationType getConfiguration() {
+        return null;
     }
 }
