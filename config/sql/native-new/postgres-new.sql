@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -58,6 +58,7 @@ CREATE TYPE ObjectType AS ENUM (
     'FUNCTION_LIBRARY',
     'GENERIC_OBJECT',
     'LOOKUP_TABLE',
+    'MESSAGE_TEMPLATE',
     'NODE',
     'OBJECT',
     'OBJECT_COLLECTION',
@@ -1643,6 +1644,30 @@ CREATE INDEX m_form_createTimestamp_idx ON m_form (createTimestamp);
 CREATE INDEX m_form_modifyTimestamp_idx ON m_form (modifyTimestamp);
 -- endregion
 
+-- region Notification and message transport
+-- Represents MessageTemplateType
+CREATE TABLE m_message_template (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('MESSAGE_TEMPLATE') STORED
+        CHECK (objectType = 'MESSAGE_TEMPLATE')
+)
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_message_template_oid_insert_tr BEFORE INSERT ON m_message_template
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_message_template_update_tr BEFORE UPDATE ON m_message_template
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_message_template_oid_delete_tr AFTER DELETE ON m_message_template
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+CREATE INDEX m_message_template_nameOrig_idx ON m_message_template (nameOrig);
+CREATE UNIQUE INDEX m_message_template_nameNorm_key ON m_message_template (nameNorm);
+CREATE INDEX m_message_template_policySituation_idx
+    ON m_message_template USING gin(policysituations gin__int_ops);
+CREATE INDEX m_message_template_createTimestamp_idx ON m_message_template (createTimestamp);
+CREATE INDEX m_message_template_modifyTimestamp_idx ON m_message_template (modifyTimestamp);
+-- endregion
+
 -- region Assignment/Inducement table
 -- Represents AssignmentType, see https://docs.evolveum.com/midpoint/reference/roles-policies/assignment/
 -- and also https://docs.evolveum.com/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/
@@ -1864,5 +1889,4 @@ END $$;
 -- endregion
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
-call apply_change(1, $$ SELECT 1 $$, true);
-
+call apply_change(3, $$ SELECT 1 $$, true);

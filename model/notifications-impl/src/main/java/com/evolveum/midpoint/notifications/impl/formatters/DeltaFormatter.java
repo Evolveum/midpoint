@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.formatters;
 
 import java.util.ArrayList;
@@ -13,8 +12,6 @@ import java.util.List;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.DebugUtil;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -22,12 +19,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctions;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -39,7 +37,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class DeltaFormatter {
 
     @Autowired private ValueFormatter valueFormatter;
-    @Autowired protected NotificationFunctionsImpl functions;
+    @Autowired protected NotificationFunctions functions;
     @Autowired private LocalizationService localizationService;
 
     private static final Trace LOGGER = TraceManager.getTrace(DeltaFormatter.class);
@@ -225,7 +223,7 @@ public class DeltaFormatter {
         for (int i = 0; i < path.size(); i++) {
             Object segment = path.getSegment(i);
             if (ItemPath.isId(segment)) {
-                if (i < path.size()-1 || itemDelta.isDelete()) {
+                if (i < path.size() - 1 || itemDelta.isDelete()) {
                     return path.allUpToIncluding(i);
                 } else {
                     // this means that the path ends with [id] segment *and* the value(s) are
@@ -265,7 +263,7 @@ public class DeltaFormatter {
             Collection<ItemPath> hiddenPaths, boolean showOperational, Object context) {
         List<ItemDelta<?, ?>> toBeDisplayed = new ArrayList<>(modifications.size());
         List<QName> noDefinition = new ArrayList<>();
-        for (ItemDelta<?, ?> itemDelta: modifications) {
+        for (ItemDelta<?, ?> itemDelta : modifications) {
             if (itemDelta.getDefinition() != null) {
                 if ((showOperational || !itemDelta.getDefinition().isOperational())
                         && !TextFormatter.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {

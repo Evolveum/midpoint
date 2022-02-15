@@ -1,39 +1,36 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
+import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralTransportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-/**
- * @author mederly
- */
 @Component
-public class DummyTransport implements Transport, DebugDumpable {
+public class DummyTransport implements Transport<GeneralTransportConfigurationType>, DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(DummyTransport.class);
 
@@ -47,6 +44,7 @@ public class DummyTransport implements Transport, DebugDumpable {
 
     @PostConstruct
     public void init() {
+        // TODO should this be here or in some init code for test that injects DummyTransport?
         if (notificationManager != null) {
             notificationManager.registerTransport(NAME, this);
         } else {
@@ -54,7 +52,7 @@ public class DummyTransport implements Transport, DebugDumpable {
         }
     }
 
-    private Map<String,List<Message>> messages = new HashMap<>();
+    private Map<String, List<Message>> messages = new HashMap<>();
 
     @Override
     public void send(Message message, String name, Event event, Task task, OperationResult parentResult) {
@@ -75,7 +73,7 @@ public class DummyTransport implements Transport, DebugDumpable {
         return messages.get(transportName);
     }
 
-    public Map<String,List<Message>> getMessages() {
+    public Map<String, List<Message>> getMessages() {
         return messages;
     }
 
@@ -104,5 +102,15 @@ public class DummyTransport implements Transport, DebugDumpable {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(")");
         return sb.toString();
+    }
+
+    @Override
+    public void init(GeneralTransportConfigurationType configuration, TransportSupport transportSupport) {
+        // not called for legacy transport component
+    }
+
+    @Override
+    public GeneralTransportConfigurationType getConfiguration() {
+        return null;
     }
 }

@@ -17,6 +17,7 @@
             <class name="com.evolveum.midpoint.repo.common.tasks.TestBucketingStatic"/>
             <class name="com.evolveum.midpoint.repo.common.tasks.TestBucketingLive"/> <!-- TODO currently almost empty -->
             <class name="com.evolveum.midpoint.repo.common.tasks.TestWorkerTasks"/>
+            <class name="com.evolveum.midpoint.repo.common.RepoCommonAddGetTest"/>
         </classes>
     </test>
 </suite>

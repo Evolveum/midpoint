@@ -118,12 +118,6 @@ public class DataSourceFactory {
             config.setTransactionIsolation("TRANSACTION_" + ti.name());
         }
 
-        if (configuration.isUsingMySqlCompatible()) {
-            config.addDataSourceProperty("cachePrepStmts", "true");
-            config.addDataSourceProperty("prepStmtCacheSize", "250");
-            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-        }
-
         config.setInitializationFailTimeout(configuration.getInitializationFailTimeout());
         // We don't want auto commit to assure rollback behavior on close() if connection was not committed.
         config.setAutoCommit(false);

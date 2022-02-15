@@ -1,34 +1,10 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.api.transports;
-
-import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationTransportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -36,10 +12,24 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 
-/**
- * @author mederly
- */
+import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 public class TransportUtil {
+
+    private static final Trace LOGGER = TraceManager.getTrace(TransportUtil.class);
 
     static void appendToFile(String filename, String text) throws IOException {
         FileWriter fw = new FileWriter(filename, true);
@@ -51,13 +41,14 @@ public class TransportUtil {
             Function<NotificationConfigurationType, List<T>> getter, RepositoryService cacheRepositoryService,
             OperationResult result) {
 
-        SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, result);
+        SystemConfigurationType systemConfiguration =
+                getSystemConfiguration(cacheRepositoryService, result);
         if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
             return null;
         }
 
         String transportConfigName = transportName.length() > baseTransportName.length() ? transportName.substring(baseTransportName.length() + 1) : null;      // after e.g. "sms:" or "file:"
-        for (T namedConfiguration: getter.apply(systemConfiguration.getNotificationConfiguration())) {
+        for (T namedConfiguration : getter.apply(systemConfiguration.getNotificationConfiguration())) {
             if ((transportConfigName == null && namedConfiguration.getName() == null) || (transportConfigName != null && transportConfigName.equals(namedConfiguration.getName()))) {
                 return namedConfiguration;
             }
@@ -84,7 +75,7 @@ public class TransportUtil {
     }
 
     public static String formatToFileOld(Message message) {
-        return "============================================ " + "\n" +new Date() + "\n" + message.toString() + "\n\n";
+        return "============================================ " + "\n" + new Date() + "\n" + message.toString() + "\n\n";
     }
 
     static String formatToFileNew(Message message, String transport) {
@@ -104,7 +95,7 @@ public class TransportUtil {
                 PrismPropertyValue<Boolean> allowedRecipient = ExpressionUtil.evaluateCondition(variables, filter, expressionProfile,
                         expressionFactory, "Recipient filter", task, result);
                 if (allowedRecipient == null || allowedRecipient.getValue() == null) {
-                    throw new IllegalArgumentException("Return value from expresion for filtering recipient is null");
+                    throw new IllegalArgumentException("Return value from expression for filtering recipient is null");
                 }
                 return allowedRecipient.getValue();
             } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
@@ -162,5 +153,26 @@ public class TransportUtil {
             }
         }
 
+    }
+
+    // beware, may return null if there's any problem getting sysconfig (e.g. during initial import)
+    public static SystemConfigurationType getSystemConfiguration(RepositoryService repositoryService, OperationResult result) {
+        return getSystemConfiguration(repositoryService, true, result);
+    }
+
+    public static SystemConfigurationType getSystemConfiguration(RepositoryService repositoryService, boolean errorIfNotFound, OperationResult result) {
+        try {
+            return repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                    null, result).asObjectable();
+        } catch (ObjectNotFoundException | SchemaException e) {
+            if (errorIfNotFound) {
+                LoggingUtils.logException(LOGGER,
+                        "Notification(s) couldn't be processed, because the system configuration couldn't be retrieved", e);
+            } else {
+                LoggingUtils.logExceptionOnDebugLevel(LOGGER,
+                        "Notification(s) couldn't be processed, because the system configuration couldn't be retrieved", e);
+            }
+            return null;
+        }
     }
 }
