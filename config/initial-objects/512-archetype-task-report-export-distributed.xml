@@ -6,8 +6,7 @@
   -->
 <archetype oid="00000000-0000-0000-0000-000000000512"
            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:rext="http://midpoint.evolveum.com/xml/ns/public/report/extension-3">
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Distributed report export task</name>
     <archetypePolicy>
         <display>

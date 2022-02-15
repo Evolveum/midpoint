@@ -42,20 +42,20 @@ public class MidpointSaml2WebSsoAuthenticationFilter extends Saml2WebSsoAuthenti
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean sendedRequest = false;
+        boolean sentRequest = false;
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             Saml2ModuleAuthentication moduleAuthentication = (Saml2ModuleAuthentication) mpAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication != null && RequestState.SENDED.equals(moduleAuthentication.getRequestState())) {
-                sendedRequest = true;
+                sentRequest = true;
             }
             boolean requiresAuthentication = requiresAuthentication((HttpServletRequest) req, (HttpServletResponse) res);
 
-            if (!requiresAuthentication && sendedRequest) {
+            if (!requiresAuthentication && sentRequest) {
                 AuthenticationServiceException exception = new AuthenticationServiceException("web.security.flexAuth.saml.not.response");
                 unsuccessfulAuthentication((HttpServletRequest) req, (HttpServletResponse) res, exception);
             } else {
-                if (moduleAuthentication != null && requiresAuthentication && sendedRequest) {
+                if (moduleAuthentication != null && requiresAuthentication && sentRequest) {
                     moduleAuthentication.setRequestState(RequestState.RECEIVED);
                 }
                 super.doFilter(req, res, chain);
