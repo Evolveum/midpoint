@@ -749,7 +749,8 @@ public class SearchFactory {
         config.searchItems(searchItems)
                 .defaultMode(SearchBoxModeType.BASIC)
                 .allowedMode(SearchBoxModeType.BASIC)
-                .allowedMode(SearchBoxModeType.ADVANCED);
+                .allowedMode(SearchBoxModeType.ADVANCED)
+                .allowedMode(SearchBoxModeType.AXIOM_QUERY);
 
         if (ObjectType.class.isAssignableFrom(type) && isFullTextSearchEnabled(modelServiceLocator, (Class<? extends ObjectType>) type)) {
             config.allowedMode(SearchBoxModeType.FULLTEXT);

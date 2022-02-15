@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.web.component.search.SearchValue;
@@ -257,7 +258,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         AdvancedSearchFragment advancedSearchFragment = new AdvancedSearchFragment(searchItemsRepeatingView.newChildId(), ID_ADVANCED_SEARCH_FRAGMENT,
                 SearchPanel.this);
         advancedSearchFragment.setOutputMarkupId(true);
-        advancedSearchFragment.add(new VisibleBehaviour(() -> SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())));
+        advancedSearchFragment.add(new VisibleBehaviour(() -> SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode()) ||
+                SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode())));
         searchItemsRepeatingView.add(advancedSearchFragment);
 
         FulltextSearchFragment fulltextSearchFragment = new FulltextSearchFragment(searchItemsRepeatingView.newChildId(), ID_FULLTEXT_SEARCH_FRAGMENT,
@@ -310,6 +312,10 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
                 @Override
                 public IModel<Boolean> getVisible() {
+                    if (SearchBoxModeType.AXIOM_QUERY.equals(searchBoxModeType)) {
+                        return Model.of(WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())
+                                && getModelObject().getConfig().getAllowedMode().contains(searchBoxModeType));
+                    }
                     return Model.of(getModelObject().getConfig().getAllowedMode().contains(searchBoxModeType));
                 }
             };
