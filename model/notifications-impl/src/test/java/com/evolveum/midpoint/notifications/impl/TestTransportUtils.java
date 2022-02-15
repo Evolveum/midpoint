@@ -34,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationTranspor
 /**
  * @author skublik
  */
-@ContextConfiguration(locations = {"classpath:ctx-notifications-test.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-notifications-test.xml" })
 public class TestTransportUtils extends AbstractSpringTest {
 
     @Autowired protected ExpressionFactory expressionFactory;
@@ -71,18 +71,17 @@ public class TestTransportUtils extends AbstractSpringTest {
         // WHEN
         TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task, task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), logger);
 
-        // THEN
         then();
 
         assertTrue("Expected <4> allowed recipient(s), but was <" + allowRecipient.size() + ">", allowRecipient.size() == 4);
-        assertTrue("janko@evodevel.com shoud be allowed, but isn't.", allowRecipient.contains("janko@evodevel.com"));
-        assertTrue("janko@evolveum.com shoud be allowed, but isn't.", allowRecipient.contains("janko@evolveum.com"));
-        assertTrue("viliam@evodevel.com shoud be allowed, but isn't.", allowRecipient.contains("viliam@evodevel.com"));
-        assertTrue("majka@evodevel.eu shoud be allowed, but isn't.", allowRecipient.contains("majka@evodevel.eu"));
+        assertTrue("janko@evodevel.com should be allowed, but isn't.", allowRecipient.contains("janko@evodevel.com"));
+        assertTrue("janko@evolveum.com should be allowed, but isn't.", allowRecipient.contains("janko@evolveum.com"));
+        assertTrue("viliam@evodevel.com should be allowed, but isn't.", allowRecipient.contains("viliam@evodevel.com"));
+        assertTrue("majka@evodevel.eu should be allowed, but isn't.", allowRecipient.contains("majka@evodevel.eu"));
 
         assertTrue("Expected <2> forbidden recipient(s), but was <" + forbiddenRecipient.size() + ">", forbiddenRecipient.size() == 2);
-        assertTrue("jack@evodevel.sk shoud be forbidden, but isn't.", forbiddenRecipient.contains("jack@evodevel.sk"));
-        assertTrue("janko@evolveum.eu shoud be forbidden, but isn't.", forbiddenRecipient.contains("janko@evolveum.eu"));
+        assertTrue("jack@evodevel.sk should be forbidden, but isn't.", forbiddenRecipient.contains("jack@evodevel.sk"));
+        assertTrue("janko@evolveum.eu should be forbidden, but isn't.", forbiddenRecipient.contains("janko@evolveum.eu"));
     }
 
     @Test
@@ -110,18 +109,16 @@ public class TestTransportUtils extends AbstractSpringTest {
         // WHEN
         TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task, task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), logger);
 
-        // THEN
         then();
 
         assertTrue("Expected <4> forbidden recipient(s), but was <" + forbiddenRecipient.size() + ">", forbiddenRecipient.size() == 4);
-        assertTrue("janko@evodevel.com shoud be forbidden, but isn't.", forbiddenRecipient.contains("janko@evodevel.com"));
-        assertTrue("janko@evolveum.com shoud be forbidden, but isn't.", forbiddenRecipient.contains("janko@evolveum.com"));
-        assertTrue("viliam@evodevel.com shoud be forbidden, but isn't.", forbiddenRecipient.contains("viliam@evodevel.com"));
-        assertTrue("majka@evodevel.eu shoud be forbidden, but isn't.", forbiddenRecipient.contains("majka@evodevel.eu"));
+        assertTrue("janko@evodevel.com should be forbidden, but isn't.", forbiddenRecipient.contains("janko@evodevel.com"));
+        assertTrue("janko@evolveum.com should be forbidden, but isn't.", forbiddenRecipient.contains("janko@evolveum.com"));
+        assertTrue("viliam@evodevel.com should be forbidden, but isn't.", forbiddenRecipient.contains("viliam@evodevel.com"));
+        assertTrue("majka@evodevel.eu should be forbidden, but isn't.", forbiddenRecipient.contains("majka@evodevel.eu"));
 
         assertTrue("Expected <2> allowed recipient(s), but was <" + allowRecipient.size() + ">", allowRecipient.size() == 2);
-        assertTrue("jack@evodevel.sk shoud be allowed, but isn't.", allowRecipient.contains("jack@evodevel.sk"));
-        assertTrue("janko@evolveum.eu shoud be allowed, but isn't.", allowRecipient.contains("janko@evolveum.eu"));
+        assertTrue("jack@evodevel.sk should be allowed, but isn't.", allowRecipient.contains("jack@evodevel.sk"));
+        assertTrue("janko@evolveum.eu should be allowed, but isn't.", allowRecipient.contains("janko@evolveum.eu"));
     }
-
 }
