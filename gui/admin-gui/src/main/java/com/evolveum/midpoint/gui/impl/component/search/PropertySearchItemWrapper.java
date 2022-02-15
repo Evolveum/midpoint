@@ -124,7 +124,7 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+    public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         if (getValue().getValue() == null) {
             return null;
         }
@@ -149,11 +149,11 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
                 return null;
             }
             Object parsedValue = Long.parseLong((String) getValue().getValue());
-            return ctx.queryFor(ObjectType.class)
+            return ctx.queryFor(type)
                     .item(getSearchItem().getPath().getItemPath(), itemDef).eq(parsedValue).buildFilter();
         } else if (DOMUtil.XSD_STRING.equals(typeName)) {
             String text = (String) getValue().getValue();
-            return ctx.queryFor(ObjectType.class)
+            return ctx.queryFor(type)
                     .item(getSearchItem().getPath().getItemPath(), itemDef).contains(text).matchingCaseIgnore().buildFilter();
         } else if (DOMUtil.XSD_QNAME.equals(typeName)) {
             Object qnameValue = getValue().getValue();
@@ -163,12 +163,12 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
             } else {
                 qName = new QName((String) qnameValue);
             }
-            return ctx.queryFor(ObjectType.class)
+            return ctx.queryFor(type)
                     .item(getSearchItem().getPath().getItemPath(), itemDef).eq(qName).buildFilter();
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(typeName)) {
                 //we're looking for string value, therefore substring filter should be used
                 String text = (String) getValue().getValue();
-                return ctx.queryFor(ObjectType.class)
+                return ctx.queryFor(type)
                         .item(getSearchItem().getPath().getItemPath(), itemDef).contains(text).matchingNorm().buildFilter();
             }
 //            else if (propDef.getValueEnumerationRef() != null) {

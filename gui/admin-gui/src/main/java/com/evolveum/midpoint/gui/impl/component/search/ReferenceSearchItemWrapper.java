@@ -70,7 +70,7 @@ public class ReferenceSearchItemWrapper<T extends Serializable> extends Property
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+    public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         PrismReferenceValue refValue = ((ObjectReferenceType) getValue().getValue()).asReferenceValue();
         if (refValue.isEmpty()) {
             return null;
@@ -80,7 +80,7 @@ public class ReferenceSearchItemWrapper<T extends Serializable> extends Property
                 && refValue.getObject() == null && refValue.getRelation() == null && refValue.getFilter() == null) {
             return null;
         }
-        RefFilter refFilter = (RefFilter) PrismContext.get().queryFor(searchType)
+        RefFilter refFilter = (RefFilter) PrismContext.get().queryFor(type)
                 .item(getSearchItem().getPath().getItemPath()).ref(refValue.clone())
                 .buildFilter();
         refFilter.setOidNullAsAny(true);

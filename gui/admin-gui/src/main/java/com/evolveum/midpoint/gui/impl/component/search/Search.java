@@ -363,7 +363,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                     (item instanceof AbstractRoleSearchItemWrapper && abstractRoleFilterCheck)) {
                 continue;
             }
-            ObjectFilter filter = item.createFilter(pageBase, defaultVariables);
+            ObjectFilter filter = item.createFilter(getTypeClass(), pageBase, defaultVariables);
             if (filter != null) {
                 conditions.add(filter);
             }

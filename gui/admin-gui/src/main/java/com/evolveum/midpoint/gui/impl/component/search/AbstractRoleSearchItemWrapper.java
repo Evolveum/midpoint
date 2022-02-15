@@ -39,13 +39,12 @@ public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWr
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+    public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         AbstractRoleType object = getParentVariables(variables);
         if (object == null) {
             return null;
         }
 
-        Class type = getSearchConfig().getTypeClass();
         ScopeSearchItemWrapper scope = getScopeSearchItemWrapper();
         if (scope != null && SearchBoxScopeType.SUBTREE.equals(scope.getValue().getValue())) {
             ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, (QName) null);

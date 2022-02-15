@@ -95,8 +95,8 @@ public class ObjectTypeSearchItemWrapper extends AbstractSearchItemWrapper<QName
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
-        return PrismContext.get().queryFor((Class<? extends Containerable>) WebComponentUtil.qnameToClass(PrismContext.get(), config.getDefaultValue()))
+    public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
+        return PrismContext.get().queryFor(type)
                 .buildFilter();
     }
 

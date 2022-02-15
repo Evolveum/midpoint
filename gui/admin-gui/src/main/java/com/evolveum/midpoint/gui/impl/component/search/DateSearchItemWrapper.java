@@ -60,11 +60,11 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper {
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+    public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         PrismContext ctx = PrismContext.get();
         ItemPath path = getSearchItem().getPath().getItemPath();
         if (fromDate != null && toDate != null) {
-            return ctx.queryFor(ObjectType.class)
+            return ctx.queryFor(type)
                     .item(path)
                     .gt(fromDate)
                     .and()
@@ -72,12 +72,12 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper {
                     .lt(toDate)
                     .buildFilter();
         } else if (fromDate != null) {
-            return ctx.queryFor(ObjectType.class)
+            return ctx.queryFor(type)
                     .item(path)
                     .gt(fromDate)
                     .buildFilter();
         } else if (toDate != null) {
-            return ctx.queryFor(ObjectType.class)
+            return ctx.queryFor(type)
                     .item(path)
                     .lt(toDate)
                     .buildFilter();

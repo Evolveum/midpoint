@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -41,7 +42,7 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
 
     public abstract DisplayableValue<T> getDefaultValue();
 
-    public abstract ObjectFilter createFilter(PageBase pageBase, VariablesMap variables);
+    public abstract <C extends Containerable> ObjectFilter createFilter(Class<C> type, PageBase pageBase, VariablesMap variables);
 
     public boolean isVisible() {
         return visible;

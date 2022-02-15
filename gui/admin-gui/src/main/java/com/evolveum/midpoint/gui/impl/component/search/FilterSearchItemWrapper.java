@@ -90,9 +90,9 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase, VariablesMap var) {
+    public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         PrismContext ctx = PrismContext.get();
-        VariablesMap variables = getFilterVariables();
+        variables = getFilterVariables();   //todo which variables to use?
         if (isEnabled() && isApplyFilter(SearchBoxModeType.BASIC)) {
             SearchFilterType filter = getSearchItem().getFilter();
             if (filter == null && getSearchItem().getFilterExpression() != null) {
@@ -129,8 +129,13 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
         VariablesMap variables = new VariablesMap();
         SearchFilterParameterType functionParameter = getSearchItem().getParameter();
         if (functionParameter != null && functionParameter.getType() != null) {
-            Class<?> inputClass = PrismContext.get().getSchemaRegistry().determineClassForType(functionParameter.getType());
-            TypedValue value = new TypedValue(getValue().getValue(), inputClass);
+            TypedValue value;
+            if (getInput() == null || getInput().getValue() == null) {
+                Class<?> inputClass = PrismContext.get().getSchemaRegistry().determineClassForType(functionParameter.getType());
+                value = new TypedValue(null, inputClass);
+            } else {
+                value = new TypedValue(getInput().getValue(), getInput().getValue().getClass());
+            }
             variables.put(functionParameter.getName(), value);
         }
         return variables;

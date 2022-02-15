@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.search;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -49,11 +50,11 @@ public class OidSearchItemWrapper extends AbstractSearchItemWrapper<String> {
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+    public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         if (StringUtils.isEmpty(getValue().getValue())) {
             return null;
         }
-        return pageBase.getPrismContext().queryFor(ObjectType.class)
+        return pageBase.getPrismContext().queryFor(type)
                 .id(getValue().getValue())
                 .buildFilter();
     }
