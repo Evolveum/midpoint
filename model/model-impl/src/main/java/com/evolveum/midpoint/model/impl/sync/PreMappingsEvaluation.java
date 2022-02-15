@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  * Evaluates "pre-mappings" i.e. inbound mappings that are evaluated before the actual clockwork is run.
  * (This is currently done to simplify the correlation process.)
  *
- * FIXME only a fake implementation for now
+ * This tiny class serves as a bridge between the world of synchronization and the world of mappings.
  */
 class PreMappingsEvaluation<F extends FocusType> {
 
@@ -51,6 +51,6 @@ class PreMappingsEvaluation<F extends FocusType> {
         new PreInboundsProcessing<>(syncCtx, beans, env, result)
                 .collectAndEvaluateMappings();
 
-        LOGGER.info("Pre-focus:\n{}", preFocus.debugDumpLazily(1));
+        LOGGER.debug("Pre-focus:\n{}", preFocus.debugDumpLazily(1));
     }
 }
