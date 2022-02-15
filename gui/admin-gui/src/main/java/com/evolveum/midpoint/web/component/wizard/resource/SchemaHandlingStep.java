@@ -567,8 +567,8 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(credentialsTooltip);
     }
 
-    private String formatItemInfo(ResourceItemDefinitionType item, ItemPathType ref, String displayName, List<MappingType> inbounds,
-            MappingType outbound) {
+    private String formatItemInfo(ResourceItemDefinitionType item, ItemPathType ref, String displayName,
+            List<? extends MappingType> inbounds, MappingType outbound) {
         StringBuilder sb = new StringBuilder();
         if (ref != null && !ref.getItemPath().isEmpty()) {
             QName name = ref.getItemPath().asSingleName();
@@ -952,7 +952,7 @@ public class SchemaHandlingStep extends WizardStep {
                 objectType.getAttribute().addAll(newAttributeList);
 
                 for (ResourceAttributeDefinitionType attr : objectType.getAttribute()) {
-                    List<MappingType> newInbounds = clearEmptyMappings(attr.getInbound());
+                    List<InboundMappingType> newInbounds = clearEmptyMappings(attr.getInbound());
                     attr.getInbound().clear();
                     attr.getInbound().addAll(newInbounds);
                 }
@@ -969,7 +969,7 @@ public class SchemaHandlingStep extends WizardStep {
                 objectType.getAssociation().addAll(newAssociationList);
 
                 for (ResourceObjectAssociationType association : objectType.getAssociation()) {
-                    List<MappingType> newInbounds = clearEmptyMappings(association.getInbound());
+                    List<InboundMappingType> newInbounds = clearEmptyMappings(association.getInbound());
                     association.getInbound().clear();
                     association.getInbound().addAll(newInbounds);
                 }
@@ -1008,10 +1008,10 @@ public class SchemaHandlingStep extends WizardStep {
         list.addAll(newList);
     }
 
-    private List<MappingType> clearEmptyMappings(List<MappingType> list) {
-        List<MappingType> newList = new ArrayList<>();
+    private <MT extends MappingType> List<MT> clearEmptyMappings(List<MT> list) {
+        List<MT> newList = new ArrayList<>();
 
-        for (MappingType mapping : list) {
+        for (MT mapping : list) {
             if (!WizardUtil.isEmptyMapping(mapping)) {
                 newList.add(mapping);
             }
