@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.schema.*;
 
@@ -66,6 +67,7 @@ public class GuiProfileCompiler {
     @Autowired private PrismContext prismContext;
     @Autowired private CollectionProcessor collectionProcessor;
     @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
+    @Autowired private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
 
     @Autowired private AssignmentCollector assignmentCollector;
 
@@ -435,8 +437,17 @@ public class GuiProfileCompiler {
     }
 
     private void joinObjectDetails(GuiObjectDetailsSetType objectDetailsSet, GuiObjectDetailsPageType newObjectDetails) {
+        GuiObjectDetailsPageType mergedObjectDetails = null;
+        for (GuiObjectDetailsPageType currentDetails : objectDetailsSet.getObjectDetailsPage()) {
+            if (isTheSameObjectType(currentDetails, newObjectDetails)) {
+                mergedObjectDetails = adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(currentDetails, newObjectDetails);
+            }
+        }
+        if (mergedObjectDetails == null) {
+            mergedObjectDetails = newObjectDetails.clone();
+        }
         objectDetailsSet.getObjectDetailsPage().removeIf(currentDetails -> isTheSameObjectType(currentDetails, newObjectDetails));
-        objectDetailsSet.getObjectDetailsPage().add(newObjectDetails.clone());
+        objectDetailsSet.getObjectDetailsPage().add(mergedObjectDetails);
     }
 
     private boolean isTheSameObjectType(AbstractObjectTypeConfigurationType oldConf, AbstractObjectTypeConfigurationType newConf) {
