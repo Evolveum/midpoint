@@ -51,10 +51,10 @@ public class TransportServiceImpl implements TransportService {
     @PostConstruct
     public void init() throws SchemaException {
         // TODO: Implicit legacy notifiers, but this should go in 4.6.
-        registerTransport(LegacyMailTransport.NAME, legacyMailTransport);
-        registerTransport(LegacySimpleSmsTransport.NAME, simpleSmsTransport);
-        registerTransport(LegacyFileTransport.NAME, legacyFileTransport);
-        registerTransport(LegacyCustomTransport.NAME, legacyCustomTransport);
+        registerTransport(legacyMailTransport);
+        registerTransport(simpleSmsTransport);
+        registerTransport(legacyFileTransport);
+        registerTransport(legacyCustomTransport);
 
         PrismObject<SystemConfigurationType> sysConfigObject =
                 systemObjectCache.getSystemConfiguration(new OperationResult("dummy"));
@@ -85,13 +85,9 @@ public class TransportServiceImpl implements TransportService {
     }
 
     @Override
-    public void registerTransport(String name, Transport<?> transport) {
-        LOGGER.trace("Registering notification transport {} under name {}", transport, name);
-        Transport<?> oldTransport = transports.get(name);// TODO beware the duality of name vs name before ":" used in getTransport()
-        if (oldTransport != null) {
-            // TODO logging?
-            oldTransport.destroy();
-        }
+    public void registerTransport(@NotNull Transport<?> transport) {
+        String name = transport.getName();
+        LOGGER.trace("Registering message transport {} with name {}", transport, name);
         transports.put(name, transport);
     }
 
@@ -99,10 +95,14 @@ public class TransportServiceImpl implements TransportService {
     // accepts name:subname (e.g. dummy:accounts) - a primitive form of passing parameters (will be enhanced/replaced in the future)
     @Override
     public Transport<?> getTransport(String name) {
-        String key = name.split(":")[0];
-        Transport<?> transport = transports.get(key);
+        Transport<?> transport = transports.get(name);
         if (transport == null) {
-            throw new IllegalStateException("Unknown transport named " + key);
+            // TODO fallback for legacy
+            String key = name.split(":")[0];
+            transport = transports.get(key);
+        }
+        if (transport == null) {
+            throw new IllegalStateException("Unknown transport named " + name);
         } else {
             return transport;
         }

@@ -20,7 +20,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public interface Transport<C extends GeneralTransportConfigurationType> {
 
-    void send(Message message, String transportName, Event event, Task task, OperationResult parentResult);
+    // transportName is used only by some legacy transports when key:subname style is used
+    void send(Message message, @Deprecated String transportName, Event event, Task task, OperationResult parentResult);
 
     String getDefaultRecipientAddress(UserType recipient);
 
@@ -30,8 +31,4 @@ public interface Transport<C extends GeneralTransportConfigurationType> {
     C getConfiguration();
 
     void init(C configuration, TransportSupport transportSupport);
-
-    default void destroy() {
-        // nothing by default
-    }
 }
