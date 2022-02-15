@@ -18,7 +18,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil;
+import com.evolveum.midpoint.notifications.impl.transport.TransportUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;

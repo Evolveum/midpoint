@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.notifications.impl.api.transports;
+package com.evolveum.midpoint.notifications.impl.transport.legacy;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
+import com.evolveum.midpoint.notifications.impl.transport.TransportUtil;
 import com.evolveum.midpoint.notifications.impl.util.HttpUtil;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismContext;

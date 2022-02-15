@@ -4,9 +4,9 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.notifications.impl.api.transports;
+package com.evolveum.midpoint.notifications.impl.transport.legacy;
 
-import static com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil.formatToFileNew;
+import static com.evolveum.midpoint.notifications.impl.transport.TransportUtil.formatToFileNew;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,6 +16,7 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
+import com.evolveum.midpoint.notifications.impl.transport.TransportUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;

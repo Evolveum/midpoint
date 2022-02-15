@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.notifications.impl.api.transports;
+package com.evolveum.midpoint.notifications.impl.transport;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -31,7 +31,7 @@ public class TransportUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(TransportUtil.class);
 
-    static void appendToFile(String filename, String text) throws IOException {
+    public static void appendToFile(String filename, String text) throws IOException {
         FileWriter fw = new FileWriter(filename, true);
         fw.append(text);
         fw.close();
@@ -78,7 +78,7 @@ public class TransportUtil {
         return "============================================ " + "\n" + new Date() + "\n" + message.toString() + "\n\n";
     }
 
-    static String formatToFileNew(Message message, String transport) {
+    public static String formatToFileNew(Message message, String transport) {
         return "================ " + new Date() + " ======= [" + transport + "]\n" + message.debugDump() + "\n\n";
     }
 
@@ -125,7 +125,7 @@ public class TransportUtil {
         return true;
     }
 
-    static int optionsForFilteringRecipient(
+    public static int optionsForFilteringRecipient(
             NotificationTransportConfigurationType transportConfigurationType) {
         int choices = 0;
         if (transportConfigurationType.getRecipientFilterExpression() != null) {
