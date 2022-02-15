@@ -37,6 +37,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Responsible for consolidation of delta set triple map (plus, minus, zero sets for individual items) to item deltas.
  */
@@ -110,21 +113,28 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
     /**
      * Lens context used to determine metadata handling.
      * (Or should we use object template instead?)
+     *
+     * TODO reconsider this parameter - and don't use it for anything more than metadata affairs!
      */
-    private final LensContext<?> lensContext;
+    @Nullable private final LensContext<?> lensContext;
 
     /**
      * Result of the computation: the item deltas.
      */
-    private final Collection<ItemDelta<?,?>> itemDeltas = new ArrayList<>();
+    @NotNull private final Collection<ItemDelta<?,?>> itemDeltas = new ArrayList<>();
 
-    public DeltaSetTripleMapConsolidation(PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap,
-            PrismObject<T> targetObject, ObjectDelta<T> targetAPrioriDelta,
+    public DeltaSetTripleMapConsolidation(
+            PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap,
+            PrismObject<T> targetObject,
+            ObjectDelta<T> targetAPrioriDelta,
             Function<ItemPath, Boolean> itemDeltaExistsProvider,
             Boolean addUnchangedValuesOverride,
             Consumer<IvwoConsolidatorBuilder> consolidatorBuilderCustomizer,
-            PrismObjectDefinition<T> targetDefinition, MappingEvaluationEnvironment env, ModelBeans beans,
-            LensContext<?> lensContext, OperationResult parentResult) {
+            PrismObjectDefinition<T> targetDefinition,
+            MappingEvaluationEnvironment env,
+            ModelBeans beans,
+            @Nullable LensContext<?> lensContext,
+            OperationResult parentResult) {
         this.outputTripleMap = outputTripleMap;
         this.targetObject = targetObject;
         this.targetAPrioriDelta = targetAPrioriDelta;
@@ -151,15 +161,22 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
 
         try {
             this.result = parentResult.createMinorSubresult(OP_CONSOLIDATE);
-            LOGGER.trace("Computing deltas in {}, a priori delta:\n{}", env.contextDescription, debugDumpLazily(targetAPrioriDelta));
+            LOGGER.trace("Computing deltas in {}, a priori delta:\n{}",
+                    env.contextDescription, debugDumpLazily(targetAPrioriDelta));
 
             for (Map.Entry<ItemPath, DeltaSetTriple<ItemValueWithOrigin<?, ?>>> entry: outputTripleMap.entrySet()) {
                 ItemPath itemPath = entry.getKey();
                 ItemDelta<?, ?> aprioriItemDelta = LensUtil.getAprioriItemDelta(targetAPrioriDelta, itemPath);
                 DeltaSetTriple<ItemValueWithOrigin<?, ?>> deltaSetTriple = entry.getValue();
 
-                ConsolidationValueMetadataComputer valueMetadataComputer = LensMetadataUtil.createValueMetadataConsolidationComputer(
-                        itemPath, lensContext, beans, env, result);
+                ConsolidationValueMetadataComputer valueMetadataComputer;
+                if (lensContext != null) {
+                    valueMetadataComputer = LensMetadataUtil.createValueMetadataConsolidationComputer(
+                            itemPath, lensContext, beans, env, result);
+                } else {
+                    LOGGER.trace("No lens context -> no value metadata consolidation computer");
+                    valueMetadataComputer = null;
+                }
 
                 DeltaSetTripleConsolidation<?, ?, ?> itemConsolidation =
                         new DeltaSetTripleConsolidation(itemPath, deltaSetTriple, aprioriItemDelta, valueMetadataComputer);
@@ -175,7 +192,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
         }
     }
 
-    public Collection<ItemDelta<?, ?>> getItemDeltas() {
+    public @NotNull Collection<ItemDelta<?, ?>> getItemDeltas() {
         return itemDeltas;
     }
 

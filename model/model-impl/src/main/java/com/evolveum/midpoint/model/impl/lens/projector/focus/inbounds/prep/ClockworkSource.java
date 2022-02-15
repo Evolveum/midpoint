@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.PropertyLimitations;
@@ -35,7 +36,7 @@ import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
-class ClockworkSource extends Source {
+class ClockworkSource extends MSource {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClockworkSource.class);
 
@@ -164,7 +165,7 @@ class ClockworkSource extends Source {
     @NotNull ProcessingMode getItemProcessingMode(
             String itemDescription,
             ItemDelta<?, ?> itemAPrioriDelta,
-            List<MappingType> mappingBeans,
+            List<? extends MappingType> mappingBeans,
             boolean ignored,
             PropertyLimitations limitations) {
 
@@ -206,7 +207,7 @@ class ClockworkSource extends Source {
         return ProcessingMode.ABSOLUTE_STATE_IF_KNOWN;
     }
 
-    private boolean isStrongMappingPresent(List<MappingType> mappingBeans) {
+    private boolean isStrongMappingPresent(List<? extends MappingType> mappingBeans) {
         return mappingBeans.stream()
                 .anyMatch(mappingBean -> mappingBean.getStrength() == MappingStrengthType.STRONG);
     }
@@ -292,7 +293,7 @@ class ClockworkSource extends Source {
     }
 
     void getEntitlementVariableProducer(
-            @NotNull com.evolveum.midpoint.repo.common.expression.Source<?, ?> source, @Nullable PrismValue value, @NotNull VariablesMap variables) {
+            @NotNull Source<?, ?> source, @Nullable PrismValue value, @NotNull VariablesMap variables) {
 
         LOGGER.trace("getEntitlementVariableProducer: processing value {} in {}", value, source);
 
@@ -333,4 +334,8 @@ class ClockworkSource extends Source {
         return new InboundMappingInContext<>(mapping, projectionContext);
     }
 
+    @Override
+    @NotNull InboundMappingEvaluationPhaseType getCurrentEvaluationPhase() {
+        return InboundMappingEvaluationPhaseType.CLOCKWORK;
+    }
 }

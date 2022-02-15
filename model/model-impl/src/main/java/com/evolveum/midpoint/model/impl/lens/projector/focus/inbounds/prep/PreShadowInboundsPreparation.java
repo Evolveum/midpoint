@@ -7,45 +7,32 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
-import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingInContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.PathKeyedMap;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.result.OperationResult;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingInContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
-class PreShadowInboundsPreparation<F extends FocusType> extends ShadowInboundsPreparation<F> {
+public class PreShadowInboundsPreparation<F extends FocusType> extends ShadowInboundsPreparation<F> {
 
-    PreShadowInboundsPreparation(
+    public PreShadowInboundsPreparation(
             @NotNull PathKeyedMap<List<InboundMappingInContext<?, ?>>> mappingsMap,
-            @NotNull MappingEvaluationEnvironment env,
-            @NotNull OperationResult result,
+            @NotNull PreContext context,
             @Nullable PrismObject<F> focus,
-            @NotNull PrismObjectDefinition<F> focusDefinition,
-            @Nullable PrismObject<ShadowType> currentShadow,
-            @Nullable ObjectDelta<ShadowType> aPrioriDelta,
-            ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull ModelBeans beans) {
+            @NotNull PrismObjectDefinition<F> focusDefinition)
+            throws SchemaException, ConfigurationException {
         super(
                 mappingsMap,
-                new PreSource(
-                        currentShadow,
-                        aPrioriDelta,
-                        resourceObjectDefinition),
+                new PreSource(context.syncCtx),
                 new PreTarget<>(focus, focusDefinition),
-                new PreContext(env, result, beans));
+                context);
     }
 
     @Override

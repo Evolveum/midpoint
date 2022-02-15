@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
-/** Indicates we should stop evaluating inbounds for given projection. */
+/**
+ * Indicates we should stop evaluating inbounds for given projection.
+ *
+ * Currently thrown when the full shadow cannot be loaded, or when the projection context is broken.
+ * (So it has no use in pre-inbounds.)
+ */
 public class StopProcessingProjectionException extends Exception {
 }

@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * To reduce complexity, the majority of the work is delegated to smaller classes:
  *
- *  * {@link Source}, {@link Target}, {@link Context} describing the environment in which mappings are to be evaluated
+ *  * {@link MSource}, {@link Target}, {@link Context} describing the environment in which mappings are to be evaluated
  *  * {@link MappedItems} containing {@link MappedItem} instances - intermediate structures helping with the mapping preparation
  *
  * FIXME Special mappings i.e. password and activation ones, are evaluated immediately and using different code path.
@@ -52,7 +52,7 @@ abstract class ShadowInboundsPreparation<F extends FocusType> {
     @NotNull private final PathKeyedMap<List<InboundMappingInContext<?, ?>>> mappingsMap;
 
     /** Source - i.e. the resource object along with the whole context (like lens context for Clockwork execution). */
-    @NotNull final Source source;
+    @NotNull final MSource source;
 
     /** Target - the focus including supporting data. */
     @NotNull final Target<F> target;
@@ -62,7 +62,7 @@ abstract class ShadowInboundsPreparation<F extends FocusType> {
 
     ShadowInboundsPreparation(
             @NotNull PathKeyedMap<List<InboundMappingInContext<?, ?>>> mappingsMap,
-            @NotNull Source source, @NotNull Target<F> target,
+            @NotNull MSource source, @NotNull Target<F> target,
             @NotNull Context context) {
         this.mappingsMap = mappingsMap;
         this.source = source;

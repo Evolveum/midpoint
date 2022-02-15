@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.VariableProducer;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -45,11 +46,11 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
 
     private static final Trace LOGGER = TraceManager.getTrace(MappedItem.class);
 
-    private final Source source;
+    private final MSource source;
     private final Target<F> target;
     private final Context context;
 
-    private final Collection<MappingType> mappingBeans;
+    private final Collection<? extends MappingType> mappingBeans;
     private final ItemPath implicitSourcePath;
     final String itemDescription;
     private final ItemDelta<V, D> itemAPrioriDelta;
@@ -57,15 +58,15 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
     private final ItemProvider<V, D> itemProvider;
     private final PostProcessor<V, D> postProcessor;
     private final VariableProducer variableProducer;
-    @NotNull private ProcessingMode processingMode; // Never NONE
+    @NotNull private final ProcessingMode processingMode; // Never NONE
 
     @NotNull private final ModelBeans beans;
 
     MappedItem(
-            Source source,
+            MSource source,
             Target<F> target,
             Context context,
-            Collection<MappingType> mappingBeans,
+            Collection<? extends MappingType> mappingBeans,
             ItemPath implicitSourcePath,
             String itemDescription,
             ItemDelta<V, D> itemAPrioriDelta,
@@ -137,7 +138,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
         PrismObject<ShadowType> shadowVariableValue = source.getResourceObjectNew();
         PrismObjectDefinition<ShadowType> shadowVariableDef = getShadowDefinition(shadowVariableValue);
 
-        com.evolveum.midpoint.repo.common.expression.Source<V, D> defaultSource = new com.evolveum.midpoint.repo.common.expression.Source<>(
+        Source<V, D> defaultSource = new Source<>(
                 currentProjectionItem,
                 itemAPrioriDelta,
                 null,

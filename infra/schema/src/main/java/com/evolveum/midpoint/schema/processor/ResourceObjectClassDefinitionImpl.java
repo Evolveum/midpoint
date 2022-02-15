@@ -522,4 +522,9 @@ public class ResourceObjectClassDefinitionImpl
     public @NotNull ResourceObjectVolatilityType getVolatility() {
         return ResourceObjectVolatilityType.NONE; // no information in raw object class
     }
+
+    @Override
+    public @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases() {
+        return null; // no information in raw object class
+    }
 }

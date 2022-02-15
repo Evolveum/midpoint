@@ -4139,6 +4139,41 @@
                     </xsd:appinfo>
                 </xsd:annotation>
              </xsd:element>
+            <xsd:element name="inboundMappingsEvaluation" type="tns:InboundMappingsEvaluationConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Settings related to evaluation of inbound mappings for this object type.
+                    </xsd:documentation>
+                     <xsd:appinfo>
+                        <a:since>4.5</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+             </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="InboundMappingsEvaluationConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of inbound mappings evaluation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="defaultEvaluationPhases" type="tns:DefaultInboundMappingEvaluationPhasesType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default phases in which mappings are evaluated.
+                        If not specified, clockwork phase is assumed.
+                        (The default may change in the future.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -5525,7 +5560,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="inbound" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Defines how the attribute values are used (assigned) in case of information flow from resource
@@ -12745,6 +12780,112 @@
                         <a:experimental>true</a:experimental>
                         <a:since>4.2</a:since>
                         <jaxb:typesafeEnumMember name="AFTER_PROJECTIONS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="InboundMappingType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:MappingType">
+                <xsd:sequence>
+                    <xsd:element name="evaluationPhases" type="tns:InboundMappingEvaluationPhasesType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Phase or phases in which the mapping should be evaluated.
+                                (Default evaluation phases for given object type are taken into account as well.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>InboundMappingType.evaluationPhases</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="InboundMappingEvaluationPhasesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Phase or phases in which the mapping should be evaluated.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="include" type="tns:InboundMappingEvaluationPhaseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Phase(s) to include - in addition to the default ones.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="exclude" type="tns:InboundMappingEvaluationPhaseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Phase(s) to exclude, assuming they are defined as default.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DefaultInboundMappingEvaluationPhasesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Default phase or phases for evaluation of inbound mappings.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="phase" type="tns:InboundMappingEvaluationPhaseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Phase(s) in which mappings are evaluated by default.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="InboundMappingEvaluationPhaseType">
+        <xsd:restriction base="xsd:string">
+            <!-- TODO should we distinguish individual states of clockwork,
+                  e.g. initial vs. after execution in secondary state? -->
+            <xsd:enumeration value="clockwork">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of inbound mappings during clockwork execution.
+                        This is the default. (And the only way of inbounds evaluation before midPoint 4.5.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLOCKWORK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO are there any other uses of these mappings before clockwork run? -->
+            <xsd:enumeration value="correlation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of inbound mappings during correlation - i.e. when looking for candidate owner(s).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CORRELATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

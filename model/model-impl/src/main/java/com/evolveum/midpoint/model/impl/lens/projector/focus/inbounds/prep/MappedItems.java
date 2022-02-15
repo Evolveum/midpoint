@@ -38,7 +38,7 @@ class MappedItems<F extends FocusType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappedItems.class);
 
-    @NotNull private final Source source;
+    @NotNull private final MSource source;
 
     @NotNull private final Target<F> target;
 
@@ -63,7 +63,7 @@ class MappedItems<F extends FocusType> {
                     .findObjectDefinitionByCompileTimeClass(ShadowType.class)
                     .findPropertyDefinition(ShadowType.F_AUXILIARY_OBJECT_CLASS));
 
-    MappedItems(@NotNull Source source, @NotNull Target<F> target, @NotNull Context context) {
+    MappedItems(@NotNull MSource source, @NotNull Target<F> target, @NotNull Context context) {
         this.source = source;
         this.target = target;
         this.context = context;
@@ -110,7 +110,7 @@ class MappedItems<F extends FocusType> {
      */
     private <T> void createAttributeMappingCreationRequest(QName attributeName) {
 
-        // 1. Definitions
+        // 1. Definitions and mapping beans
 
         //noinspection unchecked
         ResourceAttributeDefinition<T> attributeDefinition =
@@ -118,9 +118,16 @@ class MappedItems<F extends FocusType> {
                         source.resourceObjectDefinition.findAttributeDefinition(attributeName),
                         () -> "No definition for attribute " + attributeName);
 
+        List<InboundMappingType> mappingBeans =
+                source.filterApplicableMappingBeans(
+                        attributeDefinition.getInboundMappingBeans());
+        if (mappingBeans.isEmpty()) {
+            LOGGER.trace("No applicable beans for this phase");
+            return;
+        }
+
         ItemPath attributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName);
         String itemDescription = "attribute " + attributeName;
-        List<MappingType> mappingBeans = attributeDefinition.getInboundMappingBeans();
 
         // 2. Values
 
@@ -176,7 +183,13 @@ class MappedItems<F extends FocusType> {
                         () -> "No definition for association " + associationName);
         ItemName itemPath = ShadowType.F_ASSOCIATION;
         String itemDescription = "association " + associationName;
-        List<MappingType> mappingBeans = associationDefinition.getInboundMappingTypes();
+        List<InboundMappingType> mappingBeans =
+                source.filterApplicableMappingBeans(
+                        associationDefinition.getInboundMappingTypes());
+        if (mappingBeans.isEmpty()) {
+            LOGGER.trace("No applicable beans for this phase");
+            return;
+        }
 
         // 2. Values
 
@@ -234,6 +247,7 @@ class MappedItems<F extends FocusType> {
         if (auxiliaryObjectClassMappings == null) {
             return;
         }
+        // TODO add filtering after these mappings are promoted to InboundMappingType
         List<MappingType> mappingBeans = auxiliaryObjectClassMappings.getInbound();
         if (mappingBeans.isEmpty()) {
             return;

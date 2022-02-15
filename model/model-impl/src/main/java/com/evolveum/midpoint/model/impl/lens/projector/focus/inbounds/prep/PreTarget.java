@@ -21,6 +21,6 @@ class PreTarget<F extends FocusType> extends Target<F> {
 
     @Override
     boolean isFocusBeingDeleted() {
-        return false;
+        return false; // No focus yet
     }
 }

@@ -20,19 +20,31 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * TODO
  */
 public interface SynchronizationService extends ResourceObjectChangeListener {
 
-    <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(PrismObject<ShadowType> shadowedResourceObject,
-            ObjectDelta<ShadowType> resourceObjectDelta, PrismObject<ResourceType> resource, String sourceChanel,
-            String itemProcessingIdentifier, PrismObject<SystemConfigurationType> explicitSystemConfiguration,
-            Task task, OperationResult result)
+    <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(
+            @NotNull PrismObject<ShadowType> shadowedResourceObject,
+            ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull PrismObject<ResourceType> resource,
+            String sourceChanel,
+            String itemProcessingIdentifier,
+            PrismObject<SystemConfigurationType> explicitSystemConfiguration,
+            Task task,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException;
 
-    <F extends FocusType> boolean matchUserCorrelationRule(PrismObject<ShadowType> shadowedResourceObject, PrismObject<F> focus,
-            ResourceType resourceType, PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result) throws
+    <F extends FocusType> boolean matchUserCorrelationRule(
+            PrismObject<ShadowType> shadowedResourceObject,
+            PrismObject<F> focus,
+            ResourceType resourceType,
+            PrismObject<SystemConfigurationType> configuration,
+            Task task,
+            OperationResult result) throws
             ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 }

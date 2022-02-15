@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -48,5 +49,18 @@ public class InboundMappingInContext<V extends PrismValue, D extends ItemDefinit
 
     public @NotNull LensProjectionContext getProjectionContextRequired() {
         return Objects.requireNonNull(projectionContext);
+    }
+
+    public @Nullable LensContext<?> getLensContext() {
+        return projectionContext != null ? projectionContext.getLensContext() : null;
+    }
+
+    public boolean isProjectionBeingDeleted() {
+        return projectionContext != null && projectionContext.isDelete();
+    }
+
+    @Override
+    public String toString() {
+        return mapping + (projectionContext != null ? " in " + projectionContext.getHumanReadableName() : "");
     }
 }

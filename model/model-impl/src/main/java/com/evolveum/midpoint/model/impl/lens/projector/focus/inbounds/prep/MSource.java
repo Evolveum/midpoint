@@ -13,6 +13,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProces
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.PropertyLimitations;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -34,10 +35,13 @@ import java.util.List;
  *
  * There are a lot of abstract methods here, dealing with e.g. determining if the full shadow is (or has to be) loaded,
  * methods for fetching the entitlements, and so on.
+ *
+ * Note that the name means "mapping source" and it's there to distinguish from {@link Source} (to avoid ugly qualified names).
+ * TODO come with something more sensible
  */
-abstract class Source implements DebugDumpable {
+abstract class MSource implements DebugDumpable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(Source.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MSource.class);
 
     /**
      * Current shadow object (in case of clockwork processing it may be full or repo-only, or maybe even null).
@@ -58,7 +62,7 @@ abstract class Source implements DebugDumpable {
      */
     final ResourceObjectDefinition resourceObjectDefinition;
 
-    Source(
+    MSource(
             PrismObject<ShadowType> currentShadow,
             @Nullable ObjectDelta<ShadowType> aPrioriDelta,
             ResourceObjectDefinition resourceObjectDefinition) {
@@ -159,7 +163,7 @@ abstract class Source implements DebugDumpable {
      */
     abstract @NotNull ProcessingMode getItemProcessingMode(
             String itemDescription, ItemDelta<?, ?> itemAPrioriDelta,
-            List<MappingType> mappingBeans,
+            List<? extends MappingType> mappingBeans,
             boolean ignored,
             PropertyLimitations limitations);
 
@@ -210,11 +214,32 @@ abstract class Source implements DebugDumpable {
      * Used in request creator, called from mapping evaluator (!).
      */
     abstract void getEntitlementVariableProducer(
-            @NotNull com.evolveum.midpoint.repo.common.expression.Source<?, ?> source, @Nullable PrismValue value, @NotNull VariablesMap variables);
+            @NotNull Source<?, ?> source, @Nullable PrismValue value, @NotNull VariablesMap variables);
 
     /**
      * Creates {@link InboundMappingInContext} object by providing the appropriate context to the mapping.
      */
     abstract <V extends PrismValue, D extends ItemDefinition<?>> InboundMappingInContext<V,D> createInboundMappingInContext(
             MappingImpl<V, D> mapping);
+
+    /**
+     * Selects mappings appropriate for the current evaluation phase.
+     * (The method is here, because we have {@link #resourceObjectDefinition} where defaults are defined.)
+     */
+    @NotNull List<InboundMappingType> filterApplicableMappingBeans(@NotNull List<InboundMappingType> beans) {
+        InboundMappingEvaluationPhaseType currentPhase = getCurrentEvaluationPhase();
+        List<InboundMappingType> filtered = new ApplicabilityEvaluator(getDefaultEvaluationPhases(), currentPhase)
+                .filterApplicableMappingBeans(beans);
+        if (filtered.size() < beans.size()) {
+            LOGGER.trace("{} out of {} mapping(s) for this item were filtered out because of evaluation phase '{}'",
+                    beans.size() - filtered.size(), beans.size(), currentPhase);
+        }
+        return filtered;
+    }
+
+    private @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultEvaluationPhases() {
+        return resourceObjectDefinition.getDefaultInboundMappingEvaluationPhases();
+    }
+
+    abstract @NotNull InboundMappingEvaluationPhaseType getCurrentEvaluationPhase();
 }

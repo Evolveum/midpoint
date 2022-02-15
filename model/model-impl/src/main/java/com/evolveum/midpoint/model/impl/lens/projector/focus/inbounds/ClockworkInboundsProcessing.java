@@ -9,29 +9,28 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
-import java.util.*;
-import java.util.function.Consumer;
-
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.ClockworkContext;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.ClockworkShadowInboundsPreparation;
+import java.util.Collection;
+import java.util.function.Function;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
-import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.ClockworkContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.ClockworkShadowInboundsPreparation;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * Evaluation of inbound mappings from all projections in given lens context.
@@ -42,50 +41,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * 2. evaluates them
  * 3. consolidates the results into deltas
  */
-public class ClockworkInboundsProcessing<F extends FocusType> {
+public class ClockworkInboundsProcessing<F extends FocusType> extends AbstractInboundsProcessing<F> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClockworkInboundsProcessing.class);
 
     @NotNull private final LensContext<F> context;
-    @NotNull private final ModelBeans beans;
-    @NotNull private final MappingEvaluationEnvironment env;
-    @NotNull private final OperationResult result;
-
-    /**
-     * Key: target item path, value: InboundMappingInContext(mapping, projectionCtx)
-     */
-    private final PathKeyedMap<List<InboundMappingInContext<?, ?>>> mappingsMap = new PathKeyedMap<>();
-
-    /**
-     * Output triples for individual target paths.
-     */
-    private final PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap = new PathKeyedMap<>();
 
     public ClockworkInboundsProcessing(
             @NotNull LensContext<F> context,
             @NotNull ModelBeans beans,
             @NotNull MappingEvaluationEnvironment env,
             @NotNull OperationResult result) {
+        super(beans, env, result);
         this.context = context;
-        this.beans = beans;
-        this.env = env;
-        this.result = result;
-    }
-
-    public void collectAndEvaluateMappings() throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        collectMappings();
-        evaluateMappings();
-        consolidateTriples();
     }
 
     /**
-     * Used to collect all the mappings from all the projects, sorted by target property.
+     * Collects all the mappings from all the projects, sorted by target property.
      *
      * Motivation: we need to evaluate them together, e.g. in case that there are several mappings
      * from several projections targeting the same property.
      */
-    private void collectMappings()
+    void collectMappings()
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
 
@@ -121,88 +98,38 @@ public class ClockworkInboundsProcessing<F extends FocusType> {
         }
     }
 
-    /**
-     * Evaluate mappings consolidated from all the projections. There may be mappings from different projections to the same target.
-     * We want to merge their values. Otherwise those mappings will overwrite each other.
-     */
-    private void evaluateMappings() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            ConfigurationException, SecurityViolationException, CommunicationException {
-        for (Map.Entry<ItemPath, List<InboundMappingInContext<?, ?>>> entry : mappingsMap.entrySet()) {
-            evaluateMappingsForTargetItem(entry.getKey(), entry.getValue());
-        }
+    @Override
+    @Nullable PrismObject<F> getFocusNew() {
+        return context.getFocusContext().getObjectNew();
     }
 
-    private void evaluateMappingsForTargetItem(ItemPath targetPath, List<InboundMappingInContext<?, ?>> mappingStructList)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
-
-        assert !mappingStructList.isEmpty();
-        for (InboundMappingInContext<?, ?> mappingStruct : mappingStructList) {
-            MappingImpl<?, ?> mapping = mappingStruct.getMapping();
-            LensProjectionContext projectionCtx = mappingStruct.getProjectionContextRequired();
-
-            LOGGER.trace("Starting evaluation of mapping {} in {}", mapping, DebugUtil.lazy(projectionCtx::getHumanReadableName));
-            beans.mappingEvaluator.evaluateMapping(mapping, context, projectionCtx, env.task, result);
-            mergeMappingOutput(mapping, targetPath, projectionCtx.isDelete());
-        }
+    @Override
+    protected @Nullable ObjectDelta<F> getFocusAPrioriDelta() {
+        return context.getFocusContextRequired().getCurrentDelta();
     }
 
-    private <V extends PrismValue, D extends ItemDefinition<?>> void mergeMappingOutput(MappingImpl<V, D> mapping,
-            ItemPath targetPath, boolean allToDelete) {
-
-        DeltaSetTriple<ItemValueWithOrigin<V, D>> ivwoTriple = ItemValueWithOrigin.createOutputTriple(mapping, beans.prismContext);
-        LOGGER.trace("Inbound mapping for {}\nreturned triple:\n{}",
-                DebugUtil.shortDumpLazily(mapping.getDefaultSource()), DebugUtil.debugDumpLazily(ivwoTriple, 1));
-
-        if (ivwoTriple != null) {
-            if (allToDelete) {
-                LOGGER.trace("Projection is going to be deleted, setting values from this projection to minus set");
-                DeltaSetTriple<ItemValueWithOrigin<V, D>> convertedTriple = beans.prismContext.deltaFactory().createDeltaSetTriple();
-                convertedTriple.addAllToMinusSet(ivwoTriple.getPlusSet());
-                convertedTriple.addAllToMinusSet(ivwoTriple.getZeroSet());
-                convertedTriple.addAllToMinusSet(ivwoTriple.getMinusSet());
-                //noinspection unchecked
-                DeltaSetTripleUtil.putIntoOutputTripleMap((PathKeyedMap) outputTripleMap, targetPath, convertedTriple);
-            } else {
-                //noinspection unchecked
-                DeltaSetTripleUtil.putIntoOutputTripleMap((PathKeyedMap) outputTripleMap, targetPath, ivwoTriple);
-            }
-        }
+    @Override
+    @NotNull
+    Function<ItemPath, Boolean> getFocusPrimaryItemDeltaExistsProvider() {
+        return context::primaryFocusItemDeltaExists;
     }
 
-    private void consolidateTriples() throws CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SchemaException, SecurityViolationException, ExpressionEvaluationException {
-
-        PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
-        PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focusNew);
-        LensFocusContext<F> focusContext = context.getFocusContextRequired();
-        ObjectDelta<F> focusAPrioriDelta = focusContext.getCurrentDelta();
-
-        Consumer<IvwoConsolidatorBuilder> customizer = builder ->
-                builder
-                        .deleteExistingValues(
-                                builder.getItemDefinition().isSingleValue() && !rangeIsCompletelyDefined(builder.getItemPath()))
-                        .skipNormalMappingAPrioriDeltaCheck(true);
-
-        DeltaSetTripleMapConsolidation<F> consolidation = new DeltaSetTripleMapConsolidation<>(
-                outputTripleMap, focusNew, focusAPrioriDelta, context::primaryFocusItemDeltaExists,
-                true, customizer, focusDefinition,
-                env, beans, context, result);
-        consolidation.computeItemDeltas();
-
-        focusContext.swallowToSecondaryDelta(consolidation.getItemDeltas());
-    }
-
-    private boolean rangeIsCompletelyDefined(ItemPath itemPath) {
-        return mappingsMap.get(itemPath).stream()
-                .allMatch(m -> m.getMapping().hasTargetRange());
-    }
-
-    private @NotNull PrismObjectDefinition<F> getFocusDefinition(PrismObject<F> focus) {
+    @Override
+    @NotNull PrismObjectDefinition<F> getFocusDefinition(@Nullable PrismObject<F> focus) {
         if (focus != null && focus.getDefinition() != null) {
             return focus.getDefinition();
         } else {
             return context.getFocusContextRequired().getObjectDefinition();
         }
+    }
+
+    @Override
+    void applyComputedDeltas(Collection<ItemDelta<?, ?>> itemDeltas) throws SchemaException {
+        context.getFocusContextRequired().swallowToSecondaryDelta(itemDeltas);
+    }
+
+    @Override
+    @Nullable LensContext<?> getLensContextIfPresent() {
+        return context;
     }
 }

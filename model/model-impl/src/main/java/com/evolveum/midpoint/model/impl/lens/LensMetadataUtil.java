@@ -31,10 +31,14 @@ public class LensMetadataUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(LensMetadataUtil.class);
 
-    public static ConsolidationValueMetadataComputer createValueMetadataConsolidationComputer(ItemPath itemPath, LensContext<?> lensContext, ModelBeans beans,
-            MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException,
-            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
+    public static ConsolidationValueMetadataComputer createValueMetadataConsolidationComputer(
+            ItemPath itemPath,
+            LensContext<?> lensContext,
+            ModelBeans beans,
+            MappingEvaluationEnvironment env,
+            OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
         ItemValueMetadataProcessingSpec processingSpec = createProcessingSpec(itemPath, lensContext, beans, env, result);
         LOGGER.trace("Value metadata processing spec:\n{}", processingSpec.debugDumpLazily(1));
         if (processingSpec.isEmpty()) {

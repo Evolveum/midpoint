@@ -188,9 +188,21 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             @NotNull ResourceObjectShadowChangeDescription change, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        SynchronizationContext<FocusType> syncCtx = loadSynchronizationContext(change.getShadowedResourceObject(),
-                change.getObjectDelta(), change.getResource(), change.getSourceChannel(), change.getItemProcessingIdentifier(),
-                null, task, result);
+
+        PrismObject<ResourceType> resource =
+                MiscUtil.requireNonNull(
+                        change.getResource(),
+                        () -> new IllegalStateException("No resource in change description: " + change));
+
+        SynchronizationContext<FocusType> syncCtx = loadSynchronizationContext(
+                change.getShadowedResourceObject(),
+                change.getObjectDelta(),
+                resource,
+                change.getSourceChannel(),
+                change.getItemProcessingIdentifier(),
+                null,
+                task,
+                result);
         if (Boolean.FALSE.equals(change.getShadowExistsInRepo())) {
             syncCtx.setShadowExistsInRepo(false);
             // TODO shadowExistsInRepo in syncCtx perhaps should be tri-state as well
@@ -201,15 +213,25 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
     @Override
     public <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(
-            @NotNull PrismObject<ShadowType> shadowedResourceObject, ObjectDelta<ShadowType> resourceObjectDelta,
-            PrismObject<ResourceType> resource, String sourceChanel,
-            String itemProcessingIdentifier, PrismObject<SystemConfigurationType> explicitSystemConfiguration,
-            Task task, OperationResult result)
+            @NotNull PrismObject<ShadowType> shadowedResourceObject,
+            ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull PrismObject<ResourceType> resource,
+            String sourceChanel,
+            String itemProcessingIdentifier,
+            PrismObject<SystemConfigurationType> explicitSystemConfiguration,
+            Task task,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
-        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadowedResourceObject, resourceObjectDelta,
-                resource, sourceChanel, beans, task, itemProcessingIdentifier);
+        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(
+                shadowedResourceObject,
+                resourceObjectDelta,
+                resource,
+                sourceChanel,
+                beans,
+                task,
+                itemProcessingIdentifier);
         setSystemConfiguration(syncCtx, explicitSystemConfiguration, result);
 
         SynchronizationType synchronization = resource.asObjectable().getSynchronization();
@@ -497,8 +519,15 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             throws ConfigurationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 
-        SynchronizationContext<F> synchronizationContext = loadSynchronizationContext(shadowedResourceObject, null,
-                resourceType.asPrismObject(), task.getChannel(), null, configuration, task, result);
+        SynchronizationContext<F> synchronizationContext = loadSynchronizationContext(
+                shadowedResourceObject,
+                null,
+                resourceType.asPrismObject(),
+                task.getChannel(),
+                null,
+                configuration,
+                task,
+                result);
         return synchronizationExpressionsEvaluator.matchFocusByCorrelationRule(synchronizationContext, focus, result);
     }
 
@@ -585,12 +614,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 syncCtx.getObjectTypeDefinition(),
                 asObjectable(syncCtx.getSystemConfiguration()));
 
-        Task task = syncCtx.getTask();
-
         syncCtx.setCorrelationContext(correlationContext);
 
         CorrelatorContext<?> correlatorContext =
                 CorrelatorContext.create(syncCtx.getCorrelators(), syncCtx.getObjectSynchronizationBean());
+
+        Task task = syncCtx.getTask();
         return correlatorFactoryRegistry.instantiateCorrelator(correlatorContext, task, result)
                 .correlate(correlationContext, task, result);
     }
