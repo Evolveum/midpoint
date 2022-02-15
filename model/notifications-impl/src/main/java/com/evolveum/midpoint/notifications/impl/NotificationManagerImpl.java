@@ -35,15 +35,9 @@ public class NotificationManagerImpl implements NotificationManager {
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
 
-    @Autowired private TransportService transportService;
     @Autowired private EventHandlerRegistry eventHandlerRegistry;
 
     private boolean disabled = false; // for testing purposes (in order for model-intest to run more quickly)
-
-    @Override
-    public void registerTransport(String name, Transport transport) {
-        transportService.registerTransport(name, transport);
-    }
 
     @Override
     public void processEvent(@NotNull Event event, Task task, OperationResult parentResult) {
