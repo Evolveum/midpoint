@@ -1,15 +1,16 @@
 /*
- * Copyright (C) 2020-2022 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.notifications.impl;
+package com.evolveum.midpoint.transport.impl;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.PostConstruct;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -19,10 +20,10 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportService;
-import com.evolveum.midpoint.notifications.impl.transport.legacy.LegacyCustomTransport;
-import com.evolveum.midpoint.notifications.impl.transport.legacy.LegacyFileTransport;
-import com.evolveum.midpoint.notifications.impl.transport.legacy.LegacyMailTransport;
-import com.evolveum.midpoint.notifications.impl.transport.legacy.LegacySimpleSmsTransport;
+import com.evolveum.midpoint.transport.impl.legacy.LegacyCustomTransport;
+import com.evolveum.midpoint.transport.impl.legacy.LegacyFileTransport;
+import com.evolveum.midpoint.transport.impl.legacy.LegacyMailTransport;
+import com.evolveum.midpoint.transport.impl.legacy.LegacySimpleSmsTransport;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeEvent;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -71,7 +72,7 @@ public class TransportServiceImpl implements TransportService {
     }
 
     private void refreshConfiguration(SystemConfigurationType systemConfiguration) {
-        // No need to refresh  old legacy transport @Components, they read config every time.
+        // No need to refresh old legacy transport @Components, they read config every time.
 
         MessageTransportConfigurationType config = systemConfiguration.getMessageTransportConfiguration();
         // TODO
