@@ -1337,6 +1337,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:BaseEventHandlerType">
                 <xsd:sequence>
+                    <!-- Addressing configuration elements -->
                     <xsd:element name="fromExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1366,6 +1367,20 @@
                             <xsd:documentation>
                                 bcc Recipient(s) that should get the notifications.
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!-- Content related elements -->
+                    <xsd:element name="templateRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the message template that produces the content of the message.
+                                If other content related expression is used it overrides the one from the message template.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:MessageTemplateType</a:objectReferenceTargetType>
+                                <a:displayName>GeneralNotifierType.template</a:displayName>
+                                <a:since>4.5</a:since>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="contentTypeExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
@@ -1425,6 +1440,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <!-- Other attributes (not content and addressing) -->
                     <xsd:element name="watchAuxiliaryAttributes" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1450,6 +1466,17 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="transport" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="transportConfig" type="tns:NotifierTransportConfigType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                More expressive version of `transport` element that allows also customizing
+                                template per transport.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.5</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
 
                     <!-- TODO useless elements left in 4.5 only for compatibility, nesting concrete notifiers does not work anyway -->
                     <xsd:element name="simpleUserNotifier" type="tns:SimpleUserNotifierType" minOccurs="0" maxOccurs="unbounded">
@@ -1529,6 +1556,11 @@
                             <xsd:documentation>
                                 TODO
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.5</a:deprecatedSince>
+                                <a:plannedRemoval>4.6</a:plannedRemoval>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="userRegistrationNotifier" type="tns:RegistrationConfirmationNotifierType" minOccurs="0" maxOccurs="unbounded">
@@ -1548,6 +1580,11 @@
                             <xsd:documentation>
                                 TODO
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.5</a:deprecatedSince>
+                                <a:plannedRemoval>4.6</a:plannedRemoval>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="accountActivationNotifier" type="tns:AccountActivationNotifierType" minOccurs="0" maxOccurs="unbounded">
@@ -1676,6 +1713,44 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="NotifierTransportConfigType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type for more descriptive message transport declaration inside notifiers.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        References unique name of the configured message transport.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>NotifierTransportConfigType.name</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="templateRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the message template that produces the content of the message for this transport.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:MessageTemplateType</a:objectReferenceTargetType>
+                        <a:displayName>NotifierTransportConfigType.template</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!--
+            TODO: Do we want to override other content and/or addressing related attributes here?
+            TODO: What is the relation of the template ref here and more specific content expressions in the notifier?
+            -->
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="CustomNotifierType">
