@@ -186,11 +186,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     search = storage.getSearch();
                 }
 
-                if (search == null
+                if (search == null || search.isTypeChanged()) {
 //                ||
 //                        (!SearchBoxModeType.ADVANCED.equals(search.getSearchMode()) && !search.getItems().containsAll(newSearch.getItems()))
 //                        || search.isTypeChanged()
-                        ) {
+//                        ) {
                     search = newSearch;
 //                    search.searchWasReload();
                 }
@@ -1106,7 +1106,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public void refreshTable(AjaxRequestTarget target) {
         BoxedTablePanel<PO> table = getTable();
-        //todo implement isTypeChanged for new search
         if (searchModel.getObject().isTypeChanged()){
             resetTable(target);
         } else {

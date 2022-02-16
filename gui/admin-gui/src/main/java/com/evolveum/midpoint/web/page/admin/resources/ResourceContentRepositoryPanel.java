@@ -172,8 +172,7 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 
     @Override
     protected Search createSearch() {
-//        return SearchFactory.createSearch(ShadowType.class, getPageBase());
-        return null;
+        return SearchFactory.createSearchNew(ShadowType.class, getPageBase());
     }
 
     @Override

@@ -66,7 +66,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         MEMBER_PANEL,
     }
 
-    private SearchBoxModeType searchMode;
     private List<SearchBoxModeType> allowedSearchType = new ArrayList<>();
 
     private String advancedQuery;
@@ -123,6 +122,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     private ObjectFilter createAdvancedObjectFilter(PrismContext ctx) throws SchemaException {
+        SearchBoxModeType searchMode = searchConfigModel.getObject().getSearchBoxMode();
         if (SearchBoxModeType.ADVANCED.equals(searchMode)) {
             if (StringUtils.isEmpty(advancedQuery)) {
                 return null;
@@ -179,6 +179,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public ObjectQuery createObjectQuery(VariablesMap variables, PageBase pageBase, ObjectQuery customizeContentQuery) {
         LOGGER.debug("Creating query from {}", this);
         ObjectQuery query;
+        SearchBoxModeType searchMode = searchConfigModel.getObject().getSearchBoxMode();
         if (SearchBoxModeType.OID.equals(getSearchMode())) {
             query = createObjectQueryOid(pageBase);
         } else {
