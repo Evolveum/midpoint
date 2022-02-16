@@ -214,7 +214,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
                     @Override
                     protected Search createSearch(Class<ShadowType> type) {
-                        Search search = super.createSearch(type);
+                        Search search = SearchFactory.createProjectionsTabSearch(getPageBase());
 //                        PropertySearchItem<Boolean> defaultDeadItem = search.findPropertySearchItem(ShadowType.F_DEAD);
 //                        if (defaultDeadItem != null) {
 //                            defaultDeadItem.setVisible(false);

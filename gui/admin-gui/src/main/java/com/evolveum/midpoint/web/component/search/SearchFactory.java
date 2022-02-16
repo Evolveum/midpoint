@@ -393,6 +393,23 @@ public class SearchFactory {
         return createSearchNew(searchConfig, null, modelServiceLocator, Search.PanelType.MEMBER_PANEL);
     }
 
+    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<ShadowType> createProjectionsTabSearch(ModelServiceLocator modelServiceLocator) {
+        com.evolveum.midpoint.gui.impl.component.search.Search<ShadowType> search = createSearchNew(ShadowType.class, modelServiceLocator);
+        search.getItems().forEach(item -> {
+            if (!(item instanceof PropertySearchItemWrapper)) {
+                return;
+            }
+            //on the projections tab we have by default just DEAD search item, therefore we hide all others
+            item.setVisible(false);
+            if (((PropertySearchItemWrapper) item).getItemDef() != null
+                    && ShadowType.F_DEAD.equivalent(((PropertySearchItemWrapper<?>) item).getItemDef().getItemName())) {
+                item.setVisible(true);
+                item.setCanConfigure(false);
+            }
+        });
+        return search;
+    }
+
     private static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearchNew(
             SearchConfigurationWrapper<C> searchConfigurationWrapper, ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator, Search.PanelType panelType) {
         SearchBoxConfigurationType searchBoxConfig = createDefaultSearchBoxConfiguration(searchConfigurationWrapper.getTypeClass(), discriminator, modelServiceLocator);
@@ -513,6 +530,8 @@ public class SearchFactory {
             itemWrapper = new DateSearchItemWrapper(item);
         } else if (ShadowType.F_OBJECT_CLASS.equivalent(item.getPath().getItemPath())) {
             itemWrapper = new ObjectClassSearchItemWrapper(item);
+        } else if (ShadowType.F_DEAD.equivalent(item.getPath().getItemPath())) {
+            itemWrapper = new DeadShadowSearchItemWrapper(item, Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
         } else {
             itemWrapper = new TextSearchItemWrapper(item, itemDef);
         }
