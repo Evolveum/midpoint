@@ -67,7 +67,6 @@ import java.util.MissingResourceException;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.WordUtils;
-import org.springframework.boot.web.servlet.server.Session;
 
 /**
  * Utility methods for report. Mostly pretty print functions. Do not use any

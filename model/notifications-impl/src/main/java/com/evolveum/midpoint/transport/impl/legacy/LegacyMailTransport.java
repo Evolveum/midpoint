@@ -1,13 +1,12 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
+package com.evolveum.midpoint.transport.impl.legacy;
 
-package com.evolveum.midpoint.notifications.impl.api.transports;
-
-import static com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil.formatToFileOld;
+import static com.evolveum.midpoint.transport.impl.TransportUtil.formatToFileOld;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -19,7 +18,6 @@ import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
-import javax.annotation.PostConstruct;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -30,6 +28,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -37,8 +36,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
-import com.evolveum.midpoint.notifications.impl.TransportRegistry;
+import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
 import com.evolveum.midpoint.notifications.impl.util.MimeTypeUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -47,6 +45,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -55,17 +54,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
-/**
- * @author mederly
- */
+/** Legacy transport that should be removed after 4.5; type parameter is irrelevant. */
+@Deprecated
 @Component
-public class MailTransport implements Transport {
+public class LegacyMailTransport implements Transport<GeneralTransportConfigurationType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MailTransport.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LegacyMailTransport.class);
 
     private static final String NAME = "mail";
 
-    private static final String DOT_CLASS = MailTransport.class.getName() + ".";
+    private static final String DOT_CLASS = LegacyMailTransport.class.getName() + ".";
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -77,13 +75,6 @@ public class MailTransport implements Transport {
     @Autowired
     protected ExpressionFactory expressionFactory;
 
-    @Autowired private TransportRegistry transportRegistry;
-
-    @PostConstruct
-    public void init() {
-        transportRegistry.registerTransport(NAME, this);
-    }
-
     @Override
     public void send(Message mailMessage, String transportName, Event event, Task task, OperationResult parentResult) {
 
@@ -91,7 +82,8 @@ public class MailTransport implements Transport {
         result.addArbitraryObjectCollectionAsParam("mailMessage recipient(s)", mailMessage.getTo());
         result.addParam("mailMessage subject", mailMessage.getSubject());
 
-        SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
+        SystemConfigurationType systemConfiguration =
+                TransportUtil.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
 
         if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null
                 || systemConfiguration.getNotificationConfiguration().getMail() == null) {
@@ -118,11 +110,14 @@ public class MailTransport implements Transport {
         List<String> forbiddenRecipientBcc = new ArrayList<>();
 
         if (optionsForFilteringRecipient != 0) {
-            TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, mailMessage.getTo(), mailConfigurationType, task, result,
+            TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo,
+                    mailMessage.getTo(), mailConfigurationType, task, result,
                     expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
-            TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc, mailMessage.getCc(), mailConfigurationType, task, result,
+            TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc,
+                    mailMessage.getCc(), mailConfigurationType, task, result,
                     expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
-            TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc, mailMessage.getBcc(), mailConfigurationType, task, result,
+            TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc,
+                    mailMessage.getBcc(), mailConfigurationType, task, result,
                     expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
 
             if (redirectToFile != null) {
@@ -337,5 +332,15 @@ public class MailTransport implements Transport {
     @Override
     public String getName() {
         return NAME;
+    }
+
+    @Override
+    public void init(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
+        // not called for legacy transport component
+    }
+
+    @Override
+    public GeneralTransportConfigurationType getConfiguration() {
+        return null;
     }
 }

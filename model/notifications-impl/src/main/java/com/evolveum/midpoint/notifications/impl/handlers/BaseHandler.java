@@ -20,7 +20,7 @@ import com.evolveum.midpoint.notifications.api.EventHandler;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.notifications.impl.EventHandlerRegistry;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctions;
 import com.evolveum.midpoint.notifications.impl.NotificationManagerImpl;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.helpers.NotificationExpressionHelper;
@@ -41,7 +41,7 @@ public abstract class BaseHandler<E extends Event, C extends BaseEventHandlerTyp
     private static final Trace LOGGER = TraceManager.getTrace(BaseHandler.class);
 
     @Autowired protected NotificationManagerImpl notificationManager;
-    @Autowired protected NotificationFunctionsImpl notificationsUtil;
+    @Autowired protected NotificationFunctions notificationsUtil;
     @Autowired protected PrismContext prismContext;
     @Autowired protected ExpressionFactory expressionFactory;
     @Autowired protected TextFormatter textFormatter;

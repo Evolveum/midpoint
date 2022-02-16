@@ -497,7 +497,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return getViewColumnsTransformed(customColumns, true);
     }
 
-    protected List<IColumn<PO, String>> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns, boolean shoudlCheckForNameColumn){
+    protected List<IColumn<PO, String>> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns, boolean shouldCheckForNameColumn){
         List<IColumn<PO, String>> columns = new ArrayList<>();
         if (customColumns == null || customColumns.isEmpty()) {
             return columns;
@@ -516,7 +516,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
                 IModel<String> columnDisplayModel = createColumnDisplayModel(customColumn);
-                if (customColumns.indexOf(customColumn) == 0 && shoudlCheckForNameColumn) {
+                if (customColumns.indexOf(customColumn) == 0 && shouldCheckForNameColumn) {
                     column = createNameColumn(columnDisplayModel, customColumn, columnPath, expression);
                 } else {
                     column = createCustomExportableColumn(columnDisplayModel, customColumn, columnPath, expression);

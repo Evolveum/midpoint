@@ -62,7 +62,9 @@ public class LoggingAppenderWrapperFactoryImpl<T> extends PrismPropertyWrapperFa
             String name = appender.getName();
             row.setKey(name);
             row.setValue(name);
-            row.setLabel(new PolyStringType(name));
+            if (name != null) {
+                row.setLabel(new PolyStringType(name));
+            }
             list.add(row);
         }
         return lookupTable;

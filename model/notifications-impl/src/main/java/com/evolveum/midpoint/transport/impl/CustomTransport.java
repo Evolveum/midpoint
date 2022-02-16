@@ -4,33 +4,27 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.notifications.impl.api.transports;
+package com.evolveum.midpoint.transport.impl;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.annotation.PostConstruct;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
-import com.evolveum.midpoint.notifications.impl.TransportRegistry;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -42,72 +36,36 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomTransportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LegacyCustomTransportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * TODO clean up
- *
- * @author mederly
- */
-@Component
-public class CustomTransport implements Transport {
+public class CustomTransport implements Transport<CustomTransportConfigurationType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CustomTransport.class);
 
-    private static final String NAME = "custom";
-
     private static final String DOT_CLASS = CustomTransport.class.getName() + ".";
 
-    @Autowired
-    protected PrismContext prismContext;
+    private String name;
+    private CustomTransportConfigurationType configuration;
+    private TransportSupport transportSupport;
 
-    @Autowired
-    protected ExpressionFactory expressionFactory;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService cacheRepositoryService;
-
-    @Autowired private TransportRegistry transportRegistry;
-
-    @PostConstruct
-    public void init() {
-        transportRegistry.registerTransport(NAME, this);
+    @Override
+    public void init(@NotNull CustomTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
+        this.configuration = Objects.requireNonNull(configuration);
+        name = Objects.requireNonNull(configuration.getName());
+        this.transportSupport = Objects.requireNonNull(transportSupport);
     }
 
     @Override
-    public void send(Message message, String transportName, Event event, Task task, OperationResult parentResult) {
-
+    public void send(Message message, String transportNameIgnored, Event event, Task task, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
         result.addArbitraryObjectCollectionAsParam("message recipient(s)", message.getTo());
         result.addParam("message subject", message.getSubject());
 
-        SystemConfigurationType systemConfiguration = NotificationFunctionsImpl
-                .getSystemConfiguration(cacheRepositoryService, result);
-        if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
-            String msg = "No notifications are configured. Custom notification to " + message.getTo() + " will not be sent.";
-            LOGGER.warn(msg);
-            result.recordWarning(msg);
-            return;
-        }
-
-        String configName = transportName.length() > NAME.length() ? transportName.substring(NAME.length() + 1) : null;      // after "sms:"
-        LegacyCustomTransportConfigurationType configuration = systemConfiguration.getNotificationConfiguration().getCustomTransport().stream()
-                .filter(transportConfigurationType -> java.util.Objects.equals(configName, transportConfigurationType.getName()))
-                .findFirst().orElse(null);
-
-        if (configuration == null) {
-            String msg = "Custom configuration '" + configName + "' not found. Custom notification to " + message.getTo() + " will not be sent.";
-            LOGGER.warn(msg);
-            result.recordWarning(msg);
-            return;
-        }
         String logToFile = configuration.getLogToFile();
         if (logToFile != null) {
-            TransportUtil.logToFile(logToFile, TransportUtil.formatToFileNew(message, transportName), LOGGER);
+            TransportUtil.logToFile(logToFile, TransportUtil.formatToFileNew(message, name), LOGGER);
         }
 
         int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(configuration);
@@ -122,11 +80,11 @@ public class CustomTransport implements Transport {
         String file = configuration.getRedirectToFile();
         if (optionsForFilteringRecipient != 0) {
             TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, message.getTo(), configuration, task, result,
-                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+                    transportSupport.expressionFactory(), MiscSchemaUtil.getExpressionProfile(), LOGGER);
             TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc, message.getCc(), configuration, task, result,
-                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+                    transportSupport.expressionFactory(), MiscSchemaUtil.getExpressionProfile(), LOGGER);
             TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc, message.getBcc(), configuration, task, result,
-                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+                    transportSupport.expressionFactory(), MiscSchemaUtil.getExpressionProfile(), LOGGER);
 
             if (file != null) {
                 if (!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {
@@ -173,13 +131,15 @@ public class CustomTransport implements Transport {
     }
 
     // TODO deduplicate
-    private void evaluateExpression(ExpressionType expressionType, VariablesMap VariablesMap,
-            String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private void evaluateExpression(
+            ExpressionType expressionType, VariablesMap VariablesMap, String shortDesc, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
+        PrismPropertyDefinition<String> resultDef = transportSupport.prismContext().definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
 
-        Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+        Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = transportSupport.expressionFactory().makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
     }
@@ -198,6 +158,11 @@ public class CustomTransport implements Transport {
 
     @Override
     public String getName() {
-        return NAME;
+        return name;
+    }
+
+    @Override
+    public CustomTransportConfigurationType getConfiguration() {
+        return null;
     }
 }

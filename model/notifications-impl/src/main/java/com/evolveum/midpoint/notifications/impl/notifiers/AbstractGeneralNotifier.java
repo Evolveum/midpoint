@@ -19,8 +19,8 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
-import com.evolveum.midpoint.notifications.impl.TransportRegistry;
+import com.evolveum.midpoint.notifications.api.transports.TransportService;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctions;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.formatters.ValueFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
@@ -50,11 +50,11 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     private static final String OP_PREPARE_AND_SEND = AbstractGeneralNotifier.class.getName() + ".prepareAndSend";
 
     @Autowired protected NotificationManager notificationManager;
-    @Autowired protected NotificationFunctionsImpl functions;
+    @Autowired protected NotificationFunctions functions;
     @Autowired protected TextFormatter textFormatter;
     @Autowired protected ValueFormatter valueFormatter;
     @Autowired protected AggregatedEventHandler aggregatedEventHandler;
-    @Autowired protected TransportRegistry transportRegistry;
+    @Autowired protected TransportService transportService;
 
     @Override
     public boolean processEvent(E event, N notifierConfiguration, Task task, OperationResult parentResult)
@@ -114,7 +114,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                 .build();
         try {
             variables.put(ExpressionConstants.VAR_TRANSPORT_NAME, transportName, String.class);
-            Transport transport = transportRegistry.getTransport(transportName);
+            Transport<?> transport = transportService.getTransport(transportName);
 
             List<String> recipientsAddresses = getRecipientsAddresses(
                     event, notifierConfig, variables,
@@ -242,8 +242,9 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         return DEFAULT_LOGGER;              // in case a subclass does not provide its own logger
     }
 
+    // TODO: This should change some "context" object (or Message?) and not use transport (it will happen in later phases).
     private List<String> getRecipientsAddresses(E event, N generalNotifierType, VariablesMap variables,
-            UserType defaultRecipient, String transportName, Transport transport, Task task, OperationResult result) {
+            UserType defaultRecipient, String transportName, Transport<?> transport, Task task, OperationResult result) {
         List<String> addresses = new ArrayList<>();
         if (!generalNotifierType.getRecipientExpression().isEmpty()) {
             for (ExpressionType expressionType : generalNotifierType.getRecipientExpression()) {

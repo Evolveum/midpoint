@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.helpers;
 
 import java.util.ArrayList;
@@ -18,9 +17,8 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.notifications.api.NotificationFunctions;
 import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctions;
 import com.evolveum.midpoint.notifications.impl.events.BaseEventImpl;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.prism.*;
@@ -48,7 +46,7 @@ public class NotificationExpressionHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(NotificationExpressionHelper.class);
 
-    @Autowired private NotificationFunctionsImpl notificationsUtil;
+    @Autowired private NotificationFunctions notificationFunctions;
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private TextFormatter textFormatter;
@@ -70,12 +68,14 @@ public class NotificationExpressionHelper {
         throw new SystemException(failReason);
     }
 
-    public boolean evaluateBooleanExpression(ExpressionType expressionType, VariablesMap variablesMap, String shortDesc,
-            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public boolean evaluateBooleanExpression(
+            ExpressionType expressionType, VariablesMap variablesMap, String shortDesc, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<Boolean> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
-        Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+        Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
+                expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = ModelExpressionThreadLocalHolder
@@ -107,13 +107,15 @@ public class NotificationExpressionHelper {
     }
 
     private List<String> evaluateExpression(ExpressionType expressionType, VariablesMap variablesMap,
-            String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            String shortDesc, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         MutablePrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
         resultDef.setMaxOccurs(-1);
 
-        Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+        Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
+                expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = ModelExpressionThreadLocalHolder
                 .evaluateExpressionInContext(expression, params, task, result);
@@ -142,12 +144,14 @@ public class NotificationExpressionHelper {
     }
 
     public List<NotificationMessageAttachmentType> evaluateNotificationMessageAttachmentTypeExpression(
-            ExpressionType expressionType, VariablesMap variablesMap, String shortDesc,
-            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ExpressionType expressionType, VariablesMap variablesMap, String shortDesc, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<NotificationMessageAttachmentType> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, NotificationMessageAttachmentType.COMPLEX_TYPE);
-        Expression<PrismPropertyValue<NotificationMessageAttachmentType>, PrismPropertyDefinition<NotificationMessageAttachmentType>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+        PrismPropertyDefinition<NotificationMessageAttachmentType> resultDef =
+                prismContext.definitionFactory().createPropertyDefinition(resultName, NotificationMessageAttachmentType.COMPLEX_TYPE);
+        Expression<PrismPropertyValue<NotificationMessageAttachmentType>, PrismPropertyDefinition<NotificationMessageAttachmentType>> expression =
+                expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageAttachmentType>> exprResultTriple = ModelExpressionThreadLocalHolder
@@ -169,7 +173,7 @@ public class NotificationExpressionHelper {
         VariablesMap variables = new VariablesMap();
         ((BaseEventImpl) event).createVariablesMap(variables, result);
         variables.put(ExpressionConstants.VAR_TEXT_FORMATTER, textFormatter, TextFormatter.class);
-        variables.put(ExpressionConstants.VAR_NOTIFICATION_FUNCTIONS, notificationsUtil, NotificationFunctions.class);
+        variables.put(ExpressionConstants.VAR_NOTIFICATION_FUNCTIONS, notificationFunctions, NotificationFunctions.class);
         PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
         variables.put(ExpressionConstants.VAR_CONFIGURATION, systemConfiguration, systemConfiguration.getDefinition());
         return variables;
