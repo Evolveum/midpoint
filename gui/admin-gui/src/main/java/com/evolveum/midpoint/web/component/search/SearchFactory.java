@@ -475,11 +475,11 @@ public class SearchFactory {
     private static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
             SearchItemType item, List<DisplayableValue> availableValues, ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
         PrismContainerDefinition<C> def = null;
-        if (ObjectType.class.isAssignableFrom(type)) {
-            def = findObjectDefinition((Class<? extends ObjectType>) type, discriminator, modelServiceLocator);
-        } else {
+//        if (ObjectType.class.isAssignableFrom(type)) {
+//            def = findObjectDefinition((Class<? extends ObjectType>) type, discriminator, modelServiceLocator);
+//        } else {
             def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
-        }
+//        }
         ItemDefinition<?> itemDef = def.findItemDefinition(item.getPath().getItemPath());
         if (itemDef == null) {
             return null;
@@ -724,11 +724,11 @@ public class SearchFactory {
             ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
         SearchBoxConfigurationType config = new SearchBoxConfigurationType();
         PrismContainerDefinition<C> def = null;
-        if (ObjectType.class.isAssignableFrom(type)) {
-            def = findObjectDefinition((Class<? extends ObjectType>) type, discriminator, modelServiceLocator);
-        } else {
+//        if (ObjectType.class.isAssignableFrom(type)) {
+//            def = findObjectDefinition((Class<? extends ObjectType>) type, discriminator, modelServiceLocator);
+//        } else {
             def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
-        }
+//        }
 
         List<ItemDefinition<?>> availableDefs = getSearchableDefinitionList(def, modelServiceLocator);
 
