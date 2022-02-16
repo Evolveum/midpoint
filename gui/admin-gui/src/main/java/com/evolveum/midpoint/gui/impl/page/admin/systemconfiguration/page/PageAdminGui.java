@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2022 Evolveum
+ * Copyright (c) 2022 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page;
@@ -30,7 +21,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/config/system/adminGuiConfig"),
+                @Url(mountUrl = "/admin/config/system/adminGui"),
         },
         action = {
                 @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
@@ -40,18 +31,18 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
                         label = "PageSystemConfiguration.auth.configSystemConfiguration.label",
                         description = "PageSystemConfiguration.auth.configSystemConfiguration.description")
         })
-public class PageAdminGuiConfiguration extends PageBaseSystemConfiguration {
+public class PageAdminGui extends PageBaseSystemConfiguration {
 
     private static final long serialVersionUID = 1L;
 
-    public PageAdminGuiConfiguration() {
+    public PageAdminGui() {
     }
 
-    public PageAdminGuiConfiguration(PageParameters parameters) {
+    public PageAdminGui(PageParameters parameters) {
         super(parameters);
     }
 
-    public PageAdminGuiConfiguration(PrismObject<SystemConfigurationType> object) {
+    public PageAdminGui(PrismObject<SystemConfigurationType> object) {
         super(object);
     }
 

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2022 Evolveum
+ * Copyright (c) 2022 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration;
@@ -23,7 +14,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageAdminGuiConfiguration;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageAdminGui;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageLogging;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
@@ -90,7 +82,7 @@ public class PageSystemConfiguration extends PageBase {
                 buttons.add(createCompositedButton("Notifications", "fa fa-envelope", PageNotificationConfiguration.class));
                 buttons.add(createCompositedButton("Logging", "fa fa-file-text", PageLogging.class));
                 buttons.add(createCompositedButton("Profiling", "fa fa-camera", PageProfiling.class));
-                buttons.add(createCompositedButton("Admin GUI configuration", "fa fa-camera", PageAdminGuiConfiguration.class));
+                buttons.add(createCompositedButton("Admin GUI configuration", "fa fa-camera", PageAdminGui.class));
                 buttons.add(createCompositedButton("Workflow configuration", "fa fa-camera", PageWorkflowConfiguration.class));
                 buttons.add(createCompositedButton("Role management", "fa fa-camera", PageRoleManagement.class));
                 buttons.add(createCompositedButton("Internals", "fa fa-camera", PageInternals.class));

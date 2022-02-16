@@ -10,24 +10,24 @@ package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.web.application.SimpleCounter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UserDashboardLinkCounter extends SimpleCounter<AssignmentHolderDetailsModel<SystemConfigurationType>, SystemConfigurationType> {
+public class ClassLoggersMenuLinkCounter extends SimpleCounter<AssignmentHolderDetailsModel<SystemConfigurationType>, SystemConfigurationType> {
 
-    public UserDashboardLinkCounter() {
+    public ClassLoggersMenuLinkCounter() {
         super();
     }
 
     @Override
     public int count(AssignmentHolderDetailsModel<SystemConfigurationType> model, PageBase pageBase) {
         SystemConfigurationType object = model.getObjectType();
-        AdminGuiConfigurationType agc = object.getAdminGuiConfiguration();
+        LoggingConfigurationType lg = object.getLogging();
 
-        return agc != null ? agc.getUserDashboardLink().size() : 0;
+        return lg != null ? lg.getClassLogger().size() : 0;
     }
 }
 

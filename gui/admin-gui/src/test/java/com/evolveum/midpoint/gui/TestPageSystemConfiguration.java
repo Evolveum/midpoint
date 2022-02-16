@@ -8,7 +8,8 @@ package com.evolveum.midpoint.gui;
 
 import static org.testng.Assert.assertEquals;
 
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageAdminGuiConfiguration;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageAdminGui;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageLogging;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 
 import com.evolveum.midpoint.web.page.admin.configuration.system.*;
@@ -94,7 +95,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
     @Test
     public void test010testPageAdminGuiConfiguration() {
-        renderPage(PageAdminGuiConfiguration.class);
+        renderPage(PageAdminGui.class);
     }
 
     @Test
