@@ -1,11 +1,20 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (c) 2010-2022 Evolveum
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.configuration;
+package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,12 +23,14 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageAdminGuiConfiguration;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 
+import com.evolveum.midpoint.web.page.admin.configuration.PageInternals;
 import com.evolveum.midpoint.web.page.admin.configuration.system.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -42,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/config/system2", matchUrlForSecurity = "/admin/config/system2"),
+                @Url(mountUrl = "/admin/config/system2"),
         },
         action = {
                 @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
@@ -52,18 +63,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                         label = "PageSystemConfiguration.auth.configSystemConfiguration.label",
                         description = "PageSystemConfiguration.auth.configSystemConfiguration.description")
         })
-public class PageSystemConfigurationNew extends PageBase {
+public class PageSystemConfiguration extends PageBase {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String DOT_CLASS = PageSystemConfigurationNew.class.getName() + ".";
+    private static final String DOT_CLASS = PageSystemConfiguration.class.getName() + ".";
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageSystemConfigurationNew.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageSystemConfiguration.class);
 
     private static final String ID_CONTAINER = "container";
 
-
-    public PageSystemConfigurationNew() {
+    public PageSystemConfiguration() {
         initLayout();
     }
 
@@ -94,6 +104,7 @@ public class PageSystemConfigurationNew extends PageBase {
             }
         };
         MultiCompositedButtonPanel panel = new MultiCompositedButtonPanel(ID_CONTAINER, model) {
+
             @Override
             protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
                 navigateToNext(page);
@@ -114,6 +125,7 @@ public class PageSystemConfigurationNew extends PageBase {
         displayType.setLabel(new PolyStringType(type));
         button.setAdditionalButtonDisplayType(displayType);
         button.setPage(page);
+
         return button;
     }
 

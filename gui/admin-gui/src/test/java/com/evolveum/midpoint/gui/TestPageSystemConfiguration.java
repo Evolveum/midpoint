@@ -8,13 +8,11 @@ package com.evolveum.midpoint.gui;
 
 import static org.testng.Assert.assertEquals;
 
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageAdminGuiConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfigurationNew;
 
 import com.evolveum.midpoint.web.page.admin.configuration.system.*;
 
-import org.apache.wicket.Page;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -51,7 +49,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
     @Test
     public void test001testPageSystemConfiguration() {
-        renderPage(PageSystemConfigurationNew.class);
+        renderPage(com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
     }
 
     @Test
@@ -136,7 +134,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
     @Test
     public void test018testModifySystemConfig() throws Exception {
-        renderPage(PageSystemConfigurationNew.class);
+        renderPage(com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
 
         tester.executeAjaxEvent("container:additionalButtons:0:additionalButton:compositedButton", "click");
         tester.assertRenderedPage(PageSystemConfigurationBasic.class);
@@ -151,7 +149,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
         Thread.sleep(5000);
 
-        tester.assertRenderedPage(PageSystemConfigurationNew.class);
+        tester.assertRenderedPage(com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
 
         PrismObject<SystemConfigurationType> sysConf = getObject(SystemConfigurationType.class, "00000000-0000-0000-0000-000000000001");
         assertEquals(des, sysConf.getRealValue().getDescription());
