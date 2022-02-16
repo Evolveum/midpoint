@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.notifications.api.transports;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -16,7 +18,7 @@ import com.evolveum.midpoint.task.api.Task;
  */
 public interface TransportService {
 
-    void registerTransport(String name, Transport<?> transport);
+    void registerTransport(@NotNull Transport<?> transport);
 
     Transport<?> getTransport(String name);
 
