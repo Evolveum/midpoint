@@ -147,6 +147,10 @@ public class TransportServiceImpl implements TransportService {
 
     private void createTransports(SystemConfigurationType systemConfiguration) {
         MessageTransportConfigurationType config = systemConfiguration.getMessageTransportConfiguration();
+        if (config == null) {
+            return;
+        }
+
         for (CustomTransportConfigurationType customConfig : config.getCustomTransport()) {
             createCustomTransport(customConfig);
         }
