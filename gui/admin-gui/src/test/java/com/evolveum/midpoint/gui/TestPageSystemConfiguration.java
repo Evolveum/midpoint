@@ -140,13 +140,17 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
         tester.executeAjaxEvent("container:additionalButtons:0:additionalButton:compositedButton", "click");
         tester.assertRenderedPage(PageSystemConfigurationBasic.class);
 
-        tester.clickLink(MAIN_FORM_OLD + ":tabPanel:panel:basicSystemConfiguration:values:0:value:valueForm:valueContainer:input:propertiesLabel:showEmptyButton");
+        final String mainFormPath = "detailsView:mainForm";
+        final String descriptionPath = "mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:input:propertiesLabel:properties:1:property:values:0:value:valueForm:valueContainer:input:input";
 
-        FormTester formTester = tester.newFormTester(MAIN_FORM_OLD, false);
+        tester.clickLink(mainFormPath + ":mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:input:propertiesLabel:showEmptyButton");
+
+        FormTester formTester = tester.newFormTester(mainFormPath, false);
         String des = "new description";
-        formTester.setValue(FORM_INPUT_DESCRIPTION, des);
+        formTester.setValue(descriptionPath, des);
 
-        formTester.submit(FORM_SAVE_OLD);
+        final String saveButton = "buttons:buttons:2";
+        formTester.submit(saveButton);
 
         Thread.sleep(5000);
 
