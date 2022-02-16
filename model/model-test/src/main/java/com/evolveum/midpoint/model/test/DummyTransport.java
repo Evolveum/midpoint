@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
@@ -97,7 +99,7 @@ public class DummyTransport implements Transport<GeneralTransportConfigurationTy
     }
 
     @Override
-    public void init(GeneralTransportConfigurationType configuration, TransportSupport transportSupport) {
+    public void init(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
         // not called for legacy transport component
     }
 

@@ -28,6 +28,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
-import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.notifications.impl.util.MimeTypeUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -45,6 +45,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+/** Legacy transport that should be removed after 4.5; type parameter is irrelevant. */
 @Deprecated
 @Component
 public class LegacyMailTransport implements Transport<GeneralTransportConfigurationType> {
@@ -333,7 +335,7 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
     }
 
     @Override
-    public void init(GeneralTransportConfigurationType configuration, TransportSupport transportSupport) {
+    public void init(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
         // not called for legacy transport component
     }
 

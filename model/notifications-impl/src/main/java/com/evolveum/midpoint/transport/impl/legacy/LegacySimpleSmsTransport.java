@@ -43,7 +43,6 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
-import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.notifications.impl.util.HttpUtil;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -61,6 +60,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -69,6 +69,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+/** Legacy transport that should be removed after 4.5; type parameter is irrelevant. */
 @Deprecated
 @Component
 public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfigurationType> {
@@ -401,7 +402,7 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
     }
 
     @Override
-    public void init(GeneralTransportConfigurationType configuration, TransportSupport transportSupport) {
+    public void init(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
         // not called for legacy transport component
     }
 

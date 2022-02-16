@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.notifications.api.transports;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -30,5 +32,5 @@ public interface Transport<C extends GeneralTransportConfigurationType> {
     // not-null for new transports, but legacy transports return null (remove after 4.6 cleanup if that happens)
     C getConfiguration();
 
-    void init(C configuration, TransportSupport transportSupport);
+    void init(@NotNull C configuration, @NotNull TransportSupport transportSupport);
 }
