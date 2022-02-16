@@ -314,6 +314,32 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>com.evolveum.prism</groupId>
+                <artifactId>prism-codegen-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <configuration>
+                    <schemaFiles>
+                        <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-3.xsd</schemaFile>
+                    </schemaFiles>
+                    <catalogFiles>
+                        <catalogFile>src/compile/resources/jax-ws-catalog.xml</catalogFile>
+                        <catalogFile>src/main/resources/META-INF/schemas-in-this-module.xml</catalogFile>   <!-- nextCatalog doesn't work for unknown reason -->
+                    </catalogFiles>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>codegen</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>codegen</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <resources>
             <resource>
