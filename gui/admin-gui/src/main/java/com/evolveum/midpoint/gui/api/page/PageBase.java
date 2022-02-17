@@ -245,7 +245,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private ModelAuditService modelAuditService;
 
     @SpringBean(name = "modelController")
-    private WorkflowService workflowService;
+    private CaseService caseService;
 
     @SpringBean(name = "caseManager")
     private CaseManager caseManager;
@@ -437,8 +437,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return taskManager;
     }
 
-    public WorkflowService getWorkflowService() {
-        return workflowService;
+    public CaseService getCaseService() {
+        return caseService;
     }
 
     public CaseManager getCaseManager() {

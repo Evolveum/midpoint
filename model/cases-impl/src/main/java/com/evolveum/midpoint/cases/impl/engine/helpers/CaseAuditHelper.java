@@ -197,8 +197,11 @@ public class CaseAuditHelper {
     }
 
     // workItem contains taskRef, assignee, candidates resolved (if possible)
-    public AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
-            CaseType aCase, OperationResult result) {
+    public AuditEventRecord prepareWorkItemDeletedAuditRecord(
+            CaseWorkItemType workItem,
+            WorkItemEventCauseInformationType cause,
+            CaseType aCase,
+            OperationResult result) {
 
         AuditEventRecord record = prepareWorkItemAuditRecordCommon(workItem, aCase, AuditEventStage.EXECUTION, result);
         setInitiatorAndAttorneyFromPrincipal(record);

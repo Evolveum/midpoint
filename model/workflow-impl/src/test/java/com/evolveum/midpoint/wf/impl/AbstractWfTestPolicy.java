@@ -29,7 +29,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.CaseService;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
@@ -67,7 +67,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
     @Autowired protected TaskManager taskManager;
     @Autowired protected CaseManager caseManager;
     @Autowired protected ApprovalsManager approvalsManager;
-    @Autowired protected WorkflowService workflowService;
+    @Autowired protected CaseService caseService;
     @Autowired protected CaseEngineImpl caseEngine;
     @Autowired protected WorkItemManager workItemManager;
     @Autowired protected PrimaryChangeProcessor primaryChangeProcessor;

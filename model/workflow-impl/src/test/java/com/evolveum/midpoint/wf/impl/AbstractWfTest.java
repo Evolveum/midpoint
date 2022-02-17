@@ -26,7 +26,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.CaseService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
@@ -85,7 +85,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     @Autowired protected CaseManager caseManager;
     @Autowired protected CaseEngineImpl caseEngine;
     @Autowired protected WorkItemManager workItemManager;
-    @Autowired protected WorkflowService workflowService;
+    @Autowired protected CaseService caseService;
     @Autowired protected PrimaryChangeProcessor primaryChangeProcessor;
     @Autowired protected SystemObjectCache systemObjectCache;
     @Autowired protected RelationRegistry relationRegistry;
@@ -328,7 +328,8 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     protected void approveWorkItem(CaseWorkItemType workItem, Task task, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 new AbstractWorkItemOutputType(prismContext).outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE),
                 task, result);
     }
@@ -336,7 +337,8 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     protected void rejectWorkItem(CaseWorkItemType workItem, Task task, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 new AbstractWorkItemOutputType(prismContext).outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT),
                 task, result);
     }

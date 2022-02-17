@@ -174,7 +174,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private SqlPerformanceMonitorsCollection performanceMonitorsCollection; // temporary
     @Autowired private RepositoryService repositoryService; // temporary
     @Autowired private CacheRegistry cacheRegistry;
-    @Autowired private WorkflowService workflowService;
+    @Autowired private CaseService caseService;
     @Autowired private CaseManager caseManager;
     @Autowired private MidpointConfiguration configuration;
     @Autowired private Protector protector;
@@ -526,8 +526,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return MidPointAuthWebSession.class;
     }
 
-    public WorkflowService getWorkflowService() {
-        return workflowService;
+    public CaseService getWorkflowService() {
+        return caseService;
     }
 
     public CaseManager getWorkflowManager() {

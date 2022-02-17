@@ -102,7 +102,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
             WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
                     .delegate(ort(USER_GIRTH_OID))
                     .method(ADD_ASSIGNEES);
-            workflowService.delegateWorkItem(workItemId, request, task, result);
+            caseService.delegateWorkItem(workItemId, request, task, result);
             fail("delegate succeeded even if it shouldn't");
         } catch (SecurityViolationException e) {
             // ok
@@ -123,7 +123,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
                 .delegate(ort(USER_GIRTH_OID))
                 .method(ADD_ASSIGNEES)
                 .comment("check this");
-        workflowService.delegateWorkItem(workItemId, request, task, result);
+        caseService.delegateWorkItem(workItemId, request, task, result);
 
         result.computeStatus();
         assertSuccess(result);
@@ -154,7 +154,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
         WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
                 .delegate(ort(USER_KEEN_OID))
                 .method(REPLACE_ASSIGNEES);
-        workflowService.delegateWorkItem(workItemId, request, task, result);
+        caseService.delegateWorkItem(workItemId, request, task, result);
 
         result.computeStatus();
         assertSuccess(result);
@@ -182,7 +182,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 
         WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
                 .method(REPLACE_ASSIGNEES);
-        workflowService.delegateWorkItem(workItemId, request, task, result);
+        caseService.delegateWorkItem(workItemId, request, task, result);
 
         result.computeStatus();
         assertSuccess(result);

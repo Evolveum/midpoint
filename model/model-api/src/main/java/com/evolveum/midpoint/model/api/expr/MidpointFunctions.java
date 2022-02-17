@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.CaseService;
 import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -1068,7 +1068,7 @@ public interface MidpointFunctions {
 
     String getChannel();
 
-    WorkflowService getWorkflowService();
+    CaseService getWorkflowService();
 
     /**
      * Used for account activation notifier to collect all shadows which are going to be activated.

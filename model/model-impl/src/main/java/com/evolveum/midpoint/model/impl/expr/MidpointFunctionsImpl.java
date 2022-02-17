@@ -124,7 +124,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private Protector protector;
     @Autowired private OrgStructFunctionsImpl orgStructFunctions;
     @Autowired private LinkedObjectsFunctions linkedObjectsFunctions;
-    @Autowired private WorkflowService workflowService;
+    @Autowired private CaseService caseService;
     @Autowired private ConstantsManager constantsManager;
     @Autowired private LocalizationService localizationService;
     @Autowired private ExpressionFactory expressionFactory;
@@ -1449,8 +1449,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public WorkflowService getWorkflowService() {
-        return workflowService;
+    public CaseService getWorkflowService() {
+        return caseService;
     }
 
     @Override

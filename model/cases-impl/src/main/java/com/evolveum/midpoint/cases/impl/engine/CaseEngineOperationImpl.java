@@ -266,8 +266,7 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
         return WorkItemId.create(getCaseOidRequired(), workItem.getId());
     }
 
-    @NotNull
-    public MidPointPrincipal getPrincipal() {
+    public @NotNull MidPointPrincipal getPrincipal() {
         return principal;
     }
 

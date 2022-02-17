@@ -9,7 +9,7 @@ package com.evolveum.midpoint.certification.test.complex;
 
 import com.evolveum.midpoint.certification.test.AbstractUninitializedCertificationTest;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.CaseService;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.RecordingProgressListener;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -73,7 +73,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
     private static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 
-    @Autowired private WorkflowService workflowService;
+    @Autowired private CaseService caseService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -245,7 +245,8 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
         // TODO check trigger
 
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext),
                 task, result);
         waitForCaseClose(rootCase, 60000);
@@ -315,7 +316,8 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         assertEquals("wrong # of approval stages", 2, wfc.getApprovalSchema().getStage().size());
         assertEquals("wrong # of attached policy rules", 2, wfc.getPolicyRules().getEntry().size());
 
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext),
                 task, result);
 
@@ -324,7 +326,8 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
                 .collect(Collectors.toList());
         assertEquals("wrong # of open work items", 1, openWorkItems.size());
         workItem = openWorkItems.get(0);
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext),
                 task, result);
 

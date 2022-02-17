@@ -108,9 +108,13 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
             return false;
         }
 
-        completeOrCancelWorkItem(workItem, completion.getOutput(), result);
+        completeOrCancelWorkItem(workItem, completion.getOutput());
 
         WorkItemCompletionResult completionResult = getEngineExtension().processWorkItemCompletion(workItem, operation, result);
+
+        // Intentionally after processing in the extension
+        prepareAuditAndNotifications(workItem, result);
+
         return completionResult.shouldCloseOtherWorkItems();
     }
 
@@ -118,7 +122,8 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
         LOGGER.trace("+++ closeOtherWorkItems ENTER: ctx={}, cause type={}", operation, getCauseType());
         for (CaseWorkItemType workItem : getCurrentCase().getWorkItem()) {
             if (workItem.getCloseTimestamp() == null) {
-                completeOrCancelWorkItem(workItem, null, result);
+                completeOrCancelWorkItem(workItem, null);
+                prepareAuditAndNotifications(workItem, result);
             }
         }
         LOGGER.trace("--- closeOtherWorkItems EXIT: operation={}", operation);
@@ -135,15 +140,13 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
     /**
      * Completes (if output is not null) or cancels (if output is null) the work item.
      *
-     * Excludes the processing in engine extension!
+     * - Excludes the processing in engine extension!
+     * - Excludes auditing and notifications, because we want to audit/notify the work item after it has been
+     * processed by the engine extension (e.g. by copying additional deltas to the case approval context).
      */
-    private void completeOrCancelWorkItem(
-            @NotNull CaseWorkItemType workItem,
-            @Nullable AbstractWorkItemOutputType output,
-            @NotNull OperationResult result) {
+    private void completeOrCancelWorkItem(@NotNull CaseWorkItemType workItem, @Nullable AbstractWorkItemOutputType output) {
 
-        WorkItemOperationKindType operationKind = output != null ?
-                WorkItemOperationKindType.COMPLETE : WorkItemOperationKindType.CANCEL;
+        WorkItemOperationKindType operationKind = getOperationKind(output);
 
         LOGGER.trace("+++ completeOrCancelWorkItem ENTER: op={}, operationKind={}, workItem:\n{}",
                 operation, operationKind, workItem.debugDumpLazily());
@@ -156,21 +159,15 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
             // cancelled items are not maintained in history
         }
 
-        prepareAuditRecord(workItem, result);
-        prepareNotifications(workItem, operationKind, result);
-
         beans.triggerHelper.removeTriggersForWorkItem(getCurrentCase(), workItem.getId());
 
-        LOGGER.trace("--- completeOrCancelWorkItem EXIT: workItem={}, op={}, operationKind={}", workItem, operation, operationKind);
+        LOGGER.trace("--- completeOrCancelWorkItem EXIT: workItem={}, op={}, operationKind={}",
+                workItem, operation, operationKind);
     }
 
-    private void prepareAuditRecord(@NotNull CaseWorkItemType workItem, @NotNull OperationResult result) {
-        // We don't pass userRef (initiator) to the audit method. It does need the whole object (not only the reference),
-        // so it fetches it directly from the security enforcer (logged-in user). This could change in the future.
-        AuditEventRecord record = beans.auditHelper.prepareWorkItemDeletedAuditRecord(
-                workItem, getCauseInformation(), getCurrentCase(), result);
-        getEngineExtension().enrichWorkItemDeletedAuditRecord(record, workItem, operation, result);
-        operation.addAuditRecord(record);
+    private @NotNull WorkItemOperationKindType getOperationKind(@Nullable AbstractWorkItemOutputType output) {
+        return output != null ?
+                WorkItemOperationKindType.COMPLETE : WorkItemOperationKindType.CANCEL;
     }
 
     private void updateCaseHistory(@NotNull CaseWorkItemType workItem, @NotNull AbstractWorkItemOutputType output) {
@@ -190,8 +187,22 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
         workItem.setCloseTimestamp(now);
     }
 
-    private void prepareNotifications(
-            CaseWorkItemType workItem, WorkItemOperationKindType operationKind, OperationResult result) {
+    private void prepareAuditAndNotifications(CaseWorkItemType workItem, OperationResult result) {
+        prepareAuditRecord(workItem, result);
+        prepareNotifications(workItem, result);
+    }
+
+    private void prepareAuditRecord(@NotNull CaseWorkItemType workItem, @NotNull OperationResult result) {
+        // We don't pass userRef (initiator) to the audit method. It does need the whole object (not only the reference),
+        // so it fetches it directly from the security enforcer (logged-in user). This could change in the future.
+        AuditEventRecord record = beans.auditHelper.prepareWorkItemDeletedAuditRecord(
+                workItem, getCauseInformation(), getCurrentCase(), result);
+        getEngineExtension().enrichWorkItemDeletedAuditRecord(record, workItem, operation, result);
+        operation.addAuditRecord(record);
+    }
+
+    private void prepareNotifications(CaseWorkItemType workItem, OperationResult result) {
+        WorkItemOperationKindType operationKind = getOperationKind(workItem.getOutput());
         ObjectReferenceType userRef = operation.getPrincipal().toObjectReference();
         CaseType currentCase = getCurrentCase();
         try {

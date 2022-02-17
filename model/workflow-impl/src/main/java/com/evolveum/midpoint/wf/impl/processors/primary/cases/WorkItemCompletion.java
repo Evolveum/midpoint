@@ -93,7 +93,7 @@ public class WorkItemCompletion {
 
     private void logInput() {
         LOGGER.trace("+++ Processing completion of work item (in approvals): outcome={}, principal={}, workItem:\n{}",
-                getOutcome(), operation.getPrincipal(), workItem.debugDumpLazily(1));
+                getOutcome(), operation.getPrincipal().getFocus(), workItem.debugDumpLazily(1));
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Recording decision for approval case '{}', stage {}: decision: {}",

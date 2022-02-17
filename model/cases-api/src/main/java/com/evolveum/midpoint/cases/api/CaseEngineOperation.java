@@ -23,5 +23,5 @@ public interface CaseEngineOperation extends DebugDumpable {
 
     @NotNull Task getTask();
     int getCurrentStageNumber();
-    MidPointPrincipal getPrincipal();
+    @NotNull MidPointPrincipal getPrincipal();
 }

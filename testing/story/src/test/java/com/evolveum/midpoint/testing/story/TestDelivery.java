@@ -24,7 +24,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.CaseService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -51,7 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestDelivery extends AbstractStoryTest {
 
-    @Autowired private WorkflowService workflowService;
+    @Autowired private CaseService caseService;
     //@Autowired private DummyTransport dummyTransport;
 
     private static final String TEST_DIR = "src/test/resources/delivery";
@@ -227,7 +227,8 @@ public class TestDelivery extends AbstractStoryTest {
         CaseType rootCase = getRootCase(result);
         display("root case", rootCase);
 
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext),
                 task, result);
 
@@ -253,7 +254,8 @@ public class TestDelivery extends AbstractStoryTest {
         CaseType rootCase = getRootCase(result);
         display("root case", rootCase);
 
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext),
                 task, result);
 
@@ -262,7 +264,8 @@ public class TestDelivery extends AbstractStoryTest {
         ApprovalContextType actx2 = ApprovalContextUtil.getApprovalContext(workItem2);
         display("workflow context2", actx2);
 
-        workflowService.completeWorkItem(WorkItemId.of(workItem2),
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem2),
                 ApprovalUtils.createApproveOutput(prismContext),
                 task, result);
 
@@ -288,7 +291,8 @@ public class TestDelivery extends AbstractStoryTest {
         CaseType rootCase = getRootCase(result);
         display("root case", rootCase);
 
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext),
                 task, result);
 
@@ -314,7 +318,8 @@ public class TestDelivery extends AbstractStoryTest {
         CaseType rootCase = getRootCase(result);
         display("root case", rootCase);
 
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext),
                 task, result);
 

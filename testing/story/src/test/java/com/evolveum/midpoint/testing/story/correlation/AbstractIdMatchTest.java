@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.io.IOException;
 
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.CaseService;
 import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -22,7 +22,6 @@ import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
@@ -53,7 +52,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
             "95ebbf1e-9c71-4870-a1fb-dc47ce6856c9", 30000);
 
     @Autowired CorrelationCaseManager correlationCaseManager;
-    @Autowired WorkflowService caseService;
+    @Autowired CaseService caseService;
 
     /** This is the initialized object (retrieved from the repo). */
     private ResourceType resourceAis;

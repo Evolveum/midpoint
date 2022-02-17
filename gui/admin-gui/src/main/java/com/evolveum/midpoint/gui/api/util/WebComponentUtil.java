@@ -4572,7 +4572,7 @@ public final class WebComponentUtil {
             Task task = pageBase.createSimpleTask(result.getOperation());
             try {
                 WorkItemId workItemId = WorkItemId.create(parentCase.getOid(), workItem.getId());
-                pageBase.getWorkflowService().completeWorkItem(workItemId, output, task, result);
+                pageBase.getCaseService().completeWorkItem(workItemId, output, task, result);
             } catch (Exception ex) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Unable to complete work item, ", ex);
                 result.recordFatalError(ex);
@@ -4597,7 +4597,7 @@ public final class WebComponentUtil {
                         }
                     }
                     assumePowerOfAttorneyIfRequested(result, powerDonor, pageBase);
-                    pageBase.getWorkflowService().completeWorkItem(WorkItemId.of(workItem),
+                    pageBase.getCaseService().completeWorkItem(WorkItemId.of(workItem),
                             output, additionalDelta, task, result);
                 } finally {
                     dropPowerOfAttorneyIfRequested(result, powerDonor, pageBase);
@@ -4644,10 +4644,10 @@ public final class WebComponentUtil {
             String operation, AjaxRequestTarget target, PageBase pageBase) {
         Task task = pageBase.createSimpleTask(operation);
         OperationResult mainResult = task.getResult();
-        WorkflowService workflowService = pageBase.getWorkflowService();
+        CaseService caseService = pageBase.getCaseService();
         OperationResult result = mainResult.createSubresult(operation);
         try {
-            workflowService.claimWorkItem(WorkItemId.of(workItemToClaim), task, result);
+            caseService.claimWorkItem(WorkItemId.of(workItemToClaim), task, result);
             result.computeStatusIfUnknown();
         } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException |
                 ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {

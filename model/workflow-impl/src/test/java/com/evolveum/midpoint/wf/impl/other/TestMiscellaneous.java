@@ -477,7 +477,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         modelInteractionService.runUnderPowerOfAttorneyChecked(() -> {
             AbstractWorkItemOutputType output = new AbstractWorkItemOutputType(prismContext)
                     .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
-            workflowService.completeWorkItem(CaseWorkItemUtil.getId(workItem), output, task, result);
+            caseService.completeWorkItem(CaseWorkItemUtil.getId(workItem), output, task, result);
             return null;
         }, USER_SCROOGE.object, task, result);
 
@@ -555,7 +555,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         modelInteractionService.runUnderPowerOfAttorneyChecked(() -> {
             AbstractWorkItemOutputType output = new AbstractWorkItemOutputType(prismContext)
                     .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
-            workflowService.completeWorkItem(CaseWorkItemUtil.getId(workItem), output, task, result);
+            caseService.completeWorkItem(CaseWorkItemUtil.getId(workItem), output, task, result);
             return null;
         }, USER_SCROOGE.object, task, result);
 

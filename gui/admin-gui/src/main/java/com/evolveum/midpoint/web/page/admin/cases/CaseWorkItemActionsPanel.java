@@ -168,7 +168,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             try {
                 WebComponentUtil.assumePowerOfAttorneyIfRequested(result, getPowerDonor(), getPageBase());
                 WorkItemDelegationRequestType delegationRequest = getDelegationRequest(delegate);
-                getPageBase().getWorkflowService().delegateWorkItem(WorkItemId.of(getModelObject()), delegationRequest, task, result);
+                getPageBase().getCaseService().delegateWorkItem(WorkItemId.of(getModelObject()), delegationRequest, task, result);
             } finally {
                 WebComponentUtil.dropPowerOfAttorneyIfRequested(result, getPowerDonor(), getPageBase());
             }

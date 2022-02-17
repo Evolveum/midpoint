@@ -120,7 +120,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Use its interfaces instead.
  */
 @Component
-public class ModelController implements ModelService, TaskService, WorkflowService, ScriptingService, AccessCertificationService {
+public class ModelController implements ModelService, TaskService, CaseService, ScriptingService, AccessCertificationService {
 
     // Constants for OperationResult
     public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
@@ -2315,11 +2315,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     //endregion
 
-    //region Workflow-related operations
+    //region Case-related operations
     // TODO move this method to more appropriate place
     @Override
-    public void completeWorkItem(WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output,
-            ObjectDelta additionalDelta, Task task, OperationResult parentResult)
+    public void completeWorkItem(
+            @NotNull WorkItemId workItemId,
+            @NotNull AbstractWorkItemOutputType output,
+            @Nullable ObjectDelta<?> additionalDelta,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         AbstractWorkItemOutputType outputToUse;
@@ -2371,29 +2375,29 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public void cancelCase(String caseOid, Task task, OperationResult parentResult) throws SchemaException,
+    public void cancelCase(@NotNull String caseOid, @NotNull Task task, @NotNull OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, ObjectAlreadyExistsException {
         getWorkflowManagerChecked().cancelCase(caseOid, task, parentResult);
     }
 
     @Override
-    public void claimWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
+    public void claimWorkItem(@NotNull WorkItemId workItemId, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         getWorkflowManagerChecked().claimWorkItem(workItemId, task, parentResult);
     }
 
     @Override
-    public void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
+    public void releaseWorkItem(@NotNull WorkItemId workItemId, @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         getWorkflowManagerChecked().releaseWorkItem(workItemId, task, parentResult);
     }
 
     @Override
-    public void delegateWorkItem(WorkItemId workItemId, WorkItemDelegationRequestType delegationRequest,
-            Task task, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException,
+    public void delegateWorkItem(@NotNull WorkItemId workItemId, @NotNull WorkItemDelegationRequestType delegationRequest,
+            @NotNull Task task, @NotNull OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         getWorkflowManagerChecked().delegateWorkItem(workItemId, delegationRequest, task, parentResult);
     }
