@@ -6,10 +6,15 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
+import javax.xml.namespace.QName;
 import java.util.List;
 
 public class ChoicesSearchItemWrapper<T> extends PropertySearchItemWrapper {
@@ -21,6 +26,7 @@ public class ChoicesSearchItemWrapper<T> extends PropertySearchItemWrapper {
         this.availableValues = availableValues;
     }
 
+    @Override
     public Class<ChoicesSearchItemPanel> getSearchItemPanelClass() {
         return ChoicesSearchItemPanel.class;
     }
@@ -29,8 +35,17 @@ public class ChoicesSearchItemWrapper<T> extends PropertySearchItemWrapper {
         return availableValues;
     }
 
+    @Override
     public DisplayableValue<T> getDefaultValue() {
         return new SearchValue();
     }
 
+    @Override
+    public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
+        if (getValue().getValue() == null) {
+            return null;
+        }
+        return PrismContext.get().queryFor(type)
+                .item(getSearchItem().getPath().getItemPath()).eq(getValue().getValue()).buildFilter();
+    }
 }
