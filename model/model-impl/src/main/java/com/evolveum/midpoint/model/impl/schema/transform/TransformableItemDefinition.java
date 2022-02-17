@@ -1,9 +1,5 @@
 package com.evolveum.midpoint.model.impl.schema.transform;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Consumer;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
@@ -342,10 +338,13 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
 
     ItemDefinition<?> attachTo(TransformableComplexTypeDefinition complexType) {
-        var delegateDef = complexType.delegate().findItemDefinition(getItemName());
-        // If definition is same object as definition from schema - reuse it
-        if (delegateDef == delegate()) {
-                delegate = new DelegatedItem.ComplexTypeDerived<>(complexType, delegate());
+        var parentDelegator = complexType.delegate;
+        if (parentDelegator instanceof DelegatedItem.StaticComplexType) {
+            var delegateDef = parentDelegator.get().findItemDefinition(getItemName());
+            // If definition is same object as definition from schema - reuse it
+            if (delegateDef == delegate()) {
+                    delegate = new DelegatedItem.ComplexTypeDerived<>(complexType.getTypeName(), delegate());
+            }
         }
         return this;
     }
