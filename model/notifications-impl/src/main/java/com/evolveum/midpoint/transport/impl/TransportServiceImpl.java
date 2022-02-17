@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.transport.impl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.PostConstruct;
@@ -45,6 +47,12 @@ public class TransportServiceImpl implements TransportService {
     private static final Trace LOGGER = TraceManager.getTrace(TransportServiceImpl.class);
 
     private final Map<String, Transport<?>> transports = new ConcurrentHashMap<>();
+
+    /**
+     * This holds the names of the transports configured from system config object.
+     * When new config is read we don't want to remove other transports registered explicitly (e.g. tests).
+     */
+    private final List<String> transportsFromSysConfig = new ArrayList<>();
 
     // injected fields for TransportSupport
     @Autowired private ApplicationContext applicationContext;
@@ -92,6 +100,8 @@ public class TransportServiceImpl implements TransportService {
                 return applicationContext;
             }
         };
+
+        registerLegacyTransports();
     }
 
     /**
@@ -100,8 +110,7 @@ public class TransportServiceImpl implements TransportService {
      */
     @EventListener
     public void refreshTransportConfiguration(SystemConfigurationChangeEvent event) {
-        transports.clear();
-        registerLegacyTransports();
+        clearPreviousConfiguration();
         createTransports(event.getSystemConfiguration());
     }
 
@@ -129,7 +138,6 @@ public class TransportServiceImpl implements TransportService {
 
     // TODO should be internal and go away eventually
     // accepts name:subname (e.g. dummy:accounts) - a primitive form of passing parameters (will be enhanced/replaced in the future)
-
     @Override
     public Transport<?> getTransport(String name) {
         Transport<?> transport = transports.get(name);
@@ -155,7 +163,14 @@ public class TransportServiceImpl implements TransportService {
             createCustomTransport(customConfig);
         }
 
-        // TODO
+        // TODO other types
+    }
+
+    private void clearPreviousConfiguration() {
+        for (String transport : transportsFromSysConfig) {
+            transports.remove(transport);
+        }
+        transportsFromSysConfig.clear();
     }
 
     private void createCustomTransport(CustomTransportConfigurationType customConfig) {
