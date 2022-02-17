@@ -11,9 +11,6 @@ import com.evolveum.midpoint.certification.impl.AccCertResponseComputationHelper
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * @author mederly
- */
 public abstract class BaseOutcomeStrategy implements OutcomeStrategy {
 
     @Autowired

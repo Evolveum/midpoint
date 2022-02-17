@@ -17,9 +17,6 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-/**
- * @author mederly
- */
 public class EvaluatedTransitionTrigger extends EvaluatedPolicyRuleTrigger<TransitionPolicyConstraintType> {
 
     @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;

@@ -22,8 +22,6 @@ import java.sql.SQLException;
 
 /**
  * See MidPointPersisterUtil comments.
- *
- * @author mederly
  */
 public class MidPointJoinedPersister extends JoinedSubclassEntityPersister {
 

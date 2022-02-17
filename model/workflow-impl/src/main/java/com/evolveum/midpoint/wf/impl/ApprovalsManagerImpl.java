@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * TODO
  */
-@Component
+@Component(value = "approvalsManager")
 public class ApprovalsManagerImpl implements ApprovalsManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(ApprovalsManagerImpl.class);

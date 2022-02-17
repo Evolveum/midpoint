@@ -26,10 +26,6 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.List;
 
-/**
- * @author mederly
- *
- */
 public class TestParseMappingConst extends AbstractContainerValueParserTest<MappingType> {
 
     @Override

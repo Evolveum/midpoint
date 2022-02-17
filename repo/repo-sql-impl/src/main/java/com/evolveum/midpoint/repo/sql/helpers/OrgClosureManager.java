@@ -60,7 +60,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
  * SQL queries were then optimized by hand for various database engines.
  *
  * @author lazyman
- * @author mederly
  */
 @Component
 @DependsOn("schemaChecker")

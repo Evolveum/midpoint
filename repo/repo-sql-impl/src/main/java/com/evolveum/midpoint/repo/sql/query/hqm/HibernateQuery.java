@@ -20,8 +20,6 @@ import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 
 /**
  * Query in HQL that is being created.
- *
- * @author mederly
  */
 public abstract class HibernateQuery {
 

@@ -19,8 +19,6 @@ import java.io.FileNotFoundException;
 
 /**
  * @author semancik
- * @author mederly
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

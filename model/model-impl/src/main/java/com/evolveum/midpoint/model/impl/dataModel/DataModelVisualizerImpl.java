@@ -38,10 +38,6 @@ import java.util.List;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
-/**
- * @author pmederly
- */
-
 @Component
 public class DataModelVisualizerImpl implements DataModelVisualizer {
 

@@ -32,9 +32,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkI
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_WORK_ITEM;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
 
-/**
- * @author mederly
- */
 @Component
 public class AccCertQueryHelper {
 

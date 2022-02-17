@@ -13,8 +13,6 @@ import java.io.Serializable;
  * Name of a scene or a scene item.
  *
  * TODO reconsider this structure
- *
- * @author mederly
  */
 public interface Name extends Serializable {
 

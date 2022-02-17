@@ -40,9 +40,6 @@ import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.EQUIVALENT
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.SUPERPATH;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
-/**
- * @author mederly
- */
 @Component
 public class ApprovalMetadataHelper {
 

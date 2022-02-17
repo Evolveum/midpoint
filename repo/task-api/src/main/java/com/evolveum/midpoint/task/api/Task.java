@@ -57,7 +57,6 @@ import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.A
  * (so the method uses OperationResult as parameter, and can throw relevant exceptions as well).
  *
  * @author Radovan Semancik
- * @author Pavol Mederly
  */
 public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener {
 

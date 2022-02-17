@@ -13,9 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public interface SceneDeltaItem extends SceneItem, Serializable {
 
     @NotNull List<? extends SceneItemValue> getOldValues();

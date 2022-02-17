@@ -17,9 +17,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-/**
- * @author mederly
- */
 public class ModificationsPanel extends BasePanel<DeltaDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModificationsPanel.class);

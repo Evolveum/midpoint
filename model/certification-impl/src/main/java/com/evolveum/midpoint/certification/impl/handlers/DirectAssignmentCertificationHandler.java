@@ -33,9 +33,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author mederly
- */
 @Component
 public class DirectAssignmentCertificationHandler extends BaseCertificationHandler {
 

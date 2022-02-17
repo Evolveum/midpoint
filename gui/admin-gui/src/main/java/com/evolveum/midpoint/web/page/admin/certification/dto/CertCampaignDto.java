@@ -26,9 +26,6 @@ import static com.evolveum.midpoint.gui.api.page.PageBase.createEnumResourceKey;
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
-/**
- * @author mederly
- */
 public class CertCampaignDto extends Selectable {
 
     public static final String F_NAME = "name";

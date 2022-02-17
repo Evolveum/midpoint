@@ -24,8 +24,6 @@ import java.util.stream.Collectors;
 
 /**
  * Experimental. TODO implement correctly
- *
- * @author mederly
  */
 public class DeputyUtils {
 

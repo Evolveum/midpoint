@@ -27,9 +27,6 @@ import java.util.Set;
 
 import static org.testng.AssertJUnit.*;
 
-/**
- * @author mederly
- */
 public class WfTestUtil {
 
     public static void checkWorkItemAuditRecords(Map<String, WorkflowResult> expectedResults, DummyAuditService dummyAuditService) {

@@ -42,8 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Tests role lifecycle with global policy rules.
  *
  * Besides other (common) operations it tests the "processSpecification" feature in test500-test799.
- *
- * @author mederly
  */
 public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecycleApproval {
 

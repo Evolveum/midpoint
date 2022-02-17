@@ -25,8 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * Reference containing the name of referenced object.
  * Originally thought to be used in certifications, but replaced by dynamically joining RObject table.
  * So keeping this for possible future use only.
- *
- * @author mederly
  */
 @Embeddable
 public class REmbeddedNamedReference extends REmbeddedReference {

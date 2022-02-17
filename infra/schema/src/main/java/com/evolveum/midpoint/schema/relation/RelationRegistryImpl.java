@@ -30,7 +30,6 @@ import java.util.*;
 import static java.util.Collections.emptyList;
 
 /**
- * @author mederly
  * @author semancik
  */
 @Component

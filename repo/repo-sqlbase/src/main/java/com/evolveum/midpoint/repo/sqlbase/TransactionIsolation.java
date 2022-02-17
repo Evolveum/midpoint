@@ -8,9 +8,6 @@ package com.evolveum.midpoint.repo.sqlbase;
 
 import java.sql.Connection;
 
-/**
- * @author mederly
- */
 public enum TransactionIsolation {
 
     READ_COMMITTED("readCommitted", Connection.TRANSACTION_READ_COMMITTED),

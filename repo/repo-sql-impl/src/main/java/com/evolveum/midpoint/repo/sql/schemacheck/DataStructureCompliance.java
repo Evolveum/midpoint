@@ -11,8 +11,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Compliance of the database structure. (Not regarding schema version in the metadata.)
- *
- * @author mederly
  */
 class DataStructureCompliance {
 

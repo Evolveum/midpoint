@@ -46,9 +46,6 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author mederly
- */
 @SuppressWarnings({ "UnusedReturnValue", "WeakerAccess", "SameParameterValue" })
 public class AbstractCertificationTest extends AbstractUninitializedCertificationTest {
 

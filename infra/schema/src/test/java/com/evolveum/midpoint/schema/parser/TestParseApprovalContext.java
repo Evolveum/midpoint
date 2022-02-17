@@ -17,11 +17,6 @@ import java.io.File;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-/**
- * TODO finish
- * @author mederly
- *
- */
 @SuppressWarnings({ "Convert2MethodRef", "Duplicates" })
 public class TestParseApprovalContext extends AbstractContainerValueParserTest<ApprovalContextType> {
 

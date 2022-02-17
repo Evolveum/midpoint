@@ -12,9 +12,6 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author mederly
- */
 public class Relation {
 
     @NotNull private final List<DataItem> sources;

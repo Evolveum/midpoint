@@ -16,9 +16,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
 
-/**
- * @author mederly
- */
 public class MidpointParsingMigrator implements ParsingMigrator {
 
     @Override

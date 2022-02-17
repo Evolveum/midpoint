@@ -45,8 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 /**
  * Some common functionality used from PageCertCampaign and PageCertDecisions.
  * TODO finish the refactoring
- *
- * @author mederly
  */
 public class CertDecisionHelper implements Serializable {
 

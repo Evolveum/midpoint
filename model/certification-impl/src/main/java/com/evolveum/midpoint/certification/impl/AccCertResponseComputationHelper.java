@@ -34,9 +34,6 @@ import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-/**
- * @author mederly
- */
 @Component
 public class AccCertResponseComputationHelper {
 

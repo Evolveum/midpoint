@@ -32,9 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 import static java.util.Comparator.naturalOrder;
 
-/**
- * @author mederly
- */
 class ApprovalSchemaBuilder {
 
     private ProcessSpecification processSpecification;

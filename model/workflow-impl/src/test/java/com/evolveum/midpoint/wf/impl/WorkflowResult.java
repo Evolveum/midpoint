@@ -9,9 +9,6 @@ package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 
-/**
- * @author mederly
- */
 public enum WorkflowResult {
 
     REJECTED, APPROVED, UNKNOWN, OTHER;

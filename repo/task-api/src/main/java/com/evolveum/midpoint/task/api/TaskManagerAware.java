@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.task.api;
 
-/**
- * @author mederly
- */
 public interface TaskManagerAware {
 
     void setTaskManager(TaskManager taskManager);

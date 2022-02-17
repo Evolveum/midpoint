@@ -9,8 +9,6 @@ package com.evolveum.midpoint.common;
 
 /**
  * For use in tests ONLY.
- *
- * @author mederly
  */
 public class LocalizationTestUtil {
 

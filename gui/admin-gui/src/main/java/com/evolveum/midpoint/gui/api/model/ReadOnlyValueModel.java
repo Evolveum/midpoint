@@ -13,8 +13,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * EXPERIMENTAL
  * TODO better name
- *
- * @author mederly
  */
 public class ReadOnlyValueModel<T> implements IModel<T> {
 

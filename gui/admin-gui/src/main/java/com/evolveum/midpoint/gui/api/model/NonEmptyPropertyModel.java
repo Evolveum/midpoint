@@ -10,9 +10,6 @@ package com.evolveum.midpoint.gui.api.model;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class NonEmptyPropertyModel<T> extends PropertyModel<T> implements NonEmptyModel<T> {
 
     public NonEmptyPropertyModel(Object modelObject, String expression) {

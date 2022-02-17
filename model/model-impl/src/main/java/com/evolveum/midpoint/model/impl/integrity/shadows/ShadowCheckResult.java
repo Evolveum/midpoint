@@ -22,8 +22,6 @@ import java.util.List;
 
 /**
  * Result of checking a particular shadow.
- *
- * @author Pavol Mederly
  */
 public class ShadowCheckResult {
 

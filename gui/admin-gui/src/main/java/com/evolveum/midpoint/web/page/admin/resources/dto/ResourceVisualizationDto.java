@@ -9,9 +9,6 @@ package com.evolveum.midpoint.web.page.admin.resources.dto;
 
 import java.io.Serializable;
 
-/**
- * @author mederly
- */
 public class ResourceVisualizationDto implements Serializable {
 
     public static final String F_DOT = "dot";

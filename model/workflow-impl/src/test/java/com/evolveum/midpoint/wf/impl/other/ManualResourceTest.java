@@ -44,7 +44,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * (e.g. completion, auditing, notifications) of manual provisioning cases.
  *
  * @author Radovan Semancik
- * @author mederly
  */
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

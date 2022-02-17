@@ -9,9 +9,6 @@ package com.evolveum.midpoint.model.impl.visualizer.output;
 
 import com.evolveum.midpoint.model.api.visualizer.Name;
 
-/**
- * @author mederly
- */
 public class NameImpl implements Name {
 
     private final String simpleName;

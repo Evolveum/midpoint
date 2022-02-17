@@ -48,9 +48,6 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * @author mederly
- */
 public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, BeanNameAware {
 
     private static final Trace LOGGER = TraceManager.getTrace(BasePrimaryChangeAspect.class);

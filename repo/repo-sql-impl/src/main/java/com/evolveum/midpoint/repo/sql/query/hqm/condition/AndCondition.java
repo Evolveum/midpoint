@@ -11,9 +11,6 @@ import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
 import java.util.Collection;
 
-/**
- * @author mederly
- */
 public class AndCondition extends JunctionCondition {
 
     public AndCondition(RootHibernateQuery rootHibernateQuery, Condition... conditions) {

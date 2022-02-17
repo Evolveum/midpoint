@@ -11,10 +11,6 @@ import com.evolveum.midpoint.prism.PrismValue;
 
 import java.io.Serializable;
 
-/**
- * @author mederly
- */
-
 public interface SceneItemValue extends Serializable {
     String getText();
     String getAdditionalText();            // this one should not be clickable (in case of references)

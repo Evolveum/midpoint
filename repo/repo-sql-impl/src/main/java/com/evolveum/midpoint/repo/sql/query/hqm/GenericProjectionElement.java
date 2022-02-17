@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.repo.sql.query.hqm;
 
-/**
- * @author mederly
- */
 public class GenericProjectionElement extends ProjectionElement {
 
     private String text;

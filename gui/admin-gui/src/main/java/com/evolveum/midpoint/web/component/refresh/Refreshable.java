@@ -12,8 +12,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 
 /**
  * Refreshable page (or component).
- *
- * @author mederly
  */
 public interface Refreshable {
 

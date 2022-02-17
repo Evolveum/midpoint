@@ -25,9 +25,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class SceneDto implements Serializable {
 
     public static final java.lang.String F_CHANGE_TYPE = "changeType";

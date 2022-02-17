@@ -18,9 +18,6 @@ import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-/**
- * @author mederly
- */
 public class EvaluatedPolicyRuleUtil {
 
     //region --------------- Native evaluated triggers (EvaluatedPolicyRuleTrigger) ---------------------------------------------

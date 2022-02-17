@@ -10,9 +10,6 @@ package com.evolveum.midpoint.repo.sql.query.resolution;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class HqlEntityInstance extends HqlDataInstance<JpaEntityDefinition> {
 
     public HqlEntityInstance(String hqlPath, JpaEntityDefinition jpaDefinition, HqlDataInstance parentPropertyPath) {

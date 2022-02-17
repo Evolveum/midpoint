@@ -24,8 +24,6 @@ import java.util.List;
 /**
  * Extract from ApprovalSchemaExecutionInformationType that could be directly displayed via the GUI as "approval process preview"
  * (either for the whole process or only the future stages).
- *
- * @author mederly
  */
 public class ApprovalProcessExecutionInformationDto implements Serializable {
 

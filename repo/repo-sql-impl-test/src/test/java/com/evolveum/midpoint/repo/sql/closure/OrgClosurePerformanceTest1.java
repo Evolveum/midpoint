@@ -11,9 +11,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = {"../../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrgClosurePerformanceTest1 extends AbstractOrgClosureTest {

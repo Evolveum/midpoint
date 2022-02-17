@@ -10,9 +10,6 @@ package com.evolveum.midpoint.gui.api.model;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public interface NonEmptyModel<T> extends IModel<T> {
 
     @Override

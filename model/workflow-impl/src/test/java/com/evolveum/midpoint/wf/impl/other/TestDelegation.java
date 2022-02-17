@@ -30,9 +30,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDeleg
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.REPLACE_ASSIGNEES;
 import static org.testng.AssertJUnit.assertEquals;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestDelegation extends AbstractWfTestPolicy {

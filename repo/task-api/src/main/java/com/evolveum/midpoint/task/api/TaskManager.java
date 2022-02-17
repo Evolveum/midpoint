@@ -33,7 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Stability: DRAFT
  *
  * @author Radovan Semancik
- * @author Pavol Mederly
  * </p>
  * <p>
  * Task manager provides controls task execution, coordination, distribution and failover between nodes, etc.

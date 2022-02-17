@@ -27,8 +27,6 @@ import java.util.List;
  *  ADD = case created (first stage)
  *  MODIFY = stage deadline is approaching
  *  DELETE = stage closed
- *
- * @author mederly
  */
 public class CertReviewEventImpl extends AccessCertificationEventImpl implements CertReviewEvent {
 

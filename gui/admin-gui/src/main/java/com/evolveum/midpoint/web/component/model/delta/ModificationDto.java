@@ -24,8 +24,6 @@ import java.util.List;
 
 /**
  * Preliminary version.
- *
- * @author mederly
  */
 public class ModificationDto implements Serializable {
 

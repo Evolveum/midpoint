@@ -34,8 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Very simple certification test.
  * Tests just the basic functionality, along with security features.
- *
- * @author mederly
  */
 @ContextConfiguration(locations = { "classpath:ctx-certification-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

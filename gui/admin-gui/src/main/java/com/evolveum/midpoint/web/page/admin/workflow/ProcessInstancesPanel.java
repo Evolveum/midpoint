@@ -52,7 +52,6 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author Kate
- * @author mederly
  */
 
 public class ProcessInstancesPanel extends BasePanel {

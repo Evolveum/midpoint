@@ -26,8 +26,6 @@ import java.util.List;
  * DTO representing a particular workItem.
  *
  * TODO cleanup a bit
- *
- * @author mederly
  */
 public class CertWorkItemDto extends CertCaseOrWorkItemDto {
 

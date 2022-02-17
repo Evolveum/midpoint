@@ -27,8 +27,6 @@ import java.util.*;
  * Aggregates more decisions.
  *
  * TODO cleanup a bit
- *
- * @author mederly
  */
 public class CertCaseDto extends CertCaseOrWorkItemDto {
 

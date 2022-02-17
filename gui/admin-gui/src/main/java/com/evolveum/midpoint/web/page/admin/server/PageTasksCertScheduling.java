@@ -18,8 +18,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  *
  * TODO show really only certification scheduling tasks (not e.g. remediation ones)
  * TODO decouple settings (e.g. selected task states) from PageTasks
- *
- * @author mederly
  */
 @PageDescriptor(
         urls = {

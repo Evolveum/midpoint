@@ -14,8 +14,6 @@ import java.lang.annotation.Target;
 
 /**
  * Getter for the item count field. Used for the presence filter.
- *
- * @author mederly
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

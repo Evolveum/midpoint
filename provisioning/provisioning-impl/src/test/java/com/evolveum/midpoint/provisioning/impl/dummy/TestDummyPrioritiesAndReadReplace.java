@@ -55,7 +55,6 @@ import static org.testng.AssertJUnit.assertTrue;
  * Tests readReplaceMode feature (along with the attribute modification priorities).
  *
  * @author Radovan Semancik
- * @author Pavol Mederly
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext

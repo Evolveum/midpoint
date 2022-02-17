@@ -19,9 +19,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
 
-/**
- * @author mederly
- */
 public abstract class AbstractParserTest extends AbstractSchemaTest {
 
     protected String language;

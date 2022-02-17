@@ -12,7 +12,6 @@ import java.io.Serializable;
  * Information about the HTTP connection. These can be obtained any time from the servlet Request object.
  *
  * @author semancik
- * @author mederly
  */
 public class HttpConnectionInformation implements Serializable {
 

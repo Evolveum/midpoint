@@ -42,8 +42,6 @@ import java.util.List;
  * Provides common inline menu functionality for focal objects: enable, disable, reconcile, delete.
  *
  * TODO deduplicate this functionality with the one in PageUsers
- *
- * @author mederly
  */
 public class FocusListInlineMenuHelper<F extends FocusType> implements Serializable {
 

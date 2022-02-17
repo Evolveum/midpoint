@@ -53,8 +53,6 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTE
 /**
  * Provides an interface between the model and the workflow engine:
  * catches hook calls and delegates them to change processors.
- *
- * @author mederly
  */
 @Component
 public class WfHook implements ChangeHook {

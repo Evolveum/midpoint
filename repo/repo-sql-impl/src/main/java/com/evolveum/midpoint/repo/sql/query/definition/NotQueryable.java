@@ -15,8 +15,6 @@ import java.lang.annotation.Target;
 /**
  * Means: Don't allow this property to be used in queries. Used for auxiliary properties that have no
  * representation in prism structures.
- *
- * @author mederly
  */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)

@@ -22,8 +22,6 @@ import java.util.Collection;
  * <p>
  * Main responsibility of such a page is to correctly finish processing an operation
  * that could have been executed asynchronously.
- *
- * @author mederly
  */
 public interface ProgressReportingAwarePage {
 

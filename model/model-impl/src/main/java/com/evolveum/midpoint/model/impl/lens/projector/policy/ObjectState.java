@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
-/**
- * @author mederly
- */
 public enum ObjectState {
     BEFORE, AFTER
 }

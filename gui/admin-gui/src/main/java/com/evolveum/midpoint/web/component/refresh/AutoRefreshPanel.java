@@ -18,7 +18,6 @@ import com.evolveum.midpoint.web.component.data.column.LinkIconPanel;
 /**
  * Provides simple "auto refresh" panel: buttons for start/stop auto refreshing, requesting manual refresh, and status label.
  *
- * @author mederly
  * @see Refreshable
  */
 public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {

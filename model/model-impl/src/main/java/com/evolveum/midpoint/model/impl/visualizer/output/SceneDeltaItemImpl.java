@@ -17,9 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class SceneDeltaItemImpl extends SceneItemImpl implements SceneDeltaItem, DebugDumpable {
 
     @NotNull private List<SceneItemValueImpl> oldValues = Collections.emptyList();

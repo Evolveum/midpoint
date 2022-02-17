@@ -24,8 +24,6 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
  * does not work, because the "" cannot be used as a property value.
  *
  * So, the property definer is a workaround.
- *
- * @author mederly
  */
 public class LogbackPropertyDefiner extends PropertyDefinerBase {
 

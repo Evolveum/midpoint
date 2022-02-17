@@ -32,9 +32,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutionInformationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
 
-/**
- * @author mederly
- */
 public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SwitchableApprovalProcessPreviewsPanel.class);

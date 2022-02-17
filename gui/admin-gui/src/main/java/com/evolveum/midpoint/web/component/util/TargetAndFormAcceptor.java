@@ -12,9 +12,6 @@ import org.apache.wicket.markup.html.form.Form;
 
 import java.io.Serializable;
 
-/**
- * @author mederly
- */
 @FunctionalInterface
 public interface TargetAndFormAcceptor extends Serializable {
     void accept(AjaxRequestTarget target, Form<?> form);

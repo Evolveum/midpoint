@@ -41,8 +41,6 @@ import javax.annotation.PostConstruct;
  * One of interfaces of the notifier to midPoint.
  *
  * Used to catch user-related events.
- *
- * @author mederly
  */
 @Component
 public class NotificationHook implements ChangeHook {

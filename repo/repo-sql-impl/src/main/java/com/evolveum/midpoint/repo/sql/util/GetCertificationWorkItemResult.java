@@ -16,9 +16,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class GetCertificationWorkItemResult implements Serializable {
 
     public static final ResultStyle RESULT_STYLE = new ResultStyle() {

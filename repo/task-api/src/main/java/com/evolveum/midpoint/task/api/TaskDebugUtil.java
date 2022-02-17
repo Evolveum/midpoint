@@ -19,9 +19,6 @@ import java.util.function.Consumer;
 
 import static com.evolveum.midpoint.schema.util.OperationResultUtil.isError;
 
-/**
- * @author mederly
- */
 public class TaskDebugUtil {
 
     public static String dumpTaskTree(Task rootTask, OperationResult result) throws SchemaException {

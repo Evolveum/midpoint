@@ -14,9 +14,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
 
-/**
- * @author mederly
- */
 public abstract class AbstractPropertyValueParserTest<T> extends AbstractPrismValueParserTest<PrismPropertyValue<T>> {
 
     @SuppressWarnings("Convert2MethodRef")

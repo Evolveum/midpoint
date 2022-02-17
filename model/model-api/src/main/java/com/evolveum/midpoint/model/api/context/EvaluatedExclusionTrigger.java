@@ -23,9 +23,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPoli
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
-/**
- * @author mederly
- */
 public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<ExclusionPolicyConstraintType> {
 
     @NotNull private final EvaluatedAssignment conflictingAssignment;

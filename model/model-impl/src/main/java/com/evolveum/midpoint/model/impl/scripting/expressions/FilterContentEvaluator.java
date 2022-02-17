@@ -25,9 +25,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * @author mederly
- */
 @Component
 public class FilterContentEvaluator extends BaseExpressionEvaluator {
 

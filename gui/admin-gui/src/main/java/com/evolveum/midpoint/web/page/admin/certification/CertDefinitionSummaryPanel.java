@@ -17,9 +17,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecific
 
 import org.apache.wicket.model.IModel;
 
-/**
- * @author mederly
- */
 public class CertDefinitionSummaryPanel extends ObjectSummaryPanel<AccessCertificationDefinitionType> {
     private static final long serialVersionUID = 1L;
 

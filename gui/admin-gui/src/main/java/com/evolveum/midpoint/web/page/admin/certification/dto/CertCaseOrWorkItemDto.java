@@ -32,8 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * A common superclass for CertCaseDto + CertWorkItemDto.
  * <p>
  * TODO cleanup a bit
- *
- * @author mederly
  */
 public class CertCaseOrWorkItemDto extends Selectable {
 

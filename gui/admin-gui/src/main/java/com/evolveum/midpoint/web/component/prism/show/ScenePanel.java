@@ -39,9 +39,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class ScenePanel extends BasePanel<SceneDto> {
 
     private static final String ID_BOX = "box";

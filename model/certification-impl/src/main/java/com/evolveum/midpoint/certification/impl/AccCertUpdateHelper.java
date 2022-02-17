@@ -41,8 +41,6 @@ import static java.util.Collections.singleton;
 
 /**
  * Common and lower-level update methods.
- *
- * @author mederly
  */
 @Component
 public class AccCertUpdateHelper {

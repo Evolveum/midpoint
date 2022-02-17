@@ -25,8 +25,6 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * GUI-friendly information about historic, current or future execution of a given approval stage.
- *
- * @author mederly
  */
 
 public class ApprovalStageExecutionInformationDto implements Serializable {

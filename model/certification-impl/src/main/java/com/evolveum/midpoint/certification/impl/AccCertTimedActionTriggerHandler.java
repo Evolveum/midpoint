@@ -31,9 +31,6 @@ import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import java.util.List;
 
-/**
- * @author mederly
- */
 @Component
 public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
 

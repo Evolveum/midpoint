@@ -19,7 +19,6 @@ import org.apache.wicket.model.StringResourceModel;
 
 /**
  *  @author shood
- *  @author mederly
  */
 public class SingleButtonPanel<T> extends BasePanel<T> {
 

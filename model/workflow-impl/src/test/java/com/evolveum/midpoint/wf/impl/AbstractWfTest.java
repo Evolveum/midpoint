@@ -57,9 +57,6 @@ import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractWfTest extends AbstractModelImplementationIntegrationTest {

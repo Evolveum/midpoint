@@ -28,10 +28,6 @@ import java.util.List;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-/**
- * @author mederly
- *
- */
 public class CaseWorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemType> {
     private static final long serialVersionUID = -5077637168906420769L;
 

@@ -14,7 +14,6 @@ import java.util.Objects;
 
 /**
  * @author lazyman
- * @author mederly
  */
 public class RCaseWorkItemReferenceId implements Serializable {
 

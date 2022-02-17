@@ -9,9 +9,6 @@ package com.evolveum.midpoint.common.rest;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 @FunctionalInterface
 public interface ConverterInterface {
 

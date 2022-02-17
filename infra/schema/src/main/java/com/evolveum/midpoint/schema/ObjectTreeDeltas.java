@@ -25,8 +25,6 @@ import java.util.*;
 
 /**
  * Structure that contains all primary changes requested: from focus as well as from projections.
- *
- * @author mederly
  */
 public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
 

@@ -23,10 +23,6 @@ import java.io.File;
 import static com.evolveum.midpoint.schema.TestConstants.CERTIFICATION_CASE_FILE_BASENAME;
 import static org.testng.AssertJUnit.*;
 
-/**
- * @author mederly
- *
- */
 @SuppressWarnings("Convert2MethodRef")
 public class TestParseCertificationCase extends AbstractContainerValueParserTest<AccessCertificationCaseType> {
 

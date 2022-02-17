@@ -21,8 +21,6 @@ import java.util.List;
 
 /**
  * TEMPORARY IMPLEMENTATION. Replace with something graphically nice.
- *
- * @author mederly
  */
 public class ApprovalProcessExecutionInformationPanelTextOnly extends BasePanel<ApprovalProcessExecutionInformationDto> {
 

@@ -9,9 +9,6 @@ package com.evolveum.midpoint.common;
 
 import java.util.TimeZone;
 
-/**
- * @author mederly
- */
 public class LogbackPropertyDefinerForTimezone extends LogbackPropertyDefiner {
 
     @Override

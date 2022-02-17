@@ -22,9 +22,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-/**
- * @author mederly
- */
 public class ProcessInstanceDto extends Selectable<ProcessInstanceDto> {
 
     public static final String F_OBJECT_NAME = "objectName";

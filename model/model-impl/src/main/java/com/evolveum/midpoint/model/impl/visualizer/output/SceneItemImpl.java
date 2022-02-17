@@ -21,9 +21,6 @@ import java.util.List;
 
 import static org.apache.commons.lang.Validate.notNull;
 
-/**
- * @author mederly
- */
 public class SceneItemImpl implements SceneItem, DebugDumpable {
 
     protected final NameImpl name;

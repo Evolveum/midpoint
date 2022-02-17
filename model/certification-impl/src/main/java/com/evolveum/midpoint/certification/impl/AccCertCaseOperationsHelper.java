@@ -50,8 +50,6 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Logic for certification operations like decision recording, case creation or advancement.
- *
- * @author mederly
  */
 @Component
 public class AccCertCaseOperationsHelper {

@@ -25,8 +25,6 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 /**
- * @author mederly
- *
  * Tests whether xsi:type serialization in YAML works well. (Should be in prism module but it was easiest to create
  * this test case from existing one in schema.)
  */

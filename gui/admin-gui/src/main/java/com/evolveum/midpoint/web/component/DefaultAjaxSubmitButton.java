@@ -13,9 +13,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 
-/**
- * @author mederly
- */
 public class DefaultAjaxSubmitButton extends AjaxSubmitButton {
 
     private final PageBase pageBase;

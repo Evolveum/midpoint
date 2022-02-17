@@ -12,9 +12,6 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class EvaluatedTimeValidityTrigger extends EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> {
 
     public EvaluatedTimeValidityTrigger(@NotNull PolicyConstraintKindType kind, @NotNull TimeValidityPolicyConstraintType constraint,

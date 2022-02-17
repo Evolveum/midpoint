@@ -15,9 +15,6 @@ import org.apache.wicket.model.IModel;
 
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class EvaluatedTriggerGroupListPanel extends BasePanel<List<EvaluatedTriggerGroupDto>> {
 
     private static final String ID_TRIGGER_GROUP_LIST = "triggerGroupList";

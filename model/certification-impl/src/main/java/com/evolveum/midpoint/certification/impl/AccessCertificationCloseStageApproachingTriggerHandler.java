@@ -30,10 +30,6 @@ import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
-/**
- * @author mederly
- *
- */
 @Component
 public class AccessCertificationCloseStageApproachingTriggerHandler implements SingleTriggerHandler {
 

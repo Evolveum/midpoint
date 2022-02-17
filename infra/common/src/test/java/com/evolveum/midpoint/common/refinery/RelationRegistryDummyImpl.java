@@ -25,7 +25,6 @@ import static java.util.Collections.singletonList;
 
 /**
  * Temporary workaround: in TestRefinedSchema we don't have spring context.
- * @author mederly
  */
 class RelationRegistryDummyImpl implements RelationRegistry {
 

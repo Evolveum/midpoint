@@ -33,8 +33,6 @@ import java.util.Objects;
 
 /**
  * TEMPORARY IMPLEMENTATION. Replace with something graphically nice.
- *
- * @author mederly
  */
 public class ApprovalProcessExecutionInformationPanel extends BasePanel<ApprovalProcessExecutionInformationDto> {
 

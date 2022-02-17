@@ -21,8 +21,6 @@ import java.util.List;
 
 /**
  * EXPERIMENTAL. (Working with these timers is very tricky. What we really need is flexible re-scheduling of these timers.)
- *
- * @author mederly
  */
 public abstract class RemovableAjaxTimerBehavior extends AbstractAjaxTimerBehavior {
 
