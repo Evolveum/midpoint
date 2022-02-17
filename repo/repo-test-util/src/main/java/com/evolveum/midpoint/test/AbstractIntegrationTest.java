@@ -2164,6 +2164,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return profile.getLoggingOverride()
                 .beginLevelOverride()
                 .logger("com.evolveum.midpoint.wf")
+                .logger("com.evolveum.midpoint.cases")
                 .level(LoggingLevelType.TRACE)
                 .<LoggingOverrideType>end()
                 .end();

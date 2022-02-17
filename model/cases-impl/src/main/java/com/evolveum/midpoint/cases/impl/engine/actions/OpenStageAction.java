@@ -53,7 +53,10 @@ class OpenStageAction extends InternalAction {
     @Override
     public @Nullable Action executeInternal(OperationResult result) throws SchemaException {
         int currentStage = operation.getCurrentStageNumber();
-        if (currentStage >= operation.getExpectedNumberOfStages()) {
+        int expectedStages = operation.getExpectedNumberOfStages();
+        LOGGER.trace("Current stage: {}, expected number of stages: {}", currentStage, expectedStages);
+
+        if (currentStage >= expectedStages) {
             // This can occur e.g. if there are zero stages. Normally, though,
             // the number of stages check fires when the last stage is closed.
             return new CloseCaseAction(operation, SchemaConstants.NS_MODEL_CASES_OUTCOME_DEFAULT);
@@ -63,15 +66,21 @@ class OpenStageAction extends InternalAction {
 
         int stageToBe = currentStage + 1;
         currentCase.setStageNumber(stageToBe);
+        LOGGER.trace("Stage number set to {}", stageToBe);
 
         EngineExtension engineExtension = operation.getEngineExtension();
         StageOpeningResult openingInformation = engineExtension.processStageOpening(operation, result);
 
+        LOGGER.trace("Engine extension {} returned opening result:\n{}",
+                engineExtension.getClass().getName(), openingInformation.debugDumpLazily(1));
+
         if (openingInformation.getAutoClosingInformation() != null) {
+            LOGGER.trace("Auto-closing information present, going to close the stage immediately.");
             return new CloseStageAction(operation, openingInformation.getAutoClosingInformation());
         }
 
         if (openingInformation.areWorkItemsPreExisting()) {
+            LOGGER.trace("Pre-existing work items, going to prepare audit+notifications");
             // Probably temporary code. Maybe the extension should always provide new work items.
             // E.g. to allow escalation and other timed actions.
             stateCheck(!engineExtension.doesUseStages(),
@@ -80,6 +89,7 @@ class OpenStageAction extends InternalAction {
                 prepareAuditAndNotifications(workItem, result);
             }
         } else {
+            LOGGER.trace("Got {} work items to create", openingInformation.getNewWorkItems().size());
             for (CaseWorkItemType newWorkItem : openingInformation.getNewWorkItems()) {
                 currentCase.getWorkItem().add(newWorkItem);
                 prepareAuditAndNotifications(newWorkItem, result);

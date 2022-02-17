@@ -19,13 +19,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-public class StageOpeningResultImpl implements StageOpeningResult {
+public class ApprovalStageOpeningResultImpl implements StageOpeningResult {
 
     @Nullable private final StageClosingResult autoClosingInformation;
     @NotNull private final List<CaseWorkItemType> newWorkItems;
     @NotNull private final List<WorkItemTimedActionsType> timedActionsCollection;
 
-    public StageOpeningResultImpl(
+    ApprovalStageOpeningResultImpl(
             @Nullable StageClosingResult autoClosingInformation,
             @NotNull List<CaseWorkItemType> newWorkItems,
             @NotNull List<WorkItemTimedActionsType> timedActionsCollection) {

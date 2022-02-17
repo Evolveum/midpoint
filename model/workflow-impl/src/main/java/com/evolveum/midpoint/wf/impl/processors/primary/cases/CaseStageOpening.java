@@ -77,7 +77,7 @@ public class CaseStageOpening extends AbstractCaseStageProcessing {
             createWorkItems(preStageComputationResult, result);
         }
 
-        return new StageOpeningResultImpl(
+        return new ApprovalStageOpeningResultImpl(
                 preStageComputationResult.createStageClosingInformation(),
                 newWorkItems,
                 stageDef.getTimedActions());
