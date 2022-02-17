@@ -6,36 +6,31 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import java.io.Serializable;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.model.StringResourceModel;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
 
 public class PropertySearchItemWrapper<T extends Serializable> extends AbstractSearchItemWrapper<T> {
 
     private SearchItemType searchItem;
-    private ItemDefinition<?> itemDef;
+//    private ItemDefinition<?> itemDef;
+    private ItemPath searchItemPath;
+    private QName valueTypeName;
 
     public PropertySearchItemWrapper (SearchItemType searchItem) {
         this.searchItem = searchItem;
@@ -115,12 +110,28 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
         this.searchItem = searchItem;
     }
 
-    public ItemDefinition<?> getItemDef() {
-        return itemDef;
+//    public ItemDefinition<?> getItemDef() {
+//        return itemDef;
+//    }
+//
+//    public void setItemDef(ItemDefinition<?> itemDef) {
+//        this.itemDef = itemDef;
+//    }
+
+    public ItemPath getSearchItemPath() {
+        return searchItemPath;
     }
 
-    public void setItemDef(ItemDefinition<?> itemDef) {
-        this.itemDef = itemDef;
+    public void setSearchItemPath(ItemPath searchItemPath) {
+        this.searchItemPath = searchItemPath;
+    }
+
+    public QName getValueTypeName() {
+        return valueTypeName;
+    }
+
+    public void setValueTypeName(QName valueTypeName) {
+        this.valueTypeName = valueTypeName;
     }
 
     @Override
@@ -129,7 +140,6 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
             return null;
         }
         PrismContext ctx = PrismContext.get();
-        QName typeName = itemDef.getTypeName();
 //        if ((propDef.getAllowedValues() != null && !propDef.getAllowedValues().isEmpty())
 //                || DOMUtil.XSD_BOOLEAN.equals(propDef.getTypeName())) {
 //            we're looking for enum value, therefore equals filter is ok
@@ -138,10 +148,10 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
 //            return ctx.queryFor(searchType)
 //                    .item(path, propDef).eq(value).buildFilter();
 //        } else
-            if (DOMUtil.XSD_INT.equals(typeName)
-                || DOMUtil.XSD_INTEGER.equals(typeName)
-                || DOMUtil.XSD_LONG.equals(typeName)
-                || DOMUtil.XSD_SHORT.equals(typeName)) {
+        if (DOMUtil.XSD_INT.equals(valueTypeName)
+                || DOMUtil.XSD_INTEGER.equals(valueTypeName)
+                || DOMUtil.XSD_LONG.equals(valueTypeName)
+                || DOMUtil.XSD_SHORT.equals(valueTypeName)) {
 
             String text = (String) getValue().getValue();
             if (!StringUtils.isNumeric(text) && (getValue() instanceof SearchValue)) {
@@ -150,12 +160,12 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
             }
             Object parsedValue = Long.parseLong((String) getValue().getValue());
             return ctx.queryFor(type)
-                    .item(getSearchItem().getPath().getItemPath(), itemDef).eq(parsedValue).buildFilter();
-        } else if (DOMUtil.XSD_STRING.equals(typeName)) {
+                    .item(searchItemPath).eq(parsedValue).buildFilter();
+        } else if (DOMUtil.XSD_STRING.equals(valueTypeName)) {
             String text = (String) getValue().getValue();
             return ctx.queryFor(type)
-                    .item(getSearchItem().getPath().getItemPath(), itemDef).contains(text).matchingCaseIgnore().buildFilter();
-        } else if (DOMUtil.XSD_QNAME.equals(typeName)) {
+                    .item(searchItemPath).contains(text).matchingCaseIgnore().buildFilter();
+        } else if (DOMUtil.XSD_QNAME.equals(valueTypeName)) {
             Object qnameValue = getValue().getValue();
             QName qName;
             if (qnameValue instanceof QName) {
@@ -164,12 +174,12 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
                 qName = new QName((String) qnameValue);
             }
             return ctx.queryFor(type)
-                    .item(getSearchItem().getPath().getItemPath(), itemDef).eq(qName).buildFilter();
-        } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(typeName)) {
+                    .item(searchItemPath).eq(qName).buildFilter();
+        } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueTypeName)) {
                 //we're looking for string value, therefore substring filter should be used
                 String text = (String) getValue().getValue();
                 return ctx.queryFor(type)
-                        .item(getSearchItem().getPath().getItemPath(), itemDef).contains(text).matchingNorm().buildFilter();
+                        .item(searchItemPath).contains(text).matchingNorm().buildFilter();
             }
 //            else if (propDef.getValueEnumerationRef() != null) {
 //                String value = (String) searchValue.getValue();

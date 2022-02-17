@@ -401,8 +401,8 @@ public class SearchFactory {
             }
             //on the projections tab we have by default just DEAD search item, therefore we hide all others
             item.setVisible(false);
-            if (((PropertySearchItemWrapper) item).getItemDef() != null
-                    && ShadowType.F_DEAD.equivalent(((PropertySearchItemWrapper<?>) item).getItemDef().getItemName())) {
+            if (((PropertySearchItemWrapper) item).getSearchItemPath() != null
+                    && ShadowType.F_DEAD.equivalent(((PropertySearchItemWrapper<?>) item).getSearchItemPath())) {
                 item.setVisible(true);
                 item.setCanConfigure(false);
             }
@@ -492,11 +492,11 @@ public class SearchFactory {
     private static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
             SearchItemType item, List<DisplayableValue> availableValues, ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
         PrismContainerDefinition<C> def = null;
-//        if (ObjectType.class.isAssignableFrom(type)) {
-//            def = findObjectDefinition((Class<? extends ObjectType>) type, discriminator, modelServiceLocator);
-//        } else {
+        if (ObjectType.class.isAssignableFrom(type)) {
+            def = findObjectDefinition((Class<? extends ObjectType>) type, discriminator, modelServiceLocator);
+        } else {
             def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
-//        }
+        }
         ItemDefinition<?> itemDef = def.findItemDefinition(item.getPath().getItemPath());
         if (itemDef == null) {
             return null;
@@ -533,12 +533,15 @@ public class SearchFactory {
         } else if (ShadowType.F_DEAD.equivalent(item.getPath().getItemPath())) {
             itemWrapper = new DeadShadowSearchItemWrapper(item, Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
         } else {
-            itemWrapper = new TextSearchItemWrapper(item, itemDef);
+            itemWrapper = new TextSearchItemWrapper(item, itemDef.getValueEnumerationRef());
         }
         if (item.isVisibleByDefault() != null && item.isVisibleByDefault().booleanValue()) {
             itemWrapper.setVisible(true);
         }
-        itemWrapper.setItemDef(itemDef);
+        if (item.getPath() != null) {
+            itemWrapper.setSearchItemPath(item.getPath().getItemPath());
+        }
+        itemWrapper.setValueTypeName(itemDef.getTypeName());
         return itemWrapper;
     }
 
@@ -743,11 +746,11 @@ public class SearchFactory {
             ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
         SearchBoxConfigurationType config = new SearchBoxConfigurationType();
         PrismContainerDefinition<C> def = null;
-//        if (ObjectType.class.isAssignableFrom(type)) {
-//            def = findObjectDefinition((Class<? extends ObjectType>) type, discriminator, modelServiceLocator);
-//        } else {
+        if (ObjectType.class.isAssignableFrom(type)) {
+            def = findObjectDefinition((Class<? extends ObjectType>) type, discriminator, modelServiceLocator);
+        } else {
             def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
-//        }
+        }
 
         List<ItemDefinition<?>> availableDefs = getSearchableDefinitionList(def, modelServiceLocator);
 

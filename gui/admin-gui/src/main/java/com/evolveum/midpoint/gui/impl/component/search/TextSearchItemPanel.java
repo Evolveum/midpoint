@@ -24,8 +24,7 @@ public class TextSearchItemPanel extends PropertySearchItemPanel<TextSearchItemW
 
     @Override
     protected Component initSearchItemField() {
-        ItemDefinition<?> itemDef = getModelObject().getItemDef();
-        PrismObject<LookupTableType> lookupTablePrism = WebComponentUtil.findLookupTable(itemDef, getPageBase());
+        PrismObject<LookupTableType> lookupTablePrism = WebComponentUtil.findLookupTable(getModelObject().getValueEnumerationRef(), getPageBase());
         LookupTableType lookupTable = lookupTablePrism != null ? lookupTablePrism.asObjectable() : null;
         if (lookupTable != null) {
             return createAutoCompetePanel(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), TextSearchItemWrapper.F_VALUE), lookupTable);

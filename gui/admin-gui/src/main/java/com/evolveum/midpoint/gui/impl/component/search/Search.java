@@ -591,7 +591,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         DebugUtil.dumpObjectSizeEstimate(sb, "advancedQuery", advancedQuery, indent + 2);
         DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "type", getTypeClass(), indent + 1);
-        DebugUtil.dumpObjectSizeEstimate(sb, "allDefinitions", searchConfigModel.getObject(), indent + 2);
+        DebugUtil.dumpObjectSizeEstimate(sb, "itemsList", searchConfigModel.getObject(), indent + 2);
         List<AbstractSearchItemWrapper> items = searchConfigModel.getObject().getItemsList();
         for (AbstractSearchItemWrapper item : items) {
             DebugUtil.dumpObjectSizeEstimate(sb, "item " + item.getName(), item, indent + 2);

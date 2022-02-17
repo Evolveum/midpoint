@@ -6,18 +6,22 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 public class TextSearchItemWrapper extends PropertySearchItemWrapper<String> {
 
-    private ItemDefinition<?> itemDef;
+    private PrismReferenceValue valueEnumerationRef;
 
-    public TextSearchItemWrapper(SearchItemType searchItem, ItemDefinition<?> itemDef) {
+    public TextSearchItemWrapper(SearchItemType searchItem) {
+        this(searchItem, null);
+    }
+
+    public TextSearchItemWrapper(SearchItemType searchItem, PrismReferenceValue valueEnumerationRef) {
         super(searchItem);
-        this.itemDef = itemDef;
+        this.valueEnumerationRef = valueEnumerationRef;
     }
 
     @Override
@@ -30,8 +34,11 @@ public class TextSearchItemWrapper extends PropertySearchItemWrapper<String> {
         return new SearchValue<>();
     }
 
-    public ItemDefinition<?> getItemDef() {
-        return itemDef;
+    public PrismReferenceValue getValueEnumerationRef() {
+        return valueEnumerationRef;
     }
 
+    public void setValueEnumerationRef(PrismReferenceValue valueEnumerationRef) {
+        this.valueEnumerationRef = valueEnumerationRef;
+    }
 }
