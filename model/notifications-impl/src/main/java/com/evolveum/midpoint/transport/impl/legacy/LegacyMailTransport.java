@@ -4,9 +4,9 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.notifications.impl.api.transports;
+package com.evolveum.midpoint.transport.impl.legacy;
 
-import static com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil.formatToFileOld;
+import static com.evolveum.midpoint.transport.impl.TransportUtil.formatToFileOld;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -28,6 +28,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -52,13 +54,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+/** Legacy transport that should be removed after 4.5; type parameter is irrelevant. */
 @Deprecated
 @Component
 public class LegacyMailTransport implements Transport<GeneralTransportConfigurationType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(LegacyMailTransport.class);
 
-    public static final String NAME = "mail";
+    private static final String NAME = "mail";
 
     private static final String DOT_CLASS = LegacyMailTransport.class.getName() + ".";
 
@@ -332,7 +335,7 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
     }
 
     @Override
-    public void init(GeneralTransportConfigurationType configuration, TransportSupport transportSupport) {
+    public void init(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
         // not called for legacy transport component
     }
 

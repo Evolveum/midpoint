@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * @param <RD> Refined definition for attribute/association.
  */
-abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismValue, D extends ItemDefinition, RD> {
+abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismValue, D extends ItemDefinition<?>, RD> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemEvaluation.class);
 
@@ -115,7 +115,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         this.mappingKind = mappingKind;
     }
 
-    public MappingImpl<V, D> getEvaluatedMapping() {
+    MappingImpl<V, D> getEvaluatedMapping() {
         return evaluatedMapping;
     }
 
@@ -207,10 +207,10 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
 
     private ConfigurableValuePolicySupplier createValuePolicySupplier() {
         return new ConfigurableValuePolicySupplier() {
-            private ItemDefinition outputDefinition;
+            private ItemDefinition<?> outputDefinition;
 
             @Override
-            public void setOutputDefinition(ItemDefinition outputDefinition) {
+            public void setOutputDefinition(ItemDefinition<?> outputDefinition) {
                 this.outputDefinition = outputDefinition;
             }
 
@@ -219,7 +219,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
 
                 if (mappingBean.getExpression() != null) {
                     List<JAXBElement<?>> evaluators = mappingBean.getExpression().getExpressionEvaluator();
-                    for (JAXBElement jaxbEvaluator : evaluators) {
+                    for (JAXBElement<?> jaxbEvaluator : evaluators) {
                         Object object = jaxbEvaluator.getValue();
                         if (object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null) {
                             ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();

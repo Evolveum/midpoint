@@ -92,7 +92,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                 try {
                     unresolvedObjectQuery = context.getQueryConverter().createObjectQuery(objectClass, searchExpression.getQuery());
                 } catch (SchemaException e) {
-                    throw new ScriptExecutionException("Couldn't parse object query due to schema exception", e);
+                    throw new ScriptExecutionException("Couldn't parse object query. Reason: " + e.getMessage(), e);
                 }
             } else if (searchExpression.getSearchFilter() != null) {
                 unresolvedObjectQuery = prismContext.queryFactory().createQuery();
@@ -100,7 +100,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                     ObjectFilter filter = prismContext.getQueryConverter().parseFilter(searchExpression.getSearchFilter(), objectClass);
                     unresolvedObjectQuery.setFilter(filter);
                 } catch (SchemaException e) {
-                    throw new ScriptExecutionException("Couldn't parse object filter due to schema exception", e);
+                    throw new ScriptExecutionException("Couldn't parse object query. Reason: " + e.getMessage(), e);
                 }
             }
             ObjectQuery objectQuery;

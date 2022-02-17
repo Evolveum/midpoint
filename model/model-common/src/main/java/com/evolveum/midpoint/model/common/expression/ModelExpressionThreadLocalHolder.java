@@ -35,59 +35,65 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author Radovan Semancik
+ * Holds {@link ExpressionEnvironment} (containing e.g. lens context, projection context, mapping, and task) to be used
+ * from withing scripts and methods that are called from scripts.
  *
+ * @author Radovan Semancik
  */
 public class ModelExpressionThreadLocalHolder {
 
-    private static ThreadLocal<Deque<ExpressionEnvironment<ObjectType,PrismValue,ItemDefinition>>> expressionEnvironmentStackTl =
-            new ThreadLocal<>();
+    private static final ThreadLocal<Deque<ExpressionEnvironment<?, ?, ?>>>
+            EXPRESSION_ENVIRONMENT_STACK_TL = new ThreadLocal<>();
 
-    public static <F extends ObjectType,V extends PrismValue, D extends ItemDefinition> void pushExpressionEnvironment(ExpressionEnvironment<F,V,D> env) {
-        Deque<ExpressionEnvironment<ObjectType,PrismValue,ItemDefinition>> stack = expressionEnvironmentStackTl.get();
+    public static void pushExpressionEnvironment(ExpressionEnvironment<?, ?, ?> env) {
+        Deque<ExpressionEnvironment<?, ?, ?>> stack = EXPRESSION_ENVIRONMENT_STACK_TL.get();
         if (stack == null) {
             stack = new ArrayDeque<>();
-            expressionEnvironmentStackTl.set(stack);
+            EXPRESSION_ENVIRONMENT_STACK_TL.set(stack);
         }
-        stack.push((ExpressionEnvironment<ObjectType,PrismValue,ItemDefinition>)env);
+        stack.push(env);
     }
 
-    public static <F extends ObjectType,V extends PrismValue, D extends ItemDefinition> void popExpressionEnvironment() {
-        Deque<ExpressionEnvironment<ObjectType,PrismValue,ItemDefinition>> stack = expressionEnvironmentStackTl.get();
+    public static void popExpressionEnvironment() {
+        Deque<ExpressionEnvironment<?, ?, ?>> stack = EXPRESSION_ENVIRONMENT_STACK_TL.get();
         stack.pop();
     }
 
-    public static <F extends ObjectType,V extends PrismValue, D extends ItemDefinition> ExpressionEnvironment<F,V,D> getExpressionEnvironment() {
-        Deque<ExpressionEnvironment<ObjectType,PrismValue,ItemDefinition>> stack = expressionEnvironmentStackTl.get();
+    public static <F extends ObjectType, V extends PrismValue, D extends ItemDefinition<?>>
+    ExpressionEnvironment<F, V, D> getExpressionEnvironment() {
+        Deque<ExpressionEnvironment<?, ?, ?>> stack = EXPRESSION_ENVIRONMENT_STACK_TL.get();
         if (stack == null) {
             return null;
         }
-        return (ExpressionEnvironment<F,V,D>) stack.peek();
+        //noinspection unchecked
+        return (ExpressionEnvironment<F, V, D>) stack.peek();
     }
 
-    public static <F extends ObjectType,V extends PrismValue, D extends ItemDefinition> ModelContext<F> getLensContext() {
-        ExpressionEnvironment<ObjectType,PrismValue,ItemDefinition> env = getExpressionEnvironment();
+    public static <F extends ObjectType> ModelContext<F> getLensContext() {
+        ExpressionEnvironment<?, ?, ?> env = getExpressionEnvironment();
         if (env == null) {
             return null;
         }
+        //noinspection unchecked
         return (ModelContext<F>) env.getLensContext();
     }
 
     @NotNull
-    public static <F extends ObjectType,V extends PrismValue, D extends ItemDefinition> ModelContext<F> getLensContextRequired() {
+    public static <F extends ObjectType> ModelContext<F> getLensContextRequired() {
         return Objects.requireNonNull(getLensContext(), "No lens context");
     }
 
-    public static <F extends ObjectType,V extends PrismValue, D extends ItemDefinition> Mapping<V,D> getMapping() {
-        ExpressionEnvironment<ObjectType,PrismValue,ItemDefinition> env = getExpressionEnvironment();
+    public static <V extends PrismValue, D extends ItemDefinition<?>> Mapping<V,D> getMapping() {
+        ExpressionEnvironment<?, ?, ?> env = getExpressionEnvironment();
         if (env == null) {
             return null;
         }
+        //noinspection unchecked
         return (Mapping<V,D>) env.getMapping();
     }
 
-    public static <F extends ObjectType,V extends PrismValue, D extends ItemDefinition> ModelProjectionContext getProjectionContext() {
-        ExpressionEnvironment<ObjectType,PrismValue,ItemDefinition> env = getExpressionEnvironment();
+    public static ModelProjectionContext getProjectionContext() {
+        ExpressionEnvironment<?, ?, ?> env = getExpressionEnvironment();
         if (env == null) {
             return null;
         }
@@ -95,7 +101,7 @@ public class ModelExpressionThreadLocalHolder {
     }
 
     public static Task getCurrentTask() {
-        ExpressionEnvironment<ObjectType,PrismValue,ItemDefinition> env = getExpressionEnvironment();
+        ExpressionEnvironment<?, ?, ?> env = getExpressionEnvironment();
         if (env == null) {
             return null;
         }
@@ -103,7 +109,7 @@ public class ModelExpressionThreadLocalHolder {
     }
 
     public static OperationResult getCurrentResult() {
-        ExpressionEnvironment<ObjectType,PrismValue,ItemDefinition> env = getExpressionEnvironment();
+        ExpressionEnvironment<?, ?, ?> env = getExpressionEnvironment();
         if (env == null) {
             return null;
         }
@@ -113,7 +119,8 @@ public class ModelExpressionThreadLocalHolder {
     // TODO move to better place
     public static PrismValueDeltaSetTriple<?> evaluateAnyExpressionInContext(Expression<?, ?> expression,
             ExpressionEvaluationContext context, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
         try {
             return expression.evaluate(context, result);
@@ -122,9 +129,13 @@ public class ModelExpressionThreadLocalHolder {
         }
     }
 
-    public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(Expression<PrismPropertyValue<T>,
-            PrismPropertyDefinition<T>> expression, ExpressionEvaluationContext eeContext, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(
+            Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression,
+            ExpressionEvaluationContext eeContext,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
         try {
             return expression.evaluate(eeContext, result);
@@ -133,9 +144,13 @@ public class ModelExpressionThreadLocalHolder {
         }
     }
 
-    public static PrismValueDeltaSetTriple<PrismReferenceValue> evaluateRefExpressionInContext(Expression<PrismReferenceValue,
-            PrismReferenceDefinition> expression, ExpressionEvaluationContext eeContext, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public static PrismValueDeltaSetTriple<PrismReferenceValue> evaluateRefExpressionInContext(
+            Expression<PrismReferenceValue, PrismReferenceDefinition> expression,
+            ExpressionEvaluationContext eeContext,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
         try {
             return expression.evaluate(eeContext, result);
@@ -148,7 +163,8 @@ public class ModelExpressionThreadLocalHolder {
             Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression,
             ExpressionEvaluationContext eeContext,
             ExpressionEnvironment<?, ?, ?> env, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple;
         try {

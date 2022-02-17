@@ -17,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
 /**
  * Evaluated or to-be-evaluated metadata mapping.
  */
-public class MetadataMappingImpl<V extends PrismValue, D extends ItemDefinition> extends
+public class MetadataMappingImpl<V extends PrismValue, D extends ItemDefinition<?>> extends
         AbstractMappingImpl<V, D, MetadataMappingType> {
 
     MetadataMappingImpl(MetadataMappingBuilder<V, D> builder) {

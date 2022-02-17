@@ -54,11 +54,11 @@ public class MappingFactory {
         this.profiling = profiling;
     }
 
-    public <V extends PrismValue, D extends ItemDefinition> MappingBuilder<V, D> createMappingBuilder() {
+    public <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> createMappingBuilder() {
         return initializeMappingBuilder(new MappingBuilder<>());
     }
 
-    private <V extends PrismValue, D extends ItemDefinition> MetadataMappingBuilder<V, D> createMetadataMappingBuilder() {
+    private <V extends PrismValue, D extends ItemDefinition<?>> MetadataMappingBuilder<V, D> createMetadataMappingBuilder() {
         return initializeMappingBuilder(new MetadataMappingBuilder<>());
     }
 
@@ -68,12 +68,12 @@ public class MappingFactory {
                 .profiling(profiling);
     }
 
-    public <V extends PrismValue, D extends ItemDefinition> MappingBuilder<V, D> createMappingBuilder(MappingType mappingBean, String shortDesc) {
+    public <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> createMappingBuilder(MappingType mappingBean, String shortDesc) {
         return this.<V,D>createMappingBuilder().mappingBean(mappingBean)
                 .contextDescription(shortDesc);
     }
 
-    public <V extends PrismValue, D extends ItemDefinition> MetadataMappingBuilder<V, D> createMappingBuilder(MetadataMappingType mappingBean, String shortDesc) {
+    public <V extends PrismValue, D extends ItemDefinition<?>> MetadataMappingBuilder<V, D> createMappingBuilder(MetadataMappingType mappingBean, String shortDesc) {
         return this.<V,D>createMetadataMappingBuilder().mappingBean(mappingBean)
                 .contextDescription(shortDesc);
     }

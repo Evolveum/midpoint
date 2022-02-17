@@ -6,25 +6,12 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
@@ -56,6 +43,16 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.util.*;
+import java.util.Objects;
+import java.util.Map.Entry;
 
 /**
  * The processor that takes care of user activation mapping to an account (outbound direction).
@@ -78,7 +75,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
     @Autowired private ContextLoader contextLoader;
     @Autowired private PrismContext prismContext;
-    @Autowired private MappingEvaluator mappingEvaluator;
+    @Autowired private ProjectionMappingSetEvaluator projectionMappingSetEvaluator;
     @Autowired private MidpointFunctions midpointFunctions;
     @Autowired private ClockworkMedic medic;
 
@@ -608,7 +605,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         shadowExistenceTargetDef.freeze();
         params.setTargetItemDefinition(shadowExistenceTargetDef);
         params.setSourceContext(focusOdoAbsolute);
-        mappingEvaluator.evaluateMappingSetProjection(params, task, result);
+        projectionMappingSetEvaluator.evaluateMappingsToTriples(params, task, result);
 
         boolean output;
         if (aggregatedOutputTriple.isEmpty()) {
@@ -736,7 +733,8 @@ public class ActivationProcessor implements ProjectorProcessor {
         params.setContext(context);
         params.setHasFullTargetObject(projCtx.hasFullShadow());
 
-        Map<UniformItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap = mappingEvaluator.evaluateMappingSetProjection(params, task, result);
+        Map<UniformItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap =
+                projectionMappingSetEvaluator.evaluateMappingsToTriples(params, task, result);
 
         LOGGER.trace("Mapping processing output after {} ({}):\n{}", desc, evaluateCurrent,
                 DebugUtil.debugDumpLazily(outputTripleMap, 1));

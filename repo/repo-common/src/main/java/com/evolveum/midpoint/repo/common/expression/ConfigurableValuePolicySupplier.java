@@ -18,7 +18,7 @@ public interface ConfigurableValuePolicySupplier extends ValuePolicySupplier {
     /**
      * Sets the definition of the item for which value policy will be provided.
      */
-    default void setOutputDefinition(ItemDefinition outputDefinition) { }
+    default void setOutputDefinition(ItemDefinition<?> outputDefinition) { }
 
     /**
      * Sets the path of the item for which value policy will be provided.

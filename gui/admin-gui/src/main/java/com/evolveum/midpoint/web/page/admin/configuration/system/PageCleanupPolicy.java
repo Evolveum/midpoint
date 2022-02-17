@@ -6,21 +6,18 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration.system;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageBaseSystemConfiguration;
+import com.evolveum.midpoint.prism.PrismObject;
 
-import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
         urls = {
@@ -34,19 +31,33 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
                         label = "PageSystemConfiguration.auth.configSystemConfiguration.label",
                         description = "PageSystemConfiguration.auth.configSystemConfiguration.description")
         })
-public class PageCleanupPolicy extends PageAbstractSystemConfiguration {
+public class PageCleanupPolicy extends PageBaseSystemConfiguration {
 
-    @Override
-    protected List<ITab> createTabs() {
-        List<ITab> tabs = new ArrayList<>();
-        tabs.add(new PanelTab(createStringResource("pageSystemConfiguration.cleanupPolicy.title")) {
+    private static final long serialVersionUID = 1L;
 
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_CLEANUP_POLICY, CleanupPoliciesType.COMPLEX_TYPE);
-            }
-
-        });
-        return tabs;
+    public PageCleanupPolicy() {
     }
+
+    public PageCleanupPolicy(PageParameters parameters) {
+        super(parameters);
+    }
+
+    public PageCleanupPolicy(PrismObject<SystemConfigurationType> object) {
+        super(object);
+    }
+
+
+//    @Override
+//    protected List<ITab> createTabs() {
+//        List<ITab> tabs = new ArrayList<>();
+//        tabs.add(new PanelTab(createStringResource("pageSystemConfiguration.cleanupPolicy.title")) {
+//
+//            @Override
+//            public WebMarkupContainer createPanel(String panelId) {
+//                return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_CLEANUP_POLICY, CleanupPoliciesType.COMPLEX_TYPE);
+//            }
+//
+//        });
+//        return tabs;
+//    }
 }

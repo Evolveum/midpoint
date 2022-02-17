@@ -43,7 +43,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * TODO decide on which style of setters to keep (setters vs builder-style).
  */
 @SuppressWarnings({ "unused", "UnusedReturnValue" })
-public abstract class AbstractMappingBuilder<V extends PrismValue, D extends ItemDefinition, MBT extends AbstractMappingType, RT extends AbstractMappingBuilder<V, D, MBT, RT>> {
+public abstract class AbstractMappingBuilder<
+        V extends PrismValue,
+        D extends ItemDefinition<?>,
+        MBT extends AbstractMappingType,
+        RT extends AbstractMappingBuilder<V, D, MBT, RT>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingImpl.class);
 
@@ -130,7 +134,7 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
     }
 
     public RT sourceContext(ObjectDeltaObject<?> val) {
-        if (val.getDefinition() == null) {
+        if (val != null && val.getDefinition() == null) {
             throw new IllegalArgumentException("Attempt to set mapping source context without a definition");
         }
         sourceContext = val;
@@ -312,7 +316,7 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
         return typedThis();
     }
 
-    public RT addVariableDefinition(String name, Object value, ItemDefinition definition) {
+    public RT addVariableDefinition(String name, Object value, ItemDefinition<?> definition) {
         variables.put(name, value, definition);
         return typedThis();
     }

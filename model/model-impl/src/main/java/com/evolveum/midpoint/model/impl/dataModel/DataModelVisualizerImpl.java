@@ -260,7 +260,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
         return intent != null ? intent : "default";
     }
 
-    private void processInboundMappings(DataModel model, ResourceDataItem item, List<MappingType> mappings) {
+    private void processInboundMappings(DataModel model, ResourceDataItem item, List<? extends MappingType> mappings) {
         if (mappings == null) {
             return;
         }

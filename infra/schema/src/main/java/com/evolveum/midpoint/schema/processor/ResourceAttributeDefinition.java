@@ -247,7 +247,7 @@ public interface ResourceAttributeDefinition<T>
      *
      * @see ResourceAttributeDefinitionType#getInbound()
      */
-    @NotNull List<MappingType> getInboundMappingBeans();
+    @NotNull List<InboundMappingType> getInboundMappingBeans();
 
     /**
      * Drives behavior of strong and normal mappings for this attribute.
