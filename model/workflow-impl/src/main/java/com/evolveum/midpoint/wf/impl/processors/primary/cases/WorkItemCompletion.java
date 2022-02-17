@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.wf.impl.processors.primary;
+package com.evolveum.midpoint.wf.impl.processors.primary.cases;
 
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.cases.api.extensions.WorkItemCompletionResult;
@@ -55,11 +55,11 @@ public class WorkItemCompletion {
 
         boolean cancelRemainingItems;
         if (stageEvalStrategy == FIRST_DECIDES) {
-            LOGGER.trace("Finishing the stage, because the stage evaluation strategy is 'firstDecides'.");
+            LOGGER.trace("Will close the stage, because the stage evaluation strategy is 'firstDecides'.");
             cancelRemainingItems = true;
         } else if (stageEvalStrategy == ALL_MUST_AGREE && !isApproved()) {
             LOGGER.trace(
-                    "Finishing the stage, because the stage eval strategy is 'allMustApprove' and the decision was 'reject'.");
+                    "Will close the stage, because the stage eval strategy is 'allMustApprove' and the decision was 'reject'.");
             cancelRemainingItems = true;
         } else {
             cancelRemainingItems = false;
@@ -92,14 +92,12 @@ public class WorkItemCompletion {
     }
 
     private void logInput() {
-        LOGGER.trace("+++ recordCompletionOfWorkItem ENTER: workItem={}, outcome={}", workItem, getOutcome());
-        LOGGER.trace("======================================== Recording individual decision of {}", operation.getPrincipal());
+        LOGGER.trace("+++ Processing completion of work item (in approvals): outcome={}, principal={}, workItem:\n{}",
+                getOutcome(), operation.getPrincipal(), workItem.debugDumpLazily(1));
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Recording decision for approval process instance {} (case oid {}), stage {}: decision: {}",
-                    currentCase.getName(), currentCase.getOid(),
-                    ApprovalContextUtil.getStageDiagName(stageDef),
-                    getOutcome());
+            LOGGER.debug("Recording decision for approval case '{}', stage {}: decision: {}",
+                    currentCase, ApprovalContextUtil.getStageDiagName(stageDef), getOutcome());
         }
     }
 

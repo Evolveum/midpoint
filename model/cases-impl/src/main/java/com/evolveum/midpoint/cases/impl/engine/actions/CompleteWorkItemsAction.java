@@ -70,7 +70,9 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
 
         boolean cancelRemainingWorkItems = false; // Should we auto-close other open work items?
         for (SingleCompletion completion : request.getCompletions()) {
-            cancelRemainingWorkItems = cancelRemainingWorkItems || completeSingleWorkItem(completion, result);
+            if (completeSingleWorkItem(completion, result)) {
+                cancelRemainingWorkItems = true;
+            }
         }
 
         if (cancelRemainingWorkItems) {
@@ -143,7 +145,8 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
         WorkItemOperationKindType operationKind = output != null ?
                 WorkItemOperationKindType.COMPLETE : WorkItemOperationKindType.CANCEL;
 
-        LOGGER.trace("+++ processWorkItemClosure ENTER: workItem={}, op={}, operationKind={}", workItem, operation, operationKind);
+        LOGGER.trace("+++ completeOrCancelWorkItem ENTER: op={}, operationKind={}, workItem:\n{}",
+                operation, operationKind, workItem.debugDumpLazily());
 
         updateWorkItemAsClosed(workItem, output);
 
@@ -158,7 +161,7 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
 
         beans.triggerHelper.removeTriggersForWorkItem(getCurrentCase(), workItem.getId());
 
-        LOGGER.trace("--- processWorkItemClosure EXIT: workItem={}, op={}, operationKind={}", workItem, operation, operationKind);
+        LOGGER.trace("--- completeOrCancelWorkItem EXIT: workItem={}, op={}, operationKind={}", workItem, operation, operationKind);
     }
 
     private void prepareAuditRecord(@NotNull CaseWorkItemType workItem, @NotNull OperationResult result) {

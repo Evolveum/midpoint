@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.wf.impl.processors.primary;
+package com.evolveum.midpoint.wf.impl.processors.primary.cases;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,9 +23,9 @@ import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
 
-public class StageClosing extends AbstractStageProcessing {
+public class CaseStageClosing extends AbstractCaseStageProcessing {
 
-    private static final Trace LOGGER = TraceManager.getTrace(StageClosing.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CaseStageClosing.class);
 
     /** Work items for the current stage. */
     private final List<CaseWorkItemType> currentWorkItems;
@@ -36,7 +36,7 @@ public class StageClosing extends AbstractStageProcessing {
     private final List<CaseWorkItemType> answeredWorkItems = new ArrayList<>();
     private final Set<String> differentOutcomes = new HashSet<>();
 
-    public StageClosing(@NotNull CaseEngineOperation operation, ApprovalBeans beans) {
+    public CaseStageClosing(@NotNull CaseEngineOperation operation, ApprovalBeans beans) {
         super(operation, beans);
         this.currentWorkItems = getWorkItemsForCurrentStage();
     }

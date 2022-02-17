@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.wf.impl.processors.primary;
+package com.evolveum.midpoint.wf.impl.processors.primary.cases;
 
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 
@@ -45,14 +45,14 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  * 1. invokes the stage computer to get a list of approvers (or predetermined outcome),
  * 2. creates work items (if applicable)
  */
-public class StageOpening extends AbstractStageProcessing {
+public class CaseStageOpening extends AbstractCaseStageProcessing {
 
-    private static final Trace LOGGER = TraceManager.getTrace(StageOpening.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CaseStageOpening.class);
 
     /** Work items that should be put into the case for this stage. */
     @NotNull private final List<CaseWorkItemType> newWorkItems = new ArrayList<>();
 
-    public StageOpening(@NotNull CaseEngineOperation operation, @NotNull ApprovalBeans beans) {
+    public CaseStageOpening(@NotNull CaseEngineOperation operation, @NotNull ApprovalBeans beans) {
         super(operation, beans);
     }
 

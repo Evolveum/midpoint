@@ -125,6 +125,8 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
         }
 
         Collection<TriggerType> execute(OperationResult result) {
+            LOGGER.trace("Going to process {} trigger(s) on {}", triggers.size(), aCase);
+
             List<TriggerType> processedTriggers = new ArrayList<>();
             for (TriggerType trigger : triggers) {
                 CaseWorkItemType workItem = getWorkItem(trigger);
@@ -149,6 +151,7 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
             if (workItem == null) {
                 LOGGER.warn("Work item {} couldn't be found; ignoring the trigger: {}", workItemId, trigger);
             }
+            LOGGER.trace("Found work item {}", workItem);
             return workItem;
         }
 
@@ -168,6 +171,8 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
             }
 
             private boolean process(OperationResult parentResult) {
+                LOGGER.trace("Going to process trigger {}", trigger);
+
                 OperationResult result = parentResult.createSubresult(OP_HANDLE_TRIGGER);
                 try {
                     Duration timeBeforeAction = getExtValue(SchemaConstants.MODEL_EXTENSION_TIME_BEFORE_ACTION);
@@ -205,6 +210,8 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
                     return;
                 }
                 WorkItemOperationKindType operationKind = ApprovalContextUtil.getOperationKind(action);
+                LOGGER.trace("Processing notification about '{}' with time before action: {}", operationKind, timeBeforeAction);
+
                 WorkItemEventCauseInformationType cause = ApprovalContextUtil.createCause(action);
                 List<ObjectReferenceType> assigneesAndDeputies = miscHelper.getAssigneesAndDeputies(workItem, task, result);
                 WorkItemAllocationChangeOperationInfo operationInfo =
@@ -237,12 +244,14 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
                 }
                 CompleteWorkItemActionType complete = actions.getComplete();
                 if (complete != null) {
-                    completionActions.add(
-                            new SingleCompletion(
-                                    workItem.getId(),
-                                    new AbstractWorkItemOutputType(prismContext)
-                                            .outcome( // TODO remove dependency on approvals
-                                                    requireNonNullElse(complete.getOutcome(), MODEL_APPROVAL_OUTCOME_REJECT))));
+                    SingleCompletion completion = new SingleCompletion(
+                            workItem.getId(),
+                            new AbstractWorkItemOutputType(prismContext)
+                                    .outcome( // TODO remove dependency on approvals
+                                            requireNonNullElse(complete.getOutcome(), MODEL_APPROVAL_OUTCOME_REJECT)));
+
+                    LOGGER.trace("Postponing completion: {}", completion);
+                    completionActions.add(completion);
                     cause = ApprovalContextUtil.createCause(complete);
                 }
             }
@@ -250,6 +259,7 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
             private void executeNotificationAction(
                     @NotNull WorkItemNotificationActionType notificationAction,
                     @NotNull OperationResult result) throws SchemaException {
+                LOGGER.trace("Executing notification action: {}", notificationAction);
                 WorkItemTypeUtil.assertHasCaseOid(workItem);
                 WorkItemEventCauseInformationType cause = ApprovalContextUtil.createCause(notificationAction);
                 if (Boolean.FALSE.equals(notificationAction.isPerAssignee())) {
@@ -270,6 +280,7 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
                     @NotNull OperationResult result)
                     throws SecurityViolationException, ObjectNotFoundException, SchemaException,
                     ExpressionEvaluationException, CommunicationException, ConfigurationException {
+                LOGGER.trace("Executing delegation/escalation action: {}", delegateAction);
                 WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext);
                 request.getDelegate().addAll(
                         computeDelegateTo(delegateAction, result));
@@ -310,6 +321,8 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
             try {
                 CompleteWorkItemsRequest request = new CompleteWorkItemsRequest(aCase.getOid(), cause);
                 request.getCompletions().addAll(completionActions);
+
+                LOGGER.trace("Going to process {} completion action(s) in a request:\n{}", completionActions.size(), request);
                 workItemManager.completeWorkItems(request, task, result);
             } catch (Throwable t) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't handler work item completion", t);

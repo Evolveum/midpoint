@@ -10,6 +10,7 @@ package com.evolveum.midpoint.wf.impl.processors.primary;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -28,6 +29,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Date;
 
 /**
+ * {@link StartInstruction} for primary change processor.
+ *
  * Invariant: case.approvalContext != null
  */
 public class PcpStartInstruction extends StartInstruction {
@@ -39,7 +42,7 @@ public class PcpStartInstruction extends StartInstruction {
 
     private PcpStartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
         super(changeProcessor, archetypeOid);
-        aCase.setApprovalContext(new ApprovalContextType(changeProcessor.getPrismContext()));
+        aCase.setApprovalContext(new ApprovalContextType(PrismContext.get()));
     }
 
     public static PcpStartInstruction createItemApprovalInstruction(ChangeProcessor changeProcessor,
@@ -56,8 +59,8 @@ public class PcpStartInstruction extends StartInstruction {
     }
 
     public boolean isExecuteApprovedChangeImmediately() {
-        ApprovalContextType actx = aCase.getApprovalContext();
-        return actx != null && Boolean.TRUE.equals(actx.isImmediateExecution());
+        ApprovalContextType aCtx = aCase.getApprovalContext();
+        return aCtx != null && Boolean.TRUE.equals(aCtx.isImmediateExecution());
     }
 
     void setExecuteApprovedChangeImmediately(ModelContext<?> modelContext) {
@@ -65,7 +68,8 @@ public class PcpStartInstruction extends StartInstruction {
                 ModelExecuteOptions.isExecuteImmediatelyAfterApproval(modelContext.getOptions()));
     }
 
-    public void prepareCommonAttributes(PrimaryChangeAspect aspect, ModelContext<?> modelContext, PrismObject<? extends FocusType> requester) {
+    public void prepareCommonAttributes(
+            PrimaryChangeAspect aspect, ModelContext<?> modelContext, PrismObject<? extends FocusType> requester) {
         if (requester != null) {
             setRequesterRef(requester);
         }
@@ -74,18 +78,18 @@ public class PcpStartInstruction extends StartInstruction {
 
         getApprovalContext().setChangeAspect(aspect.getClass().getName());
 
-        CaseCreationEventType event = new CaseCreationEventType(getPrismContext());
+        CaseCreationEventType event = new CaseCreationEventType(PrismContext.get());
         event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         if (requester != null) {
-            event.setInitiatorRef(ObjectTypeUtil.createObjectRef(requester, getPrismContext()));
+            event.setInitiatorRef(ObjectTypeUtil.createObjectRef(requester, PrismContext.get()));
             // attorney does not need to be set here (for now)
         }
-        event.setBusinessContext(((LensContext) modelContext).getRequestBusinessContext());
+        event.setBusinessContext(((LensContext<?>) modelContext).getRequestBusinessContext());
         aCase.getEvent().add(event);
     }
 
     public void setDeltasToApprove(ObjectDelta<? extends ObjectType> delta) throws SchemaException {
-        setDeltasToApprove(new ObjectTreeDeltas<>(delta, getChangeProcessor().getPrismContext()));
+        setDeltasToApprove(new ObjectTreeDeltas<>(delta, PrismContext.get()));
     }
 
     public void setDeltasToApprove(ObjectTreeDeltas<?> objectTreeDeltas) throws SchemaException {
@@ -97,7 +101,7 @@ public class PcpStartInstruction extends StartInstruction {
         return deltasToApprove != null && deltasToApprove.getFocusChange() != null && deltasToApprove.getFocusChange().isAdd();
     }
 
-    void setResultingDeltas(ObjectTreeDeltas objectTreeDeltas) throws SchemaException {
+    void setResultingDeltas(ObjectTreeDeltas<?> objectTreeDeltas) throws SchemaException {
         getApprovalContext().setResultingDeltas(ObjectTreeDeltas.toObjectTreeDeltasType(objectTreeDeltas));
     }
 

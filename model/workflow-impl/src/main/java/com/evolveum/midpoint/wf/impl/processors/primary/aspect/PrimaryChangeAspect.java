@@ -36,8 +36,6 @@ import java.util.List;
  * 3) When a user wants to work on his task, the change aspect prepares a form to be presented to the user.
  * 4) When a user asks about the state of process instance(s), the change aspect prepares that part of the
  *    answer that is specific to individual process.
- *
- * @author mederly
  */
 public interface PrimaryChangeAspect {
 

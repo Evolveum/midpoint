@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.wf.impl.processors.primary;
+package com.evolveum.midpoint.wf.impl.processors.primary.cases;
 
 import com.evolveum.midpoint.cases.api.extensions.StageClosingResult;
 

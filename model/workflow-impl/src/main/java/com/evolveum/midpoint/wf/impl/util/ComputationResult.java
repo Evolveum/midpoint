@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.wf.impl.util;
 
 import com.evolveum.midpoint.cases.api.extensions.StageClosingResult;
-import com.evolveum.midpoint.wf.impl.processors.primary.StageClosingResultImpl;
+import com.evolveum.midpoint.wf.impl.processors.primary.cases.StageClosingResultImpl;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType;

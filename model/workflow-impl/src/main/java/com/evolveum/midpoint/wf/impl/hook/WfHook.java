@@ -171,9 +171,11 @@ public class WfHook implements ChangeHook {
                     if (hookOperationMode != null) {
                         return hookOperationMode;
                     }
-                } catch (ObjectNotFoundException|SchemaException|RuntimeException|ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Exception while running change processor {}: {}", e, changeProcessor.getClass().getName(), e.getMessage());
-                    result.recordFatalError("Exception while running change processor " + changeProcessor.getClass().getSimpleName() + ": " + e.getMessage(), e);
+                } catch (Exception e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Exception while running change processor {}: {}", e,
+                            changeProcessor.getClass().getName(), e.getMessage());
+                    result.recordFatalError("Exception while running change processor "
+                            + changeProcessor.getClass().getSimpleName() + ": " + e.getMessage(), e);
                     return HookOperationMode.ERROR;
                 }
             }

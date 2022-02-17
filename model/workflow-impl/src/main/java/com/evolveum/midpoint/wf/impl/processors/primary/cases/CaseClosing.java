@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.wf.impl.processors.primary;
+package com.evolveum.midpoint.wf.impl.processors.primary.cases;
 
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -41,12 +41,12 @@ public class CaseClosing {
     @NotNull private final CaseEngineOperation operation;
     @NotNull private final ApprovalBeans beans;
 
-    CaseClosing(@NotNull CaseEngineOperation operation, @NotNull ApprovalBeans beans) {
+    public CaseClosing(@NotNull CaseEngineOperation operation, @NotNull ApprovalBeans beans) {
         this.operation = operation;
         this.beans = beans;
     }
 
-    void finishCaseClosing(OperationResult result)
+    public void finishCaseClosing(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         CaseType approvalCase = operation.getCurrentCase();

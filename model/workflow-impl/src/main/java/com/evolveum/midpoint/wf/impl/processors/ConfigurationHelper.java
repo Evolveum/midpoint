@@ -19,8 +19,7 @@ import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Helper class used to configure a change processor. (Expects the processor to be a subclass of BaseChangeProcessor;
- * this can be relaxed by moving some methods to ChangeProcessor interface, if needed.)
+ * Helper class used to configure a change processor.
  */
 @Component
 public class ConfigurationHelper {
@@ -28,7 +27,7 @@ public class ConfigurationHelper {
     @Autowired private WfConfiguration wfConfiguration;
     @Autowired private SystemObjectCache systemObjectCache;
 
-    public void registerProcessor(BaseChangeProcessor changeProcessor) {
+    public void registerProcessor(ChangeProcessor changeProcessor) {
         wfConfiguration.registerProcessor(changeProcessor);
     }
 

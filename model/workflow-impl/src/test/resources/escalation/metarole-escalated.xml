@@ -20,7 +20,7 @@
                     </compositionStrategy>
                     <approvalSchema>
                         <stage>
-                            <approverRef oid="6f007608-415b-49e3-b388-0217d535fc7d" type="UserType"/>        <!-- bob -->
+                            <approverRef oid="6f007608-415b-49e3-b388-0217d535fc7d" type="UserType"/> <!-- bob -->
                             <duration>P14D</duration>
                             <timedActions>
                                 <name>First, send a notification</name>
@@ -35,7 +35,7 @@
                                 <name>2 days before deadline, escalate</name>
                                 <time>
                                     <value>-P2D</value>
-                                    <base>deadline</base>        <!-- the default, in this case -->
+                                    <base>deadline</base> <!-- the default, in this case -->
                                 </time>
                                 <actions>
                                     <escalate>

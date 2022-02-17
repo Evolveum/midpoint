@@ -10,7 +10,7 @@ package com.evolveum.midpoint.wf.impl;
 import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.cases.api.extensions.WorkItemCompletionResult;
-import com.evolveum.midpoint.wf.impl.processors.primary.WorkItemCompletion;
+import com.evolveum.midpoint.wf.impl.processors.primary.cases.WorkItemCompletion;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 import org.jetbrains.annotations.NotNull;
@@ -29,8 +29,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
-import com.evolveum.midpoint.wf.impl.processors.primary.StageClosing;
-import com.evolveum.midpoint.wf.impl.processors.primary.StageOpening;
+import com.evolveum.midpoint.wf.impl.processors.primary.cases.CaseStageClosing;
+import com.evolveum.midpoint.wf.impl.processors.primary.cases.CaseStageOpening;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
@@ -77,13 +77,13 @@ public class ApprovalsCaseEngineExtension implements EngineExtension {
     @Override
     public @NotNull StageOpeningResult processStageOpening(CaseEngineOperation operation, OperationResult result)
             throws SchemaException {
-        return new StageOpening(operation, beans)
+        return new CaseStageOpening(operation, beans)
                 .process(result);
     }
 
     @Override
     public @NotNull StageClosingResult processStageClosing(CaseEngineOperation operation, OperationResult result) {
-        return new StageClosing(operation, beans)
+        return new CaseStageClosing(operation, beans)
                 .process();
     }
 

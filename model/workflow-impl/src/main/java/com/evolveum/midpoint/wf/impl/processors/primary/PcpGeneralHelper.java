@@ -43,11 +43,9 @@ public class PcpGeneralHelper {
     private static final Trace LOGGER = TraceManager.getTrace(PcpGeneralHelper.class);
 
     @Autowired private PrismContext prismContext;
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
-    ObjectTreeDeltas retrieveDeltasToApprove(CaseType aCase) throws SchemaException {
+    public ObjectTreeDeltas<?> retrieveDeltasToApprove(CaseType aCase) throws SchemaException {
         PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = aCase.asPrismObject()
                 .findProperty(ItemPath.create(F_APPROVAL_CONTEXT, F_DELTAS_TO_APPROVE));
         if (deltaTypePrismProperty != null) {
@@ -57,7 +55,7 @@ public class PcpGeneralHelper {
         }
     }
 
-    void storeResultingDeltas(CaseType aCase, ObjectTreeDeltas<?> deltas, OperationResult result)
+    public void storeResultingDeltas(CaseType aCase, ObjectTreeDeltas<?> deltas, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         ObjectTreeDeltasType deltasType = ObjectTreeDeltas.toObjectTreeDeltasType(deltas);
         if (aCase.getApprovalContext() == null) {
@@ -100,7 +98,7 @@ public class PcpGeneralHelper {
 
     private static final int MAX_LEVEL = 5;
 
-    CaseType getRootCase(CaseType aCase, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public CaseType getRootCase(CaseType aCase, OperationResult result) throws SchemaException, ObjectNotFoundException {
         CaseType origin = aCase;
         if (aCase.getParentRef() == null || aCase.getParentRef().getOid() == null) {
             throw new IllegalArgumentException("Case " + aCase + " has no parent case although it should have one");

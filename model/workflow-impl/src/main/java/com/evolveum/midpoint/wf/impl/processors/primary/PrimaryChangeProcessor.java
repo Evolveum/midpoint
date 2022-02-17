@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.wf.impl.processors.primary.cases.CaseClosing;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +55,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspe
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
-public class PrimaryChangeProcessor extends BaseChangeProcessor {
+public class PrimaryChangeProcessor implements ChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeProcessor.class);
 
@@ -67,6 +70,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Autowired private PcpGeneralHelper generalHelper;
     @Autowired private CaseMiscHelper caseMiscHelper;
     @Autowired private ExecutionHelper executionHelper;
+    @Autowired protected MiscHelper miscHelper;
 
     @Autowired private ApprovalBeans beans;
 
@@ -263,7 +267,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             // prepare root case and case0
             CaseType rootCase = addRoot(ctx, result);
             PcpStartInstruction instruction0 = createInstruction0(ctx, changesWithoutApproval, rootCase);
-            CaseType case0 = instruction0 != null ? modelHelper.addCase(instruction0, ctx.task, result) : null;
+            CaseType case0 = instruction0 != null ? modelHelper.addCase(instruction0, result) : null;
 
             CaseType objectCreationCase = instruction0 != null && instruction0.isObjectCreationInstruction() ? case0 : null;
 
@@ -275,7 +279,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             // create the regular (approval) child cases
             for (PcpStartInstruction instruction : instructions) {
                 instruction.setParent(rootCase);
-                CaseType subCase = modelHelper.addCase(instruction, ctx.task, result);
+                CaseType subCase = modelHelper.addCase(instruction, result);
                 allSubcases.add(subCase);
                 if (instruction.isObjectCreationInstruction()) {
                     if (objectCreationCase == null) {
@@ -302,7 +306,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
                 generalHelper.addPrerequisites(subcase, prerequisites, result);
             }
 
-            modelHelper.logJobsBeforeStart(rootCase, ctx.task, result);
+            modelHelper.logJobsBeforeStart(rootCase, result);
 
             if (case0 != null) {
                 if (ModelExecuteOptions.isExecuteImmediatelyAfterApproval(ctx.modelContext.getOptions())) {
@@ -335,7 +339,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         LensContext<?> contextForRoot = contextCopyWithNoDelta(ctx.modelContext);
         StartInstruction instructionForRoot =
                 modelHelper.createInstructionForRoot(this, ctx, contextForRoot, result);
-        return modelHelper.addRoot(instructionForRoot, ctx.task, result);
+        return modelHelper.addRoot(instructionForRoot, result);
     }
 
     private PcpStartInstruction createInstruction0(ModelInvocationContext<?> ctx, ObjectTreeDeltas<?> changesWithoutApproval,
@@ -436,5 +440,9 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
+    @Override
+    public MiscHelper getMiscHelper() {
+        return miscHelper;
+    }
     //endregion
 }
