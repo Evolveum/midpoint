@@ -13,9 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.notifications.api.transports.TransportService;
-import com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil;
+import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,15 +35,9 @@ public class NotificationManagerImpl implements NotificationManager {
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
 
-    @Autowired private TransportService transportService;
     @Autowired private EventHandlerRegistry eventHandlerRegistry;
 
     private boolean disabled = false; // for testing purposes (in order for model-intest to run more quickly)
-
-    @Override
-    public void registerTransport(String name, Transport transport) {
-        transportService.registerTransport(name, transport);
-    }
 
     @Override
     public void processEvent(@NotNull Event event, Task task, OperationResult parentResult) {

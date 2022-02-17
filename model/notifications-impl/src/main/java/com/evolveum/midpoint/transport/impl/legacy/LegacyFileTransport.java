@@ -4,10 +4,12 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.notifications.impl.api.transports;
+package com.evolveum.midpoint.transport.impl.legacy;
 
-import static com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil.formatToFileNew;
+import static com.evolveum.midpoint.transport.impl.TransportUtil.formatToFileNew;
 
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -20,19 +22,22 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralTransportConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+/** Legacy transport that should be removed after 4.5; type parameter is irrelevant. */
 @Deprecated
 @Component
 public class LegacyFileTransport implements Transport<GeneralTransportConfigurationType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(LegacyFileTransport.class);
 
-    public static final String NAME = "file";
+    private static final String NAME = "file";
 
     private static final String DOT_CLASS = LegacyFileTransport.class.getName() + ".";
     private static final String DEFAULT_FILE_NAME = "notifications.txt";
@@ -44,8 +49,8 @@ public class LegacyFileTransport implements Transport<GeneralTransportConfigurat
     @Override
     public void send(Message message, String transportName, Event event, Task task, OperationResult parentResult) {
         OperationResult result = parentResult.createMinorSubresult(DOT_CLASS + "send");
-        FileConfigurationType fileConfig = TransportUtil.getTransportConfiguration(
-                transportName, NAME, (c) -> c.getFile(), cacheRepositoryService, result);
+        FileConfigurationType fileConfig = getTransportConfiguration(
+                transportName, cacheRepositoryService, result);
         String fileName;
         if (fileConfig != null && fileConfig.getFile() != null) {
             fileName = fileConfig.getFile();
@@ -55,6 +60,25 @@ public class LegacyFileTransport implements Transport<GeneralTransportConfigurat
             fileName = DEFAULT_FILE_NAME;
         }
         TransportUtil.appendToFile(fileName, formatToFileNew(message, transportName), LOGGER, result);
+    }
+
+    private static FileConfigurationType getTransportConfiguration(
+            String transportName, RepositoryService cacheRepositoryService, OperationResult result) {
+
+        SystemConfigurationType systemConfiguration =
+                TransportUtil.getSystemConfiguration(cacheRepositoryService, result);
+        if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
+            return null;
+        }
+
+        String transportConfigName = StringUtils.substringAfter(transportName, NAME + ":");
+        for (FileConfigurationType namedConfiguration : systemConfiguration.getNotificationConfiguration().getFile()) {
+            if ((StringUtils.isEmpty(transportConfigName) && namedConfiguration.getName() == null)
+                    || (transportConfigName != null && transportConfigName.equals(namedConfiguration.getName()))) {
+                return namedConfiguration;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -68,7 +92,7 @@ public class LegacyFileTransport implements Transport<GeneralTransportConfigurat
     }
 
     @Override
-    public void init(GeneralTransportConfigurationType configuration, TransportSupport transportSupport) {
+    public void init(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
         // not called for legacy transport component
     }
 

@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (c) 2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.page.admin.configuration;
+package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,12 +14,15 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageAdminGui;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageLogging;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 
+import com.evolveum.midpoint.web.page.admin.configuration.PageInternals;
 import com.evolveum.midpoint.web.page.admin.configuration.system.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -42,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/config/system2", matchUrlForSecurity = "/admin/config/system2"),
+                @Url(mountUrl = "/admin/config/system2"),
         },
         action = {
                 @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
@@ -52,18 +55,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                         label = "PageSystemConfiguration.auth.configSystemConfiguration.label",
                         description = "PageSystemConfiguration.auth.configSystemConfiguration.description")
         })
-public class PageSystemConfigurationNew extends PageBase {
+public class PageSystemConfiguration extends PageBase {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String DOT_CLASS = PageSystemConfigurationNew.class.getName() + ".";
+    private static final String DOT_CLASS = PageSystemConfiguration.class.getName() + ".";
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageSystemConfigurationNew.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageSystemConfiguration.class);
 
     private static final String ID_CONTAINER = "container";
 
-
-    public PageSystemConfigurationNew() {
+    public PageSystemConfiguration() {
         initLayout();
     }
 
@@ -80,7 +82,7 @@ public class PageSystemConfigurationNew extends PageBase {
                 buttons.add(createCompositedButton("Notifications", "fa fa-envelope", PageNotificationConfiguration.class));
                 buttons.add(createCompositedButton("Logging", "fa fa-file-text", PageLogging.class));
                 buttons.add(createCompositedButton("Profiling", "fa fa-camera", PageProfiling.class));
-                buttons.add(createCompositedButton("Admin GUI configuration", "fa fa-camera", PageAdminGuiConfiguration.class));
+                buttons.add(createCompositedButton("Admin GUI configuration", "fa fa-camera", PageAdminGui.class));
                 buttons.add(createCompositedButton("Workflow configuration", "fa fa-camera", PageWorkflowConfiguration.class));
                 buttons.add(createCompositedButton("Role management", "fa fa-camera", PageRoleManagement.class));
                 buttons.add(createCompositedButton("Internals", "fa fa-camera", PageInternals.class));
@@ -94,6 +96,7 @@ public class PageSystemConfigurationNew extends PageBase {
             }
         };
         MultiCompositedButtonPanel panel = new MultiCompositedButtonPanel(ID_CONTAINER, model) {
+
             @Override
             protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
                 navigateToNext(page);
@@ -114,6 +117,7 @@ public class PageSystemConfigurationNew extends PageBase {
         displayType.setLabel(new PolyStringType(type));
         button.setAdditionalButtonDisplayType(displayType);
         button.setPage(page);
+
         return button;
     }
 

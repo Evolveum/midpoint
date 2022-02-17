@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.notifications.api.transports;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -20,7 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public interface Transport<C extends GeneralTransportConfigurationType> {
 
-    void send(Message message, String transportName, Event event, Task task, OperationResult parentResult);
+    // transportName is used only by some legacy transports when key:subname style is used
+    void send(Message message, @Deprecated String transportName, Event event, Task task, OperationResult parentResult);
 
     String getDefaultRecipientAddress(UserType recipient);
 
@@ -29,9 +32,5 @@ public interface Transport<C extends GeneralTransportConfigurationType> {
     // not-null for new transports, but legacy transports return null (remove after 4.6 cleanup if that happens)
     C getConfiguration();
 
-    void init(C configuration, TransportSupport transportSupport);
-
-    default void destroy() {
-        // nothing by default
-    }
+    void init(@NotNull C configuration, @NotNull TransportSupport transportSupport);
 }

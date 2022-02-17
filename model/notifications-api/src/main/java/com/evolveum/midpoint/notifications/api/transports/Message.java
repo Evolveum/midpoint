@@ -1,24 +1,21 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.api.transports;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageType;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * @author mederly
- */
 public class Message implements DebugDumpable {
 
     private String from;
@@ -26,7 +23,7 @@ public class Message implements DebugDumpable {
     @NotNull private List<String> cc = new ArrayList<>();
     @NotNull private List<String> bcc = new ArrayList<>();
     private String subject;
-    private String body;         // todo
+    private String body;
     private String contentType;
     @NotNull private List<NotificationMessageAttachmentType> attachments = new ArrayList<>();
 
@@ -116,38 +113,38 @@ public class Message implements DebugDumpable {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Message{")
-          .append("to='").append(to).append("'")
-          .append((from != null ? ", from='" + from + "'" : ""))
-          .append(", cc='").append(cc).append("'")
-          .append(", bcc='").append(bcc).append("'")
-          .append(", subject='").append(subject).append("'")
-          .append(", contentType='").append(contentType).append("'")
-          .append(", body='").append(body).append("'")
-          .append(", attachmentsCount: ").append(attachments.size());
-        if(attachments.size() > 0) {
+                .append("to='").append(to).append("'")
+                .append((from != null ? ", from='" + from + "'" : ""))
+                .append(", cc='").append(cc).append("'")
+                .append(", bcc='").append(bcc).append("'")
+                .append(", subject='").append(subject).append("'")
+                .append(", contentType='").append(contentType).append("'")
+                .append(", body='").append(body).append("'")
+                .append(", attachmentsCount: ").append(attachments.size());
+        if (attachments.size() > 0) {
             sb.append(", attachments: {");
             boolean isFirst = true;
-            for(NotificationMessageAttachmentType attachment : attachments) {
-                if(!isFirst) {
+            for (NotificationMessageAttachmentType attachment : attachments) {
+                if (!isFirst) {
                     sb.append(", ");
                 }
-                isFirst= false;
+                isFirst = false;
                 sb.append("[")
-                  .append("contentType='").append(attachment.getContentType()).append("'")
-                  .append(attachment.getContentFromFile() != null ?
-                            ", contentFromFile='" + attachment.getContentFromFile() + "'" : "");
-                if(attachment.getContent() != null) {
-                    if(attachment.getContent() instanceof String) {
-                        sb.append(", contentLength='").append(((String)attachment.getContent()).length()).append("'");
-                    } else if(attachment.getContent() != null && attachment.getContent() instanceof String) {
-                        sb.append(", contentSizeOfByte='").append(((byte[])attachment.getContent()).length).append("'");
+                        .append("contentType='").append(attachment.getContentType()).append("'")
+                        .append(attachment.getContentFromFile() != null ?
+                                ", contentFromFile='" + attachment.getContentFromFile() + "'" : "");
+                if (attachment.getContent() != null) {
+                    if (attachment.getContent() instanceof String) {
+                        sb.append(", contentLength='").append(((String) attachment.getContent()).length()).append("'");
+                    } else if (attachment.getContent() != null && attachment.getContent() instanceof String) {
+                        sb.append(", contentSizeOfByte='").append(((byte[]) attachment.getContent()).length).append("'");
                     } else {
                         sb.append(", content='").append(attachment.getContent().toString()).append("'");
                     }
                 }
                 sb.append(attachment.getFileName() != null ?
-                            ", fileName='" + attachment.getFileName() + "'" : "")
-                  .append("]");
+                                ", fileName='" + attachment.getFileName() + "'" : "")
+                        .append("]");
             }
             sb.append("}");
         }
@@ -161,27 +158,27 @@ public class Message implements DebugDumpable {
         DebugUtil.debugDumpLabel(rv, "Message", indent);
         rv.append("\n");
 
-        if (from != null){
-            DebugUtil.debugDumpWithLabel(rv, "From", from, indent+1);
+        if (from != null) {
+            DebugUtil.debugDumpWithLabel(rv, "From", from, indent + 1);
             rv.append("\n");
         }
 
-        DebugUtil.debugDumpWithLabel(rv, "To", to, indent+1);
+        DebugUtil.debugDumpWithLabel(rv, "To", to, indent + 1);
         rv.append("\n");
 
-        DebugUtil.debugDumpWithLabel(rv, "Cc", cc, indent+1);
+        DebugUtil.debugDumpWithLabel(rv, "Cc", cc, indent + 1);
         rv.append("\n");
 
-        DebugUtil.debugDumpWithLabel(rv, "Bcc", bcc, indent+1);
+        DebugUtil.debugDumpWithLabel(rv, "Bcc", bcc, indent + 1);
         rv.append("\n");
 
-        DebugUtil.debugDumpWithLabel(rv, "Subject", subject, indent+1);
+        DebugUtil.debugDumpWithLabel(rv, "Subject", subject, indent + 1);
         rv.append("\n");
 
-        DebugUtil.debugDumpWithLabel(rv, "Content type", contentType, indent+1);
+        DebugUtil.debugDumpWithLabel(rv, "Content type", contentType, indent + 1);
         rv.append("\n");
 
-        DebugUtil.debugDumpWithLabel(rv, "Body", DebugUtil.fixIndentInMultiline(indent+1, DebugDumpable.INDENT_STRING, body), indent+1);
+        DebugUtil.debugDumpWithLabel(rv, "Body", DebugUtil.fixIndentInMultiline(indent + 1, DebugDumpable.INDENT_STRING, body), indent + 1);
         rv.append("\n");
 
         DebugUtil.debugDumpLabel(rv, "Attachments", indent);
@@ -189,29 +186,29 @@ public class Message implements DebugDumpable {
 
         attachments.forEach(attachment -> {
 
-            DebugUtil.debugDumpLabel(rv, "Attachment", indent+2);
+            DebugUtil.debugDumpLabel(rv, "Attachment", indent + 2);
             rv.append("\n");
 
-            DebugUtil.debugDumpWithLabel(rv, "Content type", attachment.getContentType(), indent+3);
+            DebugUtil.debugDumpWithLabel(rv, "Content type", attachment.getContentType(), indent + 3);
             rv.append("\n");
 
-            if (from != null){
-                DebugUtil.debugDumpWithLabel(rv, "Content from file", attachment.getContentFromFile(), indent+3);
+            if (from != null) {
+                DebugUtil.debugDumpWithLabel(rv, "Content from file", attachment.getContentFromFile(), indent + 3);
                 rv.append("\n");
             }
 
-            if(attachment.getContent() != null) {
-                if(attachment.getContent() instanceof String) {
-                    DebugUtil.debugDumpWithLabel(rv, "Content length", ((String)attachment.getContent()).length(), indent+3);
+            if (attachment.getContent() != null) {
+                if (attachment.getContent() instanceof String) {
+                    DebugUtil.debugDumpWithLabel(rv, "Content length", ((String) attachment.getContent()).length(), indent + 3);
                     rv.append("\n");
-                } else if(attachment.getContent() != null && attachment.getContent() instanceof String) {
-                    DebugUtil.debugDumpWithLabel(rv, "Content size of byte", ((byte[])attachment.getContent()).length, indent+3);
+                } else if (attachment.getContent() != null && attachment.getContent() instanceof String) {
+                    DebugUtil.debugDumpWithLabel(rv, "Content size of byte", ((byte[]) attachment.getContent()).length, indent + 3);
                     rv.append("\n");
                 }
             }
 
-            if (from != null){
-                DebugUtil.debugDumpWithLabel(rv, "File name", attachment.getFileName(), indent+3);
+            if (from != null) {
+                DebugUtil.debugDumpWithLabel(rv, "File name", attachment.getFileName(), indent + 3);
                 rv.append("\n");
             }
         });
