@@ -257,7 +257,7 @@ public abstract class SchemaConstants {
 
     public static final String NS_REPORT = NS_MIDPOINT_PUBLIC + "/report";
     public static final String NS_CERTIFICATION = NS_MIDPOINT_PUBLIC + "/certification";
-    public static final String NS_WORKFLOW = NS_MIDPOINT_PUBLIC + "/workflow";
+    public static final String NS_WORKFLOW = NS_MIDPOINT_PUBLIC + "/workflow"; // TODO change to "case" or "cases"
 
     public static final QName CHANNEL_WEB_SERVICE_QNAME = new QName(NS_CHANNEL, "webService");
     public static final String CHANNEL_WEB_SERVICE_URI = qNameToUri(CHANNEL_WEB_SERVICE_QNAME);
@@ -307,6 +307,11 @@ public abstract class SchemaConstants {
      */
     public static final String MODEL_POLICY_SITUATION_ORPHANED =
             qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "orphaned"));
+
+    public static final String NS_MODEL_CASES = NS_MODEL + "/cases";
+    public static final String NS_MODEL_CASES_OUTCOME = NS_MODEL_CASES + "/outcome";
+    public static final String NS_MODEL_CASES_OUTCOME_DEFAULT =
+            qNameToUri(new QName(NS_MODEL_CASES_OUTCOME, "default"));
 
     public static final String NS_MODEL_APPROVAL = NS_MODEL + "/approval";
     public static final String NS_MODEL_APPROVAL_OUTCOME = NS_MODEL_APPROVAL + "/outcome";

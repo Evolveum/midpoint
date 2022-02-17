@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.Clock;
 
 import com.evolveum.midpoint.repo.api.*;
 
+import com.evolveum.midpoint.cases.api.CaseManager;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -43,7 +44,6 @@ import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -108,7 +108,6 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
 import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
 import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -176,7 +175,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private RepositoryService repositoryService; // temporary
     @Autowired private CacheRegistry cacheRegistry;
     @Autowired private WorkflowService workflowService;
-    @Autowired private WorkflowManager workflowManager;
+    @Autowired private CaseManager caseManager;
     @Autowired private MidpointConfiguration configuration;
     @Autowired private Protector protector;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
@@ -531,8 +530,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return workflowService;
     }
 
-    public WorkflowManager getWorkflowManager() {
-        return workflowManager;
+    public CaseManager getWorkflowManager() {
+        return caseManager;
     }
 
     public ModelInteractionService getModelInteractionService() {

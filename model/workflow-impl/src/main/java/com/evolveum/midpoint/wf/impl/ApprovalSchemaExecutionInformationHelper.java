@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.wf.impl;
 
+import com.evolveum.midpoint.cases.impl.helpers.CaseMiscHelper;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -14,13 +15,15 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.util.ComputationResult;
+import com.evolveum.midpoint.cases.api.temporary.ComputationMode;
 import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.ConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
@@ -46,6 +49,7 @@ public class ApprovalSchemaExecutionInformationHelper {
     @Autowired private ModelService modelService;
     @Autowired private PrismContext prismContext;
     @Autowired private StageComputeHelper computeHelper;
+    @Autowired private CaseMiscHelper caseMiscHelper;
     @Autowired private PrimaryChangeProcessor primaryChangeProcessor;
     @Autowired private ConfigurationHelper configurationHelper;
     @Autowired
@@ -126,10 +130,10 @@ public class ApprovalSchemaExecutionInformationHelper {
             ApprovalStageDefinitionType stageDef, Task opTask, OperationResult result) {
         ApprovalStageExecutionPreviewType rv = new ApprovalStageExecutionPreviewType(prismContext);
         try {
-            StageComputeHelper.ComputationResult computationResult = computeHelper
+            ComputationResult computationResult = computeHelper
                     .computeStageApprovers(stageDef, aCase,
-                            () -> computeHelper.getDefaultVariables(aCase, aCase.getApprovalContext(), requestChannel, result),
-                            StageComputeHelper.ComputationMode.PREVIEW, opTask, result);
+                            () -> caseMiscHelper.getDefaultVariables(aCase, aCase.getApprovalContext(), requestChannel, result),
+                            ComputationMode.PREVIEW, opTask, result);
             rv.getExpectedApproverRef().addAll(computationResult.getApproverRefs());
             rv.setExpectedAutomatedOutcome(computationResult.getPredeterminedOutcome());
             rv.setExpectedAutomatedCompletionReason(computationResult.getAutomatedCompletionReason());

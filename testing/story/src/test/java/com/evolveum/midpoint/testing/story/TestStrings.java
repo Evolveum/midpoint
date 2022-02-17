@@ -14,6 +14,10 @@ import static com.evolveum.midpoint.prism.util.PrismAsserts.assertReferenceValue
 import java.io.File;
 import java.util.*;
 
+import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,15 +40,11 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @SuppressWarnings({ "FieldCanBeLocal", "SameParameterValue" })
@@ -514,17 +514,17 @@ public class TestStrings extends AbstractStoryTest {
 
         // TODO after audit is OK
 //        List<AuditEventRecord> workItemEvents = filter(getParamAuditRecords(
-//                WorkflowConstants.AUDIT_WORK_ITEM_ID, workItemId.asString(), task, result), AuditEventStage.EXECUTION);
-//        assertAuditReferenceValue(workItemEvents, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
+//                AuditingConstants.AUDIT_WORK_ITEM_ID, workItemId.asString(), task, result), AuditEventStage.EXECUTION);
+//        assertAuditReferenceValue(workItemEvents, AuditingConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
 //        assertAuditTarget(workItemEvents.get(0), userBobOid, UserType.COMPLEX_TYPE, "bob");
-//        assertAuditReferenceValue(workItemEvents.get(0), WorkflowConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
+//        assertAuditReferenceValue(workItemEvents.get(0), AuditingConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
         // TODO other items
 //        List<AuditEventRecord> processEvents = filter(getParamAuditRecords(
-//                WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, wfTask.asObjectable().getApprovalContext().getCaseOid(), task, result),
+//                AuditingConstants.AUDIT_PROCESS_INSTANCE_ID, wfTask.asObjectable().getApprovalContext().getCaseOid(), task, result),
 //                AuditEventType.WORKFLOW_PROCESS_INSTANCE, AuditEventStage.EXECUTION);
-//        assertAuditReferenceValue(processEvents, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
+//        assertAuditReferenceValue(processEvents, AuditingConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
 //        assertAuditTarget(processEvents.get(0), userBobOid, UserType.COMPLEX_TYPE, "bob");
-//        assertAuditReferenceValue(processEvents.get(0), WorkflowConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
+//        assertAuditReferenceValue(processEvents.get(0), AuditingConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
         // TODO other items
     }
 
@@ -639,8 +639,8 @@ public class TestStrings extends AbstractStoryTest {
         PrismAsserts.assertDuration("Wrong duration between now and deadline", "P9D", System.currentTimeMillis(), workItem.getDeadline(), null);
         PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userGuybrushOid);
         assertEquals("Wrong stage #", (Integer) 1, workItem.getStageNumber());
-        assertEquals("Wrong escalation level #", 1, ApprovalContextUtil.getEscalationLevelNumber(workItem));
-        assertEquals("Wrong escalation level name", "Line manager escalation", ApprovalContextUtil.getEscalationLevelName(workItem));
+        assertEquals("Wrong escalation level #", 1, WorkItemTypeUtil.getEscalationLevelNumber(workItem));
+        assertEquals("Wrong escalation level name", "Line manager escalation", WorkItemTypeUtil.getEscalationLevelName(workItem));
 
         List<CaseEventType> events = assertEvents(aCase, 2);
         assertEscalationEvent(events.get(1), userAdministrator.getOid(), userGuybrushOid, 1,

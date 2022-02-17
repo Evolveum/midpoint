@@ -27,8 +27,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.cases.api.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
@@ -62,7 +62,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
     @Autowired private PrismContext prismContext;
     @Autowired private AccCertQueryHelper queryHelper;
     @Autowired private SystemObjectCache objectCache;
-    @Autowired private WorkflowManager workflowManager;
+    @Autowired private CaseManager caseManager;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationClosingTaskHandler.class);
@@ -109,7 +109,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         PerformerCommentsFormattingType formatting = systemConfigurationObject != null &&
                 systemConfigurationObject.asObjectable().getAccessCertification() != null ?
                 systemConfigurationObject.asObjectable().getAccessCertification().getReviewerCommentsFormatting() : null;
-        PerformerCommentsFormatter commentsFormatter = workflowManager.createPerformerCommentsFormatter(formatting);
+        PerformerCommentsFormatter commentsFormatter = caseManager.createPerformerCommentsFormatter(formatting);
         RunContext runContext = new RunContext(task, commentsFormatter);
         caseList.forEach(aCase -> prepareMetadataDeltas(aCase, campaign, runContext, opResult));
         runContext.objectContextMap.forEach((oid, ctx) -> applyMetadataDeltas(ctx, runContext, opResult));

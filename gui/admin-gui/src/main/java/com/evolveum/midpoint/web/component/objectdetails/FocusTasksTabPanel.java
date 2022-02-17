@@ -14,11 +14,10 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * @author mederly
  * @author semancik
  */
 public class FocusTasksTabPanel<F extends FocusType>

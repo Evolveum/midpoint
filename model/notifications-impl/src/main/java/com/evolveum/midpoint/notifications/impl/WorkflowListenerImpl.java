@@ -10,6 +10,13 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.cases.api.CaseManager;
+
+import com.evolveum.midpoint.cases.api.events.CaseEventCreationListener;
+import com.evolveum.midpoint.cases.api.events.WorkItemAllocationChangeOperationInfo;
+import com.evolveum.midpoint.cases.api.events.WorkItemOperationInfo;
+import com.evolveum.midpoint.cases.api.events.WorkItemOperationSourceInfo;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +32,6 @@ import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -36,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author mederly
  */
 @Component
-public class WorkflowListenerImpl implements WorkflowListener {
+public class WorkflowListenerImpl implements CaseEventCreationListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(WorkflowListenerImpl.class);
 
@@ -44,16 +50,16 @@ public class WorkflowListenerImpl implements WorkflowListener {
     @Autowired private LightweightIdentifierGenerator identifierGenerator;
     @Autowired private EventHelper eventHelper;
 
-    // WorkflowManager is not required, because e.g. within model-test and model-intest we have no workflows.
+    // CaseManager is not required, because e.g. within model-test and model-intest we have no workflows.
     // However, during normal operation, it is expected to be available.
-    @Autowired(required = false) private WorkflowManager workflowManager;
+    @Autowired(required = false) private CaseManager caseManager;
 
     @PostConstruct
     public void init() {
-        if (workflowManager != null) {
-            workflowManager.registerWorkflowListener(this);
+        if (caseManager != null) {
+            caseManager.registerWorkflowListener(this);
         } else {
-            LOGGER.warn("WorkflowManager not present, notifications for workflows will not be enabled.");
+            LOGGER.warn("CaseManager not present, notifications for workflows will not be enabled.");
         }
     }
 
@@ -77,9 +83,16 @@ public class WorkflowListenerImpl implements WorkflowListener {
     @Override
     public void onWorkItemCreation(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
             CaseType aCase, Task task, OperationResult result) {
-        WorkItemEventImpl event = new WorkItemLifecycleEventImpl(identifierGenerator, ChangeType.ADD, workItem,
-                SimpleObjectRefImpl.create(functions, assignee), null, null, null,
-                aCase.getApprovalContext(), aCase);
+        WorkItemEventImpl event = new WorkItemLifecycleEventImpl(
+                identifierGenerator,
+                ChangeType.ADD,
+                workItem,
+                SimpleObjectRefImpl.create(functions, assignee),
+                null,
+                null,
+                null,
+                aCase.getApprovalContext(),
+                aCase);
         initializeWorkflowEvent(event, aCase);
         eventHelper.processEvent(event, task, result);
     }

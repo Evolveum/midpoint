@@ -15,6 +15,12 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.cases.api.AuditingConstants;
+
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,9 +39,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
@@ -122,7 +127,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         display("Work item", workItem);
 
         when();
-        workflowManager.completeWorkItem(WorkItemId.of(workItem),
+        caseManager.completeWorkItem(WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext).comment("OK"),
                 null, task, result);
 
@@ -148,7 +153,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         for (int i = 0; i < records.size(); i++) {
             AuditEventRecord record = records.get(i);
             assertEquals("Wrong requester comment in audit record #" + i, Collections.singleton(REQUESTER_COMMENT),
-                    record.getPropertyValues(WorkflowConstants.AUDIT_REQUESTER_COMMENT));
+                    record.getPropertyValues(AuditingConstants.AUDIT_REQUESTER_COMMENT));
         }
 
         CaseType parentCase = getCase(aCase.getParentRef().getOid());
@@ -188,7 +193,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         display("Work item", workItem);
 
         when();
-        workflowManager.completeWorkItem(WorkItemId.of(workItem),
+        caseManager.completeWorkItem(WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext).comment("OK"),
                 null, task, result);
 
@@ -214,7 +219,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         for (int i = 0; i < records.size(); i++) {
             AuditEventRecord record = records.get(i);
             assertEquals("Wrong requester comment in audit record #" + i, Collections.singleton(REQUESTER_COMMENT),
-                    record.getPropertyValues(WorkflowConstants.AUDIT_REQUESTER_COMMENT));
+                    record.getPropertyValues(AuditingConstants.AUDIT_REQUESTER_COMMENT));
         }
 
         CaseType parentCase = getCase(aCase.getParentRef().getOid());
@@ -253,7 +258,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         // complete the work item related to assigning role silver
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
-        workflowManager.completeWorkItem(WorkItemId.of(workItem),
+        caseManager.completeWorkItem(WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext),
                 null, task, result);
 

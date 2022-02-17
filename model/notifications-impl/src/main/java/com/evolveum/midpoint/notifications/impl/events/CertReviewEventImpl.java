@@ -10,7 +10,7 @@ package com.evolveum.midpoint.notifications.impl.events;
 import com.evolveum.midpoint.notifications.api.events.CertReviewEvent;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

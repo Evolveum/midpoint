@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.trigger;
 
+import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;

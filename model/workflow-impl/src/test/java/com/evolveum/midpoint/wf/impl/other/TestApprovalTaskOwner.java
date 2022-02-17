@@ -27,7 +27,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
@@ -178,7 +178,7 @@ public class TestApprovalTaskOwner extends AbstractWfTestPolicy {
 
         AbstractWorkItemOutputType workItemOutputType = ApprovalUtils.createApproveOutput(prismContext);
 
-        workflowManager.completeWorkItem(WorkItemId.of(caseWorkItemType), workItemOutputType, null, task, result);
+        caseManager.completeWorkItem(WorkItemId.of(caseWorkItemType), workItemOutputType, null, task, result);
     }
 
     private PrismObject<TaskType> resolveExecutionTask(String caseOid, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {

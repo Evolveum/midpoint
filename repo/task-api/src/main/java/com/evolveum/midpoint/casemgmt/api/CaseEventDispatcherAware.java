@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.casemgmt.api;
 
-/**
- * @author mederly
- */
 public interface CaseEventDispatcherAware {
 
     void setDispatcher(CaseEventDispatcher dispatcher);

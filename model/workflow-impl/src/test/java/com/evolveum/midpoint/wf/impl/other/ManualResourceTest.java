@@ -216,7 +216,7 @@ public class ManualResourceTest extends AbstractWfTest {
 
         assertTrue("no admin work item", adminWorkItem.isPresent());
 
-        workflowManager.completeWorkItem(WorkItemId.of(adminWorkItem.get()),
+        caseManager.completeWorkItem(WorkItemId.of(adminWorkItem.get()),
                 new AbstractWorkItemOutputType(prismContext)
                         .outcome(OperationResultStatusType.SUCCESS.value()),
                 null, task, result);

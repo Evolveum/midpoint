@@ -7,92 +7,35 @@
 
 package com.evolveum.midpoint.wf.impl.util;
 
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.context.ModelContext;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-/**
- * @author mederly
- */
 @Component
 public class MiscHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(MiscHelper.class);
 
-    @Autowired private ProvisioningService provisioningService;
     @Autowired private PrismContext prismContext;
-    @Autowired private ModelInteractionService modelInteractionService;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
-    public PrismObject<UserType> getRequesterIfExists(CaseType aCase, OperationResult result) {
-        if (aCase == null || aCase.getRequestorRef() == null) {
-            return null;
-        }
-        ObjectReferenceType requesterRef = aCase.getRequestorRef();
-        //noinspection unchecked
-        return (PrismObject<UserType>) resolveAndStoreObjectReference(requesterRef, result);
-    }
-
-    public TypedValue<PrismObject> resolveTypedObjectReference(ObjectReferenceType ref, OperationResult result) {
-        PrismObject resolvedObject = resolveObjectReference(ref, false, result);
-        if (resolvedObject == null) {
-            PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
-            return new TypedValue<>(null, def);
-        } else {
-            return new TypedValue<>(resolvedObject);
-        }
-    }
-
-    public String getCompleteStageInfo(CaseType aCase) {
-        return ApprovalContextUtil.getCompleteStageInfo(aCase);
-    }
-
-    public String getAnswerNice(CaseType aCase) {
-        if (CaseTypeUtil.isApprovalCase(aCase)) {
-            return ApprovalUtils.makeNiceFromUri(getOutcome(aCase));
-        } else {
-            return getOutcome(aCase);
-        }
-    }
-
-    private String getOutcome(CaseType aCase) {
-        return aCase.getApprovalContext() != null ? aCase.getOutcome() : null;
-    }
-
-    public List<ObjectReferenceType> getAssigneesAndDeputies(CaseWorkItemType workItem, Task task, OperationResult result)
-            throws SchemaException {
-        List<ObjectReferenceType> rv = new ArrayList<>();
-        rv.addAll(workItem.getAssigneeRef());
-        rv.addAll(modelInteractionService.getDeputyAssignees(workItem, task, result));
-        return rv;
-    }
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     public List<CaseType> getSubcases(CaseType rootCase, OperationResult result) throws SchemaException {
         return getSubcases(rootCase.getOid(), result);
@@ -122,10 +65,6 @@ public class MiscHelper {
 
     public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {
         return resolveObjectReference(ref, false, result);
-    }
-
-    public PrismObject resolveAndStoreObjectReference(ObjectReferenceType ref, OperationResult result) {
-        return resolveObjectReference(ref, true, result);
     }
 
     private PrismObject resolveObjectReference(ObjectReferenceType ref, boolean storeBack, OperationResult result) {
@@ -169,5 +108,4 @@ public class MiscHelper {
         ref.setTargetName(PolyString.toPolyStringType(object.getName()));
         return ref;
     }
-
 }

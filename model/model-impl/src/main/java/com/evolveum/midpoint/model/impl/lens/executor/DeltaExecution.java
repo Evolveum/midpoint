@@ -680,8 +680,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                 b.taskManager.deleteTask(oid, result);
             } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
                 b.taskManager.deleteNode(oid, result);
-            } else if (b.workflowManager != null && CaseType.class.isAssignableFrom(objectTypeClass)) {
-                b.workflowManager.deleteCase(oid, task, result);
+            } else if (b.caseManager != null && CaseType.class.isAssignableFrom(objectTypeClass)) {
+                b.caseManager.deleteCase(oid, task, result);
             } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
                 try {
                     objectAfterModification = deleteProvisioningObject(objectTypeClass, oid, result);

@@ -79,7 +79,7 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> {
                 OperationResult result = opTask.getResult();
                 ApprovalSchemaExecutionInformationType rv = null;
                 try {
-                    rv = parentPage.getWorkflowManager().getApprovalSchemaExecutionInformation(taskOid, opTask, result);
+                    rv = parentPage.getApprovalsManager().getApprovalSchemaExecutionInformation(taskOid, opTask, result);
                     parentPage.getModelObjectResolver().resolveAllReferences(Collections.singleton(rv.asPrismContainerValue()), opTask, result);
                     result.computeStatus();
                 } catch (Throwable t) {

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;

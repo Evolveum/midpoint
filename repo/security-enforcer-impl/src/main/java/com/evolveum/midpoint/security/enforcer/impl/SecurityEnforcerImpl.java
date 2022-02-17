@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.security.enforcer.api.*;
 import com.evolveum.midpoint.util.DebugDumpable;

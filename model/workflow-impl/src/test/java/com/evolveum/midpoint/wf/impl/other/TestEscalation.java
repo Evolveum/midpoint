@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -28,14 +29,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.wf.api.WorkflowConstants;
+import com.evolveum.midpoint.cases.api.AuditingConstants;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -155,7 +155,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
         PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), USER_BOB_OID, USER_BOBEK_OID);
         PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), USER_BOB_OID);
-        assertEquals("Wrong escalation level number", 1, ApprovalContextUtil.getEscalationLevelNumber(workItem));
+        assertEquals("Wrong escalation level number", 1, WorkItemTypeUtil.getEscalationLevelNumber(workItem));
     }
 
     @Test
@@ -286,9 +286,9 @@ public class TestEscalation extends AbstractWfTestPolicy {
         List<AuditEventRecord> workItemAuditRecords = dummyAuditService.getRecordsOfType(AuditEventType.WORK_ITEM);
         assertEquals("Wrong # of work item audit records", 2, workItemAuditRecords.size());
         for (AuditEventRecord r : workItemAuditRecords) {
-            assertEquals("Wrong causeType in " + r, Collections.singleton("timedAction"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_TYPE));
-            assertEquals("Wrong causeName in " + r, Collections.singleton("auto-reject"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_NAME));
-            assertEquals("Wrong causeDisplayName in " + r, Collections.singleton("Automatic rejection at deadline"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_DISPLAY_NAME));
+            assertEquals("Wrong causeType in " + r, Collections.singleton("timedAction"), r.getPropertyValues(AuditingConstants.AUDIT_CAUSE_TYPE));
+            assertEquals("Wrong causeName in " + r, Collections.singleton("auto-reject"), r.getPropertyValues(AuditingConstants.AUDIT_CAUSE_NAME));
+            assertEquals("Wrong causeDisplayName in " + r, Collections.singleton("Automatic rejection at deadline"), r.getPropertyValues(AuditingConstants.AUDIT_CAUSE_DISPLAY_NAME));
             assertEquals("Wrong result in " + r, "Rejected", r.getResult());
         }
         displayCollection("notifications - process", dummyTransport.getMessages("dummy:simpleWorkflowNotifier-Processes"));

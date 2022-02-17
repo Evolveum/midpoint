@@ -12,6 +12,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
+import com.evolveum.midpoint.cases.api.AuditingConstants;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -46,7 +47,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordItemValueDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
@@ -115,21 +115,21 @@ public class PageAuditLogDetails extends PageBase {
     // items that are not listed here are sorted according to their display name
     private static final List<String> EXTENSION_ITEMS_ORDER =
             Arrays.asList(
-                    WorkflowConstants.AUDIT_OBJECT,
-                    WorkflowConstants.AUDIT_TARGET,
-                    WorkflowConstants.AUDIT_ORIGINAL_ASSIGNEE,
-                    WorkflowConstants.AUDIT_CURRENT_ASSIGNEE,
-                    WorkflowConstants.AUDIT_STAGE_NUMBER,
-                    WorkflowConstants.AUDIT_STAGE_COUNT,
-                    WorkflowConstants.AUDIT_STAGE_NAME,
-                    WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME,
-                    WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER,
-                    WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME,
-                    WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME,
-                    WorkflowConstants.AUDIT_REQUESTER_COMMENT,
-                    WorkflowConstants.AUDIT_COMMENT,
-                    WorkflowConstants.AUDIT_WORK_ITEM_ID,
-                    WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID);
+                    AuditingConstants.AUDIT_OBJECT,
+                    AuditingConstants.AUDIT_TARGET,
+                    AuditingConstants.AUDIT_ORIGINAL_ASSIGNEE,
+                    AuditingConstants.AUDIT_CURRENT_ASSIGNEE,
+                    AuditingConstants.AUDIT_STAGE_NUMBER,
+                    AuditingConstants.AUDIT_STAGE_COUNT,
+                    AuditingConstants.AUDIT_STAGE_NAME,
+                    AuditingConstants.AUDIT_STAGE_DISPLAY_NAME,
+                    AuditingConstants.AUDIT_ESCALATION_LEVEL_NUMBER,
+                    AuditingConstants.AUDIT_ESCALATION_LEVEL_NAME,
+                    AuditingConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME,
+                    AuditingConstants.AUDIT_REQUESTER_COMMENT,
+                    AuditingConstants.AUDIT_COMMENT,
+                    AuditingConstants.AUDIT_WORK_ITEM_ID,
+                    AuditingConstants.AUDIT_PROCESS_INSTANCE_ID);
 
     public PageAuditLogDetails(PageParameters params) {
         if (params != null) {

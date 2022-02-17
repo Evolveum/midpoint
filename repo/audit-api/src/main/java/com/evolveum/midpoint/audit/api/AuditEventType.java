@@ -38,7 +38,7 @@ public enum AuditEventType {
      */
     WORK_ITEM,
 
-    WORKFLOW_PROCESS_INSTANCE,
+    WORKFLOW_PROCESS_INSTANCE, // TODO change to CASE
 
     RECONCILIATION,
 

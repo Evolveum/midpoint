@@ -51,13 +51,13 @@ public class PcpGeneralHelper {
         PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = aCase.asPrismObject()
                 .findProperty(ItemPath.create(F_APPROVAL_CONTEXT, F_DELTAS_TO_APPROVE));
         if (deltaTypePrismProperty != null) {
-            return ObjectTreeDeltas.fromObjectTreeDeltasType(deltaTypePrismProperty.getRealValue(), prismContext);
+            return ObjectTreeDeltas.fromObjectTreeDeltasType(deltaTypePrismProperty.getRealValue());
         } else {
             throw new SchemaException("No deltas to process in case; case = " + aCase);
         }
     }
 
-    void storeResultingDeltas(CaseType aCase, ObjectTreeDeltas deltas, OperationResult result)
+    void storeResultingDeltas(CaseType aCase, ObjectTreeDeltas<?> deltas, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         ObjectTreeDeltasType deltasType = ObjectTreeDeltas.toObjectTreeDeltasType(deltas);
         if (aCase.getApprovalContext() == null) {
@@ -80,7 +80,7 @@ public class PcpGeneralHelper {
         PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = aCase.asPrismObject()
                 .findProperty(ItemPath.create(F_APPROVAL_CONTEXT, F_RESULTING_DELTAS));
         if (deltaTypePrismProperty != null) {
-            return ObjectTreeDeltas.fromObjectTreeDeltasType(deltaTypePrismProperty.getRealValue(), prismContext);
+            return ObjectTreeDeltas.fromObjectTreeDeltasType(deltaTypePrismProperty.getRealValue());
         } else {
             return null;
         }

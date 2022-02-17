@@ -23,10 +23,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
+import com.evolveum.midpoint.cases.api.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,7 +51,7 @@ public class ApprovalMetadataHelper {
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private PrismContext prismContext;
     @Autowired private MiscHelper miscHelper;
-    @Autowired private WorkflowManager workflowManager;
+    @Autowired private CaseManager caseManager;
 
     public void addAssignmentApprovalMetadata(ObjectDelta<?> objectDelta, CaseType aCase,
             Task task, OperationResult result) throws SchemaException {
@@ -145,7 +145,7 @@ public class ApprovalMetadataHelper {
         PerformerCommentsFormattingType formatting = systemConfiguration != null &&
                 systemConfiguration.asObjectable().getWorkflowConfiguration() != null ?
                 systemConfiguration.asObjectable().getWorkflowConfiguration().getApproverCommentsFormatting() : null;
-        PerformerCommentsFormatter formatter = workflowManager.createPerformerCommentsFormatter(formatting);
+        PerformerCommentsFormatter formatter = caseManager.createPerformerCommentsFormatter(formatting);
 
         List<String> rv = new ArrayList<>();
         for (CaseWorkItemType workItem : aCase.getWorkItem()) {

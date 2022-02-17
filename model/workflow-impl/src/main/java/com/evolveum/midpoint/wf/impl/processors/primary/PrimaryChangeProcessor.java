@@ -19,44 +19,36 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.cases.api.CaseEngineOperation;
+import com.evolveum.midpoint.cases.api.request.OpenCaseRequest;
+import com.evolveum.midpoint.cases.impl.engine.CaseEngineImpl;
+import com.evolveum.midpoint.cases.impl.helpers.CaseMiscHelper;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.request.OpenCaseRequest;
-import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
-import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
-import com.evolveum.midpoint.wf.impl.engine.helpers.WfAuditHelper;
+import com.evolveum.midpoint.wf.impl.ApprovalBeans;
 import com.evolveum.midpoint.wf.impl.execution.ExecutionHelper;
 import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.*;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
-import com.evolveum.midpoint.wf.impl.util.MiscHelper;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
@@ -71,16 +63,14 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     @Autowired private ConfigurationHelper configurationHelper;
     @Autowired private ModelHelper modelHelper;
-    @Autowired private WfAuditHelper wfAuditHelper;
     @Autowired private StageComputeHelper stageComputeHelper;
     @Autowired private PcpGeneralHelper generalHelper;
-    @Autowired private MiscHelper miscHelper;
+    @Autowired private CaseMiscHelper caseMiscHelper;
     @Autowired private ExecutionHelper executionHelper;
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-    @Autowired private WorkflowEngine workflowEngine;
+    @Autowired private ApprovalBeans beans;
+
+    @Autowired private CaseEngineImpl caseEngine;
 
     private final List<PrimaryChangeAspect> allChangeAspects = new ArrayList<>();
 
@@ -211,7 +201,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             StageComputeHelper stageComputeHelper, ModelInvocationContext<?> ctx, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        VariablesMap variables = stageComputeHelper.getDefaultVariables(
+        VariablesMap variables = caseMiscHelper.getDefaultVariables(
                 aCase, instruction.getApprovalContext(), ctx.task.getChannel(), result);
         return stageComputeHelper.evaluateAutoCompleteExpression(stageDef, variables, ctx.task, result);
     }
@@ -324,7 +314,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
             LOGGER.trace("Starting the cases: {}", casesToStart);
             for (String caseToStart : casesToStart) {
-                workflowEngine.executeRequest(new OpenCaseRequest(caseToStart), ctx.task, result);
+                caseEngine.executeRequest(new OpenCaseRequest(caseToStart), ctx.task, result);
             }
 
             return HookOperationMode.BACKGROUND;
@@ -382,102 +372,42 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     //endregion
 
     //region Processing process finish event
-
     /**
      * This method is called OUTSIDE the workflow engine computation - i.e. changes are already committed into repository.
      */
     @Override
-    public void onProcessEnd(EngineInvocationContext ctx, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException, ExpressionEvaluationException, ConfigurationException, CommunicationException {
-        CaseType currentCase = ctx.getCurrentCase();
+    public void finishCaseClosing(CaseEngineOperation operation, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
+            ExpressionEvaluationException, ConfigurationException, CommunicationException {
 
-        ObjectTreeDeltas<?> deltas = prepareDeltaOut(currentCase);
-        generalHelper.storeResultingDeltas(currentCase, deltas, result);
-        // note: resulting deltas are not stored in currentCase object (these are in repo only)
-
-        // here we should execute the deltas, if appropriate!
-
-        CaseType rootCase = generalHelper.getRootCase(currentCase, result);
-        if (CaseTypeUtil.isClosed(rootCase)) {
-            LOGGER.debug("Root case ({}) is already closed; not starting any execution tasks for {}", rootCase, currentCase);
-            executionHelper.closeCaseInRepository(currentCase, result);
-        } else {
-            LensContextType modelContext = rootCase.getModelContext();
-            if (modelContext == null) {
-                throw new IllegalStateException("No model context in root case " + rootCase);
-            }
-            boolean immediately = modelContext.getOptions() != null &&
-                    Boolean.TRUE.equals(modelContext.getOptions().isExecuteImmediatelyAfterApproval());
-            if (immediately) {
-                if (deltas != null) {
-                    LOGGER.debug("Case {} is approved with immediate execution -- let's start the process", currentCase);
-                    boolean waiting;
-                    if (!currentCase.getPrerequisiteRef().isEmpty()) {
-                        ObjectQuery query = prismContext.queryFor(CaseType.class)
-                                .id(currentCase.getPrerequisiteRef().stream().map(ObjectReferenceType::getOid)
-                                        .toArray(String[]::new))
-                                .and().not().item(CaseType.F_STATE).eq(SchemaConstants.CASE_STATE_CLOSED)
-                                .build();
-                        SearchResultList<PrismObject<CaseType>> openPrerequisites = repositoryService
-                                .searchObjects(CaseType.class, query, null, result);
-                        waiting = !openPrerequisites.isEmpty();
-                        if (waiting) {
-                            LOGGER.debug(
-                                    "Case {} cannot be executed now because of the following open prerequisites: {} -- the execution task will be created in WAITING state",
-                                    currentCase, openPrerequisites);
-                        }
-                    } else {
-                        waiting = false;
-                    }
-                    executionHelper.submitExecutionTask(currentCase, waiting, result);
-                } else {
-                    LOGGER.debug("Case {} is rejected (with immediate execution) -- nothing to do here", currentCase);
-                    executionHelper.closeCaseInRepository(currentCase, result);
-                    executionHelper.checkDependentCases(currentCase.getParentRef().getOid(), result);
-                }
-            } else {
-                LOGGER.debug("Case {} is completed; but execution is delayed so let's check other subcases of {}",
-                        currentCase, rootCase);
-                executionHelper.closeCaseInRepository(currentCase, result);
-                List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
-                if (subcases.stream().allMatch(CaseTypeUtil::isClosed)) {
-                    LOGGER.debug("All subcases of {} are closed, so let's execute the deltas", rootCase);
-                    executionHelper.submitExecutionTaskIfNeeded(rootCase, subcases, ctx.getTask(), result);
-                } else {
-                    LOGGER.debug("Some subcases of {} are not closed yet. Delta execution is therefore postponed.", rootCase);
-                    for (CaseType subcase : subcases) {
-                        LOGGER.debug(" - {}: state={} (isClosed={})", subcase, subcase.getState(),
-                                CaseTypeUtil.isClosed(subcase));
-                    }
-                }
-            }
-        }
+        new CaseClosing(operation, beans)
+                .finishCaseClosing(result);
     }
-
-    private ObjectTreeDeltas<?> prepareDeltaOut(CaseType aCase) throws SchemaException {
-        ObjectTreeDeltas<?> deltaIn = generalHelper.retrieveDeltasToApprove(aCase);
-        if (ApprovalUtils.isApprovedFromUri(aCase.getOutcome())) {
-            return deltaIn;
-        } else {
-            return null;
-        }
-    }
-
     //endregion
 
     //region Auditing
-    @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, ApprovalContextType wfContext, OperationResult result) {
-        AuditEventRecord auditEventRecord = wfAuditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
-        addDeltaIfNeeded(auditEventRecord, stage == REQUEST, aCase);
-        return auditEventRecord;
+
+    public void enrichCaseAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation) {
+        addDeltaIfNeeded(auditEventRecord, auditEventRecord.getEventStage() == REQUEST, operation.getCurrentCase());
+    }
+
+    public void enrichWorkItemCreatedAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation) {
+        addDeltaIfNeeded(auditEventRecord, true, operation.getCurrentCase());
+    }
+
+    public void enrichWorkItemDeletedAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation) {
+        addDeltaIfNeeded(auditEventRecord, true, operation.getCurrentCase());
     }
 
     private void addDeltaIfNeeded(AuditEventRecord auditEventRecord, boolean toApprove, CaseType aCase) {
-        if (CaseTypeUtil.isApprovalCase(aCase)) {
+        if (CaseTypeUtil.isApprovalCase(aCase)) { // TODO needed?
             ObjectTreeDeltas<?> deltas;
             try {
                 if (toApprove) {
+                    // Note that we take all deltas to approve from the case. This may be imprecise
+                    // if there are some deltas added by a work item (~ additional deltas), while
+                    // a work item that referred to original deltas, will be also logged with these
+                    // additional deltas!
                     deltas = generalHelper.retrieveDeltasToApprove(aCase);
                 } else {
                     deltas = generalHelper.retrieveResultingDeltas(aCase);
@@ -492,22 +422,6 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
                 }
             }
         }
-    }
-
-    @Override
-    public AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase,
-            OperationResult result) {
-        AuditEventRecord auditEventRecord = wfAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
-        addDeltaIfNeeded(auditEventRecord, true, aCase);
-        return auditEventRecord;
-    }
-
-    @Override
-    public AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
-            CaseType aCase, OperationResult result) {
-        AuditEventRecord auditEventRecord = wfAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, aCase, result);
-        addDeltaIfNeeded(auditEventRecord, true, aCase);
-        return auditEventRecord;
     }
     //endregion
 

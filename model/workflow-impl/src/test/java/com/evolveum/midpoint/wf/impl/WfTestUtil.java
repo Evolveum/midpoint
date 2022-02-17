@@ -15,7 +15,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.test.DummyAuditService;
-import com.evolveum.midpoint.wf.api.WorkflowConstants;
+import com.evolveum.midpoint.cases.api.AuditingConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -67,7 +67,7 @@ public class WfTestUtil {
             if (record.getEventStage() != AuditEventStage.EXECUTION) {
                 continue;
             }
-            Set<AuditReferenceValue> targetRef = record.getReferenceValues(WorkflowConstants.AUDIT_TARGET);
+            Set<AuditReferenceValue> targetRef = record.getReferenceValues(AuditingConstants.AUDIT_TARGET);
             assertEquals("Wrong # of targetRef values in " + record.debugDump(), 1, targetRef.size());
             String oid = targetRef.iterator().next().getOid();
             assertTrue("Unexpected role to approve: " + oid, expectedResults.containsKey(oid));

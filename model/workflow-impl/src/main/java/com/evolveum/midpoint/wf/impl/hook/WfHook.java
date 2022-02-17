@@ -29,7 +29,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.processors.ConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
@@ -66,7 +67,7 @@ public class WfHook implements ChangeHook {
     @Autowired private WfConfiguration wfConfiguration;
     @Autowired private ConfigurationHelper configurationHelper;
     @Autowired private HookRegistry hookRegistry;
-    @Autowired private WorkflowManager workflowManager;
+    @Autowired private ApprovalsManager approvalsManager;
     @Autowired private ClockworkMedic medic;
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -141,7 +142,8 @@ public class WfHook implements ChangeHook {
             return;
         }
         try {
-            List<ApprovalSchemaExecutionInformationType> preview = workflowManager.getApprovalSchemaPreview(context, task, result);
+            List<ApprovalSchemaExecutionInformationType> preview =
+                    approvalsManager.getApprovalSchemaPreview(context, task, result);
             ((LensContext) context).addHookPreviewResults(WORKFLOW_HOOK_URI, preview);
         } catch (CommonException e) {
             // already recorded in the operation result, so no more processing is necessary

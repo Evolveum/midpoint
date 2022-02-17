@@ -181,19 +181,19 @@
         <returnType>c:ObjectReferenceType</returnType>
         <returnMultiplicity>multi</returnMultiplicity>
         <script>
-            <code>
-                import com.evolveum.midpoint.schema.util.*
-                import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-                log.debug('### approval context:\n{}', approvalContext.asPrismContainerValue().debugDump())
-                def rules = ApprovalContextUtil.getRulesForStage(approvalContext, stageDefinition.number)
-                log.debug('rules found: {}', rules)
-                def approvers = rules.collectMany { rule ->
-                    def ext = midpoint.collectExtensions(rule.assignmentPath, 1)
-                    def remediatorRef = basic.getPropertyValue(ext, "remediatorRef")
-                    remediatorRef != null ? [new ObjectReferenceType().setupReferenceValue(remediatorRef.asReferenceValue().clone())] : []
-                }
-                log.debug('approvers found: {}', approvers)
-                approvers
+            <code>import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil
+            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
+            log.debug('### approval context:\n{}', approvalContext.asPrismContainerValue().debugDump())
+            def rules = ApprovalContextUtil.getRulesForStage(approvalContext, stageDefinition.number)
+            log.debug('rules found: {}', rules)
+            def approvers = rules.collectMany { rule ->
+                def ext = midpoint.collectExtensions(rule.assignmentPath, 1)
+                def remediatorRef = basic.getPropertyValue(ext, "remediatorRef")
+                remediatorRef != null ? [new ObjectReferenceType().setupReferenceValue(remediatorRef.asReferenceValue().clone())] : []
+            }
+            log.debug('approvers found: {}', approvers)
+            approvers
             </code>
         </script>
     </function>

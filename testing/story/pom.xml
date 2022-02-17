@@ -73,8 +73,9 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>workflow-api</artifactId>
+            <artifactId>cases-impl</artifactId>
             <version>4.5-SNAPSHOT</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>

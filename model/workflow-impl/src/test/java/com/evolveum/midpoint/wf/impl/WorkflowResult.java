@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.wf.impl;
 
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 
 /**
  * @author mederly

@@ -11,8 +11,8 @@ import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -69,7 +69,7 @@ public class CertWorkItemDto extends CertCaseOrWorkItemDto {
     }
 
     public Integer getEscalationLevelNumber() {
-        int n = ApprovalContextUtil.getEscalationLevelNumber(workItem);
+        int n = WorkItemTypeUtil.getEscalationLevelNumber(workItem);
         return n != 0 ? n : null;
     }
 

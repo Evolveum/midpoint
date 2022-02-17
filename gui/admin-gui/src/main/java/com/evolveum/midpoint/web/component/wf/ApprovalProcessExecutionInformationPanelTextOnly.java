@@ -14,7 +14,7 @@ import com.evolveum.midpoint.web.component.input.TextAreaPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutionInformationDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalStageExecutionInformationDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApproverEngagementDto;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import org.apache.wicket.model.IModel;
 
 import java.util.List;

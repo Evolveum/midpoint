@@ -7,8 +7,7 @@
 
 package com.evolveum.midpoint.wf.impl.processors;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -21,9 +20,8 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,8 +44,6 @@ import org.jetbrains.annotations.Nullable;
  * Currently, there are the following change processors implemented or planned:
  * - PrimaryChangeProcessor: manages approvals of changes of objects (in model's primary stage)
  * - GeneralChangeProcessor: manages any change, as configured by the system engineer/administrator
- *
- * @author mederly
  */
 public interface ChangeProcessor {
 
@@ -76,35 +72,32 @@ public interface ChangeProcessor {
      * Handles an event from WfMS that indicates finishing of the workflow process instance.
      * Usually, at this point we see what was approved (and what was not) and continue with model operation(s).
      *
-     * @param event
-     * @param wfTask
      * @param result Here should be stored information about whether the finalization was successful or not
-     * @throws SchemaException
      */
-    void onProcessEnd(EngineInvocationContext ctx, OperationResult result)
+    void finishCaseClosing(CaseEngineOperation operation, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException,
             ExpressionEvaluationException, ConfigurationException, CommunicationException;
 
-    /**
-     * Prepares a process instance-related audit record.
-     *
-     * @param variables
-     * @param aCase
-     * @param stage
-     * @param result
-     * @return
-     */
-    AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, ApprovalContextType wfContext, OperationResult result);
+//    /**
+//     * Prepares a process instance-related audit record.
+//     *
+//     * @param variables
+//     * @param aCase
+//     * @param stage
+//     * @param result
+//     * @return
+//     */
+//    AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, ApprovalContextType wfContext, OperationResult result);
 
     /**
      * Prepares a work item-related audit record.
      */
     // workItem contains taskRef, assignee, candidates resolved (if possible)
-    AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem,
-            CaseType aCase, OperationResult result);
-
-    AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
-            CaseType aCase, OperationResult result);
+//    AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem,
+//            CaseType aCase, OperationResult result);
+//
+//    AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
+//            CaseType aCase, OperationResult result);
 
     MiscHelper getMiscHelper();
 

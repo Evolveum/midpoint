@@ -42,7 +42,7 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 
 import com.evolveum.midpoint.task.api.TaskManager;
 
-import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.cases.api.CaseManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -103,7 +103,7 @@ public class ModelBeans {
     @Autowired public OperationalDataManager metadataManager;
     @Autowired public TaskManager taskManager;
     @Autowired public ExpressionFactory expressionFactory;
-    @Autowired(required = false) public WorkflowManager workflowManager; // not available e.g. during tests
+    @Autowired(required = false) public CaseManager caseManager; // not available e.g. during tests
     @Autowired public ClockworkConflictResolver clockworkConflictResolver;
     @Autowired public ContextFactory contextFactory;
     @Autowired public Clockwork clockwork;

@@ -333,8 +333,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
         repositoryService.addObject(aCase, null, result);
 
-        // notifications
-        caseEventDispatcher.dispatchCaseEvent(caseType, result);
+        // "Admitting" the case into case management: e.g. sending notifications, auditing the case creation, and so on
+        caseEventDispatcher.dispatchCaseCreationEvent(caseType, result, task);
         return aCase;
     }
 

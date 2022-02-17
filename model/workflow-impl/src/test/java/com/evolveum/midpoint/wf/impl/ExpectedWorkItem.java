@@ -7,14 +7,11 @@
 
 package com.evolveum.midpoint.wf.impl;
 
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
-/**
- * @author mederly
- */
 public class ExpectedWorkItem {
     final String assigneeOid;
     final String targetOid;

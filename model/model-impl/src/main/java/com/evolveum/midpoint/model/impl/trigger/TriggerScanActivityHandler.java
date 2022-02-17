@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.trigger;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
+import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScanWorkStateType;

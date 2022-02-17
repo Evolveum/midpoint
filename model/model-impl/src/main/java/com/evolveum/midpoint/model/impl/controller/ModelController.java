@@ -22,6 +22,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
 
+import com.evolveum.midpoint.cases.api.CaseManager;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +47,7 @@ import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceLauncher;
-import com.evolveum.midpoint.model.impl.util.AuditHelper;
+import com.evolveum.midpoint.model.common.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -91,8 +93,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
@@ -157,7 +158,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Autowired private CorrelationCaseManager correlationCaseManager;
 
     @Autowired(required = false)                        // not required in all circumstances
-    private WorkflowManager workflowManager;
+    private CaseManager caseManager;
 
     @Autowired(required = false)                        // not required in all circumstances
     private CertificationManager certificationManager;
@@ -166,11 +167,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return objectResolver;
     }
 
-    private WorkflowManager getWorkflowManagerChecked() {
-        if (workflowManager == null) {
+    private CaseManager getWorkflowManagerChecked() {
+        if (caseManager == null) {
             throw new SystemException("Workflow manager not present");
         }
-        return workflowManager;
+        return caseManager;
     }
 
     private CertificationManager getCertificationManagerChecked() {
@@ -2315,6 +2316,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     //endregion
 
     //region Workflow-related operations
+    // TODO move this method to more appropriate place
     @Override
     public void completeWorkItem(WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output,
             ObjectDelta additionalDelta, Task task, OperationResult parentResult)
@@ -2337,6 +2339,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         getWorkflowManagerChecked().completeWorkItem(workItemId, outputToUse, null, task, parentResult);
     }
 
+    // TODO move this method to more appropriate place
     @Override
     public void completeWorkItem(
             @NotNull WorkItemId workItemId,
