@@ -41,8 +41,11 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
     }
 
     @Override
-    public @NotNull Classification classify(@NotNull PrismObject<ShadowType> combinedObject,
-            @NotNull PrismObject<ResourceType> resource, @NotNull Task task, @NotNull OperationResult parentResult)
+    public @NotNull Classification classify(
+            @NotNull PrismObject<ShadowType> combinedObject,
+            @NotNull PrismObject<ResourceType> resource,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
 
@@ -61,13 +64,23 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
         }
     }
 
-    private Classification doClassify(PrismObject<ShadowType> combinedObject, PrismObject<ResourceType> resource,
-            Task task, OperationResult result)
+    private Classification doClassify(
+            @NotNull PrismObject<ShadowType> combinedObject,
+            @NotNull PrismObject<ResourceType> resource,
+            Task task,
+            OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
 
         SynchronizationContext<?> syncCtx = synchronizationService.loadSynchronizationContext(
-                combinedObject, null, resource, task.getCategory(), null, null, task, result);
+                combinedObject,
+                null,
+                resource,
+                task.getCategory(),
+                null,
+                null,
+                task,
+                result);
 
         return createClassification(combinedObject, syncCtx);
     }

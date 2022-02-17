@@ -7,14 +7,18 @@
 
 package com.evolveum.midpoint.model.impl.controller;
 
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
-import com.evolveum.midpoint.model.common.mapping.MappingImpl;
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -24,39 +28,19 @@ import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Executes mappings in diagnostic mode.
- *
- * @author mederly
  */
 @Component
 public class MappingDiagEvaluator {
 
-    @Autowired
-    private MappingFactory mappingFactory;
-
-    @Autowired
-    private ModelService modelService;
-
-    @Autowired
-    private ModelObjectResolver objectResolver;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private Clock clock;
+    @Autowired private MappingFactory mappingFactory;
+    @Autowired private ModelObjectResolver objectResolver;
+    @Autowired private PrismContext prismContext;
+    @Autowired private Clock clock;
 
     public MappingEvaluationResponseType evaluateMapping(@NotNull MappingEvaluationRequestType request, @NotNull Task task,
             @NotNull OperationResult result)
@@ -114,27 +98,34 @@ public class MappingDiagEvaluator {
         return prismContext.getSchemaRegistry().findObjectDefinitionByType(request.getTargetContext());
     }
 
-    private ObjectDeltaObject<?> createSourceContext(MappingEvaluationRequestType request, Task task,
+    private <O extends Objectable> ObjectDeltaObject<O> createSourceContext(MappingEvaluationRequestType request, Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (request.getSourceContext() == null) {
             return null;
         }
         MappingEvaluationSourceContextType ctx = request.getSourceContext();
 
-        PrismObject<?> oldObject;
+        PrismObject<O> oldObject;
         if (ctx.getObject() != null) {
-            oldObject = ctx.getObject().getValue().asPrismObject();
+            //noinspection unchecked
+            oldObject = (PrismObject<O>) ctx.getObject().getValue().asPrismObject();
         } else if (ctx.getObjectRef() != null) {
-            oldObject = objectResolver.resolve(ctx.getObjectRef(), ObjectType.class, null, "resolving default source", task, result).asPrismObject();
+            //noinspection unchecked
+            oldObject = (PrismObject<O>) objectResolver.resolve(ctx.getObjectRef(), ObjectType.class, null,
+                    "resolving default source", task, result).asPrismObject();
         } else {
             oldObject = null;
         }
-        ObjectDelta<?> delta;
+        ObjectDelta<O> delta;
         if (ctx.getDelta() != null) {
             delta = DeltaConvertor.createObjectDelta(ctx.getDelta(), prismContext);
         } else {
             delta = null;
         }
-        return new ObjectDeltaObject(oldObject, delta, null, oldObject.getDefinition());
+        return new ObjectDeltaObject<>(
+                oldObject,
+                delta,
+                null,
+                oldObject != null ? oldObject.getDefinition() : null);
     }
 }

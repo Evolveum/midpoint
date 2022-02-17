@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.ClockworkInboundsProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,11 +49,11 @@ public class InboundProcessor implements ProjectorProcessor {
     @ProcessorMethod
     <F extends FocusType> void processInbounds(LensContext<F> context, String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
-            CommunicationException, SecurityViolationException, PolicyViolationException {
+            CommunicationException, SecurityViolationException {
 
         MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(activityDescription, now, task);
 
-        InboundMappingsEvaluation<F> evaluation = new InboundMappingsEvaluation<>(context, beans, env, result);
+        ClockworkInboundsProcessing<F> evaluation = new ClockworkInboundsProcessing<>(context, beans, env, result);
         evaluation.collectAndEvaluateMappings();
 
         context.checkConsistenceIfNeeded();

@@ -146,6 +146,18 @@
                     </source>
                     <expression>
                         <assignmentTargetSearch>
+                            <condition>
+                                <!--
+                                    This is here because of the additional `name` source. Normally, a single null input
+                                    would mean that `assignmentTargetSearch` is skipped (`includeNullInputs` is true for it).
+                                    But this additional source changes the situation.
+                                 -->
+                                <script>
+                                    <code>
+                                        input != null
+                                    </code>
+                                </script>
+                            </condition>
                             <targetType>RoleType</targetType>
                             <filter>
                                 <q:equal>
@@ -154,14 +166,18 @@
                                         <trace>true</trace>
                                         <script>
                                             <code>
+                                                //log.info("### dummy 'name' source value: {}", name)
 
-                                                log.info("### dummy 'name' source value: {}", name)
+                                                // Just checking if this wouldn't fail
+                                                midpoint.resolveEntitlement(input)
 
-                                                entitlement1 = midpoint.resolveEntitlement(input);
-                                                log.info("### entitlement: " + entitlement)
-                                                log.info("### entitlementName: " + entitlement?.getName())
-
-                                                return 'Auto' + entitlement?.getName()?.getNorm();
+                                                if (entitlement != null) {
+                                                    log.info("### entitlement: " + entitlement)
+                                                    log.info("### entitlementName: " + entitlement?.getName())
+                                                    'Auto' + entitlement?.getName()?.getNorm()
+                                                } else {
+                                                    throw new IllegalStateException("No entitlement present!")
+                                                }
                                             </code>
                                         </script>
                                     </expression>

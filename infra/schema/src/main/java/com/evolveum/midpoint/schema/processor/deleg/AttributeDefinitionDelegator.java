@@ -8,11 +8,7 @@ import com.evolveum.midpoint.schema.processor.PropertyLimitations;
 import com.evolveum.midpoint.schema.processor.RawResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeStorageStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -144,7 +140,7 @@ public interface AttributeDefinitionDelegator<T> extends PropertyDefinitionDeleg
     }
 
     @Override
-    default @NotNull List<MappingType> getInboundMappingBeans() {
+    default @NotNull List<InboundMappingType> getInboundMappingBeans() {
         return delegate().getInboundMappingBeans();
     }
 

@@ -75,7 +75,11 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
      */
     private final ObjectDelta<ShadowType> resourceObjectDelta;
 
-    private PrismObject<ResourceType> resource;
+    /**
+     * The resource. It is updated in {@link #checkNotInMaintenance(OperationResult)}. But it's never null.
+     */
+    @NotNull private PrismObject<ResourceType> resource;
+
     private PrismObject<SystemConfigurationType> systemConfiguration;
     private String channel;
     private ExpressionProfile expressionProfile;
@@ -130,9 +134,14 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     @Experimental
     private final String itemProcessingIdentifier;
 
-    public SynchronizationContext(@NotNull PrismObject<ShadowType> shadowedResourceObject,
-            ObjectDelta<ShadowType> resourceObjectDelta, PrismObject<ResourceType> resource, String channel,
-            ModelBeans beans, Task task, String itemProcessingIdentifier) {
+    public SynchronizationContext(
+            @NotNull PrismObject<ShadowType> shadowedResourceObject,
+            ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull PrismObject<ResourceType> resource,
+            String channel,
+            ModelBeans beans,
+            Task task,
+            String itemProcessingIdentifier) {
         this.shadowedResourceObject = shadowedResourceObject;
         this.resourceObjectDelta = resourceObjectDelta;
         this.resource = resource;
@@ -372,7 +381,11 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return shadowedResourceObject;
     }
 
-    public PrismObject<ResourceType> getResource() {
+    public @Nullable ObjectDelta<ShadowType> getResourceObjectDelta() {
+        return resourceObjectDelta;
+    }
+
+    public @NotNull PrismObject<ResourceType> getResource() {
         return resource;
     }
 
@@ -408,6 +421,11 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         preFocus = prismContext.createObjectable(
                 getFocusClass());
         return preFocus;
+    }
+
+    public @NotNull PrismObject<F> getPreFocusAsPrismObject() throws SchemaException {
+        //noinspection unchecked
+        return (PrismObject<F>) preFocus.asPrismObject();
     }
 
     public F getLinkedOwner() {
@@ -453,10 +471,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     public String getChannel() {
         return channel;
-    }
-
-    public void setResource(PrismObject<ResourceType> resource) {
-        this.resource = resource;
     }
 
     public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {

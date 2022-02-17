@@ -142,7 +142,7 @@ class MappingSorter {
 
         for (VariableBindingDefinitionType source : mapping1.getSource()) {
             ItemPath sourcePath = beans.prismContext.toPath(source.getPath());
-            if (sourcePath != null && MappingSetEvaluation.stripFocusVariableSegment(sourcePath).equivalent(targetPath)) {
+            if (sourcePath != null && FocalMappingSetEvaluation.stripFocusVariableSegment(sourcePath).equivalent(targetPath)) {
                 return true;
             }
         }

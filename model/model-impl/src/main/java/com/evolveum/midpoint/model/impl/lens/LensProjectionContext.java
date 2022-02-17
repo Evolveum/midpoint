@@ -1693,4 +1693,19 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public boolean isInMaintenance() {
         return ResourceTypeUtil.isInMaintenance(resource);
     }
+
+    /**
+     * Returns true if there is any context that depends on us.
+     * (Note that "dependency source" means the context that depends on the "dependency target". We are the target here.)
+     */
+    public boolean hasDependentContext() {
+        for (LensProjectionContext projectionContext : lensContext.getProjectionContexts()) {
+            for (ResourceObjectTypeDependencyType dependency : projectionContext.getDependencies()) {
+                if (LensUtil.areDependent(projectionContext, this, dependency)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

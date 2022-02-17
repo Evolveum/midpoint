@@ -7,10 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import com.evolveum.midpoint.model.api.context.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.FocalMappingEvaluationRequest;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.TargetObjectSpecification;
@@ -21,29 +24,57 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.repo.common.expression.ConsolidationValueMetadataComputer;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.model.impl.lens.LensUtil.getAprioriItemDelta;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 
 /**
- * Evaluates a set of mappings. This includes considering their dependencies (chaining).
+ * Evaluates a set of focus -> focus mappings.
+ *
+ * The mappings come from assignments, or from a template - this includes persona mappings.
+ *
+ * Special responsibilities:
+ *
+ * 1. Creation of {@link Mapping} objects from beans ({@link AbstractMappingType}.
+ * 2. Chaining of mapping evaluation.
+ *
+ * Exclusions:
+ *
+ * 1. Sorting mappings according to dependencies. They must come pre-sorted.
+ * 2. Consolidation of output triples into deltas.
+ *
+ * @param <F> type of the focus, in which the whole operation is carried out, i.e. type of {@link LensContext}
+ * @param <T> type of the target object
+ *
+ * @see FocalMappingSetEvaluationBuilder
  */
-class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentHolderType> {
+public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentHolderType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MappingSetEvaluation.class);
+    private static final Trace LOGGER = TraceManager.getTrace(FocalMappingSetEvaluation.class);
 
     private static final List<String> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
 
@@ -91,7 +122,7 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
 
     private NextRecompute nextRecompute;
 
-    MappingSetEvaluation(MappingSetEvaluationBuilder<F, T> builder) {
+    FocalMappingSetEvaluation(FocalMappingSetEvaluationBuilder<F, T> builder) {
         beans = builder.beans;
         context = builder.context;
         focusOdo = builder.focusOdo;
@@ -162,9 +193,141 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
             return null;
         }
 
-        return beans.mappingEvaluator.createFocusMapping(context,
+        return createFocusMapping(context,
                 request, updatedFocusOdo, targetObject, iteration, iterationToken,
                 context.getSystemConfiguration(), env.now, description, env.task, result);
+    }
+
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType, T extends AssignmentHolderType>
+    MappingImpl<V, D> createFocusMapping(
+            LensContext<AH> context,
+            FocalMappingEvaluationRequest<?, ?> request,
+            ObjectDeltaObject<AH> focusOdo,
+            @NotNull PrismObject<T> targetContext,
+            Integer iteration,
+            String iterationToken,
+            PrismObject<SystemConfigurationType> configuration,
+            XMLGregorianCalendar now,
+            String contextDesc,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+
+        MappingType mappingBean = request.getMapping();
+        MappingKindType mappingKind = request.getMappingKind();
+        ObjectType originObject = request.getOriginObject();
+        Source<V, D> defaultSource = request.constructDefaultSource(focusOdo);
+        AssignmentPathVariables assignmentPathVariables = request.getAssignmentPathVariables();
+
+        if (!MappingImpl.isApplicableToChannel(mappingBean, context.getChannel())) {
+            LOGGER.trace("Mapping {} not applicable to channel {}, skipping.", mappingBean, context.getChannel());
+            return null;
+        }
+
+        ConfigurableValuePolicySupplier valuePolicySupplier = new ConfigurableValuePolicySupplier() {
+            private ItemDefinition<?> outputDefinition;
+
+            @Override
+            public void setOutputDefinition(ItemDefinition<?> outputDefinition) {
+                this.outputDefinition = outputDefinition;
+            }
+
+            @Override
+            public ValuePolicyType get(OperationResult result) {
+                // TODO need to switch to ObjectValuePolicyEvaluator
+                if (outputDefinition.getItemName().equals(PasswordType.F_VALUE)) {
+                    return beans.credentialsProcessor.determinePasswordPolicy(context.getFocusContext());
+                }
+                if (mappingBean.getExpression() != null) {
+                    List<JAXBElement<?>> evaluators = mappingBean.getExpression().getExpressionEvaluator();
+                    if (evaluators != null) {
+                        for (JAXBElement jaxbEvaluator : evaluators) {
+                            Object object = jaxbEvaluator.getValue();
+                            if (object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null) {
+                                ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
+                                try {
+                                    ValuePolicyType valuePolicyType = beans.mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class,
+                                            null, "resolving value policy for generate attribute " + outputDefinition.getItemName() + " value", task, result);
+                                    if (valuePolicyType != null) {
+                                        return valuePolicyType;
+                                    }
+                                } catch (CommonException ex) {
+                                    throw new SystemException(ex.getMessage(), ex);
+                                }
+                            }
+                        }
+
+                    }
+                }
+                return null;
+            }
+        };
+
+        VariablesMap variables = new VariablesMap();
+        variables.put(ExpressionConstants.VAR_FOCUS, focusOdo, focusOdo.getDefinition());
+        variables.put(ExpressionConstants.VAR_USER, focusOdo, focusOdo.getDefinition());
+        variables.registerAlias(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
+        variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
+        variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
+        variables.put(ExpressionConstants.VAR_CONFIGURATION, configuration, SystemConfigurationType.class);
+        variables.put(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class);
+        variables.put(ExpressionConstants.VAR_SOURCE, originObject, ObjectType.class);
+
+        PrismContext prismContext = beans.prismContext;
+
+        TypedValue<PrismObject<T>> defaultTargetContext = new TypedValue<>(targetContext);
+        Collection<V> targetValues = ExpressionUtil.computeTargetValues(mappingBean.getTarget(), defaultTargetContext, variables, beans.mappingFactory.getObjectResolver(), contextDesc, prismContext, task, result);
+
+        MappingSpecificationType specification = new MappingSpecificationType(prismContext)
+                .mappingName(mappingBean.getName())
+                .definitionObjectRef(ObjectTypeUtil.createObjectRef(originObject, prismContext))
+                .assignmentId(createAssignmentId(assignmentPathVariables));
+
+        MappingBuilder<V, D> mappingBuilder = beans.mappingFactory.<V, D>createMappingBuilder(mappingBean, contextDesc)
+                .sourceContext(focusOdo)
+                .defaultSource(defaultSource)
+                .targetContext(targetContext.getDefinition())
+                .variablesFrom(variables)
+                .variablesFrom(LensUtil.getAssignmentPathVariablesMap(assignmentPathVariables, prismContext))
+                .originalTargetValues(targetValues)
+                .mappingKind(mappingKind)
+                .originType(OriginType.USER_POLICY)
+                .originObject(originObject)
+                .valuePolicySupplier(valuePolicySupplier)
+                .rootNode(focusOdo)
+                .mappingPreExpression(request.getMappingPreExpression()) // Used to populate autoassign assignments
+                .mappingSpecification(specification)
+                .now(now);
+
+        MappingImpl<V, D> mapping = mappingBuilder.build();
+
+        ItemPath itemPath = mapping.getOutputPath();
+        if (itemPath == null) {
+            // no output element, i.e. this is a "validation mapping"
+            return mapping;
+        }
+
+        Item<V, D> existingTargetItem = targetContext.findItem(itemPath);
+        if (existingTargetItem != null && !existingTargetItem.isEmpty()
+                && mapping.getStrength() == MappingStrengthType.WEAK) {
+            LOGGER.trace("Mapping {} is weak and target already has a value {}, skipping.", mapping, existingTargetItem);
+            return null;
+        }
+
+        return mapping;
+    }
+
+    private String createAssignmentId(AssignmentPathVariables assignmentPathVariables) {
+        if (assignmentPathVariables == null || assignmentPathVariables.getAssignmentPath() == null) {
+            return null;
+        } else {
+            // TODO what about newly-created assignments? They have no ID yet.
+            return assignmentPathVariables.getAssignmentPath().getSegments().stream()
+                    .map(AssignmentPathSegmentImpl::getAssignmentId)
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(":"));
+        }
     }
 
     private <V extends PrismValue, D extends ItemDefinition<?>>

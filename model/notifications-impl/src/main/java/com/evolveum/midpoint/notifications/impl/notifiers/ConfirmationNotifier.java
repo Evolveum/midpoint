@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,9 +20,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfirmationNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationConfirmationMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author katkav
@@ -47,9 +46,10 @@ public abstract class ConfirmationNotifier<N extends ConfirmationNotifierType> e
         if (confirmationMethod == null) {
             return null;
         }
-        ExpressionEnvironment<?, ?, ?> expressionEnv = new ExpressionEnvironment<>();
-        expressionEnv.setCurrentResult(result);
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(expressionEnv);
+        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
+                new ExpressionEnvironment.ExpressionEnvironmentBuilder<>()
+                        .currentResult(result)
+                        .build());
 
         try {
             switch (confirmationMethod) {

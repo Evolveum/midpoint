@@ -6,27 +6,33 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
+import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
- * @author semancik
+ * Output of mappings computation: basically the triple plus some flags.
  *
+ * Currently used only for {@link ProjectionMappingSetEvaluator}.
+ *
+ * @author semancik
  */
 public class MappingOutputStruct<V extends PrismValue> implements DebugDumpable {
 
-    private PrismValueDeltaSetTriple<V> outputTriple = null;
-    private boolean strongMappingWasUsed = false;
-    private boolean weakMappingWasUsed = false;
-    private boolean pushChanges = false;
+    @Nullable private PrismValueDeltaSetTriple<V> outputTriple;
+    private boolean strongMappingWasUsed;
+    private boolean weakMappingWasUsed;
+    private boolean pushChanges;
 
-    public PrismValueDeltaSetTriple<V> getOutputTriple() {
+    public @Nullable PrismValueDeltaSetTriple<V> getOutputTriple() {
         return outputTriple;
     }
 
-    public void setOutputTriple(PrismValueDeltaSetTriple<V> outputTriple) {
+    public void setOutputTriple(@Nullable PrismValueDeltaSetTriple<V> outputTriple) {
         this.outputTriple = outputTriple;
     }
 

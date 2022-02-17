@@ -76,7 +76,7 @@ public class ResourceAssociationDefinition extends AbstractFreezable
         return definitionBean.getOutbound();
     }
 
-    public List<MappingType> getInboundMappingTypes() {
+    public List<InboundMappingType> getInboundMappingTypes() {
         return definitionBean.getInbound();
     }
 

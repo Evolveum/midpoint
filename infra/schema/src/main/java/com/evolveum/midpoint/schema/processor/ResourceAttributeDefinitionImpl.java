@@ -452,7 +452,7 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
-    public @NotNull List<MappingType> getInboundMappingBeans() {
+    public @NotNull List<InboundMappingType> getInboundMappingBeans() {
         return customizationBean.getInbound();
     }
 

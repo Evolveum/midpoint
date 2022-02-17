@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema.processor.deleg;
 
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,10 +19,6 @@ import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.schema.processor.PropertyLimitations;
 import com.evolveum.midpoint.schema.processor.RawResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeStorageStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 public interface RefinedAttributeDefinitionDelegator<T> extends AttributeDefinitionDelegator<T>, ResourceAttributeDefinition<T> {
 
@@ -73,7 +71,7 @@ public interface RefinedAttributeDefinitionDelegator<T> extends AttributeDefinit
     }
 
     @Override
-    default @NotNull List<MappingType> getInboundMappingBeans() {
+    default @NotNull List<InboundMappingType> getInboundMappingBeans() {
         return delegate().getInboundMappingBeans();
     }
 

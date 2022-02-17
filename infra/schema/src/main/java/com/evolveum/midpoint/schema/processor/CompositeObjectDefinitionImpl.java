@@ -275,6 +275,11 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
+    public @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases() {
+        return structuralDefinition.getDefaultInboundMappingEvaluationPhases();
+    }
+
+    @Override
     public ResourceObjectMultiplicityType getObjectMultiplicity() {
         return structuralDefinition.getObjectMultiplicity();
     }

@@ -770,21 +770,24 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public <V extends PrismValue, D extends ItemDefinition> Mapping<V, D> getMapping() {
+    public <V extends PrismValue, D extends ItemDefinition<?>> Mapping<V, D> getMapping() {
         return ModelExpressionThreadLocalHolder.getMapping();
     }
 
     @Override
     public Task getCurrentTask() {
-        Task rv = ModelExpressionThreadLocalHolder.getCurrentTask();
-        if (rv == null) {
-            // fallback (MID-4130): but maybe we should instead make sure ModelExpressionThreadLocalHolder is set up correctly
-            ScriptExpressionEvaluationContext ctx = ScriptExpressionEvaluationContext.getThreadLocal();
-            if (ctx != null) {
-                rv = ctx.getTask();
-            }
+        Task fromModelHolder = ModelExpressionThreadLocalHolder.getCurrentTask();
+        if (fromModelHolder != null) {
+            return fromModelHolder;
         }
-        return rv;
+
+        // fallback (MID-4130): but maybe we should instead make sure ModelExpressionThreadLocalHolder is set up correctly
+        ScriptExpressionEvaluationContext ctx = ScriptExpressionEvaluationContext.getThreadLocal();
+        if (ctx != null) {
+            return ctx.getTask();
+        }
+
+        return null;
     }
 
     @Override
@@ -1625,6 +1628,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public ShadowType resolveEntitlement(ShadowAssociationType shadowAssociationType) {
+        if (shadowAssociationType == null) {
+            LOGGER.trace("No association");
+            return null;
+        }
         ObjectReferenceType shadowRef = shadowAssociationType.getShadowRef();
         if (shadowRef == null) {
             LOGGER.trace("No shadowRef in association {}", shadowAssociationType);
@@ -1833,9 +1840,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         discriminator.setKind(kind);
         discriminator.setIntent(intent);
 
-        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), null,
-                resource.asPrismObject(), getCurrentTask().getChannel(), beans,
-                getCurrentTask(), null);
+        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(
+                shadow.asPrismObject(),
+                null,
+                resource.asPrismObject(),
+                getCurrentTask().getChannel(),
+                beans,
+                getCurrentTask(),
+                null);
 
         ObjectSynchronizationType applicablePolicy = null;
 
