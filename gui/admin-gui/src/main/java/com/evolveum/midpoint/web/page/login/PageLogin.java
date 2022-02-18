@@ -159,9 +159,10 @@ public class PageLogin extends AbstractPageLogin {
         });
         if (securityPolicy != null) {
             SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
+            String sequenceName = selfRegistrationPolicy.getAdditionalAuthenticationSequence() == null ? selfRegistrationPolicy.getAdditionalAuthenticationName() : selfRegistrationPolicy.getAdditionalAuthenticationSequence();
             if (selfRegistrationPolicy != null
-                    && StringUtils.isNotBlank(selfRegistrationPolicy.getAdditionalAuthenticationName())) {
-                AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(selfRegistrationPolicy.getAdditionalAuthenticationName(),
+                    && StringUtils.isNotBlank(sequenceName)) {
+                AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(sequenceName,
                         securityPolicy.getAuthentication());
                 if (sequence != null) {
                     registration.add(AttributeModifier.replace("href", new IModel<String>() {

@@ -75,7 +75,7 @@ public class SelfRegistrationDto implements Serializable {
         this.defaultRoles = selfRegistration.getDefaultRole();
         this.initialLifecycleState = selfRegistration.getInitialLifecycleState();
         this.requiredLifecycleState = selfRegistration.getRequiredLifecycleState();
-        this.additionalAuthentication = selfRegistration.getAdditionalAuthenticationName();
+        this.additionalAuthentication = selfRegistration.getAdditionalAuthenticationSequence() == null ? selfRegistration.getAdditionalAuthenticationName() : selfRegistration.getAdditionalAuthenticationSequence();
         this.authenticationPolicy = securityPolicy.getAuthentication();
 
         this.formRef = selfRegistration.getFormRef();
@@ -93,7 +93,7 @@ public class SelfRegistrationDto implements Serializable {
             noncePolicy = SecurityPolicyUtil.getCredentialPolicy(mailModuleAuthentication.getCredentialName(), securityPolicy);
         } else {
             AbstractAuthenticationPolicyType authPolicy = SecurityPolicyUtil.getAuthenticationPolicy(
-                    selfRegistration.getAdditionalAuthenticationName(), securityPolicy);
+                    selfRegistration.getAdditionalAuthenticationSequence() == null ? selfRegistration.getAdditionalAuthenticationName() : selfRegistration.getAdditionalAuthenticationSequence(), securityPolicy);
 
             if (authPolicy instanceof MailAuthenticationPolicyType) {
                 this.mailAuthenticationPolicy = (MailAuthenticationPolicyType) authPolicy;

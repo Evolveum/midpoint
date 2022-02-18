@@ -107,7 +107,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- later: audit: login/logout auditing settings (if needed) -->
             <xsd:element name="mailAuthentication" type="tns:MailAuthenticationPolicyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -1612,7 +1611,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- Later: authenticationSequenceName -->
             <xsd:element name="newCredentialSource" type="tns:CredentialSourceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1667,7 +1665,7 @@
             <xsd:element name="formRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Reference to form which is displayed for registration
+                        Reference to form which is displayed for reset
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
@@ -1899,6 +1897,26 @@
             <xsd:element name="displayName" type="xsd:string" minOccurs="0">
             </xsd:element>
             <xsd:element name="additionalAuthenticationName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Deprecated from 4.5 please use element 'additionalAuthenticationSequence'.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.5</a:deprecatedSince>
+                        <a:plannedRemoval>4.6</a:plannedRemoval>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="additionalAuthenticationSequence" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defined authentication sequence, which will be use for additional authentication.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.5</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="defaultRole" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
