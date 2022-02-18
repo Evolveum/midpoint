@@ -182,6 +182,19 @@ This is hardly a problem for iterative change executions, as we are concerned on
 It can be problem for reports, however, but this must simply be accepted.
 If totally transactional reports are necessary, they must be preformed on SQL level and only the externalized data are available - this is beyond the topic of iterative search.
 
+////
+TODO
+=== Organization closure
+
+Current design, materialized view, when and how refreshed, etc.
+
+Alternative with function returning query, specific for top-down search:
+https://gist.github.com/jsuchal/b27ea95087ea7367390192fbb7f8e8b7
+
+But we could write various views using various special functions with CTEs and join them for
+various ORG filter types.
+////
+
 == Developer notes
 
 === How to add a new field/column?
