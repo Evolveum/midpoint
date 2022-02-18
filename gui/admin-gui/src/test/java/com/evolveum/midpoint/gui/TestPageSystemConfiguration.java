@@ -8,9 +8,7 @@ package com.evolveum.midpoint.gui;
 
 import static org.testng.Assert.assertEquals;
 
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageAdminGui;
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageSystemLogging;
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageSystemBasic;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.*;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 
 import com.evolveum.midpoint.web.page.admin.configuration.system.*;
@@ -81,7 +79,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
     @Test
     public void test007testPageNotificationConfiguration() {
-        renderPage(PageNotificationConfiguration.class);
+        renderPage(PageSystemNotification.class);
     }
 
     @Test
@@ -96,12 +94,12 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
     @Test
     public void test010testPageAdminGuiConfiguration() {
-        renderPage(PageAdminGui.class);
+        renderPage(PageSystemAdminGui.class);
     }
 
     @Test
     public void test011testPageWorkflowConfiguration() {
-        renderPage(PageWorkflowConfiguration.class);
+        renderPage(PageSystemWorkflow.class);
     }
 
     @Test
@@ -111,7 +109,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
     @Test
     public void test013testPageInternalsConfiguration() {
-        renderPage(PageInternalsConfiguration.class);
+        renderPage(PageSystemInternals.class);
     }
 
     @Test

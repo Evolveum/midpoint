@@ -32,18 +32,18 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
                         label = "PageSystemConfiguration.auth.configSystemConfiguration.label",
                         description = "PageSystemConfiguration.auth.configSystemConfiguration.description")
         })
-public class PageAdminGui extends PageBaseSystemConfiguration {
+public class PageSystemAdminGui extends PageBaseSystemConfiguration {
 
     private static final long serialVersionUID = 1L;
 
-    public PageAdminGui() {
+    public PageSystemAdminGui() {
     }
 
-    public PageAdminGui(PageParameters parameters) {
+    public PageSystemAdminGui(PageParameters parameters) {
         super(parameters);
     }
 
-    public PageAdminGui(PrismObject<SystemConfigurationType> object) {
+    public PageSystemAdminGui(PrismObject<SystemConfigurationType> object) {
         super(object);
     }
 

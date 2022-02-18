@@ -7,6 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -25,58 +33,50 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.model.IModel;
-
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
-@PanelType(name = "subSystemLoggersContent")
+@PanelType(name = "relationsContent")
 @PanelInstance(
-        identifier = "subSystemLoggersContent",
-        applicableForType = LoggingConfigurationType.class,
+        identifier = "relationsContent",
+        applicableForType = RoleManagementConfigurationType.class,
         display = @PanelDisplay(
-                label = "SubSystemLoggersContentPanel.label",
+                label = "RelationsContentPanel.label",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
                 order = 30
         )
 )
 @Counter(provider = SubSystemLoggersMenuLinkCounter.class)
-public class SubSystemLoggersContentPanel extends MultivalueContainerListPanelWithDetailsPanel<SubSystemLoggerConfigurationType> {
+public class RelationsContentPanel extends MultivalueContainerListPanelWithDetailsPanel<RelationDefinitionType> {
 
-    private IModel<PrismContainerWrapper<SubSystemLoggerConfigurationType>> model;
+    private IModel<PrismContainerWrapper<RelationDefinitionType>> model;
 
-    public SubSystemLoggersContentPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
-        super(id, SubSystemLoggerConfigurationType.class, configurationType);
+    public RelationsContentPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
+        super(id, RelationDefinitionType.class, configurationType);
 
         this.model = PrismContainerWrapperModel.fromContainerWrapper(model.getObjectWrapperModel(), ItemPath.create(
-                SystemConfigurationType.F_LOGGING,
-                LoggingConfigurationType.F_SUB_SYSTEM_LOGGER
+                SystemConfigurationType.F_ROLE_MANAGEMENT,
+                RelationsDefinitionType.F_RELATION
         ));
     }
 
     @Override
-    protected IColumn<PrismContainerValueWrapper<SubSystemLoggerConfigurationType>, String> createCheckboxColumn() {
+    protected IColumn<PrismContainerValueWrapper<RelationDefinitionType>, String> createCheckboxColumn() {
         return new CheckBoxHeaderColumn<>();
     }
 
     @Override
-    protected List<IColumn<PrismContainerValueWrapper<SubSystemLoggerConfigurationType>, String>> createDefaultColumns() {
+    protected List<IColumn<PrismContainerValueWrapper<RelationDefinitionType>, String>> createDefaultColumns() {
         return Arrays.asList(
-                new PrismPropertyWrapperColumn<>(getContainerModel(), SubSystemLoggerConfigurationType.F_COMPONENT,
+                new PrismPropertyWrapperColumn<>(getContainerModel(), RelationDefinitionType.F_REF,
                         AbstractItemWrapperColumn.ColumnType.LINK, getPageBase()) {
 
                     @Override
-                    protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<SubSystemLoggerConfigurationType>> model) {
-                        SubSystemLoggersContentPanel.this.itemDetailsPerformed(target, model);
+                    protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<RelationDefinitionType>> model) {
+                        RelationsContentPanel.this.itemDetailsPerformed(target, model);
                     }
                 },
-                new PrismPropertyWrapperColumn<>(getContainerModel(), ClassLoggerConfigurationType.F_LEVEL,
+                new PrismPropertyWrapperColumn<>(getContainerModel(), RelationDefinitionType.F_DESCRIPTION,
                         AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase())
         );
     }
@@ -87,15 +87,15 @@ public class SubSystemLoggersContentPanel extends MultivalueContainerListPanelWi
     }
 
     @Override
-    protected IModel<PrismContainerWrapper<SubSystemLoggerConfigurationType>> getContainerModel() {
+    protected IModel<PrismContainerWrapper<RelationDefinitionType>> getContainerModel() {
         return model;
     }
 
     @Override
-    protected MultivalueContainerDetailsPanel<SubSystemLoggerConfigurationType> getMultivalueContainerDetailsPanel(
-            ListItem<PrismContainerValueWrapper<SubSystemLoggerConfigurationType>> item) {
+    protected MultivalueContainerDetailsPanel<RelationDefinitionType> getMultivalueContainerDetailsPanel(
+            ListItem<PrismContainerValueWrapper<RelationDefinitionType>> item) {
 
-        return new SubSystemLoggerDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), true);
+        return new RelationDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), true);
     }
 
     @Override
