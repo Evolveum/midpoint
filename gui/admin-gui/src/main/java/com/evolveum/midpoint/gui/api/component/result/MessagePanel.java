@@ -50,19 +50,16 @@ public class MessagePanel extends BasePanel<String> {
     }
 
     public void initLayout() {
-
         WebMarkupContainer detailsBox = new WebMarkupContainer(ID_DETAILS_BOX);
         detailsBox.setOutputMarkupId(true);
         detailsBox.add(AttributeModifier.append("class", createHeaderCss()));
         add(detailsBox);
 
         initHeader(detailsBox);
-
     }
 
     private IModel<String> createHeaderCss() {
-
-        return (IModel<String>) () -> {
+        return () -> {
             switch (type) {
                 case INFO:
                     return " box-info";
@@ -70,7 +67,7 @@ public class MessagePanel extends BasePanel<String> {
                     return " box-success";
                 case ERROR:
                     return " box-danger";
-                case WARN: // TODO:
+                case WARN:
                 default:
                     return " box-warning";
             }
@@ -80,8 +77,7 @@ public class MessagePanel extends BasePanel<String> {
     private void initHeader(WebMarkupContainer box) {
         WebMarkupContainer iconType = new WebMarkupContainer(ID_ICON_TYPE);
         iconType.setOutputMarkupId(true);
-        iconType.add(new AttributeAppender("class", (IModel) () -> {
-
+        iconType.add(AttributeAppender.append("class", () -> {
             switch (type) {
                 case INFO:
                     return " fa-info";
@@ -100,7 +96,7 @@ public class MessagePanel extends BasePanel<String> {
         Label message = new Label(ID_MESSAGE, getModel());
         box.add(message);
 
-        AjaxLink<Void> close = new AjaxLink<Void>(ID_CLOSE) {
+        AjaxLink<Void> close = new AjaxLink<>(ID_CLOSE) {
 
             private static final long serialVersionUID = 1L;
 

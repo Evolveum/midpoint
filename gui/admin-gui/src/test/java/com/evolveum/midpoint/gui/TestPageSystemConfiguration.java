@@ -113,23 +113,8 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
     }
 
     @Test
-    public void test013testPageDeploymentInformation() {
-        renderPage(PageDeploymentInformation.class);
-    }
-
-    @Test
     public void test015testPageAccessCertification() {
         renderPage(PageAccessCertification.class);
-    }
-
-    @Test
-    public void test016testPageInfrastructure() {
-        renderPage(PageInfrastructure.class);
-    }
-
-    @Test
-    public void test017testPageFullTextSearch() {
-        renderPage(PageFullTextSearch.class);
     }
 
     @Test

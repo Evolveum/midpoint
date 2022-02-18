@@ -72,17 +72,15 @@ public class PageSystemConfiguration extends PageBase {
 //                createCompositedButton("Global policy rule", "fa fa-eye", PageGlobalPolicyRule.class)
 //                createCompositedButton("Global projection policy", "fa fa-globe", PageGlobalProjectionPolicy.class)
 //                createCompositedButton("Cleanup policy", "fa  fa-eraser", PageCleanupPolicy.class)
+                createCompositedButton("fa fa-camera", PageSystemPolicies.class),
                 createCompositedButton("fa fa-envelope", PageSystemNotification.class),
                 createCompositedButton("fa fa-file-text", PageSystemLogging.class),
-//                createCompositedButton("Profiling", "fa fa-camera", PageProfiling.class)
+                createCompositedButton("fa fa-camera", PageProfiling.class),
                 createCompositedButton("fa fa-camera", PageSystemAdminGui.class),
                 createCompositedButton("fa fa-camera", PageSystemWorkflow.class),
                 createCompositedButton("fa fa-camera", PageRoleManagement.class),
                 createCompositedButton("fa fa-camera", PageInternals.class),
-//                createCompositedButton("Deployment information", "fa fa-camera", PageDeploymentInformation.class)
                 createCompositedButton("fa fa-camera", PageAccessCertification.class)
-//                createCompositedButton("Infrastructure", "fa fa-camera", PageInfrastructure.class)
-//                createCompositedButton("Full text configuration", "fa fa-camera", PageFullTextSearch.class)
         ));
 
         MultiCompositedButtonPanel panel = new MultiCompositedButtonPanel(ID_CONTAINER, model) {
