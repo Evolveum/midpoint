@@ -9,13 +9,11 @@ package com.evolveum.midpoint.web.application;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PanelDisplay {
 
     String label() default "";
+
     String singularLabel() default "";
 
     String icon() default "fa fa-circle-o";

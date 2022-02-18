@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelType(name = "loggingPanel")
 @PanelInstance(
         identifier = "loggingPanel",
-        applicableForType = SystemConfigurationType.class,
+        applicableForType = LoggingConfigurationType.class,
         display = @PanelDisplay(
                 label = "LoggingPanelContent.label",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,

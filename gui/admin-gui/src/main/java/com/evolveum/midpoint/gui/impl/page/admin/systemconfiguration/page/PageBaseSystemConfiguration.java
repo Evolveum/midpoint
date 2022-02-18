@@ -6,16 +6,21 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page;
 
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
@@ -66,6 +71,30 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
     @Override
     protected String getObjectOidParameter() {
         return SystemObjectsType.SYSTEM_CONFIGURATION.value();
+    }
+
+    @Override
+    protected AssignmentHolderDetailsModel<SystemConfigurationType> createObjectDetailsModels(PrismObject<SystemConfigurationType> object) {
+        return new AssignmentHolderDetailsModel<>(createPrismObjectModel(object), this) {
+
+            @Override
+            protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<SystemConfigurationType> assignmentHolder) {
+                try {
+                    QName type = GuiImplUtil.getContainerableTypeName(getDetailsType());
+                    GuiObjectDetailsPageType defaultPageConfig = getModelServiceLocator().getCompiledGuiProfile().findObjectDetailsConfiguration(type);
+
+                    return applyArchetypePolicy(defaultPageConfig);
+                } catch (Exception ex) {
+                    LOGGER.error("Couldn't create default gui object details page and apply archetype policy", ex);
+                }
+
+                return null;
+            }
+        };
+    }
+
+    public Class<? extends Containerable> getDetailsType() {
+        return getType();
     }
 
     //

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -44,6 +45,11 @@ public class PageAdminGui extends PageBaseSystemConfiguration {
 
     public PageAdminGui(PrismObject<SystemConfigurationType> object) {
         super(object);
+    }
+
+    @Override
+    public Class<? extends Containerable> getDetailsType() {
+        return AdminGuiConfigurationType.class;
     }
 
     //    @Override
