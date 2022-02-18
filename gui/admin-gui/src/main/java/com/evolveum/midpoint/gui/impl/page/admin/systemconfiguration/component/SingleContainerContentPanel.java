@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
@@ -14,19 +16,37 @@ import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelInstances;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 @PanelType(name = "singleContainerPanel")
-@PanelInstance(
-        identifier = "fullTextSearchPanel",
-        applicableForType = SystemConfigurationType.class,
-        display = @PanelDisplay(
-                label = "FullTextSearchPanel.label",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 40
-        )
+@PanelInstances(
+        instances = {
+                @PanelInstance(
+                        identifier = "infrastructurePanel",
+                        applicableForType = SystemConfigurationType.class,
+                        display = @PanelDisplay(
+                                label = "InfrastructureContentPanel.label",
+                                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                                order = 30
+                        ),
+                        containerPath = "infrastructure",
+                        type = "InfrastructureConfigurationType"
+                ),
+                @PanelInstance(
+                        identifier = "fullTextSearchPanel",
+                        applicableForType = SystemConfigurationType.class,
+                        display = @PanelDisplay(
+                                label = "FullTextSearchPanel.label",
+                                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                                order = 40
+                        ),
+                        containerPath = "fullTextSearch",
+                        type = "FullTextSearchConfigurationType"
+                ) }
 )
 public class SingleContainerContentPanel extends AbstractObjectMainPanel<SystemConfigurationType, AssignmentHolderDetailsModel<SystemConfigurationType>> {
 
@@ -38,9 +58,10 @@ public class SingleContainerContentPanel extends AbstractObjectMainPanel<SystemC
 
     @Override
     protected void initLayout() {
-        SingleContainerPanel panel = new SingleContainerPanel(ID_MAIN_PANEL,
-                PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.create(SystemConfigurationType.F_FULL_TEXT_SEARCH)),
-                FullTextSearchConfigurationType.COMPLEX_TYPE);
-        add(panel);
+        ContainerPanelConfigurationType config = getPanelConfiguration();
+        ItemPath path = config.getPath().getItemPath();
+        QName type = config.getType();
+
+        add(new SingleContainerPanel(ID_MAIN_PANEL, PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), path), type));
     }
 }

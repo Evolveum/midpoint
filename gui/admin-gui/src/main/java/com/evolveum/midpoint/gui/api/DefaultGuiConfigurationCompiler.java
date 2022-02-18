@@ -14,6 +14,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.ClassPathUtil;
@@ -413,6 +415,13 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
         if (panelInstance.applicableForOperation().length == 1) {
             config.setApplicableForOperation(panelInstance.applicableForOperation()[0]);
+        }
+
+        if (StringUtils.isNotEmpty(panelInstance.containerPath())) {
+            config.setPath(prismContext.itemPathParser().asItemPathType(panelInstance.containerPath()));
+        }
+        if (StringUtils.isNotEmpty(panelInstance.type())) {
+            config.setType(QNameUtil.uriToQName(panelInstance.type(), SchemaConstantsGenerated.NS_COMMON));
         }
 
         return config;
