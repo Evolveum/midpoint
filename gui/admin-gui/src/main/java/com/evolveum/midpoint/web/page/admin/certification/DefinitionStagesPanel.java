@@ -30,10 +30,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author mederly
- */
-
 public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 
     private static final String ID_TAB_PANEL = "tabPanel";

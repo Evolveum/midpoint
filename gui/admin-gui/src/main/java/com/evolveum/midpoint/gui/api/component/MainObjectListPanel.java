@@ -27,6 +27,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -142,12 +144,14 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     private CompositedIcon createCompositedIcon(CompiledObjectCollectionView collectionView) {
-        DisplayType additionalButtonDisplayType = GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
+        DisplayType display = GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
         CompositedIconBuilder builder = new CompositedIconBuilder();
 
-        builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                    .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
-                    .setTitle(WebComponentUtil.getTranslatedPolyString(additionalButtonDisplayType.getTooltip()));
+        PolyStringType tooltip = display != null ? display.getTooltip() : null;
+
+        builder.setBasicIcon(WebComponentUtil.getIconCssClass(display), IconCssStyle.IN_ROW_STYLE)
+                    .appendColorHtmlValue(WebComponentUtil.getIconColor(display))
+                    .setTitle(WebComponentUtil.getTranslatedPolyString(tooltip));
 //                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
         return builder.build();

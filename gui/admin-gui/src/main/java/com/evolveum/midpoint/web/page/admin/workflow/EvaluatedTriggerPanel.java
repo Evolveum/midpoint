@@ -17,9 +17,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-/**
- * @author mederly
- */
 public class EvaluatedTriggerPanel extends BasePanel<EvaluatedTriggerDto> {
 
     private static final String ID_FRAME = "frame";

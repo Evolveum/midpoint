@@ -30,7 +30,13 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplate;
+import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplates;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -197,7 +203,7 @@ import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -264,6 +270,7 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ShadowType.class, PageShadow.class);
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectCollectionType.class, com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection.class);
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectTemplateType.class, com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(MessageTemplateType.class, PageMessageTemplate.class);
     }
 
     static {
@@ -281,6 +288,7 @@ public final class WebComponentUtil {
         OBJECT_LIST_PAGE_MAP.put(ServiceType.class, PageServices.class);
         OBJECT_LIST_PAGE_MAP.put(ResourceType.class, PageResources.class);
         OBJECT_LIST_PAGE_MAP.put(TaskType.class, PageTasks.class);
+        OBJECT_LIST_PAGE_MAP.put(PageMessageTemplate.class, PageMessageTemplates.class);
     }
 
     private static final Map<TableId, String> STORAGE_TABLE_ID_MAP;
@@ -4564,7 +4572,7 @@ public final class WebComponentUtil {
             Task task = pageBase.createSimpleTask(result.getOperation());
             try {
                 WorkItemId workItemId = WorkItemId.create(parentCase.getOid(), workItem.getId());
-                pageBase.getWorkflowService().completeWorkItem(workItemId, output, task, result);
+                pageBase.getCaseService().completeWorkItem(workItemId, output, task, result);
             } catch (Exception ex) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Unable to complete work item, ", ex);
                 result.recordFatalError(ex);
@@ -4589,7 +4597,7 @@ public final class WebComponentUtil {
                         }
                     }
                     assumePowerOfAttorneyIfRequested(result, powerDonor, pageBase);
-                    pageBase.getWorkflowService().completeWorkItem(WorkItemId.of(workItem),
+                    pageBase.getCaseService().completeWorkItem(WorkItemId.of(workItem),
                             output, additionalDelta, task, result);
                 } finally {
                     dropPowerOfAttorneyIfRequested(result, powerDonor, pageBase);
@@ -4636,10 +4644,10 @@ public final class WebComponentUtil {
             String operation, AjaxRequestTarget target, PageBase pageBase) {
         Task task = pageBase.createSimpleTask(operation);
         OperationResult mainResult = task.getResult();
-        WorkflowService workflowService = pageBase.getWorkflowService();
+        CaseService caseService = pageBase.getCaseService();
         OperationResult result = mainResult.createSubresult(operation);
         try {
-            workflowService.claimWorkItem(WorkItemId.of(workItemToClaim), task, result);
+            caseService.claimWorkItem(WorkItemId.of(workItemToClaim), task, result);
             result.computeStatusIfUnknown();
         } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException |
                 ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
@@ -5282,8 +5290,7 @@ public final class WebComponentUtil {
                 panel.setOutputMarkupId(true);
                 return panel;
             } catch (Throwable e) {
-                e.printStackTrace();
-                LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.");
+                LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
             }
         }
 
@@ -5293,7 +5300,7 @@ public final class WebComponentUtil {
             return panel;
         } catch (Throwable e) {
             e.printStackTrace();
-            LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.");
+            LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
         }
         return null;
     }

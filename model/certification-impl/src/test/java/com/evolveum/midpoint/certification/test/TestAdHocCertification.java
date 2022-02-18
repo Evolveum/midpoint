@@ -32,8 +32,6 @@ import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * Testing ad hoc certification (when changing parent orgs).
- *
- * @author mederly
  */
 @ContextConfiguration(locations = {"classpath:ctx-certification-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

@@ -15,11 +15,6 @@ import org.testng.annotations.Test;
 import javax.xml.namespace.QName;
 import java.io.File;
 
-/**
- * TODO finish
- * @author mederly
- *
- */
 @SuppressWarnings("Convert2MethodRef")
 public class TestParseMappings extends AbstractContainerValueParserTest<MappingsType> {
 

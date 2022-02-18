@@ -14,7 +14,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -27,8 +27,6 @@ import java.util.*;
  * Aggregates more decisions.
  *
  * TODO cleanup a bit
- *
- * @author mederly
  */
 public class CertCaseDto extends CertCaseOrWorkItemDto {
 

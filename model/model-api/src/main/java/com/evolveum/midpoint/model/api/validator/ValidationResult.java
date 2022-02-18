@@ -16,9 +16,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class ValidationResult {
 
     @NotNull private final List<Issue> issues = new ArrayList<>();

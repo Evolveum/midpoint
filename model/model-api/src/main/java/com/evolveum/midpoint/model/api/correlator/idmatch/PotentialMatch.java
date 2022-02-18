@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.api.correlator.idmatch;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IdMatchAttributesType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,9 +34,9 @@ public class PotentialMatch implements DebugDumpable {
     /**
      * Attributes of the identity.
      */
-    @NotNull private final ShadowAttributesType attributes;
+    @NotNull private final IdMatchAttributesType attributes;
 
-    public PotentialMatch(Integer confidence, @Nullable String referenceId, @NotNull ShadowAttributesType attributes) {
+    public PotentialMatch(Integer confidence, @Nullable String referenceId, @NotNull IdMatchAttributesType attributes) {
         this.confidence = confidence;
         this.referenceId = referenceId;
         this.attributes = attributes;
@@ -55,7 +55,7 @@ public class PotentialMatch implements DebugDumpable {
         return referenceId == null;
     }
 
-    public @NotNull ShadowAttributesType getAttributes() {
+    public @NotNull IdMatchAttributesType getAttributes() {
         return attributes;
     }
 

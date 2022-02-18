@@ -37,9 +37,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class CertDefinitionDto implements Serializable {
 
     public static final String F_PRISM_OBJECT = "prismObject";

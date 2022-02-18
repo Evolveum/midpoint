@@ -24,8 +24,6 @@ import java.util.Objects;
 
 /**
  * Not to be confused with AssignmentDto. This one is used in assignment dialog (preview, selecting for delegation limitations, ...).
- *
- * @author mederly
  */
 @SuppressWarnings("unused")
 public class AssignmentInfoDto extends Selectable<AssignmentInfoDto> implements Serializable, Comparable<AssignmentInfoDto> {

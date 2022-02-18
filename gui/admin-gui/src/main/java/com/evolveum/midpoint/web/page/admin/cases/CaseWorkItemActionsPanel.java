@@ -14,20 +14,19 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
 
 import java.util.Collections;
 
@@ -169,7 +168,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             try {
                 WebComponentUtil.assumePowerOfAttorneyIfRequested(result, getPowerDonor(), getPageBase());
                 WorkItemDelegationRequestType delegationRequest = getDelegationRequest(delegate);
-                getPageBase().getWorkflowService().delegateWorkItem(WorkItemId.of(getModelObject()), delegationRequest, task, result);
+                getPageBase().getCaseService().delegateWorkItem(WorkItemId.of(getModelObject()), delegationRequest, task, result);
             } finally {
                 WebComponentUtil.dropPowerOfAttorneyIfRequested(result, getPowerDonor(), getPageBase());
             }
@@ -231,7 +230,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             OperationResult result = new OperationResult(OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION);
             Task task = getPageBase().createSimpleTask(OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION);
             return WebComponentUtil.runUnderPowerOfAttorneyIfNeeded(() ->
-                            getPageBase().getWorkflowManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result),
+                            getPageBase().getCaseManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result),
                     getPowerDonor(), getPageBase(), task, result);
         } catch (Exception ex) {
             LOGGER.error("Cannot check current user authorization to submit work item: {}", ex.getLocalizedMessage(), ex);
@@ -248,7 +247,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             OperationResult result = new OperationResult(OPERATION_CHECK_DELEGATE_AUTHORIZATION);
             Task task = getPageBase().createSimpleTask(OPERATION_CHECK_DELEGATE_AUTHORIZATION);
             return WebComponentUtil.runUnderPowerOfAttorneyIfNeeded(() ->
-                            getPageBase().getWorkflowManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result),
+                            getPageBase().getCaseManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result),
                     getPowerDonor(), getPageBase(), task, result);
         } catch (Exception ex) {
             LOGGER.error("Cannot check current user authorization to submit work item: {}", ex.getLocalizedMessage(), ex);
@@ -259,7 +258,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     private boolean isClaimButtonVisible() {
         return CaseWorkItemUtil.isCaseWorkItemNotClosed(getModelObject()) &&
                 CaseWorkItemUtil.isWorkItemClaimable(getModelObject()) &&
-                getPageBase().getWorkflowManager().isCurrentUserAuthorizedToClaim(getModelObject());
+                getPageBase().getCaseManager().isCurrentUserAuthorizedToClaim(getModelObject());
     }
 
 }

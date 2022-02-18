@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +44,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
 
 @Component
 public class CleanupActivityHandler
@@ -57,7 +57,7 @@ public class CleanupActivityHandler
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private TaskManager taskManager;
     @Autowired private AuditService auditService;
-    @Autowired(required = false) private WorkflowManager workflowManager;
+    @Autowired(required = false) private CaseManager caseManager; // may switch to required? (see the dependencies)
     @Autowired private AccessCertificationService certificationService;
     @Autowired(required = false) private ReportManager reportManager;
 
@@ -173,9 +173,9 @@ public class CleanupActivityHandler
 
     private void cleanupCases(CleanupPolicyType p, RunningTask task, OperationResult result)
             throws CommonException {
-        if (workflowManager != null) {
+        if (caseManager != null) {
             // No autz check needed. Workflow manager does it for us (by relying on model API).
-            workflowManager.cleanupCases(p, task, result);
+            caseManager.cleanupCases(p, task, result);
         } else {
             throw new IllegalStateException("Workflow manager was not autowired, cases cleanup will be skipped.");
         }

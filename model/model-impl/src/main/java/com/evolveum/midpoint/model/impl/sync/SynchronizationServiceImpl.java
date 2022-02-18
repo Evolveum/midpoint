@@ -17,6 +17,7 @@ import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistency
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 
@@ -34,9 +35,6 @@ import org.springframework.stereotype.Service;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
@@ -190,9 +188,21 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             @NotNull ResourceObjectShadowChangeDescription change, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        SynchronizationContext<FocusType> syncCtx = loadSynchronizationContext(change.getShadowedResourceObject(),
-                change.getObjectDelta(), change.getResource(), change.getSourceChannel(), change.getItemProcessingIdentifier(),
-                null, task, result);
+
+        PrismObject<ResourceType> resource =
+                MiscUtil.requireNonNull(
+                        change.getResource(),
+                        () -> new IllegalStateException("No resource in change description: " + change));
+
+        SynchronizationContext<FocusType> syncCtx = loadSynchronizationContext(
+                change.getShadowedResourceObject(),
+                change.getObjectDelta(),
+                resource,
+                change.getSourceChannel(),
+                change.getItemProcessingIdentifier(),
+                null,
+                task,
+                result);
         if (Boolean.FALSE.equals(change.getShadowExistsInRepo())) {
             syncCtx.setShadowExistsInRepo(false);
             // TODO shadowExistsInRepo in syncCtx perhaps should be tri-state as well
@@ -203,15 +213,25 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
     @Override
     public <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(
-            @NotNull PrismObject<ShadowType> shadowedResourceObject, ObjectDelta<ShadowType> resourceObjectDelta,
-            PrismObject<ResourceType> resource, String sourceChanel,
-            String itemProcessingIdentifier, PrismObject<SystemConfigurationType> explicitSystemConfiguration,
-            Task task, OperationResult result)
+            @NotNull PrismObject<ShadowType> shadowedResourceObject,
+            ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull PrismObject<ResourceType> resource,
+            String sourceChanel,
+            String itemProcessingIdentifier,
+            PrismObject<SystemConfigurationType> explicitSystemConfiguration,
+            Task task,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
-        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadowedResourceObject, resourceObjectDelta,
-                resource, sourceChanel, beans, task, itemProcessingIdentifier);
+        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(
+                shadowedResourceObject,
+                resourceObjectDelta,
+                resource,
+                sourceChanel,
+                beans,
+                task,
+                itemProcessingIdentifier);
         setSystemConfiguration(syncCtx, explicitSystemConfiguration, result);
 
         SynchronizationType synchronization = resource.asObjectable().getSynchronization();
@@ -499,8 +519,15 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             throws ConfigurationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 
-        SynchronizationContext<F> synchronizationContext = loadSynchronizationContext(shadowedResourceObject, null,
-                resourceType.asPrismObject(), task.getChannel(), null, configuration, task, result);
+        SynchronizationContext<F> synchronizationContext = loadSynchronizationContext(
+                shadowedResourceObject,
+                null,
+                resourceType.asPrismObject(),
+                task.getChannel(),
+                null,
+                configuration,
+                task,
+                result);
         return synchronizationExpressionsEvaluator.matchFocusByCorrelationRule(synchronizationContext, focus, result);
     }
 
@@ -537,6 +564,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         ResourceType resource = change.getResource().asObjectable();
         setupResourceRefInShadowIfNeeded(resourceObject.asObjectable(), resource);
 
+        evaluatePreMappings(syncCtx, result);
+
         CorrelationResult correlationResult = correlate(syncCtx, result);
         LOGGER.trace("Correlation result:\n{}", correlationResult.debugDumpLazily(1));
 
@@ -567,22 +596,32 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
+    private <F extends FocusType> void evaluatePreMappings(SynchronizationContext<F> syncCtx, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        new PreMappingsEvaluation<>(syncCtx, beans)
+                .evaluate(result);
+    }
+
     private <F extends FocusType> CorrelationResult correlate(SynchronizationContext<F> syncCtx, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
 
         CorrelationContext correlationContext = new CorrelationContext(
-                syncCtx.getFocusClass(),
+                syncCtx.getShadowedResourceObject().asObjectable(),
+                syncCtx.getPreFocus(),
                 syncCtx.getResource().asObjectable(),
                 syncCtx.getObjectTypeDefinition(),
                 asObjectable(syncCtx.getSystemConfiguration()));
 
-        Task task = syncCtx.getTask();
-
         syncCtx.setCorrelationContext(correlationContext);
 
-        return correlatorFactoryRegistry.instantiateCorrelator(syncCtx.getCorrelators(), task, result)
-                .correlate(syncCtx.getShadowedResourceObject().asObjectable(), correlationContext, task, result);
+        CorrelatorContext<?> correlatorContext =
+                CorrelatorContext.create(syncCtx.getCorrelators(), syncCtx.getObjectSynchronizationBean());
+
+        Task task = syncCtx.getTask();
+        return correlatorFactoryRegistry.instantiateCorrelator(correlatorContext, task, result)
+                .correlate(correlationContext, task, result);
     }
 
     // This is maybe not needed

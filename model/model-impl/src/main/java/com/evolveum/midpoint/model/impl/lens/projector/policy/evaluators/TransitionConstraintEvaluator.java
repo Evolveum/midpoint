@@ -34,9 +34,6 @@ import javax.xml.bind.JAXBElement;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author mederly
- */
 @Component
 public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<TransitionPolicyConstraintType> {
 

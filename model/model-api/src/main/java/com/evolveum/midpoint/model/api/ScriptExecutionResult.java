@@ -13,8 +13,6 @@ import java.util.List;
 
 /**
  * Result of a script execution.
- *
- * @author mederly
  */
 public class ScriptExecutionResult {
 

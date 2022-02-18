@@ -14,8 +14,6 @@ import java.util.List;
 
 /**
  * EXPERIMENTAL
- *
- * @author mederly
  */
 public class ReadOnlyEnumValuesModel<E extends Enum<E>> implements IModel<List<E>> {
 

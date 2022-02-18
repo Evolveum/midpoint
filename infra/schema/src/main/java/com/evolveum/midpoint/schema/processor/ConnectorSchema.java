@@ -14,9 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 
-/**
- * @author mederly
- */
 public interface ConnectorSchema extends PrismSchema {
 
     Collection<ResourceObjectClassDefinition> getObjectClassDefinitions();

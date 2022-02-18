@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,8 +11,6 @@ import java.util.function.Predicate;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -35,7 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Stability: DRAFT
  *
  * @author Radovan Semancik
- * @author Pavol Mederly
  * </p>
  * <p>
  * Task manager provides controls task execution, coordination, distribution and failover between nodes, etc.
@@ -439,6 +436,9 @@ public interface TaskManager {
 
     /**
      * Puts a WAITING task back into RUNNABLE state.
+     *
+     * @throws PreconditionViolationException If there is a conflict during unpausing, i.e. the task is originally in
+     * the waiting state, but (independently) changes the state during execution of the method.
      */
     void unpauseTask(Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, PreconditionViolationException;
@@ -597,23 +597,6 @@ public interface TaskManager {
     // ==================================================== Miscellaneous methods
 
     /**
-     * Called when the whole application is initialized.
-     *
-     * Here we make this node a real cluster member: We set the operational state to UP, enabling receiving cache invalidation
-     * events (among other effects). We also invalidate local caches - to begin with a clean slate - and start the scheduler.
-     *
-     * The postInit mechanism cannot be used for this purpose. The reason is that it is invoked shortly before the application
-     * is completely up. REST endpoints are not yet functional at that time. This means that some of the cache invalidation
-     * messages could be lost, and the other nodes could get error messages in the meanwhile.
-     *
-     * Unfortunately, REST endpoints are not initialized even when this event is emitted. There's a few seconds before
-     * they are really available. So the real action can be delayed by setting "nodeStartupDelay" configuration parameter.
-     * (This is a temporary solution until something better is found.)
-     */
-    @EventListener(ApplicationReadyEvent.class)
-    void onSystemStarted();
-
-    /**
      * Synchronizes information in midPoint repository and task scheduling database.
      */
     void synchronizeTasks(OperationResult parentResult);
@@ -674,10 +657,6 @@ public interface TaskManager {
     String recordRunningTasksThreadsDump(String cause, OperationResult parentResult) throws ObjectAlreadyExistsException;
 
     String getTaskThreadsDump(String taskOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
-
-    // TODO what to do with this method?
-    String recordTaskThreadsDump(String taskOid, String cause, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
 
     /**
      * Use only for tests. (Even in that case it is an ugly hack.)

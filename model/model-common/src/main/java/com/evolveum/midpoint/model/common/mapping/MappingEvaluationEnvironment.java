@@ -27,7 +27,10 @@ public class MappingEvaluationEnvironment {
     @NotNull public final XMLGregorianCalendar now;
     @NotNull public final Task task;
 
-    public MappingEvaluationEnvironment(@NotNull String contextDescription, @NotNull XMLGregorianCalendar now, @NotNull Task task) {
+    public MappingEvaluationEnvironment(
+            @NotNull String contextDescription,
+            @NotNull XMLGregorianCalendar now,
+            @NotNull Task task) {
         this.contextDescription = contextDescription;
         this.now = now;
         this.task = task;

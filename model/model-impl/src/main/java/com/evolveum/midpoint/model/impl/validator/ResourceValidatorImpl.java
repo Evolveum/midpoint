@@ -55,8 +55,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
  *  - empty correlation, correlation condition?
  *  - empty confirmation condition?
  *  - empty synchronization condition?
- *
- * @author mederly
  */
 @Component(value = "resourceValidator")
 public class ResourceValidatorImpl implements ResourceValidator {

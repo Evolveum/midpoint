@@ -13,9 +13,6 @@ import javax.xml.namespace.QName;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @author mederly
- */
 public class ConstraintsCheckingResult {
 
     private boolean satisfiesConstraints;

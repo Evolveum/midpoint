@@ -35,8 +35,6 @@ import java.util.stream.Collectors;
 
 /**
  * Starts ad-hoc certifications as prescribed by "certificate" policy action.
- *
- * @author mederly
  */
 @Component
 public class CertificationHook implements ChangeHook {

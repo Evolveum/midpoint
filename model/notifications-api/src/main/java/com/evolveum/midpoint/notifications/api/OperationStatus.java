@@ -9,13 +9,6 @@ package com.evolveum.midpoint.notifications.api;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
 
-/**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 14.1.2013
- * Time: 22:36
- * To change this template use File | Settings | File Templates.
- */
 public enum OperationStatus {
     SUCCESS, IN_PROGRESS, FAILURE, OTHER;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -39,7 +39,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryService.ModificationsSupplier;
-import com.evolveum.midpoint.repo.common.tasks.AbstractRepoCommonTest;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
@@ -57,7 +56,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
-    private static final long WAIT_FOR_THREAD_NATURAL_STOP_TIME = 300000;
+    private static final long WAIT_FOR_THREAD_NATURAL_STOP_TIME = 300_000;
 
     @Autowired
     protected JdbcRepositoryConfiguration repositoryConfiguration;
@@ -73,7 +72,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                 new PropertyModifierThread(1, UserType.F_GIVEN_NAME, true, null, true),
                 new PropertyModifierThread(2, UserType.F_FAMILY_NAME, true, null, true),
         };
-        concurrencyUniversal("Test1", 30000L, 500L, mts, null);
+        concurrencyUniversal("Test1", 30_000L, 500L, mts, null);
     }
 
     @Test
@@ -84,7 +83,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                 new PropertyModifierThread(3, UserType.F_DESCRIPTION, false, null, true),
                 new PropertyModifierThread(4, UserType.F_EMAIL_ADDRESS, false, null, true)
         };
-        concurrencyUniversal("Test2", 60000L, 500L, mts, null);
+        concurrencyUniversal("Test2", 60_000L, 500L, mts, null);
     }
 
     @Test
@@ -105,7 +104,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                 throw new AssertionError(msg);
             }
         };
-        concurrencyUniversal("Test3", 60000L, 0L, mts, checker);
+        concurrencyUniversal("Test3", 60_000L, 0L, mts, checker);
     }
 
     @Test
@@ -136,7 +135,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                 throw new AssertionError(msg);
             }
         };
-        concurrencyUniversal("Test4", 60000L, 0L, mts, checker);
+        concurrencyUniversal("Test4", 60_000L, 0L, mts, checker);
     }
 
     @FunctionalInterface
@@ -289,6 +288,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
             return lastName != null ? lastName.getLocalPart() : "?";
         }
 
+        @SuppressWarnings({ "rawtypes", "unchecked" })
         void runOnce(OperationResult result) {
 
             PrismObjectDefinition<?> userPrismDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
@@ -296,12 +296,11 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
             String prefix = lastName(attribute1);
             String dataWritten = "[" + prefix + ":" + counter.get() + "]";
 
-            PrismPropertyDefinition<?> propertyDefinition1 = userPrismDefinition.findPropertyDefinition(attribute1);
+            PrismPropertyDefinition<Object> propertyDefinition1 = userPrismDefinition.findPropertyDefinition(attribute1);
             if (propertyDefinition1 == null) {
                 throw new IllegalArgumentException("No definition for " + attribute1 + " in " + userPrismDefinition);
             }
-            PropertyDelta delta1 = prismContext.deltaFactory().property().create(attribute1, propertyDefinition1);
-            //noinspection unchecked
+            PropertyDelta<Object> delta1 = prismContext.deltaFactory().property().create(attribute1, propertyDefinition1);
             delta1.setRealValuesToReplace(poly ? new PolyString(dataWritten) : dataWritten);
             List<ItemDelta<?, ?>> deltas = new ArrayList<>();
             deltas.add(delta1);
@@ -315,10 +314,8 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
                 ItemDelta delta2;
                 if (propertyDefinition2 instanceof PrismContainerDefinition) {
-                    //noinspection unchecked
                     delta2 = prismContext.deltaFactory().container().create(attribute2, (PrismContainerDefinition) propertyDefinition2);
                 } else {
-                    //noinspection unchecked
                     delta2 = prismContext.deltaFactory().property().create(attribute2, (PrismPropertyDefinition) propertyDefinition2);
                 }
                 if (ConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
@@ -499,11 +496,10 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                         .item(UserType.F_NAME).eqPoly(name).matchingOrig().build(),
                 (object, parentResult) -> {
                     logger.info("Handling " + object + "...");
-                    ObjectDelta delta = prismContext.deltaFactory().object()
+                    ObjectDelta<?> delta = prismContext.deltaFactory().object()
                             .createModificationReplaceProperty(UserType.class, object.getOid(),
                                     UserType.F_FULL_NAME, new PolyString(newFullName));
                     try {
-                        //noinspection unchecked
                         plainRepositoryService.modifyObject(UserType.class,
                                 object.getOid(),
                                 delta.getModifications(),
@@ -524,7 +520,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         skipTestIf(repositoryConfiguration.getDatabaseType() == SupportedDatabase.H2, "because of H2 database");
 
         int THREADS = 8;
-        long DURATION = 30000L;
+        long DURATION = 30_000L;
 
         UserType user = new UserType(prismContext).name("jack");
 
@@ -576,7 +572,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         skipTestIf(repositoryConfiguration.getDatabaseType() == SupportedDatabase.H2, "because of H2 database");
 
         int THREADS = 8;
-        long DURATION = 30000L;
+        long DURATION = 30_000L;
 
         AtomicInteger globalCounter = new AtomicInteger();
 
@@ -619,7 +615,6 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
     @Test
     public void test120AddApproverRef() throws Exception {
-
         int THREADS = 4;
         long DURATION = 30_000L;
         final String DELEGATED_REF_FORMAT = "bcce49f4-8d7a-4791-%04d-%012d";
@@ -686,7 +681,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         int ADD_THREADS = 4;
         int DELETE_THREADS = 4;
         int OBJECTS_PER_THREAD = 100;
-        long TIMEOUT = 30000L;
+        long TIMEOUT = 30_000L;
 
         OperationResult result = new OperationResult("test130DeleteObjects");
 
@@ -756,7 +751,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
     public void test140WorkBucketsAdd() throws Exception {
 
         int THREADS = 8;
-        long DURATION = 30000L;
+        long DURATION = 30_000L;
 
         TaskType task = new TaskType(prismContext)
                 .name("test140")
@@ -843,7 +838,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
     public void test150WorkBucketsReplace() throws Exception {
 
         int THREADS = 8;
-        long DURATION = 30000L;
+        long DURATION = 30_000L;
 
         TaskType task = new TaskType(prismContext)
                 .name("test150")

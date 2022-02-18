@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * @author mederly
+ * Captures the information from the invocation of the approvals (workflow) hook.
  */
 public class ModelInvocationContext<T extends ObjectType> {
 
@@ -89,11 +89,13 @@ public class ModelInvocationContext<T extends ObjectType> {
             return repositoryService.getObject(UserType.class, task.getOwnerRef().getOid(), null, result);
         } catch (ObjectNotFoundException e) {
             PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
-            LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + taskOwner + "), because it does not exist in repository anymore. Using cached data.", e);
+            LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + taskOwner + "), "
+                    + "because it does not exist in repository anymore. Using cached data.", e);
             return CloneUtil.clone(taskOwner); // may be still null if it was not cached
         } catch (SchemaException e) {
             PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get data about task requester (" + taskOwner + "), due to schema exception. Using cached data.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get data about task requester (" + taskOwner + "), "
+                    + "due to schema exception. Using cached data.", e);
             return CloneUtil.clone(taskOwner); // may be still null if it was not cached
         }
     }

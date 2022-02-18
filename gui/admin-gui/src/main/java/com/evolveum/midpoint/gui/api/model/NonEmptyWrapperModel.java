@@ -9,9 +9,6 @@ package com.evolveum.midpoint.gui.api.model;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class NonEmptyWrapperModel<T> implements NonEmptyModel<T> {
 
     private final IModel<T> model;

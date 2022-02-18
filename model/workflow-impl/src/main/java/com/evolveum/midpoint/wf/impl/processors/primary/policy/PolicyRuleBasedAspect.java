@@ -50,9 +50,6 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author mederly
- */
 @Component
 public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 

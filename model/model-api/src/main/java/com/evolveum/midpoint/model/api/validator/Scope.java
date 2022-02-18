@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.model.api.validator;
 
-/**
- * @author mederly
- */
 public enum Scope {
 
     QUICK,            // something that can be done quite regularly (e.g. when an item value is changed)

@@ -1,16 +1,15 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.util;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
@@ -77,15 +76,16 @@ public enum ObjectTypeGuiDescriptor {
 
     DASHBOARD(ObjectTypes.DASHBOARD, "ObjectTypeGuiDescriptor.dashboard", "fa fa-dashboard", "fa fa-dashboard"),
 
+    MESSAGE_TEMPLATE(ObjectTypes.MESSAGE_TEMPLATE, "ObjectTypeGuiDescriptor.messageTemplate", "", ""), //TODO icons
+
     ASSIGNMENT_HOLDER_TYPE(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, "ObjectTypeGuiDescriptor.assignmentHolderType", "", ""); //TODO icons
 
     public static final String ERROR_ICON = "silk-error";
-    public static final String ERROR_LOCALIZATION_KEY = "ObjectTypeGuiDescriptor.unknown";
 
-    private ObjectTypes type;
-    private String localizationKey;
-    private String coloredIcon;
-    private String blackIcon;
+    private final ObjectTypes type;
+    private final String localizationKey;
+    private final String coloredIcon;
+    private final String blackIcon;
 
     ObjectTypeGuiDescriptor(ObjectTypes type, String localizationKey, String coloredIcon, String blackIcon) {
         this.coloredIcon = coloredIcon;
@@ -112,7 +112,7 @@ public enum ObjectTypeGuiDescriptor {
         return type;
     }
 
-    public static ObjectTypeGuiDescriptor getDescriptor(Class type) {
+    public static ObjectTypeGuiDescriptor getDescriptor(Class<?> type) {
         for (ObjectTypeGuiDescriptor descr : ObjectTypeGuiDescriptor.values()) {
             if (descr.getType() != null && descr.getType().getClassDefinition().equals(type)) {
                 return descr;

@@ -10,8 +10,5 @@ package com.evolveum.midpoint.web.component.util;
 import java.io.Serializable;
 import java.util.function.Function;
 
-/**
- * @author mederly
- */
 public interface SerializableFunction<T, R> extends Function<T, R>, Serializable {
 }

@@ -10,9 +10,6 @@ package com.evolveum.midpoint.model.impl.visualizer.output;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 import com.evolveum.midpoint.prism.PrismValue;
 
-/**
- * @author mederly
- */
 public class SceneItemValueImpl implements SceneItemValue {
 
     private final String text;

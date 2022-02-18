@@ -16,7 +16,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
- * @author mederly
+ * Classification of deltas (in approval case) according to their state.
  */
 public class ChangesByState<F extends FocusType> implements DebugDumpable {
 

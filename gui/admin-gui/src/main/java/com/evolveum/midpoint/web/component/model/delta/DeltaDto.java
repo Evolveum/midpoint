@@ -16,9 +16,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class DeltaDto implements Serializable {
 
     public static final String F_CHANGE_TYPE = "changeType";

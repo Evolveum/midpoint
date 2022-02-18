@@ -18,8 +18,6 @@ import com.evolveum.midpoint.repo.sql.query.resolution.HqlDataInstance;
 
 /**
  * Base for all item path-related restrictions, e.g. those that are based on item path that points to a JPA data node.
- *
- * @author mederly
  */
 public abstract class ItemRestriction<T extends ObjectFilter> extends Restriction<T> {
 

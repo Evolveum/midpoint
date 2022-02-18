@@ -44,7 +44,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * (e.g. completion, auditing, notifications) of manual provisioning cases.
  *
  * @author Radovan Semancik
- * @author mederly
  */
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -216,7 +215,7 @@ public class ManualResourceTest extends AbstractWfTest {
 
         assertTrue("no admin work item", adminWorkItem.isPresent());
 
-        workflowManager.completeWorkItem(WorkItemId.of(adminWorkItem.get()),
+        caseManager.completeWorkItem(WorkItemId.of(adminWorkItem.get()),
                 new AbstractWorkItemOutputType(prismContext)
                         .outcome(OperationResultStatusType.SUCCESS.value()),
                 null, task, result);

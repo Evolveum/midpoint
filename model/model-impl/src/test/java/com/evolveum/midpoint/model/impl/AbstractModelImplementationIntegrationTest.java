@@ -52,7 +52,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * methods that depend on model-impl functionality - but without importing various objects at initialization time.
  *
  * @author semancik
- * @author mederly
  */
 public class AbstractModelImplementationIntegrationTest extends AbstractModelIntegrationTest {
 

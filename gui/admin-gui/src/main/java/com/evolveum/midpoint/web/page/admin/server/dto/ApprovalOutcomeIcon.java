@@ -8,9 +8,6 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 
-/**
- *  @author mederly
- */
 public enum ApprovalOutcomeIcon {
 
     // TODO move 'fa-fw fa-lg' to style constants as well?

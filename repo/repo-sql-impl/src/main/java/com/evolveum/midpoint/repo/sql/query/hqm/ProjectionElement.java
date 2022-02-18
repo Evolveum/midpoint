@@ -9,9 +9,6 @@ package com.evolveum.midpoint.repo.sql.query.hqm;
 
 import java.util.List;
 
-/**
- * @author mederly
- */
 public abstract class ProjectionElement {
 
     public static void dumpToHql(StringBuilder sb, List<ProjectionElement> projectionElements, int indent) {

@@ -19,8 +19,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
  *  ADD = stage opened (including remediation stage)
  *  MODIFY = stage deadline is approaching
  *  DELETE = stage closed
- *
- * @author mederly
  */
 public class CertCampaignStageEventImpl extends AccessCertificationEventImpl implements CertCampaignStageEvent {
 

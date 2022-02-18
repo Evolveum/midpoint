@@ -36,7 +36,6 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * @author lazyman
- * @author mederly
  */
 public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilter> {
 

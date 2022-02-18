@@ -74,7 +74,6 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * @author lazyman
- * @author mederly
  */
 @PageDescriptor(
         urls = {

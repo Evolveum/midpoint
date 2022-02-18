@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -88,6 +88,10 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
+    /**
+     * Database cleanup for Sqale tests only.
+     * Check TestSqaleRepositoryBeanConfig.clearDatabase(SqaleRepoContext) for integration tests.
+     */
     private void clearDatabase() {
         try (JdbcSession jdbcSession = startTransaction()) {
             // object delete cascades to sub-rows of the "object aggregate"
@@ -96,6 +100,8 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             // truncate does not run ON DELETE trigger, many refs/container tables are not cleaned
             jdbcSession.executeStatement("TRUNCATE m_object_oid CASCADE;");
             // but after truncating m_object_oid it cleans all the tables
+
+            // audit is cleaned on-demand using clearAudit()
 
             /*
             Truncates are much faster than this delete probably because it works row by row:

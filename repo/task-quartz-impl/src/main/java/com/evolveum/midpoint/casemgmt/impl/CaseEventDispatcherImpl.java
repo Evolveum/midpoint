@@ -8,8 +8,9 @@
 package com.evolveum.midpoint.casemgmt.impl;
 
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
-import com.evolveum.midpoint.casemgmt.api.CaseEventListener;
+import com.evolveum.midpoint.casemgmt.api.CaseCreationListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -19,31 +20,28 @@ import org.springframework.stereotype.Service;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * @author mederly
- */
 @Service
 public class CaseEventDispatcherImpl implements CaseEventDispatcher {
 
     private static final Trace LOGGER = TraceManager.getTrace(CaseEventDispatcherImpl.class);
 
-    private final Set<CaseEventListener> listeners = ConcurrentHashMap.newKeySet();
+    private final Set<CaseCreationListener> listeners = ConcurrentHashMap.newKeySet();
 
     @Override
-    public void registerCaseCreationEventListener(CaseEventListener listener) {
+    public void registerCaseCreationEventListener(CaseCreationListener listener) {
         listeners.add(listener);
     }
 
     @Override
-    public void unregisterCaseCreationEventListener(CaseEventListener listener) {
+    public void unregisterCaseCreationEventListener(CaseCreationListener listener) {
         listeners.remove(listener);
     }
 
     @Override
-    public void dispatchCaseEvent(CaseType aCase, OperationResult result) {
-        for (CaseEventListener listener : listeners) {
+    public void dispatchCaseCreationEvent(CaseType aCase, OperationResult result, Task task) {
+        for (CaseCreationListener listener : listeners) {
             try {
-                listener.onCaseCreation(aCase, result);
+                listener.onCaseCreation(aCase, result, task);
             } catch (Throwable t) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Exception when invoking case listener; case = {}", t, aCase);
             }

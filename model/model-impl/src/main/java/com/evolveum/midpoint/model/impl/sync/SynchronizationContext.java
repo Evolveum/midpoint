@@ -75,7 +75,11 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
      */
     private final ObjectDelta<ShadowType> resourceObjectDelta;
 
-    private PrismObject<ResourceType> resource;
+    /**
+     * The resource. It is updated in {@link #checkNotInMaintenance(OperationResult)}. But it's never null.
+     */
+    @NotNull private PrismObject<ResourceType> resource;
+
     private PrismObject<SystemConfigurationType> systemConfiguration;
     private String channel;
     private ExpressionProfile expressionProfile;
@@ -83,6 +87,17 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     private final Task task;
 
     private ObjectSynchronizationType objectSynchronization;
+
+    /**
+     * Preliminary focus object - a result pre pre-mappings execution.
+     *
+     * Lazily created on the first getter call.
+     */
+    private F preFocus;
+
+    /**
+     * Lazily evaluated on the first getter call.
+     */
     private Class<F> focusClass;
 
     /** Owner that was found to be linked (in repo) to the shadow being synchronized. */
@@ -119,9 +134,14 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     @Experimental
     private final String itemProcessingIdentifier;
 
-    public SynchronizationContext(@NotNull PrismObject<ShadowType> shadowedResourceObject,
-            ObjectDelta<ShadowType> resourceObjectDelta, PrismObject<ResourceType> resource, String channel,
-            ModelBeans beans, Task task, String itemProcessingIdentifier) {
+    public SynchronizationContext(
+            @NotNull PrismObject<ShadowType> shadowedResourceObject,
+            ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull PrismObject<ResourceType> resource,
+            String channel,
+            ModelBeans beans,
+            Task task,
+            String itemProcessingIdentifier) {
         this.shadowedResourceObject = shadowedResourceObject;
         this.resourceObjectDelta = resourceObjectDelta;
         this.resource = resource;
@@ -361,11 +381,15 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return shadowedResourceObject;
     }
 
-    public PrismObject<ResourceType> getResource() {
+    public @Nullable ObjectDelta<ShadowType> getResourceObjectDelta() {
+        return resourceObjectDelta;
+    }
+
+    public @NotNull PrismObject<ResourceType> getResource() {
         return resource;
     }
 
-    public Class<F> getFocusClass() throws SchemaException {
+    public @NotNull Class<F> getFocusClass() throws SchemaException {
 
         if (focusClass != null) {
             return focusClass;
@@ -385,8 +409,23 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         if (objectType == null) {
             throw new SchemaException("Unknown focus type " + focusTypeQName + " in synchronization policy in " + resource);
         }
-        this.focusClass = objectType.getClassDefinition();
+
+        focusClass = objectType.getClassDefinition();
         return focusClass;
+    }
+
+    public @NotNull F getPreFocus() throws SchemaException {
+        if (preFocus != null) {
+            return preFocus;
+        }
+        preFocus = prismContext.createObjectable(
+                getFocusClass());
+        return preFocus;
+    }
+
+    public @NotNull PrismObject<F> getPreFocusAsPrismObject() throws SchemaException {
+        //noinspection unchecked
+        return (PrismObject<F>) preFocus.asPrismObject();
     }
 
     public F getLinkedOwner() {
@@ -432,10 +471,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     public String getChannel() {
         return channel;
-    }
-
-    public void setResource(PrismObject<ResourceType> resource) {
-        this.resource = resource;
     }
 
     public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
@@ -525,6 +560,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         DebugUtil.debugDumpWithLabelToStringLn(sb, "expressionProfile", expressionProfile, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "objectSynchronization", objectSynchronization, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "focusClass", focusClass, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "preFocus", preFocus, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "currentOwner", linkedOwner, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "correlatedOwner", correlatedOwner, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "situation", situation, indent + 1);
@@ -554,5 +590,9 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     @VisibleForTesting
     public static void setSkipMaintenanceCheck(boolean skipMaintenanceCheck) {
         SynchronizationContext.skipMaintenanceCheck = skipMaintenanceCheck;
+    }
+
+    public @Nullable ObjectSynchronizationType getObjectSynchronizationBean() {
+        return objectSynchronization;
     }
 }

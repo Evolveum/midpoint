@@ -174,6 +174,7 @@ public class ExpressionConstants {
     public static final String VAR_ITEM = "item";
     public static final String VAR_BUCKET = "bucket";
 
+    public static final String VAR_SYNCHRONIZATION_CONTEXT = "synchronizationContext";
     public static final String VAR_CORRELATION_CONTEXT = "correlationContext";
     public static final String VAR_CORRELATION_STATE = "correlationState";
 }

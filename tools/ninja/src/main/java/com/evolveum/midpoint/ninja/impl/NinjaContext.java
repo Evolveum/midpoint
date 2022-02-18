@@ -151,10 +151,6 @@ public class NinjaContext {
             return "postgresql";
         } else if (postfix.startsWith("sqlserver")) {
             return "sqlserver";
-        } else if (postfix.startsWith("mysql")) {
-            return "mysql";
-        } else if (postfix.startsWith("mariadb")) {
-            return "mariadb";
         } else if (postfix.startsWith("oracle")) {
             return "oracle";
         } else if (postfix.startsWith("h2")) {

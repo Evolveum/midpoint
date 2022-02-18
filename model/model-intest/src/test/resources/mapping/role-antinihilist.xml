@@ -8,11 +8,9 @@
 <role oid="4c5c6c44-bd7d-11e7-99ef-9b82464da93d"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Antinihilist</name>
-    <description>Role that fears non-existece. It will die if there is attempt to assign it for non-existent account.</description>
+    <description>Role that fears non-existence. It will die if there is attempt to assign it for non-existent account.</description>
     <inducement>
         <construction >
             <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>

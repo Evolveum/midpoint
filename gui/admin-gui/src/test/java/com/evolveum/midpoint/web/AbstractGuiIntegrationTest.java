@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 
 import org.apache.wicket.Component;
@@ -254,6 +255,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
             @Override
             public AdminGuiConfigurationMergeManager getAdminGuiConfigurationMergeManager() {
+                return null;
+            }
+
+            @Override
+            public CorrelationService getCorrelationService() {
                 return null;
             }
         };

@@ -25,7 +25,6 @@ import java.util.List;
  * And cleaned-up heavily.
  *
  * @author honchar
- * @author mederly
  */
 public abstract class DataLanguagePanel<T> extends MultiStateHorizontalButton {
 

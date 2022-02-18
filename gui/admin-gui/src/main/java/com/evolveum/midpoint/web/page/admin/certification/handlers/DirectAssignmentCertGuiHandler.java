@@ -33,9 +33,6 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
     private static final Trace LOGGER = TraceManager.getTrace(DirectAssignmentCertGuiHandler.class);
 

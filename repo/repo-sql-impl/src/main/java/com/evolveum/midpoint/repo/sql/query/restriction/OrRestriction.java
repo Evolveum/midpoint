@@ -16,7 +16,6 @@ import com.evolveum.midpoint.repo.sql.query.hqm.condition.OrCondition;
 
 /**
  * @author lazyman
- * @author mederly
  */
 public class OrRestriction extends NaryLogicalRestriction<OrFilter> {
 

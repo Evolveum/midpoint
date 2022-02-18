@@ -14,9 +14,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
-/**
- * @author mederly
- */
 public class EvaluatedTriggerDto implements Serializable {
 
     public static final String F_MESSAGE = "message";

@@ -32,9 +32,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutionInformationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
 
-/**
- * @author mederly
- */
 public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SwitchableApprovalProcessPreviewsPanel.class);
@@ -79,7 +76,7 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> {
                 OperationResult result = opTask.getResult();
                 ApprovalSchemaExecutionInformationType rv = null;
                 try {
-                    rv = parentPage.getWorkflowManager().getApprovalSchemaExecutionInformation(taskOid, opTask, result);
+                    rv = parentPage.getApprovalsManager().getApprovalSchemaExecutionInformation(taskOid, opTask, result);
                     parentPage.getModelObjectResolver().resolveAllReferences(Collections.singleton(rv.asPrismContainerValue()), opTask, result);
                     result.computeStatus();
                 } catch (Throwable t) {

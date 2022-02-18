@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.impl.correlator.noop;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -43,7 +45,7 @@ public class NoOpCorrelatorFactory implements CorrelatorFactory<NoOpCorrelator, 
 
     @Override
     public @NotNull NoOpCorrelator instantiate(
-            @NotNull NoOpCorrelatorType configuration,
+            @NotNull CorrelatorContext<NoOpCorrelatorType> context,
             @NotNull Task task,
             @NotNull OperationResult result) {
         return new NoOpCorrelator();

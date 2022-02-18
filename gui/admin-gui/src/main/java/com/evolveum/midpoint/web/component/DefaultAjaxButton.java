@@ -11,9 +11,6 @@ import com.evolveum.midpoint.web.component.util.TargetAcceptor;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
-/**
- * @author mederly
- */
 public class DefaultAjaxButton extends AjaxButton {
 
     private final TargetAcceptor onClick;

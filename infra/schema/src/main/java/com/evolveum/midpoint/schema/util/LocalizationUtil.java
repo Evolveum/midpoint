@@ -19,9 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-/**
- * @author mederly
- */
 public class LocalizationUtil {
 
     public static LocalizableMessageType createLocalizableMessageType(LocalizableMessage message) {

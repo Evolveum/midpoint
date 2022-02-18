@@ -24,7 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * They contain "live" data used by projector computation.
  * Do NOT store this object in web session.
  *
- * @author mederly
  * @author Radovan Semancik
  */
 public interface EvaluatedResourceObjectConstruction extends DebugDumpable, Serializable {

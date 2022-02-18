@@ -12,14 +12,20 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import java.io.Serializable;
 
 /**
- * @author semancik
+ * Mapping prepared for evaluation (or already evaluated).
+ * It is a "parsed" mapping, in contrast with {@link MappingType} bean that contains the mapping definition.
  *
+ * @param <V> type of {@link PrismValue} the mapping produces
+ * @param <D> type of {@link ItemDefinition} of the item the mapping produces (currently unused!)
+ *
+ * @author semancik
  */
-public interface Mapping<V extends PrismValue, D extends ItemDefinition> extends Serializable {
+public interface Mapping<V extends PrismValue, D extends ItemDefinition<?>> extends Serializable {
 
     /**
      * Returns elapsed time in milliseconds.

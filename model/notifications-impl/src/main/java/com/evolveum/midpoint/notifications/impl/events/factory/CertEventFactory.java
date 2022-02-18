@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.events.factory;
 
 import java.util.List;
@@ -19,7 +18,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.notifications.api.events.CertCampaignEvent;
 import com.evolveum.midpoint.notifications.api.events.CertCampaignStageEvent;
 import com.evolveum.midpoint.notifications.api.events.CertReviewEvent;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctions;
 import com.evolveum.midpoint.notifications.impl.SimpleObjectRefImpl;
 import com.evolveum.midpoint.notifications.impl.events.AccessCertificationEventImpl;
 import com.evolveum.midpoint.notifications.impl.events.CertCampaignEventImpl;
@@ -40,7 +39,7 @@ public class CertEventFactory {
     private LightweightIdentifierGenerator idGenerator;
 
     @Autowired
-    private NotificationFunctionsImpl notificationsUtil;
+    private NotificationFunctions notificationsUtil;
 
     public CertCampaignEvent createOnCampaignStartEvent(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         CertCampaignEventImpl event = new CertCampaignEventImpl(idGenerator, campaign, EventOperationType.ADD);

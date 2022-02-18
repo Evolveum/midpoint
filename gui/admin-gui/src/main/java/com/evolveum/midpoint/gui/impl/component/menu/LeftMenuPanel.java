@@ -64,7 +64,7 @@ import com.evolveum.midpoint.web.page.self.PageSelfConsents;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -208,7 +208,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         menu.addMainMenuItem(createRolesMenu());
         menu.addMainMenuItem(createServicesItems());
         menu.addMainMenuItem(createResourcesItems());
-        if (getPageBase().getWorkflowManager().isEnabled()) {
+        if (getPageBase().getCaseManager().isEnabled()) {
             menu.addMainMenuItem(createWorkItemsItems());
         }
         menu.addMainMenuItem(createCertificationItems());
@@ -390,6 +390,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private SideBarMenuItem createConfigurationMenu(boolean experimentalFeaturesEnabled) {
         SideBarMenuItem item = new SideBarMenuItem("PageAdmin.menu.top.configuration", experimentalFeaturesEnabled);
         item.addMainMenuItem(createArchetypesItems());
+        item.addMainMenuItem(createMessageTemplatesItems());
         item.addMainMenuItem(createObjectsCollectionItems());
         item.addMainMenuItem(createObjectTemplatesItems());
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.bulkActions", "fa fa-bullseye", PageBulkAction.class));
@@ -519,7 +520,11 @@ public class LeftMenuPanel extends BasePanel<Void> {
         }
     }
 
-
+    private MainMenuItem createMessageTemplatesItems() {
+        MainMenuItem item = new MainMenuItem("PageAdmin.menu.top.messageTemplates", GuiStyleConstants.EVO_MESSAGE_TEMPLATE_TYPE_ICON);
+        createBasicAssignmentHolderMenuItems(item, PageTypes.MESSAGE_TEMPLATES);
+        return item;
+    }
 
     private MainMenuItem createArchetypesItems() {
         MainMenuItem item = new MainMenuItem("PageAdmin.menu.top.archetypes", GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON);

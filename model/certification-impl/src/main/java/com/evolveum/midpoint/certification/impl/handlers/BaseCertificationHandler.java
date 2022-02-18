@@ -36,9 +36,6 @@ import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.Collections;
 
-/**
- * @author mederly
- */
 @Component
 public abstract class BaseCertificationHandler implements CertificationHandler {
 

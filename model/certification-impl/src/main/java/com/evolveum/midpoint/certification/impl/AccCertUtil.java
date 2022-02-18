@@ -9,9 +9,6 @@ package com.evolveum.midpoint.certification.impl;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-/**
- * @author mederly
- */
 @SuppressWarnings("WeakerAccess")
 public class AccCertUtil {
 

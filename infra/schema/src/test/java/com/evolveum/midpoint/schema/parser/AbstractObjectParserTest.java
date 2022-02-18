@@ -15,9 +15,6 @@ import javax.xml.namespace.QName;
 
 import static org.testng.AssertJUnit.assertTrue;
 
-/**
- * @author mederly
- */
 public abstract class AbstractObjectParserTest<O extends Objectable> extends AbstractContainerValueParserTest<O> {
 
     protected void processObject(String desc, ParsingFunction<PrismObject<O>> parser,

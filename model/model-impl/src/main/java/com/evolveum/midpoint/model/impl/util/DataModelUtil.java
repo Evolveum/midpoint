@@ -28,8 +28,6 @@ import java.util.List;
 
 /**
  * EXPERIMENTAL
- *
- * @author mederly
  */
 public class DataModelUtil {
 

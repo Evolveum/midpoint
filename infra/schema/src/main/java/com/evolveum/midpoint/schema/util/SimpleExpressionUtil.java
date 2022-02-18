@@ -18,8 +18,6 @@ import javax.xml.bind.JAXBElement;
  * Very simple expression utils. More advanced ones are to be found in upper layers.
  *
  * EXPERIMENTAL. Later will be reconsidered.
- *
- * @author mederly
  */
 @Experimental
 public class SimpleExpressionUtil {

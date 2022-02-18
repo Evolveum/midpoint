@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -30,21 +30,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
-import com.evolveum.midpoint.security.api.*;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
-import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskHandler;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-
-import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -71,9 +56,16 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.*;
-import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -87,6 +79,7 @@ import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.test.asserter.*;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.TransportService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.*;
@@ -107,17 +100,27 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingManager;
+import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
+import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskHandler;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ProvisioningStatistics;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -198,7 +201,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected HookRegistry hookRegistry;
     @Autowired protected Clock clock;
     @Autowired protected SchemaService schemaService;
-    @Autowired protected DummyTransport dummyTransport;
     @Autowired protected SecurityEnforcer securityEnforcer;
     @Autowired protected SecurityContextManager securityContextManager;
     @Autowired protected MidpointFunctions libraryMidpointFunctions;
@@ -209,7 +211,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected ObjectResolver modelObjectResolver;
 
     @Autowired(required = false)
+    protected TransportService transportService;
+
+    @Autowired(required = false)
     protected NotificationManager notificationManager;
+
+    protected final DummyTransport dummyTransport = new DummyTransport();
 
     @Autowired(required = false)
     protected GuiProfiledPrincipalManager focusProfileService;
@@ -233,9 +240,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         InternalsConfig.setAvoidLoggingChange(isAvoidLoggingChange());
         // Make sure the checks are turned on
         InternalsConfig.turnOnAllChecks();
-        // By default, notifications are turned off because of performance implications. Individual tests turn them on for themselves.
+        // By default, notifications are turned off because of performance implications.
+        // Individual tests turn them on for themselves.
         if (notificationManager != null) {
             notificationManager.setDisabled(true);
+        }
+        if (transportService != null) {
+            transportService.registerTransport(dummyTransport);
         }
 
         // This is generally useful in tests, to avoid long waiting for bucketed tasks.
@@ -284,6 +295,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     public DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
         resource.controller = dummyResourceCollection.initDummyResource(resource.name, resource.file, resource.oid,
                 resource.controllerInitLambda, task, result);
+        resource.reload(result); // To have schema, etc
         return resource.controller;
     }
 
@@ -491,7 +503,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Task task = createPlainTask("getObjectCount");
         OperationResult result = task.getResult();
         List<PrismObject<O>> users = modelService.searchObjects(type, query, null, task, result);
-        if (verbose) { display(type.getSimpleName() + "s", users); }
+        if (verbose) {display(type.getSimpleName() + "s", users);}
         return users.size();
     }
 
@@ -510,7 +522,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
             return true;
         }, null, task, result);
-        if (verbose) { displayValue(type.getSimpleName() + "s", count.getValue()); }
+        if (verbose) {displayValue(type.getSimpleName() + "s", count.getValue());}
         assertEquals("Unexpected number of " + type.getSimpleName() + "s", expectedNumberOfObjects, count.getValue());
     }
 
@@ -3164,7 +3176,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public boolean check() throws CommonException {
                 Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
                 OperationResult result = freshTask.getResult();
-                if (verbose) { display("Task checked (result=" + result + ")", freshTask); }
+                if (verbose) {display("Task checked (result=" + result + ")", freshTask);}
                 assert !isError(result, checkSubresult) : "Error in " + freshTask + ": " + TestUtil.getErrorMessage(result);
                 if (isUnknown(result, checkSubresult)) {
                     return false;
@@ -3200,7 +3212,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public boolean check() throws CommonException {
                 Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
                 OperationResult result = freshTask.getResult();
-                if (verbose) { display("Check result", result); }
+                if (verbose) {display("Check result", result);}
                 assert !isError(result, checkSubresult) : "Error in " + freshTask + ": " + TestUtil.getErrorMessage(result);
                 return !isUnknown(result, checkSubresult) &&
                         !java.util.Objects.equals(freshTask.getLastRunStartTimestamp(), origLastRunStartTimestamp);
@@ -3253,29 +3265,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return waitForTaskNextRun(taskOid, checkSubresult, timeout, false);
     }
 
-    protected OperationResult waitForTaskActivityCompleted(final String taskOid,  long startedAfter, OperationResult waitResult, long timeout) throws CommonException {
+    protected OperationResult waitForTaskActivityCompleted(final String taskOid, long startedAfter, OperationResult waitResult, long timeout) throws CommonException {
         final Holder<OperationResult> taskResultHolder = new Holder<>();
         waitForTaskStatusUpdated(taskOid, "Waiting for task " + taskOid, new Checker() {
-                @Override
-                public boolean check() throws CommonException {
-                    var task = taskManager.getTaskWithResult(taskOid, waitResult);
-                    var activity = task.getActivitiesStateOrClone().getActivity();
-                    if (activity == null) {
-                        return false;
-                    }
-                    var activityStart = XmlTypeConverter.toMillis(activity.getRealizationStartTimestamp());
-                    var activityEnd = XmlTypeConverter.toMillis(activity.getRealizationEndTimestamp());
-                    if (activityStart > startedAfter &&  activityEnd > activityStart) {
-                        taskResultHolder.setValue(task.getResult());
-                        return true;
-                    }
+            @Override
+            public boolean check() throws CommonException {
+                var task = taskManager.getTaskWithResult(taskOid, waitResult);
+                var activity = task.getActivitiesStateOrClone().getActivity();
+                if (activity == null) {
                     return false;
                 }
-
-                @Override
-                public void timeout() {
-                    assert false : "Timeouted while waiting for task " + taskOid + " activity to complete.";
+                var activityStart = XmlTypeConverter.toMillis(activity.getRealizationStartTimestamp());
+                var activityEnd = XmlTypeConverter.toMillis(activity.getRealizationEndTimestamp());
+                if (activityStart > startedAfter && activityEnd > activityStart) {
+                    taskResultHolder.setValue(task.getResult());
+                    return true;
                 }
+                return false;
+            }
+
+            @Override
+            public void timeout() {
+                assert false : "Timeouted while waiting for task " + taskOid + " activity to complete.";
+            }
         }, timeout, 0);
         return taskResultHolder.getValue();
     }
@@ -3316,7 +3328,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public boolean check() throws CommonException {
                 Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
                 OperationResult taskResult = freshTask.getResult();
-                if (verbose) { display("Check result", taskResult); }
+                if (verbose) {display("Check result", taskResult);}
                 taskResultHolder.setValue(taskResult);
                 if (isError(taskResult, checkSubresult)) {
                     return true;
@@ -3553,7 +3565,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @Override
             public boolean check() throws CommonException {
                 CaseType currentCase = repositoryService.getObject(CaseType.class, aCase.getOid(), null, waitResult).asObjectable();
-                if (verbose) { AbstractIntegrationTest.display("Case", currentCase); }
+                if (verbose) {AbstractIntegrationTest.display("Case", currentCase);}
                 return SchemaConstants.CASE_STATE_CLOSED.equals(currentCase.getState());
             }
 
@@ -4057,6 +4069,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
         }
         fail("Notifier " + name + " message body " + expectedBody + " not found");
+    }
+
+    protected void assertHasDummyTransportMessageContaining(String name, String expectedBodySubstring) {
+        List<Message> messages = dummyTransport.getMessages("dummy:" + name);
+        assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
+        for (Message message : messages) {
+            if (message.getBody() != null && message.getBody().contains(expectedBodySubstring)) {
+                return;
+            }
+        }
+        fail("Notifier " + name + " message body containing '" + expectedBodySubstring + "' not found");
     }
 
     protected void displayAllNotifications() {

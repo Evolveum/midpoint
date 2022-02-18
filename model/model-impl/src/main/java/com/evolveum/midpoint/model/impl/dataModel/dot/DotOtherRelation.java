@@ -10,9 +10,6 @@ package com.evolveum.midpoint.model.impl.dataModel.dot;
 import com.evolveum.midpoint.model.impl.dataModel.model.Relation;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class DotOtherRelation implements DotRelation {
 
     @NotNull private final Relation relation;

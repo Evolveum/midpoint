@@ -37,9 +37,6 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * @author mederly
- */
 @Component
 public class AccCertReviewersHelper {
 

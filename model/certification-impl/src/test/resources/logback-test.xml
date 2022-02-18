@@ -20,9 +20,9 @@
     <logger name="com.evolveum.midpoint.model.common.mapping" level="TRACE" />
     <logger name="com.evolveum.midpoint.model" level="TRACE" />
     <!-- Projector "TRACE" is just too much info ... -->
-    <logger name="com.evolveum.midpoint.model.lens.projector" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.lens.projector" level="DEBUG" />
     <!-- ... and expression trace as well -->
-    <logger name="com.evolveum.midpoint.model.common.expression.Expression" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.common.expression.Expression" level="DEBUG" />
     <logger name="com.evolveum.midpoint.common.monitor" level="TRACE" />
     <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
     <logger name="com.evolveum.midpoint.repo" level="DEBUG" />
@@ -30,6 +30,8 @@
     <!--<logger name="org.hibernate.SQL" level="TRACE" />-->
     <logger name="com.evolveum.midpoint.test" level="TRACE" />
     <logger name="com.evolveum.midpoint.certification" level="TRACE" />
+    <logger name="com.evolveum.midpoint.cases" level="TRACE" />
+    <logger name="com.evolveum.midpoint.wf" level="TRACE" />
     <logger name="PROFILING" level="TRACE" />
     <root level="INFO">
         <appender-ref ref="X" />

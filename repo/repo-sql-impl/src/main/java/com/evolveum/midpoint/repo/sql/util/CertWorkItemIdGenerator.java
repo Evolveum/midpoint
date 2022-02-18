@@ -18,7 +18,6 @@ import java.io.Serializable;
 
 /**
  * @author lazyman
- * @author mederly
  */
 public class CertWorkItemIdGenerator implements IdentifierGenerator {
 

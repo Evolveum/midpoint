@@ -19,9 +19,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Pavol Mederly
- */
 public class MappingsLineDto implements Serializable {
 
     public static final String F_OBJECT = "object";

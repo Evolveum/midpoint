@@ -14,9 +14,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class RepoInitialSetup {
 
     private static final Trace LOGGER = TraceManager.getTrace(RepoInitialSetup.class);

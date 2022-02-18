@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.api.correlator.idmatch;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,21 +22,19 @@ public interface IdMatchService {
 
     /**
      * Request a match for given resource object attributes.
-     *
-     * @param attributes Attributes of an account that should be matched.
      */
-    @NotNull MatchingResult executeMatch(@NotNull ShadowAttributesType attributes, @NotNull OperationResult result)
+    @NotNull MatchingResult executeMatch(@NotNull MatchingRequest request, @NotNull OperationResult result)
             throws CommunicationException, SchemaException;
 
     /**
      * Resolves a pending match.
      *
-     * @param attributes Attributes of an account that is pending (that was previously asked to being matched).
+     * @param idMatchObject Object whose pending match is to be updated.
      * @param matchRequestId Identifier of the match request (if provided by the service)
      * @param referenceId What reference ID to assign. Null means "generate new".
      */
     void resolve(
-            @NotNull ShadowAttributesType attributes,
+            @NotNull IdMatchObject idMatchObject,
             @Nullable String matchRequestId,
             @Nullable String referenceId,
             @NotNull OperationResult result) throws CommunicationException, SchemaException;

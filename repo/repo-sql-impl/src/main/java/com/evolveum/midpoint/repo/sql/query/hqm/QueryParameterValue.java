@@ -9,9 +9,6 @@ package com.evolveum.midpoint.repo.sql.query.hqm;
 
 import org.hibernate.type.Type;
 
-/**
- * @author mederly
- */
 public class QueryParameterValue {
 
     private Object value;

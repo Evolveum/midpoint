@@ -10,9 +10,6 @@ package com.evolveum.midpoint.provisioning.api;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-/**
- * @author mederly
- */
 @FunctionalInterface
 public interface ConstraintViolationConfirmer {
 

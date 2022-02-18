@@ -23,9 +23,6 @@ import org.apache.wicket.model.PropertyModel;
 
 import static com.evolveum.midpoint.schema.util.LocalizationUtil.getLocalizableMessageOrDefault;
 
-/**
- * @author mederly
- */
 public class InformationPanel extends BasePanel<InformationType> {
 
     private static final String ID_TITLE = "title";

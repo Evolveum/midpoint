@@ -20,9 +20,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
-/**
- * @author mederly
- */
 public class DotMappingRelation implements DotRelation {
 
     private static final int MAX_CONSTANT_WIDTH = 50;

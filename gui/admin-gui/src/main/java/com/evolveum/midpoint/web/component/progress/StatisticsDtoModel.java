@@ -16,9 +16,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.model.IModel;
 
-/**
- * @author Pavol Mederly
- */
 public class StatisticsDtoModel implements IModel<StatisticsDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(StatisticsDtoModel.class);

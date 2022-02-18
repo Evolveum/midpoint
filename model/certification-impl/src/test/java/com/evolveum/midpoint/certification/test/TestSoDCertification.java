@@ -35,9 +35,6 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = {"classpath:ctx-certification-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestSoDCertification extends AbstractCertificationTest {

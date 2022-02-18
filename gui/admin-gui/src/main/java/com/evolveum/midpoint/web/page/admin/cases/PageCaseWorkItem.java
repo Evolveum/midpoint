@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -39,9 +39,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author mederly
- */
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/workItem", matchUrlForSecurity = "/admin/workItem")

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Portions Copyright (C) 2017-2020 Evolveum and contributors
+# Portions Copyright (C) 2017-2022 Evolveum and contributors
 #
 # This work is dual-licensed under the Apache License 2.0
 # and European Union Public License. See LICENSE file for details.
@@ -167,7 +167,7 @@ if [ "${1}" = "init-native" ] ; then
 		tail -f /dev/null
 	fi
 	exit 0
-fi	
+fi
 
 mkdir -p "${MIDPOINT_HOME}/log"
 
@@ -214,7 +214,7 @@ fi
 
 ###### Backward compatibility for ENV variables ####
 
-if [ "${MP_NO_ENV_COMPAT:-}" != "1" ] ; then	
+if [ "${MP_NO_ENV_COMPAT:-}" != "1" ] ; then
 	[ "${REPO_PORT:-}" != "" ] && db_port=${REPO_PORT}
 	if [ "${REPO_DATABASE_TYPE:-}" != "" ]
 	then
@@ -225,16 +225,6 @@ if [ "${MP_NO_ENV_COMPAT:-}" != "1" ] ; then
 				[ "${db_port:-}" == "" ] && db_port=5437
 				db_prefix="jdbc:h2:tcp://"
 				db_path="/${REPO_DATABASE:-midpoint}"
-				;;
-			mariadb)
-				[ "${db_port:-}" == "" ] && db_port=3306
-				db_prefix="jdbc:mariadb://"
-				db_path="/${REPO_DATABASE:-midpoint}?characterEncoding=utf8"
-				;;
-			mysql)
-				[ "${db_port:-}" == "" ] && db_port=3306
-				db_prefix="jdbc:mysql://"
-				db_path="/${REPO_DATABASE:-midpoint}?characterEncoding=utf8"
 				;;
 			oracle)
 				[ "${db_port:-}" == "" ] && db_port=1521

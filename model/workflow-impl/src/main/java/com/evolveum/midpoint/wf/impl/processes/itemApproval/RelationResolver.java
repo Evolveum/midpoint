@@ -12,9 +12,6 @@ import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * @author pmederly
- */
 @FunctionalInterface
 public interface RelationResolver {
     // Must return parent-less values

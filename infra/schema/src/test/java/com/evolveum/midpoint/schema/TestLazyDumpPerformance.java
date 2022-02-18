@@ -13,9 +13,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author mederly
- */
 public class TestLazyDumpPerformance extends AbstractSchemaTest {
 
     private static final long ITERATIONS = 4000000;

@@ -14,9 +14,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 
-/**
- * @author mederly
- */
 public class DotRepositoryDataItem implements DotDataItem {
 
     private static final String COLOR_USER = "darkred";

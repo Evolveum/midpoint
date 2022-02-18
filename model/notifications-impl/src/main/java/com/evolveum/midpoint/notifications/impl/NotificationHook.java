@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
@@ -42,8 +41,6 @@ import javax.annotation.PostConstruct;
  * One of interfaces of the notifier to midPoint.
  *
  * Used to catch user-related events.
- *
- * @author mederly
  */
 @Component
 public class NotificationHook implements ChangeHook {
@@ -57,7 +54,7 @@ public class NotificationHook implements ChangeHook {
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired private HookRegistry hookRegistry;
     @Autowired private NotificationManager notificationManager;
-    @Autowired private NotificationFunctionsImpl notificationsUtil;
+    @Autowired private NotificationFunctions notificationsUtil;
 
     @PostConstruct
     public void init() {

@@ -20,7 +20,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
+import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.model.intest.util.MockMultipleTriggersHandler;
 import com.evolveum.midpoint.model.intest.util.MockTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;

@@ -58,9 +58,6 @@ import org.springframework.stereotype.Component;
  *    - if task is SUSPENDED, it can have 0 to 2 triggers
  *      - 0 if the job was created when task was in SUSPENDED state
  *      - 1 or 2 if a RUNNABLE task was SUSPENDED (triggers were kept in order to be un-paused when task is resumed)
- *
- *
- * @author Pavol Mederly
  */
 @Component
 public class TaskSynchronizer {

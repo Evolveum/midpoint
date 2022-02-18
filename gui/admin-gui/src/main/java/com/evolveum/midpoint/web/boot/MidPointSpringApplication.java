@@ -70,6 +70,7 @@ import java.util.Collections;
         "classpath:ctx-model-common.xml",
         "classpath:ctx-authentication.xml",
         "classpath:ctx-report.xml",
+        "classpath*:ctx-cases.xml",
         "classpath*:ctx-workflow.xml",
         "classpath*:ctx-notifications.xml",
         "classpath:ctx-certification.xml",

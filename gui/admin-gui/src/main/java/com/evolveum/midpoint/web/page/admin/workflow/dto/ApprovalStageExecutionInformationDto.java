@@ -10,8 +10,11 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseEventUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.io.Serializable;
@@ -22,8 +25,6 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * GUI-friendly information about historic, current or future execution of a given approval stage.
- *
- * @author mederly
  */
 
 public class ApprovalStageExecutionInformationDto implements Serializable {

@@ -149,7 +149,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return state.getObjectTypeClass();
     }
 
-    public PrismObjectDefinition<O> getObjectDefinition() {
+    public @NotNull PrismObjectDefinition<O> getObjectDefinition() {
         return state.getObjectDefinition();
     }
 

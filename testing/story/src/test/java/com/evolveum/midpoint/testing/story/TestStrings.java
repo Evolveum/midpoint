@@ -1,31 +1,23 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.testing.story;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertReferenceValues;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
-import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.model.api.WorkflowService;
-import com.evolveum.midpoint.model.test.DummyTransport;
+import com.evolveum.midpoint.model.api.CaseService;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -49,20 +40,45 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * Various approval-related tests.
+ *
+ * Global + metadata-induced policy rules in nutshell:
+ *
+ * 1. Role assignment (subtype=test) must be approved by all line managers. (Order: 10) (global)
+ * 2. Assignment of security-sensitive roles must be approved by group Security Approvers (Order: 20)
+ * (in `metarole-approval-security`)
+ * 3. SoD violations (indicated by policy situation) must be approved by group SoD Approvers (Order: 30) (global)
+ * 4. Role assignment (subtype=test) must be approved by role approver. (Order: 40) (global)
+ *
+ * There's automated escalation followed by rejection for levels 10 and 40,
+ * and automated rejection for levels 20 and 30 (no escalation). All of that is in global configuration.
+ *
+ * There are two special approval metaroles:
+ *
+ * - `metarole-approval-role-approvers-first` - changes the approval strategy for level 40 to `firstDecides`
+ * - `metarole-approval-role-approvers-form` - adds using a form to level 40
+ *
+ * == Testing scenarios
+ *
+ * 1. `test1xx` - straightforward approval of `a-test-1` assignment to `bob` by four approvers
+ * 2. `test200-test219` - testing the escalation process
+ * 3. `test220-test220` - testing approvals with a form
+ * 4. `test250` - testing assignment with `org:approver` relation
+ */
 @SuppressWarnings({ "FieldCanBeLocal", "SameParameterValue" })
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestStrings extends AbstractStoryTest {
 
-    @Autowired private WorkflowService workflowService;
-    @Autowired private DummyTransport dummyTransport;
+    @Autowired private CaseService caseService;
 
     private static final File TEST_DIR = new File("src/test/resources/strings");
     private static final File ORG_DIR = new File(TEST_DIR, "orgs");
@@ -71,46 +87,65 @@ public class TestStrings extends AbstractStoryTest {
     private static final File USERS_DIR = new File(TEST_DIR, "users");
 
     private static final File ORG_MONKEY_ISLAND_FILE = new File(ORG_DIR, "0-org-monkey-island-modified.xml");
-    private static final TestResource<OrgType> ORG_TEAMS = new TestResource<>(ORG_DIR, "1-teams.xml", "b7cbed1f-5e73-4455-b88a-b5b3ac2a0f54");
-    private static final TestResource<OrgType> ORG_ROLE_CATALOG = new TestResource<>(ORG_DIR, "2-role-catalog.xml", "b77c512a-85b9-470e-a7ab-a55b8f187674");
-    private static final TestResource<OrgType> ORG_SECURITY_APPROVERS = new TestResource<>(ORG_DIR, "security-approvers.xml", "a14afc10-e4a2-48a4-abfd-e8a2399f98d3");
-    private static final TestResource<OrgType> ORG_SOD_APPROVERS = new TestResource<>(ORG_DIR, "sod-approvers.xml", "cb73377a-da8d-4fbe-b174-19879bae9032");
+    private static final TestResource<OrgType> ORG_TEAMS =
+            new TestResource<>(ORG_DIR, "1-teams.xml", "b7cbed1f-5e73-4455-b88a-b5b3ac2a0f54");
+    private static final TestResource<OrgType> ORG_ROLE_CATALOG =
+            new TestResource<>(ORG_DIR, "2-role-catalog.xml", "b77c512a-85b9-470e-a7ab-a55b8f187674");
+    private static final TestResource<OrgType> ORG_SECURITY_APPROVERS =
+            new TestResource<>(ORG_DIR, "security-approvers.xml", "a14afc10-e4a2-48a4-abfd-e8a2399f98d3");
+    private static final TestResource<OrgType> ORG_SOD_APPROVERS =
+            new TestResource<>(ORG_DIR, "sod-approvers.xml", "cb73377a-da8d-4fbe-b174-19879bae9032");
 
-    private static final TestResource<RoleType> ROLE_END_USER = new TestResource<>(ROLES_DIR, "role-end-user.xml", "00000000-0000-0000-0000-000000000008");
-    private static final TestResource<FormType> FORM_USER_DETAILS = new TestResource<>(ROLES_DIR, "form-user-details.xml", "6a1874a7-1e60-43b3-8d67-7f76484dead5");
-    private static final TestResource<RoleType> METAROLE_APPROVAL_ROLE_APPROVERS_FIRST = new TestResource<>(ROLES_DIR, "metarole-approval-role-approvers-first.xml", "e3c28c94-798a-4f93-85f8-de7cbe37315b");
-    private static final TestResource<RoleType> METAROLE_APPROVAL_ROLE_APPROVERS_FORM = new TestResource<>(ROLES_DIR, "metarole-approval-role-approvers-form.xml", "df092a19-68f0-4056-adf8-482f8fd26410");
-    private static final TestResource<RoleType> METAROLE_APPROVAL_SECURITY = new TestResource<>(ROLES_DIR, "metarole-approval-security.xml", "9c0c224f-f279-44b5-b906-8e8418a651a2");
+    private static final TestResource<RoleType> ROLE_END_USER =
+            new TestResource<>(ROLES_DIR, "role-end-user.xml", "00000000-0000-0000-0000-000000000008");
+    private static final TestResource<FormType> FORM_USER_DETAILS =
+            new TestResource<>(ROLES_DIR, "form-user-details.xml", "6a1874a7-1e60-43b3-8d67-7f76484dead5");
+    private static final TestResource<RoleType> METAROLE_APPROVAL_ROLE_APPROVERS_FIRST =
+            new TestResource<>(ROLES_DIR, "metarole-approval-role-approvers-first.xml", "e3c28c94-798a-4f93-85f8-de7cbe37315b");
+    private static final TestResource<RoleType> METAROLE_APPROVAL_ROLE_APPROVERS_FORM =
+            new TestResource<>(ROLES_DIR, "metarole-approval-role-approvers-form.xml", "df092a19-68f0-4056-adf8-482f8fd26410");
+    private static final TestResource<RoleType> METAROLE_APPROVAL_SECURITY =
+            new TestResource<>(ROLES_DIR, "metarole-approval-security.xml", "9c0c224f-f279-44b5-b906-8e8418a651a2");
 
-    private static final File ROLE_A_TEST_1 = new File(ROLES_SPECIFIC_DIR, "a-test-1.xml");
-    private static String roleATest1Oid;
-    private static final File ROLE_A_TEST_2A = new File(ROLES_SPECIFIC_DIR, "a-test-2a.xml");
-    private static final File ROLE_A_TEST_2B = new File(ROLES_SPECIFIC_DIR, "a-test-2b.xml");
-    private static final File ROLE_A_TEST_3A = new File(ROLES_SPECIFIC_DIR, "a-test-3a.xml");
-    private static final File ROLE_A_TEST_3B = new File(ROLES_SPECIFIC_DIR, "a-test-3b.xml");
-    private static final File ROLE_A_TEST_3X = new File(ROLES_SPECIFIC_DIR, "a-test-3x.xml");
-    private static final File ROLE_A_TEST_3Y = new File(ROLES_SPECIFIC_DIR, "a-test-3y.xml");
-    private static final File ROLE_A_TEST_4 = new File(ROLES_SPECIFIC_DIR, "a-test-4.xml");
-    private static String roleATest4Oid;
+    private static final TestResource<RoleType> ROLE_A_TEST_1 =
+            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-1.xml", "0daa49bc-6f5b-4746-8461-2e1a633070e3");
+    private static final TestResource<RoleType> ROLE_A_TEST_2A =
+            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-2a.xml", "fa636d6a-f016-491c-8cd5-cdcbfd516be5");
+    private static final TestResource<RoleType> ROLE_A_TEST_2B =
+            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-2b.xml", "ecb9287d-5852-4bec-9926-4ab1de518e26");
+    private static final TestResource<RoleType> ROLE_A_TEST_3A =
+            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-3a.xml", "3dc7e7de-17a8-488d-ba98-402971999138");
+    private static final TestResource<RoleType> ROLE_A_TEST_3B =
+            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-3b.xml", "0090e8a0-05a7-4181-b763-265cd2804ca7");
+    private static final TestResource<RoleType> ROLE_A_TEST_3X =
+            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-3x.xml", "d3767689-cf26-4e2f-8a1e-5cd139fc4401");
+    private static final TestResource<RoleType> ROLE_A_TEST_3Y =
+            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-3y.xml", "1e422483-997c-4808-bebd-0151d18a391e");
+    private static final TestResource<RoleType> ROLE_A_TEST_4 =
+            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-4.xml", "37e5a590-ab32-4e4f-8c73-64715a9b081d");
 
-    private static final File USER_BARKEEPER_FILE = new File(USERS_DIR, "barkeeper.xml");
-    private static final File USER_BOB_FILE = new File(USERS_DIR, "bob.xml");
-    private static String userBobOid;
-    private static final File USER_CARLA_FILE = new File(USERS_DIR, "carla.xml");
-    private static String userCarlaOid;
-    private static final File USER_CHEESE_FILE = new File(USERS_DIR, "cheese.xml");
-    private static String userCheeseOid;
-    private static final File USER_CHEF_FILE = new File(USERS_DIR, "chef.xml");
-    private static String userChefOid;
-    private static final File USER_ELAINE_FILE = new File(USERS_DIR, "elaine.xml");
-    private static String userElaineOid;
-    private static final File USER_GUYBRUSH_FILE = new File(USERS_DIR, "guybrush.xml");
-    private static String userGuybrushOid;
-    private static final File USER_LECHUCK_FILE = new File(USERS_DIR, "lechuck.xml");
-    private static String userLechuckOid;
-    private static final File USER_LECHUCK_DEPUTY_FILE = new File(USERS_DIR, "lechuck-deputy.xml");
-    private static final File USER_LECHUCK_DEPUTY_DEPUTY_FILE = new File(USERS_DIR, "lechuck-deputy-deputy.xml");
-    private static final File USER_LECHUCK_DEPUTY_LIMITED_FILE = new File(USERS_DIR, "lechuck-deputy-limited.xml");
+    private static final TestResource<UserType> USER_BARKEEPER =
+            new TestResource<>(USERS_DIR, "barkeeper.xml", "b87eb285-b4ae-43c0-9e4c-7ba651de81fa");
+    private static final TestResource<UserType> USER_BOB =
+            new TestResource<>(USERS_DIR, "bob.xml", "469fd663-4492-4c24-8ce3-3907df7ac7ec");
+    private static final TestResource<UserType> USER_CARLA =
+            new TestResource<>(USERS_DIR, "carla.xml", "f9be8006-fd58-43f9-99ff-311935d9d3d3");
+    private static final TestResource<UserType> USER_CHEESE =
+            new TestResource<>(USERS_DIR, "cheese.xml", "b2a3f4ad-ad7b-4691-83d9-34d5ebb50a04");
+    private static final TestResource<UserType> USER_CHEF =
+            new TestResource<>(USERS_DIR, "chef.xml", "60dd9e6b-7403-4075-bcfa-d4566a552d41");
+    private static final TestResource<UserType> USER_ELAINE =
+            new TestResource<>(USERS_DIR, "elaine.xml", "771d00e6-792a-4296-8b4e-c4f59f712e0f");
+    private static final TestResource<UserType> USER_GUYBRUSH =
+            new TestResource<>(USERS_DIR, "guybrush.xml", "47f403ae-5a22-4226-aab9-cd321a62d6d3");
+    private static final TestResource<UserType> USER_LECHUCK =
+            new TestResource<>(USERS_DIR, "lechuck.xml", "058cf8d5-01ec-4818-87cc-6477b1a6505f");
+    private static final TestResource<UserType> USER_LECHUCK_DEPUTY =
+            new TestResource<>(USERS_DIR, "lechuck-deputy.xml", "0dde9c33-822f-4798-9fda-b3280edf6efa");
+    private static final TestResource<UserType> USER_LECHUCK_DEPUTY_DEPUTY =
+            new TestResource<>(USERS_DIR, "lechuck-deputy-deputy.xml", "120effb1-1122-40bd-847f-1d898148b7ce");
+    private static final TestResource<UserType> USER_LECHUCK_DEPUTY_LIMITED =
+            new TestResource<>(USERS_DIR, "lechuck-deputy-limited.xml", "7a194af0-792a-4e76-bb0b-a8367a68970a");
 
     private static final File CONFIG_WITH_GLOBAL_RULES_FILE = new File(ROLES_DIR, "global-policy-rules.xml");
 
@@ -147,26 +182,26 @@ public class TestStrings extends AbstractStoryTest {
         repoAdd(METAROLE_APPROVAL_ROLE_APPROVERS_FORM, initResult);
         repoAdd(METAROLE_APPROVAL_SECURITY, initResult);
 
-        roleATest1Oid = addAndRecompute(ROLE_A_TEST_1, initTask, initResult);
+        addAndRecompute(ROLE_A_TEST_1, initTask, initResult);
         addAndRecompute(ROLE_A_TEST_2A, initTask, initResult);
         addAndRecompute(ROLE_A_TEST_2B, initTask, initResult);
         addAndRecompute(ROLE_A_TEST_3A, initTask, initResult);
         addAndRecompute(ROLE_A_TEST_3B, initTask, initResult);
         addAndRecompute(ROLE_A_TEST_3X, initTask, initResult);
         addAndRecompute(ROLE_A_TEST_3Y, initTask, initResult);
-        roleATest4Oid = addAndRecompute(ROLE_A_TEST_4, initTask, initResult);
+        addAndRecompute(ROLE_A_TEST_4, initTask, initResult);
 
-        addAndRecomputeUser(USER_BARKEEPER_FILE, initTask, initResult);
-        userBobOid = addAndRecomputeUser(USER_BOB_FILE, initTask, initResult);
-        userCarlaOid = addAndRecomputeUser(USER_CARLA_FILE, initTask, initResult);
-        userCheeseOid = addAndRecomputeUser(USER_CHEESE_FILE, initTask, initResult);
-        userChefOid = addAndRecomputeUser(USER_CHEF_FILE, initTask, initResult);
-        userElaineOid = addAndRecomputeUser(USER_ELAINE_FILE, initTask, initResult);
-        userGuybrushOid = addAndRecomputeUser(USER_GUYBRUSH_FILE, initTask, initResult);
-        userLechuckOid = addAndRecomputeUser(USER_LECHUCK_FILE, initTask, initResult);
-        addAndRecomputeUser(USER_LECHUCK_DEPUTY_FILE, initTask, initResult);
-        addAndRecomputeUser(USER_LECHUCK_DEPUTY_DEPUTY_FILE, initTask, initResult);
-        addAndRecomputeUser(USER_LECHUCK_DEPUTY_LIMITED_FILE, initTask, initResult);
+        addAndRecompute(USER_BARKEEPER, initTask, initResult);
+        addAndRecompute(USER_BOB, initTask, initResult);
+        addAndRecompute(USER_CARLA, initTask, initResult);
+        addAndRecompute(USER_CHEESE, initTask, initResult);
+        addAndRecompute(USER_CHEF, initTask, initResult);
+        addAndRecompute(USER_ELAINE, initTask, initResult);
+        addAndRecompute(USER_GUYBRUSH, initTask, initResult);
+        addAndRecompute(USER_LECHUCK, initTask, initResult);
+        addAndRecompute(USER_LECHUCK_DEPUTY, initTask, initResult);
+        addAndRecompute(USER_LECHUCK_DEPUTY_DEPUTY, initTask, initResult);
+        addAndRecompute(USER_LECHUCK_DEPUTY_LIMITED, initTask, initResult);
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
     }
@@ -176,12 +211,12 @@ public class TestStrings extends AbstractStoryTest {
         return userAdministrator;
     }
 
-    @Test
-    public void test000Sanity() throws Exception {
-        // TODO
-    }
-
-    //region Basic approval
+    //region Basic approval of a-test-1 to bob
+    /**
+     * Assigns role `a-test-1` to `bob`. Checks the case and notifications.
+     *
+     * The case is in stage 1 of 3 (line manager).
+     */
     @Test
     public void test100SimpleAssignmentStart() throws Exception {
         Task task = getTestTask();
@@ -190,13 +225,11 @@ public class TestStrings extends AbstractStoryTest {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // WHEN
         when();
-        assignRole(userBobOid, roleATest1Oid, task, task.getResult());
+        assignRole(USER_BOB.oid, ROLE_A_TEST_1.oid, task, task.getResult());
 
-        // THEN
         then();
-        assertNotAssignedRole(getUser(userBobOid), roleATest1Oid);
+        assertNotAssignedRole(getUser(USER_BOB.oid), ROLE_A_TEST_1.oid);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
@@ -212,7 +245,7 @@ public class TestStrings extends AbstractStoryTest {
         assertApprovalLevel(schema, 2, "Security", "P7D", 1);
         assertApprovalLevel(schema, 3, "Role approvers (all)", "P5D", 2);
         assertStage(aCase, 1, 3, "Line managers", null);
-        assertAssignee(workItem, userLechuckOid, userLechuckOid);
+        assertAssignee(workItem, USER_LECHUCK.oid, USER_LECHUCK.oid);
 
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
         List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
@@ -222,7 +255,7 @@ public class TestStrings extends AbstractStoryTest {
         display("processes notifications", processMessages);
 
         assertEquals("Wrong # of work items lifecycle messages", 3, lifecycleMessages.size());
-        Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
+        Map<String, Message> sorted = sortByRecipientsSingle(lifecycleMessages);
         assertMessage(sorted.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "A new work item has been created",
                 "Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
         assertMessage(sorted.get("lechuck-deputy@evolveum.com"), "lechuck-deputy@evolveum.com", "A new work item has been created",
@@ -231,7 +264,7 @@ public class TestStrings extends AbstractStoryTest {
                 "Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
 
         assertEquals("Wrong # of work items allocation messages", 3, allocationMessages.size());
-        Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
+        Map<String, Message> sorted2 = sortByRecipientsSingle(allocationMessages);
         assertMessage(sorted2.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been allocated to you",
                 "Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
         assertMessage(sorted2.get("lechuck-deputy@evolveum.com"), "lechuck-deputy@evolveum.com", "Work item has been allocated to you",
@@ -246,6 +279,11 @@ public class TestStrings extends AbstractStoryTest {
         displayDumpable("audit", dummyAuditService);
     }
 
+    /**
+     * User `lechuck` approves the assignment.
+     *
+     * The case is moved to stage 2 of 3 (security approval).
+     */
     @Test
     public void test102SimpleAssignmentApproveByLechuck() throws Exception {
         Task task = getTestTask();
@@ -254,19 +292,18 @@ public class TestStrings extends AbstractStoryTest {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // GIVEN
+        given();
         login(userAdministrator);
         CaseWorkItemType workItem = getWorkItem(task, result);
 
-        // WHEN
         when();
-        PrismObject<UserType> lechuck = getUserFromRepo(userLechuckOid);
+        PrismObject<UserType> lechuck = getUserFromRepo(USER_LECHUCK.oid);
         login(lechuck);
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext).comment("OK. LeChuck"),
                 task, result);
 
-        // THEN
         then();
         login(userAdministrator);
 
@@ -292,7 +329,7 @@ public class TestStrings extends AbstractStoryTest {
         assertEquals("Wrong # of work items allocation messages", 5, allocationMessages.size());
         assertNull("process messages", processMessages);
 
-        Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
+        Map<String, Message> sorted = sortByRecipientsSingle(lifecycleMessages);
         assertMessage(sorted.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed",
                 "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Line managers (1/3)",
                 "Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
@@ -309,7 +346,7 @@ public class TestStrings extends AbstractStoryTest {
                 "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Security (2/3)",
                 "Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
 
-        Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
+        Map<String, Message> sorted2 = sortByRecipientsSingle(allocationMessages);
         assertMessage(sorted2.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed",
                 "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Line managers (1/3)",
                 "Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
@@ -328,11 +365,16 @@ public class TestStrings extends AbstractStoryTest {
 
         // events
         List<CaseEventType> events = assertEvents(aCase, 2);
-        assertCompletionEvent(events.get(1), userLechuckOid, userLechuckOid, 1, WorkItemOutcomeType.APPROVE, "OK. LeChuck");
+        assertCompletionEvent(events.get(1), USER_LECHUCK.oid, USER_LECHUCK.oid, 1, WorkItemOutcomeType.APPROVE, "OK. LeChuck");
 
         displayDumpable("audit", dummyAuditService);
     }
 
+    /**
+     * User `administrator` approves the work item belonging to `elaine`.
+     *
+     * The case is moved to stage 3 of 3 (role approvers).
+     */
     @Test
     public void test104SimpleAssignmentApproveByAdministrator() throws Exception {
         Task task = getTestTask();
@@ -341,21 +383,22 @@ public class TestStrings extends AbstractStoryTest {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // GIVEN
+        given();
         login(userAdministrator);
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         displayWorkItems("Work item after 1st approval", workItems);
         CaseWorkItemType elaineWorkItem = workItems.stream()
-                .filter(wi -> userElaineOid.equals(wi.getOriginalAssigneeRef().getOid()))
+                .filter(wi -> USER_ELAINE.oid.equals(wi.getOriginalAssigneeRef().getOid()))
                 .findFirst().orElseThrow(() -> new AssertionError("No work item for elaine"));
 
-        // WHEN
+        when();
         // Second approval
-        workflowService.completeWorkItem(WorkItemId.of(elaineWorkItem),
+        caseService.completeWorkItem(
+                WorkItemId.of(elaineWorkItem),
                 ApprovalUtils.createApproveOutput(prismContext).comment("OK. Security."),
                 task, result);
 
-        // THEN
+        then();
         workItems = getWorkItems(task, result);
         displayWorkItems("Work item after 2nd approval", workItems);
         assertEquals("Wrong # of work items on level 3", 2, workItems.size());
@@ -366,8 +409,8 @@ public class TestStrings extends AbstractStoryTest {
         assertTriggers(aCase, 4);
 
         Map<String, CaseWorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
-        assertNotNull("chef is not an approver", workItemsMap.get(userChefOid));
-        assertNotNull("cheese is not an approver", workItemsMap.get(userCheeseOid));
+        assertNotNull("chef is not an approver", workItemsMap.get(USER_CHEF.oid));
+        assertNotNull("cheese is not an approver", workItemsMap.get(USER_CHEESE.oid));
 
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
         List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
@@ -381,7 +424,7 @@ public class TestStrings extends AbstractStoryTest {
         assertEquals("Wrong # of work items allocation messages", 4, allocationMessages.size());
         assertNull("process messages", processMessages);
 
-        Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
+        Map<String, Message> sorted = sortByRecipientsSingle(lifecycleMessages);
         assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been completed",
                 "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)",
                 "Carried out by: midPoint Administrator (administrator)", "Result: APPROVED", "^Deadline:");
@@ -395,7 +438,7 @@ public class TestStrings extends AbstractStoryTest {
                 "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Role approvers (all) (3/3)",
                 "Allocated to: Scumm Bar Chef (chef)", "^Result:", "(in 5 days)");
 
-        Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
+        Map<String, Message> sorted2 = sortByRecipientsSingle(allocationMessages);
         assertMessage(sorted2.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been completed",
                 "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)",
                 "Carried out by: midPoint Administrator (administrator)", "Result: APPROVED", "^Deadline:");
@@ -412,6 +455,11 @@ public class TestStrings extends AbstractStoryTest {
         displayDumpable("audit", dummyAuditService);
     }
 
+    /**
+     * User `cheese` (role approver) approves the assignment.
+     *
+     * The case remains in stage 3, because there's one more approver (all must approve).
+     */
     @Test
     public void test106SimpleAssignmentApproveByCheese() throws Exception {
         Task task = getTestTask();
@@ -420,18 +468,19 @@ public class TestStrings extends AbstractStoryTest {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // GIVEN
+        given();
         login(userAdministrator);
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         Map<String, CaseWorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
 
-        // WHEN
-        login(getUser(userCheeseOid));
-        workflowService.completeWorkItem(WorkItemId.of(workItemsMap.get(userCheeseOid)),
+        when();
+        login(getUser(USER_CHEESE.oid));
+        caseService.completeWorkItem(
+                WorkItemId.of(workItemsMap.get(USER_CHEESE.oid)),
                 ApprovalUtils.createApproveOutput(prismContext).comment("OK. Cheese."),
                 task, result);
 
-        // THEN
+        then();
         login(userAdministrator);
         workItems = getWorkItems(task, result);
         displayWorkItems("Work item after 3rd approval", workItems);
@@ -443,7 +492,7 @@ public class TestStrings extends AbstractStoryTest {
         assertStage(aCase, 3, 3, "Role approvers (all)", null);
         assertTriggers(aCase, 2);
 
-        assertNotNull("chef is not an approver", workItemsMap.get(userChefOid));
+        assertNotNull("chef is not an approver", workItemsMap.get(USER_CHEF.oid));
 
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
         List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
@@ -469,35 +518,40 @@ public class TestStrings extends AbstractStoryTest {
         displayDumpable("audit", dummyAuditService);
     }
 
+    /**
+     * User `chef` approves the assignment.
+     *
+     * The case will be closed, and the assignment created.
+     */
     @Test
     public void test108SimpleAssignmentApproveByChef() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // GIVEN
+        given();
         login(userAdministrator);
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         Map<String, CaseWorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
 
-        // WHEN
-        login(getUser(userChefOid));
-        WorkItemId workItemId = WorkItemId.of(workItemsMap.get(userChefOid));
-        workflowService.completeWorkItem(workItemId,
+        when();
+        login(getUser(USER_CHEF.oid));
+        WorkItemId workItemId = WorkItemId.of(workItemsMap.get(USER_CHEF.oid));
+        caseService.completeWorkItem(workItemId,
                 ApprovalUtils.createApproveOutput(prismContext).comment("OK. Chef."),
                 task, result);
 
-        // THEN
+        then();
         login(userAdministrator);
         workItems = getWorkItems(task, result);
         displayWorkItems("Work item after 4th approval", workItems);
         assertEquals("Wrong # of work items on level 3", 0, workItems.size());
         CaseType aCase = getCase(workItemId.caseOid);
-        display("wfTask after 4th approval", aCase);
+        display("case after 4th approval", aCase);
 
         CaseType parentCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(parentCase);
 
-        assertAssignedRole(getUser(userBobOid), roleATest1Oid);
+        assertAssignedRole(getUser(USER_BOB.oid), ROLE_A_TEST_1.oid);
 
         assertTriggers(aCase, 0);
 
@@ -528,23 +582,26 @@ public class TestStrings extends AbstractStoryTest {
 
         // TODO after audit is OK
 //        List<AuditEventRecord> workItemEvents = filter(getParamAuditRecords(
-//                WorkflowConstants.AUDIT_WORK_ITEM_ID, workItemId.asString(), task, result), AuditEventStage.EXECUTION);
-//        assertAuditReferenceValue(workItemEvents, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
+//                AuditingConstants.AUDIT_WORK_ITEM_ID, workItemId.asString(), task, result), AuditEventStage.EXECUTION);
+//        assertAuditReferenceValue(workItemEvents, AuditingConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
 //        assertAuditTarget(workItemEvents.get(0), userBobOid, UserType.COMPLEX_TYPE, "bob");
-//        assertAuditReferenceValue(workItemEvents.get(0), WorkflowConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
+//        assertAuditReferenceValue(workItemEvents.get(0), AuditingConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
         // TODO other items
 //        List<AuditEventRecord> processEvents = filter(getParamAuditRecords(
-//                WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, wfTask.asObjectable().getApprovalContext().getCaseOid(), task, result),
+//                AuditingConstants.AUDIT_PROCESS_INSTANCE_ID, wfTask.asObjectable().getApprovalContext().getCaseOid(), task, result),
 //                AuditEventType.WORKFLOW_PROCESS_INSTANCE, AuditEventStage.EXECUTION);
-//        assertAuditReferenceValue(processEvents, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
+//        assertAuditReferenceValue(processEvents, AuditingConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
 //        assertAuditTarget(processEvents.get(0), userBobOid, UserType.COMPLEX_TYPE, "bob");
-//        assertAuditReferenceValue(processEvents.get(0), WorkflowConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
+//        assertAuditReferenceValue(processEvents.get(0), AuditingConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
         // TODO other items
     }
 
     //endregion
 
     //region Testing escalation
+    /**
+     * Role `a-test-1` is assigned to `carla`. The approval process is started.
+     */
     @Test
     public void test200EscalatedApprovalStart() throws Exception {
         Task task = getTestTask();
@@ -553,11 +610,11 @@ public class TestStrings extends AbstractStoryTest {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // WHEN
-        assignRole(userCarlaOid, roleATest1Oid, task, task.getResult());
+        when();
+        assignRole(USER_CARLA.oid, ROLE_A_TEST_1.oid, task, task.getResult());
 
-        // THEN
-        assertNotAssignedRole(getUser(userCarlaOid), roleATest1Oid);
+        then();
+        assertNotAssignedRole(getUser(USER_CARLA.oid), ROLE_A_TEST_1.oid);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
@@ -567,7 +624,7 @@ public class TestStrings extends AbstractStoryTest {
         assertTriggers(aCase, 2);
 
         assertStage(aCase, 1, 3, "Line managers", null);
-        assertAssignee(workItem, userGuybrushOid, userGuybrushOid);
+        assertAssignee(workItem, USER_GUYBRUSH.oid, USER_GUYBRUSH.oid);
 
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
         List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
@@ -591,16 +648,19 @@ public class TestStrings extends AbstractStoryTest {
         displayDumpable("audit", dummyAuditService);
     }
 
+    /**
+     * Four days later, a notification about future escalation (that occurs 5 days after start) is sent.
+     */
     @Test
     public void test202FourDaysLater() throws Exception {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // WHEN
+        when();
         clock.overrideDuration("P4D");
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
-        // THEN
+        then();
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
         List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
         List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
@@ -618,7 +678,13 @@ public class TestStrings extends AbstractStoryTest {
         displayDumpable("audit", dummyAuditService);
     }
 
-    // escalation should occur here
+    /**
+     * This is after 6 days (T+6D): On 5th day, the escalation takes place.
+     *
+     * Here we check that.
+     *
+     * There should be one work item, assigned to both `guybrush` (the original assignee), and `cheese` (the new one).
+     */
     @Test
     public void test204SixDaysLater() throws Exception {
         Task task = getTestTask();
@@ -627,12 +693,12 @@ public class TestStrings extends AbstractStoryTest {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // WHEN
+        when();
         clock.resetOverride();
         clock.overrideDuration("P6D");
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
-        // THEN
+        then();
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         displayWorkItems("Work items after timed escalation", workItems);
         assertEquals("Wrong # of work items after timed escalation", 1, workItems.size());
@@ -649,16 +715,16 @@ public class TestStrings extends AbstractStoryTest {
 
         // asserts - work item
         CaseWorkItemType workItem = workItems.get(0);
-        PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userGuybrushOid, userCheeseOid);
+        PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), USER_GUYBRUSH.oid, USER_CHEESE.oid);
         PrismAsserts.assertDuration("Wrong duration between now and deadline", "P9D", System.currentTimeMillis(), workItem.getDeadline(), null);
-        PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userGuybrushOid);
+        PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), USER_GUYBRUSH.oid);
         assertEquals("Wrong stage #", (Integer) 1, workItem.getStageNumber());
-        assertEquals("Wrong escalation level #", 1, ApprovalContextUtil.getEscalationLevelNumber(workItem));
-        assertEquals("Wrong escalation level name", "Line manager escalation", ApprovalContextUtil.getEscalationLevelName(workItem));
+        assertEquals("Wrong escalation level #", 1, WorkItemTypeUtil.getEscalationLevelNumber(workItem));
+        assertEquals("Wrong escalation level name", "Line manager escalation", WorkItemTypeUtil.getEscalationLevelName(workItem));
 
         List<CaseEventType> events = assertEvents(aCase, 2);
-        assertEscalationEvent(events.get(1), userAdministrator.getOid(), userGuybrushOid, 1,
-                Collections.singletonList(userGuybrushOid), Collections.singletonList(userCheeseOid), WorkItemDelegationMethodType.ADD_ASSIGNEES,
+        assertEscalationEvent(events.get(1), userAdministrator.getOid(), USER_GUYBRUSH.oid, 1,
+                Collections.singletonList(USER_GUYBRUSH.oid), Collections.singletonList(USER_CHEESE.oid), WorkItemDelegationMethodType.ADD_ASSIGNEES,
                 1, "Line manager escalation");
 
         // asserts - notifications
@@ -685,17 +751,26 @@ public class TestStrings extends AbstractStoryTest {
         displayDumpable("audit", dummyAuditService);
     }
 
+    /**
+     * Time T+8D. The stage (after escalation) ends at T+9D. This is because the deadline was derived
+     * against work item creation time, not against the time when the escalation took place.
+     *
+     * So, 2 days, 12 hours before deadline (T+6.5D) a notification should be sent.
+     * And 2 days before deadline (T+7D), another notification should be sent.
+     *
+     * So here we expect both of them.
+     */
     @Test
     public void test205EightDaysLater() throws Exception {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // WHEN
+        when();
         clock.resetOverride();
         clock.overrideDuration("P8D");
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
-        // THEN
+        then();
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
         List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
         List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
@@ -733,6 +808,11 @@ public class TestStrings extends AbstractStoryTest {
         displayDumpable("audit", dummyAuditService);
     }
 
+    /**
+     * The work item is approved by `cheese`, stepping into stage 2 (security).
+     *
+     * Assigned to `elaine` and `barkeeper`.
+     */
     @Test
     public void test206ApproveByCheese() throws Exception {
         Task task = getTestTask();
@@ -741,19 +821,20 @@ public class TestStrings extends AbstractStoryTest {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // GIVEN
+        given();
         login(userAdministrator);
         clock.resetOverride();
         CaseWorkItemType workItem = getWorkItem(task, result);
-        PrismObject<UserType> cheese = getUserFromRepo(userCheeseOid);
+        PrismObject<UserType> cheese = getUserFromRepo(USER_CHEESE.oid);
         login(cheese);
 
-        // WHEN
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+        when();
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext).comment("OK. Cheese."),
                 task, result);
 
-        // THEN
+        then();
         login(userAdministrator);
 
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
@@ -777,7 +858,7 @@ public class TestStrings extends AbstractStoryTest {
         assertEquals("Wrong # of work items allocation messages", 4, allocationMessages.size());
         assertNull("process messages", processMessages);
 
-        Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
+        Map<String, Message> sorted = sortByRecipientsSingle(lifecycleMessages);
         assertMessage(sorted.get("guybrush@evolveum.com"), "guybrush@evolveum.com", "Work item has been completed",
                 "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Line managers (1/3)",
                 "Escalation level: Line manager escalation (1)",
@@ -799,7 +880,7 @@ public class TestStrings extends AbstractStoryTest {
                 "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Security (2/3)",
                 "Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
 
-        Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
+        Map<String, Message> sorted2 = sortByRecipientsSingle(allocationMessages);
         assertMessage(sorted2.get("guybrush@evolveum.com"), "guybrush@evolveum.com", "Work item has been completed",
                 "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Line managers (1/3)",
                 "Escalation level: Line manager escalation (1)",
@@ -824,7 +905,11 @@ public class TestStrings extends AbstractStoryTest {
         displayDumpable("audit", dummyAuditService);
     }
 
-    // notification should be send
+    /**
+     * The stage 2 duration is 7 days, with auto-rejection at T'+7D, notifying 2 days before deadline (T'+5D).
+     *
+     * We check in T'+6D, assuming some notifications being there.
+     */
     @Test
     public void test208SixDaysLater() throws Exception {
         Task task = getTestTask();
@@ -833,15 +918,15 @@ public class TestStrings extends AbstractStoryTest {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // GIVEN
+        given();
         clock.resetOverride();
         reimportWithNoSchedule(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, task, result);
         clock.overrideDuration("P6D");
 
-        // WHEN
+        when();
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
-        // THEN
+        then();
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
         List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
         List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
@@ -866,19 +951,22 @@ public class TestStrings extends AbstractStoryTest {
         displayDumpable("audit", dummyAuditService);
     }
 
+    /**
+     * Checking in T'+8D the auto-completion has taken place (at T'+7D).
+     */
     @Test
     public void test209EightDaysLater() throws Exception {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // GIVEN
+        given();
         clock.resetOverride();
         clock.overrideDuration("P8D");
 
-        // WHEN
+        when();
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
-        // THEN
+        then();
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
         List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
         List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
@@ -916,10 +1004,18 @@ public class TestStrings extends AbstractStoryTest {
                 "Reason: Timed action",
                 "Result: REJECTED");
     }
+    //endregion
 
+    //region Test form fulfillment
+    /**
+     * Role `a-test-4` has `metarole-approval-role-approvers-form`,
+     * so it is being approved with gathering additional information.
+     *
+     * Here we assign the role, starting the approval case.
+     */
     @Test
     public void test220FormRoleAssignmentStart() throws Exception {
-        PrismObject<UserType> bob = getUserFromRepo(userBobOid);
+        PrismObject<UserType> bob = getUserFromRepo(USER_BOB.oid);
         login(bob);
 
         Task task = getTestTask();
@@ -929,19 +1025,17 @@ public class TestStrings extends AbstractStoryTest {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // WHEN
-        assignRole(userBobOid, roleATest4Oid, task, task.getResult());
+        when();
+        assignRole(USER_BOB.oid, ROLE_A_TEST_4.oid, task, task.getResult());
 
-        // THEN
+        then();
         login(userAdministrator);
-        assertNotAssignedRole(getUser(userBobOid), roleATest4Oid);
+        assertNotAssignedRole(getUser(USER_BOB.oid), ROLE_A_TEST_4.oid);
 
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         displayWorkItems("Work item after start", workItems);
         CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
         display("aCase", aCase);
-
-//        assertTargetTriggers(aCase, 2);
 
         ApprovalContextType actx = aCase.getApprovalContext();
         ApprovalSchemaType schema = actx.getApprovalSchema();
@@ -960,6 +1054,9 @@ public class TestStrings extends AbstractStoryTest {
         displayDumpable("audit", dummyAuditService);
     }
 
+    /**
+     * LeChuck approves, without providing the form. We move to stage 2 of 2 (Role approvers).
+     */
     @Test
     public void test221FormApproveByLechuck() throws Exception {
         Task task = getTestTask();
@@ -968,21 +1065,22 @@ public class TestStrings extends AbstractStoryTest {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // GIVEN
+        given();
         login(userAdministrator);
         CaseWorkItemType workItem = getWorkItem(task, result);
 
-        // WHEN
-        PrismObject<UserType> lechuck = getUserFromRepo(userLechuckOid);
+        when();
+        PrismObject<UserType> lechuck = getUserFromRepo(USER_LECHUCK.oid);
         login(lechuck);
 
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext).comment("OK. LeChuck"),
                 task, result);
 
-        // THEN
+        then();
         login(userAdministrator);
-        assertNotAssignedRole(getUser(userBobOid), roleATest4Oid);
+        assertNotAssignedRole(getUser(USER_BOB.oid), ROLE_A_TEST_4.oid);
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         displayWorkItems("Work item after 1st approval", workItems);
         CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
@@ -1003,7 +1101,9 @@ public class TestStrings extends AbstractStoryTest {
         displayDumpable("audit", dummyAuditService);
     }
 
-
+    /**
+     * Cheese approves, filling-in a form.
+     */
     @Test
     public void test222FormApproveByCheese() throws Exception {
         Task task = getTestTask();
@@ -1012,24 +1112,25 @@ public class TestStrings extends AbstractStoryTest {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // GIVEN
+        given();
         login(userAdministrator);
         SearchResultList<CaseWorkItemType> workItems = getWorkItems(task, result);
-        CaseWorkItemType workItem = sortByOriginalAssignee(workItems).get(userCheeseOid);
+        CaseWorkItemType workItem = sortByOriginalAssignee(workItems).get(USER_CHEESE.oid);
         assertNotNull("No work item for cheese", workItem);
 
-        // WHEN
-        PrismObject<UserType> cheese = getUserFromRepo(userCheeseOid);
+        when();
+        PrismObject<UserType> cheese = getUserFromRepo(USER_CHEESE.oid);
         login(cheese);
         ObjectDelta<UserType> formDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_DESCRIPTION).replace("Hello")
-                .asObjectDelta(userBobOid);
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+                .asObjectDelta(USER_BOB.oid);
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext).comment("OK. LeChuck"),
                 formDelta,
                 task, result);
 
-        // THEN
+        then();
         login(userAdministrator);
 
         workItems = getWorkItems(task, result);
@@ -1040,7 +1141,6 @@ public class TestStrings extends AbstractStoryTest {
         display("aCase after 2nd approval", aCase);
 
         assertStage(aCase, 2, 2, "Role approvers (first)", null);
-        // assertTargetTriggers(aCase, 4);
 
         // notifications
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
@@ -1073,9 +1173,11 @@ public class TestStrings extends AbstractStoryTest {
 
         CaseType rootCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(rootCase, CASE_WAIT_TIMEOUT);
-        assertAssignedRole(getUser(userBobOid), roleATest4Oid);
+        assertAssignedRole(getUser(USER_BOB.oid), ROLE_A_TEST_4.oid);
     }
+    //endregion
 
+    //region Other
     @Test
     public void test250ApproverAssignment() throws Exception {
         Task task = getTestTask();
@@ -1084,11 +1186,11 @@ public class TestStrings extends AbstractStoryTest {
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        // WHEN
-        assignRole(userBobOid, roleATest1Oid, SchemaConstants.ORG_APPROVER, task, task.getResult());
+        when();
+        assignRole(USER_BOB.oid, ROLE_A_TEST_1.oid, SchemaConstants.ORG_APPROVER, task, task.getResult());
 
-        // THEN
-        assertNull("bob has assigned role \"a-test-1\" as an approver", getUserAssignment(userBobOid, roleATest1Oid, SchemaConstants.ORG_APPROVER));
+        then();
+        assertNull("bob has assigned role \"a-test-1\" as an approver", getUserAssignment(USER_BOB.oid, ROLE_A_TEST_1.oid, SchemaConstants.ORG_APPROVER));
 
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         displayWorkItems("Work item after start", workItems);
@@ -1111,8 +1213,6 @@ public class TestStrings extends AbstractStoryTest {
 
         displayDumpable("audit", dummyAuditService);
     }
-
-
     //endregion
 
     private void assertMessage(Message message, String recipient, String subject, String... texts) {
@@ -1124,7 +1224,8 @@ public class TestStrings extends AbstractStoryTest {
         if (subject != null) {
             assertEquals("Wrong subject", subject, message.getSubject());
         }
-        condition: for (String text : texts) {
+        condition:
+        for (String text : texts) {
             if (text.startsWith("^")) {
                 String pureText = text.substring(1);
                 if (message.getBody().contains(pureText)) {
@@ -1171,7 +1272,6 @@ public class TestStrings extends AbstractStoryTest {
         assertReferenceValues(ref(workItem.getAssigneeRef()), currentAssignee);
     }
 
-
     private void assertStage(CaseType aCase, Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName) {
         ApprovalContextType wfc = aCase.getApprovalContext();
         assertEquals("Wrong stage number", stageNumber, aCase.getStageNumber());
@@ -1181,7 +1281,7 @@ public class TestStrings extends AbstractStoryTest {
     }
 
     private void assertApprovalLevel(ApprovalSchemaType schema, int number, String name, String duration, int timedActions) {
-        ApprovalStageDefinitionType level = schema.getStage().get(number-1);
+        ApprovalStageDefinitionType level = schema.getStage().get(number - 1);
         assertEquals("Wrong level number", number, (int) level.getNumber());
         assertEquals("Wrong level name", name, level.getName());
         assertEquals("Wrong level duration", XmlTypeConverter.createDuration(duration), level.getDuration());

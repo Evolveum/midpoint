@@ -22,9 +22,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 
-/**
- * @author mederly
- */
 public class CertCampaignListItemDto extends Selectable {
 
     public static final String F_NAME = "name";

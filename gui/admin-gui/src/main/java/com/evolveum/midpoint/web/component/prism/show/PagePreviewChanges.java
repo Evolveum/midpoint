@@ -45,9 +45,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author mederly
- */
 @PageDescriptor(
         urls = {
                 @Url (mountUrl = "/admin/previewChanges", matchUrlForSecurity = "/admin/previewChanges"),

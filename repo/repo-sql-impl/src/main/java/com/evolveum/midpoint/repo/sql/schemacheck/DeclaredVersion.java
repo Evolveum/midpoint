@@ -11,8 +11,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Version of the schema as declared in the metadata.
- *
- * @author mederly
  */
 class DeclaredVersion {
 

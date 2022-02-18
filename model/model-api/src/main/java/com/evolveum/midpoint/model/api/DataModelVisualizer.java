@@ -16,8 +16,6 @@ import java.util.Collection;
 
 /**
  * EXPERIMENTAL
- *
- * @author mederly
  */
 public interface DataModelVisualizer {
 

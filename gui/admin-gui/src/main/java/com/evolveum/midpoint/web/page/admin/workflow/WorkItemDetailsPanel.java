@@ -20,10 +20,10 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -54,7 +54,6 @@ import org.apache.wicket.model.PropertyModel;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -299,9 +298,9 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         OperationResult result = task.getResult();
         try {
             return WebComponentUtil.runUnderPowerOfAttorneyIfNeeded(() ->
-                            getPageBase().getWorkflowManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result) ||
-                                    getPageBase().getWorkflowManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result) ||
-                                    getPageBase().getWorkflowManager().isCurrentUserAuthorizedToClaim(getModelObject()),
+                            getPageBase().getCaseManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result) ||
+                                    getPageBase().getCaseManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result) ||
+                                    getPageBase().getCaseManager().isCurrentUserAuthorizedToClaim(getModelObject()),
                     getPowerDonor(), getPageBase(), task, result);
         } catch (Exception ex) {
             LOGGER.error("Unable to check user authorization for workitem actions: {}", ex.getLocalizedMessage());

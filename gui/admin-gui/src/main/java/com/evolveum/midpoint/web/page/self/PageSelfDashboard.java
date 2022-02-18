@@ -58,7 +58,7 @@ import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -186,7 +186,7 @@ public class PageSelfDashboard extends PageSelf {
             @Override
             public boolean isVisible() {
                 UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.MY_WORKITEMS);
-                return getWorkflowManager().isEnabled() && WebComponentUtil.getElementVisibility(visibilityType);
+                return getCaseManager().isEnabled() && WebComponentUtil.getElementVisibility(visibilityType);
             }
         });
         add(workItemsPanel);
@@ -244,7 +244,7 @@ public class PageSelfDashboard extends PageSelf {
             @Override
             public boolean isVisible() {
                 UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.MY_REQUESTS);
-                return getWorkflowManager().isEnabled() && WebComponentUtil.getElementVisibility(visibilityType);
+                return getCaseManager().isEnabled() && WebComponentUtil.getElementVisibility(visibilityType);
 
             }
         });

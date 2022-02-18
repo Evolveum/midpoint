@@ -21,8 +21,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Interface of the Model subsystem that provides task-specific operations.
- *
- * @author mederly
  */
 public interface TaskService {
 

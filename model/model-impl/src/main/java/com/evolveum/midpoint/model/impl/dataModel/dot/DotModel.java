@@ -31,9 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.*;
 
-/**
- * @author mederly
- */
 public class DotModel {
 
     private static final Trace LOGGER = TraceManager.getTrace(DotModel.class);

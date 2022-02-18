@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -4139,6 +4139,41 @@
                     </xsd:appinfo>
                 </xsd:annotation>
              </xsd:element>
+            <xsd:element name="inboundMappingsEvaluation" type="tns:InboundMappingsEvaluationConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Settings related to evaluation of inbound mappings for this object type.
+                    </xsd:documentation>
+                     <xsd:appinfo>
+                        <a:since>4.5</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+             </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="InboundMappingsEvaluationConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of inbound mappings evaluation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="defaultEvaluationPhases" type="tns:DefaultInboundMappingEvaluationPhasesType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default phases in which mappings are evaluated.
+                        If not specified, clockwork phase is assumed.
+                        (The default may change in the future.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -5525,7 +5560,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="inbound" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Defines how the attribute values are used (assigned) in case of information flow from resource
@@ -7191,23 +7226,34 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                           Authoritative flag controls the way how mapping is used to
-                           remove values. It does not influence adding of values. If mapping is
-                           authoritative then it will add value and also remove the value. If mapping
-                           is not authoritative it will only add the value.
+                            Authoritative flag controls the way how mapping is used to remove values.
+                            It does not influence adding of values.
+                            If mapping is authoritative then it will add value and also remove the value.
+                            If mapping is not authoritative it will only add the value.
                         </p>
 
                         <p>
-                           Non-authoritative mappings are used if there are several possible sources
-                           for a particular value. E.g. the value may be added by the mapping and
-                           also added directly on the resource by system administrator. In this case
-                           midPoint cannot remove the value when the assignment (or role) containing
-                           the mapping is removed because the value might have been added manually.
-                           Other settings, such as tolerance may apply on attribute level.
+                            Non-authoritative mappings are used if there are several possible sources for a particular value.
+                            E.g. the value may be added by the mapping and also added directly on the resource by system administrator.
+                            In this case midPoint cannot remove the value when the assignment (or role) containing
+                            the mapping is removed because the value might have been added manually.
+                            Other settings, such as tolerance may apply on attribute level.
                         </p>
 
                         <p>
                             The default value for authoritative flag is true.
+                        </p>
+
+                        <p>
+                            Development note: Even though there is an overlap with mapping range, we still need this option.
+                            Empty mapping range may avoid deletion of values that are not produced by a mapping.
+                            However, the mapping may still create delete deltas in a "relative" way.
+                            Setting authoritative to false disables that, making sure the mapping will never remove a value.
+                            However, it is not clear how many people are actually using this feature.
+                            This feature was designed in early stages of midPoint development.
+                            We have more sophisticated mechanisms now.
+                            Therefore, it is not clear whether this option is still needed.
+                            Should it be a candidate for deprecation?
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -7225,6 +7271,9 @@
                         </p>
                         <p>
                             The default value for exclusive flag is false.
+                        </p>
+                        <p>
+                            Development note: Naturally enforced for single-valued items, do we need this also for multi-value?
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -8195,7 +8244,9 @@
             <xsd:element name="relativityMode" type="tns:TransformExpressionRelativityModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Relativity mode of an expression, whether expression is processed in relative or absolute more.
+                        In relative mode the inputs are provided to the expression one-by-one.
+                        In absolute mode all inputs are provided to the expression at the same time.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -8903,6 +8954,26 @@
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.5</a:deprecatedSince>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="preMappingsSimulation" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TEMPORARY
+
+                        Simulates execution of so-called pre-mappings (inbound mappings executed before synchronization
+                        starts). An expression that returns a focus object.
+
+                        Later on, this will be replaced by real execution of (some or all) inbound mappings.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="correlationProperties" type="tns:CorrelationPropertiesDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies how to transform a shadow or a user into an object for ID Match (to match or update).
+                        HIGHLY EXPERIMENTAL. May be changed or even removed later.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="correlators" type="tns:CorrelatorsType" minOccurs="0"> <!-- TODO name? -->
@@ -12715,6 +12786,112 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:complexType name="InboundMappingType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:MappingType">
+                <xsd:sequence>
+                    <xsd:element name="evaluationPhases" type="tns:InboundMappingEvaluationPhasesType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Phase or phases in which the mapping should be evaluated.
+                                (Default evaluation phases for given object type are taken into account as well.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>InboundMappingType.evaluationPhases</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="InboundMappingEvaluationPhasesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Phase or phases in which the mapping should be evaluated.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="include" type="tns:InboundMappingEvaluationPhaseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Phase(s) to include - in addition to the default ones.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="exclude" type="tns:InboundMappingEvaluationPhaseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Phase(s) to exclude, assuming they are defined as default.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DefaultInboundMappingEvaluationPhasesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Default phase or phases for evaluation of inbound mappings.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="phase" type="tns:InboundMappingEvaluationPhaseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Phase(s) in which mappings are evaluated by default.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="InboundMappingEvaluationPhaseType">
+        <xsd:restriction base="xsd:string">
+            <!-- TODO should we distinguish individual states of clockwork,
+                  e.g. initial vs. after execution in secondary state? -->
+            <xsd:enumeration value="clockwork">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of inbound mappings during clockwork execution.
+                        This is the default. (And the only way of inbounds evaluation before midPoint 4.5.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLOCKWORK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO are there any other uses of these mappings before clockwork run? -->
+            <xsd:enumeration value="correlation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of inbound mappings during correlation - i.e. when looking for candidate owner(s).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CORRELATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="OrgType">
         <xsd:annotation>
             <xsd:documentation>
@@ -14448,6 +14625,18 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>SystemConfigurationType.notificationConfiguration</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="messageTransportConfiguration" type="tns:MessageTransportConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A configuration for message transports, e.g. mail, sms, etc.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <!-- TODO add the displayName localization -->
+                                <a:displayName>SystemConfigurationType.messageTransportConfiguration</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -19895,7 +20084,7 @@
                         <jaxb:typesafeEnumMember name="DEFAULT"/>
                         <xsd:documentation>
                             Uses the default method configured for the particular database.
-                            For H2, MySQL/MariaDB the default is to emulate iteration via paging,
+                            For H2 the default is to emulate iteration via paging,
                             for other databases it is traditional sequential read.
                         </xsd:documentation>
                     </xsd:appinfo>
@@ -23448,6 +23637,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="manual" type="c:ManualCorrelationConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of the (optional) manual configuration.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -23485,6 +23681,13 @@
                             </xsd:annotation>
                         </xsd:element>
                     </xsd:choice>
+                    <xsd:element name="manual" type="c:ManualCorrelationConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of the (optional) manual configuration.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -23511,26 +23714,23 @@
                     <xsd:element name="sorLabel" type="xsd:string" minOccurs="0" default="sor">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Label for this System of Record. Default is "sor" (TODO revise the default).
+                                Label for this System of Record. Default is "sor" (TODO will be "midPoint").
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="sorIdentifierAttribute" type="xsd:QName" minOccurs="0" default="icfs:uid">
+                    <xsd:element name="sorIdentifierPrefix" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Attribute that is sent as SOR identifier. Default is "icfs:uid". (TODO revise the default.
-                                Is it possible for it to be the current primary identifier?)
+                                First part of the SOR identifier. Used to distinguish between various source systems
+                                with overlapping primary ID spaces.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="useReturnedValuesAsBase" type="xsd:boolean" minOccurs="0" default="false">
+                    <xsd:element name="sorIdentifierProperty" type="t:ItemPathType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                If true, then values returned from ID Match service (i.e. name-normalized
-                                and filtered) are presented to the user as attribute values of the account that is to
-                                be correlated. If false (the default), values from midPoint (i.e. original ones) are used.
-
-                                This option is here just to experiment with various approaches in midPoint 4.5-M1.
+                                Attribute whose value provides the base of the SOR identifier. Default is "$shadow/icfs:uid".
+                                (TODO revise the default. Is it possible for it to be the current primary identifier?)
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -23556,6 +23756,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <!-- TODO operator -->
+                    <!-- TODO referenceId mapping -->
                     <xsd:element name="followOn" type="tns:CorrelatorsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -23569,6 +23770,166 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="idMatchCorrelator" type="tns:IdMatchCorrelatorType"/>
+
+    <xsd:complexType name="CorrelationPropertiesDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                What properties take part in the correlation?
+
+                VERY EXPERIMENTAL. WILL CHANGE.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:element name="property" type="tns:CorrelationPropertyDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Properties that take part in the correlation.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="mirrored" type="xsd:boolean" minOccurs="0" default="true">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Are properties mirrored, i.e. is the source property automatically considered to
+                            be a secondary target one (or even primary, if there's no explicit primary property defined)?
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="CorrelationPropertyDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Property that takes part in the correlation.
+
+                VERY EXPERIMENTAL. WILL CHANGE.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="source" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path to the property that is the source of the comparison.
+                        This property is taken from the object whose owner we try to find.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="primaryTarget" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path to the property that is the primary target of the comparison.
+                        This property is taken from the potential (candidate) owner.
+
+                        The meaning of "primary" is that it will be displayed in the GUI at a prominent place.
+                        Also, the correlator(s) may interpret it in their own way.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="secondaryTarget" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path to the property that is the secondary target of the comparison.
+                        This property is taken from the potential (candidate) owner.
+
+                        The meaning of "primary" is that it will be displayed in the GUI at less prominent place (if at all).
+                        Also, the correlator(s) may interpret it in their own way.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ManualCorrelationConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of manual correlation - to be used with user-based correlators,
+                like `filter` or `expression`.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="enabled" type="tns:ManualCorrelationEnabledType" minOccurs="0" default="whenRequested">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is manual correlation enabled?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO assignee, etc -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ManualCorrelationEnabledType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Is manual correlation enabled? (For e.g. filter and expression correlators.)
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="always">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The manual correlation will always be applied if there are at least two options.
+                        (I.e. at least one candidate owner found.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="whenMoreCandidates">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The manual correlation will be applied if more than one candidate owner was found.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WHEN_MORE_CANDIDATES"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="whenRequested">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The manual correlation will be applied if requested by the script code.
+                        See `manualCorrelationContext` expression variable. TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WHEN_REQUESTED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="never">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The manual correlation will never be applied.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEVER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <!--<xsd:complexType name="CorrelationRequestType">-->
     <!--    <xsd:annotation>-->
@@ -23873,6 +24234,23 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="idMatchCorrelationState" type="tns:IdMatchCorrelationStateType"/>
+
+    <xsd:complexType name="IdMatchAttributesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Attributes to be sent to the external ID Match service.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
+            </xsd:any>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="idMatchAttributes" type="tns:IdMatchAttributesType" />
 
     <xsd:complexType name="SchemaFilesType">
         <xsd:sequence>

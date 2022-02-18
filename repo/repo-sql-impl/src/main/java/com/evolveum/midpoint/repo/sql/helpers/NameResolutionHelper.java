@@ -26,7 +26,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @author lazyman, katkav, mederly
+ * @author lazyman, katkav
  */
 @Component
 public class NameResolutionHelper {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -176,7 +176,20 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         upAndDown.shutdown(result);
     }
 
-    @Override
+    /**
+     * Called when the whole application is initialized.
+     *
+     * Here we make this node a real cluster member: We set the operational state to UP, enabling receiving cache invalidation
+     * events (among other effects). We also invalidate local caches - to begin with a clean slate - and start the scheduler.
+     *
+     * The postInit mechanism cannot be used for this purpose. The reason is that it is invoked shortly before the application
+     * is completely up. REST endpoints are not yet functional at that time. This means that some cache invalidation
+     * messages could be lost, and the other nodes could get error messages in the meanwhile.
+     *
+     * Unfortunately, REST endpoints are not initialized even when this event is emitted. There's a few seconds before
+     * they are really available. So the real action can be delayed by setting "nodeStartupDelay" configuration parameter.
+     * (This is a temporary solution until something better is found.)
+     */
     @EventListener(ApplicationReadyEvent.class)
     public void onSystemStarted() {
         OperationResult result = new OperationResult(DOT_IMPL_CLASS + "onSystemStarted");
@@ -1160,12 +1173,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     public String getTaskThreadsDump(String taskOid, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException {
         return taskThreadsDumper.getTaskThreadsDump(taskOid, parentResult);
-    }
-
-    @Override
-    public String recordTaskThreadsDump(String taskOid, String cause, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        return taskThreadsDumper.recordTaskThreadsDump(taskOid, cause, parentResult);
     }
 
     @VisibleForTesting

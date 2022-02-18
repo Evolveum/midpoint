@@ -7,10 +7,6 @@
 
 package com.evolveum.midpoint.task.api;
 
-/**
- * Signals a
- * @author Pavol Mederly
- */
 public class TaskManagerConfigurationException extends TaskManagerInitializationException {
 
     public TaskManagerConfigurationException() {

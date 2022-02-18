@@ -20,7 +20,6 @@ import java.util.List;
  * to a human user.
  *
  * @author Radovan Semancik
- * @author mederly
  *
  * TODO Remove GUI-specific things from this class (e.g. localized/default values).
  */

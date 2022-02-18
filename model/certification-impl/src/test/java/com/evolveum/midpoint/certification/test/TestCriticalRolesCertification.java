@@ -39,8 +39,6 @@ import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * Tests itemSelectionExpression and useSubjectManager.
- *
- * @author mederly
  */
 @ContextConfiguration(locations = {"classpath:ctx-certification-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

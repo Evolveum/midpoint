@@ -12,9 +12,6 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class EvaluatedCollectionStatsTrigger extends EvaluatedPolicyRuleTrigger<CollectionStatsPolicyConstraintType> {
 
     public EvaluatedCollectionStatsTrigger(@NotNull PolicyConstraintKindType kind, @NotNull CollectionStatsPolicyConstraintType constraint,

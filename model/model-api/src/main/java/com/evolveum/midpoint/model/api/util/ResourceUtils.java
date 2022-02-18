@@ -21,8 +21,6 @@ import static java.util.Collections.singleton;
 
 /**
  * TODO find appropriate place for this class
- *
- * @author mederly
  */
 public class ResourceUtils {
 

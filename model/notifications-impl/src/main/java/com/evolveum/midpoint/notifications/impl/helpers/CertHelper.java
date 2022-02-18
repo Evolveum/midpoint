@@ -32,9 +32,6 @@ import org.springframework.stereotype.Component;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
-/**
- * @author mederly
- */
 @Component
 public class CertHelper {
 

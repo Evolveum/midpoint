@@ -105,7 +105,7 @@ public class ResourceObjectShadowChangeDescription implements ProvisioningEvent,
         this.sourceChannel = sourceChannel;
     }
 
-    public PrismObject<ResourceType> getResource() {
+    public @NotNull PrismObject<ResourceType> getResource() {
         return resource;
     }
 

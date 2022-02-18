@@ -11,9 +11,6 @@ import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 
 import java.io.Serializable;
 
-/**
- * @author mederly
- */
 public class SceneItemLineDto implements Serializable {
 
     public static final String F_NAME = "name";

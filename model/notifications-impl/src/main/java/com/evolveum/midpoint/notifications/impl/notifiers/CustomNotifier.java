@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
@@ -20,9 +18,8 @@ import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
-import com.evolveum.midpoint.notifications.impl.TransportRegistry;
-import com.evolveum.midpoint.notifications.impl.api.transports.CustomTransport;
+import com.evolveum.midpoint.notifications.api.transports.TransportService;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctions;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
 import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
@@ -31,9 +28,9 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -50,11 +47,10 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
     private static final Trace DEFAULT_LOGGER = TraceManager.getTrace(CustomNotifier.class);
 
     @Autowired protected NotificationManager notificationManager;
-    @Autowired protected NotificationFunctionsImpl notificationsUtil;
+    @Autowired protected NotificationFunctions notificationsUtil;
     @Autowired protected TextFormatter textFormatter;
     @Autowired protected AggregatedEventHandler aggregatedEventHandler;
-    @Autowired private CustomTransport customTransport;
-    @Autowired private TransportRegistry transportRegistry;
+    @Autowired private TransportService transportService;
 
     @Override
     public Class<Event> getEventType() {
@@ -79,16 +75,11 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
         if (applies) {
             VariablesMap variables = getDefaultVariables(event, result);
 
-            List<String> transports = new ArrayList<>(configuration.getTransport());
-            if (transports.isEmpty()) {
-                transports.add(customTransport.getName());
-            }
-
             reportNotificationStart(event);
             try {
                 for (String transportName : configuration.getTransport()) {
                     variables.put(ExpressionConstants.VAR_TRANSPORT_NAME, transportName, String.class);
-                    Transport transport = transportRegistry.getTransport(transportName);
+                    Transport<?> transport = transportService.getTransport(transportName);
 
                     Message message = getMessageFromExpression(configuration, variables, task, result);
                     if (message != null) {
@@ -140,7 +131,7 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
         PrismPropertyDefinition<NotificationMessageType> resultDef =
                 prismContext.definitionFactory().createPropertyDefinition(resultName, NotificationMessageType.COMPLEX_TYPE);
 
-        Expression<PrismPropertyValue<NotificationMessageType>,PrismPropertyDefinition<NotificationMessageType>> expression =
+        Expression<PrismPropertyValue<NotificationMessageType>, PrismPropertyDefinition<NotificationMessageType>> expression =
                 expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageType>> exprResult = ModelExpressionThreadLocalHolder

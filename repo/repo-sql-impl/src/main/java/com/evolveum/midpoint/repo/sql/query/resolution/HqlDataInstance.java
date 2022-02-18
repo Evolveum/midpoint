@@ -26,8 +26,6 @@ import org.jetbrains.annotations.NotNull;
  * query being constructed.
  *
  * This object is unmodifiable.
- *
- * @author mederly
  */
 public class HqlDataInstance<D extends JpaDataNodeDefinition> implements DebugDumpable {
 

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.test.util.AbstractSpringTest;
         "classpath:ctx-security.xml",
         "classpath:ctx-provisioning.xml",
         "classpath:ctx-model.xml",
+        "classpath*:ctx-cases.xml",
         "classpath*:ctx-workflow.xml" })
 public class SpringApplicationContextTest extends AbstractSpringTest {
 

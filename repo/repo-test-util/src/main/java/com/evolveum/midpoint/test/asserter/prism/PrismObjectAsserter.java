@@ -520,11 +520,29 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    public PrismObjectAsserter<O,RA> assertPolicySituations(String... uris) {
+        assertThat(getObject().asObjectable().getPolicySituation())
+                .as("Policy situations")
+                .containsExactlyInAnyOrder(uris);
+        return this;
+    }
+
     public PrismObjectAsserter<O,RA> assertNoPolicySituation(String uri) {
         assertThat(getObject().asObjectable().getPolicySituation())
                 .as("Policy situations")
                 .doesNotContain(uri);
         return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertTriggeredPolicyRules(int count) {
+        assertThat(getObject().asObjectable().getTriggeredPolicyRule())
+                .as("Triggered policy rules")
+                .hasSize(count);
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertNoTriggeredPolicyRules() {
+        return assertTriggeredPolicyRules(0);
     }
 
     public PrismObjectAsserter<O,RA> assertSuccessOrNoFetchResult() {

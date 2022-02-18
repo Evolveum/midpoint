@@ -25,8 +25,6 @@ import java.util.*;
 
 /**
  * Structure that contains all primary changes requested: from focus as well as from projections.
- *
- * @author mederly
  */
 public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
 
@@ -151,12 +149,12 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         return objectTreeDeltas != null ? objectTreeDeltas.toObjectTreeDeltasType() : null;
     }
 
-    @Contract("null, _ -> null; !null, _ -> !null")
-    public static ObjectTreeDeltas fromObjectTreeDeltasType(ObjectTreeDeltasType deltasType, PrismContext prismContext) throws SchemaException {
-        Validate.notNull(prismContext, "prismContext");
+    @Contract("null -> null; !null -> !null")
+    public static ObjectTreeDeltas fromObjectTreeDeltasType(ObjectTreeDeltasType deltasType) throws SchemaException {
         if (deltasType == null) {
             return null;
         }
+        PrismContext prismContext = PrismContext.get();
         ObjectTreeDeltas deltas = new ObjectTreeDeltas(prismContext);
         if (deltasType.getFocusPrimaryDelta() != null) {
             //noinspection unchecked
@@ -263,8 +261,8 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         return rv;
     }
 
-    public static ObjectTreeDeltasType mergeDeltas(ObjectTreeDeltasType deltaTree, ObjectDeltaType deltaToMerge,
-            PrismContext prismContext) throws SchemaException {
+    public static ObjectTreeDeltasType mergeDeltas(ObjectTreeDeltasType deltaTree, ObjectDeltaType deltaToMerge)
+            throws SchemaException {
         if (deltaToMerge == null) {
             return deltaTree;
         }
@@ -273,8 +271,8 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         if (deltaTree == null) {
             return deltaTreeToMerge;
         }
-        ObjectTreeDeltas tree = fromObjectTreeDeltasType(deltaTree, prismContext);
-        ObjectTreeDeltas treeToMerge = fromObjectTreeDeltasType(deltaTreeToMerge, prismContext);
+        ObjectTreeDeltas tree = fromObjectTreeDeltasType(deltaTree);
+        ObjectTreeDeltas treeToMerge = fromObjectTreeDeltasType(deltaTreeToMerge);
         //noinspection unchecked
         tree.merge(treeToMerge);
         return tree.toObjectTreeDeltasType();

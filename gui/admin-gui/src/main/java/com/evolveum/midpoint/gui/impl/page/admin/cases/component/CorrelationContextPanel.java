@@ -7,15 +7,16 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
-import java.io.Serializable;
-import java.util.List;
-
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+
+import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -28,22 +29,39 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.CaseDetailsModels;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.cases.component.CorrelationContextDto.F_OPTION_HEADERS;
 
 @PanelType(name = "correlationContext")
 @PanelInstance(identifier = "correlationContext",
         display = @PanelDisplay(label = "PageCase.correlationContextPanel", order = 40))
 public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, CaseDetailsModels> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationContextDto.class);
+
     private static final String ID_ACTIONS = "actions";
     private static final String ID_ACTION = "action";
-    private static final String ID_REFERENCE_IDS = "referenceIds";
-    private static final String ID_REFERENCE_ID = "referenceId";
+    private static final String ID_NAMES = "names";
+    private static final String ID_NAME = "name";
+    private static final String ID_COLUMNS = "columns";
+    private static final String ID_HEADERS = "headers";
+    private static final String ID_HEADER = "header";
+    private static final String ID_ACTION_LABEL = "actionLabel";
+    private static final String ID_ROWS = "rows";
+    private static final String ID_ATTR_NAME = "attrName";
+    private static final String ID_COLUMN = "column";
 
+    private static final String OP_LOAD = CorrelationContextPanel.class.getName() + ".load";
+
+    // Move into properties
+    private static final String TEXT_CREATE_NEW = "Create new";
+    private static final String TEXT_CORRELATE = "Correlate";
+
+    @SuppressWarnings("unused") // called by the framework
     public CorrelationContextPanel(String id, CaseDetailsModels model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
@@ -52,19 +70,20 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     protected void initLayout() {
         IModel<CorrelationContextDto> correlationCtxModel = createCorrelationContextModel();
 
-        ListView<String> headers = new ListView<>("headers", new PropertyModel<>(correlationCtxModel, "matchHeaders")) {
+        ListView<String> headers = new ListView<>(ID_HEADERS, new PropertyModel<>(correlationCtxModel, F_OPTION_HEADERS)) {
 
             @Override
             protected void populateItem(ListItem<String> item) {
-                item.add(new Label("header", item.getModel()));
+                item.add(new Label(ID_HEADER, item.getModel()));
             }
         };
         add(headers);
 
-        ListView<PotentialMatchDto> actions = new ListView<>(ID_ACTIONS, new PropertyModel<>(correlationCtxModel, "potentialMatches")) {
+        ListView<CorrelationOptionDto> actions = new ListView<>(ID_ACTIONS,
+                new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
 
             @Override
-            protected void populateItem(ListItem<PotentialMatchDto> item) {
+            protected void populateItem(ListItem<CorrelationOptionDto> item) {
                 AjaxButton actionButton = new AjaxButton(ID_ACTION) {
 
                     @Override
@@ -77,7 +96,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                         Task task = getPageBase().createSimpleTask("DecideCorrelation");
                         OperationResult result = task.getResult();
                         try {
-                            getPageBase().getWorkflowService().completeWorkItem(workItemId, output, task, result);
+                            getPageBase().getCaseService().completeWorkItem(workItemId, output, task, result);
                             result.computeStatusIfUnknown();
                         } catch (Throwable e) {
                             result.recordFatalError("Cannot finish correlation process, " + e.getMessage(), e);
@@ -87,66 +106,102 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                     }
                 };
 
-                actionButton.add(new Label("actionLabel", item.getModelObject().isOrigin() ? "Create new account" : "Use this account"));
+                actionButton.add(
+                        new Label(ID_ACTION_LABEL,
+                                item.getModelObject().isNewOwner() ? TEXT_CREATE_NEW : TEXT_CORRELATE));
+
                 item.add(actionButton);
             }
         };
         add(actions);
 
-        ListView<PotentialMatchDto> referenceIds = new ListView<>(ID_REFERENCE_IDS, new PropertyModel<>(correlationCtxModel, "potentialMatches")) {
+        ListView<CorrelationOptionDto> referenceIds = new ListView<>(ID_NAMES,
+                new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
 
             @Override
-            protected void populateItem(ListItem<PotentialMatchDto> item) {
-                item.add(new Label(ID_REFERENCE_ID, item.getModelObject().getReferenceId()));
+            protected void populateItem(ListItem<CorrelationOptionDto> item) {
+                // A full-object reference to the candidate owner
+                ReadOnlyModel<ObjectReferenceType> referenceModel = new ReadOnlyModel<>(
+                        () -> {
+                            CorrelationOptionDto optionDto = item.getModelObject();
+                            if (!optionDto.isNewOwner()) {
+                                return ObjectTypeUtil.createObjectRefWithFullObject(
+                                        optionDto.getObject());
+                            } else {
+                                // GUI cannot currently open object that does not exist in the repository.
+                                return null;
+                            }
+                        }
+                );
+                item.add(
+                        new LinkedReferencePanel<>(ID_NAME, referenceModel));
             }
         };
         add(referenceIds);
 
-        ListView<ItemPath> a = new ListView<>("rows", new PropertyModel<>(correlationCtxModel, "attributes")) {
+        ListView<CorrelationPropertyDefinition> rows = new ListView<>(ID_ROWS,
+                new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_PROPERTIES)) {
 
             @Override
-            protected void populateItem(ListItem<ItemPath> item) {
-                item.add(new Label("attrName", item.getModel()));
-                item.add(createAttributeValueColumns(correlationCtxModel, item));
+            protected void populateItem(ListItem<CorrelationPropertyDefinition> item) {
+                // First column contains the property name
+                item.add(
+                        new Label(ID_ATTR_NAME,
+                                new PropertyModel<>(
+                                        item.getModel(), CorrelationPropertyDefinition.F_DISPLAY_NAME)));
+
+                // Here are columns for values for individual options
+                item.add(
+                        createColumnsForPropertyRow(correlationCtxModel, item));
             }
         };
-        add(a);
-
+        add(rows);
     }
 
     private IModel<CorrelationContextDto> createCorrelationContextModel() {
         return new ReadOnlyModel<>(() -> {
-            CorrelationContextType correlationContext = getObjectDetailsModels().getObjectType().getCorrelationContext();
-            if (correlationContext == null) {
+            CaseType aCase = getObjectDetailsModels().getObjectType();
+            CorrelationContextType correlationContext = aCase.getCorrelationContext();
+            if (correlationContext == null || correlationContext.getPotentialOwners() == null) {
                 return null;
             }
 
-            AbstractCorrelationContextType ctx = correlationContext.getCorrelatorPart();
-
-            IdMatchCorrelationContextType idMatchCorrelationContext;
-            if (ctx instanceof IdMatchCorrelationContextType) {
-                idMatchCorrelationContext = (IdMatchCorrelationContextType) ctx;
-            } else {
+            Task task = getPageBase().createSimpleTask(OP_LOAD);
+            OperationResult result = task.getResult();
+            try {
+                return new CorrelationContextDto(aCase, getPageBase(), task, result);
+            } catch (Throwable t) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load correlation context for {}", t, aCase);
                 return null;
+            } finally {
+                result.computeStatusIfUnknown();
+                getPageBase().showResult(result, false);
             }
-
-            return new CorrelationContextDto(idMatchCorrelationContext);
         });
     }
 
-    private ListView<PotentialMatchDto> createAttributeValueColumns(IModel<CorrelationContextDto> modelObject, ListItem<ItemPath> item) {
-        return new ListView<>("columns", new PropertyModel<>(modelObject, "potentialMatches")) {
+    private ListView<CorrelationOptionDto> createColumnsForPropertyRow(
+            IModel<CorrelationContextDto> contextModel, ListItem<CorrelationPropertyDefinition> rowItem) {
+
+        return new ListView<>(ID_COLUMNS, new PropertyModel<>(contextModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
             @Override
-            protected void populateItem(ListItem<PotentialMatchDto> columnItem) {
-                Serializable value = columnItem.getModelObject().getAttributeValue(item.getModelObject());
-                boolean equals = modelObject.getObject().match(value, item.getModelObject());
-                Label label = new Label("column", value != null ? value : "");
-                if (!columnItem.getModelObject().isOrigin()) {
-                    label.add(AttributeAppender.append("class", equals ? "bg-green disabled color-palette" : "bg-red disabled color-palette"));
+            protected void populateItem(ListItem<CorrelationOptionDto> columnItem) {
+                CorrelationContextDto contextDto = contextModel.getObject();
+                CorrelationOptionDto optionDto = columnItem.getModelObject();
+                CorrelationPropertyDefinition propertyDefinition = rowItem.getModelObject();
+
+                CorrelationPropertyValues valuesForOption = optionDto.getPropertyValues(propertyDefinition);
+                Label label = new Label(ID_COLUMN, valuesForOption.format());
+
+                CorrelationOptionDto referenceOption = contextDto.getNewOwnerOption();
+                if (referenceOption != null && !optionDto.isNewOwner()) {
+                    CorrelationPropertyValues referenceValues = referenceOption.getPropertyValues(propertyDefinition);
+                    Match match = referenceValues.match(valuesForOption);
+                    label.add(
+                            AttributeAppender.append("class", match.getCss()));
                 }
                 columnItem.add(label);
             }
         };
     }
-
 }

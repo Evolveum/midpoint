@@ -11,9 +11,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaDataNodeDefinition;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class ProperDataSearchResult<T extends JpaDataNodeDefinition<T>> extends DataSearchResult<T> {
 
     @NotNull private final JpaEntityDefinition entityDefinition;      // entity in which the item was found

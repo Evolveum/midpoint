@@ -61,6 +61,10 @@
                     <target>
                         <path>name</path>
                     </target>
+                    <evaluationPhases>
+                        <!-- Before correlation, this ID may not be known. -->
+                        <exclude>correlation</exclude>
+                    </evaluationPhases>
                 </inbound>
                 <inbound>
                     <strength>strong</strength>
@@ -92,7 +96,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>description</path> <!-- temporary -->
+                        <path>extension/dateOfBirth</path> <!-- temporary -->
                     </target>
                 </inbound>
             </attribute>
@@ -101,7 +105,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>telephoneNumber</path> <!-- temporary -->
+                        <path>extension/nationalId</path> <!-- temporary -->
                     </target>
                 </inbound>
             </attribute>
@@ -114,6 +118,12 @@
                     </target>
                 </inbound>
             </attribute>
+            <inboundMappingsEvaluation>
+                <defaultEvaluationPhases>
+                    <phase>clockwork</phase>
+                    <phase>correlation</phase>
+                </defaultEvaluationPhases>
+            </inboundMappingsEvaluation>
         </objectType>
     </schemaHandling>
 
@@ -122,13 +132,26 @@
             <enabled>true</enabled>
             <kind>account</kind>
             <intent>default</intent>
+            <correlationProperties>
+                <property>
+                    <source>$focus/givenName</source>
+                </property>
+                <property>
+                    <source>$focus/familyName</source>
+                </property>
+                <property>
+                    <source>$focus/extension/dateOfBirth</source>
+                </property>
+                <property>
+                    <source>$focus/extension/nationalId</source>
+                </property>
+            </correlationProperties>
             <correlators>
                 <idMatch>
-                    <sorLabel>sor</sorLabel> <!-- this is the default testing configuration of ID Match demo -->
-                    <sorIdentifierAttribute>ri:aisId</sorIdentifierAttribute>
+                    <sorIdentifierProperty>$shadow/attributes/ri:aisId</sorIdentifierProperty>
                     <!-- URL and credentials are ignored when dummy ID Match Service implementation is used.
                          They are used only when running TestIdMatchReal (not part of the test suite). -->
-                    <url>http://localhost:9090</url>
+                    <url>http://localhost:9090/match/api/1</url>
                     <username>administrator</username>
                     <password><clearValue>5ecr3t</clearValue></password>
                     <followOn>

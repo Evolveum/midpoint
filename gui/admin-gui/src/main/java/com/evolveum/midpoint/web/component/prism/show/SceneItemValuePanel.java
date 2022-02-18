@@ -31,7 +31,6 @@ import javax.xml.namespace.QName;
 
 /**
  * TODO make this parametric (along with SceneItemValue)
- * @author mederly
  */
 public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 

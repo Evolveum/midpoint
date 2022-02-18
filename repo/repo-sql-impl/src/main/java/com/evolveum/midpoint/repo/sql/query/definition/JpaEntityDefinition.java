@@ -23,7 +23,6 @@ import com.evolveum.midpoint.repo.sql.query.resolution.DataSearchResult;
 
 /**
  * @author lazyman
- * @author mederly
  */
 public class JpaEntityDefinition extends JpaDataNodeDefinition<JpaEntityDefinition> {
 

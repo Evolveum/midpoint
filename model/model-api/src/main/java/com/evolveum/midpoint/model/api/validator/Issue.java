@@ -17,9 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.Serializable;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class Issue implements Serializable {
 
     public enum Severity {    // ordered from most to least severe

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -230,19 +230,9 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>org.mariadb.jdbc</groupId>
-            <artifactId>mariadb-java-client</artifactId>
-            <scope>runtime</scope>
-        </dependency>
         <!--
         Following drivers are excluded in repackaging, we don't want to distribute it (or can't).
         -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
@@ -309,6 +299,11 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-enforcer-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>cases-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -405,6 +400,12 @@
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>certification-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>cases-impl</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
@@ -848,10 +849,6 @@
                     See truezip-maven-plugin plugin lower.
                     <excludes>
                         <exclude>
-                            <groupId>mysql</groupId>
-                            <artifactId>mysql-connector-java</artifactId>
-                        </exclude>
-                        <exclude>
                             <groupId>com.microsoft.sqlserver</groupId>
                             <artifactId>mssql-jdbc</artifactId>
                         </exclude>
@@ -907,7 +904,6 @@
                                     <include>simplefan-*.jar</include>
                                     <include>ons-*.jar</include>
                                     <include>mssql-jdbc-*.jar</include>
-                                    <include>mysql-connector-java-*.jar</include>
                                 </includes>
                             </fileset>
                         </configuration>

@@ -11,16 +11,14 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.apache.wicket.model.IModel;
@@ -30,10 +28,6 @@ import java.util.List;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-/**
- * @author mederly
- *
- */
 public class CaseWorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemType> {
     private static final long serialVersionUID = -5077637168906420769L;
 

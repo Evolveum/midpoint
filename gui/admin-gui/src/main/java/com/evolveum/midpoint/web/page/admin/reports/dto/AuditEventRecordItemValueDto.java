@@ -9,8 +9,6 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 /**
  * Temporary implementation. In the future, we might distinguish between property and reference values.
- *
- * @author mederly
  */
 public class AuditEventRecordItemValueDto {
 

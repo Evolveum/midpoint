@@ -37,10 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.List;
 
-/**
- * @author mederly
- */
-
 public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
     private static final long serialVersionUID = 1L;
 

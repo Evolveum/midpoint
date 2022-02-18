@@ -34,9 +34,6 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author mederly
- */
 @Component
 public class AccCertExpressionHelper {
 
