@@ -280,7 +280,6 @@
                 DEPRECATED: Use new messageTransportConfiguration instead.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container/>
                 <a:deprecated>true</a:deprecated>
                 <a:deprecatedSince>4.5</a:deprecatedSince>
                 <a:plannedRemoval>4.6</a:plannedRemoval>
@@ -382,7 +381,6 @@
                 DEPRECATED: Use new messageTransportConfiguration instead.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container/>
                 <a:displayName>MailConfigurationType.details</a:displayName>
                 <a:deprecated>true</a:deprecated>
                 <a:deprecatedSince>4.5</a:deprecatedSince>
@@ -421,7 +419,8 @@
                 Configuration of a particular mail server host.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container/>
+                <!--TODO: causes NPE TestCryptoUtil in mail.getServer().get(0).getPassword() returns value that returns null for getEncryptedDataType() -->
+                <!--<a:container/>-->
                 <a:displayName>MailServerConfigurationType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
@@ -545,7 +544,6 @@
                 Where and how to send SMS notifications (or any other SMS).
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container/>
                 <a:deprecated>true</a:deprecated>
                 <a:deprecatedSince>4.5</a:deprecatedSince>
                 <a:plannedRemoval>4.6</a:plannedRemoval>
@@ -580,7 +578,6 @@
                 Where and how to store "file" notifications.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container/>
                 <a:displayName>FileConfigurationType.details</a:displayName>
                 <a:deprecated>true</a:deprecated>
                 <a:deprecatedSince>4.5</a:deprecatedSince>
@@ -611,7 +608,6 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container/>
                 <a:deprecated>true</a:deprecated>
                 <a:deprecatedSince>4.5</a:deprecatedSince>
                 <a:plannedRemoval>4.6</a:plannedRemoval>
