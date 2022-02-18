@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -31,19 +32,24 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
                         label = "PageSystemConfiguration.auth.configSystemConfiguration.label",
                         description = "PageSystemConfiguration.auth.configSystemConfiguration.description")
         })
-public class PageAdminGui extends PageBaseSystemConfiguration {
+public class PageSystemAdminGui extends PageBaseSystemConfiguration {
 
     private static final long serialVersionUID = 1L;
 
-    public PageAdminGui() {
+    public PageSystemAdminGui() {
     }
 
-    public PageAdminGui(PageParameters parameters) {
+    public PageSystemAdminGui(PageParameters parameters) {
         super(parameters);
     }
 
-    public PageAdminGui(PrismObject<SystemConfigurationType> object) {
+    public PageSystemAdminGui(PrismObject<SystemConfigurationType> object) {
         super(object);
+    }
+
+    @Override
+    public Class<? extends Containerable> getDetailsType() {
+        return AdminGuiConfigurationType.class;
     }
 
     //    @Override

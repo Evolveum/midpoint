@@ -16,31 +16,33 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
-@PanelType(name = "loggingPanel")
+@PanelType(name = "roleManagementPanel")
 @PanelInstance(
-        identifier = "loggingPanel",
-        applicableForType = LoggingConfigurationType.class,
+        identifier = "roleManagementPanel",
+        applicableForType = RoleManagementConfigurationType.class,
         display = @PanelDisplay(
-                label = "LoggingPanelContent.label",
+                label = "RoleManagementContentPanel.label",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
                 order = 10
         )
 )
-public class LoggingContentPanel extends AbstractObjectMainPanel<SystemConfigurationType, AssignmentHolderDetailsModel<SystemConfigurationType>> {
+public class RoleManagementContentPanel extends AbstractObjectMainPanel<SystemConfigurationType, AssignmentHolderDetailsModel<SystemConfigurationType>> {
 
     private static final String ID_MAIN_PANEL = "mainPanel";
 
-    public LoggingContentPanel(String id, AssignmentHolderDetailsModel<SystemConfigurationType> model, ContainerPanelConfigurationType config) {
+    public RoleManagementContentPanel(String id, AssignmentHolderDetailsModel<SystemConfigurationType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
     @Override
     protected void initLayout() {
         SingleContainerPanel panel = new SingleContainerPanel(ID_MAIN_PANEL,
-                PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.create(SystemConfigurationType.F_LOGGING)),
-                LoggingConfigurationType.COMPLEX_TYPE);
+                PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT)),
+                RoleManagementConfigurationType.COMPLEX_TYPE);
         add(panel);
     }
 }

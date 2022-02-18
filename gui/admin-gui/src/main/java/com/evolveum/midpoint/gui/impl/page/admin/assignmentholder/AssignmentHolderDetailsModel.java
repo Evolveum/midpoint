@@ -36,8 +36,12 @@ public class AssignmentHolderDetailsModel<AH extends AssignmentHolderType> exten
     protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<AH> assignmentHolder) {
         GuiObjectDetailsPageType defaultPageConfig = super.loadDetailsPageConfiguration(assignmentHolder);
 
+        return applyArchetypePolicy(defaultPageConfig);
+    }
+
+    protected GuiObjectDetailsPageType applyArchetypePolicy(GuiObjectDetailsPageType defaultPageConfig) {
         OperationResult result = new OperationResult("mergeArchetypeConfig");
-        assignmentHolder = getPrismObject();
+        PrismObject<AH> assignmentHolder = getPrismObject();
         try {
             ArchetypePolicyType archetypePolicyType = getModelServiceLocator().getModelInteractionService().determineArchetypePolicy(assignmentHolder, result);
             return getAdminGuiConfigurationMergeManager().mergeObjectDetailsPageConfiguration(defaultPageConfig, archetypePolicyType, result);

@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -398,8 +399,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private DetailsNavigationPanel<O> createNavigationPanel(IModel<List<ContainerPanelConfigurationType>> panels) {
-
         return new DetailsNavigationPanel<>(AbstractPageObjectDetails.ID_NAVIGATION, objectDetailsModels, panels) {
+
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
                 replacePanel(config, target);
@@ -486,6 +487,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     public abstract Class<O> getType();
+
     protected abstract Panel createSummaryPanel(String id, IModel<O> summaryModel);
 
     private MidpointForm getMainForm() {
