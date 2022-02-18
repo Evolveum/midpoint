@@ -40,11 +40,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomTransportConfi
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class CustomTransport implements Transport<CustomTransportConfigurationType> {
+/**
+ * TODO: make this a good superclass for custom subclasses
+ * E.g. expression is default behavior for sending, but it should be easily overridable method.
+ */
+public class CustomMessageTransport implements Transport<CustomTransportConfigurationType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CustomTransport.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CustomMessageTransport.class);
 
-    private static final String DOT_CLASS = CustomTransport.class.getName() + ".";
+    private static final String DOT_CLASS = CustomMessageTransport.class.getName() + ".";
 
     private String name;
     private CustomTransportConfigurationType configuration;
@@ -163,6 +167,6 @@ public class CustomTransport implements Transport<CustomTransportConfigurationTy
 
     @Override
     public CustomTransportConfigurationType getConfiguration() {
-        return null;
+        return configuration;
     }
 }
