@@ -13,7 +13,6 @@ import com.evolveum.midpoint.authentication.api.config.RemoteModuleAuthenticatio
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
-import com.evolveum.midpoint.authentication.impl.util.RequestState;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,11 +25,11 @@ import java.io.Serializable;
  * @author skublik
  */
 
-public class OidcModuleAuthenticationImpl extends RemoteModuleAuthenticationImpl implements RemoteModuleAuthentication, Serializable {
+public class OidcClientModuleAuthenticationImpl extends RemoteModuleAuthenticationImpl implements RemoteModuleAuthentication, Serializable {
 
     private InMemoryClientRegistrationRepository clientsRepository;
 
-    public OidcModuleAuthenticationImpl() {
+    public OidcClientModuleAuthenticationImpl() {
         super(AuthenticationModuleNameConstants.OIDC);
         setType(ModuleType.REMOTE);
         setState(AuthenticationModuleState.LOGIN_PROCESSING);
@@ -46,7 +45,7 @@ public class OidcModuleAuthenticationImpl extends RemoteModuleAuthenticationImpl
 
     @Override
     public ModuleAuthenticationImpl clone() {
-        OidcModuleAuthenticationImpl module = new OidcModuleAuthenticationImpl();
+        OidcClientModuleAuthenticationImpl module = new OidcClientModuleAuthenticationImpl();
         module.setClientsRepository(this.getClientsRepository());
         module.setProviders(this.getProviders());
         Authentication actualAuth = SecurityContextHolder.getContext().getAuthentication();
@@ -55,7 +54,7 @@ public class OidcModuleAuthenticationImpl extends RemoteModuleAuthenticationImpl
                 && ((MidpointAuthentication) actualAuth).getAuthentications() != null
                 && !((MidpointAuthentication) actualAuth).getAuthentications().isEmpty()) {
             ModuleAuthentication actualModule = ((MidpointAuthentication) actualAuth).getAuthentications().get(0);
-            if (actualModule instanceof OidcModuleAuthenticationImpl
+            if (actualModule instanceof OidcClientModuleAuthenticationImpl
                     && actualModule.getAuthentication() instanceof OAuth2LoginAuthenticationToken) {
                 newAuthentication = actualModule.getAuthentication();
             }

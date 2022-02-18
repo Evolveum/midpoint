@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyTyp
 public class HttpClusterModuleFactory extends AbstractModuleFactory {
 
     @Override
-    public boolean match(AbstractAuthenticationModuleType moduleType) {
+    public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
         return false;
     }
 

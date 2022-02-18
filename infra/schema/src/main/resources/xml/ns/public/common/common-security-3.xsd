@@ -345,7 +345,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <!-- later: oidHeader -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -860,33 +859,8 @@
             <xsd:element name="keyStorePath" type="xsd:string" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="keyStorePassword" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="keyAlias" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="keyPassword" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="keyPassword" type="t:ProtectedStringType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="OidcKeyStoreKeyType">
-        <xsd:annotation>
-            <xsd:documentation>
-                OIDC key from key store. Supported only JKS type of key store.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.1</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractKeyStoreKeyType">
-                <xsd:sequence>
-                    <xsd:element name="keyId" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The key ID of JWK is used to match a specific key.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="AbstractSimpleKeyType">
@@ -900,36 +874,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="privateKey" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="passphrase" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="certificate" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="OidcSimpleKeyType">
-        <xsd:annotation>
-            <xsd:documentation>
-                OIDC key from string representation.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.5</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractSimpleKeyType">
-                <xsd:sequence>
-                    <xsd:element name="keyId" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The key ID of JWK is used to match a specific key.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ModuleSaml2SimpleKeyType">
@@ -1115,10 +1063,83 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractAuthenticationModuleType">
                 <xsd:sequence>
-                    <xsd:element name="client" type="tns:OidcClientAuthenticationModuleType" minOccurs="1" maxOccurs="unbounded"/>
+                    <xsd:element name="client" type="tns:OidcClientAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="resourceServer" type="tns:OidcResourceServerAuthenticationModuleType" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="OidcResourceServerAuthenticationModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                OpenID Connect resource server.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="realm" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Realm which Midpoint use for WWW-Authentication header
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="issuerUri" type="xsd:string" minOccurs="1" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Issuer identifier uri for the OpenID Connect provider.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="jwkSetUri" type="xsd:string" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uri for the JSON Web Key (JWK) Set endpoint.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="nameOfUsernameClaim" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of claim in jwt, which value define name of user in Midpoint. Default value is 'sub'.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="singleSymmetricKey" type="t:ProtectedStringType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Trusting a Single Asymmetric Key.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="trustedAlgorithm" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Trusted Algorithms. (RFC7518 section-3.1).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:choice>
+                <xsd:element name="trustingAsymmetricCertificate" type="t:ProtectedStringType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Certificate of trusting a single asymmetric RSA public key.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="keyStoreTrustingAsymmetricKey" type="tns:AbstractKeyStoreKeyType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Key store with trusting a single asymmetric RSA public key.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice> <!--> can use only one of types, but all can be null<-->
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="OidcClientAuthenticationModuleType">
@@ -1184,23 +1205,24 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="nameOfUsernameAttribute" type="xsd:string" minOccurs="1" maxOccurs="1">
+            <xsd:element name="nameOfUsernameAttribute" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of attribute in response, which value define name of user in Midpoint. For example 'username'.
+                        Name of attribute in response, which value define name of user in Midpoint.
+                        Default value is 'sub'.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="openIdProvider" type="tns:OidcOpenIdProviderType" minOccurs="1" maxOccurs="1"/>
             <xsd:choice>
-                <xsd:element name="simpleProofKey" type="tns:OidcSimpleKeyType" minOccurs="0">
+                <xsd:element name="simpleProofKey" type="tns:AbstractSimpleKeyType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             Key used for sign with PRIVATE_KEY_JWT.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="keyStoreProofKey" type="tns:OidcKeyStoreKeyType" minOccurs="0">
+                <xsd:element name="keyStoreProofKey" type="tns:AbstractKeyStoreKeyType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             Key used for sign with PRIVATE_KEY_JWT.
@@ -1285,17 +1307,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="jwkSetUri" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Uri for the JSON Web Key (JWK) Set endpoint.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="issuerUri" type="xsd:string" minOccurs="1" maxOccurs="1" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Issuer identifier uri for the OpenID Connect 1.0 provider.
+                        Issuer identifier uri for the OpenID Connect provider.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

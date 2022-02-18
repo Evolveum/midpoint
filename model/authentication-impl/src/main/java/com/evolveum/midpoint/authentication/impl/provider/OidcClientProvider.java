@@ -8,7 +8,7 @@ package com.evolveum.midpoint.authentication.impl.provider;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.impl.module.authentication.OidcModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.module.authentication.OidcClientModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.OidcAdditionalConfiguration;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,7 +29,6 @@ import org.springframework.security.oauth2.client.oidc.authentication.OidcIdToke
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
 
 import java.nio.charset.StandardCharsets;
@@ -42,16 +41,16 @@ import java.util.function.Function;
  * @author skublik
  */
 
-public class OidcProvider extends RemoteModuleProvider {
+public class OidcClientProvider extends RemoteModuleProvider {
 
-    private static final Trace LOGGER = TraceManager.getTrace(OidcProvider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(OidcClientProvider.class);
 
     private final OidcAuthorizationCodeAuthenticationProvider oidcProvider;
 
     private final Map<String, OidcAdditionalConfiguration> additionalConfiguration;
     private Function<ClientRegistration, JWK> jwkResolver;
 
-    public OidcProvider(Map<String, OidcAdditionalConfiguration> additionalConfiguration) {
+    public OidcClientProvider(Map<String, OidcAdditionalConfiguration> additionalConfiguration) {
         this.additionalConfiguration = additionalConfiguration;
         initJwkResolver();
         JwtDecoderFactory<ClientRegistration> decoder = new OidcIdTokenDecoderFactory();
@@ -83,7 +82,7 @@ public class OidcProvider extends RemoteModuleProvider {
                         .keyID(UUID.randomUUID().toString());
                 String signingAlg = additionalConfiguration.get(clientRegistration.getRegistrationId()).getSingingAlg();
                 builder.algorithm(Algorithm.parse(signingAlg));
-                builder.keyID(additionalConfiguration.get(clientRegistration.getRegistrationId()).getKeyId());
+                builder.keyID(null); //hack without it resolver can't find key
                 return builder.build();
             }
             return null;
@@ -96,26 +95,19 @@ public class OidcProvider extends RemoteModuleProvider {
         Authentication token;
         if (authentication instanceof OAuth2LoginAuthenticationToken) {
             OAuth2LoginAuthenticationToken oidcAuthenticationToken = (OAuth2LoginAuthenticationToken) authentication;
-            OAuth2LoginAuthenticationToken oidcAuthentication = (OAuth2LoginAuthenticationToken) oidcProvider.authenticate(oidcAuthenticationToken);
-
-            OidcModuleAuthenticationImpl oidcModule = (OidcModuleAuthenticationImpl) AuthUtil.getProcessingModule();
+            OAuth2LoginAuthenticationToken oidcAuthentication;
             try {
-                OidcUser principal = (OidcUser) oidcAuthentication.getPrincipal();
-                oidcAuthenticationToken.setDetails(principal);
-                Map<String, Object> attributes = principal.getAttributes();
-                String enteredUsername;
-                ClientRegistration config = oidcModule.getClientsRepository().findByRegistrationId(
-                        oidcAuthenticationToken.getClientRegistration().getRegistrationId());
-                String nameOfSamlAttribute = config.getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
-                if (!attributes.containsKey(nameOfSamlAttribute)) {
-                    LOGGER.error("Couldn't find attribute for username in oidc response");
+                oidcAuthentication = (OAuth2LoginAuthenticationToken) oidcProvider.authenticate(oidcAuthenticationToken);
+            } catch (AuthenticationException e) {
+                getAuditProvider().auditLoginFailure(null, null, createConnectEnvironment(getChannel()), e.getMessage());
+                throw e;
+            }
+            OidcClientModuleAuthenticationImpl oidcModule = (OidcClientModuleAuthenticationImpl) AuthUtil.getProcessingModule();
+            try {
+                String enteredUsername = oidcAuthentication.getName();
+                if (StringUtils.isEmpty(enteredUsername)) {
+                    LOGGER.error("Oidc attribute, which define username don't contains value");
                     throw new AuthenticationServiceException("web.security.provider.invalid");
-                } else {
-                    enteredUsername = String.valueOf(attributes.get(nameOfSamlAttribute));
-                    if (StringUtils.isEmpty(enteredUsername)) {
-                        LOGGER.error("Oidc attribute, which define username don't contains value");
-                        throw new AuthenticationServiceException("web.security.provider.invalid");
-                    }
                 }
                 token = getPreAuthenticationToken(enteredUsername, focusType, requireAssignment, channel);
             } catch (AuthenticationException e) {

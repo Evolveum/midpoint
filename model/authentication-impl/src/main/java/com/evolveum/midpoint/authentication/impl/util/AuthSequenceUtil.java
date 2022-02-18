@@ -28,7 +28,6 @@ import com.evolveum.midpoint.authentication.impl.factory.module.HttpClusterModul
 import com.evolveum.midpoint.authentication.impl.filter.RemoteAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.module.authentication.HttpModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.impl.module.authentication.Saml2ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -192,9 +191,9 @@ public class AuthSequenceUtil {
         return null;
     }
 
-    public static String searchPathByChannel(String searchchannel) {
+    public static String searchPathByChannel(String searchChannel) {
         for (Map.Entry<String, String> entry : LOCAL_PATH_AND_CHANNEL.entrySet()) {
-            if (entry.getValue().equals(searchchannel)) {
+            if (entry.getValue().equals(searchChannel)) {
                 return entry.getKey();
             }
         }
@@ -279,7 +278,7 @@ public class AuthSequenceUtil {
         sequenceModules.forEach(sequenceModule -> {
             try {
                 AbstractAuthenticationModuleType module = getModuleByName(sequenceModule.getName(), authenticationModulesType);
-                AbstractModuleFactory moduleFactory = authRegistry.findModelFactory(module);
+                AbstractModuleFactory moduleFactory = authRegistry.findModelFactory(module, authenticationChannel);
                 AuthModule authModule = moduleFactory.createModuleFilter(module, sequence.getChannel().getUrlSuffix(), request,
                         sharedObjects, authenticationModulesType, credentialPolicy, authenticationChannel);
                 authModules.add(authModule);
@@ -470,7 +469,7 @@ public class AuthSequenceUtil {
     public static SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user, SecurityContextManager securityContextManager, TaskManager manager,
             ModelInteractionService modelInteractionService) {
 
-        return securityContextManager.runPrivileged(new Producer<SecurityPolicyType>() {
+        return securityContextManager.runPrivileged(new Producer<>() {
             private static final long serialVersionUID = 1L;
 
             @Override

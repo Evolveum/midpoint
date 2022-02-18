@@ -36,7 +36,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
     private static final Trace LOGGER = TraceManager.getTrace(AbstractCredentialModuleFactory.class);
 
     @Override
-    public abstract boolean match(AbstractAuthenticationModuleType moduleType);
+    public abstract boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel);
 
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType,
