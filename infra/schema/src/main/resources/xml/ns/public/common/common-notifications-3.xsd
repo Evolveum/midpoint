@@ -34,6 +34,7 @@
     <!-- region persistent objects/containers -->
     <!--
     TODO: Can this fully replace NotificationMessageType? It better does. Planned AFTER MessageTemplates (lower).
+    See: https://docs.evolveum.com/midpoint/projects/idmatch/notification-hypo-design/
     <xsd:complexType name="MessageType">
         <xsd:annotation>
             <xsd:documentation>
@@ -835,6 +836,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="transportConfig" type="tns:NotificationTransportConfigType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Notification specific transport configuration.
+                        It does not need to be there, but allows for notification specific redirections, logging, etc.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.5</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType"/>
@@ -1498,258 +1510,6 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-
-                    <!-- TODO useless elements left in 4.5 only for compatibility, nesting concrete notifiers does not work anyway -->
-                    <xsd:element name="simpleUserNotifier" type="tns:SimpleUserNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="timeValidityNotifier" type="tns:TimeValidityNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleFocalObjectNotifier" type="tns:SimpleFocalObjectNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleResourceObjectNotifier" type="tns:SimpleResourceObjectNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleWorkflowNotifier" type="tns:SimpleWorkflowNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleCaseManagementNotifier" type="tns:SimpleCaseManagementNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="userPasswordNotifier" type="tns:UserPasswordNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="userRegistrationNotifier" type="tns:RegistrationConfirmationNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="passwordResetNotifier" type="tns:PasswordResetNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="accountActivationNotifier" type="tns:AccountActivationNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="accountPasswordNotifier" type="tns:AccountPasswordNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleCampaignNotifier" type="tns:SimpleCampaignNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleCampaignStageNotifier" type="tns:SimpleCampaignStageNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleReviewerNotifier" type="tns:SimpleReviewerNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleTaskNotifier" type="tns:SimpleTaskNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleReportNotifier" type="tns:SimpleReportNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simplePolicyRuleNotifier" type="tns:SimplePolicyRuleNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>3.6</a:since>
-                            </xsd:appinfo>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="generalNotifier" type="tns:GeneralNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Here can go any notifiers (that extend GeneralNotifierType).
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="customNotifier" type="tns:CustomNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO EXPERIMENTAL
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1813,253 +1573,14 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="transport" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-
-                    <!-- TODO useless elements left in 4.5 only for compatibility, nesting concrete notifiers does not work anyway -->
-                    <xsd:element name="simpleUserNotifier" type="tns:SimpleUserNotifierType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="transportConfig" type="tns:NotifierTransportConfigType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                More expressive version of `transport` element that allows also customizing
+                                template per transport.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="timeValidityNotifier" type="tns:TimeValidityNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleFocalObjectNotifier" type="tns:SimpleFocalObjectNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleResourceObjectNotifier" type="tns:SimpleResourceObjectNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleWorkflowNotifier" type="tns:SimpleWorkflowNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleCaseManagementNotifier" type="tns:SimpleCaseManagementNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="userPasswordNotifier" type="tns:UserPasswordNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="userRegistrationNotifier" type="tns:RegistrationConfirmationNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="passwordResetNotifier" type="tns:PasswordResetNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="accountActivationNotifier" type="tns:AccountActivationNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="accountPasswordNotifier" type="tns:AccountPasswordNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleCampaignNotifier" type="tns:SimpleCampaignNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleCampaignStageNotifier" type="tns:SimpleCampaignStageNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleReviewerNotifier" type="tns:SimpleReviewerNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleTaskNotifier" type="tns:SimpleTaskNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simpleReportNotifier" type="tns:SimpleReportNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="simplePolicyRuleNotifier" type="tns:SimplePolicyRuleNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>3.6</a:since>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="generalNotifier" type="tns:GeneralNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Here can go any notifiers (that extend GeneralNotifierType).
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="customNotifier" type="tns:CustomNotifierType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO EXPERIMENTAL
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
+                                <a:since>4.5</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2500,6 +2021,57 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="NotificationTransportConfigType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type for notification specific transport configuration.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:displayName>NotificationTransportConfigType.details</a:displayName>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        References unique name of the configured message transport.
+                        If the transport does not exists, warning is logged and this config block is ignored.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>NotificationTransportConfigType.name</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        All the notification messages are redirected into a specified file. Useful for debugging.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>NotificationTransportConfigType.redirectToFile</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="logToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        In addition to sending notification messages, they are also written to a file. Useful for debugging.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>NotificationTransportConfigType.logToFile</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!--
+            TODO: Add override for recipientAddressExpression? First it must work in main transport config anyway.
+            TODO: What else, disable/enable? Blacklisting/filtering here as well? That's probably too much.
+            TODO: Adding cc/bcc for all messages generated by notifications for this transport?
+            -->
         </xsd:sequence>
     </xsd:complexType>
 

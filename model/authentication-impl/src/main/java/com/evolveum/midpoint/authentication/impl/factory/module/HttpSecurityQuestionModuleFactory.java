@@ -28,7 +28,7 @@ public class HttpSecurityQuestionModuleFactory extends AbstractCredentialModuleF
         <ModuleWebSecurityConfiguration, HttpSecurityQuestionsModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration>> {
 
     @Override
-    public boolean match(AbstractAuthenticationModuleType moduleType) {
+    public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
         return moduleType instanceof HttpSecQAuthenticationModuleType;
     }
 

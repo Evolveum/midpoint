@@ -43,7 +43,7 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
     private static final Trace LOGGER = TraceManager.getTrace(Saml2ModuleFactory.class);
 
     @Override
-    public boolean match(AbstractAuthenticationModuleType moduleType) {
+    public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
         return moduleType instanceof Saml2AuthenticationModuleType;
     }
 

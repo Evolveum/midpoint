@@ -11,6 +11,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -55,9 +57,9 @@ public class AuthModuleRegistryImpl {
 
     }
 
-    public AbstractModuleFactory findModelFactory(AbstractAuthenticationModuleType configuration) {
+    public AbstractModuleFactory findModelFactory(AbstractAuthenticationModuleType configuration, AuthenticationChannel authenticationChannel) {
 
-        Optional<AbstractModuleFactory> opt = moduleFactories.stream().filter(f -> f.match(configuration)).findFirst();
+        Optional<AbstractModuleFactory> opt = moduleFactories.stream().filter(f -> f.match(configuration, authenticationChannel)).findFirst();
         if (opt.isEmpty()) {
             LOGGER.trace("No factory found for {}", configuration);
             return null;

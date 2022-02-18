@@ -32,7 +32,7 @@ public class OtherModuleFactory extends AbstractModuleFactory {
     private ApplicationContext applicationContext;
 
     @Override
-    public boolean match(AbstractAuthenticationModuleType module) {
+    public boolean match(AbstractAuthenticationModuleType module, AuthenticationChannel authenticationChannel) {
         return module instanceof OtherAuthenticationModuleType;
     }
 

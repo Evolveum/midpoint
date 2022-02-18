@@ -41,7 +41,7 @@ public class HttpSecurityQuestionsAuthenticationFilter extends HttpAuthenticatio
         super(authenticationManager, authenticationEntryPoint);
     }
 
-    protected JSONObject extractAndDecodeHeader(String header) {
+    protected JSONObject extractAndDecodeHeader(String header, HttpServletRequest request) {
         String token = createCredentialsFromHeader(header);
         JSONObject json = new JSONObject(token);
         if (!json.keySet().contains(J_USER) || !json.keySet().contains(J_ANSWER)){

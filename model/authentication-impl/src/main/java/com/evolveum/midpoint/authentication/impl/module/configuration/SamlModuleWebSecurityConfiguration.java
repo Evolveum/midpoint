@@ -28,6 +28,7 @@ import com.evolveum.midpoint.authentication.impl.saml.MidpointAssertingPartyMeta
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.cxf.common.util.Base64Exception;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCSException;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -296,7 +297,7 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
         Certificate certificate;
         try {
             certificate = getCertificate(key, protector);
-        } catch (EncryptionException | CertificateException e) {
+        } catch (Base64Exception | EncryptionException | CertificateException e) {
             throw new Saml2Exception("Unable get certificate from " + key, e);
         }
         List<Saml2X509Credential.Saml2X509CredentialType> types = getTypesForKey(isActive, key.getType());

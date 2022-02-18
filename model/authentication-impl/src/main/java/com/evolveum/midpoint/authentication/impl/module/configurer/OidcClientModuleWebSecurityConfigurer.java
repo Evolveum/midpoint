@@ -8,12 +8,10 @@
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.impl.entry.point.RemoteAuthenticationEntryPoint;
-import com.evolveum.midpoint.authentication.impl.entry.point.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.impl.module.configuration.OidcModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.authentication.impl.module.configuration.OidcClientModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.oidc.OidcClientLogoutSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.oidc.OidcLoginConfigurer;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
@@ -26,7 +24,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 import java.util.Collections;
@@ -35,15 +32,15 @@ import java.util.Collections;
  * @author skublik
  */
 
-public class OidcModuleWebSecurityConfigurer<C extends OidcModuleWebSecurityConfiguration> extends RemoteModuleWebSecurityConfigurer<C> {
+public class OidcClientModuleWebSecurityConfigurer<C extends OidcClientModuleWebSecurityConfiguration> extends RemoteModuleWebSecurityConfigurer<C> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(OidcModuleWebSecurityConfigurer.class);
+    private static final Trace LOGGER = TraceManager.getTrace(OidcClientModuleWebSecurityConfigurer.class);
     public static final String OIDC_LOGIN_PATH = "/oidc/select";
 
     @Autowired
     private ModelAuditRecorder auditProvider;
 
-    public OidcModuleWebSecurityConfigurer(C configuration) {
+    public OidcClientModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
     }
 
@@ -63,7 +60,7 @@ public class OidcModuleWebSecurityConfigurer<C extends OidcModuleWebSecurityConf
         try {
             configurer.authenticationManager(new ProviderManager(Collections.emptyList(), authenticationManager()));
         } catch (Exception e) {
-            LOGGER.error("Couldn't initialize authentication manager for saml2 module");
+            LOGGER.error("Couldn't initialize authentication manager for oidc module");
         }
         getOrApply(http, configurer);
     }

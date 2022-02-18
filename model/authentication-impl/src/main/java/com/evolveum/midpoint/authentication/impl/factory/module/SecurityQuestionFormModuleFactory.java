@@ -26,7 +26,7 @@ public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleF
         <LoginFormModuleWebSecurityConfiguration, SecurityQuestionsFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
 
     @Override
-    public boolean match(AbstractAuthenticationModuleType moduleType) {
+    public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
         return moduleType instanceof SecurityQuestionsFormAuthenticationModuleType;
     }
 

@@ -165,4 +165,11 @@ public class AuthUtil {
         s = stripEndingSlashes(s);
         return s;
     }
+
+    public static String resolveTokenTypeByModuleType(String nameOfModuleType) {
+        if (AuthenticationModuleNameConstants.OIDC.equals(nameOfModuleType)) {
+            return "Bearer";
+        }
+        return nameOfModuleType;
+    }
 }

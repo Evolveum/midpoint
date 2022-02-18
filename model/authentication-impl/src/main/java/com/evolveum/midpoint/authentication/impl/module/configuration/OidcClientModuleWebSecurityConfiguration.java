@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.cxf.common.util.Base64Exception;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCSException;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -41,32 +42,32 @@ import static com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil.ge
  * @author skublik
  */
 
-public class OidcModuleWebSecurityConfiguration extends RemoteModuleWebSecurityConfiguration {
+public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSecurityConfiguration {
 
-    private static final Trace LOGGER = TraceManager.getTrace(OidcModuleWebSecurityConfiguration.class);
+    private static final Trace LOGGER = TraceManager.getTrace(OidcClientModuleWebSecurityConfiguration.class);
 
     private static Protector protector;
 
     private InMemoryClientRegistrationRepository clientRegistrationRepository;
     private final Map<String, OidcAdditionalConfiguration> additionalConfiguration = new HashMap<>();
 
-    private OidcModuleWebSecurityConfiguration() {
+    private OidcClientModuleWebSecurityConfiguration() {
     }
 
     public static void setProtector(Protector protector) {
-        OidcModuleWebSecurityConfiguration.protector = protector;
+        OidcClientModuleWebSecurityConfiguration.protector = protector;
     }
 
-    public static OidcModuleWebSecurityConfiguration build(OidcAuthenticationModuleType modelType, String prefixOfSequence,
+    public static OidcClientModuleWebSecurityConfiguration build(OidcAuthenticationModuleType modelType, String prefixOfSequence,
                                                            String publicHttpUrlPattern, ServletRequest request) {
-        OidcModuleWebSecurityConfiguration configuration = buildInternal(modelType, prefixOfSequence, publicHttpUrlPattern, request);
+        OidcClientModuleWebSecurityConfiguration configuration = buildInternal(modelType, prefixOfSequence, publicHttpUrlPattern, request);
         configuration.validate();
         return configuration;
     }
 
-    private static OidcModuleWebSecurityConfiguration buildInternal(OidcAuthenticationModuleType modelType, String prefixOfSequence,
+    private static OidcClientModuleWebSecurityConfiguration buildInternal(OidcAuthenticationModuleType modelType, String prefixOfSequence,
                                                                     String publicHttpUrlPattern, ServletRequest request) {
-        OidcModuleWebSecurityConfiguration configuration = new OidcModuleWebSecurityConfiguration();
+        OidcClientModuleWebSecurityConfiguration configuration = new OidcClientModuleWebSecurityConfiguration();
         build(configuration, modelType, prefixOfSequence);
 
         List<OidcClientAuthenticationModuleType> clients = modelType.getClient();
@@ -103,8 +104,9 @@ public class OidcModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
             Assert.hasText(client.getClientId(), "clientId cannot be empty");
             builder.clientId(client.getClientId());
 
-            Assert.hasText(client.getNameOfUsernameAttribute(), "nameOfUsernameAttribute cannot be empty");
-            builder.userNameAttributeName(client.getNameOfUsernameAttribute());
+            if (client.getNameOfUsernameAttribute() != null) {
+                builder.userNameAttributeName(client.getNameOfUsernameAttribute());
+            }
 
             if (!Objects.isNull(client.getClientSecret())) {
                 try {
@@ -151,10 +153,8 @@ public class OidcModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
             OidcAdditionalConfiguration.Builder additionalConfBuilder = OidcAdditionalConfiguration.builder()
                     .singingAlg(client.getClientSigningAlgorithm());
             if (client.getSimpleProofKey() != null) {
-                additionalConfBuilder.keyId(client.getSimpleProofKey().getKeyId());
                 initializeProofKey(client.getSimpleProofKey(), additionalConfBuilder);
             } else if (client.getKeyStoreProofKey() != null) {
-                additionalConfBuilder.keyId(client.getKeyStoreProofKey().getKeyId());
                 initializeProofKey(client.getKeyStoreProofKey(), additionalConfBuilder);
             }
 
@@ -207,7 +207,7 @@ public class OidcModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
         try {
             Certificate certificate = getCertificate(key, protector);
             publicKey = certificate.getPublicKey();
-        } catch (EncryptionException | CertificateException e) {
+        } catch (Base64Exception | EncryptionException | CertificateException e) {
             throw new OAuth2AuthenticationException(new OAuth2Error("missing_key"), "Unable get certificate from " + key, e);
         }
 

@@ -47,7 +47,7 @@ public abstract class HttpAuthenticationFilter<T> extends BasicAuthenticationFil
 
     private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
     private RememberMeServices rememberMeServices = new NullRememberMeServices();
-    private Charset credentialsCharset = StandardCharsets.UTF_8;
+    private final Charset credentialsCharset = StandardCharsets.UTF_8;
     private final AuthenticationSuccessHandler successHandler = new BasicMidPointAuthenticationSuccessHandler();
 
     public HttpAuthenticationFilter(AuthenticationManager authenticationManager,
@@ -76,17 +76,17 @@ public abstract class HttpAuthenticationFilter<T> extends BasicAuthenticationFil
                         + " Please use form 'Authorization: <type> <credentials>' for successful authentication");
             }
 
-            if (!header.toLowerCase().startsWith(getNameOfModule().toLowerCase() + " ")) {
+            if (skipFilterForAuthorizationHeader(header)) {
                 chain.doFilter(request, response);
                 return;
             }
 
-            T tokens = extractAndDecodeHeader(header);
+            T tokens = extractAndDecodeHeader(header, request);
 
             logFoundAuthorizationHeader(tokens, request);
 
             if (authenticationIsRequired(tokens, request)) {
-                UsernamePasswordAuthenticationToken authRequest = createAuthenticationToken(tokens, request);
+                AbstractAuthenticationToken authRequest = createAuthenticationToken(tokens, request);
                 authRequest.setDetails(
                         getAuthenticationDetailsSource().buildDetails(request));
                 Authentication authResult = getAuthenticationManager()
@@ -116,7 +116,11 @@ public abstract class HttpAuthenticationFilter<T> extends BasicAuthenticationFil
         chain.doFilter(newRequest, response);
     }
 
-    protected abstract T extractAndDecodeHeader(String header);
+    protected boolean skipFilterForAuthorizationHeader(String header) {
+        return !header.toLowerCase().startsWith(getNameOfModule().toLowerCase() + " ");
+    }
+
+    protected abstract T extractAndDecodeHeader(String header, HttpServletRequest request);
 
     protected String createCredentialsFromHeader(String header) {
         int startIndex = getNameOfModule().length() + 1;
@@ -137,7 +141,7 @@ public abstract class HttpAuthenticationFilter<T> extends BasicAuthenticationFil
         return new MidpointHttpServletRequest(request);
     }
 
-    protected abstract UsernamePasswordAuthenticationToken createAuthenticationToken(T tokens, HttpServletRequest request);
+    protected abstract AbstractAuthenticationToken createAuthenticationToken(T tokens, HttpServletRequest request);
 
     protected abstract boolean authenticationIsRequired(T tokens, HttpServletRequest request);
 
