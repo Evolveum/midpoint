@@ -15,7 +15,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageAdminGui;
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageLogging;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageSystemLogging;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageSystemBasic;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
@@ -74,13 +75,13 @@ public class PageSystemConfiguration extends PageBase {
             @Override
             protected List<CompositedIconButtonDto> load() {
                 List<CompositedIconButtonDto> buttons = new ArrayList<>();
-                buttons.add(createCompositedButton("Basic", "fa fa-wrench", PageSystemConfigurationBasic.class));
+                buttons.add(createCompositedButton("Basic", "fa fa-wrench", PageSystemBasic.class));
                 buttons.add(createCompositedButton("Object policies", "fa  fa-umbrella", PageObjectPoliciesConfiguration.class));
                 buttons.add(createCompositedButton("Global policy rule", "fa fa-eye", PageGlobalPolicyRule.class));
                 buttons.add(createCompositedButton("Global projection policy", "fa fa-globe", PageGlobalProjectionPolicy.class));
                 buttons.add(createCompositedButton("Cleanup policy", "fa  fa-eraser", PageCleanupPolicy.class));
                 buttons.add(createCompositedButton("Notifications", "fa fa-envelope", PageNotificationConfiguration.class));
-                buttons.add(createCompositedButton("Logging", "fa fa-file-text", PageLogging.class));
+                buttons.add(createCompositedButton("Logging", "fa fa-file-text", PageSystemLogging.class));
                 buttons.add(createCompositedButton("Profiling", "fa fa-camera", PageProfiling.class));
                 buttons.add(createCompositedButton("Admin GUI configuration", "fa fa-camera", PageAdminGui.class));
                 buttons.add(createCompositedButton("Workflow configuration", "fa fa-camera", PageWorkflowConfiguration.class));

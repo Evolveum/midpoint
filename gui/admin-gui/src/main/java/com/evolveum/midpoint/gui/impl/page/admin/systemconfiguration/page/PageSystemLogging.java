@@ -30,18 +30,18 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
                         label = "PageSystemConfiguration.auth.configSystemConfiguration.label",
                         description = "PageSystemConfiguration.auth.configSystemConfiguration.description")
         })
-public class PageLogging extends PageBaseSystemConfiguration {
+public class PageSystemLogging extends PageBaseSystemConfiguration {
 
     private static final long serialVersionUID = 1L;
 
-    public PageLogging() {
+    public PageSystemLogging() {
     }
 
-    public PageLogging(PageParameters parameters) {
+    public PageSystemLogging(PageParameters parameters) {
         super(parameters);
     }
 
-    public PageLogging(PrismObject<SystemConfigurationType> object) {
+    public PageSystemLogging(PrismObject<SystemConfigurationType> object) {
         super(object);
     }
 

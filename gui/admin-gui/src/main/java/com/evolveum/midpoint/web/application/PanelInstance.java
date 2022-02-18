@@ -26,7 +26,7 @@ public @interface PanelInstance {
     /**
      * The type for which the panel is applicable for.
      */
-    Class<? extends Containerable> applicableForType() default ObjectType.class;
+    Class<? extends Containerable> applicableForType() default Containerable.class;
 
     /**
      * Defined the type of the operation when the panel is visible. Default behavior is

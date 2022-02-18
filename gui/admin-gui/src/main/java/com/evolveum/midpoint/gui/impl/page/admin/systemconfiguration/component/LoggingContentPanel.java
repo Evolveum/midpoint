@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         display = @PanelDisplay(
                 label = "LoggingPanelContent.label",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 20
+                order = 10
         )
 )
 public class LoggingContentPanel extends AbstractObjectMainPanel<SystemConfigurationType, AssignmentHolderDetailsModel<SystemConfigurationType>> {

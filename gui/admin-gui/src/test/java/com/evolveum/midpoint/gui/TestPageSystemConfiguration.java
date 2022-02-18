@@ -9,7 +9,8 @@ package com.evolveum.midpoint.gui;
 import static org.testng.Assert.assertEquals;
 
 import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageAdminGui;
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageLogging;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageSystemLogging;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageSystemBasic;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 
 import com.evolveum.midpoint.web.page.admin.configuration.system.*;
@@ -55,7 +56,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
     @Test
     public void test002testPageSystemConfigurationBasic() {
-        renderPage(PageSystemConfigurationBasic.class);
+        renderPage(PageSystemBasic.class);
     }
 
     @Test
@@ -85,7 +86,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
     @Test
     public void test008testPageLogging() {
-        renderPage(PageLogging.class);
+        renderPage(PageSystemLogging.class);
     }
 
     @Test
@@ -138,7 +139,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
         renderPage(com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
 
         tester.executeAjaxEvent("container:additionalButtons:0:additionalButton:compositedButton", "click");
-        tester.assertRenderedPage(PageSystemConfigurationBasic.class);
+        tester.assertRenderedPage(PageSystemBasic.class);
 
         final String mainFormPath = "detailsView:mainForm";
         final String descriptionPath = "mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:input:propertiesLabel:properties:1:property:values:0:value:valueForm:valueContainer:input:input";

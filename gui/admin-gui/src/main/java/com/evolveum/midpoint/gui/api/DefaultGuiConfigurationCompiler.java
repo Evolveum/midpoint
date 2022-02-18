@@ -7,6 +7,17 @@
 
 package com.evolveum.midpoint.gui.api;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
@@ -27,17 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
 
 @Component
 public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
@@ -379,23 +379,18 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return allClasses;
     }
 
-    private boolean isNotApplicableFor(Class<? extends Containerable> objectType, PanelInstance panelInstance) {
-        if (panelInstance == null) {
-            return true;
-        }
-        if (panelInstance.applicableForType() == null) {
-            return true;
-        }
-
-        if (ObjectType.class.equals(panelInstance.applicableForType())) {
+    private boolean isNotApplicableFor(Class<? extends Containerable> containerable, PanelInstance pi) {
+        if (pi == null || Containerable.class.equals(pi.applicableForType())) {
+            // if there's no applicableForType defined, it shouldn't be applicable
             return true;
         }
 
-        if (panelInstance.excludeTypes() != null && panelInstance.excludeTypes().length > 0) {
-            return Arrays.asList(panelInstance.excludeTypes()).contains(objectType);
+        boolean applicable = pi.applicableForType().isAssignableFrom(containerable);
+        if (!applicable) {
+            return true;
         }
 
-        return !panelInstance.applicableForType().isAssignableFrom(objectType);
+        return Arrays.asList(pi.excludeTypes()).contains(containerable);
     }
 
     private boolean isSubPanel(PanelInstance panelInstance) {

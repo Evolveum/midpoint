@@ -44,7 +44,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
         display = @PanelDisplay(
                 label = "ClassLoggersContentPanel.label",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 30
+                order = 20
         )
 )
 @Counter(provider = ClassLoggersMenuLinkCounter.class)
