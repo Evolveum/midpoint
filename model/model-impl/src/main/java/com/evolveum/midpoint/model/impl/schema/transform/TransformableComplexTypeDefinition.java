@@ -42,7 +42,7 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
     private static final TransformableItemDefinition REMOVED = new Removed();
     private final Map<QName,ItemDefinition<?>> overrides = new HashMap<>();
 
-    private DelegatedItem<ComplexTypeDefinition> delegate;
+    protected DelegatedItem<ComplexTypeDefinition> delegate;
     private transient List<ItemDefinition<?>> definitionsCache;
 
     public TransformableComplexTypeDefinition(ComplexTypeDefinition delegate) {
