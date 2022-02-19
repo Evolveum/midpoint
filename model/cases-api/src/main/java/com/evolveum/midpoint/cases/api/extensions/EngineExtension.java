@@ -31,7 +31,7 @@ public interface EngineExtension {
      */
     void finishCaseClosing(@NotNull CaseEngineOperation operation, @NotNull OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
-            ExpressionEvaluationException, ConfigurationException, CommunicationException;
+            ExpressionEvaluationException, ConfigurationException, CommunicationException, SecurityViolationException;
 
     /**
      * Returns the number of stages the case is expected to go through. E.g. for approval cases, it is determined

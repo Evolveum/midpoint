@@ -218,7 +218,7 @@ public class ApprovalContextUtil {
             return emptyList();
         }
         return actx.getPolicyRules().getEntry().stream()
-                .filter(e -> e.getStageMax() != null && e.getStageMax() != null
+                .filter(e -> e.getStageMax() != null
                         && order >= e.getStageMin() && order <= e.getStageMax())
                 .collect(Collectors.toList());
     }

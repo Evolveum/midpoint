@@ -23,5 +23,5 @@ public interface CaseCreationListener {
     /**
      * This method is called when a case is created.
      */
-    void onCaseCreation(CaseType aCase, OperationResult result, Task task);
+    void onCaseCreation(CaseType aCase, Task task, OperationResult result);
 }

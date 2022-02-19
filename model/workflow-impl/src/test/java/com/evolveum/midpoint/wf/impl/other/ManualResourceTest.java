@@ -42,8 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * This is an adaptation of model-intest manual resource test(s) aimed to verify workflow-related aspects
  * (e.g. completion, auditing, notifications) of manual provisioning cases.
- *
- * @author Radovan Semancik
  */
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

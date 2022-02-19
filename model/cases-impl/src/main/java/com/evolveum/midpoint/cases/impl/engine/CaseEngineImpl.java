@@ -186,7 +186,7 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
                 return fromMap;
             }
         }
-        return new DefaultEngineExtension(beans);
+        return new DefaultEngineExtension();
     }
 
     private String getCaseArchetypeOid(@NotNull PrismObject<CaseType> aCase, OperationResult result) throws SchemaException {
@@ -215,7 +215,7 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
      * It is in order to process them by e.g. sending the notifications or auditing the case creation.
      */
     @Override
-    public void onCaseCreation(CaseType aCase, OperationResult result, Task task) {
+    public void onCaseCreation(CaseType aCase, Task task, OperationResult result) {
         try {
             executeRequest(
                     new OpenCaseRequest(aCase.getOid()), task, result);

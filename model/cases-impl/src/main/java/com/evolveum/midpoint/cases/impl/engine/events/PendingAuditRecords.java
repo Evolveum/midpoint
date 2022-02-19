@@ -122,18 +122,24 @@ public class PendingAuditRecords implements DebugDumpable {
         record.addReferenceValueIgnoreNull(AuditingConstants.AUDIT_TARGET, targetRef);
 
         if (stage == EXECUTION) {
-            String stageInfo = ApprovalContextUtil.getCompleteStageInfo(aCase); // FIXME
-            record.setParameter(stageInfo);
+            String stageInfo;
+            if (operation.doesUseStages()) {
+                stageInfo = ApprovalContextUtil.getCompleteStageInfo(aCase);
+                record.setParameter(stageInfo);
+            } else {
+                stageInfo = null;
+            }
 
             String answer = ApprovalUtils.getAnswerNice(aCase); // FIXME
             record.setResult(answer);
             record.setMessage(stageInfo != null ? stageInfo + " : " + answer : answer);
 
-            // FIXME
-            record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_NUMBER, aCase.getStageNumber());
-            record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_COUNT, operation.getExpectedNumberOfStages());
-            record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_NAME, ApprovalContextUtil.getStageName(aCase));
-            record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_DISPLAY_NAME, ApprovalContextUtil.getStageDisplayName(aCase));
+            if (operation.doesUseStages()) {
+                record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_NUMBER, aCase.getStageNumber());
+                record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_COUNT, operation.getExpectedNumberOfStages());
+                record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_NAME, ApprovalContextUtil.getStageName(aCase));
+                record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_DISPLAY_NAME, ApprovalContextUtil.getStageDisplayName(aCase));
+            }
         }
         record.addPropertyValue(AuditingConstants.AUDIT_PROCESS_INSTANCE_ID, aCase.getOid());
         record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_REQUESTER_COMMENT, ApprovalContextUtil.getRequesterComment(aCase));
@@ -150,7 +156,9 @@ public class PendingAuditRecords implements DebugDumpable {
 
         AuditEventRecord record = prepareWorkItemAuditRecordCommon(workItem, AuditEventStage.REQUEST, result);
         record.setInitiator(beans.miscHelper.getRequesterIfExists(aCase, result));
-        record.setMessage(ApprovalContextUtil.getCompleteStageInfo(aCase));
+        if (operation.doesUseStages()) {
+            record.setMessage(ApprovalContextUtil.getCompleteStageInfo(aCase));
+        }
 
         extension.enrichWorkItemCreatedAuditRecord(record, workItem, operation, result);
 
@@ -185,7 +193,8 @@ public class PendingAuditRecords implements DebugDumpable {
 
         // message + result
         StringBuilder message = new StringBuilder();
-        String stageInfo = ApprovalContextUtil.getCompleteStageInfo(aCase);
+        String stageInfo = operation.doesUseStages() ?
+                ApprovalContextUtil.getCompleteStageInfo(aCase) : null;
         if (stageInfo != null) {
             message.append(stageInfo).append(" : ");
         }
@@ -226,16 +235,20 @@ public class PendingAuditRecords implements DebugDumpable {
         record.setTargetRef(objectRef.asReferenceValue());
 
         record.setOutcome(OperationResultStatus.SUCCESS);
-        record.setParameter(ApprovalContextUtil.getCompleteStageInfo(aCase));
+        if (operation.doesUseStages()) {
+            record.setParameter(ApprovalContextUtil.getCompleteStageInfo(aCase));
+        }
 
         record.addReferenceValueIgnoreNull(AuditingConstants.AUDIT_OBJECT, objectRef);
         record.addReferenceValueIgnoreNull(AuditingConstants.AUDIT_TARGET, resolveIfNeeded(aCase.getTargetRef(), false, result));
         record.addReferenceValueIgnoreNull(AuditingConstants.AUDIT_ORIGINAL_ASSIGNEE, resolveIfNeeded(workItem.getOriginalAssigneeRef(), false, result));
         record.addReferenceValues(AuditingConstants.AUDIT_CURRENT_ASSIGNEE, resolveIfNeeded(workItem.getAssigneeRef(), false, result));
-        record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_NUMBER, workItem.getStageNumber());
-        record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_COUNT, ApprovalContextUtil.getStageCount(wfc));
-        record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_NAME, ApprovalContextUtil.getStageName(aCase));
-        record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_DISPLAY_NAME, ApprovalContextUtil.getStageDisplayName(aCase));
+        if (operation.doesUseStages()) {
+            record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_NUMBER, workItem.getStageNumber());
+            record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_COUNT, ApprovalContextUtil.getStageCount(wfc));
+            record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_NAME, ApprovalContextUtil.getStageName(aCase));
+            record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_DISPLAY_NAME, ApprovalContextUtil.getStageDisplayName(aCase));
+        }
         record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_ESCALATION_LEVEL_NUMBER, WorkItemTypeUtil.getEscalationLevelNumber(workItem));
         record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_ESCALATION_LEVEL_NAME, WorkItemTypeUtil.getEscalationLevelName(workItem));
         record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME, WorkItemTypeUtil.getEscalationLevelDisplayName(workItem));

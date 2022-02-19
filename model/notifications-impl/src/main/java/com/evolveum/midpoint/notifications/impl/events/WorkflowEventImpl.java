@@ -115,15 +115,9 @@ abstract public class WorkflowEventImpl extends BaseEventImpl implements Workflo
     }
 
     @Override
-    @NotNull
+    @Nullable
     public ApprovalContextType getApprovalContext() {
         return approvalContext;
-    }
-
-    @Override
-    @NotNull
-    public CaseType getWorkflowTask() {
-        return aCase;
     }
 
     @Override

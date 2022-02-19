@@ -7,6 +7,12 @@
 
 package com.evolveum.midpoint.cases.api;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -24,4 +30,7 @@ public interface CaseEngineOperation extends DebugDumpable {
     @NotNull Task getTask();
     int getCurrentStageNumber();
     @NotNull MidPointPrincipal getPrincipal();
+
+    void closeCaseInRepository(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
 }

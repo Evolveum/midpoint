@@ -14,7 +14,7 @@
         <work>
             <import>
                 <resourceObjects>
-                    <resourceRef oid="89d4fce0-f378-453a-a4f7-438efff10cfe"/>
+                    <resourceRef oid="21d4788c-15eb-40cc-8ac5-3cd379362ffe"/>
                     <kind>account</kind>
                     <intent>default</intent>
                 </resourceObjects>

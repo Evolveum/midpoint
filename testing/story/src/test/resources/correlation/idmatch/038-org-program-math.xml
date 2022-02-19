@@ -1,0 +1,19 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     oid="b838411b-d556-447c-9f16-f8ba5f31048a">
+    <name>temp</name>
+    <assignment>
+        <targetRef oid="fbe37f25-1026-4293-ac48-071cc56b1a36" type="ArchetypeType"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="8e8f024b-c6da-42ba-82f5-d43e514e70eb" type="OrgType"/>
+    </assignment>
+    <displayName>Mathematics</displayName>
+    <identifier>math</identifier>
+</org>

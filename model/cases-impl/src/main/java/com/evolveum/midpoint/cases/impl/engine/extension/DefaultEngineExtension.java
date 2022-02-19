@@ -9,7 +9,6 @@ package com.evolveum.midpoint.cases.impl.engine.extension;
 
 import com.evolveum.midpoint.cases.api.extensions.*;
 
-import com.evolveum.midpoint.cases.impl.engine.CaseBeans;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
@@ -40,17 +39,11 @@ public class DefaultEngineExtension implements EngineExtension {
 
     private static final Trace LOGGER = TraceManager.getTrace(DefaultEngineExtension.class);
 
-    @NotNull private final CaseBeans beans;
-
-    public DefaultEngineExtension(@NotNull CaseBeans beans) {
-        this.beans = beans;
-    }
-
     @Override
     public void finishCaseClosing(@NotNull CaseEngineOperation operation, @NotNull OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         // No special action here. Let's just close the case.
-        beans.miscHelper.closeCaseInRepository(operation.getCurrentCase(), result);
+        operation.closeCaseInRepository(result);
     }
 
     @Override
@@ -89,7 +82,7 @@ public class DefaultEngineExtension implements EngineExtension {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        // This is relevant for manual cases -- TODO for correlation cases!
+        // This is relevant for manual cases
         return new DefaultStageClosingResult(
                 getOutcomeUri(allOutcomes));
     }

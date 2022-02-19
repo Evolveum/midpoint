@@ -167,9 +167,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         return objectResolver;
     }
 
-    private CaseManager getWorkflowManagerChecked() {
+    private CaseManager getCaseManagerChecked() {
         if (caseManager == null) {
-            throw new SystemException("Workflow manager not present");
+            throw new SystemException("Case manager not present");
         }
         return caseManager;
     }
@@ -2340,7 +2340,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         } else {
             outputToUse = output;
         }
-        getWorkflowManagerChecked().completeWorkItem(workItemId, outputToUse, null, task, parentResult);
+        getCaseManagerChecked().completeWorkItem(workItemId, outputToUse, null, task, parentResult);
     }
 
     // TODO move this method to more appropriate place
@@ -2352,54 +2352,35 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             @NotNull OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException {
-        // temporary
-        dispatchWorkItemCompletionRequest(workItemId, output, task, parentResult);
-    }
-
-    /**
-     * This is an ugly hack: Normally, all requests should be processed by a case manager (if such component would exist).
-     * Currently, only approvals are sent that way. Correlation cases are treated separately.
-     *
-     * FIXME unify this
-     */
-    private void dispatchWorkItemCompletionRequest(
-            WorkItemId workItemId, AbstractWorkItemOutputType output, Task task, OperationResult result)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
-        PrismObject<CaseType> aCase = cacheRepositoryService.getObject(CaseType.class, workItemId.caseOid, null, result);
-        if (hasArchetype(aCase, SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value())) {
-            correlationCaseManager.completeWorkItem(workItemId, aCase, output, task, result);
-        } else {
-            getWorkflowManagerChecked().completeWorkItem(workItemId, output, null, task, result);
-        }
+        getCaseManagerChecked().completeWorkItem(workItemId, output, null, task, parentResult);
     }
 
     @Override
     public void cancelCase(@NotNull String caseOid, @NotNull Task task, @NotNull OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, ObjectAlreadyExistsException {
-        getWorkflowManagerChecked().cancelCase(caseOid, task, parentResult);
+        getCaseManagerChecked().cancelCase(caseOid, task, parentResult);
     }
 
     @Override
     public void claimWorkItem(@NotNull WorkItemId workItemId, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        getWorkflowManagerChecked().claimWorkItem(workItemId, task, parentResult);
+        getCaseManagerChecked().claimWorkItem(workItemId, task, parentResult);
     }
 
     @Override
     public void releaseWorkItem(@NotNull WorkItemId workItemId, @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        getWorkflowManagerChecked().releaseWorkItem(workItemId, task, parentResult);
+        getCaseManagerChecked().releaseWorkItem(workItemId, task, parentResult);
     }
 
     @Override
     public void delegateWorkItem(@NotNull WorkItemId workItemId, @NotNull WorkItemDelegationRequestType delegationRequest,
             @NotNull Task task, @NotNull OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getWorkflowManagerChecked().delegateWorkItem(workItemId, delegationRequest, task, parentResult);
+        getCaseManagerChecked().delegateWorkItem(workItemId, delegationRequest, task, parentResult);
     }
 
     //endregion

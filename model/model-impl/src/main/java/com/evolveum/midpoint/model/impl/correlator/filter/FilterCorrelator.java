@@ -14,8 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.prism.PrismObject;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,8 +90,8 @@ class FilterCorrelator implements Correlator {
 
     @Override
     public void resolve(
-            @NotNull PrismObject<CaseType> aCase,
-            @NotNull AbstractWorkItemOutputType output,
+            @NotNull CaseType aCase,
+            @NotNull String outcomeUri,
             @NotNull Task task,
             @NotNull OperationResult result) {
         // This correlator should never create any correlation cases.
@@ -134,6 +132,7 @@ class FilterCorrelator implements Correlator {
                     correlationContext.getPreFocus(),
                     confirmedCandidates,
                     correlationContext,
+                    task,
                     result);
         }
 

@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -35,7 +36,9 @@ public interface WorkflowEvent extends Event {
 
     boolean isRejected();
 
-    @NotNull ApprovalContextType getApprovalContext();
+    @Nullable ApprovalContextType getApprovalContext();
 
-    @NotNull CaseType getWorkflowTask();
+    default boolean doesUseStages() {
+        return getApprovalContext() != null;
+    }
 }

@@ -6,13 +6,14 @@
   -->
 
 <c:resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-        oid="89d4fce0-f378-453a-a4f7-438efff10cfe">
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            oid="21d4788c-15eb-40cc-8ac5-3cd379362ffe">
 
-    <c:name>resource-ais</c:name>
+    <c:name>Student Information System</c:name>
     <connectorRef type="ConnectorType">
         <filter>
             <q:equal>
@@ -25,11 +26,11 @@
     <c:connectorConfiguration>
         <icfc:configurationProperties
                 xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
-            <icfccsvfile:filePath>will-be-replaced-by-test-code</icfccsvfile:filePath> <!-- resource-ais.csv -->
+            <icfccsvfile:filePath>will-be-replaced-by-test-code</icfccsvfile:filePath> <!-- resource-sis.csv -->
             <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
             <icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
             <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
-            <icfccsvfile:uniqueAttribute>aisId</icfccsvfile:uniqueAttribute>
+            <icfccsvfile:uniqueAttribute>sisId</icfccsvfile:uniqueAttribute>
         </icfc:configurationProperties>
     </c:connectorConfiguration>
 
@@ -40,6 +41,7 @@
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
             <multiplicity>
+                <!-- Each user can have more accounts in SIS. The sisId is the tag. -->
                 <maxOccurs>unbounded</maxOccurs>
                 <tag>
                     <expression>
@@ -50,16 +52,16 @@
                 </tag>
             </multiplicity>
             <attribute>
-                <c:ref>ri:aisId</c:ref>
+                <c:ref>ri:sisId</c:ref>
                 <inbound>
-                    <strength>weak</strength>
-                    <expression>
+                    <strength>strong</strength>
+                    <expression> <!-- cannot use "source" because there's no definition for that piece of data -->
                         <!-- Hack. This mapping should be invokable directly. -->
                         <!-- We assume the reference ID is present. -->
                         <path>$shadow/correlationState/referenceId</path>
                     </expression>
                     <target>
-                        <path>name</path>
+                        <path>extension/referenceId</path>
                     </target>
                     <evaluationPhases>
                         <!-- Before correlation, this ID may not be known. -->
@@ -68,53 +70,50 @@
                 </inbound>
                 <inbound>
                     <strength>strong</strength>
+                    <source>
+                        <path>$shadow/attributes/ri:firstName</path>
+                    </source>
+                    <source>
+                        <path>$shadow/attributes/ri:lastName</path>
+                    </source>
+                    <source>
+                        <path>$shadow/attributes/ri:born</path>
+                    </source>
+                    <source>
+                        <path>$shadow/attributes/ri:nationalId</path>
+                    </source>
+                    <source>
+                        <path>$shadow/attributes/ri:studyProgram</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                params = new HashMap()
+                                params.put('subtype', 'sis')
+                                params.put('sourceId', input)
+                                params.put('givenName', firstName)
+                                params.put('familyName', lastName)
+                                params.put('dateOfBirth', born)
+                                params.put('nationalId', nationalId)
+                                params.put('targetName', 'program-' + studyProgram)
+                                idmatch.execute('createAssignment', params)
+                            </code>
+                        </script>
+                    </expression>
                     <target>
-                        <path>employeeNumber</path> <!-- temporary -->
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <c:ref>ri:givenName</c:ref>
-                <inbound>
-                    <strength>strong</strength>
-                    <target>
-                        <path>givenName</path> <!-- temporary -->
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <c:ref>ri:familyName</c:ref>
-                <inbound>
-                    <strength>strong</strength>
-                    <target>
-                        <path>familyName</path> <!-- temporary -->
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <c:ref>ri:dateOfBirth</c:ref>
-                <inbound>
-                    <strength>strong</strength>
-                    <target>
-                        <path>extension/dateOfBirth</path> <!-- temporary -->
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <c:ref>ri:nationalId</c:ref>
-                <inbound>
-                    <strength>strong</strength>
-                    <target>
-                        <path>extension/nationalId</path> <!-- temporary -->
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <c:ref>ri:emailAddress</c:ref>
-                <inbound>
-                    <strength>strong</strength>
-                    <target>
-                        <path>emailAddress</path> <!-- temporary -->
+                        <path>assignment</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>
+                                        //this.binding.variables.each {k,v -> log.info('eval: {} = {}', k, v)}
+                                        def sisId = basic.getIdentifierValue(shadow)
+                                        def subtype = 'sis-' + sisId
+                                        assignment.subtype.contains(subtype)
+                                    </code>
+                                </script>
+                            </condition>
+                        </set>
                     </target>
                 </inbound>
             </attribute>
@@ -134,32 +133,40 @@
             <intent>default</intent>
             <correlationProperties>
                 <property>
-                    <source>$focus/givenName</source>
+                    <source>assignment/extension/givenName</source>
+                    <primaryTarget>givenName</primaryTarget>
                 </property>
                 <property>
-                    <source>$focus/familyName</source>
+                    <source>assignment/extension/familyName</source>
+                    <primaryTarget>familyName</primaryTarget>
                 </property>
                 <property>
-                    <source>$focus/extension/dateOfBirth</source>
+                    <source>assignment/extension/dateOfBirth</source>
+                    <primaryTarget>extension/dateOfBirth</primaryTarget>
                 </property>
                 <property>
-                    <source>$focus/extension/nationalId</source>
+                    <source>assignment/extension/nationalId</source>
+                    <primaryTarget>extension/nationalId</primaryTarget>
                 </property>
             </correlationProperties>
             <correlators>
                 <idMatch>
-                    <sorIdentifierProperty>$shadow/attributes/ri:aisId</sorIdentifierProperty>
+                    <!-- <sorLabel>midpoint</sorLabel>--> <!-- this is the default -->
+                    <sorIdentifierPrefix>sis-</sorIdentifierPrefix>
+                    <sorIdentifierProperty>assignment/extension/sourceId</sorIdentifierProperty>
+
                     <!-- URL and credentials are ignored when dummy ID Match Service implementation is used.
                          They are used only when running TestIdMatchReal (not part of the test suite). -->
                     <url>http://localhost:9090/match/api/1</url>
                     <username>administrator</username>
-                    <password><clearValue>5ecr3t</clearValue></password>
+                    <password><t:clearValue>5ecr3t</t:clearValue></password>
                     <followOn>
                         <filter>
                             <filter>
                                 <q:equal>
-                                    <q:path>name</q:path>
+                                    <q:path>extension/referenceId</q:path>
                                     <expression>
+                                        <!-- TODO here will be $focus/extension/referenceId, or even extension/referenceId -->
                                         <path>$correlationState/referenceId</path>
                                     </expression>
                                 </q:equal>

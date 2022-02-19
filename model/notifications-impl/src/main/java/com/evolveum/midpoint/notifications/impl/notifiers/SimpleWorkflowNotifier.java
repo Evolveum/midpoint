@@ -9,6 +9,7 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -143,8 +144,10 @@ public class SimpleWorkflowNotifier extends AbstractGeneralNotifier<WorkflowEven
                         .append(PrismUtil.serializeQuietly(prismContext, workItemEvent.getWorkItem()))
                         .append("\n");
             }
-            body.append("Workflow context:\n")
-                    .append(PrismUtil.serializeQuietly(prismContext, event.getApprovalContext()));
+            if (event.getApprovalContext() != null) {
+                body.append("Approval context:\n")
+                        .append(PrismUtil.serializeQuietly(prismContext, event.getApprovalContext()));
+            }
         }
         return body.toString();
     }
@@ -230,7 +233,7 @@ public class SimpleWorkflowNotifier extends AbstractGeneralNotifier<WorkflowEven
         ObjectReferenceType originalAssignee = workItem.getOriginalAssigneeRef();
         List<ObjectReferenceType> currentAssignees = workItem.getAssigneeRef();
         boolean atLeastOne = false;
-        if (currentAssignees.size() != 1 || !java.util.Objects.equals(originalAssignee.getOid(), currentAssignees.get(0).getOid())) {
+        if (showOriginalAssignee(originalAssignee, currentAssignees)) {
             UserType originalAssigneeObject = (UserType) functions.getObjectType(originalAssignee, true, result);
             sb.append("Originally allocated to: ").append(
                     valueFormatter.formatUserName(originalAssigneeObject, originalAssignee.getOid())).append("\n");
@@ -253,6 +256,16 @@ public class SimpleWorkflowNotifier extends AbstractGeneralNotifier<WorkflowEven
         if (atLeastOne) {
             sb.append("\n");
         }
+    }
+
+    private boolean showOriginalAssignee(ObjectReferenceType originalAssignee, List<ObjectReferenceType> currentAssignees) {
+        if (originalAssignee == null) {
+            return false; // nothing to show
+        }
+        if (currentAssignees.size() != 1) {
+            return true;
+        }
+        return !Objects.equals(originalAssignee.getOid(), currentAssignees.get(0).getOid());
     }
 
     // a bit of heuristics...
@@ -283,9 +296,11 @@ public class SimpleWorkflowNotifier extends AbstractGeneralNotifier<WorkflowEven
     }
 
     private void appendStageInformation(StringBuilder sb, WorkflowEvent workflowEvent) {
-        String info = ApprovalContextUtil.getStageInfo(workflowEvent.getCase());
-        if (info != null) {
-            sb.append("Stage: ").append(info).append("\n");
+        if (workflowEvent.doesUseStages()) {
+            String info = ApprovalContextUtil.getStageInfo(workflowEvent.getCase());
+            if (info != null) {
+                sb.append("Stage: ").append(info).append("\n");
+            }
         }
     }
 

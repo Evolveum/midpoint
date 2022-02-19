@@ -117,7 +117,7 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
 
     private void commit(OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException,
-            ExpressionEvaluationException, ConfigurationException, CommunicationException {
+            ExpressionEvaluationException, ConfigurationException, CommunicationException, SecurityViolationException {
         OperationResult result = parentResult.subresult(OP_COMMIT)
                 .setMinor()
                 .build();
@@ -176,7 +176,7 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
 
     private void closeTheCase(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SecurityViolationException {
 
         // Invoking specific postprocessing of the case, like submitting a task that executes approved deltas.
         engineExtension.finishCaseClosing(this, result);
@@ -187,6 +187,12 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
         auditRecords.addCaseClosing(result);
         notificationEvents.add(
                 new CloseCase(currentCase));
+    }
+
+    @Override
+    public void closeCaseInRepository(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        beans.miscHelper.closeCaseInRepository(currentCase, result);
     }
 
     public @NotNull CaseType getCurrentCase() {
@@ -232,6 +238,13 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
      */
     public int getExpectedNumberOfStages() {
         return engineExtension.getExpectedNumberOfStages(this);
+    }
+
+    /**
+     * Does this case use stages?
+     */
+    public boolean doesUseStages() {
+        return engineExtension.doesUseStages();
     }
 
     /**

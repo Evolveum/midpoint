@@ -202,8 +202,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
     private PrismObject<CaseType> addCase(String operation, String description, String resourceOid, String shadowName, String shadowOid,
             ObjectDeltaType objectDelta, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
-        PrismObject<CaseType> aCase = getPrismContext().createObject(CaseType.class);
-        CaseType caseType = aCase.asObjectable();
+        CaseType aCase = new CaseType(getPrismContext());
 
         if (randomDelayRange != 0) {
             int waitMillis = RND.nextInt(randomDelayRange);
@@ -227,7 +226,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         ResourceBusinessConfigurationType businessConfiguration = resource.asObjectable().getBusiness();
         List<ObjectReferenceType> operators = new ArrayList<>();
         if (businessConfiguration != null) {
-            businessConfiguration.getOperatorRef().stream().forEach((ObjectReferenceType operatorRef) -> {
+            businessConfiguration.getOperatorRef().forEach((ObjectReferenceType operatorRef) -> {
 
                 if (operatorRef.getType().equals(RoleType.COMPLEX_TYPE)
                         || operatorRef.getType().equals(OrgType.COMPLEX_TYPE)) {
@@ -242,7 +241,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
                     try {
                         members = repositoryService.searchObjects(UserType.class, membersQuery, null, result);
                     } catch (SchemaException ex) {
-                        LOGGER.error("Manual connector could not find members in operators role {}", ex);
+                        LOGGER.error("Manual connector could not find members in operators role {}", operatorRef.getOid(), ex);
                     }
 
                     if (members != null && !members.isEmpty()) {
@@ -273,23 +272,23 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
         String caseOid = OidUtil.generateOid();
 
-        caseType.setOid(caseOid);
+        aCase.setOid(caseOid);
         String caseName = String.format("Request to %s '%s' on '%s'", operation, shadowName, resource.getName().getOrig());
-        caseType.setName(new PolyStringType(caseName));
+        aCase.setName(new PolyStringType(caseName));
 
-        caseType.setDescription(description);
+        aCase.setDescription(description);
 
-        caseType.setState(SchemaConstants.CASE_STATE_CREATED);  // Case opening process will be completed by WorkflowEngine
+        aCase.setState(SchemaConstants.CASE_STATE_CREATED);  // Case opening process will be completed by CaseEngine
 
-        caseType.setObjectRef(new ObjectReferenceType().oid(resourceOid).type(ResourceType.COMPLEX_TYPE));
+        aCase.setObjectRef(new ObjectReferenceType().oid(resourceOid).type(ResourceType.COMPLEX_TYPE));
 
-        caseType.setTargetRef(new ObjectReferenceType().oid(shadowOid).targetName(shadowName).type(ShadowType.COMPLEX_TYPE));
+        aCase.setTargetRef(new ObjectReferenceType().oid(shadowOid).targetName(shadowName).type(ShadowType.COMPLEX_TYPE));
 
         if (task != null) {
-            caseType.setRequestorRef(task.getOwnerRef());
+            aCase.setRequestorRef(task.getOwnerRef());
         }
 
-        caseType.beginManualProvisioningContext()
+        aCase.beginManualProvisioningContext()
                 .beginPendingOperation()
                     .type(PendingOperationTypeType.MANUAL)
                     .delta(objectDelta)
@@ -298,11 +297,11 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
         ObjectReferenceType archetypeRef = ObjectTypeUtil
                 .createObjectRef(SystemObjectsType.ARCHETYPE_MANUAL_CASE.value(), ObjectTypes.ARCHETYPE);
-        caseType.getArchetypeRef().add(archetypeRef.clone());
-        caseType.beginAssignment().targetRef(archetypeRef).end();
+        aCase.getArchetypeRef().add(archetypeRef.clone());
+        aCase.beginAssignment().targetRef(archetypeRef).end();
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        caseType.beginMetadata().setCreateTimestamp(now);
+        aCase.beginMetadata().setCreateTimestamp(now);
 
         XMLGregorianCalendar deadline;
         if (businessConfiguration != null && businessConfiguration.getOperatorActionMaxDuration() != null) {
@@ -316,10 +315,10 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             CaseWorkItemType workItem = new CaseWorkItemType(getPrismContext())
                     .originalAssigneeRef(operator.clone())
                     .assigneeRef(operator.clone())
-                    .name(caseType.getName())
+                    .name(aCase.getName())
                     .createTimestamp(now)
                     .deadline(deadline);
-            caseType.getWorkItem().add(workItem);
+            aCase.getWorkItem().add(workItem);
         }
 
         // TODO: case payload
@@ -331,11 +330,11 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             LOGGER.trace("CREATING CASE:\n{}", aCase.debugDump(1));
         }
 
-        repositoryService.addObject(aCase, null, result);
+        repositoryService.addObject(aCase.asPrismObject(), null, result);
 
         // "Admitting" the case into case management: e.g. sending notifications, auditing the case creation, and so on
-        caseEventDispatcher.dispatchCaseCreationEvent(caseType, result, task);
-        return aCase;
+        caseEventDispatcher.dispatchCaseCreationEvent(aCase, task, result);
+        return aCase.asPrismObject();
     }
 
     @Override
