@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.wf.impl.processors;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -83,26 +84,22 @@ public interface ChangeProcessor {
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException,
             ExpressionEvaluationException, ConfigurationException, CommunicationException;
 
-//    /**
-//     * Prepares a process instance-related audit record.
-//     *
-//     * @param variables
-//     * @param aCase
-//     * @param stage
-//     * @param result
-//     * @return
-//     */
-//    AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, ApprovalContextType wfContext, OperationResult result);
+    /**
+     * Adds approval-specific information to the case-level audit record.
+     */
+    void enrichCaseAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation);
 
     /**
-     * Prepares a work item-related audit record.
+     * Adds approval-specific information to the work-item-level audit record.
+     * TODO consider merging with {@link #enrichWorkItemDeletedAuditRecord(AuditEventRecord, CaseEngineOperation)}.
      */
-    // workItem contains taskRef, assignee, candidates resolved (if possible)
-//    AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem,
-//            CaseType aCase, OperationResult result);
-//
-//    AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
-//            CaseType aCase, OperationResult result);
+    void enrichWorkItemCreatedAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation);
 
+    /**
+     * Adds approval-specific information to the work-item-level audit record.
+     */
+    void enrichWorkItemDeletedAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation);
+
+    // TODO consider removing
     MiscHelper getMiscHelper();
 }

@@ -5,13 +5,11 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.cases.impl.engine;
+package com.evolveum.midpoint.cases.impl.engine.extension;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.cases.api.extensions.StageClosingResult;
-import com.evolveum.midpoint.cases.api.extensions.StageOpeningResult;
+import com.evolveum.midpoint.cases.api.extensions.*;
 
-import com.evolveum.midpoint.cases.api.extensions.WorkItemCompletionResult;
+import com.evolveum.midpoint.cases.impl.engine.CaseBeans;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
@@ -23,7 +21,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
-import com.evolveum.midpoint.cases.api.extensions.EngineExtension;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -35,13 +32,17 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Engine extension for "other" case archetypes. Currently used for manual provisioning and correlation cases,
+ * but they will be eventually separated from it.
+ */
 public class DefaultEngineExtension implements EngineExtension {
 
     private static final Trace LOGGER = TraceManager.getTrace(DefaultEngineExtension.class);
 
     @NotNull private final CaseBeans beans;
 
-    DefaultEngineExtension(@NotNull CaseBeans beans) {
+    public DefaultEngineExtension(@NotNull CaseBeans beans) {
         this.beans = beans;
     }
 
@@ -106,28 +107,7 @@ public class DefaultEngineExtension implements EngineExtension {
     }
 
     @Override
-    public void enrichCaseAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result) {
-        // nothing to do here
-    }
-
-    @Override
-    public void enrichWorkItemCreatedAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseWorkItemType workItem,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result) {
-        // nothing to do here
-    }
-
-    @Override
-    public void enrichWorkItemDeletedAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseWorkItemType workItem,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result) {
-        // nothing to do here
+    public @NotNull AuditingExtension getAuditingExtension() {
+        return new DefaultAuditingExtension();
     }
 }

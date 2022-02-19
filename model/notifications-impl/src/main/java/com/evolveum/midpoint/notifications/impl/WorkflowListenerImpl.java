@@ -55,7 +55,7 @@ public class WorkflowListenerImpl implements CaseEventCreationListener {
     @PostConstruct
     public void init() {
         if (caseManager != null) {
-            caseManager.registerWorkflowListener(this);
+            caseManager.registerCaseEventCreationListener(this);
         } else {
             LOGGER.warn("CaseManager not present, notifications for workflows will not be enabled.");
         }

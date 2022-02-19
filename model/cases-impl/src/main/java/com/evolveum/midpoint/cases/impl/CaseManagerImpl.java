@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.cases.api.events.CaseEventCreationListener;
 import com.evolveum.midpoint.cases.api.util.PerformerCommentsFormatter;
-import com.evolveum.midpoint.cases.impl.engine.helpers.CaseNotificationHelper;
 import com.evolveum.midpoint.cases.impl.helpers.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -50,7 +49,7 @@ public class CaseManagerImpl implements CaseManager {
 
     @Autowired private CaseManagementHelper caseManagementHelper;
     @Autowired private CaseCleaner caseCleaner;
-    @Autowired private CaseNotificationHelper notificationHelper;
+    @Autowired private NotificationHelper notificationHelper;
     @Autowired private WorkItemManager workItemManager;
     @Autowired private AuthorizationHelper authorizationHelper;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
@@ -165,8 +164,8 @@ public class CaseManagerImpl implements CaseManager {
     }
 
     @Override
-    public void registerWorkflowListener(CaseEventCreationListener workflowListener) {
-        notificationHelper.registerWorkItemListener(workflowListener);
+    public void registerCaseEventCreationListener(@NotNull CaseEventCreationListener listener) {
+        notificationHelper.registerNotificationEventCreationListener(listener);
     }
 
     @Override

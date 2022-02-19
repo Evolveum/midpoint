@@ -7,7 +7,21 @@
 
 package com.evolveum.midpoint.wf.impl.execution;
 
-import com.evolveum.midpoint.cases.impl.engine.helpers.CaseAuditHelper;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.xml.datatype.Duration;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.cases.impl.engine.helpers.TriggerHelper;
+import com.evolveum.midpoint.cases.impl.engine.helpers.WorkItemHelper;
+import com.evolveum.midpoint.cases.impl.helpers.AuthorizationHelper;
 import com.evolveum.midpoint.cases.impl.helpers.CaseMiscHelper;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
@@ -22,36 +36,19 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.cases.impl.helpers.AuthorizationHelper;
-import com.evolveum.midpoint.cases.impl.engine.helpers.CaseNotificationHelper;
-import com.evolveum.midpoint.cases.impl.engine.helpers.TriggerHelper;
-import com.evolveum.midpoint.cases.impl.engine.helpers.WorkItemHelper;
 import com.evolveum.midpoint.wf.impl.processes.common.ExpressionEvaluationHelper;
 import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-/**
- */
 @Component
 public class ExecutionHelper {
 
@@ -63,8 +60,6 @@ public class ExecutionHelper {
     public RepositoryService repositoryService;
     @Autowired public PrismContext prismContext;
     @Autowired private TaskManager taskManager;
-    @Autowired public CaseAuditHelper caseAuditHelper;
-    @Autowired public CaseNotificationHelper notificationHelper;
     @Autowired public StageComputeHelper stageComputeHelper;
     @Autowired public PrimaryChangeProcessor primaryChangeProcessor;   // todo
     @Autowired public CaseMiscHelper miscHelper;

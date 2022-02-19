@@ -40,8 +40,8 @@ public class OpenCaseAction extends RequestedAction<OpenCaseRequest> {
             return null;
         }
 
-        operation.prepareOpenCaseAuditRecord(result);
-        operation.addNotification(
+        auditRecords.addCaseOpening(result);
+        notificationEvents.add(
                 new OpenCase(currentCase));
 
         currentCase.setState(SchemaConstants.CASE_STATE_OPEN);

@@ -96,7 +96,7 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
                         ObjectTypeUtil.createObjectRef(operation.getPrincipal().getFocus(), beans.prismContext) : null;
 
         WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(initiator, causeInformation, null);
-        operation.addNotification(
+        notificationEvents.add(
                 new AllocationChangeCurrent(
                         operation.getCurrentCase(), workItem, operationInfoBefore, sourceInfo, null));
 
@@ -158,7 +158,7 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
                 beans.miscHelper.getAssigneesAndDeputies(workItem, operation.getTask(), result);
         WorkItemAllocationChangeOperationInfo operationInfoAfter =
                 new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputiesBefore, assigneesAndDeputiesAfter);
-        operation.addNotification(
+        notificationEvents.add(
                 new PendingNotificationEventSupplier.AllocationChangeNew(operation.getCurrentCase(), workItem, operationInfoAfter, sourceInfo));
     }
 }

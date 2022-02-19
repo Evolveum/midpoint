@@ -588,4 +588,9 @@ public class ApprovalContextUtil {
                 currentCase.getApprovalContext(),
                 () -> new IllegalStateException("No approval context in " + currentCase));
     }
+
+    public static String getRequesterComment(CaseType aCase) {
+        OperationBusinessContextType businessContext = getBusinessContext(aCase);
+        return businessContext != null ? businessContext.getComment() : null;
+    }
 }

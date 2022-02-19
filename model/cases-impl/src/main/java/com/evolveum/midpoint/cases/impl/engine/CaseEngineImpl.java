@@ -13,8 +13,6 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,8 +25,7 @@ import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.cases.api.extensions.EngineExtension;
 import com.evolveum.midpoint.cases.api.request.OpenCaseRequest;
 import com.evolveum.midpoint.cases.api.request.Request;
-import com.evolveum.midpoint.cases.impl.engine.helpers.CaseAuditHelper;
-import com.evolveum.midpoint.cases.impl.engine.helpers.CaseNotificationHelper;
+import com.evolveum.midpoint.cases.impl.engine.extension.DefaultEngineExtension;
 import com.evolveum.midpoint.cases.impl.engine.helpers.TriggerHelper;
 import com.evolveum.midpoint.cases.impl.engine.helpers.WorkItemHelper;
 import com.evolveum.midpoint.cases.impl.helpers.AuthorizationHelper;
@@ -49,6 +46,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Manages lifecycle of case objects.
@@ -102,8 +100,6 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
     @Autowired @Qualifier("cacheRepositoryService") public RepositoryService repositoryService;
     @Autowired public PrismContext prismContext;
     @Autowired public SecurityEnforcer securityEnforcer;
-    @Autowired public CaseAuditHelper caseAuditHelper;
-    @Autowired public CaseNotificationHelper notificationHelper;
     @Autowired public CaseMiscHelper miscHelper;
     @Autowired public TriggerHelper triggerHelper;
     @Autowired public CaseExpressionEvaluationHelper expressionEvaluationHelper;

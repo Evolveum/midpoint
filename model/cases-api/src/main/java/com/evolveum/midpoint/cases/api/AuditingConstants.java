@@ -26,7 +26,7 @@ public class AuditingConstants {
     public static final String AUDIT_ESCALATION_LEVEL_NAME = "wf.escalationLevelName";
     public static final String AUDIT_ESCALATION_LEVEL_DISPLAY_NAME = "wf.escalationLevelDisplayName";
     public static final String AUDIT_WORK_ITEM_ID = "wf.workItemId";
-    public static final String AUDIT_PROCESS_INSTANCE_ID = "wf.processInstanceId";
+    public static final String AUDIT_PROCESS_INSTANCE_ID = "wf.processInstanceId"; // FIXME (case oid?)
     public static final String AUDIT_REQUESTER_COMMENT = "wf.requesterComment";
     public static final String AUDIT_CAUSE_TYPE = "wf.causeType";
     public static final String AUDIT_CAUSE_NAME = "wf.causeName";

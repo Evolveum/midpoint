@@ -18,6 +18,8 @@ import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.cases.impl.helpers.NotificationHelper;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,7 +28,6 @@ import com.evolveum.midpoint.cases.api.events.WorkItemAllocationChangeOperationI
 import com.evolveum.midpoint.cases.api.events.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.cases.api.request.CompleteWorkItemsRequest;
 import com.evolveum.midpoint.cases.api.request.CompleteWorkItemsRequest.SingleCompletion;
-import com.evolveum.midpoint.cases.impl.engine.helpers.CaseNotificationHelper;
 import com.evolveum.midpoint.cases.impl.helpers.CaseExpressionEvaluationHelper;
 import com.evolveum.midpoint.cases.impl.helpers.CaseMiscHelper;
 import com.evolveum.midpoint.model.api.trigger.MultipleTriggersHandler;
@@ -70,7 +71,7 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
 
     @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
     @Autowired private WorkItemManager workItemManager;
-    @Autowired private CaseNotificationHelper notificationHelper;
+    @Autowired private NotificationHelper notificationHelper;
     @Autowired private CaseExpressionEvaluationHelper evaluationHelper;
     @Autowired private CaseMiscHelper miscHelper;
     @Autowired private PrismContext prismContext;

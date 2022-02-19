@@ -7,13 +7,19 @@
 
 package com.evolveum.midpoint.cases.impl.engine;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
+import java.util.Collection;
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier.CloseCase;
 import com.evolveum.midpoint.cases.api.extensions.EngineExtension;
 import com.evolveum.midpoint.cases.api.request.Request;
 import com.evolveum.midpoint.cases.impl.engine.actions.Action;
+import com.evolveum.midpoint.cases.impl.engine.events.PendingAuditRecords;
+import com.evolveum.midpoint.cases.impl.engine.events.PendingNotificationEvents;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -22,9 +28,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseState;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -33,16 +39,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Single case engine operation: an attempt to execute a {@link Request} against a case.
@@ -56,7 +53,7 @@ import java.util.Objects;
  * the case, and when committing, we compute the difference from the original case, and apply to repository.
  * So no list of item deltas is maintained. See {@link #commit(OperationResult)} method.
  *
- * We maintain {@link #pendingAuditRecords} and {@link #pendingNotificationEventSourceSuppliers}.
+ * We maintain {@link #auditRecords} and {@link #notificationEvents}.
  * They are processed after successful commit: records are written, and notification events are produced and sent.
  */
 public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperation {
@@ -83,11 +80,11 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
     /** Logged-in user. */
     @NotNull private final MidPointPrincipal principal;
 
-    /** Audit records to be written after commit. */
-    @NotNull public final List<AuditEventRecord> pendingAuditRecords = new ArrayList<>();
+    /** Pending audit records for the current operation. */
+    @NotNull private final PendingAuditRecords auditRecords;
 
-    /** Sources for notification events to be fired after commit. */
-    @NotNull public final List<PendingNotificationEventSupplier> pendingNotificationEventSourceSuppliers = new ArrayList<>();
+    /** Pending notification events for the current operation. */
+    @NotNull private final PendingNotificationEvents notificationEvents;
 
     public CaseEngineOperationImpl(
             @NotNull CaseType originalCase,
@@ -101,6 +98,8 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
         this.task = task;
         this.beans = beans;
         this.principal = principal;
+        this.auditRecords = new PendingAuditRecords(this);
+        this.notificationEvents = new PendingNotificationEvents(this);
     }
 
     /**
@@ -134,8 +133,8 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
                 closeTheCase(result);
             }
 
-            beans.auditHelper.auditPendingRecords(this, result);
-            beans.notificationHelper.sendPendingNotifications(this, result);
+            auditRecords.flush(result);
+            notificationEvents.flush(result);
         } catch (PreconditionViolationException e) {
             result.recordNotApplicable("Concurrent repository access");
             throw e;
@@ -185,8 +184,8 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
         // Note that the case may still be in "closing" state. E.g. an approval case is still closing here,
         // when the execution task was immediately started, but (obviously) not finished yet.
         // TODO Do we want to fix this?
-        prepareCloseCaseRecord(result);
-        addNotification(
+        auditRecords.addCaseClosing(result);
+        notificationEvents.add(
                 new CloseCase(currentCase));
     }
 
@@ -278,9 +277,9 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "Current case", currentCase, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "Pending audit records", pendingAuditRecords, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Pending audit records", auditRecords, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "Pending notification event suppliers",
-                pendingNotificationEventSourceSuppliers, indent + 1);
+                notificationEvents, indent + 1);
         return sb.toString();
     }
 
@@ -288,8 +287,8 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
     public String toString() {
         return getClass().getSimpleName() + "{" +
                 "case=" + currentCase +
-                ", audit: " + pendingAuditRecords.size() +
-                ", notifications: " + pendingNotificationEventSourceSuppliers.size() +
+                ", audit: " + auditRecords.size() +
+                ", notifications: " + notificationEvents.size() +
                 '}';
     }
 
@@ -302,29 +301,13 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
         return engineExtension;
     }
 
-    //region Auditing
-    public void addAuditRecord(AuditEventRecord record) {
-        pendingAuditRecords.add(record);
+    // TODO better name
+    public @NotNull PendingAuditRecords getAuditRecords() {
+        return auditRecords;
     }
 
-    public void prepareOpenCaseAuditRecord(OperationResult result) {
-        prepareCaseOpenCloseRecord(AuditEventStage.REQUEST, result);
+    // TODO better name
+    public @NotNull PendingNotificationEvents getNotificationEvents() {
+        return notificationEvents;
     }
-
-    private void prepareCloseCaseRecord(OperationResult result) {
-        prepareCaseOpenCloseRecord(AuditEventStage.EXECUTION, result);
-    }
-
-    private void prepareCaseOpenCloseRecord(AuditEventStage stage, OperationResult result) {
-        AuditEventRecord auditRecord = beans.auditHelper.prepareCaseRecord(this, stage, result);
-        getEngineExtension().enrichCaseAuditRecord(auditRecord, this, result);
-        addAuditRecord(auditRecord);
-    }
-    //endregion
-
-    //region Notifications
-    public void addNotification(PendingNotificationEventSupplier notification) {
-        pendingNotificationEventSourceSuppliers.add(notification);
-    }
-    //endregion
 }

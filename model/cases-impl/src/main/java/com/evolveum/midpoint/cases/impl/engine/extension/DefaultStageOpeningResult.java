@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.cases.impl.engine;
+package com.evolveum.midpoint.cases.impl.engine.extension;
 
 import com.evolveum.midpoint.cases.api.extensions.StageClosingResult;
 import com.evolveum.midpoint.cases.api.extensions.StageOpeningResult;

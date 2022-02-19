@@ -11,6 +11,8 @@ import com.evolveum.midpoint.cases.api.extensions.EngineExtension;
 import com.evolveum.midpoint.cases.api.request.Request;
 import com.evolveum.midpoint.cases.impl.engine.CaseBeans;
 import com.evolveum.midpoint.cases.impl.engine.CaseEngineOperationImpl;
+import com.evolveum.midpoint.cases.impl.engine.events.PendingAuditRecords;
+import com.evolveum.midpoint.cases.impl.engine.events.PendingNotificationEvents;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -32,6 +34,12 @@ public abstract class Action {
     /** The operation this action is a part of. */
     @NotNull public final CaseEngineOperationImpl operation;
 
+    /** Collection of pending audit records for the operation. */
+    @NotNull protected final PendingAuditRecords auditRecords;
+
+    /** Collection of pending notification events for the operation. */
+    @NotNull final PendingNotificationEvents notificationEvents;
+
     /** Useful beans. */
     @NotNull public final CaseBeans beans;
 
@@ -40,6 +48,8 @@ public abstract class Action {
 
     Action(@NotNull CaseEngineOperationImpl operation, @NotNull Trace logger) {
         this.operation = operation;
+        this.auditRecords = operation.getAuditRecords();
+        this.notificationEvents = operation.getNotificationEvents();
         this.beans = operation.getBeans();
         this.logger = logger;
     }

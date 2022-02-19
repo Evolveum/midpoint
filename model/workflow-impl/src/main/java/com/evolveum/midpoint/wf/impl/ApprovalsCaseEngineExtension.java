@@ -9,7 +9,7 @@ package com.evolveum.midpoint.wf.impl;
 
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.cases.api.extensions.WorkItemCompletionResult;
+import com.evolveum.midpoint.cases.api.extensions.*;
 import com.evolveum.midpoint.wf.impl.processors.primary.cases.WorkItemCompletion;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
@@ -17,12 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.cases.api.CaseManager;
-import com.evolveum.midpoint.cases.api.extensions.EngineExtension;
-import com.evolveum.midpoint.cases.api.extensions.StageClosingResult;
-import com.evolveum.midpoint.cases.api.extensions.StageOpeningResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -42,6 +38,7 @@ public class ApprovalsCaseEngineExtension implements EngineExtension {
     @Autowired private ApprovalBeans beans;
     @Autowired private CaseManager caseManager;
     @Autowired private PrimaryChangeProcessor primaryChangeProcessor;
+    @Autowired private ApprovalsAuditingExtension auditingExtension;
 
     @PostConstruct
     public void init() {
@@ -97,28 +94,7 @@ public class ApprovalsCaseEngineExtension implements EngineExtension {
     }
 
     @Override
-    public void enrichCaseAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result) {
-        primaryChangeProcessor.enrichCaseAuditRecord(auditEventRecord, operation);
-    }
-
-    @Override
-    public void enrichWorkItemCreatedAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseWorkItemType workItem,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result) {
-        primaryChangeProcessor.enrichWorkItemCreatedAuditRecord(auditEventRecord, operation);
-    }
-
-    @Override
-    public void enrichWorkItemDeletedAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseWorkItemType workItem,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result) {
-        primaryChangeProcessor.enrichWorkItemDeletedAuditRecord(auditEventRecord, operation);
+    public @NotNull AuditingExtension getAuditingExtension() {
+        return auditingExtension;
     }
 }

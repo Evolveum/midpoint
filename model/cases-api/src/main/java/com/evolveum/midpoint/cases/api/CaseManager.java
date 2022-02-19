@@ -108,7 +108,7 @@ public interface CaseManager {
     }
 
     // TODO decide on the fate of this method
-    void registerWorkflowListener(CaseEventCreationListener workflowListener);
+    void registerCaseEventCreationListener(@NotNull CaseEventCreationListener listener);
 
     // TODO decide on the fate of this method
     boolean isCurrentUserAuthorizedToSubmit(CaseWorkItemType workItem, Task task, OperationResult result)

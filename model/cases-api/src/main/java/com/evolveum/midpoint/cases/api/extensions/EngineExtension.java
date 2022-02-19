@@ -66,29 +66,7 @@ public interface EngineExtension {
             @NotNull OperationResult result) throws SchemaException;
 
     /**
-     * TODO
+     * Returns an object that helps with audit records creation.
      */
-    void enrichCaseAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result);
-
-    /**
-     * TODO
-     */
-    void enrichWorkItemCreatedAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseWorkItemType workItem,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result);
-
-    /**
-     * TODO
-     */
-    void enrichWorkItemDeletedAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseWorkItemType workItem,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result);
-
+    @NotNull AuditingExtension getAuditingExtension();
 }
