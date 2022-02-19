@@ -40,11 +40,11 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 @PanelType(name = "classLoggersContent")
 @PanelInstance(
         identifier = "classLoggersContent",
-        applicableForType = SystemConfigurationType.class,
+        applicableForType = LoggingConfigurationType.class,
         display = @PanelDisplay(
                 label = "ClassLoggersContentPanel.label",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 30
+                order = 20
         )
 )
 @Counter(provider = ClassLoggersMenuLinkCounter.class)

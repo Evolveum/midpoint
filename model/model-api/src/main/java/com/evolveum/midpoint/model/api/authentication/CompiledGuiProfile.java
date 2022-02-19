@@ -278,9 +278,11 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
 
     public <O extends ObjectType> GuiObjectDetailsPageType findObjectDetailsConfiguration(QName typeQName) {
         if (objectDetails == null) {
-            return null;
+            return new GuiObjectDetailsPageType().type(typeQName);
         }
-        return findObjectConfiguration(objectDetails.getObjectDetailsPage(), typeQName);
+        GuiObjectDetailsPageType result = findObjectConfiguration(objectDetails.getObjectDetailsPage(), typeQName);
+
+        return result != null ? result : new GuiObjectDetailsPageType().type(typeQName);
     }
 
     public <O extends ObjectType> GuiShadowDetailsPageType findShadowDetailsConfiguration(ResourceShadowDiscriminator shadowDiscriminator) {

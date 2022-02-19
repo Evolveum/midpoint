@@ -19,7 +19,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.common.expression.script.velocity.VelocityScriptEvaluator;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportService;
 import com.evolveum.midpoint.notifications.impl.events.CustomEventImpl;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -29,6 +28,10 @@ import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.transport.impl.CustomMessageTransport;
+import com.evolveum.midpoint.transport.impl.FileMessageTransport;
+import com.evolveum.midpoint.transport.impl.MailMessageTransport;
+import com.evolveum.midpoint.transport.impl.SmsMessageTransport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-notifications-test.xml" })
@@ -86,12 +89,117 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 SystemConfigurationType.class, SYS_CONFIG_OID, modifications, getTestOperationResult());
 
         then("transport of the right type is registered");
-        Transport<?> fooTransport = transportService.getTransport("foo");
-        assertThat(fooTransport)
+        assertThat(transportService.getTransport("foo"))
                 .isNotNull()
                 .isInstanceOf(TestMessageTransport.class);
-        TestMessageTransport testTransport = (TestMessageTransport) fooTransport;
-        assertThat(testTransport.getName()).isEqualTo("foo");
+        assertThat(transportService.getTransport("foo").getName()).isEqualTo("foo");
+    }
+
+    @Test
+    public void test020TransportSysconfigChangeRemovesObsoleteTransports() throws Exception {
+        given("sysconfig with transport foo");
+        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
+                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
+                .replace(new MessageTransportConfigurationType(prismContext)
+                        .customTransport(new CustomTransportConfigurationType(prismContext)
+                                .name("foo")
+                                .type(TestMessageTransport.class.getName())))
+                .asItemDeltas();
+        repositoryService.modifyObject(
+                SystemConfigurationType.class, SYS_CONFIG_OID, modifications, getTestOperationResult());
+        assertThat(transportService.getTransport("foo")).isNotNull();
+
+        when("sysconfig is updated to have only transport bar");
+        modifications = prismContext.deltaFor(SystemConfigurationType.class)
+                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
+                .replace(new MessageTransportConfigurationType(prismContext)
+                        .file(new FileTransportConfigurationType(prismContext)
+                                .name("bar")))
+                .asItemDeltas();
+        repositoryService.modifyObject(
+                SystemConfigurationType.class, SYS_CONFIG_OID, modifications, getTestOperationResult());
+
+        then("only transport bar is registered, foo is forgotten");
+        assertThat(transportService.getTransport("bar"))
+                .isNotNull()
+                .isInstanceOf(FileMessageTransport.class);
+        assertThatThrownBy(() -> transportService.getTransport("foo"))
+                .hasMessageStartingWith("Unknown transport");
+    }
+
+    @Test
+    public void test030TransportTypeInitializationTest() throws Exception {
+        given("sysconfig with all known types of transport, each twice");
+        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
+                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
+                .replace(new MessageTransportConfigurationType(prismContext)
+                        .mail(new MailTransportConfigurationType(prismContext)
+                                .name("mail1"))
+                        .mail(new MailTransportConfigurationType(prismContext)
+                                .name("mail2"))
+                        .sms(new SmsTransportConfigurationType(prismContext)
+                                .name("sms1"))
+                        .sms(new SmsTransportConfigurationType(prismContext)
+                                .name("sms2"))
+                        .file(new FileTransportConfigurationType(prismContext)
+                                .name("file1"))
+                        .file(new FileTransportConfigurationType(prismContext)
+                                .name("file2"))
+                        .customTransport(new CustomTransportConfigurationType(prismContext)
+                                .name("custom1"))
+                        .customTransport(new CustomTransportConfigurationType(prismContext)
+                                .name("custom2")))
+                .asItemDeltas();
+
+        when("sysconfig is modified");
+        OperationResult result = getTestOperationResult();
+        repositoryService.modifyObject(
+                SystemConfigurationType.class, SYS_CONFIG_OID, modifications, result);
+
+        then("result is success and all the transports are properly registered");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(transportService.getTransport("mail1"))
+                .isNotNull()
+                .isInstanceOf(MailMessageTransport.class);
+        assertThat(transportService.getTransport("mail1").getConfiguration())
+                .isInstanceOf(MailTransportConfigurationType.class);
+        assertThat(transportService.getTransport("mail1").getName()).isEqualTo("mail1");
+
+        assertThat(transportService.getTransport("mail2"))
+                .isNotNull()
+                .isInstanceOf(MailMessageTransport.class);
+
+        assertThat(transportService.getTransport("sms1"))
+                .isNotNull()
+                .isInstanceOf(SmsMessageTransport.class);
+        assertThat(transportService.getTransport("sms1").getConfiguration())
+                .isInstanceOf(SmsTransportConfigurationType.class);
+        assertThat(transportService.getTransport("sms1").getName()).isEqualTo("sms1");
+
+        assertThat(transportService.getTransport("sms2"))
+                .isNotNull()
+                .isInstanceOf(SmsMessageTransport.class);
+
+        assertThat(transportService.getTransport("file1"))
+                .isNotNull()
+                .isInstanceOf(FileMessageTransport.class);
+        assertThat(transportService.getTransport("file1").getConfiguration())
+                .isInstanceOf(FileTransportConfigurationType.class);
+        assertThat(transportService.getTransport("file1").getName()).isEqualTo("file1");
+
+        assertThat(transportService.getTransport("file2"))
+                .isNotNull()
+                .isInstanceOf(FileMessageTransport.class);
+
+        assertThat(transportService.getTransport("custom1"))
+                .isNotNull()
+                .isInstanceOf(CustomMessageTransport.class);
+        assertThat(transportService.getTransport("custom1").getConfiguration())
+                .isInstanceOf(CustomTransportConfigurationType.class);
+        assertThat(transportService.getTransport("custom1").getName()).isEqualTo("custom1");
+        assertThat(transportService.getTransport("custom2"))
+                .isNotNull()
+                .isInstanceOf(CustomMessageTransport.class);
     }
 
     @Test

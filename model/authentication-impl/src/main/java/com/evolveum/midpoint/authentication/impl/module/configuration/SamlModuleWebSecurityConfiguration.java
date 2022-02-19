@@ -28,6 +28,7 @@ import com.evolveum.midpoint.authentication.impl.saml.MidpointAssertingPartyMeta
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.cxf.common.util.Base64Exception;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCSException;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -36,7 +37,6 @@ import org.springframework.security.saml2.Saml2Exception;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
-import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -87,27 +87,20 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
         serviceProviders.forEach(serviceProviderType -> {
             Saml2KeyAuthenticationModuleType keysType = serviceProviderType.getKeys();
 
-            if (serviceProviderType.getIdentityProvider() == null) {
-                List<Saml2ProviderAuthenticationModuleType> providersType = serviceProviderType.getProvider();
-                providersType.forEach(providerType -> {
-
-                });
-            } else {
-                Saml2ProviderAuthenticationModuleType providerType = serviceProviderType.getIdentityProvider();
-                RelyingPartyRegistration.Builder registrationBuilder = getRelyingPartyFromMetadata(providerType.getMetadata(), providerType);
-                SamlAdditionalConfiguration.Builder additionalConfigBuilder = SamlAdditionalConfiguration.builder();
-                createRelyingPartyRegistration(registrationBuilder,
-                        additionalConfigBuilder,
-                        providerType,
-                        publicHttpUrlPattern,
-                        configuration,
-                        keysType,
-                        serviceProviderType,
-                        request);
-                RelyingPartyRegistration registration = registrationBuilder.build();
-                registrations.add(registration);
-                configuration.additionalConfiguration.put(registration.getRegistrationId(), additionalConfigBuilder.build());
-            }
+            Saml2ProviderAuthenticationModuleType providerType = serviceProviderType.getIdentityProvider();
+            RelyingPartyRegistration.Builder registrationBuilder = getRelyingPartyFromMetadata(providerType.getMetadata(), providerType);
+            SamlAdditionalConfiguration.Builder additionalConfigBuilder = SamlAdditionalConfiguration.builder();
+            createRelyingPartyRegistration(registrationBuilder,
+                    additionalConfigBuilder,
+                    providerType,
+                    publicHttpUrlPattern,
+                    configuration,
+                    keysType,
+                    serviceProviderType,
+                    request);
+            RelyingPartyRegistration registration = registrationBuilder.build();
+            registrations.add(registration);
+            configuration.additionalConfiguration.put(registration.getRegistrationId(), additionalConfigBuilder.build());
         });
 
         InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository = new InMemoryRelyingPartyRegistrationRepository(registrations);
@@ -120,18 +113,11 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
             String publicHttpUrlPattern, SamlModuleWebSecurityConfiguration configuration, Saml2KeyAuthenticationModuleType keysType,
             Saml2ServiceProviderAuthenticationModuleType serviceProviderType, ServletRequest request) {
 
-        String linkText = providerType.getLinkText() == null ?
-                (providerType.getAlias() == null ? providerType.getEntityId() : providerType.getAlias())
-                : providerType.getLinkText();
+        String linkText = providerType.getLinkText() == null ? providerType.getEntityId() : providerType.getLinkText();
         additionalConfigBuilder.nameOfUsernameAttribute(providerType.getNameOfUsernameAttribute())
                 .linkText(linkText);
-        String registrationId;
-        if (serviceProviderType.getIdentityProvider() != null || serviceProviderType.getProvider().size() == 1) {
-            registrationId = StringUtils.isNotEmpty(serviceProviderType.getAliasForPath()) ? serviceProviderType.getAliasForPath() :
+        String registrationId = StringUtils.isNotEmpty(serviceProviderType.getAliasForPath()) ? serviceProviderType.getAliasForPath() :
                     (StringUtils.isNotEmpty(serviceProviderType.getAlias()) ? serviceProviderType.getAlias() : serviceProviderType.getEntityId());
-        } else {
-            registrationId = StringUtils.isNotEmpty(providerType.getAlias()) ? providerType.getAlias() : providerType.getEntityId();
-        }
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
                 StringUtils.isNotBlank(publicHttpUrlPattern) ? publicHttpUrlPattern : getBasePath((HttpServletRequest) request));
         UriComponentsBuilder ssoBuilder = builder.cloneBuilder();
@@ -296,7 +282,7 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
         Certificate certificate;
         try {
             certificate = getCertificate(key, protector);
-        } catch (EncryptionException | CertificateException e) {
+        } catch (Base64Exception | EncryptionException | CertificateException e) {
             throw new Saml2Exception("Unable get certificate from " + key, e);
         }
         List<Saml2X509Credential.Saml2X509CredentialType> types = getTypesForKey(isActive, key.getType());
@@ -342,7 +328,7 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
         Certificate certificate;
         try {
             certificate = getCertificate(key, protector);
-        } catch (EncryptionException | CertificateException  | KeyStoreException | IOException | NoSuchAlgorithmException e) {
+        } catch (EncryptionException | CertificateException | KeyStoreException | IOException | NoSuchAlgorithmException e) {
             throw new Saml2Exception("Unable get certificate from " + key, e);
         }
         if (!(certificate instanceof X509Certificate)) {

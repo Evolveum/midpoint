@@ -10,6 +10,11 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.cxf.common.util.Base64Exception;
+import org.apache.cxf.common.util.Base64Utility;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMDecryptorProvider;
 import org.bouncycastle.openssl.PEMEncryptedKeyPair;
@@ -39,12 +44,24 @@ import static org.springframework.util.StringUtils.hasText;
 public class RemoteModuleWebSecurityConfiguration extends ModuleWebSecurityConfigurationImpl {
 
     protected static Certificate getCertificate(AbstractSimpleKeyType key, Protector protector)
-            throws EncryptionException, CertificateException {
+            throws EncryptionException, CertificateException, Base64Exception {
         if (key == null || key.getCertificate() == null) {
             return null;
         }
-        byte[] certbytes = protector.decryptString(key.getCertificate()).getBytes();
-        return CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(certbytes));
+
+        return getCertificate(key.getCertificate(), protector);
+    }
+
+    protected static Certificate getCertificate(ProtectedStringType certficate, Protector protector) throws EncryptionException, CertificateException, Base64Exception {
+        String clearValue = protector.decryptString(certficate);
+        byte[] certBytes;
+        if (Base64.isBase64(clearValue)) {
+            boolean isBase64Url = clearValue.contains("-") || clearValue.contains("_");
+            certBytes = Base64Utility.decode(clearValue, isBase64Url);
+        } else {
+            certBytes = clearValue.getBytes();
+        }
+        return CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(certBytes));
     }
 
     protected static Certificate getCertificate(AbstractKeyStoreKeyType key, Protector protector)

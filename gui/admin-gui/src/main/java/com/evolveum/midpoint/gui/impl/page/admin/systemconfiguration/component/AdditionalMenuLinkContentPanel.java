@@ -39,7 +39,7 @@ import java.util.List;
 @PanelType(name = "additionalMenuLinkContent")
 @PanelInstance(
         identifier = "additionalMenuLinkContent",
-        applicableForType = SystemConfigurationType.class,
+        applicableForType = AdminGuiConfigurationType.class,
         display = @PanelDisplay(
                 label = "AdditionalMenuLinkContentPanel.label",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,

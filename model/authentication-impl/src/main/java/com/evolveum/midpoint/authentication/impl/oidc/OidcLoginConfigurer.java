@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.authentication.impl.oidc;
 
-import com.evolveum.midpoint.authentication.impl.module.configurer.OidcModuleWebSecurityConfigurer;
+import com.evolveum.midpoint.authentication.impl.module.configurer.OidcClientModuleWebSecurityConfigurer;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 
@@ -68,7 +68,7 @@ public final class OidcLoginConfigurer<B extends HttpSecurityBuilder<B>>
         this.setAuthenticationFilter(authenticationFilter);
 
         super.loginProcessingUrl(this.loginProcessingUrl);
-        super.loginPage(OidcModuleWebSecurityConfigurer.OIDC_LOGIN_PATH);
+        super.loginPage(OidcClientModuleWebSecurityConfigurer.OIDC_LOGIN_PATH);
         super.init(http);
     }
 

@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 @PanelType(name = "userDashboardLinkContentPanel")
 @PanelInstance(
         identifier = "userDashboardLinkContentPanel",
-        applicableForType = SystemConfigurationType.class,
+        applicableForType = AdminGuiConfigurationType.class,
         display = @PanelDisplay(
                 label = "UserDashboardLinkContentPanel.label",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,

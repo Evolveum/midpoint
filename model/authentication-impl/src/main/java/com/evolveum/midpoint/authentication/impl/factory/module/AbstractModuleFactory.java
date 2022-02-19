@@ -50,7 +50,7 @@ public abstract class AbstractModuleFactory {
         return objectObjectPostProcessor;
     }
 
-    public abstract boolean match(AbstractAuthenticationModuleType moduleType);
+    public abstract boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel);
 
     public abstract AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix,
                                                   ServletRequest request, Map<Class<?>, Object> sharedObjects,

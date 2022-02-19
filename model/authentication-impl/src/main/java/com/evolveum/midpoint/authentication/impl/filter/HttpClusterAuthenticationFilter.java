@@ -35,7 +35,7 @@ public class HttpClusterAuthenticationFilter extends HttpAuthenticationFilter<St
         super(authenticationManager, authenticationEntryPoint);
     }
 
-    protected String extractAndDecodeHeader(String header) {
+    protected String extractAndDecodeHeader(String header, HttpServletRequest request) {
         return createCredentialsFromHeader(header);
     }
 

@@ -34,7 +34,7 @@ public class HttpBasicAuthenticationFilter extends HttpAuthenticationFilter<Abst
     }
 
     @Override
-    protected AbstractMap.SimpleImmutableEntry<String, String> extractAndDecodeHeader(String header) {
+    protected AbstractMap.SimpleImmutableEntry<String, String> extractAndDecodeHeader(String header, HttpServletRequest request) {
         String token = createCredentialsFromHeader(header);
 
         int delim = token.indexOf(":");
