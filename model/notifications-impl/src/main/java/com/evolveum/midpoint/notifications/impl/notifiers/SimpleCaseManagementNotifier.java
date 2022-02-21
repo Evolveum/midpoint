@@ -272,12 +272,12 @@ public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseMa
         boolean atLeastOne = false;
         if (showOriginalAssignee(originalAssignee, currentAssignees)) {
             UserType originalAssigneeObject = (UserType) functions.getObject(originalAssignee, true, result);
-            sb.append("Originally assigned to: ").append(
+            sb.append("Originally allocated to: ").append(
                     valueFormatter.formatUserName(originalAssigneeObject, originalAssignee.getOid())).append("\n");
             atLeastOne = true;
         }
         if (!workItem.getAssigneeRef().isEmpty()) {
-            sb.append("Assigned to");
+            sb.append("Allocated to");
             if (event.getOperationKind() == WorkItemOperationKindType.DELEGATE) {
                 sb.append(event.isAdd() ? " (after delegation)" : " (before delegation)");
             } else if (event.getOperationKind() == WorkItemOperationKindType.ESCALATE) {
