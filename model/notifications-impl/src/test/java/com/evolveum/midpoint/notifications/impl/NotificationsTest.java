@@ -243,6 +243,61 @@ public class NotificationsTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void test110NotifierWithMessageTemplateReference() throws Exception {
+        OperationResult result = getTestOperationResult();
+
+        given("message template");
+        String objectName = "messageTemplate" + getTestNumber();
+        String templateOid = repositoryService.addObject(
+                new MessageTemplateType(prismContext)
+                        .name(objectName)
+                        .defaultContent(new MessageTemplateContentType(prismContext)
+                                .subjectExpression(velocityExpression("template-subject"))
+                                .bodyExpression(velocityExpression("Notification about account-related operation\n\n"
+                                        + "#if ($event.requesteeObject)Owner: $!event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)#end\n\n"
+                                        + "Resource: $!event.resourceName (oid $event.resourceOid)\n\n"
+                                        + "An account has been successfully created on the resource with attributes:\n"
+                                        + "$event.contentAsFormattedList\n"
+                                        + "Channel: $!event.channel")))
+                        .asPrismObject(),
+                null, result);
+
+        and("configuration with transport and notifier using the template");
+        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
+                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
+                .replace(new MessageTransportConfigurationType(prismContext)
+                        .customTransport(new CustomTransportConfigurationType(prismContext)
+                                .name("test")
+                                .type(TestMessageTransport.class.getName())))
+                .item(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION)
+                .replace(new NotificationConfigurationType(prismContext)
+                        .handler(new EventHandlerType()
+                                .generalNotifier(new GeneralNotifierType()
+                                        .messageTemplateRef(createObjectReference(
+                                                templateOid, MessageTemplateType.COMPLEX_TYPE, null))
+                                        .transport("test"))))
+                .asItemDeltas();
+        repositoryService.modifyObject(
+                SystemConfigurationType.class, SYS_CONFIG_OID, modifications, result);
+        assertThat(((TestMessageTransport) transportService.getTransport("test")).getMessages()).isEmpty();
+
+        when("event is sent to notification manager");
+        CustomEventImpl event = new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
+                null, // TODO why is this not nullable?
+                EventStatusType.SUCCESS, "test-channel");
+        // This is used as default recipient, no recipient results in no message.
+        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+                new UserType(prismContext).emailAddress("user@example.com")));
+        notificationManager.processEvent(event, getTestTask(), result);
+
+        then("transport sends the message");
+        assertThat(((TestMessageTransport) transportService.getTransport("test")).getMessages()).hasSize(1);
+        Message message = ((TestMessageTransport) transportService.getTransport("test")).getMessages().get(0);
+        assertThat(message).isNotNull();
+        assertThat(message.getTo()).containsExactlyInAnyOrder("user@example.com");
+    }
+
+    @Test
     public void test900NotifierWithoutTransportDoesNotSendAnything() throws Exception {
         given("configuration with notifier without transport");
         Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
