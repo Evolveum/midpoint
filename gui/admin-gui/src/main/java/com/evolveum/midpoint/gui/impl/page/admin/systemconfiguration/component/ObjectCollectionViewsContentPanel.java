@@ -46,7 +46,7 @@ import java.util.List;
                 order = 40
         )
 )
-@Counter(provider = ClassLoggersMenuLinkCounter.class)
+@Counter(provider = ObjectCollectionViewsCounter.class)
 public class ObjectCollectionViewsContentPanel extends MultivalueContainerListPanelWithDetailsPanel<GuiObjectListViewType> {
 
     private IModel<PrismContainerWrapper<GuiObjectListViewType>> model;
@@ -56,6 +56,7 @@ public class ObjectCollectionViewsContentPanel extends MultivalueContainerListPa
 
         this.model = PrismContainerWrapperModel.fromContainerWrapper(model.getObjectWrapperModel(), ItemPath.create(
                 SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION,
+                AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS,
                 GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW
         ));
     }
@@ -77,9 +78,9 @@ public class ObjectCollectionViewsContentPanel extends MultivalueContainerListPa
                     }
                 },
                 new PrismPropertyWrapperColumn<>(getContainerModel(), GuiObjectListViewType.F_TYPE,
-                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()),
+                        AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()),
                 new PrismPropertyWrapperColumn<>(getContainerModel(), GuiObjectListViewType.F_DISPLAY_ORDER,
-                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase())
+                        AbstractItemWrapperColumn.ColumnType.STRING, getPageBase())
         );
     }
 

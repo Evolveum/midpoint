@@ -46,7 +46,7 @@ import java.util.List;
                 order = 50
         )
 )
-@Counter(provider = ClassLoggersMenuLinkCounter.class)
+@Counter(provider = GuiObjectDetailsCounter.class)
 public class GuiObjectDetailsContentPanel extends MultivalueContainerListPanelWithDetailsPanel<GuiObjectDetailsPageType> {
 
     private IModel<PrismContainerWrapper<GuiObjectDetailsPageType>> model;
@@ -56,6 +56,7 @@ public class GuiObjectDetailsContentPanel extends MultivalueContainerListPanelWi
 
         this.model = PrismContainerWrapperModel.fromContainerWrapper(model.getObjectWrapperModel(), ItemPath.create(
                 SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION,
+                AdminGuiConfigurationType.F_OBJECT_DETAILS,
                 GuiObjectDetailsSetType.F_OBJECT_DETAILS_PAGE
         ));
     }
@@ -75,9 +76,10 @@ public class GuiObjectDetailsContentPanel extends MultivalueContainerListPanelWi
                     protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<GuiObjectDetailsPageType>> model) {
                         GuiObjectDetailsContentPanel.this.itemDetailsPerformed(target, model);
                     }
-                },
-                new PrismPropertyWrapperColumn<>(getContainerModel(), GuiObjectDetailsPageType.F_ROLE_RELATION,
-                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase())
+                }
+//                new PrismPropertyWrapperColumn<>(getContainerModel(), GuiObjectDetailsPageType.F_ROLE_RELATION,
+//                        AbstractItemWrapperColumn.ColumnType.STRING, getPageBase())
+                // todo more columns
         );
     }
 
