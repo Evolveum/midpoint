@@ -7,14 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.model.IModel;
-
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -33,6 +25,14 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.model.IModel;
+
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                 order = 30
         )
 )
-@Counter(provider = SubSystemLoggersMenuLinkCounter.class)
+@Counter(provider = RelationsCounter.class)
 public class RelationsContentPanel extends MultivalueContainerListPanelWithDetailsPanel<RelationDefinitionType> {
 
     private IModel<PrismContainerWrapper<RelationDefinitionType>> model;
@@ -56,6 +56,7 @@ public class RelationsContentPanel extends MultivalueContainerListPanelWithDetai
 
         this.model = PrismContainerWrapperModel.fromContainerWrapper(model.getObjectWrapperModel(), ItemPath.create(
                 SystemConfigurationType.F_ROLE_MANAGEMENT,
+                RoleManagementConfigurationType.F_RELATIONS,
                 RelationsDefinitionType.F_RELATION
         ));
     }
