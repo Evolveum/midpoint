@@ -40,9 +40,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * TODO what about tasks? Should the task (wfTask) be passed to the notification module?
  */
 @Component
-public class WorkflowListenerImpl implements CaseEventCreationListener {
+public class CaseEventCreationListenerImpl implements CaseEventCreationListener {
 
-    private static final Trace LOGGER = TraceManager.getTrace(WorkflowListenerImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CaseEventCreationListenerImpl.class);
 
     @Autowired private NotificationFunctions functions;
     @Autowired private LightweightIdentifierGenerator identifierGenerator;
@@ -63,14 +63,14 @@ public class WorkflowListenerImpl implements CaseEventCreationListener {
 
     //region Process-level notifications
     @Override
-    public void onProcessInstanceStart(CaseType aCase, Task task, OperationResult result) {
+    public void onCaseOpening(CaseType aCase, Task task, OperationResult result) {
         CaseEventImpl event = new CaseEventImpl(identifierGenerator, ChangeType.ADD, aCase);
         initializeWorkflowEvent(event, aCase);
         eventHelper.processEvent(event, task, result);
     }
 
     @Override
-    public void onProcessInstanceEnd(CaseType aCase, Task task, OperationResult result) {
+    public void onCaseClosing(CaseType aCase, Task task, OperationResult result) {
         CaseEventImpl event = new CaseEventImpl(identifierGenerator, ChangeType.DELETE, aCase);
         initializeWorkflowEvent(event, aCase);
         eventHelper.processEvent(event, task, result);
@@ -96,7 +96,7 @@ public class WorkflowListenerImpl implements CaseEventCreationListener {
     }
 
     @Override
-    public void onWorkItemDeletion(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
+    public void onWorkItemClosing(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
             WorkItemOperationInfo operationInfo, WorkItemOperationSourceInfo sourceInfo,
             CaseType aCase, Task task, OperationResult result) {
         WorkItemEventImpl event = new WorkItemLifecycleEventImpl(identifierGenerator, ChangeType.DELETE, workItem,

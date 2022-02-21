@@ -17,28 +17,33 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.datatype.Duration;
 
 /**
- * An interface through which external observers can be notified about workflow related events.
- * Used e.g. for implementing workflow-related notifications.
+ * An interface through which external observers can be notified about case-related events.
+ * Used to implement case-related notifications. It is here to avoid a dependency of case-impl
+ * (i.e. the producer of change notification events) on notification-impl (where change events
+ * are implemented).
  *
- * EXPERIMENTAL. This interface may change in near future.
+ * In the future, the specific events (case, model, resource objects, ...) PROBABLY will be
+ * implemented in the respective modules (case-impl, model-impl, provisioning-impl, etc).
+ * Then this interface will disappear.
  */
 @Experimental
 public interface CaseEventCreationListener {
 
     /**
-     * This method is called by wf module when a process instance successfully starts.
+     * This method is called by cases module when a case is opened.
      * @param result implementer should report its result here
      */
-    void onProcessInstanceStart(CaseType aCase, Task task, OperationResult result);
+    void onCaseOpening(CaseType aCase, Task task, OperationResult result);
 
     /**
-     * This method is called by wf module when a process instance ends.
+     * This method is called by cases module when a case is being closed.
+     * (There is an uncertainty about closing vs closed state.)
      * @param result implementer should report its result here
      */
-    void onProcessInstanceEnd(CaseType aCase, Task task, OperationResult result);
+    void onCaseClosing(CaseType aCase, Task task, OperationResult result);
 
     /**
-     * This method is called by wf module when a work item is created.
+     * This method is called by cases module when a work item is created.
      */
     void onWorkItemCreation(
             ObjectReferenceType assignee,
@@ -48,9 +53,9 @@ public interface CaseEventCreationListener {
             OperationResult result);
 
     /**
-     * This method is called by wf module when a work item is completed.
+     * This method is called by cases module when a work item is being closed (completed or cancelled).
      */
-    void onWorkItemDeletion(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
+    void onWorkItemClosing(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
             @Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
             CaseType aCase, Task task, OperationResult result);
 

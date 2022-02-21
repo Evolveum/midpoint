@@ -16,42 +16,43 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import javax.xml.datatype.Duration;
 
 /**
- * TODO
+ * Object that is able to produce given notification event (with the help of {@link CaseEventCreationListener})
+ * when the {@link #send(CaseEventCreationListener, Task, OperationResult)} method is called.
  */
-public abstract class PendingNotificationEventSupplier implements DebugDumpable {
+public abstract class FutureNotificationEvent implements DebugDumpable {
 
     /** Live current case object. */
     public final CaseType aCase;
 
-    PendingNotificationEventSupplier(CaseType aCase) {
+    FutureNotificationEvent(CaseType aCase) {
         this.aCase = aCase.clone();
     }
 
-    public static class OpenCase extends PendingNotificationEventSupplier {
+    public static class CaseOpening extends FutureNotificationEvent {
 
-        public OpenCase(CaseType aCase) {
+        public CaseOpening(CaseType aCase) {
             super(aCase);
         }
 
         @Override
         public void send(CaseEventCreationListener listener, Task task, OperationResult result) {
-            listener.onProcessInstanceStart(aCase, task, result);
+            listener.onCaseOpening(aCase, task, result);
         }
     }
 
-    public static class CloseCase extends PendingNotificationEventSupplier {
+    public static class CaseClosing extends FutureNotificationEvent {
 
-        public CloseCase(CaseType aCase) {
+        public CaseClosing(CaseType aCase) {
             super(aCase);
         }
 
         @Override
         public void send(CaseEventCreationListener listener, Task task, OperationResult result) {
-            listener.onProcessInstanceEnd(aCase, task, result);
+            listener.onCaseClosing(aCase, task, result);
         }
     }
 
-    public abstract static class WorkItem<OI extends WorkItemOperationInfo> extends PendingNotificationEventSupplier {
+    public abstract static class WorkItem<OI extends WorkItemOperationInfo> extends FutureNotificationEvent {
 
         /** Cloned work item. */
         final CaseWorkItemType workItem;
@@ -82,9 +83,9 @@ public abstract class PendingNotificationEventSupplier implements DebugDumpable 
         }
     }
 
-    public static class ItemDeletion extends WorkItem<WorkItemOperationInfo> {
+    public static class ItemClosing extends WorkItem<WorkItemOperationInfo> {
 
-        public ItemDeletion(
+        public ItemClosing(
                 CaseType aCase,
                 CaseWorkItemType workItem,
                 WorkItemOperationInfo operationInfo,
@@ -98,34 +99,7 @@ public abstract class PendingNotificationEventSupplier implements DebugDumpable 
 
         @Override
         public void send(CaseEventCreationListener listener, Task task, OperationResult result) {
-            listener.onWorkItemDeletion(assignee, workItem, operationInfo, sourceInfo, aCase, task, result);
-        }
-    }
-
-    /** Is this ever used? */
-    public static class ItemCustom extends WorkItem<WorkItemOperationInfo> {
-
-        public ItemCustom(
-                CaseType aCase,
-                CaseWorkItemType workItem,
-                WorkItemOperationInfo operationInfo,
-                WorkItemOperationSourceInfo sourceInfo,
-                ObjectReferenceType assignee,
-                WorkItemNotificationActionType notificationAction,
-                WorkItemEventCauseInformationType cause) {
-            super(aCase, workItem, operationInfo, sourceInfo);
-            this.assignee = assignee;
-            this.notificationAction = notificationAction;
-            this.cause = cause;
-        }
-
-        public final ObjectReferenceType assignee;
-        public final WorkItemNotificationActionType notificationAction;
-        public final WorkItemEventCauseInformationType cause;
-
-        @Override
-        public void send(CaseEventCreationListener listener, Task task, OperationResult result) {
-            listener.onWorkItemCustomEvent(assignee, workItem, notificationAction, cause, aCase, task, result);
+            listener.onWorkItemClosing(assignee, workItem, operationInfo, sourceInfo, aCase, task, result);
         }
     }
 

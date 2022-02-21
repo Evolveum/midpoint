@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier.CloseCase;
+import com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.CaseClosing;
 import com.evolveum.midpoint.cases.api.extensions.EngineExtension;
 import com.evolveum.midpoint.cases.api.request.Request;
 import com.evolveum.midpoint.cases.impl.engine.actions.Action;
@@ -126,7 +126,7 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
             if (getCaseOid() == null) {
                 addCaseToRepo(result);
             } else {
-                modifyCaseInRepo(result);
+                modifyCaseInRepo(result); // Throws PreconditionViolationException if there's a race condition
             }
 
             if (CaseState.of(currentCase).isClosing()) {
@@ -186,7 +186,7 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
         // TODO Do we want to fix this?
         auditRecords.addCaseClosing(result);
         notificationEvents.add(
-                new CloseCase(currentCase));
+                new CaseClosing(currentCase));
     }
 
     @Override

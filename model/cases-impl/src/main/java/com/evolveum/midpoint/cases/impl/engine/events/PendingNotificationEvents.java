@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier;
+import com.evolveum.midpoint.cases.api.events.FutureNotificationEvent;
 import com.evolveum.midpoint.cases.impl.engine.CaseEngineOperationImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -34,7 +34,7 @@ public class PendingNotificationEvents implements DebugDumpable {
     @NotNull private final CaseEngineOperationImpl operation;
 
     /** Sources for notification events to be fired after commit. */
-    @NotNull private final List<PendingNotificationEventSupplier> futureEvents = new ArrayList<>();
+    @NotNull private final List<FutureNotificationEvent> futureEvents = new ArrayList<>();
 
     public PendingNotificationEvents(@NotNull CaseEngineOperationImpl operation) {
         this.operation = operation;
@@ -50,7 +50,7 @@ public class PendingNotificationEvents implements DebugDumpable {
         return futureEvents.size();
     }
 
-    public void add(@NotNull PendingNotificationEventSupplier supplier) {
+    public void add(@NotNull FutureNotificationEvent supplier) {
         futureEvents.add(supplier);
     }
 
@@ -59,7 +59,7 @@ public class PendingNotificationEvents implements DebugDumpable {
                 .setMinor()
                 .build();
         try {
-            for (PendingNotificationEventSupplier futureEvent : futureEvents) {
+            for (FutureNotificationEvent futureEvent : futureEvents) {
                 operation.getBeans().notificationHelper
                         .send(futureEvent, operation.getTask(), result);
             }

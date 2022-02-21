@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.cases.api.events.CaseEventCreationListener;
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier;
+import com.evolveum.midpoint.cases.api.events.FutureNotificationEvent;
 import com.evolveum.midpoint.cases.api.events.WorkItemAllocationChangeOperationInfo;
 import com.evolveum.midpoint.cases.api.events.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -63,7 +63,7 @@ public class NotificationHelper {
         notificationEventCreationListeners.add(listener);
     }
 
-    public void send(PendingNotificationEventSupplier eventSupplier, Task task, OperationResult result) {
+    public void send(FutureNotificationEvent eventSupplier, Task task, OperationResult result) {
         for (CaseEventCreationListener listener : notificationEventCreationListeners) {
             eventSupplier.send(listener, task, result);
         }

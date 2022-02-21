@@ -68,7 +68,8 @@ public class CaseManagerImpl implements CaseManager {
             @Nullable WorkItemEventCauseInformationType causeInformation,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
         try {
             workItemManager.completeWorkItem(workItemId, output, causeInformation, task, parentResult);
         } catch (ObjectAlreadyExistsException e) {

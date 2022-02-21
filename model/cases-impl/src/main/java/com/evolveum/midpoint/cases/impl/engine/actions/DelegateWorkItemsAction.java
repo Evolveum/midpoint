@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.cases.impl.engine.actions;
 
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier.AllocationChangeCurrent;
+import com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.AllocationChangeCurrent;
 import com.evolveum.midpoint.cases.impl.engine.CaseEngineOperationImpl;
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier;
+import com.evolveum.midpoint.cases.api.events.FutureNotificationEvent;
 import com.evolveum.midpoint.cases.impl.engine.helpers.WorkItemHelper;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -159,6 +159,6 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
         WorkItemAllocationChangeOperationInfo operationInfoAfter =
                 new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputiesBefore, assigneesAndDeputiesAfter);
         notificationEvents.add(
-                new PendingNotificationEventSupplier.AllocationChangeNew(operation.getCurrentCase(), workItem, operationInfoAfter, sourceInfo));
+                new FutureNotificationEvent.AllocationChangeNew(operation.getCurrentCase(), workItem, operationInfoAfter, sourceInfo));
     }
 }

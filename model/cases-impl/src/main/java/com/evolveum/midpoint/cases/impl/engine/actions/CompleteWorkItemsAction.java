@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.cases.impl.engine.actions;
 
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier.AllocationChangeCurrent;
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier.ItemDeletion;
+import com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.AllocationChangeCurrent;
+import com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.ItemClosing;
 import com.evolveum.midpoint.cases.api.events.WorkItemAllocationChangeOperationInfo;
 import com.evolveum.midpoint.cases.api.events.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.cases.api.extensions.WorkItemCompletionResult;
@@ -203,11 +203,11 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
             WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(userRef, getCauseInformation(), null);
             if (workItem.getAssigneeRef().isEmpty()) {
                 notificationEvents.add(
-                        new ItemDeletion(currentCase, workItem, operationInfo, sourceInfo, null));
+                        new ItemClosing(currentCase, workItem, operationInfo, sourceInfo, null));
             } else {
                 for (ObjectReferenceType assigneeOrDeputy : assigneesAndDeputies) {
                     notificationEvents.add(
-                            new ItemDeletion(currentCase, workItem, operationInfo, sourceInfo, assigneeOrDeputy));
+                            new ItemClosing(currentCase, workItem, operationInfo, sourceInfo, assigneeOrDeputy));
                 }
             }
             notificationEvents.add(

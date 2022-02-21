@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.cases.impl.engine.actions;
 
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier.AllocationChangeNew;
+import com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.AllocationChangeNew;
 import com.evolveum.midpoint.cases.api.extensions.EngineExtension;
 import com.evolveum.midpoint.cases.api.extensions.StageOpeningResult;
 import com.evolveum.midpoint.cases.impl.engine.CaseEngineOperationImpl;
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-import static com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier.*;
+import static com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.*;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**

@@ -54,10 +54,10 @@ public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseMa
             SimpleWorkflowNotifierType configuration,
             OperationResult result) {
         @Nullable SimpleObjectRef recipientRef;
-        if (event instanceof CaseEventImpl) {
+        if (event instanceof CaseEvent) {
             recipientRef = event.getRequester();
-        } else if (event instanceof WorkItemEventImpl) {
-            recipientRef = ((WorkItemEventImpl) event).getAssignee();
+        } else if (event instanceof WorkItemEvent) {
+            recipientRef = ((WorkItemEvent) event).getAssignee();
         } else {
             return null;
         }
@@ -80,7 +80,7 @@ public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseMa
     }
 
     private String getTitle(@NotNull CaseManagementEvent event) {
-        if (event instanceof CaseEventImpl) {
+        if (event instanceof CaseEvent) {
             return event.isAdd() ?
                     getCaseTitle(event) + " has been opened" :
                     getCaseTitle(event) + " has been closed";
