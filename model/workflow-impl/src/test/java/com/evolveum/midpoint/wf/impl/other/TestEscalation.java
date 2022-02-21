@@ -444,7 +444,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         displayCollection("notifications - work items", notifications);
         for (Message notification : notifications) {
             assertContains(notification, "Reason: Automatic rejection at deadline (timed action)");
-            assertContains(notification, "Result: REJECTED");
+            assertContains(notification, "Result: Rejected");
         }
     }
 
