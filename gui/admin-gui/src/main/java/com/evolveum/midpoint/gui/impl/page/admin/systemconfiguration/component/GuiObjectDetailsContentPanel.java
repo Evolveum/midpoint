@@ -23,10 +23,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -39,48 +36,50 @@ import java.util.List;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@PanelType(name = "classLoggersContent")
+@PanelType(name = "objectDetailsPanel")
 @PanelInstance(
-        identifier = "classLoggersContent",
-        applicableForType = LoggingConfigurationType.class,
+        identifier = "objectDetailsPanel",
+        applicableForType = AdminGuiConfigurationType.class,
         display = @PanelDisplay(
-                label = "ClassLoggersContentPanel.label",
+                label = "GuiObjectDetailsContentPanel.label",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 20
+                order = 50
         )
 )
-@Counter(provider = ClassLoggersMenuLinkCounter.class)
-public class ClassLoggersContentPanel extends MultivalueContainerListPanelWithDetailsPanel<ClassLoggerConfigurationType> {
+@Counter(provider = GuiObjectDetailsCounter.class)
+public class GuiObjectDetailsContentPanel extends MultivalueContainerListPanelWithDetailsPanel<GuiObjectDetailsPageType> {
 
-    private IModel<PrismContainerWrapper<ClassLoggerConfigurationType>> model;
+    private IModel<PrismContainerWrapper<GuiObjectDetailsPageType>> model;
 
-    public ClassLoggersContentPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
-        super(id, ClassLoggerConfigurationType.class, configurationType);
+    public GuiObjectDetailsContentPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
+        super(id, GuiObjectDetailsPageType.class, configurationType);
 
         this.model = PrismContainerWrapperModel.fromContainerWrapper(model.getObjectWrapperModel(), ItemPath.create(
-                SystemConfigurationType.F_LOGGING,
-                LoggingConfigurationType.F_CLASS_LOGGER
+                SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION,
+                AdminGuiConfigurationType.F_OBJECT_DETAILS,
+                GuiObjectDetailsSetType.F_OBJECT_DETAILS_PAGE
         ));
     }
 
     @Override
-    protected IColumn<PrismContainerValueWrapper<ClassLoggerConfigurationType>, String> createCheckboxColumn() {
+    protected IColumn<PrismContainerValueWrapper<GuiObjectDetailsPageType>, String> createCheckboxColumn() {
         return new CheckBoxHeaderColumn<>();
     }
 
     @Override
-    protected List<IColumn<PrismContainerValueWrapper<ClassLoggerConfigurationType>, String>> createDefaultColumns() {
+    protected List<IColumn<PrismContainerValueWrapper<GuiObjectDetailsPageType>, String>> createDefaultColumns() {
         return Arrays.asList(
-                new PrismPropertyWrapperColumn<>(getContainerModel(), ClassLoggerConfigurationType.F_PACKAGE,
+                new PrismPropertyWrapperColumn<>(getContainerModel(), GuiObjectDetailsPageType.F_TYPE,
                         AbstractItemWrapperColumn.ColumnType.LINK, getPageBase()) {
 
                     @Override
-                    protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> model) {
-                        ClassLoggersContentPanel.this.itemDetailsPerformed(target, model);
+                    protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<GuiObjectDetailsPageType>> model) {
+                        GuiObjectDetailsContentPanel.this.itemDetailsPerformed(target, model);
                     }
-                },
-                new PrismPropertyWrapperColumn<>(getContainerModel(), ClassLoggerConfigurationType.F_LEVEL,
-                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase())
+                }
+//                new PrismPropertyWrapperColumn<>(getContainerModel(), GuiObjectDetailsPageType.F_ROLE_RELATION,
+//                        AbstractItemWrapperColumn.ColumnType.STRING, getPageBase())
+                // todo more columns
         );
     }
 
@@ -90,15 +89,15 @@ public class ClassLoggersContentPanel extends MultivalueContainerListPanelWithDe
     }
 
     @Override
-    protected IModel<PrismContainerWrapper<ClassLoggerConfigurationType>> getContainerModel() {
+    protected IModel<PrismContainerWrapper<GuiObjectDetailsPageType>> getContainerModel() {
         return model;
     }
 
     @Override
-    protected MultivalueContainerDetailsPanel<ClassLoggerConfigurationType> getMultivalueContainerDetailsPanel(
-            ListItem<PrismContainerValueWrapper<ClassLoggerConfigurationType>> item) {
+    protected MultivalueContainerDetailsPanel<GuiObjectDetailsPageType> getMultivalueContainerDetailsPanel(
+            ListItem<PrismContainerValueWrapper<GuiObjectDetailsPageType>> item) {
 
-        return new ClassLoggerDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), true);
+        return new GuiObjectDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), true);
     }
 
     @Override

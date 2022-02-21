@@ -254,9 +254,9 @@ public class LocalizationServiceImpl implements LocalizationService {
         String result;
         List<PolyStringTranslationArgumentType> arguments = translation.getArgument();
         if (arguments == null) {
-            result = translate(key, null, locale, null);
+            result = translate(key, null, locale, key);
         } else {
-            result = translate(key, arguments.toArray(), locale, null);
+            result = translate(key, arguments.toArray(), locale, key);
         }
         if (result != null) {
             return result;

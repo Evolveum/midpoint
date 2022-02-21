@@ -19,8 +19,7 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelInstances;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "singleContainerPanel")
 @PanelInstances(
@@ -46,7 +45,40 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
                         ),
                         containerPath = "fullTextSearch",
                         type = "FullTextSearchConfigurationType"
-                ) }
+                ),
+                @PanelInstance(
+                        identifier = "profilingPanel",
+                        applicableForType = ProfilingConfigurationType.class,
+                        display = @PanelDisplay(
+                                label = "ProfilingConfiguration.label",
+                                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                                order = 10
+                        ),
+                        containerPath = "profilingConfiguration",
+                        type = "ProfilingConfigurationType"
+                ),
+                @PanelInstance(
+                        identifier = "adminGuiPanel",
+                        applicableForType = AdminGuiConfigurationType.class,
+                        display = @PanelDisplay(
+                                label = "AdminGuiConfiguration.label",
+                                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                                order = 10
+                        ),
+                        containerPath = "adminGuiConfiguration",
+                        type = "AdminGuiConfigurationType"
+                ),
+                @PanelInstance(
+                        identifier = "wfConfigurationPanel",
+                        applicableForType = WfConfigurationType.class,
+                        display = @PanelDisplay(
+                                label = "WfConfiguration.label",
+                                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                                order = 10
+                        ),
+                        containerPath = "workflowConfiguration",
+                        type = "WfConfigurationType"
+                )}
 )
 public class SingleContainerContentPanel extends AbstractObjectMainPanel<SystemConfigurationType, AssignmentHolderDetailsModel<SystemConfigurationType>> {
 

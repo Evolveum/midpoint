@@ -79,7 +79,7 @@ public class PageSystemConfiguration extends PageBase {
                 createCompositedButton("fa fa-camera", PageSystemAdminGui.class),
                 createCompositedButton("fa fa-camera", PageSystemWorkflow.class),
                 createCompositedButton("fa fa-camera", PageRoleManagement.class),
-                createCompositedButton("fa fa-camera", PageInternals.class),
+                createCompositedButton("fa fa-camera", PageSystemInternals.class),
                 createCompositedButton("fa fa-camera", PageAccessCertification.class)
         ));
 
