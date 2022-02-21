@@ -39,12 +39,13 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseState;
+import com.evolveum.midpoint.schema.util.cases.ManualCaseUtils;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -352,18 +353,16 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         }
 
         CaseType caseType = aCase.asObjectable();
-        String state = caseType.getState();
+        CaseState state = CaseState.of(caseType);
 
         // States "open" and "created" are the same from the factual point of view
-        // They differ only in level of processing carried out by workflow manager (audit, notifications, etc).
-        if (QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_OPEN_QNAME, state)
-                || QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_CREATED_QNAME, state)) {
+        // They differ only in level of processing carried out by case manager (audit, notifications, etc).
+        if (state.isCreated() || state.isOpen()) {
             result.recordSuccess();
             return OperationResultStatus.IN_PROGRESS;
-        } else if (QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_CLOSED_QNAME, state)
-                || QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_CLOSING_QNAME, state)) {
+        } else if (state.isClosing() || state.isClosed()) {
             String outcome = caseType.getOutcome();
-            OperationResultStatus status = translateOutcome(outcome);
+            OperationResultStatus status = ManualCaseUtils.translateOutcomeToStatus(outcome);
             result.recordSuccess();
             return status;
         } else {
@@ -371,27 +370,6 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             result.recordFatalError(e);
             throw e;
         }
-    }
-
-    // see CompleteWorkItemsAction.getOutcome(..) method
-    private OperationResultStatus translateOutcome(String outcome) {
-        if (outcome == null) {
-            return null;
-        }
-        for (OperationResultStatusType statusType : OperationResultStatusType.values()) {
-            if (outcome.equals(statusType.value())) {
-                return OperationResultStatus.parseStatusType(statusType);
-            }
-        }
-        if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE)) {
-            return OperationResultStatus.SUCCESS;
-        } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT)) {
-            return OperationResultStatus.FATAL_ERROR;
-        } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP)) {
-            // Better make this "unknown" than non-applicable. Non-applicable can be misinterpreted.
-            return OperationResultStatus.UNKNOWN;
-        }
-        return OperationResultStatus.UNKNOWN;
     }
 
     @Override

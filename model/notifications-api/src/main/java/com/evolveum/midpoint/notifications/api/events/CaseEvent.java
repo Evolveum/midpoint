@@ -7,5 +7,8 @@
 
 package com.evolveum.midpoint.notifications.api.events;
 
-public interface WorkflowProcessEvent extends Event {
+/**
+ * Event related to a case (as a whole).
+ */
+public interface CaseEvent extends CaseManagementEvent {
 }

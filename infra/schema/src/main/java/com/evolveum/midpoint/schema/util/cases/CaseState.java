@@ -46,6 +46,10 @@ public class CaseState {
         return QNameUtil.match(SchemaConstants.CASE_STATE_CLOSING_QNAME, stateQName);
     }
 
+    public boolean isClosed() {
+        return QNameUtil.match(SchemaConstants.CASE_STATE_CLOSED_QNAME, stateQName);
+    }
+
     @Override
     public String toString() {
         return stateQName.getLocalPart();

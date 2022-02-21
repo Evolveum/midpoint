@@ -652,7 +652,7 @@ public class OperationResult
      * @return true if the result is acceptable for further processing.
      */
     public boolean isAcceptable() {
-        return (status != OperationResultStatus.FATAL_ERROR);
+        return status != OperationResultStatus.FATAL_ERROR;
     }
 
     public boolean isUnknown() {
@@ -664,8 +664,7 @@ public class OperationResult
     }
 
     public boolean isError() {
-        return status == OperationResultStatus.FATAL_ERROR ||
-                status == OperationResultStatus.PARTIAL_ERROR;
+        return status != null && status.isError();
     }
 
     public boolean isFatalError() {

@@ -13,7 +13,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -22,6 +21,8 @@ import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -69,14 +70,15 @@ public class CaseTypeUtil {
         return businessContext != null ? businessContext.getComment() : null;
     }
 
-    public static boolean isManualProvisioningCase(CaseType aCase){
-        if (aCase == null || CollectionUtils.isEmpty(aCase.getArchetypeRef())){
-            return false;
-        }
+    public static boolean isCorrelationCase(@Nullable CaseType aCase) {
+        return aCase != null && ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value());
+    }
+
+    public static boolean isManualProvisioningCase(@Nullable CaseType aCase) {
         return aCase != null && ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_MANUAL_CASE.value());
     }
 
-    public static boolean isApprovalCase(CaseType aCase) {
+    public static boolean isApprovalCase(@Nullable CaseType aCase) {
         return aCase != null && ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
     }
 

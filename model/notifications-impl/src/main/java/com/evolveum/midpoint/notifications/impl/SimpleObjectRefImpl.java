@@ -63,7 +63,7 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
 
     @Override
     public ObjectType resolveObjectType(OperationResult result, boolean allowNotFound) {
-        return functions.getObjectType(this, allowNotFound, result);
+        return functions.getObject(this, allowNotFound, result);
     }
 
     @Override

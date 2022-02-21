@@ -7,8 +7,12 @@
 
 package com.evolveum.midpoint.notifications.api;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
 
+/**
+ * The purpose of this class is unclear. Consider replacing by {@link OperationResultStatus}.
+ */
 public enum OperationStatus {
     SUCCESS, IN_PROGRESS, FAILURE, OTHER;
 
@@ -23,4 +27,15 @@ public enum OperationStatus {
         }
     }
 
+    public static OperationStatus fromOperationResultStatus(OperationResultStatus status) {
+        if (status == null) {
+            return null;
+        } else if (status.isConsideredSuccess()) {
+            return SUCCESS;
+        } else if (status.isError()) {
+            return FAILURE; // TODO or only fatal error?
+        } else {
+            return OTHER;
+        }
+    }
 }

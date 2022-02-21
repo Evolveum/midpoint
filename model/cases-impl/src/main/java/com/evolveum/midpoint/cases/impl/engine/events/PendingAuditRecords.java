@@ -141,7 +141,7 @@ public class PendingAuditRecords implements DebugDumpable {
                 record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_DISPLAY_NAME, ApprovalContextUtil.getStageDisplayName(aCase));
             }
         }
-        record.addPropertyValue(AuditingConstants.AUDIT_PROCESS_INSTANCE_ID, aCase.getOid());
+        record.addPropertyValue(AuditingConstants.AUDIT_CASE_OID, aCase.getOid());
         record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_REQUESTER_COMMENT, ApprovalContextUtil.getRequesterComment(aCase));
         return record;
     }

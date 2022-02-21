@@ -230,7 +230,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     }
 
     protected UserType getDefaultRecipient(E event, N generalNotifierType, OperationResult result) {
-        ObjectType objectType = functions.getObjectType(event.getRequestee(), true, result);
+        ObjectType objectType = functions.getObject(event.getRequestee(), true, result);
         if (objectType instanceof UserType) {
             return (UserType) objectType;
         } else {
