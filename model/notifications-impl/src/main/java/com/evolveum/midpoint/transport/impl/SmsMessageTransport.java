@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -75,9 +76,11 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
     private TransportSupport transportSupport;
 
     @Override
-    public void init(@NotNull SmsTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
-        this.configuration = java.util.Objects.requireNonNull(configuration);
-        name = java.util.Objects.requireNonNull(configuration.getName());
+    public void configure(
+            @NotNull SmsTransportConfigurationType configuration,
+            @NotNull TransportSupport transportSupport) {
+        this.configuration = Objects.requireNonNull(configuration);
+        name = Objects.requireNonNull(configuration.getName());
         this.transportSupport = transportSupport;
     }
 

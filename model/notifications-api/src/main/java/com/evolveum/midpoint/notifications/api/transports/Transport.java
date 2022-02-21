@@ -23,6 +23,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public interface Transport<C extends GeneralTransportConfigurationType> {
 
     /**
+     * Configures transport instance - this must be fast and exception free.
+     * This is not the place to start any connections or sessions; this is called after sysconfig is changed.
+     *
+     * @param configuration portion of the configuration relevant to this transport
+     * @param transportSupport support object with dependencies
+     */
+    void configure(@NotNull C configuration, @NotNull TransportSupport transportSupport);
+
+    /**
      * Sends the message via this transport.
      *
      * TODO:
@@ -41,6 +50,4 @@ public interface Transport<C extends GeneralTransportConfigurationType> {
 
     // not-null for new transports, but legacy transports return null (remove after 4.6 cleanup if that happens)
     C getConfiguration();
-
-    void init(@NotNull C configuration, @NotNull TransportSupport transportSupport);
 }

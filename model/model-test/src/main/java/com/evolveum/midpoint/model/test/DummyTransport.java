@@ -99,7 +99,7 @@ public class DummyTransport implements Transport<GeneralTransportConfigurationTy
     }
 
     @Override
-    public void init(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
+    public void configure(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
         // not called for legacy transport component
     }
 

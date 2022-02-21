@@ -8,6 +8,8 @@ package com.evolveum.midpoint.transport.impl;
 
 import static com.evolveum.midpoint.transport.impl.TransportUtil.formatToFileNew;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.notifications.api.events.Event;
@@ -36,9 +38,11 @@ public class FileMessageTransport implements Transport<FileTransportConfiguratio
     private FileTransportConfigurationType configuration;
 
     @Override
-    public void init(@NotNull FileTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
-        this.configuration = java.util.Objects.requireNonNull(configuration);
-        name = java.util.Objects.requireNonNull(configuration.getName());
+    public void configure(
+            @NotNull FileTransportConfigurationType configuration,
+            @NotNull TransportSupport transportSupport) {
+        this.configuration = Objects.requireNonNull(configuration);
+        name = Objects.requireNonNull(configuration.getName());
         // transportSupport not needed here
     }
 

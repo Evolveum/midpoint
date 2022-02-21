@@ -55,7 +55,9 @@ public class CustomMessageTransport implements Transport<CustomTransportConfigur
     private TransportSupport transportSupport;
 
     @Override
-    public void init(@NotNull CustomTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
+    public void configure(
+            @NotNull CustomTransportConfigurationType configuration,
+            @NotNull TransportSupport transportSupport) {
         this.configuration = Objects.requireNonNull(configuration);
         name = Objects.requireNonNull(configuration.getName());
         this.transportSupport = Objects.requireNonNull(transportSupport);

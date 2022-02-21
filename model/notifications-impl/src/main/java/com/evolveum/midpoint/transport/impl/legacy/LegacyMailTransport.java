@@ -335,7 +335,7 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
     }
 
     @Override
-    public void init(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
+    public void configure(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
         // not called for legacy transport component
     }
 
