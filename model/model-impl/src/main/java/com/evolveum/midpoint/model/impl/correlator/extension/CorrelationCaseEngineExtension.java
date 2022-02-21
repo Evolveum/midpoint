@@ -7,40 +7,34 @@
 
 package com.evolveum.midpoint.model.impl.correlator.extension;
 
-import com.evolveum.midpoint.cases.api.CaseManager;
-import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
-
-import com.evolveum.midpoint.util.exception.*;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.cases.api.CaseEngineOperation;
-import com.evolveum.midpoint.cases.api.extensions.*;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.cases.api.CaseEngineOperation;
+import com.evolveum.midpoint.cases.api.extensions.*;
+import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 @Component
 public class CorrelationCaseEngineExtension implements EngineExtension {
 
-    @Autowired private CaseManager caseManager;
     @Autowired private CorrelationCaseManager correlationCaseManager;
 
-    @PostConstruct
-    public void init() {
-        caseManager.registerEngineExtension(SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value(), this);
+    @Override
+    public @NotNull Collection<String> getArchetypeOids() {
+        return List.of(SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value());
     }
 
     @Override

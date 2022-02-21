@@ -7,14 +7,14 @@
 
 package com.evolveum.midpoint.cases.api.extensions;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
-import org.jetbrains.annotations.NotNull;
+import java.util.Collection;
 
 /**
  * Provides functionality that the case engine calls when dealing with specific case archetypes (like approval cases, etc).
@@ -22,6 +22,11 @@ import org.jetbrains.annotations.NotNull;
  * TODO better name
  */
 public interface EngineExtension {
+
+    /**
+     * Returns the case archetype OID(s) this extension handles.
+     */
+    @NotNull Collection<String> getArchetypeOids();
 
     /**
      * Called to finish case closing procedure. E.g. for approvals we may submit execution task here.

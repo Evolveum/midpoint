@@ -8,8 +8,6 @@ package com.evolveum.midpoint.cases.impl;
 
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.cases.api.extensions.EngineExtension;
-
 import com.evolveum.midpoint.cases.impl.engine.CaseEngineImpl;
 
 import org.jetbrains.annotations.NotNull;
@@ -191,10 +189,5 @@ public class CaseManagerImpl implements CaseManager {
     @Override
     public PerformerCommentsFormatter createPerformerCommentsFormatter(PerformerCommentsFormattingType formatting) {
         return new PerformerCommentsFormatterImpl(formatting, repositoryService, expressionEvaluationHelper);
-    }
-
-    @Override
-    public void registerEngineExtension(@NotNull String archetypeOid, @NotNull EngineExtension extension) {
-        caseEngine.registerEngineExtension(archetypeOid, extension);
     }
 }

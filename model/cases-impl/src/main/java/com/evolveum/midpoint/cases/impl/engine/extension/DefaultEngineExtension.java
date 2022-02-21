@@ -25,6 +25,8 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,6 +40,11 @@ import static java.util.Objects.requireNonNull;
 public class DefaultEngineExtension implements EngineExtension {
 
     private static final Trace LOGGER = TraceManager.getTrace(DefaultEngineExtension.class);
+
+    @Override
+    public @NotNull Collection<String> getArchetypeOids() {
+        return List.of(); // This extension is applied "manually" after no suitable extension is found.
+    }
 
     @Override
     public void finishCaseClosing(@NotNull CaseEngineOperation operation, @NotNull OperationResult result)

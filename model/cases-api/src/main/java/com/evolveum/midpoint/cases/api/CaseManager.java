@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.cases.api;
 
-import com.evolveum.midpoint.cases.api.extensions.EngineExtension;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -125,7 +124,4 @@ public interface CaseManager {
 
     // TODO decide on the fate of this method
     PerformerCommentsFormatter createPerformerCommentsFormatter(PerformerCommentsFormattingType formatting);
-
-    // TODO
-    void registerEngineExtension(@NotNull String archetypeOid, @NotNull EngineExtension extension);
 }

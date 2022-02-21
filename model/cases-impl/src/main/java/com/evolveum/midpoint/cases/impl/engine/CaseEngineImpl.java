@@ -7,9 +7,8 @@
 
 package com.evolveum.midpoint.cases.impl.engine;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -107,8 +106,7 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
     @Autowired public AuthorizationHelper authorizationHelper;
     @Autowired private CaseEventDispatcher caseEventDispatcher;
     @Autowired private ArchetypeManager archetypeManager;
-
-    @NotNull private final Map<String, EngineExtension> engineExtensionMap = new HashMap<>();
+    @Autowired private List<EngineExtension> engineExtensions;
 
     @PostConstruct
     public void init() {
@@ -180,13 +178,19 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
         String archetypeOid = getCaseArchetypeOid(aCase, result);
         LOGGER.trace("Going to determine engine extension for {}, archetype: {}", aCase, archetypeOid);
         if (archetypeOid != null) {
-            EngineExtension fromMap = engineExtensionMap.get(archetypeOid);
-            LOGGER.trace("Information from the map of registered extensions: {}", fromMap);
-            if (fromMap != null) {
-                return fromMap;
+            Optional<EngineExtension> found = findRegisteredExtension(archetypeOid);
+            LOGGER.trace("Information from the collection of registered extensions: {}", found);
+            if (found.isPresent()) {
+                return found.get();
             }
         }
         return new DefaultEngineExtension();
+    }
+
+    private Optional<EngineExtension> findRegisteredExtension(@NotNull String archetypeOid) {
+        return engineExtensions.stream()
+                .filter(e -> e.getArchetypeOids().contains(archetypeOid))
+                .findFirst();
     }
 
     private String getCaseArchetypeOid(@NotNull PrismObject<CaseType> aCase, OperationResult result) throws SchemaException {
@@ -222,9 +226,5 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
         } catch (CommonException e) {
             throw new SystemException("Couldn't open the case: " + aCase, e);
         }
-    }
-
-    public void registerEngineExtension(String archetypeOid, EngineExtension extension) {
-        engineExtensionMap.put(archetypeOid, extension);
     }
 }
