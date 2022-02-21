@@ -1,4 +1,4 @@
-= Example of new report: Users without account
+= Example of Collection report: Users without account
 :page-nav-title: Users without account
 :page-wiki-name: Example of new report: Users without account
 :page-wiki-id: 52003073
@@ -13,7 +13,7 @@ Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Repor
 
 == Usecase
 
-We need report users which have assignment of role, but don't have account on our resource, but they should have.
+We need report of users which have assignment of role, but don’t have account on our resource, and they should have.
 
 
 === Configuration

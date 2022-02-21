@@ -1,4 +1,4 @@
-= Example of new report: Comparing attributes of shadow and attributes of user in midPoint
+= Example of Collection report: Comparing attributes of shadow and attributes of user in midPoint
 :page-nav-title: Comparing attributes of shadow and attributes of user in midPoint
 :page-wiki-name: Example of new report: Comparing attributes of shadow and attributes of user in mP
 :page-wiki-id: 52003075
@@ -13,8 +13,7 @@ Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Repor
 
 == Usecase
 
-We need report users with mismatched attributes, so we have to compare attributes of shadow (account of user) and attributes of user in Midpoint.
-We create example which compare email prefix of user in Midpoint with firstname and lastname attributes connected by with '.' from account.
+We need report users with mismatched attributes, so we have to compare attributes of account of user and attributes of user in Midpoint. We create example which compare email prefix of user in Midpoint with firstname and lastname attributes of account chained by '.'.
 
 
 == Configuration

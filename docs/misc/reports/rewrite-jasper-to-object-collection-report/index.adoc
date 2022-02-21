@@ -32,7 +32,7 @@ When we have jasper configuration, then we can create basic xml of new report we
 </report>
 ----
 
-Now we can start with rewriting, as first find tag 'queryString' and copy it's filter to tag 'objectCollection/collection' of new report. Filter from jasper template contains on top level type filter, we can remove it because we define type of object in view of new report. Also in new report can use ObjectReferenceType as type of parameter, so we can use path evaluator with parameter.
+Now we can start with rewriting, as first find tag 'queryString' and copy it's filter to tag 'objectCollection/collection' of new report. Filter from jasper template contains expression for create objectreferencetype because of as parameter contains String of oid for role. New report can use ObjectReferenceType as type of parameter, so we can use path evaluator with parameter.
 
 .Filter
 [source,xml]
@@ -78,7 +78,9 @@ Now we can start with rewriting, as first find tag 'queryString' and copy it's f
 </objectCollection>
 ----
 
-Now we need rewrite parameters to new report, so in template we have to find tags 'parameter'. We create new Parameter in new report. We copy name and class name to new parameter. When we need reference for object, in jasper parameter was type string and use oid of object, but new report uses ObjectReferenceType and target type element in parameter, so we use ObjectReferenceType instead of string. Also we can add display/label for GUI.
+image::query.png[]
+
+Now we need to convert parameters to a new report, so in template we have to find tags 'parameter'. We create new Parameter in new report. We copy name and class name to new parameter. When we need reference for object, in jasper parameter was type string and use oid of object, but new report uses ObjectReferenceType and target type element in parameter, so we use ObjectReferenceType instead of string. Also we can add label configuration for GUI.
 
 .Example of parameter from jasper template
 [source,xml]
@@ -102,6 +104,8 @@ Now we need rewrite parameters to new report, so in template we have to find tag
     </display>
 </parameter>
 ----
+
+image::parameters.png[]
 
 Next snippet describe all rewrite parameters.
 
@@ -164,7 +168,7 @@ Next snippet describe all rewrite parameters.
 </objectCollection>
 ----
 
-As last thing we need rewrite columns, so we have to find tag 'textField' and in it we see 'textFieldExpression'. When column describe attribute of object, then we define path for column, it is easier. Every column can have label, which is shown in header of column, or midpoint uses attribute name base on path.
+As last thing we need rewrite columns, so we have to find tag with path 'jasperReport' in it 'details' in it 'band' in it 'textField' and in it we see 'textFieldExpression' tag. When column describe attribute of object, then we define path for column, it is easier. Every column can have label, which is shown in header of column, or midpoint uses attribute name base on path.
 
 .Columns from jasper template
 [source,xml]
@@ -184,7 +188,9 @@ As last thing we need rewrite columns, so we have to find tag 'textField' and in
 </column>
 ----
 
-Jasper template can contain complicated columns, when we need define expression for column. We find tag 'componentElement' in jasper template. We find element 'subDataset' in subtags and use definition for this subDataset in expression of new column configuration.
+image::column-simple.png[]
+
+Jasper template can contain complicated columns, when we need define expression for column. We find tag 'componentElement' in jasper in same parent as for 'textField' tag. We find attribute 'subDataset' in subtags and use definition for this subDataset in expression of new column configuration. In our example, we add code for return only name of resolved roles. As path for new collumn we use value of datasetParameterExpression, in example it is  assignment. As last we add label for new collumn because we reporting only roles not all assignments of user.
 
 .Columns in new report
 [source,xml]
@@ -254,6 +260,8 @@ In expression we get roles as in definition of subDataset. Next we can show mult
     <previousColumn>activationColumn</previousColumn>
 </column>
 ----
+
+image::column-complex.png[]
 
 Next snippet shown all new columns.
 

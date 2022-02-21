@@ -1,4 +1,4 @@
-= Example of dashboard report: Audit events which change administrativeStatus on resource
+= Example of Dashboard report: Audit events which change administrativeStatus on resource
 :page-nav-title: Example: Audit, administrativeStatus
 :page-wiki-name: Example of dashboard report: Audit events which change administrativeStatus on resource
 :page-wiki-id: 52002844

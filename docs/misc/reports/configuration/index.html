@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.16">
+<title>Report Configuration</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<style>
+/*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
+/* Uncomment the following line when using as a custom stylesheet */
+/* @import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700"; */
+html{font-family:sans-serif;-webkit-text-size-adjust:100%}
+a{background:none}
+a:focus{outline:thin dotted}
+a:active,a:hover{outline:0}
+h1{font-size:2em;margin:.67em 0}
+b,strong{font-weight:bold}
+abbr{font-size:.9em}
+abbr[title]{cursor:help;border-bottom:1px dotted #dddddf;text-decoration:none}
+dfn{font-style:italic}
+hr{height:0}
+mark{background:#ff0;color:#000}
+code,kbd,pre,samp{font-family:monospace;font-size:1em}
+pre{white-space:pre-wrap}
+q{quotes:"\201C" "\201D" "\2018" "\2019"}
+small{font-size:80%}
+sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
+sup{top:-.5em}
+sub{bottom:-.25em}
+img{border:0}
+svg:not(:root){overflow:hidden}
+figure{margin:0}
+audio,video{display:inline-block}
+audio:not([controls]){display:none;height:0}
+fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}
+legend{border:0;padding:0}
+button,input,select,textarea{font-family:inherit;font-size:100%;margin:0}
+button,input{line-height:normal}
+button,select{text-transform:none}
+button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}
+button[disabled],html input[disabled]{cursor:default}
+input[type=checkbox],input[type=radio]{padding:0}
+button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}
+textarea{overflow:auto;vertical-align:top}
+table{border-collapse:collapse;border-spacing:0}
+*,::before,::after{box-sizing:border-box}
+html,body{font-size:100%}
+body{background:#fff;color:rgba(0,0,0,.8);padding:0;margin:0;font-family:"Noto Serif","DejaVu Serif",serif;line-height:1;position:relative;cursor:auto;-moz-tab-size:4;-o-tab-size:4;tab-size:4;word-wrap:anywhere;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased}
+a:hover{cursor:pointer}
+img,object,embed{max-width:100%;height:auto}
+object,embed{height:100%}
+img{-ms-interpolation-mode:bicubic}
+.left{float:left!important}
+.right{float:right!important}
+.text-left{text-align:left!important}
+.text-right{text-align:right!important}
+.text-center{text-align:center!important}
+.text-justify{text-align:justify!important}
+.hide{display:none}
+img,object,svg{display:inline-block;vertical-align:middle}
+textarea{height:auto;min-height:50px}
+select{width:100%}
+.subheader,.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{line-height:1.45;color:#7a2518;font-weight:400;margin-top:0;margin-bottom:.25em}
+div,dl,dt,dd,ul,ol,li,h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6,pre,form,p,blockquote,th,td{margin:0;padding:0}
+a{color:#2156a5;text-decoration:underline;line-height:inherit}
+a:hover,a:focus{color:#1d4b8f}
+a img{border:0}
+p{line-height:1.6;margin-bottom:1.25em;text-rendering:optimizeLegibility}
+p aside{font-size:.875em;line-height:1.35;font-style:italic}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{font-family:"Open Sans","DejaVu Sans",sans-serif;font-weight:300;font-style:normal;color:#ba3925;text-rendering:optimizeLegibility;margin-top:1em;margin-bottom:.5em;line-height:1.0125em}
+h1 small,h2 small,h3 small,#toctitle small,.sidebarblock>.content>.title small,h4 small,h5 small,h6 small{font-size:60%;color:#e99b8f;line-height:0}
+h1{font-size:2.125em}
+h2{font-size:1.6875em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.375em}
+h4,h5{font-size:1.125em}
+h6{font-size:1em}
+hr{border:solid #dddddf;border-width:1px 0 0;clear:both;margin:1.25em 0 1.1875em}
+em,i{font-style:italic;line-height:inherit}
+strong,b{font-weight:bold;line-height:inherit}
+small{font-size:60%;line-height:inherit}
+code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;color:rgba(0,0,0,.9)}
+ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
+ul,ol{margin-left:1.5em}
+ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
+ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
+ul.square{list-style-type:square}
+ul.circle{list-style-type:circle}
+ul.disc{list-style-type:disc}
+ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
+dl dt{margin-bottom:.3125em;font-weight:bold}
+dl dd{margin-bottom:1.25em}
+blockquote{margin:0 0 1.25em;padding:.5625em 1.25em 0 1.1875em;border-left:1px solid #ddd}
+blockquote,blockquote p{line-height:1.6;color:rgba(0,0,0,.85)}
+@media screen and (min-width:768px){h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2}
+h1{font-size:2.75em}
+h2{font-size:2.3125em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.6875em}
+h4{font-size:1.4375em}}
+table{background:#fff;margin-bottom:1.25em;border:1px solid #dedede;word-wrap:normal}
+table thead,table tfoot{background:#f7f8f7}
+table thead tr th,table thead tr td,table tfoot tr th,table tfoot tr td{padding:.5em .625em .625em;font-size:inherit;color:rgba(0,0,0,.8);text-align:left}
+table tr th,table tr td{padding:.5625em .625em;font-size:inherit;color:rgba(0,0,0,.8)}
+table tr.even,table tr.alt{background:#f8f8f7}
+table thead tr th,table tfoot tr th,table tbody tr td,table tr td,table tfoot tr td{line-height:1.6}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2;word-spacing:-.05em}
+h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title strong,h4 strong,h5 strong,h6 strong{font-weight:400}
+.center{margin-left:auto;margin-right:auto}
+.stretch{width:100%}
+.clearfix::before,.clearfix::after,.float-group::before,.float-group::after{content:" ";display:table}
+.clearfix::after,.float-group::after{clear:both}
+:not(pre).nobreak{word-wrap:normal}
+:not(pre).nowrap{white-space:nowrap}
+:not(pre).pre-wrap{white-space:pre-wrap}
+:not(pre):not([class^=L])>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background:#f7f7f8;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed}
+pre{color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;line-height:1.45;text-rendering:optimizeSpeed}
+pre code,pre pre{color:inherit;font-size:inherit;line-height:inherit}
+pre>code{display:block}
+pre.nowrap,pre.nowrap pre{white-space:pre;word-wrap:normal}
+em em{font-style:normal}
+strong strong{font-weight:400}
+.keyseq{color:rgba(51,51,51,.8)}
+kbd{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;display:inline-block;color:rgba(0,0,0,.8);font-size:.65em;line-height:1.45;background:#f7f7f7;border:1px solid #ccc;border-radius:3px;box-shadow:0 1px 0 rgba(0,0,0,.2),inset 0 0 0 .1em #fff;margin:0 .15em;padding:.2em .5em;vertical-align:middle;position:relative;top:-.1em;white-space:nowrap}
+.keyseq kbd:first-child{margin-left:0}
+.keyseq kbd:last-child{margin-right:0}
+.menuseq,.menuref{color:#000}
+.menuseq b:not(.caret),.menuref{font-weight:inherit}
+.menuseq{word-spacing:-.02em}
+.menuseq b.caret{font-size:1.25em;line-height:.8}
+.menuseq i.caret{font-weight:bold;text-align:center;width:.45em}
+b.button::before,b.button::after{position:relative;top:-1px;font-weight:400}
+b.button::before{content:"[";padding:0 3px 0 2px}
+b.button::after{content:"]";padding:0 2px 0 3px}
+p a>code:hover{color:rgba(0,0,0,.9)}
+#header,#content,#footnotes,#footer{width:100%;margin:0 auto;max-width:62.5em;*zoom:1;position:relative;padding-left:.9375em;padding-right:.9375em}
+#header::before,#header::after,#content::before,#content::after,#footnotes::before,#footnotes::after,#footer::before,#footer::after{content:" ";display:table}
+#header::after,#content::after,#footnotes::after,#footer::after{clear:both}
+#content{margin-top:1.25em}
+#content::before{content:none}
+#header>h1:first-child{color:rgba(0,0,0,.85);margin-top:2.25rem;margin-bottom:0}
+#header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #dddddf}
+#header>h1:only-child,body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
+#header .details{border-bottom:1px solid #dddddf;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:flex;flex-flow:row wrap}
+#header .details span:first-child{margin-left:-.125em}
+#header .details span.email a{color:rgba(0,0,0,.85)}
+#header .details br{display:none}
+#header .details br+span::before{content:"\00a0\2013\00a0"}
+#header .details br+span.author::before{content:"\00a0\22c5\00a0";color:rgba(0,0,0,.85)}
+#header .details br+span#revremark::before{content:"\00a0|\00a0"}
+#header #revnumber{text-transform:capitalize}
+#header #revnumber::after{content:"\00a0"}
+#content>h1:first-child:not([class]){color:rgba(0,0,0,.85);border-bottom:1px solid #dddddf;padding-bottom:8px;margin-top:0;padding-top:1rem;margin-bottom:1.25rem}
+#toc{border-bottom:1px solid #e7e7e9;padding-bottom:.5em}
+#toc>ul{margin-left:.125em}
+#toc ul.sectlevel0>li>a{font-style:italic}
+#toc ul.sectlevel0 ul.sectlevel1{margin:.5em 0}
+#toc ul{font-family:"Open Sans","DejaVu Sans",sans-serif;list-style-type:none}
+#toc li{line-height:1.3334;margin-top:.3334em}
+#toc a{text-decoration:none}
+#toc a:active{text-decoration:underline}
+#toctitle{color:#7a2518;font-size:1.2em}
+@media screen and (min-width:768px){#toctitle{font-size:1.375em}
+body.toc2{padding-left:15em;padding-right:0}
+#toc.toc2{margin-top:0!important;background:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #e7e7e9;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
+#toc.toc2 #toctitle{margin-top:0;margin-bottom:.8rem;font-size:1.2em}
+#toc.toc2>ul{font-size:.9em;margin-bottom:0}
+#toc.toc2 ul ul{margin-left:0;padding-left:1em}
+#toc.toc2 ul.sectlevel0 ul.sectlevel1{padding-left:0;margin-top:.5em;margin-bottom:.5em}
+body.toc2.toc-right{padding-left:0;padding-right:15em}
+body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #e7e7e9;left:auto;right:0}}
+@media screen and (min-width:1280px){body.toc2{padding-left:20em;padding-right:0}
+#toc.toc2{width:20em}
+#toc.toc2 #toctitle{font-size:1.375em}
+#toc.toc2>ul{font-size:.95em}
+#toc.toc2 ul ul{padding-left:1.25em}
+body.toc2.toc-right{padding-left:0;padding-right:20em}}
+#content #toc{border:1px solid #e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;border-radius:4px}
+#content #toc>:first-child{margin-top:0}
+#content #toc>:last-child{margin-bottom:0}
+#footer{max-width:none;background:rgba(0,0,0,.8);padding:1.25em}
+#footer-text{color:hsla(0,0%,100%,.8);line-height:1.44}
+#content{margin-bottom:.625em}
+.sect1{padding-bottom:.625em}
+@media screen and (min-width:768px){#content{margin-bottom:1.25em}
+.sect1{padding-bottom:1.25em}}
+.sect1:last-child{padding-bottom:0}
+.sect1+.sect1{border-top:1px solid #e7e7e9}
+#content h1>a.anchor,h2>a.anchor,h3>a.anchor,#toctitle>a.anchor,.sidebarblock>.content>.title>a.anchor,h4>a.anchor,h5>a.anchor,h6>a.anchor{position:absolute;z-index:1001;width:1.5ex;margin-left:-1.5ex;display:block;text-decoration:none!important;visibility:hidden;text-align:center;font-weight:400}
+#content h1>a.anchor::before,h2>a.anchor::before,h3>a.anchor::before,#toctitle>a.anchor::before,.sidebarblock>.content>.title>a.anchor::before,h4>a.anchor::before,h5>a.anchor::before,h6>a.anchor::before{content:"\00A7";font-size:.85em;display:block;padding-top:.1em}
+#content h1:hover>a.anchor,#content h1>a.anchor:hover,h2:hover>a.anchor,h2>a.anchor:hover,h3:hover>a.anchor,#toctitle:hover>a.anchor,.sidebarblock>.content>.title:hover>a.anchor,h3>a.anchor:hover,#toctitle>a.anchor:hover,.sidebarblock>.content>.title>a.anchor:hover,h4:hover>a.anchor,h4>a.anchor:hover,h5:hover>a.anchor,h5>a.anchor:hover,h6:hover>a.anchor,h6>a.anchor:hover{visibility:visible}
+#content h1>a.link,h2>a.link,h3>a.link,#toctitle>a.link,.sidebarblock>.content>.title>a.link,h4>a.link,h5>a.link,h6>a.link{color:#ba3925;text-decoration:none}
+#content h1>a.link:hover,h2>a.link:hover,h3>a.link:hover,#toctitle>a.link:hover,.sidebarblock>.content>.title>a.link:hover,h4>a.link:hover,h5>a.link:hover,h6>a.link:hover{color:#a53221}
+details,.audioblock,.imageblock,.literalblock,.listingblock,.stemblock,.videoblock{margin-bottom:1.25em}
+details{margin-left:1.25rem}
+details>summary{cursor:pointer;display:block;position:relative;line-height:1.6;margin-bottom:.625rem;-webkit-tap-highlight-color:transparent}
+details>summary::before{content:"";border:solid transparent;border-left:solid;border-width:.3em 0 .3em .5em;position:absolute;top:.5em;left:-1.25rem;transform:translateX(15%)}
+details[open]>summary::before{border:solid transparent;border-top:solid;border-width:.5em .3em 0;transform:translateY(15%)}
+details>summary::after{content:"";width:1.25rem;height:1em;position:absolute;top:.3em;left:-1.25rem}
+.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{text-rendering:optimizeLegibility;text-align:left;font-family:"Noto Serif","DejaVu Serif",serif;font-size:1rem;font-style:italic}
+table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
+.paragraph.lead>p,#preamble>.sectionbody>[class=paragraph]:first-of-type p{font-size:1.21875em;line-height:1.6;color:rgba(0,0,0,.85)}
+.admonitionblock>table{border-collapse:separate;border:0;background:none;width:100%}
+.admonitionblock>table td.icon{text-align:center;width:80px}
+.admonitionblock>table td.icon img{max-width:none}
+.admonitionblock>table td.icon .title{font-weight:bold;font-family:"Open Sans","DejaVu Sans",sans-serif;text-transform:uppercase}
+.admonitionblock>table td.content{padding-left:1.125em;padding-right:1.25em;border-left:1px solid #dddddf;color:rgba(0,0,0,.6);word-wrap:anywhere}
+.admonitionblock>table td.content>:last-child>:last-child{margin-bottom:0}
+.exampleblock>.content{border:1px solid #e6e6e6;margin-bottom:1.25em;padding:1.25em;background:#fff;border-radius:4px}
+.exampleblock>.content>:first-child{margin-top:0}
+.exampleblock>.content>:last-child{margin-bottom:0}
+.sidebarblock{border:1px solid #dbdbd6;margin-bottom:1.25em;padding:1.25em;background:#f3f3f2;border-radius:4px}
+.sidebarblock>:first-child{margin-top:0}
+.sidebarblock>:last-child{margin-bottom:0}
+.sidebarblock>.content>.title{color:#7a2518;margin-top:0;text-align:center}
+.exampleblock>.content>:last-child>:last-child,.exampleblock>.content .olist>ol>li:last-child>:last-child,.exampleblock>.content .ulist>ul>li:last-child>:last-child,.exampleblock>.content .qlist>ol>li:last-child>:last-child,.sidebarblock>.content>:last-child>:last-child,.sidebarblock>.content .olist>ol>li:last-child>:last-child,.sidebarblock>.content .ulist>ul>li:last-child>:last-child,.sidebarblock>.content .qlist>ol>li:last-child>:last-child{margin-bottom:0}
+.literalblock pre,.listingblock>.content>pre{border-radius:4px;overflow-x:auto;padding:1em;font-size:.8125em}
+@media screen and (min-width:768px){.literalblock pre,.listingblock>.content>pre{font-size:.90625em}}
+@media screen and (min-width:1280px){.literalblock pre,.listingblock>.content>pre{font-size:1em}}
+.literalblock pre,.listingblock>.content>pre:not(.highlight),.listingblock>.content>pre[class=highlight],.listingblock>.content>pre[class^="highlight "]{background:#f7f7f8}
+.literalblock.output pre{color:#f7f7f8;background:rgba(0,0,0,.9)}
+.listingblock>.content{position:relative}
+.listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:inherit;opacity:.5}
+.listingblock:hover code[data-lang]::before{display:block}
+.listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:inherit;opacity:.5}
+.listingblock.terminal pre .command:not([data-prompt])::before{content:"$"}
+.listingblock pre.highlightjs{padding:0}
+.listingblock pre.highlightjs>code{padding:1em;border-radius:4px}
+.listingblock pre.prettyprint{border-width:0}
+.prettyprint{background:#f7f7f8}
+pre.prettyprint .linenums{line-height:1.45;margin-left:2em}
+pre.prettyprint li{background:none;list-style-type:inherit;padding-left:0}
+pre.prettyprint li code[data-lang]::before{opacity:1}
+pre.prettyprint li:not(:first-child) code[data-lang]::before{display:none}
+table.linenotable{border-collapse:separate;border:0;margin-bottom:0;background:none}
+table.linenotable td[class]{color:inherit;vertical-align:top;padding:0;line-height:inherit;white-space:normal}
+table.linenotable td.code{padding-left:.75em}
+table.linenotable td.linenos{border-right:1px solid;opacity:.35;padding-right:.5em}
+pre.pygments .lineno{border-right:1px solid;opacity:.35;display:inline-block;margin-right:.75em}
+pre.pygments .lineno::before{content:"";margin-right:-.125em}
+.quoteblock{margin:0 1em 1.25em 1.5em;display:table}
+.quoteblock:not(.excerpt)>.title{margin-left:-1.5em;margin-bottom:.75em}
+.quoteblock blockquote,.quoteblock p{color:rgba(0,0,0,.85);font-size:1.15rem;line-height:1.75;word-spacing:.1em;letter-spacing:0;font-style:italic;text-align:justify}
+.quoteblock blockquote{margin:0;padding:0;border:0}
+.quoteblock blockquote::before{content:"\201c";float:left;font-size:2.75em;font-weight:bold;line-height:.6em;margin-left:-.6em;color:#7a2518;text-shadow:0 1px 2px rgba(0,0,0,.1)}
+.quoteblock blockquote>.paragraph:last-child p{margin-bottom:0}
+.quoteblock .attribution{margin-top:.75em;margin-right:.5ex;text-align:right}
+.verseblock{margin:0 1em 1.25em}
+.verseblock pre{font-family:"Open Sans","DejaVu Sans",sans-serif;font-size:1.15rem;color:rgba(0,0,0,.85);font-weight:300;text-rendering:optimizeLegibility}
+.verseblock pre strong{font-weight:400}
+.verseblock .attribution{margin-top:1.25rem;margin-left:.5ex}
+.quoteblock .attribution,.verseblock .attribution{font-size:.9375em;line-height:1.45;font-style:italic}
+.quoteblock .attribution br,.verseblock .attribution br{display:none}
+.quoteblock .attribution cite,.verseblock .attribution cite{display:block;letter-spacing:-.025em;color:rgba(0,0,0,.6)}
+.quoteblock.abstract blockquote::before,.quoteblock.excerpt blockquote::before,.quoteblock .quoteblock blockquote::before{display:none}
+.quoteblock.abstract blockquote,.quoteblock.abstract p,.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{line-height:1.6;word-spacing:0}
+.quoteblock.abstract{margin:0 1em 1.25em;display:block}
+.quoteblock.abstract>.title{margin:0 0 .375em;font-size:1.15em;text-align:center}
+.quoteblock.excerpt>blockquote,.quoteblock .quoteblock{padding:0 0 .25em 1em;border-left:.25em solid #dddddf}
+.quoteblock.excerpt,.quoteblock .quoteblock{margin-left:0}
+.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{color:inherit;font-size:1.0625rem}
+.quoteblock.excerpt .attribution,.quoteblock .quoteblock .attribution{color:inherit;font-size:.85rem;text-align:left;margin-right:0}
+p.tableblock:last-child{margin-bottom:0}
+td.tableblock>.content{margin-bottom:1.25em;word-wrap:anywhere}
+td.tableblock>.content>:last-child{margin-bottom:-1.25em}
+table.tableblock,th.tableblock,td.tableblock{border:0 solid #dedede}
+table.grid-all>*>tr>*{border-width:1px}
+table.grid-cols>*>tr>*{border-width:0 1px}
+table.grid-rows>*>tr>*{border-width:1px 0}
+table.frame-all{border-width:1px}
+table.frame-ends{border-width:1px 0}
+table.frame-sides{border-width:0 1px}
+table.frame-none>colgroup+*>:first-child>*,table.frame-sides>colgroup+*>:first-child>*{border-top-width:0}
+table.frame-none>:last-child>:last-child>*,table.frame-sides>:last-child>:last-child>*{border-bottom-width:0}
+table.frame-none>*>tr>:first-child,table.frame-ends>*>tr>:first-child{border-left-width:0}
+table.frame-none>*>tr>:last-child,table.frame-ends>*>tr>:last-child{border-right-width:0}
+table.stripes-all tr,table.stripes-odd tr:nth-of-type(odd),table.stripes-even tr:nth-of-type(even),table.stripes-hover tr:hover{background:#f8f8f7}
+th.halign-left,td.halign-left{text-align:left}
+th.halign-right,td.halign-right{text-align:right}
+th.halign-center,td.halign-center{text-align:center}
+th.valign-top,td.valign-top{vertical-align:top}
+th.valign-bottom,td.valign-bottom{vertical-align:bottom}
+th.valign-middle,td.valign-middle{vertical-align:middle}
+table thead th,table tfoot th{font-weight:bold}
+tbody tr th{background:#f7f8f7}
+tbody tr th,tbody tr th p,tfoot tr th,tfoot tr th p{color:rgba(0,0,0,.8);font-weight:bold}
+p.tableblock>code:only-child{background:none;padding:0}
+p.tableblock{font-size:1em}
+ol{margin-left:1.75em}
+ul li ol{margin-left:1.5em}
+dl dd{margin-left:1.125em}
+dl dd:last-child,dl dd:last-child>:last-child{margin-bottom:0}
+ol>li p,ul>li p,ul dd,ol dd,.olist .olist,.ulist .ulist,.ulist .olist,.olist .ulist{margin-bottom:.625em}
+ul.checklist,ul.none,ol.none,ul.no-bullet,ol.no-bullet,ol.unnumbered,ul.unstyled,ol.unstyled{list-style-type:none}
+ul.no-bullet,ol.no-bullet,ol.unnumbered{margin-left:.625em}
+ul.unstyled,ol.unstyled{margin-left:0}
+ul.checklist>li>p:first-child{margin-left:-1em}
+ul.checklist>li>p:first-child>.fa-square-o:first-child,ul.checklist>li>p:first-child>.fa-check-square-o:first-child{width:1.25em;font-size:.8em;position:relative;bottom:.125em}
+ul.checklist>li>p:first-child>input[type=checkbox]:first-child{margin-right:.25em}
+ul.inline{display:flex;flex-flow:row wrap;list-style:none;margin:0 0 .625em -1.25em}
+ul.inline>li{margin-left:1.25em}
+.unstyled dl dt{font-weight:400;font-style:normal}
+ol.arabic{list-style-type:decimal}
+ol.decimal{list-style-type:decimal-leading-zero}
+ol.loweralpha{list-style-type:lower-alpha}
+ol.upperalpha{list-style-type:upper-alpha}
+ol.lowerroman{list-style-type:lower-roman}
+ol.upperroman{list-style-type:upper-roman}
+ol.lowergreek{list-style-type:lower-greek}
+.hdlist>table,.colist>table{border:0;background:none}
+.hdlist>table>tbody>tr,.colist>table>tbody>tr{background:none}
+td.hdlist1,td.hdlist2{vertical-align:top;padding:0 .625em}
+td.hdlist1{font-weight:bold;padding-bottom:1.25em}
+td.hdlist2{word-wrap:anywhere}
+.literalblock+.colist,.listingblock+.colist{margin-top:-.5em}
+.colist td:not([class]):first-child{padding:.4em .75em 0;line-height:1;vertical-align:top}
+.colist td:not([class]):first-child img{max-width:none}
+.colist td:not([class]):last-child{padding:.25em 0}
+.thumb,.th{line-height:0;display:inline-block;border:4px solid #fff;box-shadow:0 0 0 1px #ddd}
+.imageblock.left{margin:.25em .625em 1.25em 0}
+.imageblock.right{margin:.25em 0 1.25em .625em}
+.imageblock>.title{margin-bottom:0}
+.imageblock.thumb,.imageblock.th{border-width:6px}
+.imageblock.thumb>.title,.imageblock.th>.title{padding:0 .125em}
+.image.left,.image.right{margin-top:.25em;margin-bottom:.25em;display:inline-block;line-height:0}
+.image.left{margin-right:.625em}
+.image.right{margin-left:.625em}
+a.image{text-decoration:none;display:inline-block}
+a.image object{pointer-events:none}
+sup.footnote,sup.footnoteref{font-size:.875em;position:static;vertical-align:super}
+sup.footnote a,sup.footnoteref a{text-decoration:none}
+sup.footnote a:active,sup.footnoteref a:active{text-decoration:underline}
+#footnotes{padding-top:.75em;padding-bottom:.75em;margin-bottom:.625em}
+#footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em;border-width:1px 0 0}
+#footnotes .footnote{padding:0 .375em 0 .225em;line-height:1.3334;font-size:.875em;margin-left:1.2em;margin-bottom:.2em}
+#footnotes .footnote a:first-of-type{font-weight:bold;text-decoration:none;margin-left:-1.05em}
+#footnotes .footnote:last-of-type{margin-bottom:0}
+#content #footnotes{margin-top:-.625em;margin-bottom:0;padding:.75em 0}
+.gist .file-data>table{border:0;background:#fff;width:100%;margin-bottom:0}
+.gist .file-data>table td.line-data{width:99%}
+div.unbreakable{page-break-inside:avoid}
+.big{font-size:larger}
+.small{font-size:smaller}
+.underline{text-decoration:underline}
+.overline{text-decoration:overline}
+.line-through{text-decoration:line-through}
+.aqua{color:#00bfbf}
+.aqua-background{background:#00fafa}
+.black{color:#000}
+.black-background{background:#000}
+.blue{color:#0000bf}
+.blue-background{background:#0000fa}
+.fuchsia{color:#bf00bf}
+.fuchsia-background{background:#fa00fa}
+.gray{color:#606060}
+.gray-background{background:#7d7d7d}
+.green{color:#006000}
+.green-background{background:#007d00}
+.lime{color:#00bf00}
+.lime-background{background:#00fa00}
+.maroon{color:#600000}
+.maroon-background{background:#7d0000}
+.navy{color:#000060}
+.navy-background{background:#00007d}
+.olive{color:#606000}
+.olive-background{background:#7d7d00}
+.purple{color:#600060}
+.purple-background{background:#7d007d}
+.red{color:#bf0000}
+.red-background{background:#fa0000}
+.silver{color:#909090}
+.silver-background{background:#bcbcbc}
+.teal{color:#006060}
+.teal-background{background:#007d7d}
+.white{color:#bfbfbf}
+.white-background{background:#fafafa}
+.yellow{color:#bfbf00}
+.yellow-background{background:#fafa00}
+span.icon>.fa{cursor:default}
+a span.icon>.fa{cursor:inherit}
+.admonitionblock td.icon [class^="fa icon-"]{font-size:2.5em;text-shadow:1px 1px 2px rgba(0,0,0,.5);cursor:default}
+.admonitionblock td.icon .icon-note::before{content:"\f05a";color:#19407c}
+.admonitionblock td.icon .icon-tip::before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
+.admonitionblock td.icon .icon-warning::before{content:"\f071";color:#bf6900}
+.admonitionblock td.icon .icon-caution::before{content:"\f06d";color:#bf3400}
+.admonitionblock td.icon .icon-important::before{content:"\f06a";color:#bf0000}
+.conum[data-value]{display:inline-block;color:#fff!important;background:rgba(0,0,0,.8);border-radius:50%;text-align:center;font-size:.75em;width:1.67em;height:1.67em;line-height:1.67em;font-family:"Open Sans","DejaVu Sans",sans-serif;font-style:normal;font-weight:bold}
+.conum[data-value] *{color:#fff!important}
+.conum[data-value]+b{display:none}
+.conum[data-value]::after{content:attr(data-value)}
+pre .conum[data-value]{position:relative;top:-.125em}
+b.conum *{color:inherit!important}
+.conum:not([data-value]):empty{display:none}
+dt,th.tableblock,td.content,div.footnote{text-rendering:optimizeLegibility}
+h1,h2,p,td.content,span.alt,summary{letter-spacing:-.01em}
+p strong,td.content strong,div.footnote strong{letter-spacing:-.005em}
+p,blockquote,dt,td.content,span.alt,summary{font-size:1.0625rem}
+p{margin-bottom:1.25rem}
+.sidebarblock p,.sidebarblock dt,.sidebarblock td.content,p.tableblock{font-size:1em}
+.exampleblock>.content{background:#fffef7;border-color:#e0e0dc;box-shadow:0 1px 4px #e0e0dc}
+.print-only{display:none!important}
+@page{margin:1.25cm .75cm}
+@media print{*{box-shadow:none!important;text-shadow:none!important}
+html{font-size:80%}
+a{color:inherit!important;text-decoration:underline!important}
+a.bare,a[href^="#"],a[href^="mailto:"]{text-decoration:none!important}
+a[href^="http:"]:not(.bare)::after,a[href^="https:"]:not(.bare)::after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
+abbr[title]{border-bottom:1px dotted}
+abbr[title]::after{content:" (" attr(title) ")"}
+pre,blockquote,tr,img,object,svg{page-break-inside:avoid}
+thead{display:table-header-group}
+svg{max-width:100%}
+p,blockquote,dt,td.content{font-size:1em;orphans:3;widows:3}
+h2,h3,#toctitle,.sidebarblock>.content>.title{page-break-after:avoid}
+#header,#content,#footnotes,#footer{max-width:none}
+#toc,.sidebarblock,.exampleblock>.content{background:none!important}
+#toc{border-bottom:1px solid #dddddf!important;padding-bottom:0!important}
+body.book #header{text-align:center}
+body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em}
+body.book #header .details{border:0!important;display:block;padding:0!important}
+body.book #header .details span:first-child{margin-left:0!important}
+body.book #header .details br{display:block}
+body.book #header .details br+span::before{content:none!important}
+body.book #toc{border:0!important;text-align:left!important;padding:0!important;margin:0!important}
+body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-break-before:always}
+.listingblock code[data-lang]::before{display:block}
+#footer{padding:0 .9375em}
+.hide-on-print{display:none!important}
+.print-only{display:block!important}
+.hide-for-print{display:none!important}
+.show-for-print{display:inherit!important}}
+@media amzn-kf8,print{#header>h1:first-child{margin-top:1.25rem}
+.sect1{padding:0!important}
+.sect1+.sect1{border:0}
+#footer{background:none}
+#footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
+@media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
+</style>
+</head>
+<body class="article">
+<div id="header">
+<h1>Report Configuration</h1>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide is only for small customization which can be done directly in midPoint.
+In the case you need more complex customization it is maybe better to create new report template or customize existing one with Jaspersoft Studio.
+How to work with Jaspersoft Studio using live midPoint can be found <a href="#/midpoint/reference/legacy/jaspersoft-studio/">here</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_report_customization_using_midpoint">Report customization using midPoint</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After listing reports in midPoint (Reports &#8594; List Reports) and clicking on the configure button you are able to modify some basic report attributes.
+As the picture bellow shows there are three tabs.
+Each of them is related to different part of report which can be configured.
+In the first tab 'Basic configuration' you can configure name of the report and export format.
+The second tab 'Jasper template' can be used to customize existing template, e.g. you can add/remove parameters, modify query etc.
+The last tab 'Jasper template style' is used as a style for the report.
+You can change it according to your needs (e.g. font size, font family, &#8230;&#8203;)</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="report-config.png" alt="report config">
+</div>
+</div>
+<div class="sect2">
+<h3 id="_customizing_jasper_template">Customizing Jasper template</h3>
+<div class="paragraph">
+<p>In the midPoint&#8217;s GUI you have available all the jasper template so it is possible to update it directly with midPoint.
+But, as I stated before, I don&#8217;t recommend doing complex modifications in the midPoint.
+midPoint is not a reporting tool and for this purpose we decided to use Jasper Report framework.
+I recommend doing only small modification in queries or parameters in midPoint.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Report parameters - you can add/remove or modify report parameters.
+Support for multi-value parameters exists since 3.6. If you check 'For prompting' attribute, it means that this parameter is shown in the pop-up panel when you run report.
+Report parameters are used as input values to the query.</p>
+<div class="imageblock">
+<div class="content">
+<img src="Screenshot-2017-04-07-16.14.10.png" alt="Screenshot 2017 04 07 16.14.10">
+</div>
+</div>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>There is a special column Properties.
+After clicking on the Configure link, new popup is shown.
+In this popup you can define additional properties describing the parameters.
+These properties are then used for customization of run popup such as lookup tables.</p>
+<div class="imageblock">
+<div class="content">
+<img src="Screenshot-2017-04-07-15.53.08.png" alt="Screenshot 2017 04 07 15.53.08">
+</div>
+</div>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Report fileds - you can add/remove or modify report fields.
+But be aware that if you make any change to the report field, you have to seek for the original filed definition throughout  the whole jasper report definition and replace old filed with the new one defined.</p>
+<div class="imageblock">
+<div class="content">
+<img src="Screenshot-2017-04-07-10.24.21.png" alt="Screenshot 2017 04 07 10.24.21">
+</div>
+</div>
+</li>
+<li>
+<p>Report query - customize query according to you needs.
+E.g. you can add filter to search only enabled user or user in some organization etc.
+The query language is 'mql' which is a shortcut for MidPoint Query Language.
+You can use the same query syntax as everywhere else (e.g. correlation rule).
+It is also possible to define script instead of query.
+All the existing midPoint function are available (<a href="#/midpoint/reference/expressions/expressions/script/functions/">'Basic, midpoint, report'</a>).</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Queries must be wrapped in &lt;filter&gt; element</p>
+</li>
+<li>
+<p>Scripts must be wrapped in &lt;code&gt; element</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="Screenshot-2017-04-07-10.24.35.png" alt="Screenshot 2017 04 07 10.24.35">
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_lookupadding_auto_complete_to_input_parameters">lookupAdding auto-complete to input parameters</h3>
+<div class="imageblock">
+<div class="content">
+<img src="image2015-10-6-22-1-3.png" alt="image2015 10 6 22 1 3">
+</div>
+</div>
+<div class="paragraph">
+<p>MidPoint can visualize report input parameter as select box with auto-complete ability.
+The optional auto-complete can be used for input parameters with limited set of values - e.g. whispering all available users, resources or organizations.
+Normally non-enum parameters are displayed as text input fields.
+If you wish midPoint to render parameters as select boxes with auto-complete, you need to specify these three parameter properties:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>key - property path to target attribute that will be passed to Jasper query as parameter value (e.g. name, oid)</p>
+</li>
+<li>
+<p>label - property path to target attribute that will be displayed as label in auto-complete box (e.g. name, fullName, oid)</p>
+</li>
+<li>
+<p>targetType - full class name of target type that will be populated into auto-complete box (UserType, RoleType, OrgType&#8230;&#8203;)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This example populates auto-complete with all roles in midPoint:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code>&lt;parameter name=&quot;role&quot; class=&quot;java.lang.String&quot;&gt;
+        &lt;property name=&quot;key&quot; value=&quot;oid&quot;/&gt;
+        &lt;property name=&quot;label&quot; value=&quot;name&quot;/&gt;
+        &lt;property name=&quot;targetType&quot; value=&quot;com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType&quot;/&gt;
+&lt;/parameter&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Limitations:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>"key" and "label" properties can only reference prism properties of target object, not complex values like containers or references</p>
+</li>
+<li>
+<p>"key" and "label" properties can only reference single-value properties, not multi-value</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_multivalueconfiguring_multi_value_input_parameters">multivalueConfiguring multi-value input parameters</h3>
+{% include since.html since="3.6" %}
+<div class="paragraph">
+<p>Sometimes you need to specify report query using more than one value for the attribute, e.g you want to search users with employeeType=contractor and employeeType=fulltime.
+To prevent defining two different reports - one for employeeType = contractor and second one for employeeType=fulltime the support for multi-value parameters was added in midPoint 3.6. To enable this feature, you need to configure parameter class as a java.util.List and than nested class with the real value of items which will be filled into the list.
+However, be aware that after the parameter is changed to multi-value it is also needed to update the report query and (maybe) other jasper report parts.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="Screenshot-2017-04-07-16.14.10.png" alt="Screenshot 2017 04 07 16.14.10">
+</div>
+</div>
+<div class="paragraph">
+<p>In the picture above, there are two attributes defined as multivalue - eventType and eventStage.
+As you can see, both of these attributes parameter class is set to java.util.List and the nested class then contains concrete type which will be in the list.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_performance_and_run_time_settings">Performance and run-time settings</h3>
+<div class="imageblock">
+<div class="content">
+<img src="image2015-10-6-22-40-5.png" alt="image2015 10 6 22 40 5">
+</div>
+</div>
+<div class="sect3">
+<h4 id="_virtualizers">Virtualizers</h4>
+<div class="paragraph">
+<p>Jasper report has ability to utilize so-called virtualizers that can optimize memory usage.
+Virtualizers come handy when you <strong>generate very large reports</strong> of hundreds to thousands+ pages.
+In these situations memory consumption can become crucial and you may run out of Java heap space.
+Currently there are 3 virtualizers available in Jasper and what they basically do is they save memory consumption on account of consuming little more CPU or disk space.</p>
+</div>
+<div class="paragraph">
+<p>Detailed virtualizers description can be found here: <a href="http://community.jaspersoft.com/wiki/virtualizers-jasperreports">http://community.jaspersoft.com/wiki/virtualizers-jasperreports</a></p>
+</div>
+<div class="paragraph">
+<p>MidPoint offers these two settings in report configuration to set Jasper virtualizer:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Jasper virtualizer - select one of three prebuilt virtualizers or select none to disable feature.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Recommended setting: JRSwapFileVirtualizer</p>
+</li>
+<li>
+<p>Both file virtualizers save temporary data into &lt;midPoint_home&gt;/tmp directory.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Virtualizer&#8217;s pages kick-on - only effective when virtualizer is selected. It defines number of report pages after virtualizer "kicks on". The more memory you have (Java Xmx), the higher number can be. Reports that do not reach the specified number of pages will not utilize any virtualizer.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Recommended setting: 300</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Limitation: Maximum size of object being stored in any virtualizer is 65K.
+That equals massive number of text in one cell (one column X one row).
+If you encounter "Error virtualizing object <a href="http://java.io">java.io</a>.UTFDataFormatException" or other problems, you should disable virtualizer.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_governors">Governors</h4>
+<div class="paragraph">
+<p>Another mechanism to control the Jasper report runtime are so-called governors.
+Governors can <strong>limit number of pages and/or execution time</strong> of report.
+MidPoint has two settings for this, but please be aware that Jasper enforces these limits little unintuitively and practically limits are enforced some time/pages after threshold value has been reached.
+When limit is reached, report is cancelled without being generated.
+Using governors can *increase robustness of reporting engine *and prevent overloading of midPoint&#8217;s resources.
+We strongly recommend using them.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Maximum number of pages - maximum number of report pages after execution is cancelled.</p>
+</li>
+<li>
+<p>Execution timeout [ms] - maximum number of report execution time in miliseconds after report is cancelled. Please note that this time specifies only portion of total execution time - total execution time might be little longer than governor setting.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Set value to empty or 0 to disable governor.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_changing_delimiter_in_csv_export">Changing delimiter in CSV export</h4>
+<div class="paragraph">
+<p>To change delimiter in CSV export you have to define it in jasper template for any report :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Example</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>&lt;property name="net.sf.jasperreports.export.csv.field.delimiter" value=";"/&gt;</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_removing_names_of_fields_on_all_pages_except_the_1st_page_in_csv_export">Removing names of fields on all pages except the 1st page in CSV export</h4>
+<div class="paragraph">
+<p>To remove names of fields on all report pages except the 1st page in CSV report you have to define "printWhenExpression" in jasper template</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span style="color:#070;font-weight:bold">&lt;columnHeader&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;band</span> <span style="color:#b48">height</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">24</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">splitType</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Stretch</span><span style="color:#710">&quot;</span></span><span style="color:#070;font-weight:bold">&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;printWhenExpression&gt;</span><span style="font-weight:bold;color:#666">&lt;![CDATA[</span>$V{PAGE_NUMBER}==1<span style="font-weight:bold;color:#666">]]&gt;</span><span style="color:#070;font-weight:bold">&lt;/printWhenExpression&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;frame&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;reportElement</span> <span style="color:#b48">style</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#606">Column</span> <span style="color:#606">header</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">mode</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Transparent</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">x</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">0</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">y</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">1</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">width</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">1000</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">height</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">19</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">isRemoveLineWhenBlank</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">true</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">uuid</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a</span><span style="color:#710">&quot;</span></span><span style="color:#070;font-weight:bold">/&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;staticText&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;reportElement</span> <span style="color:#b48">style</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#606">Column</span> <span style="color:#606">header</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">x</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">0</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">y</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">0</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">width</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">300</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">height</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">18</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">uuid</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">86c74beb-bddd-48cc-945a-167b261b1e0b</span><span style="color:#710">&quot;</span></span><span style="color:#070;font-weight:bold">/&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;textElement</span> <span style="color:#b48">textAlignment</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Center</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">verticalAlignment</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Middle</span><span style="color:#710">&quot;</span></span><span style="color:#070;font-weight:bold">/&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;text&gt;</span><span style="font-weight:bold;color:#666">&lt;![CDATA[</span>Name<span style="font-weight:bold;color:#666">]]&gt;</span><span style="color:#070;font-weight:bold">&lt;/text&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;/staticText&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;/frame&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;/band&gt;</span>
+<span style="color:#070;font-weight:bold">&lt;/columnHeader&gt;</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_security_of_report_expressions">Security Of Report Expressions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Reports often use <a href="#/midpoint/reference/expressions/introduction/">expressions</a>.
+Expressions allow to customize midPoint behavior and they are essential for the success of midPoint deployments.
+However, the expressions are very powerful and they may even be too powerful for some use cases.
+The expressions can use general-purpose scripting languages such as Groovy or JavaScript.
+Therefore such expressions have almost unlimited capabilities.
+Which means that the expressions can damage the system or compromise security of the system.
+<strong>Use the expressions with utmost care.</strong></p>
+</div>
+<div class="paragraph">
+<p>Currently, there are very little restraints for expression execution.
+The <a href="#/midpoint/reference/expressions/expressions/script/functions/">expression functions</a> provided by midPoint usually check for proper authorizations.
+But as the expressions can use general-purpose languages, there is no obligation for the expressions to use those libraries.
+The expression can easily circumvent those weak protections.
+Therefore do not let any unauthorized user to set up any kind of expression in midPoint.
+<strong>Allowing the right to edit any expression may lead to compromise of system security.</strong></p>
+</div>
+<div class="paragraph">
+<p>Some expression security can be achieved by using <a href="#/midpoint/reference/expressions/expressions/profiles/">expression profiles</a>.  Expression profiles can be used to limit the capabilities of report expressions, e.g. to limit them to safe operations that just manipulate strings and basic data structures.
+This seems to work reasonably well for ordinary object-based reports.
+However, when it comes to audit reports, this solution may not be sufficient.
+<a href="#/midpoint/reference/security/audit/">Audit records</a> are <strong>not</strong>  midPoint objects, they are just rows in ordinary relational table.
+Therefore the usual midPoint mechanisms do not apply to them.
+E.g. they cannot be queries by using midPoint query mechanisms.
+There is a way how a "safe" expression can construct a string query for audit table.
+However, there is no protection against SQL injection or similar attacks.
+Major improvement to auditing capabilities of midPoint would be needed for that purpose.</p>
+</div>
+<div class="paragraph">
+<p>An example of such an audit report can be found in midPoint tests: <a href="https://github.com/Evolveum/midpoint/blob/master/model/report-impl/src/test/resources/reports/report-audit-csv.xml">https://github.com/Evolveum/midpoint/blob/master/model/report-impl/src/test/resources/reports/report-audit-csv.xml</a><br>
+However, this is just an example.
+It may not be complete, it may not be secure.
+There are no guarantees.
+Use at your own risk.</p>
+</div>
+<div class="paragraph">
+<p>In case that a secure audit reports are needed, the current recommendation is to make such reports outside of midPoint.
+The <a href="#/midpoint/reference/security/audit/">structure of an audit table is documented</a> and it can be used for integration with data warehouse and/or SIEM systems.
+MidPoint is neither of those systems and it has no ambition to become one.
+Therefore such integration is likely to be required anyway to construct a complete information security solution.</p>
+</div>
+<div class="paragraph">
+<p>See <a href="#/midpoint/reference/security/security-guide/">Security Guide</a> for more detail regarding security-related functionality of midPoint.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_new_report">New report</h2>
+<div class="sectionbody">
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+<div class="title">IN PROGRES</div>
+<div class="paragraph">
+<p>This is a features in progress. It means that it is not intended for production use.
+The feature is not finished.
+It is not stable.
+The implementation may contain bugs, the configuration may change at any moment without any warning and it may not work at all.
+Use at your own risk.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>+</pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="title">MidPoint 4.2 and later</div>
+<div class="paragraph">
+<p>This feature is available only in midPoint 4.2 and later.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>New reports are intended to be native reporting mechanism for midPoint.
+The aim is to use what midPoint provides without the need for Jasper framework.
+Using Jasper framework as an engine is still possible, but it is deprecated and not recommended anymore.
+It is recommended to use reports based on midPoint concepts, namely dashboards or objectCollection.
+Current implementation support exporting reports to CSV and HTML file, other formats such as XSLX are planned to be added later.
+Configuration attributes of report:</p>
+</div>
+<table class="tableblock frame-all grid-all fit-content">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>reportEngine</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>ReportEngineSelectionType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Selects which report engine should be used to render this report.
+Possible value <em>jasper, dashboard</em> and <em>collection.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>fileFormat</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>FileFormatConfigurationType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define report output file format.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>jasper</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>JasperReportEngineConfigurationType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Configuration for jasper-based reports.
+Only applicable if reportEngine=jasper.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>dashboard</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>DashboardReportEngineConfigurationType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Configuration for dashboard-based reports.
+Only applicable if reportEngine=dashboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>objectCollection</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>ObjectCollectionReportEngineConfigurationType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Configuration for object collection-based reports.
+Only applicable if reportEngine=collection.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>defaultScriptConfiguration</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>ScriptExpressionEvaluatorConfigurationType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Default configuration for the scripts executed inside the report.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>postReportScript</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>CommandLineScriptType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Command-line script that will be executed after the report is complete and the output file is completely produced.
+Output filename will be passed to the script as the "file" argument.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect2">
+<h3 id="_export">Export</h3>
+<div class="paragraph">
+<p>For now, export to CSV and HTML is supported.
+Configuration attributes:</p>
+</div>
+<table class="tableblock frame-all grid-all fit-content">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>type</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>FileFormatTypeType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Report data type.
+Possible <em>csv</em> and <em>html</em>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">csv</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>CsvFileFormatType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Configuration attribute for csv export.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">html</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>HtmlFileFormatType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Configuration attribute for html export.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="_html">HTML</h4>
+<div class="paragraph">
+<p>Configuration of html file format doesn&#8217;t contain any other attributes.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_csv">CSV</h4>
+<div class="paragraph">
+<p>Configuration to CSV file contains attributes:</p>
+</div>
+<table class="tableblock frame-all grid-all fit-content">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>multivalueDelimiter</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>string</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delimiter for multivalue property.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">,</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>fieldDelimiter</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>string</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delimiter for field of csv file.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">;</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>escape</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>string</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The escape character of the format.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>quote</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>string</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Character for the quote.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>quoteMode</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>QuoteModeType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quote Mode for records.
+Possible values is <em>all, allNonNull, minimal, nonNumeric</em> and <em>none.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">nonNumeric</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>recordSeparator</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>string</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Separator of line of record.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\r\n</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>trailingDelimiter</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define, whether to add a trailing delimiter.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>trim</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define, whether to trim leading and trailing blanks.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>createHeader</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create header in csv output file.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>encoding</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>string</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Encoding of csv file.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">utf-8</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><strong>QuoteModeType</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>all - Quotes all fields.</p>
+</li>
+<li>
+<p>allNonNull - Quotes all non-null fields.</p>
+</li>
+<li>
+<p>minimal - Quotes fields which contain special characters such as a the field delimiter, quote character or any of the characters in the line separator string.</p>
+</li>
+<li>
+<p>nonNumeric - Quotes all non-numeric fields.</p>
+</li>
+<li>
+<p>none - Never quotes fields.
+When the delimiter occurs in data, the printer prefixes it with the escape character.
+If the escape character is not set, format validation throws an exception.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_report_engine">Report engine</h3>
+<div class="paragraph">
+<p>Report engine define type of report.</p>
+</div>
+<div class="sect3">
+<h4 id="_jasper">Jasper</h4>
+<div class="paragraph">
+<p>Jasper is old deprecated type of reports.
+We can use attribute jasper and in it we can use all attributes for jasper report.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_dashboard">Dashboard</h4>
+<div class="paragraph">
+<p>For configuration of dashboard report, please see <a href="/midpoint/reference/admin-gui/dashboards/configuration/.html#report">Dashboard configuration-Report</a>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_collection">Collection</h4>
+<div class="paragraph">
+<p>We can use following attributes:</p>
+</div>
+<table class="tableblock frame-all grid-all fit-content">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>collection</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>CollectionRefSpecificationType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specification of an explicit or implicit object collection that will be used to select objects in report.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>view</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>GuiObjectListViewType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies a view of an object collection that is be reported.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>useOnlyReportView</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies that during creating of report will be used only view in report without merging with other view.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>condition</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>ExpressionType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Condition for the searched objects. Searched object will be shown if the condition evaluates to true. This condition use only for reports and as last option because of performance.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>parameter</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>SearchFilterParameterType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parameter used in filter expression.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>subreport</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>SubreportParameterType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Subreport with expression.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>View defines columns in report (order, name, &#8230;&#8203; ). View is merged from default view in collection or base collection with view in report.
+When attribute _useOnlyReportView _is true, only the view from report configuration is used.
+For collection report we can use object collection or filter and base object collection.</p>
+</div>
+<div class="sect4">
+<h5 id="_object_collection">Object collection</h5>
+<div class="paragraph">
+<p>When we want to use object collection easy use oid of collection in report.
+For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">Object collection report with object collection reference</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span style="color:#070;font-weight:bold">&lt;report&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;name&gt;</span>Collection report 1<span style="color:#070;font-weight:bold">&lt;/name&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;reportEngine&gt;</span>collection<span style="color:#070;font-weight:bold">&lt;/reportEngine&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;objectCollection&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;collection&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;collectionRef</span> <span style="color:#b48">oid</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">---COLLECTION_OID---</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">type</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">ObjectCollectionType</span><span style="color:#710">&quot;</span></span><span style="color:#070;font-weight:bold">/&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;/collection&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;/objectCollection&gt;</span>
+<span style="color:#070;font-weight:bold">&lt;/report&gt;</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_filter">Filter</h5>
+<div class="paragraph">
+<p>We can use only filter with base collection or view where we define object type.
+Example with base collection.</p>
+</div>
+<div class="listingblock">
+<div class="title">Object collection report with filter</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span style="color:#070;font-weight:bold">&lt;report&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;name&gt;</span>Collection report 2<span style="color:#070;font-weight:bold">&lt;/name&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;reportEngine&gt;</span>collection<span style="color:#070;font-weight:bold">&lt;/reportEngine&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;objectCollection&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;collection&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;filter&gt;</span>
+                                <span style="color:#070;font-weight:bold">&lt;all</span><span style="color:#070;font-weight:bold">/&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;/filter&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;baseCollectionRef&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;collectionRef</span> <span style="color:#b48">oid</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">---COLLECTION_OID---</span><span style="color:#710">&quot;</span></span> <span style="color:#b48">type</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">ObjectCollectionType</span><span style="color:#710">&quot;</span></span><span style="color:#070;font-weight:bold">/&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;/baseCollectionRef&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;/collection&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;/objectCollection&gt;</span>
+<span style="color:#070;font-weight:bold">&lt;/report&gt;</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_parameters">Parameters</h5>
+<div class="paragraph">
+<p>When we want run some report, sometimes we need define some information for input for example role, organization, resource, etc.
+For this situation we can define parameter, which user set before running of the report. For example we want report of all user
+who have accounts on concrete resource. We won&#8217;t create one report for each resource with different filter but use parameter
+which define resource in filter and we set it before run of report. We can see example of this report below.</p>
+</div>
+<div class="listingblock">
+<div class="title">Object collection report with parameter</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span style="color:#070;font-weight:bold">&lt;report</span> <span style="color:#b48">xmlns</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://midpoint.evolveum.com/xml/ns/public/common/common-3</span><span style="color:#710">&quot;</span></span>
+        <span style="color:#b48">xmlns:q</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://prism.evolveum.com/xml/ns/public/query-3</span><span style="color:#710">&quot;</span></span>
+        <span style="color:#b48">xmlns:c</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://midpoint.evolveum.com/xml/ns/public/common/common-3</span><span style="color:#710">&quot;</span></span><span style="color:#070;font-weight:bold">&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;name&gt;</span>Collection report 2<span style="color:#070;font-weight:bold">&lt;/name&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;reportEngine&gt;</span>collection<span style="color:#070;font-weight:bold">&lt;/reportEngine&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;objectCollection&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;collection&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;filter&gt;</span>
+                                <span style="color:#070;font-weight:bold">&lt;q:ref&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;q:path&gt;</span>assignment/construction/resourceRef<span style="color:#070;font-weight:bold">&lt;/q:path&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;expression&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;queryInterpretationOfNoValue&gt;</span>filterAll<span style="color:#070;font-weight:bold">&lt;/queryInterpretationOfNoValue&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;script&gt;</span>
+<span style="background-color:hsla(0,0%,0%,0.07);color:black">                            <span style="color:#070;font-weight:bold">&lt;objectVariableMode&gt;</span>prismReference<span style="color:#070;font-weight:bold">&lt;/objectVariableMode&gt;</span>
+                            <span style="color:#070;font-weight:bold">&lt;code&gt;</span>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+                                if (!resource) {
+                                   return null;
+                                }
+
+                                ObjectReferenceType ort = new ObjectReferenceType();
+                                ort.setOid(resource.getOid());
+                                ort.setRelation(resource.getRelation());
+                                ort.setType(resource.getTargetType());
+                                return ort;
+                            <span style="color:#070;font-weight:bold">&lt;/code&gt;</span></span>
+                        <span style="color:#070;font-weight:bold">&lt;/script&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;/expression&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;/q:ref&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;/filter&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;/collection&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;view&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;type&gt;</span>UserType<span style="color:#070;font-weight:bold">&lt;/type&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;/view&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;parameter&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;name&gt;</span>resource<span style="color:#070;font-weight:bold">&lt;/name&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;type&gt;</span>c:ObjectReferenceType<span style="color:#070;font-weight:bold">&lt;/type&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;targetType&gt;</span>c:ResourceType<span style="color:#070;font-weight:bold">&lt;/targetType&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;display&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;label&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;orig&gt;</span>resource<span style="color:#070;font-weight:bold">&lt;/orig&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;translation&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;key&gt;</span>ObjectTypeGuiDescriptor.resource<span style="color:#070;font-weight:bold">&lt;/key&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;/translation&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;/label&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;/display&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;/parameter&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;/objectCollection&gt;</span>
+<span style="color:#070;font-weight:bold">&lt;/report&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can use following attributes for parameter:</p>
+</div>
+<table class="tableblock frame-all grid-all fit-content">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>name</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>String</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of parameter.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>type</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>QName</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Type of parameter value.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>targetType</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>QName</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Type of target, when type of parameter value is ObjectReferenceType.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>allowedValuesLookupTable</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>ObjectReferenceType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Reference of Lookup Table, which define possible values of parameter.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>allowedValuesExpression</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>ExpressionType</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Expression that determines allowed value. Expected List&#60;DisplayableValue&#62;.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_subreports">Subreports</h5>
+<div class="paragraph">
+<p>Subreport defines some object, which we can get from expression. Next we can use this object in column expression,
+so we don&#8217;t have to search this object in every column expression. For example we need report with accounts(shadows) but we need some columns with attributes from owner of account, so we use subreport where in expression we define search of owner. Next in columns expressions we use owner and we get attributes from it.</p>
+</div>
+<div class="paragraph">
+<p>We can use following attributes for subreport:</p>
+</div>
+<table class="tableblock frame-all grid-all fit-content">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>name</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>String</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of subreport.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>type</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>QName</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Type of parameter value.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>order</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Integer</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Order in which this entry is to be evaluated. (Related to other entries.) Smaller numbers go first. Entries with no order go last.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_of_report">Creating of report</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Simple way how to create report is to click on 'Create report' under table on object list pages (e.g. All users page).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="users.png" alt="users">
+</div>
+</div>
+<div class="paragraph">
+<p>After click you will be redirected to Create report page with predefined filter from search panel over object table and columns from previous table.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_tasks_for_reports">Tasks for reports</h2>
+<div class="sectionbody">
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="title">MidPoint 4.4 and later</div>
+<div class="paragraph">
+<p>This feature is available only in midPoint 4.4 and later.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If we create new report via GUI in 4.4. Midpoint create task with work definition of activity with 'classcal' way for actual kind of report. We know three kind of activities for reports.</p>
+</div>
+<div class="sect2">
+<h3 id="_classicreportexportworkdefinitiontype_reportexport">ClassicReportExportWorkDefinitionType 'reportExport'</h3>
+<div class="paragraph">
+<p>Exports any report in a "classical" way. Supports multithreading but not bucketing (multi-node mode). Support objects, containers and audit reports.
+Contains two parameter 'reportRef' and 'reportParam'. 'reportRef' represent reference to report object. 'reportParam' represent parameters for report, which are defined via GUI.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_classicreportimportworkdefinitiontype_reportimport">ClassicReportImportWorkDefinitionType 'reportImport'</h3>
+<div class="paragraph">
+<p>Imports a report in a "classical" way. Supports multithreading but not bucketing (multi-node mode).
+Contains only one parameter 'reportRef'.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_distributedreportexportworkdefinitiontype_distributedreportexport">DistributedReportExportWorkDefinitionType 'distributedReportExport'</h3>
+<div class="paragraph">
+<p>Exports report of repository objects or audit reports. Supports bucketing (multi-node mode) and multithreading.
+Contains two parameter 'reportRef' and 'reportParam'. 'reportRef' represent reference to report object. 'reportParam' represent parameters for report, which are defined via GUI.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_convert_classicreportexportworkdefinitiontype_to_distributedreportexportworkdefinitiontype">Convert ClassicReportExportWorkDefinitionType to DistributedReportExportWorkDefinitionType</h3>
+<div class="paragraph">
+<p>When we run report via Midpoint GUI we can see that midpoint create task with work definition 'reportExport'. If we are run report for object or audit and Midpoint running in clustered mode, then we can convert 'classical' way to distributed. In configuration of task in raw mode we change 'reportExport' to 'distributedReportExport'. We change archetype from 'Report export task' to 'Distributed report export task'. And we add configuration for <a href="#/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/">Bucket-based work state management</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_import_report">'Import report'</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Since version 4.2, midPoint supports 'import report'/'reverse report'. This feature is <strong><a href="#/midpoint/versioning/experimental/">experimental</a></strong>.
+Report output generated by midPoint can also be used in reverse way - you can import it back to midPoint.
+In addition, it is also possible to import custom defined report output.
+Midpoint support two kind of import configuration .  Configuration for Object import and Import script.</p>
+</div>
+<div class="sect2">
+<h3 id="_object_import">Object import</h3>
+<div class="paragraph">
+<p>MidPoint has to understand the report output data structure to preform import correctly.
+This is configured in report (ReportType), in similar way as for exporting.
+For now, only <em>ObjectCollectionReportEngineConfigurationType</em> and CSV format is supported (CSV FileFormatType).</p>
+</div>
+<div class="paragraph">
+<p>Example of imported file:</p>
+</div>
+<div class="listingblock">
+<div class="title">CSV file</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="csv">&quot;Name&quot;;&quot;Administrative status&quot;;&quot;Valid from&quot;;&quot;Nick&quot;;&quot;AssignmentOid&quot;;&quot;Subtype&quot;
+&quot;testUser01&quot;;&quot;enabled&quot;;&quot;2020-07-07T00:00:00.000+02:00&quot;;&quot;nick1&quot;;&quot;00000000-0000-0000-0000-000000000008,00000000-0000-0000-0000-000000000004&quot;;&quot;sub1,sub22&quot;
+&quot;testUser02&quot;;&quot;enabled&quot;;&quot;2020-07-07T00:00:00.000+02:00&quot;;&quot;NICK2&quot;;;</code></pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Example bellow shows report (ReportType) configuration for importing CSV file with header and two records above.</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Report-JSON</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="json">{
+  <span style="color:#606"><span style="color:#404">&quot;</span><span>@ns</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://midpoint.evolveum.com/xml/ns/public/common/common-3</span><span style="color:#710">&quot;</span></span>,
+  <span style="color:#606"><span style="color:#404">&quot;</span><span>report</span><span style="color:#404">&quot;</span></span> : {
+    <span style="color:#606"><span style="color:#404">&quot;</span><span>name</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Object Collection import report with view</span><span style="color:#710">&quot;</span></span>,
+    <span style="color:#606"><span style="color:#404">&quot;</span><span>objectCollection</span><span style="color:#404">&quot;</span></span> : {
+      <span style="color:#606"><span style="color:#404">&quot;</span><span>view</span><span style="color:#404">&quot;</span></span> : {
+        <span style="color:#606"><span style="color:#404">&quot;</span><span>column</span><span style="color:#404">&quot;</span></span> : [ {
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>name</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">nameColumnCollection</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>path</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">name</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>display</span><span style="color:#404">&quot;</span></span> : {
+            <span style="color:#606"><span style="color:#404">&quot;</span><span>label</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Name (Collection)</span><span style="color:#710">&quot;</span></span>
+          }
+        }, {
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>name</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">activationColumn</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>path</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">activation/administrativeStatus</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>previousColumn</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">nameColumnCollection</span><span style="color:#710">&quot;</span></span>
+        }, {
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>name</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">validFromColumn</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>path</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">activation/validFrom</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>previousColumn</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">activationColumn</span><span style="color:#710">&quot;</span></span>
+        }, {
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>name</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">nickColumn</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>path</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">nickName</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>display</span><span style="color:#404">&quot;</span></span> : {
+            <span style="color:#606"><span style="color:#404">&quot;</span><span>label</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Nick</span><span style="color:#710">&quot;</span></span>
+          },
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>previousColumn</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">validFromColumn</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>import</span><span style="color:#404">&quot;</span></span> : {
+            <span style="color:#606"><span style="color:#404">&quot;</span><span>expression</span><span style="color:#404">&quot;</span></span> : {
+              <span style="color:#606"><span style="color:#404">&quot;</span><span>script</span><span style="color:#404">&quot;</span></span> : [ {
+                <span style="color:#606"><span style="color:#404">&quot;</span><span>@type</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType</span><span style="color:#710">&quot;</span></span>,
+                <span style="color:#606"><span style="color:#404">&quot;</span><span>code</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">import com.evolveum.midpoint.prism.polystring.PolyString</span><span style="color:#b0b">\n</span><span style="color:#b0b">\n</span><span style="color:#D20">                                return new PolyString(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">New nick: </span><span style="color:#b0b">\&quot;</span><span style="color:#D20"> + input)</span><span style="color:#b0b">\n</span><span style="color:#D20">                            </span><span style="color:#710">&quot;</span></span>
+              } ]
+            }
+          }
+        }, {
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>name</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">assignmentColumn</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>path</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">assignment</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>display</span><span style="color:#404">&quot;</span></span> : {
+            <span style="color:#606"><span style="color:#404">&quot;</span><span>label</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">AssignmentOid</span><span style="color:#710">&quot;</span></span>
+          },
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>previousColumn</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">nickColumn</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>import</span><span style="color:#404">&quot;</span></span> : {
+            <span style="color:#606"><span style="color:#404">&quot;</span><span>expression</span><span style="color:#404">&quot;</span></span> : {
+              <span style="color:#606"><span style="color:#404">&quot;</span><span>script</span><span style="color:#404">&quot;</span></span> : [ {
+                <span style="color:#606"><span style="color:#404">&quot;</span><span>@type</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType</span><span style="color:#710">&quot;</span></span>,
+                <span style="color:#606"><span style="color:#404">&quot;</span><span>code</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;</span><span style="color:#b0b">\n</span><span style="color:#b0b">\n</span><span style="color:#D20">                                assignments = new ArrayList();</span><span style="color:#b0b">\n</span><span style="color:#b0b">\n</span><span style="color:#D20">                                for (String oid : input) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    if (oid != null) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        role = new ObjectReferenceType();</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        role.setOid(oid);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        role.setType(RoleType.COMPLEX_TYPE);</span><span style="color:#b0b">\n</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        AssignmentType assignment = new AssignmentType();</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        assignment.asPrismContainerValue()</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        assignment.setTargetRef(role);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        assignments.add(assignment)</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    }</span><span style="color:#b0b">\n</span><span style="color:#D20">                                }</span><span style="color:#b0b">\n</span><span style="color:#D20">                                return assignments</span><span style="color:#b0b">\n</span><span style="color:#D20">                            </span><span style="color:#710">&quot;</span></span>
+              } ]
+            }
+          }
+        }, {
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>name</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">subtypeColumn</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>path</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">subtype</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>previousColumn</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">assignmentColumn</span><span style="color:#710">&quot;</span></span>
+        } ],
+        <span style="color:#606"><span style="color:#404">&quot;</span><span>type</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">UserType</span><span style="color:#710">&quot;</span></span>
+      }
+    },
+    <span style="color:#606"><span style="color:#404">&quot;</span><span>behavior</span><span style="color:#404">&quot;</span></span> : {
+      <span style="color:#606"><span style="color:#404">&quot;</span><span>direction</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">import</span><span style="color:#710">&quot;</span></span>
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Report-XML</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span style="color:#070;font-weight:bold">&lt;report&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;name&gt;</span>Object Collection import report with view<span style="color:#070;font-weight:bold">&lt;/name&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;objectCollection&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;view&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;column&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;name&gt;</span>nameColumnCollection<span style="color:#070;font-weight:bold">&lt;/name&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;path&gt;</span>name<span style="color:#070;font-weight:bold">&lt;/path&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;display&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;label&gt;</span>Name (Collection)<span style="color:#070;font-weight:bold">&lt;/label&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;/display&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;/column&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;column&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;name&gt;</span>activationColumn<span style="color:#070;font-weight:bold">&lt;/name&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;path&gt;</span>activation/administrativeStatus<span style="color:#070;font-weight:bold">&lt;/path&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;previousColumn&gt;</span>nameColumnCollection<span style="color:#070;font-weight:bold">&lt;/previousColumn&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;/column&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;column&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;name&gt;</span>validFromColumn<span style="color:#070;font-weight:bold">&lt;/name&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;path&gt;</span>activation/validFrom<span style="color:#070;font-weight:bold">&lt;/path&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;previousColumn&gt;</span>activationColumn<span style="color:#070;font-weight:bold">&lt;/previousColumn&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;/column&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;column&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;name&gt;</span>nickColumn<span style="color:#070;font-weight:bold">&lt;/name&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;path&gt;</span>nickName<span style="color:#070;font-weight:bold">&lt;/path&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;display&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;label&gt;</span>Nick<span style="color:#070;font-weight:bold">&lt;/label&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;/display&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;previousColumn&gt;</span>validFromColumn<span style="color:#070;font-weight:bold">&lt;/previousColumn&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;import&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;expression&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;script&gt;</span>
+<span style="background-color:hsla(0,0%,0%,0.07);color:black">                            <span style="color:#070;font-weight:bold">&lt;code&gt;</span>import com.evolveum.midpoint.prism.polystring.PolyString
+
+                                return new PolyString(&quot;New nick: &quot; + input)
+                            <span style="color:#070;font-weight:bold">&lt;/code&gt;</span></span>
+                        <span style="color:#070;font-weight:bold">&lt;/script&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;/expression&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;/import&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;/column&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;column&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;name&gt;</span>assignmentColumn<span style="color:#070;font-weight:bold">&lt;/name&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;path&gt;</span>assignment<span style="color:#070;font-weight:bold">&lt;/path&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;display&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;label&gt;</span>AssignmentOid<span style="color:#070;font-weight:bold">&lt;/label&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;/display&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;previousColumn&gt;</span>nickColumn<span style="color:#070;font-weight:bold">&lt;/previousColumn&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;import&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;expression&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;script&gt;</span>
+<span style="background-color:hsla(0,0%,0%,0.07);color:black">                            <span style="color:#070;font-weight:bold">&lt;code&gt;</span>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
+                                assignments = new ArrayList();
+
+                                for (String oid : input) {
+                                    if (oid != null) {
+                                        role = new ObjectReferenceType();
+                                        role.setOid(oid);
+                                        role.setType(RoleType.COMPLEX_TYPE);
+
+                                        AssignmentType assignment = new AssignmentType();
+                                        assignment.asPrismContainerValue()
+                                        assignment.setTargetRef(role);
+                                        assignments.add(assignment)
+                                    }
+                                }
+                                return assignments
+                            <span style="color:#070;font-weight:bold">&lt;/code&gt;</span></span>
+                        <span style="color:#070;font-weight:bold">&lt;/script&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;/expression&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;/import&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;/column&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;column&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;name&gt;</span>subtypeColumn<span style="color:#070;font-weight:bold">&lt;/name&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;path&gt;</span>subtype<span style="color:#070;font-weight:bold">&lt;/path&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;previousColumn&gt;</span>assignmentColumn<span style="color:#070;font-weight:bold">&lt;/previousColumn&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;/column&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;type&gt;</span>UserType<span style="color:#070;font-weight:bold">&lt;/type&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;/view&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;/objectCollection&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;behavior&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;direction&gt;</span>import<span style="color:#070;font-weight:bold">&lt;/direction&gt;</span>
+<span style="color:#777">&lt;!-- In case of non raw execution --&gt;</span>
+<span style="color:#777">&lt;!--        &lt;importOptions&gt;--&gt;</span>
+<span style="color:#777">&lt;!--            &lt;modelExecutionOptions&gt;--&gt;</span>
+<span style="color:#777">&lt;!--                &lt;raw&gt;false&lt;/raw&gt;--&gt;</span>
+<span style="color:#777">&lt;!--            &lt;/modelExecutionOptions&gt;--&gt;</span>
+<span style="color:#777">&lt;!--        &lt;/importOptions&gt;--&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;/behavior&gt;</span>
+<span style="color:#070;font-weight:bold">&lt;/report&gt;</span></code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_behaviour_and_options">Behaviour and Options</h4>
+<div class="paragraph">
+<p>We need define that this report is import and not export, for this we need define element <em>behavior.__Behavior</em>  contains direction <em>Import</em> or <em>Export</em>. Also <em>behavior</em> contains <em>importOptions</em>, which contains next elements:</p>
+</div>
+<table class="tableblock frame-all grid-all fit-content">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>overwrite</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If set to a true value it will cause that objects that are already in the repository will be overwritten by the imported objects.
+It may not be applicable to all import types.
+E.g. it makes no sense for import from resource, as this is not storing objects in the repository directly.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>keepOid</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If set to a true value it will cause that objects that overwritten objects will reuse the same OID as previous objects.
+May be potentially dangerous.
+USE WITH CARE.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>stopAfterErrors</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Number of errors that will cause import to stop.
+If set to one the import will stop on first error.
+If set to zero or negative value the import will not stop on any error.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>int</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>summarizeSucceses</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If set to true the successfully imported items will be summarized in the result.
+WARNING: setting this to false may result in a very large result structure and may cause overflow of the system memory.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>summarizeErrors</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If set to true the import errors will be summarized in the result.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>referentialIntegrity</strong></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>validateStaticSchema</strong></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>validateDynamicSchema</strong></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>encryptProtectedValues</strong></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>fetchResourceSchema</strong></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>keepMetadata</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If set to true then the importer will keep the metadata from the source file.
+If set to false then the imported will re-generate metadata on each object.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>modelExecutionOptions</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If present, these options are used for adding objects into the repository.
+Null option values might be overridden by import-related options.
+In particular, the missing "raw" option is overridden to "true".
+So, if you want the operation run in non-raw mode, set "raw" option to "false" (e.g. runs also global templates, policy configuration, etc&#8230;&#8203;).</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>ModelExecuteOptionsType</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>compatMode</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compatibility model.
+If selected then the data parsing will be less strict.
+E.g. removed element will be ingnored.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>boolean</strong></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>In previous example of report we define mapping values from columns to items in new object.
+Name of column in CSV file have to be same as name defined in view.
+Definition of name from view have some rules.
+Name is obtained from <em>Label</em> of <em>DispalyType</em> for column, when <em>Label</em> is empty, then Midpoint finds name for item from item definition based on <em>Path</em> element in column.</p>
+</div>
+<div class="paragraph">
+<p>Definition of column also contains <em>import/expression</em> which can define script for generating items.
+Script have to return real value for example <em>String</em> or <em>List</em> of values for multivalue items for example <em>List&lt;AssignmentType&gt;. _Script get _input</em> variable which is <em>String</em>, when item is singlevalue, or <em>List&lt;String&gt;</em>, when item is multivalue.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_import_script">Import script</h3>
+<div class="paragraph">
+<p>We can define <em>importScript</em> in element <em>behaviour. _Import script is_ExecuteScriptType _type, so we can define more actions.
+Script contains variables with same name as headers of imported CSV file.
+For example from next file will be created variables with names _username, role_name, action, valid_from</em> and <em>valid_to</em>.</p>
+</div>
+<div class="paragraph">
+<p>Example of imported file:</p>
+</div>
+<div class="listingblock">
+<div class="title">CSV file</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="csv">&quot;username&quot;;&quot;role_name&quot;;&quot;action&quot;;&quot;valid_from&quot;;&quot;valid_to&quot;
+&quot;testUser02&quot;;&quot;Superuser&quot;;&quot;A&quot;;&quot;2018-01-01&quot;;&quot;2018-05-01&quot;
+&quot;testUser01&quot;;&quot;Superuser&quot;;&quot;D&quot;;;
+&quot;fakeUser&quot;;&quot;Superuser&quot;;&quot;M&quot;;&quot;2018-01-01&quot;;&quot;2018-05-01&quot;
+&quot;jack&quot;;&quot;Superuser&quot;;&quot;M&quot;;&quot;2018-01-01&quot;;&quot;2018-05-01&quot;
+&quot;jack&quot;;&quot;FakeRole&quot;;&quot;M&quot;;&quot;2018-01-01&quot;;&quot;2018-05-01&quot;
+&quot;jack&quot;;&quot;Superuser&quot;;;&quot;2018-01-01&quot;;&quot;2018-05-01&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In next example we add/modify/delete assignment on user defined variable <em>username</em> (in first line 'testUser02'). Operation define variable <em>action</em> ('A'=add, 'M'=modify, 'R'=remove).
+Target of assignment define via name of role variable <em>role_name</em>.  Variables <em>valid_from</em> and <em>valid_to</em> define property <em>activation/validFrom</em> and <em>activation/validTo</em> of assignment.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example of Import script - XML</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span style="color:#070;font-weight:bold">&lt;report&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;name&gt;</span>Report with import script<span style="color:#070;font-weight:bold">&lt;/name&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;behavior&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;importScript</span> <span style="color:#b48">xmlns:c</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://midpoint.evolveum.com/xml/ns/public/common/common-3</span><span style="color:#710">&quot;</span></span>
+                      <span style="color:#b48">xmlns:s</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://midpoint.evolveum.com/xml/ns/public/model/scripting-3</span><span style="color:#710">&quot;</span></span><span style="color:#070;font-weight:bold">&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;s:options&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;s:continueOnAnyError&gt;</span>true<span style="color:#070;font-weight:bold">&lt;/s:continueOnAnyError&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;/s:options&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;s:pipeline&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;s:search</span>  <span style="color:#b48">xmlns:q</span>=<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://prism.evolveum.com/xml/ns/public/query-3</span><span style="color:#710">&quot;</span></span><span style="color:#070;font-weight:bold">&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;s:type&gt;</span>UserType<span style="color:#070;font-weight:bold">&lt;/s:type&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;s:searchFilter&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;q:equal&gt;</span>
+                            <span style="color:#070;font-weight:bold">&lt;q:path&gt;</span>name<span style="color:#070;font-weight:bold">&lt;/q:path&gt;</span>
+                            <span style="color:#070;font-weight:bold">&lt;c:expression&gt;</span>
+                                <span style="color:#070;font-weight:bold">&lt;c:script&gt;</span>
+                                    <span style="color:#070;font-weight:bold">&lt;c:code&gt;</span>username<span style="color:#070;font-weight:bold">&lt;/c:code&gt;</span>
+                                <span style="color:#070;font-weight:bold">&lt;/c:script&gt;</span>
+                            <span style="color:#070;font-weight:bold">&lt;/c:expression&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;/q:equal&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;/s:searchFilter&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;/s:search&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;s:execute&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;s:forWholeInput&gt;</span>true<span style="color:#070;font-weight:bold">&lt;/s:forWholeInput&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;s:script&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;s:code&gt;</span>
+                            if (input == null || input.getData().isEmpty()){
+                                log.error(&quot;Couldn't find user with name&quot; + username + &quot;. Skip this line.&quot;)
+                            }
+                        <span style="color:#070;font-weight:bold">&lt;/s:code&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;/s:script&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;/s:execute&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;s:modify&gt;</span>
+                    <span style="color:#070;font-weight:bold">&lt;s:parameter&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;s:name&gt;</span>delta<span style="color:#070;font-weight:bold">&lt;/s:name&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;s:execute&gt;</span>
+                            <span style="color:#070;font-weight:bold">&lt;s:parameter&gt;</span>
+                                <span style="color:#070;font-weight:bold">&lt;s:name&gt;</span>outputItem<span style="color:#070;font-weight:bold">&lt;/s:name&gt;</span>
+                                <span style="color:#070;font-weight:bold">&lt;c:value&gt;</span>ObjectDeltaType<span style="color:#070;font-weight:bold">&lt;/c:value&gt;</span>
+                            <span style="color:#070;font-weight:bold">&lt;/s:parameter&gt;</span>
+                            <span style="color:#070;font-weight:bold">&lt;s:script&gt;</span>
+                                <span style="color:#070;font-weight:bold">&lt;s:code&gt;</span>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+                                    import java.text.SimpleDateFormat;
+                                    import java.util.GregorianCalendar;
+                                    import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+                                    import javax.xml.datatype.DatatypeFactory;
+                                    import com.evolveum.midpoint.schema.DeltaConvertor;
+
+                                    log.info(&quot;-----------START-----------&quot;);
+                                    log.info(&quot;username: &quot; + username);
+                                    log.info(&quot;role_name: &quot; + role_name);
+                                    log.info(&quot;action: &quot; + action);
+                                    log.info(&quot;valid_from: &quot; + valid_from);
+                                    log.info(&quot;valid_to: &quot; + valid_to);
+                                    log.info(&quot;input: &quot; + input);
+
+                                    user = input;
+                                    userBefore = user.clone();
+                                    role = midpoint.searchObjectByName(RoleType.class, role_name);
+                                    if (role == null) {
+                                        log.error(&quot;Couldn't find role with name &quot; + role_name);
+                                        return null;
+                                    }
+                                    if (action.equals(&quot;A&quot;)) {
+                                        roleRef = new ObjectReferenceType();
+                                        roleRef.setOid(role.getOid());
+                                        roleRef.setType(RoleType.COMPLEX_TYPE);
+                                        AssignmentType assignment = new AssignmentType();
+                                        assignment.setTargetRef(roleRef);
+
+                                        if (valid_from != null || valid_to != null) {
+                                            activation = new ActivationType();
+                                            format = new SimpleDateFormat(&quot;yyyy-MM-dd&quot;);
+                                            if (valid_from != null) {
+                                                date = format.parse(valid_from);
+                                                cal = new GregorianCalendar();
+                                                cal.setTime(date);
+                                                xmlGregCal =  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+                                                activation.setValidFrom(xmlGregCal);
+                                            }
+
+                                            if (valid_to != null) {
+                                                date = format.parse(valid_to);
+                                                cal = new GregorianCalendar();
+                                                cal.setTime(date);
+                                                xmlGregCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+                                                activation.setValidTo(xmlGregCal);
+                                            }
+                                            assignment.setActivation(activation);
+                                        }
+                                        user.getAssignment().add(assignment);
+                                    } else if (action.equals(&quot;M&quot;)) {
+                                        for (AssignmentType assignment : user.getAssignment()) {
+                                            if (assignment.getTargetRef() != null <span style="color:#800;font-weight:bold">&amp;amp;</span><span style="color:#800;font-weight:bold">&amp;amp;</span> role.getOid().equals(assignment.getTargetRef().getOid())) {
+                                                if (valid_from != null || valid_to != null) {
+                                                    activation = new ActivationType();
+                                                    format = new SimpleDateFormat(&quot;yyyy-MM-dd&quot;);
+                                                    if (valid_from != null) {
+                                                        date = format.parse(valid_from);
+                                                        cal = new GregorianCalendar();
+                                                        cal.setTime(date);
+                                                        xmlGregCal =  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+                                                        activation.setValidFrom(xmlGregCal);
+                                                    }
+
+                                                    if (valid_to != null) {
+                                                        date = format.parse(valid_to);
+                                                        cal = new GregorianCalendar();
+                                                        cal.setTime(date);
+                                                        xmlGregCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+                                                        activation.setValidTo(xmlGregCal);
+                                                    }
+                                                    assignment.setActivation(activation);
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    } else if (action.equals(&quot;D&quot;)) {
+                                        for (AssignmentType assignment : user.getAssignment()) {
+                                            if (assignment.getTargetRef() != null <span style="color:#800;font-weight:bold">&amp;amp;</span><span style="color:#800;font-weight:bold">&amp;amp;</span> role.getOid().equals(assignment.getTargetRef().getOid())) {
+                                                user.getAssignment().remove(assignment);
+                                                break;
+                                            }
+                                        }
+                                    } else {
+                                        log.error(&quot;Action column have unexpected value '&quot; + action + &quot;'&quot;)
+                                        return null;
+                                    }
+                                    if (userBefore.equals(user)) {
+                                        log.error(&quot;Couldn't create delta, because user before executing of script is same as after executing of script.&quot;)
+                                        return null;
+                                    }
+                                    delta = userBefore.asPrismObject().diff(user.asPrismObject(), EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+                                    log.info(&quot;delta: &quot; + delta);
+                                    log.info(&quot;-----------FINISH-----------&quot;);
+                                    return DeltaConvertor.toObjectDeltaType(delta);
+                                <span style="color:#070;font-weight:bold">&lt;/s:code&gt;</span>
+                            <span style="color:#070;font-weight:bold">&lt;/s:script&gt;</span>
+                        <span style="color:#070;font-weight:bold">&lt;/s:execute&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;/s:parameter&gt;</span>
+                <span style="color:#070;font-weight:bold">&lt;/s:modify&gt;</span>
+            <span style="color:#070;font-weight:bold">&lt;/s:pipeline&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;/importScript&gt;</span>
+        <span style="color:#070;font-weight:bold">&lt;direction&gt;</span>import<span style="color:#070;font-weight:bold">&lt;/direction&gt;</span>
+    <span style="color:#070;font-weight:bold">&lt;/behavior&gt;</span>
+<span style="color:#070;font-weight:bold">&lt;/report&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example of Import script - JSON</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="json">{
+  <span style="color:#606"><span style="color:#404">&quot;</span><span>@ns</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://midpoint.evolveum.com/xml/ns/public/common/common-3</span><span style="color:#710">&quot;</span></span>,
+  <span style="color:#606"><span style="color:#404">&quot;</span><span>report</span><span style="color:#404">&quot;</span></span> : {
+    <span style="color:#606"><span style="color:#404">&quot;</span><span>name</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Report with import script</span><span style="color:#710">&quot;</span></span>,
+    <span style="color:#606"><span style="color:#404">&quot;</span><span>behavior</span><span style="color:#404">&quot;</span></span> : {
+      <span style="color:#606"><span style="color:#404">&quot;</span><span>direction</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">import</span><span style="color:#710">&quot;</span></span>,
+      <span style="color:#606"><span style="color:#404">&quot;</span><span>importScript</span><span style="color:#404">&quot;</span></span> : {
+        <span style="color:#606"><span style="color:#404">&quot;</span><span>@ns</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://midpoint.evolveum.com/xml/ns/public/model/scripting-3</span><span style="color:#710">&quot;</span></span>,
+        <span style="color:#606"><span style="color:#404">&quot;</span><span>pipeline</span><span style="color:#404">&quot;</span></span> : [ {
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>@element</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">search</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>type</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">UserType</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>searchFilter</span><span style="color:#404">&quot;</span></span> : {
+            <span style="color:#606"><span style="color:#404">&quot;</span><span>@ns</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://prism.evolveum.com/xml/ns/public/query-3</span><span style="color:#710">&quot;</span></span>,
+            <span style="color:#606"><span style="color:#404">&quot;</span><span>equal</span><span style="color:#404">&quot;</span></span> : {
+              <span style="color:#606"><span style="color:#404">&quot;</span><span>path</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">name</span><span style="color:#710">&quot;</span></span>,
+              <span style="color:#606"><span style="color:#404">&quot;</span><span>http://midpoint.evolveum.com/xml/ns/public/common/common-3#expression</span><span style="color:#404">&quot;</span></span> : {
+                <span style="color:#606"><span style="color:#404">&quot;</span><span>@ns</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://midpoint.evolveum.com/xml/ns/public/common/common-3</span><span style="color:#710">&quot;</span></span>,
+                <span style="color:#606"><span style="color:#404">&quot;</span><span>script</span><span style="color:#404">&quot;</span></span> : {
+                  <span style="color:#606"><span style="color:#404">&quot;</span><span>code</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">username</span><span style="color:#710">&quot;</span></span>
+                }
+              }
+            }
+          }
+        }, {
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>@element</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">execute</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>script</span><span style="color:#404">&quot;</span></span> : {
+            <span style="color:#606"><span style="color:#404">&quot;</span><span>@ns</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://midpoint.evolveum.com/xml/ns/public/common/common-3</span><span style="color:#710">&quot;</span></span>,
+            <span style="color:#606"><span style="color:#404">&quot;</span><span>code</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#b0b">\n</span><span style="color:#D20">                            if (input == null || input.getData().isEmpty()){</span><span style="color:#b0b">\n</span><span style="color:#D20">                                log.error(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">Couldn't find user with name</span><span style="color:#b0b">\&quot;</span><span style="color:#D20"> + username + </span><span style="color:#b0b">\&quot;</span><span style="color:#D20">. Skip this line.</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">)</span><span style="color:#b0b">\n</span><span style="color:#D20">                            }</span><span style="color:#b0b">\n</span><span style="color:#D20">                        </span><span style="color:#710">&quot;</span></span>
+          },
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>forWholeInput</span><span style="color:#404">&quot;</span></span> : <span style="color:#088">true</span>
+        }, {
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>@element</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">modify</span><span style="color:#710">&quot;</span></span>,
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>parameter</span><span style="color:#404">&quot;</span></span> : [ {
+            <span style="color:#606"><span style="color:#404">&quot;</span><span>name</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">delta</span><span style="color:#710">&quot;</span></span>,
+            <span style="color:#606"><span style="color:#404">&quot;</span><span>execute</span><span style="color:#404">&quot;</span></span> : {
+              <span style="color:#606"><span style="color:#404">&quot;</span><span>parameter</span><span style="color:#404">&quot;</span></span> : [ {
+                <span style="color:#606"><span style="color:#404">&quot;</span><span>name</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">outputItem</span><span style="color:#710">&quot;</span></span>,
+                <span style="color:#606"><span style="color:#404">&quot;</span><span>http://midpoint.evolveum.com/xml/ns/public/common/common-3#value</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">ObjectDeltaType</span><span style="color:#710">&quot;</span></span>
+              } ],
+              <span style="color:#606"><span style="color:#404">&quot;</span><span>script</span><span style="color:#404">&quot;</span></span> : {
+                <span style="color:#606"><span style="color:#404">&quot;</span><span>@ns</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">http://midpoint.evolveum.com/xml/ns/public/common/common-3</span><span style="color:#710">&quot;</span></span>,
+                <span style="color:#606"><span style="color:#404">&quot;</span><span>code</span><span style="color:#404">&quot;</span></span> : <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    import java.text.SimpleDateFormat;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    import java.util.GregorianCalendar;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    import javax.xml.datatype.DatatypeFactory;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    import com.evolveum.midpoint.schema.DeltaConvertor;</span><span style="color:#b0b">\n</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    log.info(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">-----------START-----------</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    log.info(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">username: </span><span style="color:#b0b">\&quot;</span><span style="color:#D20"> + username);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    log.info(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">role_name: </span><span style="color:#b0b">\&quot;</span><span style="color:#D20"> + role_name);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    log.info(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">action: </span><span style="color:#b0b">\&quot;</span><span style="color:#D20"> + action);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    log.info(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">valid_from: </span><span style="color:#b0b">\&quot;</span><span style="color:#D20"> + valid_from);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    log.info(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">valid_to: </span><span style="color:#b0b">\&quot;</span><span style="color:#D20"> + valid_to);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    log.info(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">input: </span><span style="color:#b0b">\&quot;</span><span style="color:#D20"> + input);</span><span style="color:#b0b">\n</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    user = input;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    userBefore = user.clone();</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    role = midpoint.searchObjectByName(RoleType.class, role_name);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    if (role == null) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        log.error(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">Couldn't find role with name </span><span style="color:#b0b">\&quot;</span><span style="color:#D20"> + role_name);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        return null;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    }</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    if (action.equals(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">A</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">)) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        roleRef = new ObjectReferenceType();</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        roleRef.setOid(role.getOid());</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        roleRef.setType(RoleType.COMPLEX_TYPE);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        AssignmentType assignment = new AssignmentType();</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        assignment.setTargetRef(roleRef);</span><span style="color:#b0b">\n</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        if (valid_from != null || valid_to != null) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                            activation = new ActivationType();</span><span style="color:#b0b">\n</span><span style="color:#D20">                                            format = new SimpleDateFormat(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">yyyy-MM-dd</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                            if (valid_from != null) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                date = format.parse(valid_from);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                cal = new GregorianCalendar();</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                cal.setTime(date);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                xmlGregCal =  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                activation.setValidFrom(xmlGregCal);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                            }</span><span style="color:#b0b">\n</span><span style="color:#b0b">\n</span><span style="color:#D20">                                            if (valid_to != null) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                date = format.parse(valid_to);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                cal = new GregorianCalendar();</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                cal.setTime(date);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                xmlGregCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                activation.setValidTo(xmlGregCal);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                            }</span><span style="color:#b0b">\n</span><span style="color:#D20">                                            assignment.setActivation(activation);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        }</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        user.getAssignment().add(assignment);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    } else if (action.equals(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">M</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">)) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        for (AssignmentType assignment : user.getAssignment()) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                            if (assignment.getTargetRef() != null &amp;&amp; role.getOid().equals(assignment.getTargetRef().getOid())) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                if (valid_from != null || valid_to != null) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                    activation = new ActivationType();</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                    format = new SimpleDateFormat(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">yyyy-MM-dd</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                    if (valid_from != null) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                        date = format.parse(valid_from);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                        cal = new GregorianCalendar();</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                        cal.setTime(date);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                        xmlGregCal =  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                        activation.setValidFrom(xmlGregCal);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                    }</span><span style="color:#b0b">\n</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                    if (valid_to != null) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                        date = format.parse(valid_to);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                        cal = new GregorianCalendar();</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                        cal.setTime(date);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                        xmlGregCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                        activation.setValidTo(xmlGregCal);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                    }</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                    assignment.setActivation(activation);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                }</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                break;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                            }</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        }</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    } else if (action.equals(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">D</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">)) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        for (AssignmentType assignment : user.getAssignment()) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                            if (assignment.getTargetRef() != null &amp;&amp; role.getOid().equals(assignment.getTargetRef().getOid())) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                user.getAssignment().remove(assignment);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                                break;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                            }</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        }</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    } else {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        log.error(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">Action column have unexpected value '</span><span style="color:#b0b">\&quot;</span><span style="color:#D20"> + action + </span><span style="color:#b0b">\&quot;</span><span style="color:#D20">'</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">)</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        return null;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    }</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    if (userBefore.equals(user)) {</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        log.error(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">Couldn't create delta, because user before executing of script is same as after executing of script.</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">)</span><span style="color:#b0b">\n</span><span style="color:#D20">                                        return null;</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    }</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    delta = userBefore.asPrismObject().diff(user.asPrismObject(), EquivalenceStrategy.LITERAL_IGNORE_METADATA);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    log.info(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">delta: </span><span style="color:#b0b">\&quot;</span><span style="color:#D20"> + delta);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    log.info(</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">-----------FINISH-----------</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                    return DeltaConvertor.toObjectDeltaType(delta);</span><span style="color:#b0b">\n</span><span style="color:#D20">                                </span><span style="color:#710">&quot;</span></span>
+              }
+            }
+          } ]
+        } ],
+        <span style="color:#606"><span style="color:#404">&quot;</span><span>options</span><span style="color:#404">&quot;</span></span> : {
+          <span style="color:#606"><span style="color:#404">&quot;</span><span>continueOnAnyError</span><span style="color:#404">&quot;</span></span> : <span style="color:#088">true</span>
+        }
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#/midpoint/reference/expressions/expressions/profiles/">Expression Profiles</a></p>
+</li>
+<li>
+<p><a href="#/midpoint/reference/security/security-guide/">Security Guide</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2022-01-19 16:06:46 +0100
+</div>
+</div>
+</body>
+</html>

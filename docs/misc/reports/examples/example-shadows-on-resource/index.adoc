@@ -1,4 +1,4 @@
-= Example of dashboard report: Shadows on resource
+= Example of Dashboard report: Shadows on resource
 :page-nav-title: Example: Shadows
 :page-wiki-name: Example of dashboard report: Shadow of resource
 :page-wiki-id: 52002826

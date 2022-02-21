@@ -1,4 +1,4 @@
-= Example of dashboard report: Number of members
+= Example of Dashboard report: Number of members
 :page-nav-title: Example: Number of members
 :page-wiki-name: Example of dashboard report: Number of members
 :page-wiki-id: 52002832

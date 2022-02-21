@@ -1,4 +1,4 @@
-= Example of new report: Long unchanged accounts
+= Example of Collection report: Long unchanged accounts
 :page-nav-title: Long unchanged accounts
 :page-wiki-name: Example of new report: Long unchanged accounts
 :page-wiki-id: 52003078
@@ -13,7 +13,7 @@ Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Repor
 
 == Usecase
 
-We need create report of users which were long without changes.
+We need create report of users which have not changed in sometime.
 
 
 == Configuration
