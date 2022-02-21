@@ -234,7 +234,9 @@ public class ReportFunctions {
         Map<String, List<AuditEventRecordType>> workflows = auditEvents.stream().collect(Collectors.groupingBy(event -> {
             List<String> processInstanceIds = new ArrayList<>();
             event.getProperty().stream()
-                    .filter(property -> AuditingConstants.AUDIT_PROCESS_INSTANCE_ID.equals(property.getName()))
+                    .filter(property ->
+                            AuditingConstants.AUDIT_PROCESS_INSTANCE_ID.equals(property.getName())
+                                    || AuditingConstants.AUDIT_CASE_OID.equals(property.getName()))
                     .findFirst().ifPresent(property -> processInstanceIds.addAll(property.getValue()));
 
             Iterator<String> it = processInstanceIds.iterator();

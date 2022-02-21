@@ -16,6 +16,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.notifications.impl.events.*;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -30,16 +31,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Default implementation of a notifier dealing with workflow events (related to both work items and process instances).
+ * Default implementation of a notifier dealing with case management events (related to both work items and cases).
  */
 @Component
-public class SimpleWorkflowNotifier extends AbstractGeneralNotifier<WorkflowEvent, SimpleWorkflowNotifierType> {
+public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseManagementEvent, SimpleWorkflowNotifierType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SimpleWorkflowNotifier.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SimpleCaseManagementNotifier.class);
 
     @Override
-    public Class<WorkflowEvent> getEventType() {
-        return WorkflowEvent.class;
+    public Class<CaseManagementEvent> getEventType() {
+        return CaseManagementEvent.class;
     }
 
     @Override
@@ -48,16 +49,19 @@ public class SimpleWorkflowNotifier extends AbstractGeneralNotifier<WorkflowEven
     }
 
     @Override
-    protected UserType getDefaultRecipient(WorkflowEvent event, SimpleWorkflowNotifierType configuration, OperationResult result) {
+    protected UserType getDefaultRecipient(
+            CaseManagementEvent event,
+            SimpleWorkflowNotifierType configuration,
+            OperationResult result) {
         @Nullable SimpleObjectRef recipientRef;
-        if (event instanceof WorkflowProcessEventImpl) {
+        if (event instanceof CaseEventImpl) {
             recipientRef = event.getRequester();
         } else if (event instanceof WorkItemEventImpl) {
             recipientRef = ((WorkItemEventImpl) event).getAssignee();
         } else {
             return null;
         }
-        ObjectType recipient = functions.getObjectType(recipientRef, false, result);
+        ObjectType recipient = functions.getObject(recipientRef, false, result);
         if (recipient instanceof UserType) {
             return (UserType) recipient;
         } else {
@@ -66,13 +70,36 @@ public class SimpleWorkflowNotifier extends AbstractGeneralNotifier<WorkflowEven
     }
 
     @Override
-    protected String getSubject(WorkflowEvent event, SimpleWorkflowNotifierType configuration, String transport, Task task, OperationResult result) {
-        if (event instanceof WorkflowProcessEventImpl) {
-            return event.isAdd() ? "Workflow process instance has been started" : "Workflow process instance has finished";
+    protected String getSubject(
+            @NotNull CaseManagementEvent event,
+            SimpleWorkflowNotifierType configuration,
+            String transport,
+            Task task,
+            OperationResult result) {
+        return getTitle(event);
+    }
+
+    private String getTitle(@NotNull CaseManagementEvent event) {
+        if (event instanceof CaseEventImpl) {
+            return event.isAdd() ?
+                    getCaseTitle(event) + " has been opened" :
+                    getCaseTitle(event) + " has been closed";
         } else if (event instanceof WorkItemEventImpl) {
             return getSubjectFromWorkItemEvent((WorkItemEventImpl) event);
         } else {
             throw new UnsupportedOperationException("Unsupported event type for event=" + event);
+        }
+    }
+
+    private String getCaseTitle(@NotNull CaseManagementEvent event) {
+        if (event.isApproval()) {
+            return "An approval case";
+        } else if (event.isManualProvisioning()) {
+            return "A manual provisioning";
+        } else if (event.isCorrelation()) {
+            return "A correlation case";
+        } else {
+            return "A case";
         }
     }
 
@@ -97,7 +124,7 @@ public class SimpleWorkflowNotifier extends AbstractGeneralNotifier<WorkflowEven
                     throw new IllegalStateException("Missing operationKind in " + event);
                 }
                 String rv = "Work item will be automatically " + getOperationPastTenseVerb(event.getOperationKind());
-                if (event.getTimeBefore() != null) {        // should always be
+                if (event.getTimeBefore() != null) { // should always be
                     rv += " in " + DurationFormatUtils.formatDurationWords(
                             event.getTimeBefore().getTimeInMillis(new Date()), true, true);
                 }
@@ -113,17 +140,17 @@ public class SimpleWorkflowNotifier extends AbstractGeneralNotifier<WorkflowEven
     }
 
     @Override
-    protected String getBody(WorkflowEvent event, SimpleWorkflowNotifierType configuration,
+    protected String getBody(CaseManagementEvent event, SimpleWorkflowNotifierType configuration,
             String transport, Task task, OperationResult result) {
 
         boolean techInfo = Boolean.TRUE.equals(configuration.isShowTechnicalInformation());
 
         StringBuilder body = new StringBuilder();
 
-        body.append(getSubject(event, configuration, transport, task, result));
+        body.append(getTitle(event));
         body.append("\n\n");
 
-        appendGeneralInformation(body, event); // process instance name, work item name, stage, escalation level
+        appendGeneralInformation(body, event); // case name, work item name, stage, escalation level
 
         if (event instanceof WorkItemEventImpl) {
             WorkItemEventImpl workItemEvent = (WorkItemEventImpl) event;
@@ -148,26 +175,36 @@ public class SimpleWorkflowNotifier extends AbstractGeneralNotifier<WorkflowEven
                 body.append("Approval context:\n")
                         .append(PrismUtil.serializeQuietly(prismContext, event.getApprovalContext()));
             }
+            if (event.getManualProvisioningContext() != null) {
+                body.append("Manual provisioning context:\n")
+                        .append(PrismUtil.serializeQuietly(prismContext, event.getManualProvisioningContext()));
+            }
+            if (event.getCorrelationContext() != null) {
+                body.append("Correlation context:\n")
+                        .append(PrismUtil.serializeQuietly(prismContext, event.getCorrelationContext()));
+            }
         }
         return body.toString();
     }
 
-    private void appendGeneralInformation(StringBuilder sb, WorkflowEvent workflowEvent) {
-        sb.append("Process instance name: ").append(workflowEvent.getProcessInstanceName()).append("\n");
-        if (workflowEvent instanceof WorkItemEventImpl) {
-            WorkItemEventImpl event = (WorkItemEventImpl) workflowEvent;
-            sb.append("Work item: ").append(event.getWorkItemName()).append("\n");
+    private void appendGeneralInformation(StringBuilder sb, CaseManagementEvent event) {
+        sb.append("Case name: ").append(event.getCaseName()).append("\n");
+        if (event instanceof WorkItemEventImpl) {
+            WorkItemEventImpl workItemEvent = (WorkItemEventImpl) event;
+            sb.append("Work item: ").append(workItemEvent.getWorkItemName()).append("\n");
             appendStageInformation(sb, event);
-            appendEscalationInformation(sb, event);
+            appendEscalationInformation(sb, workItemEvent);
         } else {
-            appendStageInformation(sb, workflowEvent);
+            appendStageInformation(sb, event);
         }
         sb.append("\n");
     }
 
-    private boolean appendResultInformation(StringBuilder body, WorkflowEvent workflowEvent, boolean emptyLineAfter) {
-        if (workflowEvent.isDelete() && workflowEvent.isResultKnown()) {
-            body.append("Result: ").append(workflowEvent.isApproved() ? "APPROVED" : "REJECTED").append("\n");
+    private boolean appendResultInformation(StringBuilder body, CaseManagementEvent event, boolean emptyLineAfter) {
+        if (event.isDelete() && event.isResultKnown()) {
+            body.append("Result: ")
+                    .append(event.getStatusAsText())
+                    .append("\n");
             if (emptyLineAfter) {
                 body.append("\n");
             }
@@ -218,7 +255,7 @@ public class SimpleWorkflowNotifier extends AbstractGeneralNotifier<WorkflowEven
         } else {
             SimpleObjectRef initiator = event.getInitiator();
             if (initiator != null && !isCancelled(event)) {
-                UserType initiatorFull = (UserType) functions.getObjectType(initiator, true, result);
+                UserType initiatorFull = (UserType) functions.getObject(initiator, true, result);
                 sb.append("Carried out by: ").append(valueFormatter.formatUserName(initiatorFull, initiator.getOid())).append("\n");
                 atLeastOne = true;
             }
@@ -234,13 +271,13 @@ public class SimpleWorkflowNotifier extends AbstractGeneralNotifier<WorkflowEven
         List<ObjectReferenceType> currentAssignees = workItem.getAssigneeRef();
         boolean atLeastOne = false;
         if (showOriginalAssignee(originalAssignee, currentAssignees)) {
-            UserType originalAssigneeObject = (UserType) functions.getObjectType(originalAssignee, true, result);
-            sb.append("Originally allocated to: ").append(
+            UserType originalAssigneeObject = (UserType) functions.getObject(originalAssignee, true, result);
+            sb.append("Originally assigned to: ").append(
                     valueFormatter.formatUserName(originalAssigneeObject, originalAssignee.getOid())).append("\n");
             atLeastOne = true;
         }
         if (!workItem.getAssigneeRef().isEmpty()) {
-            sb.append("Allocated to");
+            sb.append("Assigned to");
             if (event.getOperationKind() == WorkItemOperationKindType.DELEGATE) {
                 sb.append(event.isAdd() ? " (after delegation)" : " (before delegation)");
             } else if (event.getOperationKind() == WorkItemOperationKindType.ESCALATE) {
@@ -295,9 +332,9 @@ public class SimpleWorkflowNotifier extends AbstractGeneralNotifier<WorkflowEven
         }
     }
 
-    private void appendStageInformation(StringBuilder sb, WorkflowEvent workflowEvent) {
-        if (workflowEvent.doesUseStages()) {
-            String info = ApprovalContextUtil.getStageInfo(workflowEvent.getCase());
+    private void appendStageInformation(StringBuilder sb, CaseManagementEvent caseManagementEvent) {
+        if (caseManagementEvent.doesUseStages()) {
+            String info = ApprovalContextUtil.getStageInfo(caseManagementEvent.getCase());
             if (info != null) {
                 sb.append("Stage: ").append(info).append("\n");
             }

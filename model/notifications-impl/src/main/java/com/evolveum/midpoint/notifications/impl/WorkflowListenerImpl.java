@@ -64,14 +64,14 @@ public class WorkflowListenerImpl implements CaseEventCreationListener {
     //region Process-level notifications
     @Override
     public void onProcessInstanceStart(CaseType aCase, Task task, OperationResult result) {
-        WorkflowProcessEventImpl event = new WorkflowProcessEventImpl(identifierGenerator, ChangeType.ADD, aCase);
+        CaseEventImpl event = new CaseEventImpl(identifierGenerator, ChangeType.ADD, aCase);
         initializeWorkflowEvent(event, aCase);
         eventHelper.processEvent(event, task, result);
     }
 
     @Override
     public void onProcessInstanceEnd(CaseType aCase, Task task, OperationResult result) {
-        WorkflowProcessEventImpl event = new WorkflowProcessEventImpl(identifierGenerator, ChangeType.DELETE, aCase);
+        CaseEventImpl event = new CaseEventImpl(identifierGenerator, ChangeType.DELETE, aCase);
         initializeWorkflowEvent(event, aCase);
         eventHelper.processEvent(event, task, result);
     }
@@ -178,7 +178,7 @@ public class WorkflowListenerImpl implements CaseEventCreationListener {
     }
     //endregion
 
-    private void initializeWorkflowEvent(WorkflowEventImpl event, CaseType aCase) {
+    private void initializeWorkflowEvent(CaseManagementEventImpl event, CaseType aCase) {
         event.setRequester(SimpleObjectRefImpl.create(functions, aCase.getRequestorRef()));
         event.setRequestee(SimpleObjectRefImpl.create(functions, aCase.getObjectRef()));
         // TODO what if requestee is yet to be created?

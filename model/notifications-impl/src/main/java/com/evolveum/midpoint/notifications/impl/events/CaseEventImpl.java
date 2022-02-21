@@ -7,32 +7,36 @@
 
 package com.evolveum.midpoint.notifications.impl.events;
 
-import com.evolveum.midpoint.notifications.api.events.WorkflowProcessEvent;
+import com.evolveum.midpoint.notifications.api.events.CaseEvent;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 
-public class WorkflowProcessEventImpl extends WorkflowEventImpl implements WorkflowProcessEvent {
+/**
+ * Event related to the case as a whole.
+ */
+public class CaseEventImpl extends CaseManagementEventImpl implements CaseEvent {
 
-    public WorkflowProcessEventImpl(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, CaseType aCase) {
+    public CaseEventImpl(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, CaseType aCase) {
         super(lightweightIdentifierGenerator, changeType, aCase.getApprovalContext(), aCase, null);
     }
 
     @Override
     public boolean isCategoryType(EventCategoryType eventCategory) {
-        return eventCategory == EventCategoryType.WORKFLOW_PROCESS_EVENT || eventCategory == EventCategoryType.WORKFLOW_EVENT;
+        return eventCategory == EventCategoryType.WORKFLOW_PROCESS_EVENT
+                || eventCategory == EventCategoryType.WORKFLOW_EVENT;
     }
 
     @Override
-    protected String getOutcome() {
+    protected String getCaseOrItemOutcome() {
         return aCase.getOutcome();
     }
 
     @Override
     public String toString() {
-        return "WorkflowProcessEvent{" +
+        return getClass().getSimpleName() + "{" +
                 "workflowEvent=" + super.toString() +
                 '}';
     }

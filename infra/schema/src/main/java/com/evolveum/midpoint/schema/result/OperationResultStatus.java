@@ -132,4 +132,18 @@ public enum OperationResultStatus {
     public OperationResultStatusType createStatusType() {
         return createStatusType(this);
     }
+
+    /**
+     * Meaning "the operation completed in more-or-less successful way".
+     */
+    public boolean isConsideredSuccess() {
+        return this == SUCCESS || this == WARNING || this == HANDLED_ERROR;
+    }
+
+    /**
+     * Meaning "the operation completely or partially failed".
+     */
+    public boolean isError() {
+        return this == FATAL_ERROR || this == PARTIAL_ERROR;
+    }
 }

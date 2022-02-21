@@ -73,7 +73,6 @@ public class DefaultEngineExtension implements EngineExtension {
     @Override
     public @NotNull StageClosingResult processStageClosing(CaseEngineOperation operation, OperationResult result) {
 
-        // There should be only a single work item, so the following is maybe an overkill
         Set<String> allOutcomes = operation.getCurrentCase().getWorkItem().stream()
                 .filter(wi -> wi.getCloseTimestamp() != null)
                 .map(AbstractWorkItemType::getOutput)
@@ -87,7 +86,6 @@ public class DefaultEngineExtension implements EngineExtension {
                 getOutcomeUri(allOutcomes));
     }
 
-    // see ManualConnectorInstance.translateOutcome(..) method
     private @NotNull String getOutcomeUri(Set<String> outcomes) {
         if (outcomes.isEmpty()) {
             return OperationResultStatusType.SUCCESS.toString();
