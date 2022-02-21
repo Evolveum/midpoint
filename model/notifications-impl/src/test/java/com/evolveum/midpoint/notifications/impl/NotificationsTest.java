@@ -9,6 +9,8 @@ package com.evolveum.midpoint.notifications.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.velocityExpression;
+
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.common.expression.script.velocity.VelocityScriptEvaluator;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.TransportService;
@@ -370,11 +371,4 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 .hasMessage("Unknown transport named 'nonexistent'");
     }
 
-    private ExpressionType velocityExpression(String velocityTemplate) {
-        return new ExpressionType()
-                .expressionEvaluator(new ObjectFactory().createScript(
-                        new ScriptExpressionEvaluatorType()
-                                .language(VelocityScriptEvaluator.LANGUAGE_URL)
-                                .code(velocityTemplate)));
-    }
 }

@@ -1,18 +1,21 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.schema.util;
+
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE;
+
+import javax.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-
-import javax.xml.bind.JAXBElement;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 /**
  * Very simple expression utils. More advanced ones are to be found in upper layers.
@@ -32,5 +35,22 @@ public class SimpleExpressionUtil {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Creates {@link ExpressionType} for specified Velocity template.
+     */
+    public static ExpressionType velocityExpression(String velocityTemplate) {
+        return scriptExpression(EXPRESSION_LANGUAGE_URL_BASE + "velocity", velocityTemplate);
+    }
+
+    /**
+     * Creates {@link ExpressionType} with script for specific language and with specified code.
+     */
+    public static ExpressionType scriptExpression(String languageUrl, String code) {
+        return new ExpressionType().expressionEvaluator(new ObjectFactory().createScript(
+                new ScriptExpressionEvaluatorType()
+                        .language(languageUrl)
+                        .code(code)));
     }
 }

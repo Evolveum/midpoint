@@ -134,17 +134,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="subjectPrefix" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Simpler alternative to subjectExpression: the subject itself will be constructed by the notifier,
-                        but it will be prefixed by value specified here.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>MessageTemplateContentType.subjectPrefix</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="bodyExpression" type="c:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1399,7 +1388,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <!-- Content related elements -->
-                    <xsd:element name="templateRef" type="c:ObjectReferenceType" minOccurs="0">
+                    <xsd:element name="messageTemplateRef" type="c:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Reference to the message template that produces the content of the message.
@@ -1531,7 +1520,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="templateRef" type="c:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="messageTemplateRef" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to the message template that produces the content of the message for this transport.
