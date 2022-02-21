@@ -20,6 +20,7 @@ import com.evolveum.midpoint.web.application.PanelInstances;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProfilingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 @PanelType(name = "singleContainerPanel")
@@ -46,7 +47,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
                         ),
                         containerPath = "fullTextSearch",
                         type = "FullTextSearchConfigurationType"
-                ) }
+                ),
+                @PanelInstance(
+                        identifier = "profilingPanel",
+                        applicableForType = ProfilingConfigurationType.class,
+                        display = @PanelDisplay(
+                                label = "ProfilingConfiguration.label",
+                                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                                order = 10
+                        ),
+                        containerPath = "profilingConfiguration",
+                        type = "ProfilingConfigurationType"
+                )}
 )
 public class SingleContainerContentPanel extends AbstractObjectMainPanel<SystemConfigurationType, AssignmentHolderDetailsModel<SystemConfigurationType>> {
 

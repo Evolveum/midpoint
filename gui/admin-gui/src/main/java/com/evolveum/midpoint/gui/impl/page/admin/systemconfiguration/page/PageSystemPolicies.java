@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -47,6 +49,6 @@ public class PageSystemPolicies extends PageBaseSystemConfiguration {
 
     @Override
     public Class<? extends Containerable> getDetailsType() {
-        return WfConfigurationType.class;
+        return ObjectPolicyConfigurationType.class;
     }
 }

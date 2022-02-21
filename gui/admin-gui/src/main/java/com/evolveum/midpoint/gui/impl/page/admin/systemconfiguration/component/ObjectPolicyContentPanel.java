@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.Counter;
@@ -23,9 +24,8 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -39,47 +39,53 @@ import java.util.List;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@PanelType(name = "classLoggersContent")
+@PanelType(name = "objectPolicyPanel")
 @PanelInstance(
-        identifier = "classLoggersContent",
-        applicableForType = LoggingConfigurationType.class,
+        identifier = "objectPolicyPanel",
+        applicableForType = ObjectPolicyConfigurationType.class,
         display = @PanelDisplay(
-                label = "ClassLoggersContentPanel.label",
+                label = "ObjectPolicyContentPanel.label",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 20
+                order = 10
         )
 )
 @Counter(provider = ClassLoggersMenuLinkCounter.class)
-public class ClassLoggersContentPanel extends MultivalueContainerListPanelWithDetailsPanel<ClassLoggerConfigurationType> {
+public class ObjectPolicyContentPanel extends MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType> {
 
-    private IModel<PrismContainerWrapper<ClassLoggerConfigurationType>> model;
+    private IModel<PrismContainerWrapper<ObjectPolicyConfigurationType>> model;
 
-    public ClassLoggersContentPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
-        super(id, ClassLoggerConfigurationType.class, configurationType);
+    public ObjectPolicyContentPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
+        super(id, ObjectPolicyConfigurationType.class, configurationType);
 
         this.model = PrismContainerWrapperModel.fromContainerWrapper(model.getObjectWrapperModel(), ItemPath.create(
-                SystemConfigurationType.F_LOGGING,
-                LoggingConfigurationType.F_CLASS_LOGGER
+                SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION
         ));
     }
 
     @Override
-    protected IColumn<PrismContainerValueWrapper<ClassLoggerConfigurationType>, String> createCheckboxColumn() {
+    protected IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String> createCheckboxColumn() {
         return new CheckBoxHeaderColumn<>();
     }
 
     @Override
-    protected List<IColumn<PrismContainerValueWrapper<ClassLoggerConfigurationType>, String>> createDefaultColumns() {
+    protected List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> createDefaultColumns() {
         return Arrays.asList(
-                new PrismPropertyWrapperColumn<>(getContainerModel(), ClassLoggerConfigurationType.F_PACKAGE,
+                new PrismPropertyWrapperColumn<>(getContainerModel(), ObjectPolicyConfigurationType.F_TYPE,
                         AbstractItemWrapperColumn.ColumnType.LINK, getPageBase()) {
 
                     @Override
-                    protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> model) {
-                        ClassLoggersContentPanel.this.itemDetailsPerformed(target, model);
+                    protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> model) {
+                        ObjectPolicyContentPanel.this.itemDetailsPerformed(target, model);
                     }
                 },
-                new PrismPropertyWrapperColumn<>(getContainerModel(), ClassLoggerConfigurationType.F_LEVEL,
+                new PrismPropertyWrapperColumn<>(getContainerModel(), ObjectPolicyConfigurationType.F_SUBTYPE,
+                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()),
+                new PrismReferenceWrapperColumn<>(getContainerModel(), ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF,
+                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()),
+                // todo policy group
+                new PrismPropertyWrapperColumn<>(getContainerModel(), ObjectPolicyConfigurationType.F_SUBTYPE,
+                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()),
+                new PrismPropertyWrapperColumn<>(getContainerModel(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL,
                         AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase())
         );
     }
@@ -90,15 +96,15 @@ public class ClassLoggersContentPanel extends MultivalueContainerListPanelWithDe
     }
 
     @Override
-    protected IModel<PrismContainerWrapper<ClassLoggerConfigurationType>> getContainerModel() {
+    protected IModel<PrismContainerWrapper<ObjectPolicyConfigurationType>> getContainerModel() {
         return model;
     }
 
     @Override
-    protected MultivalueContainerDetailsPanel<ClassLoggerConfigurationType> getMultivalueContainerDetailsPanel(
-            ListItem<PrismContainerValueWrapper<ClassLoggerConfigurationType>> item) {
+    protected MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerDetailsPanel(
+            ListItem<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> item) {
 
-        return new ClassLoggerDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), true);
+        return new ObjectPolicyDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), true);
     }
 
     @Override
