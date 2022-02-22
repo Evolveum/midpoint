@@ -6,19 +6,96 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
 
 @PanelType(name = "formPanel")
+@PanelInstance(
+        identifier = "infrastructurePanel",
+        applicableForType = SystemConfigurationType.class,
+        display = @PanelDisplay(
+                label = "InfrastructureContentPanel.label",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 30
+        ),
+        containerPath = "infrastructure",
+        type = "InfrastructureConfigurationType"
+)
+@PanelInstance(
+        identifier = "fullTextSearchPanel",
+        applicableForType = SystemConfigurationType.class,
+        display = @PanelDisplay(
+                label = "FullTextSearchPanel.label",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 40
+        ),
+        containerPath = "fullTextSearch",
+        type = "FullTextSearchConfigurationType"
+)
+@PanelInstance(
+        identifier = "profilingPanel",
+        applicableForType = ProfilingConfigurationType.class,
+        display = @PanelDisplay(
+                label = "ProfilingConfiguration.label",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 10
+        ),
+        containerPath = "profilingConfiguration",
+        type = "ProfilingConfigurationType"
+)
+@PanelInstance(
+        identifier = "adminGuiPanel",
+        applicableForType = AdminGuiConfigurationType.class,
+        display = @PanelDisplay(
+                label = "AdminGuiConfiguration.label",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 10
+        ),
+        containerPath = "adminGuiConfiguration",
+        type = "AdminGuiConfigurationType"
+)
+@PanelInstance(
+        identifier = "wfConfigurationPanel",
+        applicableForType = WfConfigurationType.class,
+        display = @PanelDisplay(
+                label = "WfConfiguration.label",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 10
+        ),
+        containerPath = "workflowConfiguration",
+        type = "WfConfigurationType"
+)
+@PanelInstance(
+        identifier = "projectionPolicyPanel",
+        applicableForType = ProjectionPolicyType.class,
+        display = @PanelDisplay(
+                label = "ProjectionPolicy.label",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 30
+        ),
+        containerPath = "globalAccountSynchronizationSettings",
+        type = "ProjectionPolicyType"
+)
+@PanelInstance(
+        identifier = "cleanupPolicyPanel",
+        applicableForType = CleanupPoliciesType.class,
+        display = @PanelDisplay(
+                label = "CleanupPolicies.label",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 40
+        ),
+        containerPath = "cleanupPolicy",
+        type = "CleanupPoliciesType"
+)
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";
@@ -29,10 +106,6 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
 
     @Override
     protected void initLayout() {
-
-        SingleContainerPanel<C> panel = new SingleContainerPanel<C>(ID_DETAILS, (IModel) getObjectWrapperModel(), getPanelConfiguration());
-//        SingleContainerPanel<C> panel = new SingleContainerPanel<>(ID_DETAILS, createContainerModel(), getType());
-        add(panel);
-
+        add(new SingleContainerPanel<C>(ID_DETAILS, (IModel) getObjectWrapperModel(), getPanelConfiguration()));
     }
 }

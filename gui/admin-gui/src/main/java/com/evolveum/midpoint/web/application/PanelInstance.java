@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.application;
 
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Collections;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 import javax.xml.namespace.QName;
 
+@Repeatable(PanelInstances.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PanelInstance {
 

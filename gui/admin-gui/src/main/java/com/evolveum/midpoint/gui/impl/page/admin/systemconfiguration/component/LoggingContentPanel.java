@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
@@ -15,6 +16,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -40,7 +42,13 @@ public class LoggingContentPanel extends AbstractObjectMainPanel<SystemConfigura
     protected void initLayout() {
         SingleContainerPanel panel = new SingleContainerPanel(ID_MAIN_PANEL,
                 PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.create(SystemConfigurationType.F_LOGGING)),
-                LoggingConfigurationType.COMPLEX_TYPE);
+                LoggingConfigurationType.COMPLEX_TYPE) {
+
+            @Override
+            protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
+                return super.getVisibility(itemWrapper);
+            }
+        };
         add(panel);
     }
 }
