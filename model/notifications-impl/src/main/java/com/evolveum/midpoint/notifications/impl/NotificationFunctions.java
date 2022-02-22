@@ -54,7 +54,7 @@ public class NotificationFunctions {
         }
     }
 
-    public ObjectType getObjectType(SimpleObjectRef simpleObjectRef, boolean allowNotFound, OperationResult result) {
+    public ObjectType getObject(SimpleObjectRef simpleObjectRef, boolean allowNotFound, OperationResult result) {
         if (simpleObjectRef == null) {
             return null;
         }
@@ -70,7 +70,7 @@ public class NotificationFunctions {
         return objectType;
     }
 
-    public ObjectType getObjectType(ObjectReferenceType ref, boolean allowNotFound, OperationResult result) {
+    public ObjectType getObject(ObjectReferenceType ref, boolean allowNotFound, OperationResult result) {
         if (ref == null) {
             return null;
         }

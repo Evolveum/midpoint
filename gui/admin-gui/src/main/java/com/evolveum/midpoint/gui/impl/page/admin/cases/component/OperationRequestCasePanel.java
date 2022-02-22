@@ -20,7 +20,7 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
-import com.evolveum.midpoint.wf.util.ChangesByState;
+import com.evolveum.midpoint.wf.api.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;

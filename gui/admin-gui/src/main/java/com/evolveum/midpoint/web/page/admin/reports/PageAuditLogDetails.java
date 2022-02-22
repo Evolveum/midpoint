@@ -129,6 +129,7 @@ public class PageAuditLogDetails extends PageBase {
                     AuditingConstants.AUDIT_REQUESTER_COMMENT,
                     AuditingConstants.AUDIT_COMMENT,
                     AuditingConstants.AUDIT_WORK_ITEM_ID,
+                    AuditingConstants.AUDIT_CASE_OID,
                     AuditingConstants.AUDIT_PROCESS_INSTANCE_ID);
 
     public PageAuditLogDetails(PageParameters params) {

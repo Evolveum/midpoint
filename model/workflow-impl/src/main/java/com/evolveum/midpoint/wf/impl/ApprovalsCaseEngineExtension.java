@@ -7,22 +7,15 @@
 
 package com.evolveum.midpoint.wf.impl;
 
-import javax.annotation.PostConstruct;
-
-import com.evolveum.midpoint.cases.api.extensions.WorkItemCompletionResult;
-import com.evolveum.midpoint.wf.impl.processors.primary.cases.WorkItemCompletion;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import java.util.Collection;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
-import com.evolveum.midpoint.cases.api.CaseManager;
-import com.evolveum.midpoint.cases.api.extensions.EngineExtension;
-import com.evolveum.midpoint.cases.api.extensions.StageClosingResult;
-import com.evolveum.midpoint.cases.api.extensions.StageOpeningResult;
+import com.evolveum.midpoint.cases.api.extensions.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -31,7 +24,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.cases.CaseStageClosing;
 import com.evolveum.midpoint.wf.impl.processors.primary.cases.CaseStageOpening;
+import com.evolveum.midpoint.wf.impl.processors.primary.cases.WorkItemCompletion;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 @Component
@@ -40,12 +35,12 @@ public class ApprovalsCaseEngineExtension implements EngineExtension {
     private static final Trace LOGGER = TraceManager.getTrace(ApprovalsCaseEngineExtension.class);
 
     @Autowired private ApprovalBeans beans;
-    @Autowired private CaseManager caseManager;
     @Autowired private PrimaryChangeProcessor primaryChangeProcessor;
+    @Autowired private ApprovalsAuditingExtension auditingExtension;
 
-    @PostConstruct
-    public void init() {
-        caseManager.registerEngineExtension(SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value(), this);
+    @Override
+    public @NotNull Collection<String> getArchetypeOids() {
+        return List.of(SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
     }
 
     @Override
@@ -97,28 +92,7 @@ public class ApprovalsCaseEngineExtension implements EngineExtension {
     }
 
     @Override
-    public void enrichCaseAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result) {
-        primaryChangeProcessor.enrichCaseAuditRecord(auditEventRecord, operation);
-    }
-
-    @Override
-    public void enrichWorkItemCreatedAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseWorkItemType workItem,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result) {
-        primaryChangeProcessor.enrichWorkItemCreatedAuditRecord(auditEventRecord, operation);
-    }
-
-    @Override
-    public void enrichWorkItemDeletedAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseWorkItemType workItem,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result) {
-        primaryChangeProcessor.enrichWorkItemDeletedAuditRecord(auditEventRecord, operation);
+    public @NotNull AuditingExtension getAuditingExtension() {
+        return auditingExtension;
     }
 }

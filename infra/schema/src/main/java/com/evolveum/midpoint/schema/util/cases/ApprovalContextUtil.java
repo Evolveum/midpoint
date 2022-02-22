@@ -218,7 +218,7 @@ public class ApprovalContextUtil {
             return emptyList();
         }
         return actx.getPolicyRules().getEntry().stream()
-                .filter(e -> e.getStageMax() != null && e.getStageMax() != null
+                .filter(e -> e.getStageMax() != null
                         && order >= e.getStageMin() && order <= e.getStageMax())
                 .collect(Collectors.toList());
     }
@@ -587,5 +587,10 @@ public class ApprovalContextUtil {
         return MiscUtil.requireNonNull(
                 currentCase.getApprovalContext(),
                 () -> new IllegalStateException("No approval context in " + currentCase));
+    }
+
+    public static String getRequesterComment(CaseType aCase) {
+        OperationBusinessContextType businessContext = getBusinessContext(aCase);
+        return businessContext != null ? businessContext.getComment() : null;
     }
 }

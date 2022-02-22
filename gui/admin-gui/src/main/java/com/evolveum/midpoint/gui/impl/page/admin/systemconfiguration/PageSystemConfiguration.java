@@ -67,22 +67,20 @@ public class PageSystemConfiguration extends PageBase {
 
     private void initLayout() {
         IModel<List<CompositedIconButtonDto>> model = Model.ofList(Arrays.asList(
-                createCompositedButton("Basic", "fa fa-wrench", PageSystemBasic.class),
+                createCompositedButton("fa fa-wrench", PageSystemBasic.class),
 //                createCompositedButton("Object policies", "fa  fa-umbrella", PageObjectPoliciesConfiguration.class)
 //                createCompositedButton("Global policy rule", "fa fa-eye", PageGlobalPolicyRule.class)
 //                createCompositedButton("Global projection policy", "fa fa-globe", PageGlobalProjectionPolicy.class)
 //                createCompositedButton("Cleanup policy", "fa  fa-eraser", PageCleanupPolicy.class)
-                createCompositedButton("Notifications", "fa fa-envelope", PageSystemNotification.class),
-                createCompositedButton("Logging", "fa fa-file-text", PageSystemLogging.class),
-//                createCompositedButton("Profiling", "fa fa-camera", PageProfiling.class)
-                createCompositedButton("Admin GUI configuration", "fa fa-camera", PageSystemAdminGui.class),
-                createCompositedButton("Workflow configuration", "fa fa-camera", PageSystemWorkflow.class),
-                createCompositedButton("Role management", "fa fa-camera", PageRoleManagement.class),
-                createCompositedButton("Internals", "fa fa-camera", PageInternals.class),
-//                createCompositedButton("Deployment information", "fa fa-camera", PageDeploymentInformation.class)
-                createCompositedButton("Access certification", "fa fa-camera", PageAccessCertification.class)
-//                createCompositedButton("Infrastructure", "fa fa-camera", PageInfrastructure.class)
-//                createCompositedButton("Full text configuration", "fa fa-camera", PageFullTextSearch.class)
+                createCompositedButton("fa fa-camera", PageSystemPolicies.class),
+                createCompositedButton("fa fa-envelope", PageSystemNotification.class),
+                createCompositedButton("fa fa-file-text", PageSystemLogging.class),
+                createCompositedButton("fa fa-camera", PageProfiling.class),
+                createCompositedButton("fa fa-camera", PageSystemAdminGui.class),
+                createCompositedButton("fa fa-camera", PageSystemWorkflow.class),
+                createCompositedButton("fa fa-camera", PageRoleManagement.class),
+                createCompositedButton("fa fa-camera", PageSystemInternals.class),
+                createCompositedButton("fa fa-camera", PageAccessCertification.class)
         ));
 
         MultiCompositedButtonPanel panel = new MultiCompositedButtonPanel(ID_CONTAINER, model) {
@@ -96,14 +94,16 @@ public class PageSystemConfiguration extends PageBase {
         add(panel);
     }
 
-    private CompositedIconButtonDto createCompositedButton(String type, String icon, Class<? extends WebPage> page) {
+    private CompositedIconButtonDto createCompositedButton(String icon, Class<? extends WebPage> page) {
+        String title = page.getSimpleName() + ".title";
+
         CompositedIconButtonDto button = new CompositedIconButtonDto();
         CompositedIconBuilder builder = new CompositedIconBuilder();
-        builder.setTitle(type);
+        builder.setTitle(title);
         builder.setBasicIcon(icon, IconCssStyle.IN_ROW_STYLE);
         button.setCompositedIcon(builder.build());
         DisplayType displayType = new DisplayType();
-        displayType.setLabel(new PolyStringType(type));
+        displayType.setLabel(new PolyStringType(title));
         button.setAdditionalButtonDisplayType(displayType);
         button.setPage(page);
 

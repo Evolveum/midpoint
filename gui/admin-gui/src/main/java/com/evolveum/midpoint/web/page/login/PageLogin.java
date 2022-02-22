@@ -158,19 +158,13 @@ public class PageLogin extends AbstractPageLogin {
             }
         });
         if (securityPolicy != null) {
-            SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
-            if (selfRegistrationPolicy != null) {
-                String sequenceName = selfRegistrationPolicy.getAdditionalAuthenticationSequence() == null ? selfRegistrationPolicy.getAdditionalAuthenticationName() : selfRegistrationPolicy.getAdditionalAuthenticationSequence();
+            SelfRegistrationPolicyType policy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
+            if (policy != null) {
+                String sequenceName = policy.getAdditionalAuthenticationSequence() == null ? policy.getAdditionalAuthenticationName() : policy.getAdditionalAuthenticationSequence();
                 if (StringUtils.isNotBlank(sequenceName)) {
-                    AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(sequenceName,
-                            securityPolicy.getAuthentication());
+                    AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(sequenceName, securityPolicy.getAuthentication());
                     if (sequence != null) {
-                        registration.add(AttributeModifier.replace("href", new IModel<String>() {
-                            @Override
-                            public String getObject() {
-                                return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
-                            }
-                        }));
+                        registration.add(AttributeModifier.replace("href", () ->  "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix()));
                     }
                 }
             }

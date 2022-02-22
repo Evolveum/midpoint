@@ -301,7 +301,7 @@ public class ValueFormatter {
     }
 
     public String formatUserName(ObjectReferenceType ref, OperationResult result) {
-        UserType user = (UserType) functions.getObjectType(ref, true, result);
+        UserType user = (UserType) functions.getObject(ref, true, result);
         return formatUserName(user, ref.getOid());
     }
 

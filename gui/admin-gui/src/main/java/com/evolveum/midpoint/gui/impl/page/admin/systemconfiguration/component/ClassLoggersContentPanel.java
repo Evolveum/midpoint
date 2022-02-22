@@ -7,16 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 
-import java.util.Arrays;
-import java.util.List;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.model.IModel;
-
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -33,6 +23,18 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.model.IModel;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -78,13 +80,7 @@ public class ClassLoggersContentPanel extends MultivalueContainerListPanelWithDe
                     }
                 },
                 new PrismPropertyWrapperColumn<>(getContainerModel(), ClassLoggerConfigurationType.F_LEVEL,
-                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
-
-                    @Override
-                    protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> model) {
-                        ClassLoggersContentPanel.this.itemDetailsPerformed(target, model);
-                    }
-                }
+                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase())
         );
     }
 

@@ -11,4 +11,5 @@ package com.evolveum.midpoint.notifications.api.events;
  *
  */
 public interface WorkItemEvent {
+    SimpleObjectRef getAssignee();
 }

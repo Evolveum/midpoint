@@ -8,23 +8,86 @@
   -->
 
 <xsd:schema elementFormDefault="qualified"
-  targetNamespace="http://example.com/idmatch"
-  xmlns:tns="http://example.com/idmatch"
-  xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        targetNamespace="http://example.com/idmatch"
+        xmlns:tns="http://example.com/idmatch"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-  <xsd:complexType name="UserExtensionType">
-    <xsd:annotation>
-      <xsd:appinfo>
-        <a:extension ref="c:UserType"/>
-      </xsd:appinfo>
-    </xsd:annotation>
-    <xsd:sequence>
-      <!--<xsd:element name="referenceId" type="xsd:string" minOccurs="0"/>-->
-      <xsd:element name="nationalId" type="xsd:string" minOccurs="0"/>
-      <xsd:element name="dateOfBirth" type="xsd:string" minOccurs="0"/>
-      <xsd:element name="aisId" type="xsd:string" minOccurs="0"/> <!-- just to copy the attribute during fake pre-mapping -->
-    </xsd:sequence>
-  </xsd:complexType>
+    <xsd:complexType name="UserExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:UserType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="dateOfBirth" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>Date of birth</a:displayName>
+                        <a:displayOrder>200</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="nationalId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>National ID</a:displayName>
+                        <a:displayOrder>210</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="referenceId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ID Match Reference ID</a:displayName>
+                        <a:displayOrder>220</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AssignmentExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:AssignmentType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="sourceId" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="givenName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>Given name</a:displayName>
+                        <a:displayOrder>100</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="familyName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>Family name</a:displayName>
+                        <a:displayOrder>110</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="dateOfBirth" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>Date of birth</a:displayName>
+                        <a:displayOrder>120</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="nationalId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>National ID</a:displayName>
+                        <a:displayOrder>130</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>

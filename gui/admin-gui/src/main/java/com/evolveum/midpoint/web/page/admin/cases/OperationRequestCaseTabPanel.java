@@ -17,7 +17,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
-import com.evolveum.midpoint.wf.util.ChangesByState;
+import com.evolveum.midpoint.wf.api.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 import org.apache.wicket.markup.html.list.ListItem;

@@ -7,9 +7,8 @@
 
 package com.evolveum.midpoint.cases.impl.engine.actions;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier.AllocationChangeCurrent;
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier.ItemDeletion;
+import com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.AllocationChangeCurrent;
+import com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.ItemClosing;
 import com.evolveum.midpoint.cases.api.events.WorkItemAllocationChangeOperationInfo;
 import com.evolveum.midpoint.cases.api.events.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.cases.api.extensions.WorkItemCompletionResult;
@@ -188,17 +187,8 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
     }
 
     private void prepareAuditAndNotifications(CaseWorkItemType workItem, OperationResult result) {
-        prepareAuditRecord(workItem, result);
+        auditRecords.addWorkItemClosure(workItem, getCauseInformation(), result);
         prepareNotifications(workItem, result);
-    }
-
-    private void prepareAuditRecord(@NotNull CaseWorkItemType workItem, @NotNull OperationResult result) {
-        // We don't pass userRef (initiator) to the audit method. It does need the whole object (not only the reference),
-        // so it fetches it directly from the security enforcer (logged-in user). This could change in the future.
-        AuditEventRecord record = beans.auditHelper.prepareWorkItemDeletedAuditRecord(
-                workItem, getCauseInformation(), getCurrentCase(), result);
-        getEngineExtension().enrichWorkItemDeletedAuditRecord(record, workItem, operation, result);
-        operation.addAuditRecord(record);
     }
 
     private void prepareNotifications(CaseWorkItemType workItem, OperationResult result) {
@@ -212,15 +202,15 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
                     new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputies, null);
             WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(userRef, getCauseInformation(), null);
             if (workItem.getAssigneeRef().isEmpty()) {
-                operation.addNotification(
-                        new ItemDeletion(currentCase, workItem, operationInfo, sourceInfo, null));
+                notificationEvents.add(
+                        new ItemClosing(currentCase, workItem, operationInfo, sourceInfo, null));
             } else {
                 for (ObjectReferenceType assigneeOrDeputy : assigneesAndDeputies) {
-                    operation.addNotification(
-                            new ItemDeletion(currentCase, workItem, operationInfo, sourceInfo, assigneeOrDeputy));
+                    notificationEvents.add(
+                            new ItemClosing(currentCase, workItem, operationInfo, sourceInfo, assigneeOrDeputy));
                 }
             }
-            operation.addNotification(
+            notificationEvents.add(
                     new AllocationChangeCurrent(currentCase, workItem, operationInfo, sourceInfo, null));
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare notifications for work item closure event", e);

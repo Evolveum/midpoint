@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.cases.impl.engine.actions;
 
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier.OpenCase;
+import com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.CaseOpening;
 import com.evolveum.midpoint.cases.impl.engine.CaseEngineOperationImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -40,9 +40,9 @@ public class OpenCaseAction extends RequestedAction<OpenCaseRequest> {
             return null;
         }
 
-        operation.prepareOpenCaseAuditRecord(result);
-        operation.addNotification(
-                new OpenCase(currentCase));
+        auditRecords.addCaseOpening(result);
+        notificationEvents.add(
+                new CaseOpening(currentCase));
 
         currentCase.setState(SchemaConstants.CASE_STATE_OPEN);
 

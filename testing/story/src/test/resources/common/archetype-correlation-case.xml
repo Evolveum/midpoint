@@ -1,0 +1,55 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000345"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Correlation case</name>
+    <description>
+        Archetype for correlation cases.
+    </description>
+    <archetypePolicy>
+        <display>
+            <label>Correlation case</label>
+            <pluralLabel>Correlation cases</pluralLabel>
+            <icon>
+                <cssClass>fe fe-approver-object</cssClass> <!-- TODO -->
+            </icon>
+        </display>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <panel>
+                    <identifier>caseWorkItems</identifier>
+                    <display>
+                        <label>Workitems</label>
+                        <icon>
+                            <cssClass>fa fa-circle-o</cssClass>
+                        </icon>
+                    </display>
+                    <panelType>caseWorkItems</panelType>
+                    <type>c:CaseType</type>
+                </panel>
+                <panel>
+                    <identifier>correlationContext</identifier>
+                    <display>
+                        <label>Correlation</label>
+                        <icon>
+                            <cssClass>fa fa-circle-o</cssClass>
+                        </icon>
+                    </display>
+                    <displayOrder>40</displayOrder>
+                    <panelType>correlationContext</panelType>
+                    <type>c:CaseType</type>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+    <assignment>
+        <assignmentRelation>
+            <holderType>CaseType</holderType>
+        </assignmentRelation>
+    </assignment>
+</archetype>

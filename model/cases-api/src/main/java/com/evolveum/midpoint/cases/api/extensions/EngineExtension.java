@@ -7,14 +7,14 @@
 
 package com.evolveum.midpoint.cases.api.extensions;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
-import org.jetbrains.annotations.NotNull;
+import java.util.Collection;
 
 /**
  * Provides functionality that the case engine calls when dealing with specific case archetypes (like approval cases, etc).
@@ -24,6 +24,11 @@ import org.jetbrains.annotations.NotNull;
 public interface EngineExtension {
 
     /**
+     * Returns the case archetype OID(s) this extension handles.
+     */
+    @NotNull Collection<String> getArchetypeOids();
+
+    /**
      * Called to finish case closing procedure. E.g. for approvals we may submit execution task here.
      *
      * When called, the case should be in `closing` state. This may happen e.g. when approval execution task is submitted.
@@ -31,7 +36,7 @@ public interface EngineExtension {
      */
     void finishCaseClosing(@NotNull CaseEngineOperation operation, @NotNull OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
-            ExpressionEvaluationException, ConfigurationException, CommunicationException;
+            ExpressionEvaluationException, ConfigurationException, CommunicationException, SecurityViolationException;
 
     /**
      * Returns the number of stages the case is expected to go through. E.g. for approval cases, it is determined
@@ -66,29 +71,7 @@ public interface EngineExtension {
             @NotNull OperationResult result) throws SchemaException;
 
     /**
-     * TODO
+     * Returns an object that helps with audit records creation.
      */
-    void enrichCaseAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result);
-
-    /**
-     * TODO
-     */
-    void enrichWorkItemCreatedAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseWorkItemType workItem,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result);
-
-    /**
-     * TODO
-     */
-    void enrichWorkItemDeletedAuditRecord(
-            @NotNull AuditEventRecord auditEventRecord,
-            @NotNull CaseWorkItemType workItem,
-            @NotNull CaseEngineOperation operation,
-            @NotNull OperationResult result);
-
+    @NotNull AuditingExtension getAuditingExtension();
 }

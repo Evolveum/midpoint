@@ -38,10 +38,10 @@ public class CaseEventDispatcherImpl implements CaseEventDispatcher {
     }
 
     @Override
-    public void dispatchCaseCreationEvent(CaseType aCase, OperationResult result, Task task) {
+    public void dispatchCaseCreationEvent(CaseType aCase, Task task, OperationResult result) {
         for (CaseCreationListener listener : listeners) {
             try {
-                listener.onCaseCreation(aCase, result, task);
+                listener.onCaseCreation(aCase, task, result);
             } catch (Throwable t) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Exception when invoking case listener; case = {}", t, aCase);
             }

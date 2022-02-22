@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.cases.impl.engine.actions;
 
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier.AllocationChangeCurrent;
+import com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.AllocationChangeCurrent;
 import com.evolveum.midpoint.cases.impl.engine.CaseEngineOperationImpl;
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier;
+import com.evolveum.midpoint.cases.api.events.FutureNotificationEvent;
 import com.evolveum.midpoint.cases.impl.engine.helpers.WorkItemHelper;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -96,7 +96,7 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
                         ObjectTypeUtil.createObjectRef(operation.getPrincipal().getFocus(), beans.prismContext) : null;
 
         WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(initiator, causeInformation, null);
-        operation.addNotification(
+        notificationEvents.add(
                 new AllocationChangeCurrent(
                         operation.getCurrentCase(), workItem, operationInfoBefore, sourceInfo, null));
 
@@ -158,7 +158,7 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
                 beans.miscHelper.getAssigneesAndDeputies(workItem, operation.getTask(), result);
         WorkItemAllocationChangeOperationInfo operationInfoAfter =
                 new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputiesBefore, assigneesAndDeputiesAfter);
-        operation.addNotification(
-                new PendingNotificationEventSupplier.AllocationChangeNew(operation.getCurrentCase(), workItem, operationInfoAfter, sourceInfo));
+        notificationEvents.add(
+                new FutureNotificationEvent.AllocationChangeNew(operation.getCurrentCase(), workItem, operationInfoAfter, sourceInfo));
     }
 }

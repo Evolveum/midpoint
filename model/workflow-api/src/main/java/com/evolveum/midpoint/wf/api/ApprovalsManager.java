@@ -13,7 +13,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 

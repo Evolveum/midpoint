@@ -29,7 +29,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -75,10 +74,6 @@ public class CaseMiscHelper {
         } else {
             return new TypedValue<>(resolvedObject);
         }
-    }
-
-    public String getCompleteStageInfo(CaseType aCase) {
-        return ApprovalContextUtil.getCompleteStageInfo(aCase);
     }
 
     public List<ObjectReferenceType> getAssigneesAndDeputies(CaseWorkItemType workItem, Task task, OperationResult result)

@@ -150,13 +150,14 @@ public class AccountOperationListener implements ResourceOperationListener {
     }
 
     @NotNull
-    private ResourceObjectEventImpl createRequest(OperationStatus status,
+    private ResourceObjectEventImpl createRequest(
+            OperationStatus status,
             ResourceOperationDescription operationDescription,
             Task task,
             OperationResult result) {
 
-        ResourceObjectEventImpl event = new ResourceObjectEventImpl(lightweightIdentifierGenerator,
-                operationDescription, status);
+        ResourceObjectEventImpl event = new ResourceObjectEventImpl(
+                lightweightIdentifierGenerator, operationDescription, status);
 
         String accountOid = operationDescription.getObjectDelta().getOid();
 

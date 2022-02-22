@@ -391,14 +391,17 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
 
     //region Auditing
 
+    @Override
     public void enrichCaseAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation) {
         addDeltaIfNeeded(auditEventRecord, auditEventRecord.getEventStage() == REQUEST, operation.getCurrentCase());
     }
 
+    @Override
     public void enrichWorkItemCreatedAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation) {
         addDeltaIfNeeded(auditEventRecord, true, operation.getCurrentCase());
     }
 
+    @Override
     public void enrichWorkItemDeletedAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation) {
         addDeltaIfNeeded(auditEventRecord, true, operation.getCurrentCase());
     }

@@ -1,0 +1,19 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     oid="ed53d2bb-777d-4ef0-82a5-a351b8f7cbce">
+    <name>temp</name>
+    <assignment>
+        <targetRef oid="fbe37f25-1026-4293-ac48-071cc56b1a36" type="ArchetypeType"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="8e8f024b-c6da-42ba-82f5-d43e514e70eb" type="OrgType"/>
+    </assignment>
+    <displayName>Biochemistry</displayName>
+    <identifier>bioch</identifier>
+</org>

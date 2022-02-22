@@ -17,7 +17,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.wf.impl.util.ChangesSorter;
-import com.evolveum.midpoint.wf.util.ChangesByState;
+import com.evolveum.midpoint.wf.api.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;

@@ -22,6 +22,5 @@ public interface CaseEventDispatcher {
 
     void unregisterCaseCreationEventListener(CaseCreationListener listener);
 
-    void dispatchCaseCreationEvent(CaseType aCase, OperationResult result, Task task);
-
+    void dispatchCaseCreationEvent(CaseType aCase, Task task, OperationResult result);
 }

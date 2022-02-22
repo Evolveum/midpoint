@@ -163,7 +163,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
         }
         if (record.getInitiatorRef() == null && task != null) {
             PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
-            record.setInitiator(taskOwner, prismContext);
+            record.setInitiator(taskOwner);
         }
 
         if (record.getNodeIdentifier() == null && taskManager != null) {

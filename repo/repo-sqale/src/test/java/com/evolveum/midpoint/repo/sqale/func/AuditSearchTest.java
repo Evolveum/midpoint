@@ -97,8 +97,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         record1.setNodeIdentifier("node1");
         record1.setRemoteHostAddress("192.168.10.1");
         record1.setSessionIdentifier("session-1");
-        record1.setTarget(target, prismContext);
-        record1.setTargetOwner(targetOwner, prismContext);
+        record1.setTarget(target);
+        record1.setTargetOwner(targetOwner);
         record1.addDelta(createDelta(UserType.F_FULL_NAME)); // values are not even necessary
         record1.addDelta(createDelta(UserType.F_FAMILY_NAME, PolyString.fromOrig("familyNameVal")));
         ObjectDeltaOperation<UserType> delta3 = createDelta(ItemPath.create(
@@ -131,11 +131,11 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         record2.setEventStage(AuditEventStage.EXECUTION);
         record2.setMessage("record2");
         record2.setOutcome(OperationResultStatus.UNKNOWN);
-        record2.setInitiator(initiator, prismContext);
+        record2.setInitiator(initiator);
         record2.setHostIdentifier("127.0.0.1");
         record2.setRemoteHostAddress("192.168.10.2");
         record2.setSessionIdentifier("session-1"); // session-1 on purpose
-        record2.setAttorney(attorney, prismContext);
+        record2.setAttorney(attorney);
         record2.setRequestIdentifier("req-id");
         record2.addDelta(createDelta(UserType.F_FULL_NAME, PolyString.fromOrig("somePolyString")));
         record2.addDelta(createDelta(UserType.F_ADDITIONAL_NAME));

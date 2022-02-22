@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import javax.annotation.PostConstruct;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.transport.impl.legacy.LegacySimpleSmsTransport;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomTransportConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralTransportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MessageTransportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -159,11 +161,10 @@ public class TransportServiceImpl implements TransportService {
             return;
         }
 
-        for (CustomTransportConfigurationType customConfig : config.getCustomTransport()) {
-            createCustomTransport(customConfig);
-        }
-
-        // TODO other types
+        config.getMail().forEach(mailConfig -> createTransport(mailConfig, MailMessageTransport::new));
+        config.getSms().forEach(smsConfig -> createTransport(smsConfig, SmsMessageTransport::new));
+        config.getFile().forEach(fileConfig -> createTransport(fileConfig, FileMessageTransport::new));
+        config.getCustomTransport().forEach(this::createCustomTransport);
     }
 
     private void clearPreviousConfiguration() {
@@ -184,11 +185,25 @@ public class TransportServiceImpl implements TransportService {
             //noinspection unchecked
             Transport<CustomTransportConfigurationType> transport = className != null
                     ? (Transport<CustomTransportConfigurationType>) Class.forName(className).getConstructor().newInstance()
-                    : new CustomTransport();
-            transport.init(customConfig, transportSupport);
+                    : new CustomMessageTransport();
+            transport.configure(customConfig, transportSupport);
             registerTransport(transport);
+            transportsFromSysConfig.add(transport.getName());
         } catch (ReflectiveOperationException | ClassCastException e) {
             LOGGER.warn("CustomTransportConfigurationType creation problem, IGNORING: {}", customConfig, e);
         }
+    }
+
+    private <C extends GeneralTransportConfigurationType> void createTransport(
+            C transportConfig, Supplier<Transport<C>> transportSupplier) {
+        String name = transportConfig.getName();
+        if (name == null) {
+            LOGGER.warn("{} without name - IGNORING: {}", transportConfig.getClass().getSimpleName(), transportConfig);
+            return;
+        }
+        Transport<C> transport = transportSupplier.get();
+        transport.configure(transportConfig, transportSupport);
+        registerTransport(transport);
+        transportsFromSysConfig.add(transport.getName());
     }
 }

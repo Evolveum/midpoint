@@ -83,7 +83,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
         record.setParameter(username);
         if (focus != null) {
-            record.setInitiator(focus.asPrismObject(), prismContext);
+            record.setInitiator(focus.asPrismObject());
         }
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(status);
@@ -100,7 +100,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         }
         AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
         PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
-        record.setInitiatorAndLoginParameter(taskOwner, prismContext);
+        record.setInitiatorAndLoginParameter(taskOwner);
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
         storeConnectionEnvironment(record, connEnv);

@@ -22,7 +22,6 @@ import com.evolveum.midpoint.model.api.correlator.idmatch.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -150,6 +149,7 @@ class IdMatchCorrelator implements Correlator {
                         resourceObject,
                         correlationContext.getPreFocus(),
                         createPotentialOwnersBean(mResult, result),
+                        task,
                         result);
                 return CorrelationResult.uncertain();
             }
@@ -259,8 +259,8 @@ class IdMatchCorrelator implements Correlator {
 
     @Override
     public void resolve(
-            @NotNull PrismObject<CaseType> aCase,
-            @NotNull AbstractWorkItemOutputType output,
+            @NotNull CaseType aCase,
+            @NotNull String outcomeUri,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, CommunicationException {
         ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(aCase);
@@ -270,7 +270,7 @@ class IdMatchCorrelator implements Correlator {
                 MiscUtil.castSafely(shadow.getCorrelationState(), IdMatchCorrelationStateType.class),
                 () -> new IllegalStateException("No correlation state in shadow " + shadow + " in " + aCase));
         String matchRequestId = state.getMatchRequestId();
-        String correlatedReferenceId = getCorrelatedReferenceId(aCase, output);
+        String correlatedReferenceId = getCorrelatedReferenceId(outcomeUri);
 
         service.resolve(idMatchObject, matchRequestId, correlatedReferenceId, result);
     }
@@ -280,10 +280,7 @@ class IdMatchCorrelator implements Correlator {
                 .create();
     }
 
-    private String getCorrelatedReferenceId(PrismObject<CaseType> aCase, AbstractWorkItemOutputType output)
-            throws SchemaException {
-        String outcomeUri = output.getOutcome();
-        argCheck(outcomeUri != null, "No outcome URI for %s", aCase);
+    private String getCorrelatedReferenceId(@NotNull String outcomeUri) throws SchemaException {
         String outcome = uriToQName(outcomeUri, true).getLocalPart();
         if (SchemaConstants.CORRELATION_NONE.equals(outcome)) {
             return null;
@@ -293,5 +290,4 @@ class IdMatchCorrelator implements Correlator {
             throw new SchemaException("Unsupported outcome URI: " + outcomeUri);
         }
     }
-
 }

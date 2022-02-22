@@ -7,9 +7,8 @@
 
 package com.evolveum.midpoint.cases.impl.engine.actions;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
-import com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier.AllocationChangeNew;
+import com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.AllocationChangeNew;
 import com.evolveum.midpoint.cases.api.extensions.EngineExtension;
 import com.evolveum.midpoint.cases.api.extensions.StageOpeningResult;
 import com.evolveum.midpoint.cases.impl.engine.CaseEngineOperationImpl;
@@ -29,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-import static com.evolveum.midpoint.cases.api.events.PendingNotificationEventSupplier.*;
+import static com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.*;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
@@ -112,14 +111,8 @@ class OpenStageAction extends InternalAction {
     }
 
     private void prepareAuditAndNotifications(CaseWorkItemType workItem, OperationResult result) {
-        prepareAuditRecord(workItem, result);
+        auditRecords.addWorkItemCreation(workItem, result);
         prepareNotifications(workItem, result);
-    }
-
-    private void prepareAuditRecord(CaseWorkItemType workItem, OperationResult result) {
-        AuditEventRecord record = beans.auditHelper.prepareWorkItemCreatedAuditRecord(workItem, getCurrentCase(), result);
-        getEngineExtension().enrichWorkItemCreatedAuditRecord(record, workItem, operation, result);
-        operation.addAuditRecord(record);
     }
 
     private void prepareNotifications(CaseWorkItemType workItem, OperationResult result) {
@@ -141,7 +134,7 @@ class OpenStageAction extends InternalAction {
             CaseWorkItemType workItem, CaseType currentCase, List<ObjectReferenceType> assigneesAndDeputies) {
         for (ObjectReferenceType assigneesOrDeputy : assigneesAndDeputies) {
             // we assume originalAssigneeRef == assigneeRef in this case
-            operation.addNotification(
+            notificationEvents.add(
                     new ItemCreation(currentCase, workItem, null, null, assigneesOrDeputy));
         }
     }
@@ -153,7 +146,7 @@ class OpenStageAction extends InternalAction {
             CaseWorkItemType workItem, CaseType currentCase, List<ObjectReferenceType> assigneesAndDeputies) {
         WorkItemAllocationChangeOperationInfo operationInfo =
                 new WorkItemAllocationChangeOperationInfo(null, List.of(), assigneesAndDeputies);
-        operation.addNotification(
+        notificationEvents.add(
                 new AllocationChangeNew(currentCase, workItem, operationInfo, null));
     }
 }

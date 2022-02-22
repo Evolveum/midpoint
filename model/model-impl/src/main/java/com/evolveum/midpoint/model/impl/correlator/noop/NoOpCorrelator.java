@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.correlator.noop;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 import org.jetbrains.annotations.NotNull;
@@ -41,8 +39,8 @@ class NoOpCorrelator implements Correlator {
 
     @Override
     public void resolve(
-            @NotNull PrismObject<CaseType> aCase,
-            @NotNull AbstractWorkItemOutputType output,
+            @NotNull CaseType aCase,
+            @NotNull String outcomeUri,
             @NotNull Task task,
             @NotNull OperationResult result) {
         // This correlator should never create any correlation cases.

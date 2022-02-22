@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.Duration;
 
-public class WorkItemEventImpl extends WorkflowEventImpl implements WorkItemEvent {
+public class WorkItemEventImpl extends CaseManagementEventImpl implements WorkItemEvent {
 
     @NotNull protected final CaseWorkItemType workItem;
     // (Currently) Each work item event is related to at most one assignee. So, if a work item has more assignees,
@@ -68,7 +68,8 @@ public class WorkItemEventImpl extends WorkflowEventImpl implements WorkItemEven
 
     @Override
     public boolean isCategoryType(EventCategoryType eventCategory) {
-        return eventCategory == EventCategoryType.WORK_ITEM_EVENT || eventCategory == EventCategoryType.WORKFLOW_EVENT;
+        return eventCategory == EventCategoryType.WORK_ITEM_EVENT
+                || eventCategory == EventCategoryType.WORKFLOW_EVENT;
     }
 
     public SimpleObjectRef getAssignee() {
@@ -115,14 +116,14 @@ public class WorkItemEventImpl extends WorkflowEventImpl implements WorkItemEven
     }
 
     @Override
-    public String getOutcome() {
+    public String getCaseOrItemOutcome() {
         AbstractWorkItemOutputType output = getOutput();
         return output != null ? output.getOutcome() : null;
     }
 
     @Override
     public String toString() {
-        return "WorkflowProcessEvent{" +
+        return getClass().getSimpleName() + "{" +
                 "workflowEvent=" + super.toString() +
                 ", workItemName=" + getWorkItemName() +
                 ", assignee=" + assignee +

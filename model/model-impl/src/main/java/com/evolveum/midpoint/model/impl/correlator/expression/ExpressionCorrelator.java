@@ -82,8 +82,8 @@ class ExpressionCorrelator implements Correlator {
 
     @Override
     public void resolve(
-            @NotNull PrismObject<CaseType> aCase,
-            @NotNull AbstractWorkItemOutputType output,
+            @NotNull CaseType aCase,
+            @NotNull String outcomeUri,
             @NotNull Task task,
             @NotNull OperationResult result) {
         // This correlator should never create any correlation cases.
@@ -121,6 +121,7 @@ class ExpressionCorrelator implements Correlator {
                     correlationContext.getPreFocus(),
                     candidateOwners,
                     correlationContext,
+                    task,
                     result);
         }
 

@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.cases.api;
 
-import com.evolveum.midpoint.cases.api.extensions.EngineExtension;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -108,7 +107,7 @@ public interface CaseManager {
     }
 
     // TODO decide on the fate of this method
-    void registerWorkflowListener(CaseEventCreationListener workflowListener);
+    void registerCaseEventCreationListener(@NotNull CaseEventCreationListener listener);
 
     // TODO decide on the fate of this method
     boolean isCurrentUserAuthorizedToSubmit(CaseWorkItemType workItem, Task task, OperationResult result)
@@ -125,7 +124,4 @@ public interface CaseManager {
 
     // TODO decide on the fate of this method
     PerformerCommentsFormatter createPerformerCommentsFormatter(PerformerCommentsFormattingType formatting);
-
-    // TODO
-    void registerEngineExtension(@NotNull String archetypeOid, @NotNull EngineExtension extension);
 }

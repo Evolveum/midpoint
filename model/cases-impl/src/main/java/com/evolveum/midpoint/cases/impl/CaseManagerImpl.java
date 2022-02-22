@@ -8,8 +8,6 @@ package com.evolveum.midpoint.cases.impl;
 
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.cases.api.extensions.EngineExtension;
-
 import com.evolveum.midpoint.cases.impl.engine.CaseEngineImpl;
 
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +19,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.cases.api.events.CaseEventCreationListener;
 import com.evolveum.midpoint.cases.api.util.PerformerCommentsFormatter;
-import com.evolveum.midpoint.cases.impl.engine.helpers.CaseNotificationHelper;
 import com.evolveum.midpoint.cases.impl.helpers.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -50,7 +47,7 @@ public class CaseManagerImpl implements CaseManager {
 
     @Autowired private CaseManagementHelper caseManagementHelper;
     @Autowired private CaseCleaner caseCleaner;
-    @Autowired private CaseNotificationHelper notificationHelper;
+    @Autowired private NotificationHelper notificationHelper;
     @Autowired private WorkItemManager workItemManager;
     @Autowired private AuthorizationHelper authorizationHelper;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
@@ -69,7 +66,8 @@ public class CaseManagerImpl implements CaseManager {
             @Nullable WorkItemEventCauseInformationType causeInformation,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
         try {
             workItemManager.completeWorkItem(workItemId, output, causeInformation, task, parentResult);
         } catch (ObjectAlreadyExistsException e) {
@@ -165,8 +163,8 @@ public class CaseManagerImpl implements CaseManager {
     }
 
     @Override
-    public void registerWorkflowListener(CaseEventCreationListener workflowListener) {
-        notificationHelper.registerWorkItemListener(workflowListener);
+    public void registerCaseEventCreationListener(@NotNull CaseEventCreationListener listener) {
+        notificationHelper.registerNotificationEventCreationListener(listener);
     }
 
     @Override
@@ -191,10 +189,5 @@ public class CaseManagerImpl implements CaseManager {
     @Override
     public PerformerCommentsFormatter createPerformerCommentsFormatter(PerformerCommentsFormattingType formatting) {
         return new PerformerCommentsFormatterImpl(formatting, repositoryService, expressionEvaluationHelper);
-    }
-
-    @Override
-    public void registerEngineExtension(@NotNull String archetypeOid, @NotNull EngineExtension extension) {
-        caseEngine.registerEngineExtension(archetypeOid, extension);
     }
 }

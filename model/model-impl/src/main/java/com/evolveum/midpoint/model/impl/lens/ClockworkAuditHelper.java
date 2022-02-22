@@ -146,7 +146,7 @@ public class ClockworkAuditHelper {
         }
 
         if (primaryObject != null) {
-            auditRecord.setTarget(primaryObject, prismContext);
+            auditRecord.setTarget(primaryObject);
             if (recordResourceOids) {
                 if (primaryObject.getRealValue() instanceof FocusType) {
                     FocusType focus = (FocusType) primaryObject.getRealValue();

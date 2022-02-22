@@ -204,7 +204,7 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
-import com.evolveum.midpoint.wf.util.ChangesByState;
+import com.evolveum.midpoint.wf.api.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;

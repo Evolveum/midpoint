@@ -191,7 +191,7 @@ public class LegacyCustomTransport implements Transport<GeneralTransportConfigur
     }
 
     @Override
-    public void init(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
+    public void configure(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
         // not called for legacy transport component
     }
 

@@ -7,13 +7,10 @@
 
 package com.evolveum.midpoint.cases.impl.engine;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +24,7 @@ import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.cases.api.extensions.EngineExtension;
 import com.evolveum.midpoint.cases.api.request.OpenCaseRequest;
 import com.evolveum.midpoint.cases.api.request.Request;
-import com.evolveum.midpoint.cases.impl.engine.helpers.CaseAuditHelper;
-import com.evolveum.midpoint.cases.impl.engine.helpers.CaseNotificationHelper;
+import com.evolveum.midpoint.cases.impl.engine.extension.DefaultEngineExtension;
 import com.evolveum.midpoint.cases.impl.engine.helpers.TriggerHelper;
 import com.evolveum.midpoint.cases.impl.engine.helpers.WorkItemHelper;
 import com.evolveum.midpoint.cases.impl.helpers.AuthorizationHelper;
@@ -49,6 +45,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Manages lifecycle of case objects.
@@ -102,8 +99,6 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
     @Autowired @Qualifier("cacheRepositoryService") public RepositoryService repositoryService;
     @Autowired public PrismContext prismContext;
     @Autowired public SecurityEnforcer securityEnforcer;
-    @Autowired public CaseAuditHelper caseAuditHelper;
-    @Autowired public CaseNotificationHelper notificationHelper;
     @Autowired public CaseMiscHelper miscHelper;
     @Autowired public TriggerHelper triggerHelper;
     @Autowired public CaseExpressionEvaluationHelper expressionEvaluationHelper;
@@ -111,8 +106,7 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
     @Autowired public AuthorizationHelper authorizationHelper;
     @Autowired private CaseEventDispatcher caseEventDispatcher;
     @Autowired private ArchetypeManager archetypeManager;
-
-    @NotNull private final Map<String, EngineExtension> engineExtensionMap = new HashMap<>();
+    @Autowired private List<EngineExtension> engineExtensions;
 
     @PostConstruct
     public void init() {
@@ -184,13 +178,19 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
         String archetypeOid = getCaseArchetypeOid(aCase, result);
         LOGGER.trace("Going to determine engine extension for {}, archetype: {}", aCase, archetypeOid);
         if (archetypeOid != null) {
-            EngineExtension fromMap = engineExtensionMap.get(archetypeOid);
-            LOGGER.trace("Information from the map of registered extensions: {}", fromMap);
-            if (fromMap != null) {
-                return fromMap;
+            Optional<EngineExtension> found = findRegisteredExtension(archetypeOid);
+            LOGGER.trace("Information from the collection of registered extensions: {}", found);
+            if (found.isPresent()) {
+                return found.get();
             }
         }
-        return new DefaultEngineExtension(beans);
+        return new DefaultEngineExtension();
+    }
+
+    private Optional<EngineExtension> findRegisteredExtension(@NotNull String archetypeOid) {
+        return engineExtensions.stream()
+                .filter(e -> e.getArchetypeOids().contains(archetypeOid))
+                .findFirst();
     }
 
     private String getCaseArchetypeOid(@NotNull PrismObject<CaseType> aCase, OperationResult result) throws SchemaException {
@@ -219,16 +219,12 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
      * It is in order to process them by e.g. sending the notifications or auditing the case creation.
      */
     @Override
-    public void onCaseCreation(CaseType aCase, OperationResult result, Task task) {
+    public void onCaseCreation(CaseType aCase, Task task, OperationResult result) {
         try {
             executeRequest(
                     new OpenCaseRequest(aCase.getOid()), task, result);
         } catch (CommonException e) {
             throw new SystemException("Couldn't open the case: " + aCase, e);
         }
-    }
-
-    public void registerEngineExtension(String archetypeOid, EngineExtension extension) {
-        engineExtensionMap.put(archetypeOid, extension);
     }
 }
