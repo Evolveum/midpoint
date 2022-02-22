@@ -220,7 +220,7 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
         return object != null && aClass.isAssignableFrom(object.asObjectable().getClass());
     }
 
-    PrismObjectDefinition<O> getObjectDefinition() {
+    @NotNull PrismObjectDefinition<O> getObjectDefinition() {
         if (objectDefinition == null) {
             PrismObjectDefinition<O> rawDefinition = null;
             if (oldObject != null) {

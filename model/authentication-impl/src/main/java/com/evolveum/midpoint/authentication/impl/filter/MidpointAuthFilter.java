@@ -390,10 +390,12 @@ public class MidpointAuthFilter extends GenericFilterBean {
             PrismObject<SecurityPolicyType> securityPolicy = getSecurityPolicy();
             if (securityPolicy != null) {
                 SelfRegistrationPolicyType selfReg = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy.asObjectable());
-                if (selfReg != null
-                    && StringUtils.isNotBlank(selfReg.getAdditionalAuthenticationName())
-                    && SecurityPolicyUtil.getAuthenticationPolicy(selfReg.getAdditionalAuthenticationName(), securityPolicy.asObjectable()) != null) {
-                    return true;
+                if (selfReg != null) {
+                    String sequenceName = selfReg.getAdditionalAuthenticationSequence() == null ? selfReg.getAdditionalAuthenticationName() : selfReg.getAdditionalAuthenticationSequence();
+                    if (StringUtils.isNotBlank(sequenceName)
+                            && SecurityPolicyUtil.getAuthenticationPolicy(sequenceName, securityPolicy.asObjectable()) != null) {
+                        return true;
+                    }
                 }
             }
         } catch (SchemaException e) {

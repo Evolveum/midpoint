@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.api.component.result;
 
-import java.io.Serializable;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -15,7 +13,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
@@ -23,14 +20,27 @@ public class MessagePanel extends BasePanel<String> {
 
     private static final String ID_MESSAGE = "message";
 
+    private static final String ID_DETAILS_BOX = "detailsBox";
+
+    private static final String ID_ICON_TYPE = "iconType";
+
+    private static final String ID_CLOSE = "close";
+
     public enum MessagePanelType {INFO, WARN, SUCCESS, ERROR}
 
     private MessagePanelType type;
 
-    public MessagePanel(String id, MessagePanelType type, IModel<String> model) {
-        super(id, model);
-        this.type = type;
+    private boolean closeVisible;
 
+    public MessagePanel(String id, MessagePanelType type, IModel<String> model) {
+        this(id, type, model, true);
+    }
+
+    public MessagePanel(String id, MessagePanelType type, IModel<String> model, boolean closeVisible) {
+        super(id, model);
+
+        this.type = type;
+        this.closeVisible = closeVisible;
     }
 
     @Override
@@ -40,19 +50,16 @@ public class MessagePanel extends BasePanel<String> {
     }
 
     public void initLayout() {
-
-        WebMarkupContainer detailsBox = new WebMarkupContainer("detailsBox");
+        WebMarkupContainer detailsBox = new WebMarkupContainer(ID_DETAILS_BOX);
         detailsBox.setOutputMarkupId(true);
         detailsBox.add(AttributeModifier.append("class", createHeaderCss()));
         add(detailsBox);
 
         initHeader(detailsBox);
-
     }
 
     private IModel<String> createHeaderCss() {
-
-        return (IModel<String>) () -> {
+        return () -> {
             switch (type) {
                 case INFO:
                     return " box-info";
@@ -60,18 +67,17 @@ public class MessagePanel extends BasePanel<String> {
                     return " box-success";
                 case ERROR:
                     return " box-danger";
-                case WARN: // TODO:
+                case WARN:
                 default:
                     return " box-warning";
-                }
-            };
+            }
+        };
     }
 
     private void initHeader(WebMarkupContainer box) {
-        WebMarkupContainer iconType = new WebMarkupContainer("iconType");
+        WebMarkupContainer iconType = new WebMarkupContainer(ID_ICON_TYPE);
         iconType.setOutputMarkupId(true);
-        iconType.add(new AttributeAppender("class", (IModel) () -> {
-
+        iconType.add(AttributeAppender.append("class", () -> {
             switch (type) {
                 case INFO:
                     return " fa-info";
@@ -82,29 +88,29 @@ public class MessagePanel extends BasePanel<String> {
                 case WARN:
                 default:
                     return " fa-warning";
-                }
-            }));
+            }
+        }));
 
         box.add(iconType);
 
-        Label message =  new Label(ID_MESSAGE, getModel());
+        Label message = new Label(ID_MESSAGE, getModel());
         box.add(message);
 
-        AjaxLink<Void> close = new AjaxLink<Void>("close") {
+        AjaxLink<Void> close = new AjaxLink<>(ID_CLOSE) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 close(target);
-
             }
         };
+        close.setVisible(closeVisible);
 
         box.add(close);
     }
 
-    public void close(AjaxRequestTarget target){
+    public void close(AjaxRequestTarget target) {
         this.setVisible(false);
         target.add(this);
     }

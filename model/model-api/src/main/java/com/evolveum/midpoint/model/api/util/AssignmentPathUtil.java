@@ -23,9 +23,6 @@ import javax.xml.namespace.QName;
 import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
-/**
- * @author mederly
- */
 public class AssignmentPathUtil {
 
     // works with native assignment path (AssignmentPath)

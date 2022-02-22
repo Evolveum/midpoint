@@ -16,8 +16,6 @@ import org.jetbrains.annotations.NotNull;
  * but also exit handler immediately if there's any issue.
  *
  * Experimental.
- *
- * @author mederly
  */
 public class ExitHandlerException extends Exception {
 

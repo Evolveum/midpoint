@@ -35,10 +35,8 @@ import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregoria
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
 /**
- * A generic instruction to start a background task; with or without a workflow process instance.
+ * A generic instruction to create a case (operation request or approval case).
  * May be subclassed in order to add further functionality.
- *
- * @author mederly
  */
 public class StartInstruction implements DebugDumpable {
 
@@ -46,12 +44,13 @@ public class StartInstruction implements DebugDumpable {
     private static final Trace LOGGER = TraceManager.getTrace(StartInstruction.class);
 
     protected final CaseType aCase;
+
     private final ChangeProcessor changeProcessor;
 
     //region Constructors
     protected StartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
         this.changeProcessor = changeProcessor;
-        PrismContext prismContext = changeProcessor.getPrismContext();
+        PrismContext prismContext = PrismContext.get();
         aCase = new CaseType(prismContext);
         ObjectReferenceType approvalArchetypeRef = ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE);
         aCase.getArchetypeRef().add(approvalArchetypeRef.clone());
@@ -69,8 +68,6 @@ public class StartInstruction implements DebugDumpable {
     protected ChangeProcessor getChangeProcessor() {
         return changeProcessor;
     }
-
-    protected PrismContext getPrismContext() { return changeProcessor.getPrismContext(); }
 
     public void setName(String name) {
         aCase.setName(PolyStringType.fromOrig(name));
@@ -116,9 +113,9 @@ public class StartInstruction implements DebugDumpable {
         ObjectDelta<?> primaryDelta = ctx.modelContext.getFocusContext().getPrimaryDelta();
         ObjectReferenceType ref;
         if (primaryDelta != null && primaryDelta.isAdd()) {
-            ref = ObjectTypeUtil.createObjectRefWithFullObject(focus, getPrismContext());
+            ref = ObjectTypeUtil.createObjectRefWithFullObject(focus, PrismContext.get());
         } else {
-            ref = ObjectTypeUtil.createObjectRef(focus, getPrismContext());
+            ref = ObjectTypeUtil.createObjectRef(focus, PrismContext.get());
         }
         aCase.setObjectRef(ref);
     }
@@ -129,7 +126,7 @@ public class StartInstruction implements DebugDumpable {
     }
 
     public void setRequesterRef(PrismObject<? extends FocusType> requester) {
-        aCase.setRequestorRef(createObjectRef(requester, getPrismContext()));
+        aCase.setRequestorRef(createObjectRef(requester, PrismContext.get()));
     }
 
     public ApprovalContextType getApprovalContext() {
@@ -163,7 +160,7 @@ public class StartInstruction implements DebugDumpable {
     }
 
     public void setParent(CaseType parent) {
-        aCase.setParentRef(ObjectTypeUtil.createObjectRef(parent, getPrismContext()));
+        aCase.setParentRef(ObjectTypeUtil.createObjectRef(parent, PrismContext.get()));
     }
     //endregion
 

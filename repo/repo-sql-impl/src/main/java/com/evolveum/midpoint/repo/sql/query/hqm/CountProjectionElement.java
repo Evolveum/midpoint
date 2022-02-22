@@ -9,9 +9,6 @@ package com.evolveum.midpoint.repo.sql.query.hqm;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class CountProjectionElement extends ProjectionElement {
 
     @NotNull private final String item;

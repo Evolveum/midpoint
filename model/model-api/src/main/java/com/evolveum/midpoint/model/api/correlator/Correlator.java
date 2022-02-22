@@ -7,11 +7,9 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 import org.jetbrains.annotations.NotNull;
@@ -41,10 +39,12 @@ public interface Correlator {
 
     /**
      * Resolves a correlation case using provided work item output.
+     *
+     * TODO shouldn't we take outcome URI directly from the case?
      */
     void resolve(
-            @NotNull PrismObject<CaseType> aCase,
-            @NotNull AbstractWorkItemOutputType output,
+            @NotNull CaseType aCase,
+            @NotNull String outcomeUri,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, CommunicationException;
 }

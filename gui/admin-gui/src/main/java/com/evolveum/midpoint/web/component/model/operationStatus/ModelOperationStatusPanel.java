@@ -17,9 +17,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
-/**
- * @author mederly
- */
 public class ModelOperationStatusPanel extends BasePanel<ModelOperationStatusDto> {
 
     private static final String ID_STATE = "state";

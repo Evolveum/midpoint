@@ -31,7 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * @author lazyman
- * @author mederly
  * <p>
  * Reference contained in a certification work item.
  */

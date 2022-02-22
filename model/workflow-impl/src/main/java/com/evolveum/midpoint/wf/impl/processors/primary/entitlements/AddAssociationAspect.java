@@ -45,8 +45,6 @@ import java.util.*;
  * Aspect for adding associations.
  *
  * In current version it treats associations that are DIRECTLY added, i.e. not as a part of an assignment.
- *
- * @author mederly
  */
 @Component
 public class AddAssociationAspect extends BasePrimaryChangeAspect {

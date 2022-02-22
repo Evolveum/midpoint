@@ -59,7 +59,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
         return getFullCorrelationContext(
-                CorrelatorUtil.getShadowFromCorrelationCase(aCase),
+                CorrelatorUtil.getShadowFromCorrelationCase(aCase.asObjectable()),
                 task, result);
     }
 

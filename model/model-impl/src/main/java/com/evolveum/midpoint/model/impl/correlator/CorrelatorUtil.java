@@ -71,18 +71,18 @@ public class CorrelatorUtil {
         return variables;
     }
 
-    public static @NotNull ShadowType getShadowFromCorrelationCase(@NotNull PrismObject<CaseType> aCase) throws SchemaException {
+    public static @NotNull ShadowType getShadowFromCorrelationCase(@NotNull CaseType aCase) throws SchemaException {
         return MiscUtil.requireNonNull(
                 MiscUtil.castSafely(
-                        ObjectTypeUtil.getObjectFromReference(aCase.asObjectable().getObjectRef()),
+                        ObjectTypeUtil.getObjectFromReference(aCase.getObjectRef()),
                         ShadowType.class),
                 () -> new IllegalStateException("No shadow object in " + aCase));
     }
 
-    public static @NotNull FocusType getPreFocusFromCorrelationCase(@NotNull PrismObject<CaseType> aCase) throws SchemaException {
+    public static @NotNull FocusType getPreFocusFromCorrelationCase(@NotNull CaseType aCase) throws SchemaException {
         CorrelationContextType correlationContext =
                 MiscUtil.requireNonNull(
-                        aCase.asObjectable().getCorrelationContext(),
+                        aCase.getCorrelationContext(),
                         () -> new IllegalStateException("No correlation context in " + aCase));
         return MiscUtil.requireNonNull(
                 MiscUtil.castSafely(

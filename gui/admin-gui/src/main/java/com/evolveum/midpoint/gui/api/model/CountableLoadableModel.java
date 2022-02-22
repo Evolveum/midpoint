@@ -12,8 +12,6 @@ import java.util.List;
 /**
  * A loadable model of a list that knows how to provide count of list items without having to retrieve the actual data.
  * Useful e.g. to implement MID-3938 (Optimize midPoint for many focus assignments).
- *
- * @author mederly
  */
 public abstract class CountableLoadableModel<T> extends LoadableModel<List<T>> {
 

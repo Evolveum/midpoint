@@ -33,7 +33,6 @@ import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 /**
  * @author lazyman
- * @author mederly
  */
 public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkItemDto> {
 

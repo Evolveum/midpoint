@@ -221,7 +221,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Stage number - if process can be conceptually divided into stages. Starts at 1.
-                                Null if not applicable. (Stored in process variable "stageNumber".)
+                                Null if not applicable. Zero if the first stage hasn't been opened.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

@@ -10,9 +10,6 @@ package com.evolveum.midpoint.wf.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class ExpectedTask {
     final String targetOid;
     final String processName;

@@ -15,9 +15,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-/**
- * @author mederly
- */
 public class ModelContextUtil {
 
     public static <O extends ObjectType> ModelContext<O> unwrapModelContext(LensContextType lensContextType,

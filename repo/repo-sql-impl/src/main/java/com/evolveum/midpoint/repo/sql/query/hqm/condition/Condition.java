@@ -14,8 +14,6 @@ import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
 /**
  * Condition in HQL.
- *
- * @author mederly
  */
 public abstract class Condition {
 

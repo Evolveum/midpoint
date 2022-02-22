@@ -24,9 +24,6 @@ import java.util.Collection;
 
 import static org.testng.AssertJUnit.*;
 
-/**
- * @author mederly
- */
 public abstract class AbstractPrismValueParserTest<T extends PrismValue> extends AbstractParserTest {
 
     protected void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,

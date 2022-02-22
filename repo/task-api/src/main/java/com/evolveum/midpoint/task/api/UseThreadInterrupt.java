@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.task.api;
 
-/**
- * @author Pavol Mederly
- */
 public enum UseThreadInterrupt {
 
     NEVER("never"), WHEN_NECESSARY("whenNecessary"), ALWAYS("always");

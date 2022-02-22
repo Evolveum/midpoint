@@ -38,9 +38,6 @@ import static org.testng.AssertJUnit.assertNotNull;
  * Tests various aspects of consistency mechanism. Unlike the complex story test,
  * those tests here are much simpler (e.g. use dummy resource instead of OpenDJ)
  * and relatively isolated.
- *
- * @author mederly
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

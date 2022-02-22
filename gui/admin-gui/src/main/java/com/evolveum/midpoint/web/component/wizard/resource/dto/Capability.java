@@ -11,9 +11,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author mederly
- */
 public enum Capability {
 
     ACTIVATION(ActivationCapabilityType.class, "Activation", "activation"),

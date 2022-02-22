@@ -11,9 +11,6 @@ import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 
-/**
- * @author mederly
- */
 public class RecordingProgressListener implements ProgressListener {
     private ModelContext modelContext;
 

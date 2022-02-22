@@ -42,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
  *  as o.localityUser or o.locality. (Maybe there are other attributes like that, I don't know.)
  *
  * @author lazyman
- * @author mederly
  */
 public abstract class Restriction<T extends ObjectFilter> {
 

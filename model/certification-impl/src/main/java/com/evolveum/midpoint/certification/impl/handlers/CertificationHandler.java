@@ -25,9 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 
-/**
- * @author mederly
- */
 public interface CertificationHandler {
 
     /**

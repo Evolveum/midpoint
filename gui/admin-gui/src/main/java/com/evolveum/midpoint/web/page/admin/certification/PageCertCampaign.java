@@ -67,9 +67,6 @@ import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHel
 import static com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.*;
 
-/**
- * @author mederly
- */
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/certification/campaign", matchUrlForSecurity = "/admin/certification/campaign")

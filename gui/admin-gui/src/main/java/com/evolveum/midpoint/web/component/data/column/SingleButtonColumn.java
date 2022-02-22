@@ -19,7 +19,6 @@ import java.io.Serializable;
  * EXPERIMENTAL
  *
  *  @author shood
- *  @author mederly
  */
 public class SingleButtonColumn<T extends Serializable> extends AbstractColumn<T, String> {
 

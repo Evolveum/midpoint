@@ -25,8 +25,6 @@ import java.util.Collection;
 
 /**
  * @author semancik
- * @author mederly
- *
  */
 public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSchema {
 

@@ -9,9 +9,6 @@ package com.evolveum.midpoint.certification.impl.outcomeStrategies;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 
-/**
- * @author mederly
- */
 public class ResponsesSummary {
 
     private int[] counts = new int[AccessCertificationResponseType.values().length];

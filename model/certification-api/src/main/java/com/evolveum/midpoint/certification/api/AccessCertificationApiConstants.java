@@ -9,9 +9,6 @@ package com.evolveum.midpoint.certification.api;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
-/**
- * @author mederly
- */
 public class AccessCertificationApiConstants {
 
     public static final String NS_HANDLERS_PREFIX = SchemaConstants.NS_CERTIFICATION + "/handlers-3";

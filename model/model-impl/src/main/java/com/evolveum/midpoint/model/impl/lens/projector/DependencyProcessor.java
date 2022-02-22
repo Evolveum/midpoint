@@ -11,9 +11,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -226,11 +224,11 @@ public class DependencyProcessor {
         int determinedOrder = 0;
 
         // This needs to go in the reverse. We need to figure out who depends on us.
-        for (DependencyAndSource ds: findReverseDependecies(context, projectionContext)) {
+        for (DependencyAndSource ds: findReverseDependencies(context, projectionContext)) {
             LensProjectionContext dependencySourceContext = ds.sourceProjectionContext;
             ResourceObjectTypeDependencyType outDependency = ds.dependency;
             if (inDependency != null && isHigerOrder(outDependency, inDependency)) {
-                // There is incomming dependency. Deal only with dependencies of this order and lower
+                // There is incoming dependency. Deal only with dependencies of this order and lower
                 // otherwise we can end up in endless loop even for legal dependencies.
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("  processing (reversed) dependency: {}: ignore (higher order)", PrettyPrinter.prettyPrint(outDependency));
@@ -300,12 +298,15 @@ public class DependencyProcessor {
         return resultAccountContext;
     }
 
-    private <F extends ObjectType> Collection<DependencyAndSource> findReverseDependecies(LensContext<F> context,
+    /**
+     * Returns all contexts that depend on provided `targetProjectionContext`.
+     */
+    private <F extends ObjectType> Collection<DependencyAndSource> findReverseDependencies(LensContext<F> context,
             LensProjectionContext targetProjectionContext) {
         Collection<DependencyAndSource> deps = new ArrayList<>();
         for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
             for (ResourceObjectTypeDependencyType dependency: projectionContext.getDependencies()) {
-                if (LensUtil.isDependencyTargetContext(projectionContext, targetProjectionContext, dependency)) {
+                if (LensUtil.areDependent(projectionContext, targetProjectionContext, dependency)) {
                     DependencyAndSource ds = new DependencyAndSource();
                     ds.dependency = dependency;
                     ds.sourceProjectionContext = projectionContext;
@@ -315,7 +316,6 @@ public class DependencyProcessor {
         }
         return deps;
     }
-
 
     private void checkForCircular(List<ResourceObjectTypeDependencyType> depPath,
             ResourceObjectTypeDependencyType outDependency, LensProjectionContext projectionContext) throws PolicyViolationException {

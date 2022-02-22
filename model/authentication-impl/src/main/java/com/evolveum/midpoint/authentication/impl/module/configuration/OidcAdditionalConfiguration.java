@@ -19,13 +19,11 @@ public class OidcAdditionalConfiguration implements Serializable {
     private final String singingAlg;
     private final RSAPublicKey publicKey;
     private final RSAPrivateKey privateKey;
-    private final String keyId;
 
-    private OidcAdditionalConfiguration(String singingAlg, RSAPublicKey publicKey, RSAPrivateKey privateKey, String keyId) {
+    private OidcAdditionalConfiguration(String singingAlg, RSAPublicKey publicKey, RSAPrivateKey privateKey) {
         this.singingAlg = singingAlg;
         this.publicKey = publicKey;
         this.privateKey = privateKey;
-        this.keyId = keyId;
     }
 
     public String getSingingAlg() {
@@ -40,10 +38,6 @@ public class OidcAdditionalConfiguration implements Serializable {
         return publicKey;
     }
 
-    public String getKeyId() {
-        return keyId;
-    }
-
     public static Builder builder() {
         return new Builder();
     }
@@ -53,7 +47,6 @@ public class OidcAdditionalConfiguration implements Serializable {
         private String singingAlg;
         private RSAPublicKey publicKey;
         private RSAPrivateKey privateKey;
-        private String keyId;
 
         private Builder() {
         }
@@ -73,13 +66,8 @@ public class OidcAdditionalConfiguration implements Serializable {
             return this;
         }
 
-        public Builder keyId(String keyId) {
-            this.keyId = keyId;
-            return this;
-        }
-
         public OidcAdditionalConfiguration build(){
-            return new OidcAdditionalConfiguration(this.singingAlg, this.publicKey, this.privateKey, this.keyId);
+            return new OidcAdditionalConfiguration(this.singingAlg, this.publicKey, this.privateKey);
         }
     }
 }

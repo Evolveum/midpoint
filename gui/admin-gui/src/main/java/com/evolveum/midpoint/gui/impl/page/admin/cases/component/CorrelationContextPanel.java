@@ -96,7 +96,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                         Task task = getPageBase().createSimpleTask("DecideCorrelation");
                         OperationResult result = task.getResult();
                         try {
-                            getPageBase().getWorkflowService().completeWorkItem(workItemId, output, task, result);
+                            getPageBase().getCaseService().completeWorkItem(workItemId, output, task, result);
                             result.computeStatusIfUnknown();
                         } catch (Throwable e) {
                             result.recordFatalError("Cannot finish correlation process, " + e.getMessage(), e);

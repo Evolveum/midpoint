@@ -75,7 +75,7 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>workflow-api</artifactId>
+            <artifactId>cases-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

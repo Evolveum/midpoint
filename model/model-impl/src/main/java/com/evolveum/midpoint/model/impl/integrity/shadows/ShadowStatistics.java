@@ -16,8 +16,6 @@ import java.util.Set;
 
 /**
  * Summary report from shadow checking task run.
- *
- * @author Pavol Mederly
  */
 public class ShadowStatistics {
 

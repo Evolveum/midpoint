@@ -28,7 +28,6 @@ import java.util.Objects;
  * Takes care of updating policySituation and triggered rules for focus and assignments. (Originally was a part of PolicyRuleProcessor.)
  *
  * @author semancik
- * @author mederly
  */
 @Component
 public class PolicyStateRecorder {

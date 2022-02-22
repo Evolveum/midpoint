@@ -12,6 +12,8 @@ import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
+import static com.evolveum.midpoint.prism.Referencable.getOid;
+
 /**
  *
  */
@@ -20,6 +22,7 @@ public class CaseWorkItemFinder<RA> {
     private final CaseWorkItemsAsserter<RA> workItemsAsserter;
     private Integer stageNumber;
     private Long workItemId;
+    private String originalAssigneeOid;
 
     public CaseWorkItemFinder(CaseWorkItemsAsserter<RA> workItemsAsserter) {
         this.workItemsAsserter = workItemsAsserter;
@@ -32,6 +35,11 @@ public class CaseWorkItemFinder<RA> {
 
     public CaseWorkItemFinder<RA> workItemId(Long workItemId) {
         this.workItemId = workItemId;
+        return this;
+    }
+
+    public CaseWorkItemFinder<RA> originalAssignee(String oid) {
+        this.originalAssigneeOid = oid;
         return this;
     }
 
@@ -71,16 +79,17 @@ public class CaseWorkItemFinder<RA> {
         return workItemsAsserter;
     }
 
+    @SuppressWarnings("RedundantIfStatement")
     private boolean matches(CaseWorkItemType workItem) {
-        if (stageNumber != null) {
-            if (!Objects.equals(stageNumber, workItem.getStageNumber())) {
-                return false;
-            }
+        if (stageNumber != null && !stageNumber.equals(workItem.getStageNumber())) {
+            return false;
         }
-        if (workItemId != null) {
-            if (!Objects.equals(workItemId, workItem.getId())) {
-                return false;
-            }
+        if (workItemId != null && !workItemId.equals(workItem.getId())) {
+            return false;
+        }
+        if (originalAssigneeOid != null
+                && !originalAssigneeOid.equals(getOid(workItem.getOriginalAssigneeRef()))) {
+            return false;
         }
         return true;
     }

@@ -33,7 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Stability: DRAFT
  *
  * @author Radovan Semancik
- * @author Pavol Mederly
  * </p>
  * <p>
  * Task manager provides controls task execution, coordination, distribution and failover between nodes, etc.
@@ -437,6 +436,9 @@ public interface TaskManager {
 
     /**
      * Puts a WAITING task back into RUNNABLE state.
+     *
+     * @throws PreconditionViolationException If there is a conflict during unpausing, i.e. the task is originally in
+     * the waiting state, but (independently) changes the state during execution of the method.
      */
     void unpauseTask(Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, PreconditionViolationException;

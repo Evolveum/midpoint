@@ -124,7 +124,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private Protector protector;
     @Autowired private OrgStructFunctionsImpl orgStructFunctions;
     @Autowired private LinkedObjectsFunctions linkedObjectsFunctions;
-    @Autowired private WorkflowService workflowService;
+    @Autowired private CaseService caseService;
     @Autowired private ConstantsManager constantsManager;
     @Autowired private LocalizationService localizationService;
     @Autowired private ExpressionFactory expressionFactory;
@@ -770,21 +770,24 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public <V extends PrismValue, D extends ItemDefinition> Mapping<V, D> getMapping() {
+    public <V extends PrismValue, D extends ItemDefinition<?>> Mapping<V, D> getMapping() {
         return ModelExpressionThreadLocalHolder.getMapping();
     }
 
     @Override
     public Task getCurrentTask() {
-        Task rv = ModelExpressionThreadLocalHolder.getCurrentTask();
-        if (rv == null) {
-            // fallback (MID-4130): but maybe we should instead make sure ModelExpressionThreadLocalHolder is set up correctly
-            ScriptExpressionEvaluationContext ctx = ScriptExpressionEvaluationContext.getThreadLocal();
-            if (ctx != null) {
-                rv = ctx.getTask();
-            }
+        Task fromModelHolder = ModelExpressionThreadLocalHolder.getCurrentTask();
+        if (fromModelHolder != null) {
+            return fromModelHolder;
         }
-        return rv;
+
+        // fallback (MID-4130): but maybe we should instead make sure ModelExpressionThreadLocalHolder is set up correctly
+        ScriptExpressionEvaluationContext ctx = ScriptExpressionEvaluationContext.getThreadLocal();
+        if (ctx != null) {
+            return ctx.getTask();
+        }
+
+        return null;
     }
 
     @Override
@@ -1446,8 +1449,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public WorkflowService getWorkflowService() {
-        return workflowService;
+    public CaseService getWorkflowService() {
+        return caseService;
     }
 
     @Override
@@ -1481,11 +1484,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (securityPolicy != null && securityPolicy.getAuthentication() != null
                 && securityPolicy.getAuthentication().getSequence() != null && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
             SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
-            if (selfRegistrationPolicy != null && selfRegistrationPolicy.getAdditionalAuthenticationName() != null) {
-                String resetPasswordSequenceName = selfRegistrationPolicy.getAdditionalAuthenticationName();
-                String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
-                if (prefix != null) {
-                    return createTokenConfirmationLink(prefix, userType);
+            if (selfRegistrationPolicy != null) {
+                String resetPasswordSequenceName = selfRegistrationPolicy.getAdditionalAuthenticationSequence() == null ? selfRegistrationPolicy.getAdditionalAuthenticationName() : selfRegistrationPolicy.getAdditionalAuthenticationSequence();
+                if (resetPasswordSequenceName != null) {
+                    String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
+                    if (prefix != null) {
+                        return createTokenConfirmationLink(prefix, userType);
+                    }
                 }
             }
         }
@@ -1625,6 +1630,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public ShadowType resolveEntitlement(ShadowAssociationType shadowAssociationType) {
+        if (shadowAssociationType == null) {
+            LOGGER.trace("No association");
+            return null;
+        }
         ObjectReferenceType shadowRef = shadowAssociationType.getShadowRef();
         if (shadowRef == null) {
             LOGGER.trace("No shadowRef in association {}", shadowAssociationType);
@@ -1833,9 +1842,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         discriminator.setKind(kind);
         discriminator.setIntent(intent);
 
-        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), null,
-                resource.asPrismObject(), getCurrentTask().getChannel(), beans,
-                getCurrentTask(), null);
+        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(
+                shadow.asPrismObject(),
+                null,
+                resource.asPrismObject(),
+                getCurrentTask().getChannel(),
+                beans,
+                getCurrentTask(),
+                null);
 
         ObjectSynchronizationType applicablePolicy = null;
 

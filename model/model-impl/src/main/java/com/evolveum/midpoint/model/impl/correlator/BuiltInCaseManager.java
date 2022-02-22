@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.util.QNameUtil.qNameToUri;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.task.api.Task;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +50,7 @@ public class BuiltInCaseManager {
             @NotNull FocusType preFocus,
             @NotNull List<F> candidates,
             @NotNull CorrelationContext correlationContext,
+            @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException {
 
         if (shouldCreateCorrelationCase(candidates, correlationContext)) {
@@ -56,6 +59,7 @@ public class BuiltInCaseManager {
                     resourceObject,
                     preFocus,
                     createCaseContextBean(candidates, correlationContext),
+                    task,
                     result);
             return CorrelationResult.uncertain();
         } else {

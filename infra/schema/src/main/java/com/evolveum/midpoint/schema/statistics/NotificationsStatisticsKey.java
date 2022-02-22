@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
-/**
- * @author Pavol Mederly
- */
 public class NotificationsStatisticsKey {
 
     private String transport;

@@ -49,24 +49,29 @@ public abstract class DelegatedItem<I> implements Serializable {
     static class ComplexTypeDerived<I extends ItemDefinition<?>> extends DelegatedItem<I> {
 
         private ItemName itemName;
-        private TransformableComplexTypeDefinition parent; // could we remove this?
+        private QName parent; // could we remove this?
         private transient I delegate;
 
 
 
-        public ComplexTypeDerived(TransformableComplexTypeDefinition parent, I delegate) {
+        public ComplexTypeDerived(QName typeName, I delegate) {
             super();
             this.itemName = delegate.getItemName();
-            this.parent = parent;
+            this.parent = typeName;
             this.delegate = delegate;
         }
 
 
 
+        @SuppressWarnings("unchecked")
         @Override
         I get() {
             if (delegate == null) {
-                delegate = (I) parent.delegate().findItemDefinition(itemName);
+                var typeDef = PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByType(parent);
+                if (typeDef == null) {
+                    throw new IllegalStateException("Missing definition for " + parent + " in schema registry");
+                }
+                delegate = (I) typeDef.findItemDefinition(itemName);
             }
             return delegate;
         }

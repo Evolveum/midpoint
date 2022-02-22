@@ -214,7 +214,7 @@ public class AbstractRestController {
         }
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
-        record.setInitiator(user, prismContext);
+        record.setInitiator(user);
         record.setParameter(name);
 
         record.setChannel(SchemaConstants.CHANNEL_REST_URI);

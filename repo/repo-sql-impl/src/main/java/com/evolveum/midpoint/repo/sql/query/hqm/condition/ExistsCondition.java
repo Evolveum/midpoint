@@ -15,8 +15,6 @@ import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 /**
  * Specific for SQL Server.
  * EXPERIMENTAL
- *
- * @author mederly
  */
 public class ExistsCondition extends Condition {
 

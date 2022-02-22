@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-/**
- * @author mederly
- */
 public class SerializationRelatedException extends RuntimeException {
 
     public SerializationRelatedException(String message) {

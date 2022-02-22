@@ -6,7 +6,6 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
     <!-- automated approvals -->
@@ -46,7 +45,8 @@
             <type>UserType</type>
         </focusSelector>
         <targetSelector>
-            <type>RoleType</type>        <!-- no need to filter on subtype, as each role has to have SoD defined -->
+            <!-- no need to filter on subtype, as each role has to have SoD defined -->
+            <type>RoleType</type>
         </targetSelector>
     </globalPolicyRule>
 
@@ -134,7 +134,7 @@
     <!-- escalation and auto-rejection strategies -->
 
     <globalPolicyRule>
-        <name>escalate-then-reject-for-levels-20-30</name>
+        <name>escalate-then-reject-for-levels-10-40</name>
         <description>Automatic escalation followed by rejection for levels 10 and 40 (LM, role approvers)</description>
         <policyConstraints>
             <situation>

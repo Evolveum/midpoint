@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.repo.sql.closure;
 
-/**
- * @author mederly
- */
 public class OrgClosureTestConfiguration {
 
     // whether to check closure matrix by retrieving it from DB and comparing with freshly-computed one

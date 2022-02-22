@@ -13,7 +13,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -251,7 +251,7 @@ public class PageCases extends PageAdmin {
         casesToStop.forEach(caseObject -> {
             Task task = createSimpleTask(OPERATION_STOP_CASE_PROCESS);
             try {
-                getWorkflowService().cancelCase(caseObject.getOid(), task, result);
+                getCaseService().cancelCase(caseObject.getOid(), task, result);
             } catch (Exception ex) {
                 LOGGER.error("Couldn't stop case process: {}", ex.getLocalizedMessage());
                 result.recordFatalError(createStringResource("PageCases.message.stopCaseProcessConfirmed.fatalError").getString(), ex);

@@ -13,9 +13,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class MappingRelation extends Relation {
 
     @NotNull private final MappingType mapping;

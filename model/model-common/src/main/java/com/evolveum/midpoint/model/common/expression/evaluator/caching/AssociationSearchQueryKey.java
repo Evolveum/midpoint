@@ -15,9 +15,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import javax.xml.namespace.QName;
 
-/**
- * @author Pavol Mederly
- */
 public class AssociationSearchQueryKey extends QueryKey {
 
     private QName mappingName;

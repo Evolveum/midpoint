@@ -38,10 +38,6 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetch;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
-/**
- * @author mederly
- */
-
 @Component
 public class Visualizer {
 

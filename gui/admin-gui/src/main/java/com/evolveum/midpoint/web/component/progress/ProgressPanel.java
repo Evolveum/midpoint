@@ -69,9 +69,6 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.R
 import static com.evolveum.midpoint.schema.util.task.work.SpecificWorkDefinitionUtil.createNonIterativeChangeExecutionDef;
 import static com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto.ResourceOperationResult;
 
-/**
- * @author mederly
- */
 public class ProgressPanel extends BasePanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProgressPanel.class);

@@ -30,10 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
  * It is quite a temporary solution in order to ease SqlRepositoryServiceImpl
  * from tons of type-specific code. Serious solution would be to implement
  * subobject-level operations more generically.
- *
- * @author mederly
  */
-@Component
+@Component(value = "repoCaseManagementHelper")
 public class CaseManagementHelper {
 
     @Autowired private ObjectRetriever objectRetriever;

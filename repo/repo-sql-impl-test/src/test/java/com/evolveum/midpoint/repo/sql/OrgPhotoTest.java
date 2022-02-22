@@ -20,9 +20,6 @@ import java.io.File;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrgPhotoTest extends AbstractPhotoTest<OrgType> {

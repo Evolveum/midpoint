@@ -24,9 +24,6 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * TEMPORARY
- * =========
- *
- * @author mederly
  */
 public class OutcomeUtils {
 

@@ -273,6 +273,12 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
+    @Nullable
+    default DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases() {
+        return delegate().getDefaultInboundMappingEvaluationPhases();
+    }
+
+    @Override
     default Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
         return delegate().getConfiguredAuxiliaryObjectClassNames();
     }

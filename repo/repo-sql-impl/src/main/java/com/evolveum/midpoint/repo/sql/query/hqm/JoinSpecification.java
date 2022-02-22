@@ -12,9 +12,6 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 
-/**
- * @author mederly
- */
 public class JoinSpecification {
 
     private final String alias;

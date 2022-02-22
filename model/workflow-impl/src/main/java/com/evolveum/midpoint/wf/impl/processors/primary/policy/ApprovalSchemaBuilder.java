@@ -12,7 +12,7 @@ import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -32,9 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 import static java.util.Comparator.naturalOrder;
 
-/**
- * @author mederly
- */
 class ApprovalSchemaBuilder {
 
     private ProcessSpecification processSpecification;
@@ -49,7 +46,7 @@ class ApprovalSchemaBuilder {
         @Nullable final ProcessSpecification processSpecification;
         @Nullable final LocalizableMessageTemplateType approvalDisplayName;
 
-        public Result(@NotNull ApprovalSchemaType schemaType,
+        Result(@NotNull ApprovalSchemaType schemaType,
                 @NotNull SchemaAttachedPolicyRulesType attachedRules,
                 @Nullable ProcessSpecification processSpecification,
                 @Nullable LocalizableMessageTemplateType approvalDisplayName) {
@@ -131,7 +128,8 @@ class ApprovalSchemaBuilder {
     // checks the existence of approvers beforehand, because we don't want to have an empty stage
     boolean addPredefined(PrismObject<?> targetObject, RelationKindType relationKind, OperationResult result) {
         RelationResolver resolver = primaryChangeAspect.createRelationResolver(targetObject, result);
-        List<ObjectReferenceType> approvers = resolver.getApprovers(getRelationRegistry().getAllRelationsFor(relationKind));
+        Collection<QName> relations = SchemaService.get().relationRegistry().getAllRelationsFor(relationKind);
+        List<ObjectReferenceType> approvers = resolver.getApprovers(relations);
         if (!approvers.isEmpty()) {
             ApprovalStageDefinitionType stageDef = new ApprovalStageDefinitionType();
             stageDef.getApproverRef().addAll(approvers);
@@ -142,21 +140,18 @@ class ApprovalSchemaBuilder {
         }
     }
 
-    private RelationRegistry getRelationRegistry() {
-        return primaryChangeAspect.getChangeProcessor().getRelationRegistry();
-    }
-
-    void addPredefined(PrismObject<?> targetObject, ApprovalStageDefinitionType stageDef) {
+    private void addPredefined(PrismObject<?> targetObject, ApprovalStageDefinitionType stageDef) {
         ApprovalSchemaType schema = new ApprovalSchemaType();
         schema.getStage().add(stageDef);
         addPredefined(targetObject, schema);
     }
 
-    void addPredefined(PrismObject<?> targetObject, ApprovalSchemaType schema) {
-        predefinedFragments.add(new Fragment(null, targetObject, schema, null, null));
+    private void addPredefined(PrismObject<?> targetObject, ApprovalSchemaType schema) {
+        predefinedFragments.add(
+                new Fragment(null, targetObject, schema, null, null));
     }
 
-    Result buildSchema(ModelInvocationContext ctx, OperationResult result) throws SchemaException {
+    Result buildSchema(ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
         sortFragments(predefinedFragments);
         sortFragments(standardFragments);
         List<Fragment> allFragments = new ArrayList<>();
@@ -190,7 +185,7 @@ class ApprovalSchemaBuilder {
     }
 
     private void checkExclusivity(List<Fragment> fragmentMergeGroup) {
-        boolean isExclusive = fragmentMergeGroup.stream().anyMatch(f -> f.isExclusive());
+        boolean isExclusive = fragmentMergeGroup.stream().anyMatch(Fragment::isExclusive);
         Integer order = fragmentMergeGroup.get(0).getOrder();
         if (isExclusive) {
             if (exclusiveOrders.contains(order) || nonExclusiveOrders.contains(order)) {
@@ -214,7 +209,7 @@ class ApprovalSchemaBuilder {
     }
 
     private void processFragmentGroup(List<Fragment> fragments, ApprovalSchemaType resultingSchemaType,
-            SchemaAttachedPolicyRulesType attachedRules, ModelInvocationContext ctx, OperationResult result)
+            SchemaAttachedPolicyRulesType attachedRules, ModelInvocationContext<?> ctx, OperationResult result)
             throws SchemaException {
         Fragment firstFragment = fragments.get(0);
         appendAddOnFragments(fragments);
@@ -222,7 +217,7 @@ class ApprovalSchemaBuilder {
         if (fragmentStageDefs.isEmpty()) {
             return;        // probably shouldn't occur
         }
-        fragmentStageDefs.sort(Comparator.comparing(s -> getNumber(s), Comparator.nullsLast(naturalOrder())));
+        fragmentStageDefs.sort(Comparator.comparing(this::getNumber, Comparator.nullsLast(naturalOrder())));
         RelationResolver relationResolver = primaryChangeAspect.createRelationResolver(firstFragment.target, result);
         ReferenceResolver referenceResolver = primaryChangeAspect.createReferenceResolver(ctx.modelContext, ctx.task, result);
         int from = getStages(resultingSchemaType).size() + 1;
@@ -272,8 +267,7 @@ class ApprovalSchemaBuilder {
         if (fragments.size() == 1) {
             return CloneUtil.cloneCollectionMembers(getStages(fragments.get(0).schema));
         }
-        PrismContext prismContext = primaryChangeAspect.getChangeProcessor().getPrismContext();
-        ApprovalStageDefinitionType resultingStageDef = new ApprovalStageDefinitionType(prismContext);
+        ApprovalStageDefinitionType resultingStageDef = new ApprovalStageDefinitionType(PrismContext.get());
         fragments.sort((f1, f2) ->
             Comparator.nullsLast(Comparator.<Integer>naturalOrder())
                 .compare(f1.compositionStrategy.getMergePriority(), f2.compositionStrategy.getMergePriority()));
@@ -290,6 +284,7 @@ class ApprovalSchemaBuilder {
         }
         ApprovalStageDefinitionType stageDefToMerge = stages.get(0);
         List<QName> overwriteItems = fragment.compositionStrategy.getMergeOverwriting();
+        //noinspection unchecked
         resultingStageDef.asPrismContainerValue().mergeContent(stageDefToMerge.asPrismContainerValue(), overwriteItems);
     }
 

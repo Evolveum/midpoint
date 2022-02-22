@@ -20,7 +20,15 @@ public interface TransportService {
 
     void registerTransport(@NotNull Transport<?> transport);
 
+    /** Returns transport with the specified name or throws if no such transport exists. */
     Transport<?> getTransport(String name);
 
     void send(Message message, String transportName, Event event, Task task, OperationResult parentResult);
+
+    /*
+    TODO: Do we want this? What should a disabled transport service do? Add partial error to result? Just log?
+     This would be analog to the same methods on NotificationManager.
+    boolean isDisabled();
+    void setDisabled(boolean disabled);
+    */
 }

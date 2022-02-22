@@ -30,6 +30,8 @@
         <module>model-intest</module>
         <module>workflow-api</module>
         <module>workflow-impl</module>
+        <module>cases-api</module>
+        <module>cases-impl</module>
         <module>notifications-api</module>
         <module>notifications-impl</module>
         <module>report-api</module>

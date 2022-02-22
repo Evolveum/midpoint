@@ -28,9 +28,6 @@ import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.WrapperScene;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-/**
- * @author mederly
- */
 public class ModelOperationStatusDto implements Serializable {
 
     public static final String F_STATE = "state";

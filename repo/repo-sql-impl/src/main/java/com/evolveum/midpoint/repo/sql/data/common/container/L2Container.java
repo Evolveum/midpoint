@@ -13,8 +13,6 @@ import java.io.Serializable;
 
 /**
  * "Level 2 container" = container in container in object
- *
- * @author mederly
  */
 public interface L2Container<T extends Container> extends EntityState, Serializable {
 

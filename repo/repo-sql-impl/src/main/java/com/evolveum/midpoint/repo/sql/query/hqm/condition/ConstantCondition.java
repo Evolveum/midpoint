@@ -10,9 +10,6 @@ package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
-/**
- * @author mederly
- */
 public class ConstantCondition extends Condition {
 
     private final boolean value;

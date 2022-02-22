@@ -22,9 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class SceneImpl implements Scene, DebugDumpable {
 
     private NameImpl name;

@@ -11,9 +11,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class ProgressDto implements Serializable {
 
     private List<ProgressReportActivityDto> progressReportActivities = new ArrayList<>();

@@ -9,14 +9,14 @@ package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.model.impl.trigger.SingleTriggerHandler;
-import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
+import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -31,9 +31,6 @@ import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import java.util.List;
 
-/**
- * @author mederly
- */
 @Component
 public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
 

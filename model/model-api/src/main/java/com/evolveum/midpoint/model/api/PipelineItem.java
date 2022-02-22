@@ -16,9 +16,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
-/**
- * @author mederly
- */
 public class PipelineItem implements DebugDumpable, Serializable {
 
     @NotNull private PrismValue value;

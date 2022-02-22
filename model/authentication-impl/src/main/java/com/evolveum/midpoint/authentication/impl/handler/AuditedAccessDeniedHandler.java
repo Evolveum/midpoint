@@ -75,7 +75,7 @@ public class AuditedAccessDeniedHandler extends MidpointAccessDeniedHandler {
         task.setChannel(channel);
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
-        record.setInitiator(user, prismContext);
+        record.setInitiator(user);
         record.setParameter(AuthSequenceUtil.getName(user));
 
         record.setChannel(channel);

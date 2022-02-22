@@ -14,9 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-/**
- * @author mederly
- */
 public class VersionPrecondition<T extends ObjectType> implements ModificationPrecondition<T>, Serializable {
 
     @NotNull private final String expectedVersion;

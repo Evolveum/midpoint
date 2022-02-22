@@ -27,7 +27,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
- * @author mederly
  */
 public class TestParsePasswordPolicy extends AbstractSchemaTest {
 

@@ -11,9 +11,6 @@ import org.apache.wicket.Component;
 
 import java.util.Collection;
 
-/**
- * @author mederly
- */
 @FunctionalInterface
 public interface RefreshableTabPanel {
     Collection<Component> getComponentsToUpdate();

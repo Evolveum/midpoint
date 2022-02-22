@@ -61,7 +61,7 @@ public class CaseOperationalButtonsPanel extends AssignmentHolderOperationalButt
         OperationResult result = new OperationResult(OPERATION_STOP_CASE_PROCESS);
         Task task = getPageBase().createSimpleTask(OPERATION_STOP_CASE_PROCESS);
         try {
-            getPageBase().getWorkflowService().cancelCase(getModelObject().getOid(), task, result);
+            getPageBase().getCaseService().cancelCase(getModelObject().getOid(), task, result);
         } catch (Exception ex) {
             LOGGER.error("Couldn't stop case process: {}", ex.getLocalizedMessage());
             result.recordFatalError(createStringResource("PageCases.message.stopCaseProcessConfirmed.fatalError").getString(), ex);

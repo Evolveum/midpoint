@@ -16,9 +16,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 
-/**
- * @author mederly
- */
 public class DeltaPanel extends BasePanel<DeltaDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(DeltaPanel.class);

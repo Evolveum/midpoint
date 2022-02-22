@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.WfTestHelper;
 import com.evolveum.midpoint.wf.impl.execution.CaseOperationExecutionTaskHandler;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -50,9 +50,6 @@ import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestParallelApprovals extends AbstractWfTestPolicy {
@@ -209,7 +206,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         display("work items", workItems);
         display("approving work items");
         for (CaseWorkItemType workItem : workItems) {
-            workflowManager.completeWorkItem(WorkItemId.of(workItem),
+            caseManager.completeWorkItem(WorkItemId.of(workItem),
                     ApprovalUtils.createApproveOutput(prismContext),
                     null, task, result);
         }

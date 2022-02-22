@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.dataModel.dot;
 
-/**
- * @author mederly
- */
 public interface DotRelation {
 
     String getEdgeLabel();

@@ -8,10 +8,12 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -23,10 +25,14 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -344,7 +350,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 .stream()
                 .filter(config -> isApplicableForOperation(config) && WebComponentUtil.getElementVisibility(config.getVisibility()))
                 .findFirst()
-                .get();
+                .orElseGet(() -> null);
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs) {
@@ -381,6 +387,15 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {
+        if (panelConfig == null) {
+//            form.addOrReplace(new Label(ID_MAIN_PANEL, Model.of("No panels defined"))); // todo - create nicer panel
+            WebMarkupContainer panel = new MessagePanel(ID_MAIN_PANEL, MessagePanel.MessagePanelType.WARN, createStringResource("AbstractPageObjectDetails.noPanels"), false);
+            panel.add(AttributeAppender.append("style", "margin-top: 20px;"));
+
+            form.addOrReplace(panel);
+            return;
+        }
+
         getSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), panelConfig);
         String panelType = panelConfig.getPanelType();
         if (panelType == null) {
@@ -398,8 +413,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private DetailsNavigationPanel<O> createNavigationPanel(IModel<List<ContainerPanelConfigurationType>> panels) {
-
         return new DetailsNavigationPanel<>(AbstractPageObjectDetails.ID_NAVIGATION, objectDetailsModels, panels) {
+
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
                 replacePanel(config, target);
@@ -486,6 +501,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     public abstract Class<O> getType();
+
     protected abstract Panel createSummaryPanel(String id, IModel<O> summaryModel);
 
     private MidpointForm getMainForm() {

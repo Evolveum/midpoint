@@ -1,10 +1,18 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.expression.script.velocity;
+
+import java.io.StringWriter;
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
@@ -18,34 +26,19 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.io.StringWriter;
-import java.util.*;
+import com.evolveum.midpoint.util.exception.*;
 
 /**
  * Expression evaluator that is using Apache Velocity engine.
- *
- * @author mederly
- *
  */
 public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
 
-    private static final String LANGUAGE_URL_BASE = MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX + "/expression/language#";
+    public static final String LANGUAGE_NAME = "velocity";
+    public static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
 
     public VelocityScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
         super(prismContext, protector, localizationService);
         Properties properties = new Properties();
-//        properties.put("runtime.references.strict", "true");
         Velocity.init(properties);
     }
 
@@ -83,41 +76,40 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
         }
 
         if (javaReturnType == null) {
-            // TODO quick and dirty hack - because this could be because of enums defined in schema extension (MID-2399)
-            // ...and enums (xsd:simpleType) are not parsed into ComplexTypeDefinitions
-            javaReturnType = (Class) String.class;
+            // Fix for enums defined in schema extension (MID-2399) which are not parsed into ComplexTypeDefinitions.
+            //noinspection unchecked
+            javaReturnType = (Class<T>) String.class;
         }
 
         T evalResult;
         try {
             evalResult = ExpressionUtil.convertValue(javaReturnType, context.getAdditionalConvertor(), resultWriter.toString(), getProtector(), getPrismContext());
         } catch (IllegalArgumentException e) {
-            throw new ExpressionEvaluationException(e.getMessage()+" in "+context.getContextDescription(), e);
+            throw new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(), e);
         }
 
         List<V> values = new ArrayList<>();
-        values.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
+        values.add(ExpressionUtil.convertToPrismValue(
+                evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
         return values;
     }
 
     private VelocityContext createVelocityContext(ScriptExpressionEvaluationContext context) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         VelocityContext velocityCtx = new VelocityContext();
-        Map<String,Object> scriptVariables = prepareScriptVariablesValueMap(context);
-        for (Map.Entry<String,Object> scriptVariable : scriptVariables.entrySet()) {
+        Map<String, Object> scriptVariables = prepareScriptVariablesValueMap(context);
+        for (Map.Entry<String, Object> scriptVariable : scriptVariables.entrySet()) {
             velocityCtx.put(scriptVariable.getKey(), scriptVariable.getValue());
         }
         return velocityCtx;
     }
 
-
     @Override
     public String getLanguageName() {
-        return "velocity";
+        return LANGUAGE_NAME;
     }
 
     @Override
     public String getLanguageUrl() {
-        return LANGUAGE_URL_BASE + getLanguageName();
+        return LANGUAGE_URL;
     }
-
 }

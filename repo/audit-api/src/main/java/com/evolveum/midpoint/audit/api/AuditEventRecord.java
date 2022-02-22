@@ -285,8 +285,8 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         this.remoteHostAddress = remoteHostAddress;
     }
 
-    public void setInitiator(PrismObject<? extends FocusType> initiator, PrismContext prismContext) {
-        this.initiatorRef = createRefValueWithDescription(initiator, prismContext);
+    public void setInitiator(PrismObject<? extends FocusType> initiator) {
+        this.initiatorRef = createRefValueWithDescription(initiator);
     }
 
     /**
@@ -307,9 +307,9 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         this.initiatorRef = initiator;
     }
 
-    public void setAttorney(PrismObject<? extends FocusType> attorney, PrismContext prismContext) {
+    public void setAttorney(PrismObject<? extends FocusType> attorney) {
         this.attorneyRef = attorney != null
-                ? createRefValueWithDescription(attorney, prismContext)
+                ? createRefValueWithDescription(attorney)
                 : null;
     }
 
@@ -341,16 +341,15 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         this.targetRef = target;
     }
 
-    public void setTarget(PrismObject<?> target, PrismContext prismContext) {
+    public void setTarget(PrismObject<?> target) {
         this.targetRef = target != null
-                ? createRefValueWithDescription(target, prismContext)
+                ? createRefValueWithDescription(target)
                 : null;
     }
 
-    public void setTargetOwner(
-            PrismObject<? extends FocusType> targetOwner, PrismContext prismContext) {
+    public void setTargetOwner(PrismObject<? extends FocusType> targetOwner) {
         this.targetOwnerRef = targetOwner != null
-                ? createRefValueWithDescription(targetOwner, prismContext)
+                ? createRefValueWithDescription(targetOwner)
                 : null;
     }
 
@@ -365,13 +364,12 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         this.targetOwnerRef = targetOwnerRef;
     }
 
-    private @Nullable PrismReferenceValue createRefValueWithDescription(
-            @Nullable PrismObject<?> object, @NotNull PrismContext prismContext) {
+    private @Nullable PrismReferenceValue createRefValueWithDescription(@Nullable PrismObject<?> object) {
         if (object == null) {
             return null;
         }
 
-        PrismReferenceValue refValue = prismContext.itemFactory().createReferenceValue(object);
+        PrismReferenceValue refValue = PrismContext.get().itemFactory().createReferenceValue(object);
         refValue.setDescription(object.getBusinessDisplayName());
         return refValue;
     }
@@ -737,7 +735,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         }
     }
 
-    private static void adopt(ItemDeltaType itemDelta, PrismContext prismContext) throws SchemaException {
+    private static void adopt(ItemDeltaType itemDelta, PrismContext prismContext) {
         for (RawType value : itemDelta.getValue()) {
             if (value != null) {
                 value.revive(prismContext);
@@ -750,9 +748,8 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         }
     }
 
-    public void setInitiatorAndLoginParameter(
-            PrismObject<? extends FocusType> initiator, PrismContext prismContext) {
-        setInitiator(initiator, prismContext);
+    public void setInitiatorAndLoginParameter(PrismObject<? extends FocusType> initiator) {
+        setInitiator(initiator);
         String parameter = null;
         if (initiator != null) {
             PolyStringType name = initiator.asObjectable().getName();

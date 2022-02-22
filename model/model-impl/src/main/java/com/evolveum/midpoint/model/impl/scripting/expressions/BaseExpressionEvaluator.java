@@ -14,9 +14,6 @@ import com.evolveum.midpoint.task.api.TaskManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * @author mederly
- */
 public class BaseExpressionEvaluator {
 
     @Autowired

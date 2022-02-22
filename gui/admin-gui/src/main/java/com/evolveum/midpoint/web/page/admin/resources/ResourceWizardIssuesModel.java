@@ -18,9 +18,6 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.WizardIssuesDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class ResourceWizardIssuesModel extends NonEmptyLoadableModel<WizardIssuesDto> {
 
     @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModel;

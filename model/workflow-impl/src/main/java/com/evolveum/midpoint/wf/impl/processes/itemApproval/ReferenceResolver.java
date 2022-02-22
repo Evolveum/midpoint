@@ -17,9 +17,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import java.util.List;
 
-/**
- * @author pmederly
- */
 @FunctionalInterface
 public interface ReferenceResolver {
     // must returns parent-less references

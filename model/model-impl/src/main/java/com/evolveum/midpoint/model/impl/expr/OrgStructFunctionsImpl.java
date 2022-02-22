@@ -39,9 +39,6 @@ import java.util.function.Predicate;
 
 import static com.evolveum.midpoint.schema.util.FocusTypeUtil.determineSubTypes;
 
-/**
- * @author mederly
- */
 @Component
 public class OrgStructFunctionsImpl implements OrgStructFunctions {
 

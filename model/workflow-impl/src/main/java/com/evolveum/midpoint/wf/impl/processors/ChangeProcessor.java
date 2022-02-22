@@ -8,11 +8,10 @@
 package com.evolveum.midpoint.wf.impl.processors;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -21,95 +20,86 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
+import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A change processor can be viewed as a kind of framework supporting customer-specific
- * workflow code. Individual change processors are specialized in their areas, allowing
+ * approvals code. Individual change processors are specialized in their areas, allowing
  * customer code to focus on business logic with minimal effort.
  *
- * The name "change processor" is derived from the fact that primary purpose of this
+ * The name "change processor" is derived from the fact that main purpose of this
  * framework is to process change requests coming from the model.
- *
- * TODO find a better name
  *
  * However, a change processor has many more duties, e.g.
  *
- * (1) recognizes the instance (instances) of given kind of change within model operation context,
- * (2) processes the result of the workflow process instances when they are finished,
- * (3) presents (externalizes) the content of process instances to outside world: to the GUI, auditing, and notifications.
+ * 1. recognizes the instance (instances) of given kind of change within model operation context,
+ * 2. processes the result of the approval case objects when they are finished,
+ * 3. presents (externalizes) the content of approval cases to outside world: to the GUI, auditing, and notifications.
  *
- * Currently, there are the following change processors implemented or planned:
- * - PrimaryChangeProcessor: manages approvals of changes of objects (in model's primary stage)
- * - GeneralChangeProcessor: manages any change, as configured by the system engineer/administrator
+ * Currently, there is only a single change processor implemented. It is {@link PrimaryChangeProcessor} that manages
+ * approvals of changes of objects that are captured during `primary` model state processing. They may deal with focus
+ * or with a projection, but they must be entered by the user - i.e. _not_ determined by the projector.
  *
- * @author mederly
+ * NOTE: Because the {@link PrimaryChangeProcessor} is the only one that is currently available, the code is not very
+ * clean in this respect. Some parts of existing code assume that this is the only processor, while others are more
+ * universal. Because we simply do not know for sure, we - for now - leave the code in this state: we neither do not
+ * generalize it to multiple processors, nor we simplify it to concentrate on this single processor.
  */
 public interface ChangeProcessor {
 
     /**
-     * Processes workflow-related aspect of a model operation. Namely, tries to find whether user interaction is necessary,
-     * and arranges everything to carry out that interaction.
+     * Processes approval-related aspect of a model operation.
      *
-     * @param context Model context of the operation.
-     * @param wfConfigurationType Current workflow configuration (part of the system configuration).
-     * @param task Task in context of which the operation is carried out.
+     * Namely, it tries to find whether user interaction is necessary, and arranges everything to carry out that interaction.
+     *
+     * @param ctx All information about the model operation, including e.g. model context.
      * @param result Where to put information on operation execution.
      * @return non-null value if it processed the request;
-     *              BACKGROUND = the process was "caught" by the processor, and continues in background,
-     *              FOREGROUND = nothing was left on background, the model operation should continue in foreground,
-     *              ERROR = something wrong has happened, there's no point in continuing with this operation.
-     *         null if the request is not relevant to this processor
+     *   {@link HookOperationMode#BACKGROUND} = the process was "caught" by the processor, and continues in background,
+     *   {@link HookOperationMode#FOREGROUND} = nothing was left on background, the model operation should continue in foreground,
+     *   {@link HookOperationMode#ERROR} = something wrong has happened, there's no point in continuing with this operation,
+     *   `null` if the request is not relevant to this processor.
      *
      * Actually, the FOREGROUND return value is quite unusual, because the change processor cannot
      * know in advance whether other processors would not want to process the invocation from the model.
      */
     @Nullable
     HookOperationMode processModelInvocation(@NotNull ModelInvocationContext<?> ctx, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException;
 
     /**
-     * Handles an event from WfMS that indicates finishing of the workflow process instance.
-     * Usually, at this point we see what was approved (and what was not) and continue with model operation(s).
+     * Handles the result of case processing. The case manager calls us when it finished its work on an approval case.
+     * (With the state of {@link SchemaConstants#CASE_STATE_CLOSING}.) At this point we see what was approved
+     * (and what was not) and we may start the real execution - or wait until all approval cases are resolved.
      *
-     * @param event
-     * @param wfTask
-     * @param result Here should be stored information about whether the finalization was successful or not
-     * @throws SchemaException
+     * Note that this method is called OUTSIDE the workflow engine computation - i.e. changes
+     * are already committed into repository.
      */
-    void onProcessEnd(EngineInvocationContext ctx, OperationResult result)
+    void finishCaseClosing(CaseEngineOperation operation, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException,
             ExpressionEvaluationException, ConfigurationException, CommunicationException;
 
     /**
-     * Prepares a process instance-related audit record.
-     *
-     * @param variables
-     * @param aCase
-     * @param stage
-     * @param result
-     * @return
+     * Adds approval-specific information to the case-level audit record.
      */
-    AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, ApprovalContextType wfContext, OperationResult result);
+    void enrichCaseAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation);
 
     /**
-     * Prepares a work item-related audit record.
+     * Adds approval-specific information to the work-item-level audit record.
+     * TODO consider merging with {@link #enrichWorkItemDeletedAuditRecord(AuditEventRecord, CaseEngineOperation)}.
      */
-    // workItem contains taskRef, assignee, candidates resolved (if possible)
-    AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem,
-            CaseType aCase, OperationResult result);
+    void enrichWorkItemCreatedAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation);
 
-    AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
-            CaseType aCase, OperationResult result);
+    /**
+     * Adds approval-specific information to the work-item-level audit record.
+     */
+    void enrichWorkItemDeletedAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation);
 
+    // TODO consider removing
     MiscHelper getMiscHelper();
-
-    PrismContext getPrismContext();
-
-    RelationRegistry getRelationRegistry();
 }
-

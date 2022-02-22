@@ -79,4 +79,10 @@ public class CaseWorkItemsAsserter<RA> extends AbstractAsserter<CaseAsserter<RA>
                 .workItemId(workItemId)
                 .find();
     }
+
+    public CaseWorkItemAsserter<CaseWorkItemsAsserter<RA>> forOriginalAssignee(String oid) {
+        return by()
+                .originalAssignee(oid)
+                .find();
+    }
 }

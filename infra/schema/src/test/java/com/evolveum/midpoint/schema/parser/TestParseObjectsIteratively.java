@@ -23,9 +23,6 @@ import java.util.List;
 import static com.evolveum.midpoint.schema.TestConstants.OBJECTS_FILE_BASENAME;
 import static org.testng.AssertJUnit.assertEquals;
 
-/**
- * @author mederly
- */
 public class TestParseObjectsIteratively extends AbstractParserTest {
 
     @Override

@@ -10,7 +10,7 @@ package com.evolveum.midpoint.certification.impl;
 import com.evolveum.midpoint.certification.impl.outcomeStrategies.OutcomeStrategy;
 import com.evolveum.midpoint.certification.impl.outcomeStrategies.ResponsesSummary;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -34,9 +34,6 @@ import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-/**
- * @author mederly
- */
 @Component
 public class AccCertResponseComputationHelper {
 

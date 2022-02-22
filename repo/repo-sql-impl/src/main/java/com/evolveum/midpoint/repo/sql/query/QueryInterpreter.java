@@ -72,7 +72,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
  * already present.
  *
  * @author lazyman
- * @author mederly
  */
 public class QueryInterpreter {
 

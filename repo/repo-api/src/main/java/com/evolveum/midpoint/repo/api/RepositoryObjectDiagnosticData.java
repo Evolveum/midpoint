@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.repo.api;
 
-/**
- * @author mederly
- */
 public class RepositoryObjectDiagnosticData {
 
     private long storedObjectSize;

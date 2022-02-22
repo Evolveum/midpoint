@@ -21,7 +21,6 @@ import java.io.File;
 
 /**
  * @author Radovan Semancik
- * @author Pavol Mederly
  */
 public class TestVelocityExpressions extends AbstractScriptTest {
 

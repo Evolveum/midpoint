@@ -26,7 +26,6 @@ import java.util.List;
  * one of them is stored: the one that participates in the particular assignment path.
  *
  * @author semancik
- * @author mederly
  */
 public interface AssignmentPathSegment extends DebugDumpable, ShortDumpable, Serializable {
 

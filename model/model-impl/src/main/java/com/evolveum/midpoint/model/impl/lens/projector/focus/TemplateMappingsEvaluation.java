@@ -48,9 +48,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplat
  * Source: template and the whole context (focus, deltas, target in case of personas)
  * Target: delta set triple, item deltas, next recompute
  *
- * Primarily deals with handling object template data. The real computation is delegated to:
- * - MappingSetEvaluator (mappings -> triples)
- * - DeltaSetTripleMapConsolidation (triples -> item deltas)
+ * Primarily deals with handling object template data. The real computation is delegated to
+ *
+ * - {@link FocalMappingSetEvaluation} (mappings -> triples)
+ * - {@link DeltaSetTripleMapConsolidation} (triples -> item deltas)
  */
 public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extends AssignmentHolderType> {
 
@@ -151,7 +152,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     /**
      * Result of the computation: evaluation of the mappings.
      */
-    private MappingSetEvaluation<F, T> mappingSetEvaluation;
+    private FocalMappingSetEvaluation<F, T> mappingSetEvaluation;
 
     /**
      * Consolidation of output triple map to item deltas.
@@ -234,7 +235,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     private void evaluateMappings() throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
-        mappingSetEvaluation = new MappingSetEvaluationBuilder<F, T>()
+        mappingSetEvaluation = new FocalMappingSetEvaluationBuilder<F, T>()
                 .context(context)
                 .evaluationRequests(mappings)
                 .phase(phase)

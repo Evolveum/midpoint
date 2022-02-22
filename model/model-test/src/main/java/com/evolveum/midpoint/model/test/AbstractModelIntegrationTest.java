@@ -4071,6 +4071,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         fail("Notifier " + name + " message body " + expectedBody + " not found");
     }
 
+    protected void assertHasDummyTransportMessageContaining(String name, String expectedBodySubstring) {
+        List<Message> messages = dummyTransport.getMessages("dummy:" + name);
+        assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
+        for (Message message : messages) {
+            if (message.getBody() != null && message.getBody().contains(expectedBodySubstring)) {
+                return;
+            }
+        }
+        fail("Notifier " + name + " message body containing '" + expectedBodySubstring + "' not found");
+    }
+
     protected void displayAllNotifications() {
         for (java.util.Map.Entry<String, List<Message>> entry : dummyTransport.getMessages().entrySet()) {
             List<Message> messages = entry.getValue();

@@ -13,9 +13,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import java.io.Serializable;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public interface SceneItem extends Serializable {
 
     Name getName();

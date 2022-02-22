@@ -11,8 +11,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * An action to be executed against the database schema.
- *
- * @author mederly
  */
 abstract class SchemaAction {
 

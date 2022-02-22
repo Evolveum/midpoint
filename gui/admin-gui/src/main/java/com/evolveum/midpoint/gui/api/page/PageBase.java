@@ -20,6 +20,9 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.wf.api.ApprovalsManager;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -32,8 +35,6 @@ import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -148,7 +149,6 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -245,10 +245,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private ModelAuditService modelAuditService;
 
     @SpringBean(name = "modelController")
-    private WorkflowService workflowService;
+    private CaseService caseService;
 
-    @SpringBean(name = "workflowManager")
-    private WorkflowManager workflowManager;
+    @SpringBean(name = "caseManager")
+    private CaseManager caseManager;
+
+    @SpringBean(name = "approvalsManager")
+    private ApprovalsManager approvalsManager;
 
     @SpringBean(name = "midpointConfiguration")
     private MidpointConfiguration midpointConfiguration;
@@ -434,12 +437,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return taskManager;
     }
 
-    public WorkflowService getWorkflowService() {
-        return workflowService;
+    public CaseService getCaseService() {
+        return caseService;
     }
 
-    public WorkflowManager getWorkflowManager() {
-        return workflowManager;
+    public CaseManager getCaseManager() {
+        return caseManager;
+    }
+
+    public ApprovalsManager getApprovalsManager() {
+        return approvalsManager;
     }
 
     public ResourceValidator getResourceValidator() {

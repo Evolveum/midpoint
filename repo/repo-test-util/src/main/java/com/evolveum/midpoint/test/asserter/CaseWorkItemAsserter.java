@@ -12,6 +12,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -84,5 +86,20 @@ public class CaseWorkItemAsserter<RA> extends PrismContainerValueAsserter<CaseWo
     public CaseWorkItemAsserter<RA> assertClosed() {
         assertThat(getWorkItem().getCloseTimestamp()).as("closeTimestamp").isNotNull();
         return this;
+    }
+
+    public CaseWorkItemAsserter<RA> assertNotClosed() {
+        assertThat(getWorkItem().getCloseTimestamp()).as("closeTimestamp").isNull();
+        return this;
+    }
+
+    public CaseWorkItemAsserter<RA> assertEscalationLevelNumber(int expected) {
+        assertThat(getEscalationLevelNumber()).as("escalation level number").isEqualTo(expected);
+        return this;
+    }
+
+    private int getEscalationLevelNumber() {
+        return WorkItemTypeUtil.getEscalationLevelNumber(
+                getWorkItem());
     }
 }

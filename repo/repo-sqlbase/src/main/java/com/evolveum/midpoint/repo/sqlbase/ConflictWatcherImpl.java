@@ -14,9 +14,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-/**
- * @author mederly
- */
 public class ConflictWatcherImpl implements ConflictWatcher {
 
     @NotNull private final String oid;

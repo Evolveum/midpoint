@@ -20,9 +20,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class SceneItemDto implements Serializable {
 
     public static final String F_NAME = "name";

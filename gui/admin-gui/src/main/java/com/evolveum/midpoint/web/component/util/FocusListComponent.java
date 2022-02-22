@@ -17,8 +17,6 @@ import java.io.Serializable;
  * Intended to be used e.g. for FocusListInlineMenuHelper.
  *
  * TODO find a better place for this interface
- *
- * @author mederly
  */
 @FunctionalInterface
 public interface FocusListComponent<F extends FocusType> {

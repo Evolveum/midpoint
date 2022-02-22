@@ -19,8 +19,6 @@ import java.util.List;
  * An interface through which external observers can be notified about certification related events.
  *
  * EXPERIMENTAL. This interface will probably change in near future.
- *
- * @author mederly
  */
 public interface AccessCertificationEventListener {
 

@@ -25,9 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.*;
 
-/**
- * @author mederly
- */
 public class DataModel {
 
     private static final Trace LOGGER = TraceManager.getTrace(DataModel.class);

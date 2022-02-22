@@ -12,9 +12,6 @@ import org.apache.wicket.model.StringResourceModel;
 
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class DelegationTargetLimitationDialog extends AssignmentsInfoDialog {
 
     public DelegationTargetLimitationDialog(String id, List<AssignmentInfoDto> data, PageBase pageBase) {

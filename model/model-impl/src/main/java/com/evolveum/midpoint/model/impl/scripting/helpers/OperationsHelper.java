@@ -42,9 +42,6 @@ import java.util.Collections;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
-/**
- * @author mederly
- */
 @Component
 public class OperationsHelper {
 

@@ -57,7 +57,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * @author lazyman
- * @author mederly
  */
 public class ConfigurationStep extends WizardStep {
 

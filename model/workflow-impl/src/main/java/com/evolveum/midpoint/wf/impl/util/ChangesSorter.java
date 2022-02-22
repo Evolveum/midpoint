@@ -17,8 +17,8 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.wf.util.ChangesByState;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
+import com.evolveum.midpoint.wf.api.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,21 +50,21 @@ public class ChangesSorter {
             OperationResult result) throws SchemaException {
         ChangesByState<?> rv = new ChangesByState(prismContext);
         TaskHolder rootTaskHolder = new TaskHolder();
-        recordChangesFromApprovalCase(rv, approvalCase, rootCase, prismContext, rootTaskHolder, result);
+        recordChangesFromApprovalCase(rv, approvalCase, rootCase, rootTaskHolder, result);
         return rv;
     }
 
     private void recordChangesFromApprovalCase(ChangesByState<?> rv, CaseType approvalCase, CaseType rootCase,
-            PrismContext prismContext, TaskHolder rootTaskHolder, OperationResult result) throws SchemaException {
+            TaskHolder rootTaskHolder, OperationResult result) throws SchemaException {
         ApprovalContextType actx = approvalCase.getApprovalContext();
         if (actx != null) {
             boolean hasApprovalSchema = actx.getApprovalSchema() != null;
             Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(approvalCase.getOutcome());
             if (hasApprovalSchema && isApproved == null) {
                 if (approvalCase.getCloseTimestamp() == null) {
-                    recordChangesWaitingToBeApproved(rv, actx, prismContext);
+                    recordChangesWaitingToBeApproved(rv, actx);
                 } else {
-                    recordChangesCanceled(rv, actx, prismContext);
+                    recordChangesCanceled(rv, actx);
                 }
             } else if (!hasApprovalSchema || isApproved) {
                 TaskType executionTask;
@@ -78,15 +78,15 @@ public class ChangesSorter {
                     executionTask = rootTaskHolder.task;
                 }
                 if (executionTask == null || executionTask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
-                    recordResultingChanges(rv.getWaitingToBeApplied(), actx, prismContext);
+                    recordResultingChanges(rv.getWaitingToBeApplied(), actx);
                 } else if (executionTask.getSchedulingState() == TaskSchedulingStateType.READY) {
-                    recordResultingChanges(rv.getBeingApplied(), actx, prismContext);
+                    recordResultingChanges(rv.getBeingApplied(), actx);
                 } else {
                     // note: the task might be suspended here
-                    recordResultingChanges(rv.getApplied(), actx, prismContext);
+                    recordResultingChanges(rv.getApplied(), actx);
                 }
             } else {
-                recordChangesRejected(rv, actx, prismContext);
+                recordChangesRejected(rv, actx);
             }
         } else {
             LOGGER.warn("Approval case with no approval context?\n{}", approvalCase.asPrismObject().debugDump());
@@ -98,7 +98,7 @@ public class ChangesSorter {
         ChangesByState rv = new ChangesByState(prismContext);
         TaskHolder rootTaskHolder = new TaskHolder();
         for (CaseType subcase : getSubcases(rootCase, result)) {
-            recordChangesFromApprovalCase(rv, subcase, rootCase, prismContext, rootTaskHolder, result);
+            recordChangesFromApprovalCase(rv, subcase, rootCase, rootTaskHolder, result);
         }
         return rv;
     }
@@ -127,30 +127,30 @@ public class ChangesSorter {
         return tasks.get(0).asObjectable();
     }
 
-    private void recordChangesWaitingToBeApproved(ChangesByState rv, ApprovalContextType wfc, PrismContext prismContext)
+    private void recordChangesWaitingToBeApproved(ChangesByState rv, ApprovalContextType wfc)
             throws SchemaException {
         //noinspection unchecked
-        rv.getWaitingToBeApproved().mergeUnordered(fromObjectTreeDeltasType(wfc.getDeltasToApprove(), prismContext));
+        rv.getWaitingToBeApproved().mergeUnordered(fromObjectTreeDeltasType(wfc.getDeltasToApprove()));
     }
 
-    private void recordChangesCanceled(ChangesByState rv, ApprovalContextType wfc, PrismContext prismContext)
+    private void recordChangesCanceled(ChangesByState rv, ApprovalContextType wfc)
             throws SchemaException {
         //noinspection unchecked
-        rv.getCanceled().mergeUnordered(fromObjectTreeDeltasType(wfc.getDeltasToApprove(), prismContext));
+        rv.getCanceled().mergeUnordered(fromObjectTreeDeltasType(wfc.getDeltasToApprove()));
     }
 
-    private void recordChangesRejected(ChangesByState rv, ApprovalContextType wfc, PrismContext prismContext) throws SchemaException {
+    private void recordChangesRejected(ChangesByState rv, ApprovalContextType wfc) throws SchemaException {
         if (ObjectTreeDeltas.isEmpty(wfc.getResultingDeltas())) {
             //noinspection unchecked
-            rv.getRejected().mergeUnordered(fromObjectTreeDeltasType(wfc.getDeltasToApprove(), prismContext));
+            rv.getRejected().mergeUnordered(fromObjectTreeDeltasType(wfc.getDeltasToApprove()));
         } else {
             // it's actually hard to decide what to display as 'rejected' - because the delta was partly approved
             // however, this situation will not currently occur
         }
     }
 
-    private void recordResultingChanges(ObjectTreeDeltas<?> target, ApprovalContextType wfc, PrismContext prismContext) throws SchemaException {
+    private void recordResultingChanges(ObjectTreeDeltas<?> target, ApprovalContextType wfc) throws SchemaException {
         //noinspection unchecked
-        target.mergeUnordered(fromObjectTreeDeltasType(wfc.getResultingDeltas(), prismContext));
+        target.mergeUnordered(fromObjectTreeDeltasType(wfc.getResultingDeltas()));
     }
 }

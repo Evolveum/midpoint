@@ -37,7 +37,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author lazyman
- * @author mederly
  */
 public class ClassDefinitionParser {
 

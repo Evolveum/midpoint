@@ -26,8 +26,6 @@ import java.util.Map;
 
 /**
  * Context of a command execution.
- *
- * @author mederly
  */
 public class ExecutionContext {
     private static final Trace LOGGER = TraceManager.getTrace(ExecutionContext.class);

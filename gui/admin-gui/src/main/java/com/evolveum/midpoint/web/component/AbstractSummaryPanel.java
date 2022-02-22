@@ -41,7 +41,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
- * @author mederly
  */
 public abstract class AbstractSummaryPanel<C extends Containerable> extends BasePanel<C> {
     private static final long serialVersionUID = 1L;

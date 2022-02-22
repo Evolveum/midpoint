@@ -29,7 +29,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.processors.ConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
@@ -52,8 +53,6 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTE
 /**
  * Provides an interface between the model and the workflow engine:
  * catches hook calls and delegates them to change processors.
- *
- * @author mederly
  */
 @Component
 public class WfHook implements ChangeHook {
@@ -66,7 +65,7 @@ public class WfHook implements ChangeHook {
     @Autowired private WfConfiguration wfConfiguration;
     @Autowired private ConfigurationHelper configurationHelper;
     @Autowired private HookRegistry hookRegistry;
-    @Autowired private WorkflowManager workflowManager;
+    @Autowired private ApprovalsManager approvalsManager;
     @Autowired private ClockworkMedic medic;
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -141,7 +140,8 @@ public class WfHook implements ChangeHook {
             return;
         }
         try {
-            List<ApprovalSchemaExecutionInformationType> preview = workflowManager.getApprovalSchemaPreview(context, task, result);
+            List<ApprovalSchemaExecutionInformationType> preview =
+                    approvalsManager.getApprovalSchemaPreview(context, task, result);
             ((LensContext) context).addHookPreviewResults(WORKFLOW_HOOK_URI, preview);
         } catch (CommonException e) {
             // already recorded in the operation result, so no more processing is necessary
@@ -169,9 +169,11 @@ public class WfHook implements ChangeHook {
                     if (hookOperationMode != null) {
                         return hookOperationMode;
                     }
-                } catch (ObjectNotFoundException|SchemaException|RuntimeException|ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Exception while running change processor {}: {}", e, changeProcessor.getClass().getName(), e.getMessage());
-                    result.recordFatalError("Exception while running change processor " + changeProcessor.getClass().getSimpleName() + ": " + e.getMessage(), e);
+                } catch (Exception e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Exception while running change processor {}: {}", e,
+                            changeProcessor.getClass().getName(), e.getMessage());
+                    result.recordFatalError("Exception while running change processor "
+                            + changeProcessor.getClass().getSimpleName() + ": " + e.getMessage(), e);
                     return HookOperationMode.ERROR;
                 }
             }

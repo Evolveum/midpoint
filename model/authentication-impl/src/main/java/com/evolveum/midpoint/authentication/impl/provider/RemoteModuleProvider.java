@@ -10,6 +10,7 @@ import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
+import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 
@@ -38,9 +39,16 @@ public abstract class RemoteModuleProvider extends MidPointAbstractAuthenticatio
     @Qualifier("passwordAuthenticationEvaluator")
     private AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
 
+    @Autowired
+    private ModelAuditRecorder auditProvider;
+
     @Override
-    protected AuthenticationEvaluator getEvaluator() {
+    protected AuthenticationEvaluator<PasswordAuthenticationContext> getEvaluator() {
         return authenticationEvaluator;
+    }
+
+    public ModelAuditRecorder getAuditProvider() {
+        return auditProvider;
     }
 
     @Override

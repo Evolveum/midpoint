@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.model.impl.trigger.SingleTriggerHandler;
-import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
+import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -30,10 +30,6 @@ import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
-/**
- * @author mederly
- *
- */
 @Component
 public class AccessCertificationCloseStageApproachingTriggerHandler implements SingleTriggerHandler {
 

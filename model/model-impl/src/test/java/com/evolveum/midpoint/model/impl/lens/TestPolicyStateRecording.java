@@ -29,9 +29,6 @@ import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Tests recording of policy situations into objects and assignments.
- *
- * @author mederly
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

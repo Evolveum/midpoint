@@ -11,8 +11,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * EXPERIMENTAL
- *
- * @author mederly
  */
 public class VisibleBehaviour extends VisibleEnableBehaviour {
 

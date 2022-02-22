@@ -12,8 +12,6 @@ import com.evolveum.midpoint.schema.util.task.ActivityPath;
 /**
  * Model constants referenced from the outside.
  * (TODO reconsider with regards to SchemaConstants)
- *
- * @author mederly
  */
 public class ModelPublicConstants {
 

@@ -24,8 +24,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 
 /**
  * TODO implement more cleanly
- *
- * @author mederly
  */
 public class AvailableResponses implements Serializable {
 
