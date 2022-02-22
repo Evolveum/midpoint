@@ -234,42 +234,42 @@ Currently, there are the following actions:
 
 | add
 | Adds an object coming as input to the repository, which must be a PrismObject.
-(\***)
+(++***++)
 | -
 | -
 
 
 | modify
 | Modifies an object coming as input, which must be a PrismObject.
-(\*) (\***)
+(++*++) (++***++)
 | delta
 | Delta to be applied to the object.
 
 
 | delete
 | Deletes an object coming as input, which must be a PrismObject.
-(\*) (\***)
+(++*++) (++***++)
 | -
 | -
 
 
 | enable, disable
 | Enables or disables an object coming as input (must be a FocusType or ShadowType).
-(\*) (\***)
+(++*++) (++***++)
 | -
 | -
 
 
 .3+| assign
 .3+| Assigns a role or a resource account to a FocusType.
-(\*) (\***)
+(++*++) (++***++)
 | resource
 | Resource(s) on which account(s) have to be assigned.
-\**
+++**++
 
 
 | role
-| Role(s) to be assigned. **
+| Role(s) to be assigned. ++**++
 
 
 | relation
@@ -279,14 +279,14 @@ Currently, there are the following actions:
 
 .3+| unassign
 .3+| Unassigns a role or a resource account from a FocusType.
-(\*) (\***)
+(++*++) (++***++)
 | resource
-| Resource(s) to be unassigned.  \**
+| Resource(s) to be unassigned.  ++**++
 
 
 | role
 | Role(s) to be unassigned.
-\**
+++**++
 
 
 | relation
@@ -294,7 +294,7 @@ Currently, there are the following actions:
 
 
 | recompute
-| Recomputes a user (must be PrismObject<UserType>). (\*) (\***)
+| Recomputes a user (must be PrismObject<UserType>). (++*++) (++***++)
 | -
 | -
 
@@ -398,12 +398,12 @@ Default is "add".
 
 |===
 
-(\*) In the future these actions will support also PrismReferences instances as their input.
+(++*++) In the future these actions will support also PrismReferences instances as their input.
 
-(\**) These are to be specified as PrismObjects, PrismReferences, or PrismProperties encapsulating either ObjectReferenceTypes or Strings (understood as OIDs - in the future, string containing resource/role names could be accepted as well).
+(++**++) These are to be specified as PrismObjects, PrismReferences, or PrismProperties encapsulating either ObjectReferenceTypes or Strings (understood as OIDs - in the future, string containing resource/role names could be accepted as well).
 Since 3.7 it is possible to specify queries or search filters here, so it is possible to assign role/resource by its name (see link:https://github.com/Evolveum/midpoint/blob/master/samples/tasks/bulk-actions/assign-enduser-role-to-selected-users-no-approval.xml[this sample]).
 
-(\***) Since 3.5, these actions support `dryRun` parameter that (if set to "true") causes executing "preview changes" instead of real modifications.
+(++***++) Since 3.5, these actions support `dryRun` parameter that (if set to "true") causes executing "preview changes" instead of real modifications.
 They also (except for recompute) support `raw` parameter for applying the operation in raw mode.
 And since 3.7 these actions (again except for recompute) support `skipApprovals` parameter, and `options` parameter, as a generalization of these two (`raw`, `skipApprovals`) that can be used to set arbitrary model execution options (see link:https://github.com/Evolveum/midpoint/blob/master/samples/tasks/bulk-actions/assign-enduser-role-to-selected-users-no-approval.xml[this sample]).
 

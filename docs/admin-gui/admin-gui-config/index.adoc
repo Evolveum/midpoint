@@ -163,7 +163,7 @@ Basic info section will contain attributes describing organizationalUnit, emailA
 | panelType
 | NO
 | String
-| Unique identifier pointing to the panel which will be shown. There are build-in panels in midPoint mostly mentioned in the table (TODO ref to table), but also custom panel can be implemented and used here.
+| Unique identifier pointing to the panel which will be shown. There are built-in panels in midPoint mostly mentioned in the table (TODO ref to table), but also custom panel can be implemented and used here.
 
 | listView
 | NO
@@ -721,6 +721,28 @@ With new configuration there are several options how to cutomize assignemnts vie
           <type>c:UserType</type>
           <panel>
               <identifier>assignments</identifier>
+              <panel>
+                  <identifier>allAssignments</identifier>
+                  <visibility>hidden</visibility>
+              </panel>
+            </panel>
+        </objectDetailsPage>
+    </objectDetails>
+</adminGuiConfiguration>
+----
+
+
+. Hiding "All assignments" panel and showing its contents in "Assignments" directly
++
+[source,xml]
+----
+<adminGuiConfiguration>
+    <objectDetails>
+        <objectDetailsPage>
+          <type>c:UserType</type>
+          <panel>
+              <identifier>assignments</identifier>
+              <panelType>allAssignments</panelType>
               <panel>
                   <identifier>allAssignments</identifier>
                   <visibility>hidden</visibility>

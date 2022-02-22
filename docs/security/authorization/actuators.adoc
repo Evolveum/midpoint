@@ -26,7 +26,7 @@ In the midPoint, we now support these endpoint actions:
 
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-actuator-3#env
-| 'BASE_MIDPOINT_URL'/actuator/env and 'BASE_MIDPOINT_URL'/actuator/env/\**
+| 'BASE_MIDPOINT_URL'/actuator/env and 'BASE_MIDPOINT_URL'/actuator/env/++**++
 
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-actuator-3#info
@@ -34,6 +34,6 @@ In the midPoint, we now support these endpoint actions:
 
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-actuator-3#metrics
-| 'BASE_MIDPOINT_URL'/actuator/metrics and 'BASE_MIDPOINT_URL'/actuator/metrics/\**
+| 'BASE_MIDPOINT_URL'/actuator/metrics and 'BASE_MIDPOINT_URL'/actuator/metrics/++**++
 
 |===

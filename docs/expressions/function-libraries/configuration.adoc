@@ -12,7 +12,7 @@
 == Introduction
 
 Function libraries are dedicated midPoint objects that contain set of reusable functions.
-The functions can be used in other xref:/midpoint/reference/expressions/introduction/[mappings and expressions] in midPoint.
+The functions can be used in other xref:/midpoint/reference/expressions/[mappings and expressions] in midPoint.
 Function libraries can be used to group frequently-used parts of the code, therefore simplifying midPoint configuration and maintenance.
 
 TIP: Not to be confused with xref:../expressions/script/functions/[built-in scripting functions].
@@ -189,6 +189,6 @@ Each time you want to call function defined in your function library, you must d
 
 * xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model]
 
-* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]
 
 * xref:/midpoint/reference/expressions/expressions/[Expression]

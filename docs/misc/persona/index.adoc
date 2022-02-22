@@ -66,7 +66,7 @@ Please see xref:/midpoint/reference/misc/persona/configuration/[Persona Configur
 
 * xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model]
 
-* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]
 
 * xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/['Kind, Intent and ObjectClass']
 

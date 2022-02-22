@@ -193,7 +193,7 @@ This is described in xref:/midpoint/reference/roles-policies/certification/stage
 === Automated scheduling of campaigns
 
 Campaigns can be automatically started by using tasks.
-So, for example, to auto-start campaigns in samples/certification directory, please import the start-\*.xml files.
+So, for example, to auto-start campaigns in samples/certification directory, please import the `start-*.xml` files.
 
 The task looks like this:
 

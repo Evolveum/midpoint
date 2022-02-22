@@ -136,32 +136,45 @@ This is command what the dc=example,dc=com DIT looks like:
 ldapsearch -x -LLL -H link:ldap://wiki.evolveum.com/[ldap:///] -b dc=example,dc=com dn +
 ----
 
-. *Midpoint 3.0**installation.* Check also:     xref:/midpoint/guides/midpoint-on-ubuntu-tomcat-postgresql-howto/[] +
+. *Midpoint 3.0 installation.* Check also:     xref:/midpoint/guides/midpoint-on-ubuntu-tomcat-postgresql-howto/[] +
 Download midpoint last recent version via command: +
 sudo wget "link:http://athena.evolveum.com/builds/master/build2781-v3.0.1devel-15-g0c62837/midpoint-3.1-SNAPSHOT-dist.tar.gz[athena.evolveum.com/builds/master/build2781-v3.0.1devel-15-g0c62837/midpoint-3.1-SNAPSHOT-dist.tar.gz]" +
- +
-Unpack the file via command: +
-sudo tar -zxvf \*/midpoint-3.1-SNAPSHOT-dist.tar.gz +
- +
-Create midPoint home directory and also make sure it can be accessed by tomcat: +
++
+Unpack the file via command:
++
+----
+sudo tar -zxvf */midpoint-3.1-SNAPSHOT-dist.tar.gz +
+----
++
+Create midPoint home directory and also make sure it can be accessed by tomcat:
++
+----
 sudo mkdir /opt/midpoint-home +
 sudo chown link:http://tomcat7tomcat7[tomcat7:tomcat7] /opt/midpoint-home +
- +
-Add JAVA_OPTS="$JAVA_OPTS -server -Xms256m -Xmx1024m -XX:PermSize=128m -XX:MaxPermSize=256m -Dmidpoint.home=/opt/midpoint-home/" into catalina.sh file via command: +
+----
++
+Add `JAVA_OPTS="$JAVA_OPTS -server -Xms256m -Xmx1024m -XX:PermSize=128m -XX:MaxPermSize=256m -Dmidpoint.home=/opt/midpoint-home/"` into `catalina.sh` file via command:
++
+----
 sudo vim /usr/share/tomcat7/bin/catalina.sh +
- +
-Copy midpoint.war in tomcat7 via command: +
-sudo cp \*/midpoint-3.1-SNAPSHOT/war/midpoint.war /var/lib/tomcat7/webapps +
- +
-NOTE: +
-For stable release check: +
-- the latest midpoint link:http://www.evolveum.com/downloads/midpoint/3.0/[http://www.evolveum.com/downloads/midpoint/3.0/] +
-- and download midpoint-3.0-dist.zip     +
- +
-For snapshot check: +
-- the latest commit number on link:https://bamboo.evolveum.com/browse/MID-TRUNK/latestSuccessful[https://bamboo.evolveum.com/browse/MID-TRUNK/latestSuccessful] +
-- and download it via link:http://athena.evolveum.com/builds/master/[http://athena.evolveum.com/builds/master/] where .zip file should be selected (midpoint-3.1-SNAPSHOT-dist.zip). +
-\=================================================================================================================================================================
+----
++
+Copy midpoint.war in tomcat7 via command:
++
+----
+sudo cp */midpoint-3.1-SNAPSHOT/war/midpoint.war /var/lib/tomcat7/webapps
+----
++
+[NOTE]
+====
+For stable release check:
+* the latest midpoint link:http://www.evolveum.com/downloads/midpoint/3.0/[http://www.evolveum.com/downloads/midpoint/3.0/]
+* and download midpoint-3.0-dist.zip
+
+For snapshot check:
+* the latest commit number on link:https://bamboo.evolveum.com/browse/MID-TRUNK/latestSuccessful[https://bamboo.evolveum.com/browse/MID-TRUNK/latestSuccessful]
+* and download it via link:http://athena.evolveum.com/builds/master/[http://athena.evolveum.com/builds/master/] where .zip file should be selected (midpoint-3.1-SNAPSHOT-dist.zip).
+====
 
 . *Apache**install.* Check also:     xref:/midpoint/guides/midpoint-on-ubuntu-tomcat-postgresql-howto/[] +
 Install apache2 via command:    sudo apt-get install apache2 +
@@ -249,7 +262,7 @@ ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/$[ubuntu-i386:/op
 +
 And: +
 ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/$] bin/ldapsearch -D cn=directory\ manager -w secret -h 10.0.2.15 -p 1389  +
--J "1.3.6.1.4.1.26027.1.5.4:false:;" -b "cn=changelog" '(objectclass=\*)' +
+-J "1.3.6.1.4.1.26027.1.5.4:false:;" -b "cn=changelog" '(objectclass=*)' +
 \=================================================================================================================================================================
 
 . *Add further .ldif files* via, check also link:http://opendj.forgerock.org/opendj-server/doc/admin-guide/index/chap-groups.html[http://opendj.forgerock.org/opendj-server/doc/admin-guide/index/chap-groups.html]:   +
@@ -268,7 +281,7 @@ ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:
 
 . In case you *need to check LDAP schema or search* some element use command: +
 Check all: +
-ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] ldapsearch -x -h localhost -p 1389 -b "dc=example,dc=com" -s sub "objectclass=\*" +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] ldapsearch -x -h localhost -p 1389 -b "dc=example,dc=com" -s sub "objectclass=*" +
 +
 Check selected element: +
 ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] ldapsearch -x -h localhost -p 1389 -b "dc=example,dc=com" "cn=Testi Testini" +

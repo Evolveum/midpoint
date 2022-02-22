@@ -783,7 +783,7 @@ The samples have in-line comments to make it easier to understand them.
 
 * xref:/midpoint/reference/resources/resource-schema/[Resource Schema]
 
-* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]
 
 * xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation]
 

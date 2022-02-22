@@ -63,7 +63,7 @@ In the following decision tables these symbols are used:
 | no answers of this kind are present
 
 
-| \*
+| *
 | answers of this kind are ignored, i.e. there may be zero, one or more such answers
 
 
@@ -89,26 +89,26 @@ Currently, Delegate is treated as No response.
 |===
 | Revoke | Reduce | Not decided | No response | Accept | Result
 
-| \*
-| \*
-| \*
-| \*
+| *
+| *
+| *
+| *
 | present
 | *Accept*
 
 
 | present
-| \*
-| \*
-| \*
+| *
+| *
+| *
 | -
 | *Revoke*
 
 
 | -
 | present
-| \*
-| \*
+| *
+| *
 | -
 | *Reduce*
 
@@ -116,7 +116,7 @@ Currently, Delegate is treated as No response.
 | -
 | -
 | present
-| \*
+| *
 | -
 | *Not decided*
 
@@ -147,26 +147,26 @@ Currently, Delegate is treated as No response.
 | Revoke | Reduce | Not decided | No response | Accept | Result
 
 | present
-| \*
-| \*
-| \*
-| \*
+| *
+| *
+| *
+| *
 | *Revoke*
 
 
 | -
 | present
-| \*
-| \*
-| \*
+| *
+| *
+| *
 | *Reduce*
 
 
 | -
 | -
 | present
-| \*
-| \*
+| *
+| *
 | *Not decided*
 
 
@@ -174,7 +174,7 @@ Currently, Delegate is treated as No response.
 | -
 | -
 | present
-| \*
+| *
 | *No response*
 
 
@@ -204,25 +204,25 @@ Currently, Delegate is treated as No response.
 | Revoke | Reduce | Not decided | No response | Accept | Result
 
 | present
-| \*
-| \*
-| \*
+| *
+| *
+| *
 | -
 | *Revoke*
 
 
 | -
 | present
-| \*
-| \*
+| *
+| *
 | -
 | *Reduce*
 
 
 | -
 | -
-| \*
-| \*
+| *
+| *
 | present
 | *Accept*
 
@@ -230,7 +230,7 @@ Currently, Delegate is treated as No response.
 | -
 | -
 | present
-| \*
+| *
 | -
 | *Not decided*
 
@@ -262,26 +262,26 @@ Currently, Delegate is treated as No response.
 | Revoke | Reduce | Not decided | No response | Accept | Result
 
 | present
-| \*
-| \*
-| \*
-| \*
+| *
+| *
+| *
+| *
 | *Revoke*
 
 
 | -
 | present
-| \*
-| \*
-| \*
+| *
+| *
+| *
 | *Reduce*
 
 
 | -
 | -
 | present
-| \*
-| \*
+| *
+| *
 | *Accept*
 
 
@@ -289,7 +289,7 @@ Currently, Delegate is treated as No response.
 | -
 | -
 | present
-| \*
+| *
 | *Accept*
 
 
@@ -306,9 +306,7 @@ Currently, Delegate is treated as No response.
 | -
 | -
 | -
-| *<default> *(it is reasonable to use Accept as the default)* +
-*
-
+| *<default>* (it is reasonable to use Accept as the default)
 
 |===
 

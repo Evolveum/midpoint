@@ -10,6 +10,8 @@
 :page-toc: top
 
 // TODO: add JSON/YAML examples
+// TODO: allowEmptyValues and includeNullInputs
+// TODO: scripting expressions and multiple multi-valued sources
 
 == Introduction
 
@@ -58,7 +60,6 @@ Single string value may be specified simply by placing it in the `value` tag as 
 <expression>
     <value>Bloody Pirate</value>
 </expression>
-
 ----
 
 .Multi-value literal expression
@@ -68,7 +69,6 @@ Single string value may be specified simply by placing it in the `value` tag as 
     <value>Pirate</value>
     <value>Sailor</value>
 </expression>
-
 ----
 
 An empty value (combine with tolerant=false and strength=strong in mappings) can be expressed as:
@@ -99,7 +99,6 @@ Following example shows definition of two literal values for structured property
         </armament>
     </value>
 </expression>
-
 ----
 
 === As Is
@@ -114,7 +113,6 @@ It is usually used in inbound and outbound mappings to synchronize passwords and
 <expression>
     <asIs/>
 </expression>
-
 ----
 
 As is expression works only if the expression has exactly one source (input variable).
@@ -130,7 +128,6 @@ The As Is value is functionally almost identical to passing the value of `input`
 <expression>
     <path>$input</path>
 </expression>
-
 ----
 
 The As Is expression evaluator is the default evaluator that will be used if no expression is specified at all (e.g. in xref:/midpoint/reference/expressions/mappings/[mappings]).
@@ -174,7 +171,6 @@ This page only provides few examples.
     'uid=' + user.getName() + ',ou=people,dc=example,dc=com'
   </code>
 </script>
-
 ----
 
 .Expression constructor using XPath script
@@ -188,7 +184,6 @@ This page only provides few examples.
     concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')
   </code>
 </script>
-
 ----
 
 .Expression constructor using ECMAScript (JavaScript) script
@@ -201,7 +196,6 @@ This page only provides few examples.
     'uid=' + user.getName() + ',ou=people,dc=example,dc=com'
   </code>
 </script>
-
 ----
 
 See xref:/midpoint/reference/expressions/expressions/script/[Script Expression] page for more details.
@@ -230,7 +224,7 @@ If no value policy is defined and the expression cannot determine the policy aut
 .Password policies and generate expression
 ====
 When a generate expression without any parameters (`<generate/>`) is used to generate a password it will choose password policy automatically.
-When such an expression is used in a mapping it will choose password policy appropriate for the* mapping target*. This makes perfect sense, as the generated value must be a valid value for the target property.
+When such an expression is used in a mapping it will choose password policy appropriate for the *mapping target*. This makes perfect sense, as the generated value must be a valid value for the target property.
 Which means that is the generate expression is used in the outbound mapping, it will use resource password policy.
 But if it is used in the inbound mapping, it will use user password policy.
 Because in the *inbound* case the target attribute is *user* password, not resource account password.
@@ -507,7 +501,6 @@ Expression may define extra variables in addition to those xref:/midpoint/refere
     </variable>
     <path>$jack/givenName</path>
 </expression>
-
 ----
 
 == Root Node
@@ -528,7 +521,6 @@ Therefore the following two expressions are equivalent (assuming that user is se
         <code>$c:user/c:name</code>
     </script>
 </expression>
-
 ----
 
 .Expression constructor using root node
@@ -540,7 +532,6 @@ Therefore the following two expressions are equivalent (assuming that user is se
         <code>c:name</code>
     </script>
 </expression>
-
 ----
 
 == Security

@@ -87,8 +87,7 @@ We prefer if you replicate the problem with one of our link:https://github.com/E
 
 * If there is an exception in the log files please make sure that you include full *stack trace of the exception*. The exception stack trace is usually a very efficient pointer to likely cause of the problem.
 
-* Relevant part of the *log files*. You may want to have a look at xref:/midpoint/reference/diag/logging/useful-loggers/[Useful Loggers] to correctly set up your logging to get the most useful data in the logs.* +
-*
+* Relevant part of the *log files*. You may want to have a look at xref:/midpoint/reference/diag/logging/useful-loggers/[Useful Loggers] to correctly set up your logging to get the most useful data in the logs.
 
 * Your *environment*: operating system, J2EE application server and its version, Java version, target system version.
 You do not need to bother with this if the bug is obviously not environment-specific.

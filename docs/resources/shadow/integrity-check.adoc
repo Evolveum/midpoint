@@ -7,38 +7,49 @@
 :page-wiki-metadata-modify-date: 2021-01-22T15:26:59.446+01:00
 :page-upkeep-status: yellow
 
-In order to diagnose and fix specific problems with shadow objects in repository, a new task type was created: Shadow Integrity Check Task.
+In order to diagnose and fix specific problems with shadow objects in repository, a new task (activity) type was created: Shadow Integrity Check.
 
-How to use it: just import the following task (taken from link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/task-check-shadow-integrity.xml[samples/tasks/task-check-shadow-integrity.xml]).
+== How to use it
+
+Just import the following task:
 
 [source,xml]
 ----
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Shadow Integrity Check</name>
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
-        <mext:objectQuery>
-            <q:paging xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-                <q:orderBy>name</q:orderBy>     <!-- in order to work with repositories that implement iteration by paging (so the order is not changed via fix operations) -->
-            </q:paging>
-        </mext:objectQuery>
-        <mext:fix>normalization</mext:fix>
-    </extension>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
-    <executionStatus>runnable</executionStatus>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/shadow-integrity-check/handler-3</handlerUri>
-    <recurrence>single</recurrence>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <shadowIntegrityCheck/>
+        </work>
+    </activity>
 </task>
 ----
 
-There are the following configuration options, in task extension container:
+== Configuration Parameters
 
-. *objectQuery*: Specifies which shadows to process.
-The default is all shadows.
-Note that for databases that implement iterative searches via paging (taking e.g. records 1-100, then 101-200, etc) it is advisable to define an order-by criterion, which is independent on fixes carried out.
-E.g. if the fix applied is the normalization of attributes, then the shadow object name is OK, because it is not changed in the process.
-Such databases are H2 and MySQL.
+[%autowidth]
+|===
+| Parameter | Description | Default
+| `shadows`
+| What xref:/midpoint/reference/tasks/activities/object-set-specification/[shadows] to analyze.
+| All shadows.
+| `aspectsToDiagnose`
+| Aspects that should be diagnosed.
+| All.
+| `aspectsToFix`
+| Aspects that should be fixed.
+| None.
+| `duplicateShadowsResolver`
+| Class name of the duplicate shadows resolver to be used.
+| Built-in one.
+| `checkDuplicatesOnPrimaryIdentifiersOnly`
+| Whether to check uniqueness on primary identifiers (or on secondary ones as well).
+| `false` (meaning all identifiers)
+|===
 
-. *diagnose* and *fix*: Specify which problems to diagnose (default = everything except "fetch") and which to fix (default = none).
+== Aspects being Diagnosed and Fixed
 
 Currently supported checks are:
 
@@ -46,55 +57,47 @@ Currently supported checks are:
 |===
 | Keyword | Description | Support
 
-| normalization
-| Checks whether all identifiers in a shadow are in a normalized form with regards to matching rule specified in the schemaHandling section.
+| `normalization`
+| Checks whether all identifiers in a shadow are in a normalized form with regard to matching rule specified in the `schemaHandling` section.
 (Note: before running this, please check that you have consistently specified matching rule for all intents of a given kind of objects.
-In future, we'll check that setting automatically, but currently we do not.)
+In the future, we'll check that setting automatically, but currently we do not.)
 | diagnose + fix
 
-
-| uniqueness
+| `uniqueness`
 | Checks whether there are more shadows (of given resource+kind) bound to specific identifier value, e.g. icfs:name or icfs:uid or whatever.
-| diagnose + fix (\*)
+| diagnose + fix (++*++)
 
-
-| intents
-| Checks whether shadow has intent specified.
-Issues a warning if it has not.
-When fixing, fetches the resource object and tries to determine correct intent.
+| `intents`
+| Checks whether shadow has intent specified. When fixing, fetches the resource object and tries to determine correct intent.
 | diagnose + fix
 
-
-| extraData
+| `extraData`
 | Checks for extra data in shadow activation container.
-As of midPoint 3.3, we store only enableTimestamp, disableTimestamp, archiveTimestamp and disableReason there.
-All other data (e.g. administrativeStatus) have to be fetched from the resource on the fly.
-This check ensures that the superfluous data are not stored in the shadows, and removes those data that are there (e.g. after migration from pre-3.3 versions of midPoint).
+Currently, we store only `enableTimestamp`, `disableTimestamp`, `archiveTimestamp` and `disableReason` there.
+All other data (e.g. `administrativeStatus`) have to be fetched from the resource on the fly.
+This check ensures that the superfluous data are not stored in the shadows, and removes those data
+that are there.
 | diagnose + fix
 
-
-| owners
-| Checks whether shadow has at least one owner + if the synchronization situation (LINKED) is consistent with owners found - LINKED shadow has to have at least one owner, not-LINKED shadow has to have 0 owners.
+| `owners`
+| Checks whether shadow has at least one owner + if the synchronization situation (`LINKED`) is consistent
+with owners found. The `LINKED` shadow has to have at least one owner, not-`LINKED` shadow has to have 0 owners.
 | diagnose only
 
-
-| fetch
+| `existenceOnResource`
 | Checks whether the corresponding object can be fetched from the resource.
-Because of the performance implications, this check is not carried out by default.
 | diagnose only
 
-
-| resourceRef
-| Checks whether resource pointed to by the shadow really exists, including whether resource reference is set at all.
-(Actually, these checks cannot be turned off.) *Fix is done by removing the shadow, so please use with care.*
+| `resourceRef`
+| Checks whether resource pointed to by the shadow really exists, including whether resource
+reference is set at all. (Actually, these checks cannot be turned off.) *Fix is done by removing the shadow, so please use with care.*
 | diagnose + fix
-
-
 |===
 
-(\*) Note that the test checking for uniqueness is implemented purely in RAM, so it works for shadow sets of reasonable size (e.g. 100K entries, depending on amount of your heap).
-It is faster and simpler to implement.
-If necessary, just log a JIRA issue to implement more general solution that would work with shadow sets of any size.
+(++*++) Note that the test checking for uniqueness is implemented purely in RAM, so it works for shadow
+sets of reasonable size (e.g. 100K entries, depending on amount of your heap). It is faster and simpler to implement.
+
+== Output
 
 The task produces a report that is written to midPoint log file.
 It looks like this:

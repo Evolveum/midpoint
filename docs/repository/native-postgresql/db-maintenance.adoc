@@ -250,7 +250,7 @@ After that any other relevant query depending on the situation - locks, vacuum i
 
 == Collation (ordering)
 
-Depending on the chosen https://www.postgresql.org/docs/13/collation.html[collation] ordering
+Depending on the chosen https://www.postgresql.org/docs/current/collation.html[collation] ordering
 of text fields can be case-insensitive or not.
 To see it quickly, one can use select like this:
 
@@ -281,7 +281,7 @@ The list of valid collation names can be obtained from `pg_collation` table:
 select * from pg_collation;
 ----
 
-As explained in the https://www.postgresql.org/docs/13/collation.html[collation documentation],
+As explained in the https://www.postgresql.org/docs/current/collation.html[collation documentation],
 there is a default collation (`collprovider = 'd'`), libc based collations (`d`) and ICU collations
 (`i`) if compiled with it (PG 13 on Ubuntu contains these too).
 
@@ -317,10 +317,10 @@ See bug:MID-6468[] for possible problem manifestation.
 
 === Creating DB with other collation
 
-As described in the notes for https://www.postgresql.org/docs/13/sql-createdatabase.html[CREATE DATABASE]
+As described in the notes for https://www.postgresql.org/docs/current/sql-createdatabase.html[CREATE DATABASE]
 one may need to specify `template0` as a template for database creation with different collation.
 Adding collation support for other languages to the operating system and then adding it to PG
-is beyond this page, but is described in the https://www.postgresql.org/docs/13/collation.html[docs].
+is beyond this page, but is described in the https://www.postgresql.org/docs/current/collation.html[docs].
 
 == Experimental
 

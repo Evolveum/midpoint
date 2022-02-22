@@ -120,6 +120,6 @@ The test is using sequences to assign Unix UID and GID numbers.
 
 * xref:/midpoint/reference/expressions/sequences/[Sequences]
 
-* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]
 
 * xref:/midpoint/reference/samples/story-tests/unix/[Unix Story Test]

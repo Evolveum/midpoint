@@ -58,7 +58,7 @@ Note that any *&* in URL must be escaped (replaced by *&amp;*) as is customary i
 == Driver
 
 Driver is not bundled due to licencing issues.
-Download link:http://dev.mysql.com/downloads/connector/j/[MySQL JDBC Driver] and insert driver (for instance mysql-connector-java-8.0.21.jar) on classpath either in deployed midpoint \*/webapps/midPoint/WEB-INF/lib or in \*/apache-tomcat/lib
+Download link:http://dev.mysql.com/downloads/connector/j/[MySQL JDBC Driver] and insert driver (for instance mysql-connector-java-8.0.21.jar) on classpath either in deployed midpoint `++*/webapps/midPoint/WEB-INF/lib++` or in `++*/apache-tomcat/lib++`
 
 You can also download the driver JAR from Maven repository: link:https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.21/mysql-connector-java-8.0.21.jar[https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.21/mysql-connector-java-8.0.21.jar]
 
@@ -78,13 +78,13 @@ For stable release check:
 
 - the latest midpoint link:http://www.evolveum.com/downloads/midpoint/3.4/[http://www.evolveum.com/downloads/midpoint/3.4/]
 - and download midpoint-3.4-dist.zip
-- Execute MySQL database script located in: \*\midpoint-3.4-dist.zip\config\sql_all\mysql-3.4-all.sql
+- Execute MySQL database script located in: `++*\midpoint-3.4-dist.zip\config\sql_all\mysql-3.4-all.sql++`
 
 For snapshot check:
 
 - the latest commit number on link:https://bamboo.evolveum.com/browse/MID-TRUNK/latestSuccessful[https://bamboo.evolveum.com/browse/MID-TRUNK/latestSuccessful]
 - and download it via link:http://athena.evolveum.com/builds/master/[http://athena.evolveum.com/builds/master/] where .zip file should be selected (midpoint-3.5-SNAPSHOT-dist.zip).
-- Execute MySQL database script located in: \*\midpoint-3.5-SNAPSHOT-dist.zip\config\sql_all\mysql-3.4-all.sql (or mysql-3.5-all, whatever will be present)
+- Execute MySQL database script located in: `++*\midpoint-3.5-SNAPSHOT-dist.zip\config\sql_all\mysql-3.4-all.sql++` (or mysql-3.5-all, whatever will be present)
 
 After starting tomcat in Windows via apache-tomcat\bin\startup.bat or Linux via apache-tomcat\bin\startup.sh open midpoint in browser link:http://localhost:8080/midpoint/admin/[http://localhost:8080/midpoint/admin/] Login:administrator Pass:5ecr3t and create new user.
 Check in MySQL table m_user where new user should be created: `select * from m_user`

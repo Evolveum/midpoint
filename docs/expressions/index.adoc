@@ -9,6 +9,7 @@
 :page-display-order: 200
 :page-upkeep-status: green
 :page-alias: { "parent" : "/midpoint/features/current/", "slug" : "expressions",  "title" : "Mappings and Expressions", "display-order" : 100 }
+:page-moved-from: /midpoint/reference/expressions/introduction/
 :page-midpoint-feature: true
 
 
@@ -85,10 +86,9 @@ include::../_reference-disclaimer.adoc[]
 
 * link:/book/practical-identity-management-with-midpoint.html#_mappings["Mappipngs" section in midPoint book]
 
-* xref:/midpoint/reference/expressions/using-mappings-and-expressions/[Using Mappings and Expressions]
-
 * xref:/midpoint/reference/expressions/mappings/[Mapping]
 
 * xref:/midpoint/reference/expressions/expressions/[Expression]
 
 * xref:/midpoint/reference/expressions/mappings/mapping-evaluation-examples/[Mapping Evaluation Examples]
+
