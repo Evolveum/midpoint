@@ -159,18 +159,19 @@ public class PageLogin extends AbstractPageLogin {
         });
         if (securityPolicy != null) {
             SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
-            String sequenceName = selfRegistrationPolicy.getAdditionalAuthenticationSequence() == null ? selfRegistrationPolicy.getAdditionalAuthenticationName() : selfRegistrationPolicy.getAdditionalAuthenticationSequence();
-            if (selfRegistrationPolicy != null
-                    && StringUtils.isNotBlank(sequenceName)) {
-                AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(sequenceName,
-                        securityPolicy.getAuthentication());
-                if (sequence != null) {
-                    registration.add(AttributeModifier.replace("href", new IModel<String>() {
-                        @Override
-                        public String getObject() {
-                            return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
-                        }
-                    }));
+            if (selfRegistrationPolicy != null) {
+                String sequenceName = selfRegistrationPolicy.getAdditionalAuthenticationSequence() == null ? selfRegistrationPolicy.getAdditionalAuthenticationName() : selfRegistrationPolicy.getAdditionalAuthenticationSequence();
+                if (StringUtils.isNotBlank(sequenceName)) {
+                    AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(sequenceName,
+                            securityPolicy.getAuthentication());
+                    if (sequence != null) {
+                        registration.add(AttributeModifier.replace("href", new IModel<String>() {
+                            @Override
+                            public String getObject() {
+                                return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
+                            }
+                        }));
+                    }
                 }
             }
         }

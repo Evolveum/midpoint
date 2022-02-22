@@ -1088,7 +1088,7 @@
             <xsd:element name="authorizationUri" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Uri for the authorization endpoint..
+                        Uri for the authorization endpoint.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1106,7 +1106,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="issuerUri" type="xsd:string" minOccurs="1" maxOccurs="1" default="false">
+            <xsd:element name="issuerUri" type="xsd:string" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Issuer identifier uri for the OpenID Connect provider.
