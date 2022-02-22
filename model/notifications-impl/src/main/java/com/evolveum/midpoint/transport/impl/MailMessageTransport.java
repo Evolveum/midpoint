@@ -304,7 +304,7 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
     }
 
     @Override
-    public String getDefaultRecipientAddress(UserType recipient) {
+    public String getDefaultRecipientAddress(FocusType recipient) {
         return recipient.getEmailAddress();
     }
 

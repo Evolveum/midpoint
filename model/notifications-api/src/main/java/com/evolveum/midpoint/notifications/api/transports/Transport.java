@@ -11,8 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralTransportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Contract for a message transport instance, which is mostly SPI type contract.
@@ -44,7 +44,7 @@ public interface Transport<C extends GeneralTransportConfigurationType> {
      */
     void send(Message message, @Deprecated String transportName, Event event, Task task, OperationResult parentResult);
 
-    String getDefaultRecipientAddress(UserType recipient);
+    String getDefaultRecipientAddress(FocusType recipient);
 
     String getName();
 

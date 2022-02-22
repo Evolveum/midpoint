@@ -325,7 +325,7 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
     }
 
     @Override
-    public String getDefaultRecipientAddress(UserType recipient) {
+    public String getDefaultRecipientAddress(FocusType recipient) {
         return recipient.getEmailAddress();
     }
 

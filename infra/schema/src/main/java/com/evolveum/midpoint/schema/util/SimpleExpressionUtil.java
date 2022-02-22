@@ -45,6 +45,13 @@ public class SimpleExpressionUtil {
     }
 
     /**
+     * Creates {@link ExpressionType} with specified Groovy code.
+     */
+    public static ExpressionType groovyExpression(String groovyCode) {
+        return scriptExpression(EXPRESSION_LANGUAGE_URL_BASE + "Groovy", groovyCode);
+    }
+
+    /**
      * Creates {@link ExpressionType} with script for specific language and with specified code.
      */
     public static ExpressionType scriptExpression(String languageUrl, String code) {

@@ -208,7 +208,7 @@
                                 Indicates the language used for the message template content.
                                 The format is IETF language tag defined in BCP 47, where underscore is used as a subtag separator.
                                 This is usually a ISO 639-1 two-letter language code optionally followed by ISO 3166-1
-                                two letter country code separated by underscore.
+                                two-letter country code separated by underscore.
                                 The languages that do not have country-specific variants are usually specified by using
                                 a two-letter country code ("sk", "cs", "tr").
                                 Languages with country-specific variants have country-specific subtags ("pt_BR", "zn_CN").
@@ -1367,9 +1367,14 @@
                     <xsd:element name="recipientExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Recipient(s) that should get the notifications. Exact form is to be determined yet,
-                                but here may be mail addresses, phone numbers, etc. We need to think how to distinguish
-                                these kinds of destinations.
+                                Recipient(s) that should get the notifications.
+                                Expression should preferably return a focus object that can be later used by a transport
+                                to extract the address and also to determine language for multi-language message templates.
+                                Alternatively, an address as a string can be returned directly - mail address, phone number, etc.
+                                Obviously, this is not flexible enough for notifiers sending messages with multiple different transports.
+                                Expression can return multiple values and multiple expressions can be specified.
+                                The results of all the values are merged and message for each recipient (or address) is sent.
+                                <!-- TODO Should OID be treated as a focus object? Currently it is not. -->
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1498,6 +1503,41 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="RecipientExpressionResultType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type for recipient expression, which can be either a focus or a string.
+                Focus can be returned as FocusObject directly or wrapped in PrismObject.
+                This is an internal structure to support multiple return types for recipient.
+                <!-- TODO any other supported return type for focus? SimpleObjectRef? Other kind of ref? -->
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="address" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Final recipient address as a string - there will not be any other processing on this.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="recipientRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference object to the focus object of the recipient.
+                        The reference will actually contain the focus object after the result of the expression
+                        is processed internally.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="NotifierTransportConfigType">
@@ -2025,7 +2065,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         References unique name of the configured message transport.
-                        If the transport does not exists, warning is logged and this config block is ignored.
+                        If the transport does not exist, warning is logged and this config block is ignored.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>NotificationTransportConfigType.name</a:displayName>
