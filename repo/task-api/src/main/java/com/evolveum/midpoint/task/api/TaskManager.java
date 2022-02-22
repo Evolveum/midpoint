@@ -133,7 +133,7 @@ public interface TaskManager {
 
     /**
      * Modifies task using relative change description. Must fail if object with
-     * provided OID does not exists. Must fail if any of the described changes
+     * provided OID does not exist. Must fail if any of the described changes
      * cannot be applied. Should be atomic.
      *
      * If two or more modify operations are executed in parallel, the operations

@@ -216,7 +216,7 @@ public class QAccessCertificationWorkItemMapping
                 .where(root.ownerOid.eq(ownerOid).and(root.cid.eq(accessCertCaseCid)))
                 .fetchOne();
         if (result == null) {
-            throw new SystemException("Case owner:" + ownerOid + " cid: " + accessCertCaseCid + "does not exists.");
+            throw new SystemException("Case owner:" + ownerOid + " cid:" + accessCertCaseCid + " does not exist.");
         }
         try {
             //noinspection unchecked

@@ -188,7 +188,7 @@ public class ModelCrudService {
      * Deletes object with specified OID.
      * </p>
      * <p>
-     * Must fail if object with specified OID does not exists. Should be atomic.
+     * Must fail if object with specified OID does not exist. Should be atomic.
      * </p>
      *
      * @param oid
@@ -249,7 +249,7 @@ public class ModelCrudService {
      * Modifies object using relative change description.
      * </p>
      * <p>
-     * Must fail if user with provided OID does not exists. Must fail if any of
+     * Must fail if user with provided OID does not exist. Must fail if any of
      * the described changes cannot be applied. Should be atomic.
      * </p>
      * <p>
