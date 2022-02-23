@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
@@ -28,7 +29,8 @@ import org.apache.wicket.model.IModel;
                 order = 30
         ),
         containerPath = "infrastructure",
-        type = "InfrastructureConfigurationType"
+        type = "InfrastructureConfigurationType",
+        expanded = true
 )
 @PanelInstance(
         identifier = "fullTextSearchPanel",
@@ -39,7 +41,8 @@ import org.apache.wicket.model.IModel;
                 order = 40
         ),
         containerPath = "fullTextSearch",
-        type = "FullTextSearchConfigurationType"
+        type = "FullTextSearchConfigurationType",
+        expanded = true
 )
 @PanelInstance(
         identifier = "profilingPanel",
@@ -50,7 +53,8 @@ import org.apache.wicket.model.IModel;
                 order = 10
         ),
         containerPath = "profilingConfiguration",
-        type = "ProfilingConfigurationType"
+        type = "ProfilingConfigurationType",
+        expanded = true
 )
 @PanelInstance(
         identifier = "adminGuiPanel",
@@ -61,7 +65,8 @@ import org.apache.wicket.model.IModel;
                 order = 10
         ),
         containerPath = "adminGuiConfiguration",
-        type = "AdminGuiConfigurationType"
+        type = "AdminGuiConfigurationType",
+        expanded = true
 )
 @PanelInstance(
         identifier = "wfConfigurationPanel",
@@ -72,7 +77,8 @@ import org.apache.wicket.model.IModel;
                 order = 10
         ),
         containerPath = "workflowConfiguration",
-        type = "WfConfigurationType"
+        type = "WfConfigurationType",
+        expanded = true
 )
 @PanelInstance(
         identifier = "projectionPolicyPanel",
@@ -83,7 +89,8 @@ import org.apache.wicket.model.IModel;
                 order = 30
         ),
         containerPath = "globalAccountSynchronizationSettings",
-        type = "ProjectionPolicyType"
+        type = "ProjectionPolicyType",
+        expanded = true
 )
 @PanelInstance(
         identifier = "cleanupPolicyPanel",
@@ -94,7 +101,44 @@ import org.apache.wicket.model.IModel;
                 order = 40
         ),
         containerPath = "cleanupPolicy",
-        type = "CleanupPoliciesType"
+        type = "CleanupPoliciesType",
+        expanded = true
+)
+@PanelInstance(
+        identifier = "notificationPanel",
+        applicableForType = NotificationConfigurationType.class,
+        display = @PanelDisplay(
+                label = "NotificationContentPanel.label",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 10
+        ),
+        containerPath = "notificationConfiguration",
+        type = "NotificationConfigurationType",
+        expanded = true
+)
+@PanelInstance(
+        identifier = "accessCertificationPanel",
+        applicableForType = AccessCertificationConfigurationType.class,
+        display = @PanelDisplay(
+                label = "AccessCertificationContentPanel.label",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 10
+        ),
+        containerPath = "accessCertification",
+        type = "AccessCertificationConfigurationType",
+        expanded = true
+)
+@PanelInstance(
+        identifier = "deploymentPanel",
+        applicableForType = SystemConfigurationType.class,
+        display = @PanelDisplay(
+                label = "DeploymentContentPanel.label",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 20
+        ),
+        containerPath = "deploymentInformation",
+        type = "DeploymentInformationType",
+        expanded = true
 )
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
@@ -106,6 +150,13 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
 
     @Override
     protected void initLayout() {
-        add(new SingleContainerPanel<C>(ID_DETAILS, (IModel) getObjectWrapperModel(), getPanelConfiguration()));
+        IModel model = () -> {
+            PrismObjectWrapper wrapper = getObjectWrapperModel().getObject();
+            wrapper.setShowEmpty(true, true);
+
+            return wrapper;
+        };
+
+        add(new SingleContainerPanel<C>(ID_DETAILS, model, getPanelConfiguration()));
     }
 }

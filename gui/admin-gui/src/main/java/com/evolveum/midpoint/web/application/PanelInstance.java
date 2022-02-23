@@ -67,4 +67,6 @@ public @interface PanelInstance {
     String containerPath() default "";
 
     String type() default "";
+
+    boolean expanded() default false;
 }

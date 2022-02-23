@@ -18,7 +18,11 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
+import javax.xml.namespace.QName;
 
 @PanelType(name = "loggingPanel")
 @PanelInstance(
@@ -46,7 +50,23 @@ public class LoggingContentPanel extends AbstractObjectMainPanel<SystemConfigura
 
             @Override
             protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
-                return super.getVisibility(itemWrapper);
+                ItemPath path = itemWrapper.getPath();
+                if (path == null || path.isEmpty()) {
+                    return ItemVisibility.AUTO;
+                }
+
+                QName name;
+                if (path.size() == 1) {
+                    name = path.firstToQName();
+                } else {
+                    name = path.rest().firstToQName();
+                }
+
+                boolean hide = LoggingConfigurationType.F_CLASS_LOGGER.equals(name) ||
+                        LoggingConfigurationType.F_SUB_SYSTEM_LOGGER.equals(name) ||
+                        LoggingConfigurationType.F_APPENDER.equals(name);
+
+                return hide ? ItemVisibility.HIDDEN : ItemVisibility.AUTO;
             }
         };
         add(panel);

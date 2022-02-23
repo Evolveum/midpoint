@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page;
 
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -17,6 +15,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProfilingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
         urls = {
@@ -50,22 +50,5 @@ public class PageProfiling extends PageBaseSystemConfiguration {
         return ProfilingConfigurationType.class;
     }
 
-//    @Override
-//    protected List<ITab> createTabs() {
-//        List<ITab> tabs = new ArrayList<>();
-//
-//        tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.profiling.title")) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public WebMarkupContainer getPanel(String panelId) {
-//                PrismContainerWrapperModel<SystemConfigurationType, ProfilingConfigurationType> profilingModel = createModel(getObjectModel(), SystemConfigurationType.F_PROFILING_CONFIGURATION);
-//                PrismContainerWrapperModel<SystemConfigurationType, LoggingConfigurationType> loggingModel = createModel(getObjectModel(),
-//                        SystemConfigurationType.F_LOGGING);
-//                return new ProfilingConfigurationTabPanel(panelId, profilingModel, loggingModel);
-//            }
-//        });
-//        return tabs;
-//    }
+    // todo entry/exit profiling fields are missing, see ProfilingConfigurationTabPanel.ID_PROFILING_LOGGER component
 }

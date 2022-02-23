@@ -417,7 +417,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             config.setApplicableForOperation(panelInstance.applicableForOperation()[0]);
         }
 
-        createDefaultVirtualContainer(config, panelInstance.containerPath());
+        createDefaultVirtualContainer(config, panelInstance.containerPath(), panelInstance.expanded());
 
         if (StringUtils.isNotEmpty(panelInstance.type())) {
             config.setType(QNameUtil.uriToQName(panelInstance.type(), SchemaConstantsGenerated.NS_COMMON));
@@ -426,7 +426,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return config;
     }
 
-    private void createDefaultVirtualContainer(ContainerPanelConfigurationType config, String path) {
+    private void createDefaultVirtualContainer(ContainerPanelConfigurationType config, String path, Boolean expanded) {
         if (StringUtils.isEmpty(path)) {
             return;
         }
@@ -439,6 +439,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             container.setPath(itemPath);
         }
         container.setDisplayOrder(10);
+        container.setExpanded(expanded);
         config.getContainer().add(container);
     }
 
@@ -454,7 +455,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                 config.setType(def.getTypeName());
             }
         }
-        createDefaultVirtualContainer(config, panelType.defaultContainerPath());
+        createDefaultVirtualContainer(config, panelType.defaultContainerPath(), false);
 
         if (panelType.experimental() && BooleanUtils.isNotTrue(experimentalFeaturesEnabled)) {
             config.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
