@@ -73,8 +73,7 @@ public class ExecutionHelper {
     private static final String DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION = "$approval-task-group$:";
     private static final long DEFAULT_SERIALIZATION_RETRY_TIME = 10000L;
 
-    public void closeCaseInRepository(CaseType aCase, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+    public void closeCaseInRepository(CaseType aCase, OperationResult result) throws ObjectNotFoundException {
         miscHelper.closeCaseInRepository(aCase, result);
     }
 

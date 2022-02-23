@@ -73,4 +73,9 @@ public interface ResourceObjectTypeDefinition
     boolean isDefaultForObjectClass();
 
     ResourceObjectTypeDefinition forLayer(@NotNull LayerType layerType);
+
+    /**
+     * Returns the "raw" configuration bean for this object type.
+     */
+    @NotNull ResourceObjectTypeDefinitionType getDefinitionBean();
 }

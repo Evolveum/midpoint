@@ -48,7 +48,7 @@ public class DefaultEngineExtension implements EngineExtension {
 
     @Override
     public void finishCaseClosing(@NotNull CaseEngineOperation operation, @NotNull OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+            throws ObjectNotFoundException {
         // No special action here. Let's just close the case.
         operation.closeCaseInRepository(result);
     }

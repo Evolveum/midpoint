@@ -32,9 +32,11 @@ public interface ResourceObjectClassifier {
      *
      * @param resource Resource on which the resource object was found
      */
-    @NotNull Classification classify(@NotNull PrismObject<ShadowType> combinedObject,
+    @NotNull Classification classify(
+            @NotNull PrismObject<ShadowType> combinedObject,
             @NotNull PrismObject<ResourceType> resource,
-            @NotNull Task task, @NotNull OperationResult result)
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException;
 

@@ -10,10 +10,13 @@ package com.evolveum.midpoint.model.test.correlator;
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.Correlator;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerOptionsType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -30,10 +33,10 @@ class DummyCorrelator implements Correlator {
     @Override
     public CorrelationResult correlate(
             @NotNull CorrelationContext correlationContext,
-            @NotNull Task task,
             @NotNull OperationResult result) {
         // TODO
-        return CorrelationResult.uncertain();
+        return CorrelationResult.uncertain(
+                new ResourceObjectOwnerOptionsType(PrismContext.get()));
     }
 
     @Override

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -26,7 +27,11 @@ public interface CorrelationService {
      *
      * Also - include preliminary focus here!
      */
-    CorrelationResult correlate(ShadowType shadow, Task task, OperationResult result)
+    @VisibleForTesting
+    CorrelationResult correlate(
+            @NotNull ShadowType shadow,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
 

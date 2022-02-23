@@ -27,12 +27,10 @@ public interface Correlator {
      * We assume that the correlator is already configured. See {@link CorrelatorFactory}.
      *
      * @param correlationContext Additional information about the overall context for correlation (e.g. type of focal objects)
-     * @param task Task in context of which the correlation takes place
      * @param result Operation result where the method should record its operation
      */
     CorrelationResult correlate(
             @NotNull CorrelationContext correlationContext,
-            @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
@@ -40,7 +38,7 @@ public interface Correlator {
     /**
      * Resolves a correlation case using provided work item output.
      *
-     * TODO shouldn't we take outcome URI directly from the case?
+     * @param outcomeUri It is the same value as in the case. It is mentioned explicitly just to show it's not null.
      */
     void resolve(
             @NotNull CaseType aCase,

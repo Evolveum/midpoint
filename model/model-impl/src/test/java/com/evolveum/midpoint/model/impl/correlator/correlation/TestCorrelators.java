@@ -164,11 +164,11 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 preFocus,
                 RESOURCE_DETERMINISTIC.getResource().asObjectable(),
                 resourceObjectTypeDefinition,
-                systemConfiguration);
+                systemConfiguration, task);
 
         then("correlating account #" + account.getNumber());
 
-        CorrelationResult correlationResult = correlator.correlate(context, task, result);
+        CorrelationResult correlationResult = correlator.correlate(context, result);
         assertCorrelationResult(correlationResult, account, result);
     }
 
@@ -178,11 +178,11 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
 
         displayDumpable("Correlation result", correlationResult);
 
-        assertThat(correlationResult.getStatus())
+        assertThat(correlationResult.getSituation())
                 .as("correlation result status")
-                .isEqualTo(account.getExpectedCorrelationStatus());
+                .isEqualTo(account.getExpectedCorrelationSituation());
 
-        if (correlationResult.getStatus() == CorrelationResult.Status.EXISTING_OWNER) {
+        if (correlationResult.getSituation() == CorrelationSituationType.EXISTING_OWNER) {
             ObjectType realOwner = correlationResult.getOwner();
             assertThat(realOwner).as("correlated owner").isNotNull();
             String expectedOwnerName = account.getExpectedOwnerName();

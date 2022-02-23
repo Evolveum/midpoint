@@ -61,6 +61,8 @@ public class ResourceSchemaFactory {
     /**
      * Obtains refined schema for the resource.
      *
+     * Returns null if the resource does not contain any (raw) schema.
+     *
      * If the resource does NOT contain the schema, it must be mutable.
      *
      * TODO rework this -- management of refined resource schemas will be the responsibility of ResourceManager
@@ -162,7 +164,6 @@ public class ResourceSchemaFactory {
      *
      * Normally internal to this class, but may be called externally from the test code.
      */
-    @VisibleForTesting
     public static ResourceSchema parseCompleteSchema(ResourceType resource) throws SchemaException {
         return new RefinedResourceSchemaParser(resource)
                 .parse();

@@ -17,15 +17,15 @@
     <!-- No url nor credentials. A dummy service is used instead. -->
     <followOn>
         <filter>
-            <filter>
+            <ownerFilter>
                 <q:equal>
                     <q:path>employeeNumber</q:path>
                     <expression>
                         <!-- This is the reference ID determined by the ID Match service -->
-                        <path>$correlationState/referenceId</path>
+                        <path>$correlatorState/referenceId</path>
                     </expression>
                 </q:equal>
-            </filter>
+            </ownerFilter>
         </filter>
     </followOn>
 </idMatchCorrelator>

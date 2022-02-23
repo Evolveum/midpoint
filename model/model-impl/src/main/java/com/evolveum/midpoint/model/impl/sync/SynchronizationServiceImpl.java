@@ -17,12 +17,6 @@ import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistency
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.api.correlator.*;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
-
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -35,6 +29,7 @@ import org.springframework.stereotype.Service;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
@@ -42,6 +37,8 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -92,7 +89,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
     @Autowired private ActionManager<Action> actionManager;
     @Autowired private SynchronizationExpressionsEvaluator synchronizationExpressionsEvaluator;
-    @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
     @Autowired private ContextFactory contextFactory;
     @Autowired private Clockwork clockwork;
     @Autowired private ExpressionFactory expressionFactory;
@@ -289,7 +285,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         if (applicableShadow.asObjectable().getTag() != null) {
             return;
         }
-        ResourceObjectTypeDefinition rOcd = syncCtx.findRefinedObjectClassDefinition();
+        ResourceObjectTypeDefinition rOcd = syncCtx.findObjectTypeDefinition();
         if (rOcd == null) {
             // We probably do not have kind/intent yet.
             return;
@@ -566,12 +562,15 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         evaluatePreMappings(syncCtx, result);
 
-        CorrelationResult correlationResult = correlate(syncCtx, result);
-        LOGGER.trace("Correlation result:\n{}", correlationResult.debugDumpLazily(1));
+        CorrelationResult correlationResult =
+                new CorrelationProcessing<>(syncCtx, beans)
+                        .process(result);
+
+        LOGGER.debug("Correlation result:\n{}", correlationResult.debugDumpLazily(1));
 
         SynchronizationSituationType state;
         F owner;
-        switch (correlationResult.getStatus()) {
+        switch (correlationResult.getSituation()) {
             case EXISTING_OWNER:
                 state = SynchronizationSituationType.UNLINKED;
                 //noinspection unchecked
@@ -582,13 +581,16 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 owner = null;
                 break;
             case UNCERTAIN:
+            case ERROR:
                 state = SynchronizationSituationType.DISPUTED;
                 owner = null;
                 break;
             default:
-                throw new AssertionError(correlationResult.getStatus());
+                throw new AssertionError(correlationResult.getSituation());
         }
         LOGGER.debug("Determined synchronization situation: {} with owner: {}", state, owner);
+
+        // TODO write correlation result to the shadow (or later - along with the update of the sync situation)
 
         syncCtx.setCorrelatedOwner(owner);
         if (syncCtx.getSituation() == null) {
@@ -601,27 +603,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             ConfigurationException, ObjectNotFoundException {
         new PreMappingsEvaluation<>(syncCtx, beans)
                 .evaluate(result);
-    }
-
-    private <F extends FocusType> CorrelationResult correlate(SynchronizationContext<F> syncCtx, OperationResult result)
-            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
-
-        CorrelationContext correlationContext = new CorrelationContext(
-                syncCtx.getShadowedResourceObject().asObjectable(),
-                syncCtx.getPreFocus(),
-                syncCtx.getResource().asObjectable(),
-                syncCtx.getObjectTypeDefinition(),
-                asObjectable(syncCtx.getSystemConfiguration()));
-
-        syncCtx.setCorrelationContext(correlationContext);
-
-        CorrelatorContext<?> correlatorContext =
-                CorrelatorContext.create(syncCtx.getCorrelators(), syncCtx.getObjectSynchronizationBean());
-
-        Task task = syncCtx.getTask();
-        return correlatorFactoryRegistry.instantiateCorrelator(correlatorContext, task, result)
-                .correlate(correlationContext, task, result);
     }
 
     // This is maybe not needed
@@ -883,12 +864,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
             S_ItemEntry builder = prismContext.deltaFor(ShadowType.class);
 
-            // TODO revisit this
-            if (syncCtx.getCorrelationContext() != null) {
-                builder = builder.item(ShadowType.F_CORRELATION_STATE).replace(
-                        CloneUtil.clone(syncCtx.getCorrelationContext().getCorrelationState()));
-            }
-
             if (ShadowUtil.isNotKnown(shadowBean.getKind())) {
                 builder = builder.item(ShadowType.F_KIND).replace(syncCtx.getKind());
             }
@@ -901,10 +876,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 builder = builder.item(ShadowType.F_TAG).replace(syncCtx.getTag());
             }
 
-            deltas.addAll(builder.asItemDeltas());
+            List<ItemDelta<?, ?>> builderDeltas = builder.asItemDeltas();
+            deltas.addAll(builderDeltas);
+            deltas.addAll(syncCtx.getPendingShadowDeltas());
+            syncCtx.clearPendingShadowDeltas();
 
             repositoryService.modifyObject(shadowBean.getClass(), shadow.getOid(), deltas, result);
-            ItemDeltaCollectionsUtil.applyTo(deltas, shadow);
+            ItemDeltaCollectionsUtil.applyTo(builderDeltas, shadow); // pending deltas are already applied
             task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, null);
         } catch (ObjectNotFoundException ex) {
             task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, ex);

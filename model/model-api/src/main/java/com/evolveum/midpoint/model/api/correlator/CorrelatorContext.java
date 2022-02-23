@@ -76,4 +76,11 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> {
     public CorrelatorContext<?> spawn(@NotNull CorrelatorConfiguration configuration) {
         return new CorrelatorContext<>(configuration, synchronizationBean);
     }
+
+    public boolean shouldCreateCases() {
+        return synchronizationBean != null
+                && synchronizationBean.getCorrelationDefinition() != null
+                && synchronizationBean.getCorrelationDefinition().getCases() != null
+                && !Boolean.FALSE.equals(synchronizationBean.getCorrelationDefinition().getCases().isEnabled());
+    }
 }

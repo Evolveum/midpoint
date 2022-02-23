@@ -13,6 +13,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.cases.api.CaseEngine;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,6 +29,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
+/**
+ * A bridge between the {@link CaseEngine} and the correlation business.
+ *
+ * Does not deal with technical details of correlation. These are delegated e.g. to {@link CorrelationCaseManager}.
+ */
 @Component
 public class CorrelationCaseEngineExtension implements EngineExtension {
 
@@ -41,15 +48,14 @@ public class CorrelationCaseEngineExtension implements EngineExtension {
     public void finishCaseClosing(
             @NotNull CaseEngineOperation operation,
             @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException,
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, ConfigurationException {
 
-        boolean shouldClose =
-                correlationCaseManager.completeCorrelationCase(operation.getCurrentCase(), operation.getTask(), result);
-
-        if (shouldClose) {
-            operation.closeCaseInRepository(result);
-        }
+        correlationCaseManager.completeCorrelationCase(
+                operation.getCurrentCase(),
+                operation::closeCaseInRepository,
+                operation.getTask(),
+                result);
     }
 
     @Override

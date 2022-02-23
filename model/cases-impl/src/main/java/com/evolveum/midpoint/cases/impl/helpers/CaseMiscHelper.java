@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -128,15 +130,17 @@ public class CaseMiscHelper {
         }
     }
 
-    public void closeCaseInRepository(CaseType aCase, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-
-        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(CaseType.class)
-                .item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
-                .item(CaseType.F_CLOSE_TIMESTAMP).replace(clock.currentTimeXMLGregorianCalendar())
-                .asItemDeltas();
-        repositoryService.modifyObject(CaseType.class, aCase.getOid(), modifications, result);
-        LOGGER.debug("Marked case {} as closed", aCase);
+    public void closeCaseInRepository(CaseType aCase, OperationResult result) throws ObjectNotFoundException {
+        try {
+            List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(CaseType.class)
+                    .item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
+                    .item(CaseType.F_CLOSE_TIMESTAMP).replace(clock.currentTimeXMLGregorianCalendar())
+                    .asItemDeltas();
+            repositoryService.modifyObject(CaseType.class, aCase.getOid(), modifications, result);
+            LOGGER.debug("Marked case {} as closed", aCase);
+        } catch (SchemaException | ObjectAlreadyExistsException e) {
+            throw new SystemException("Unexpected exception while closing a case: " + e.getMessage(), e);
+        }
     }
 
     public VariablesMap getDefaultVariables(CaseType aCase, ApprovalContextType wfContext, String requestChannel,

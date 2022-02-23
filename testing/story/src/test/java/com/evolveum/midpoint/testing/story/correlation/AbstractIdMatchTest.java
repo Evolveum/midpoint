@@ -348,7 +348,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
 
         // TODO adapt when URIs are changed to use OIDs
         AbstractWorkItemOutputType output = new AbstractWorkItemOutputType(prismContext)
-                .outcome(SchemaConstants.CORRELATION_OPTION_PREFIX + getReferenceId(john)); // unqualified should be OK here
+                .outcome(SchemaConstants.CORRELATION_EXISTING_PREFIX + getReferenceId(john)); // unqualified should be OK here
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();

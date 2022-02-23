@@ -74,17 +74,13 @@ class FilterCorrelator implements Correlator {
     @Override
     public CorrelationResult correlate(
             @NotNull CorrelationContext correlationContext,
-            @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        correlationContext.setManualCorrelationConfiguration(
-                configuration.getManual());
-
         LOGGER.trace("Correlating:\n{}", correlationContext.debugDumpLazily(1));
 
-        return new Correlation<>(correlationContext, task)
+        return new Correlation<>(correlationContext)
                 .execute(result);
     }
 
@@ -107,12 +103,10 @@ class FilterCorrelator implements Correlator {
         /** TODO: determine from the resource */
         @Nullable private final ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
-        Correlation(
-                @NotNull CorrelationContext correlationContext,
-                @NotNull Task task) {
+        Correlation(@NotNull CorrelationContext correlationContext) {
             this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
-            this.task = task;
+            this.task = correlationContext.getTask();
             this.contextDescription =
                     ("filter correlator" +
                             (configuration.getName() != null ? " '" + configuration.getName() + "'" : ""))
@@ -127,20 +121,14 @@ class FilterCorrelator implements Correlator {
             List<F> confirmedCandidates = confirmCandidates(candidates, result);
             // TODO selection expression
 
-            return beans.builtInCaseManager.createCorrelationResultOrCase(
-                    resourceObject,
-                    correlationContext.getPreFocus(),
-                    confirmedCandidates,
-                    correlationContext,
-                    task,
-                    result);
+            return beans.builtInResultCreator.createCorrelationResult(confirmedCandidates, correlationContext);
         }
 
         private @NotNull List<F> findCandidatesUsingConditionalFilters(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
-            List<ConditionalSearchFilterType> conditionalFilters = configuration.getFilter();
+            List<ConditionalSearchFilterType> conditionalFilters = configuration.getOwnerFilter();
 
             LOGGER.trace("Going to find candidates using {} conditional filter(s) in {}",
                     conditionalFilters.size(), contextDescription);
