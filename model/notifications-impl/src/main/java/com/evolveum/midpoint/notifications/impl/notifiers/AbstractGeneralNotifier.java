@@ -143,7 +143,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             int sentMessages = 0;
             for (RecipientExpressionResultType recipient : recipients) {
                 sentMessages += prepareAndSendMessage(event,
-                        notifierConfig, variables, transport, recipient, task, result);
+                        notifierConfig, variables, transport, transportName, recipient, task, result);
             }
             return sentMessages;
         } catch (Throwable t) {
@@ -155,9 +155,12 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     }
 
     private int prepareAndSendMessage(E event, N notifierConfig, VariablesMap variables,
-            Transport<?> transport, RecipientExpressionResultType recipient, Task task, OperationResult result)
+            Transport<?> transport, @Deprecated String transportName,
+            RecipientExpressionResultType recipient, Task task, OperationResult result)
             throws SchemaException {
-        String transportName = transport.getName();
+        // TODO this is what we want in 4.6, parameter must go
+        //  But this will also mean rewriting existing tests from legacy to new transport style.
+        // String transportName = transport.getName();
 
         String address = recipient.getAddress();
         if (address == null) {
