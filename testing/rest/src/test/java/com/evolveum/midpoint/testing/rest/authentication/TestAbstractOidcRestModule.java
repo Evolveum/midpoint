@@ -37,10 +37,7 @@ import java.io.IOException;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
-public abstract class TestAbstractOidcRestModule extends RestServiceInitializer {
-
-    protected static final File BASE_AUTHENTICATION_DIR = new File("src/test/resources/authentication/");
-    protected static final File BASE_REPO_DIR = new File(BASE_AUTHENTICATION_DIR,"repo/");
+public abstract class TestAbstractOidcRestModule extends TestAbstractAuthentication {
 
     public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
     public static final String USER_ADMINISTRATOR_PASSWORD = "secret";
@@ -53,33 +50,7 @@ public abstract class TestAbstractOidcRestModule extends RestServiceInitializer 
     public static final File SECURITY_POLICY_SYMMETRIC_KEY = new File(BASE_REPO_DIR, "security-policy-symmetric-key.xml");
     public static final File SECURITY_POLICY_SYMMETRIC_KEY_WRONG_KEY = new File(BASE_REPO_DIR, "security-policy-symmetric-key-wrong-alg.xml");
 
-    @Autowired
-    protected MidpointJsonProvider jsonProvider;
-
-    @Autowired
-    private SystemObjectCache systemObjectCache;
-
-    @Override
-    protected String getAcceptHeader() {
-        return MediaType.APPLICATION_JSON;
-    }
-
-    @Override
-    protected String getContentType() {
-        return MediaType.APPLICATION_JSON;
-    }
-
-    @Override
-    protected MidpointAbstractProvider getProvider() {
-        return jsonProvider;
-    }
-
     public abstract AuthzClient getAuthzClient();
-
-    @AfterMethod
-    public void clearCache(){
-        systemObjectCache.invalidateCaches();
-    }
 
     @Test
     public void oidcAuthByIssuerUriTest() throws Exception {
@@ -170,14 +141,6 @@ public abstract class TestAbstractOidcRestModule extends RestServiceInitializer 
 
         then();
         assertUnsuccess(response);
-    }
-
-    private void replaceSecurityPolicy(File securityPolicy) throws CommonException, IOException {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        PrismObject<SecurityPolicyType> secPolicy = parseObject(securityPolicy);
-        addObject(secPolicy, executeOptions().overwrite(), task, result);
-        getDummyAuditService().clear();
     }
 
     protected abstract void assertForAuthByPublicKey(Response response);

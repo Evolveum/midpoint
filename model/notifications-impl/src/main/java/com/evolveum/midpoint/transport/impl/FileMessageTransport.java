@@ -8,6 +8,8 @@ package com.evolveum.midpoint.transport.impl;
 
 import static com.evolveum.midpoint.transport.impl.TransportUtil.formatToFileNew;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.notifications.api.events.Event;
@@ -20,7 +22,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileTransportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * Message "transport" writing the messages into file(s).
@@ -36,9 +38,11 @@ public class FileMessageTransport implements Transport<FileTransportConfiguratio
     private FileTransportConfigurationType configuration;
 
     @Override
-    public void init(@NotNull FileTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
-        this.configuration = java.util.Objects.requireNonNull(configuration);
-        name = java.util.Objects.requireNonNull(configuration.getName());
+    public void configure(
+            @NotNull FileTransportConfigurationType configuration,
+            @NotNull TransportSupport transportSupport) {
+        this.configuration = Objects.requireNonNull(configuration);
+        name = Objects.requireNonNull(configuration.getName());
         // transportSupport not needed here
     }
 
@@ -55,7 +59,7 @@ public class FileMessageTransport implements Transport<FileTransportConfiguratio
     }
 
     @Override
-    public String getDefaultRecipientAddress(UserType recipient) {
+    public String getDefaultRecipientAddress(FocusType recipient) {
         return PolyString.getOrig(recipient.getName()) + " <" + recipient.getEmailAddress() + ">";
     }
 

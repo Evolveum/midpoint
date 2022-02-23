@@ -21,7 +21,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomTransportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * Lightweight test transport.
@@ -31,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * This is only useful for the simplest cases without using system configuration.
  * * Specifying its class name for custom transport and calling sysconfig modify.
  * In this case the change will cause transport service to register the transport
- * and its {@link #init} method will be called.
+ * and its {@link #configure} method will be called.
  * The instance then can be obtained by {@link TransportService#getTransport}.
  *
  * Afterwards, use {@link #getMessages()} and {@link #clearMessages()} as needed.
@@ -74,7 +74,7 @@ public class TestMessageTransport implements Transport<CustomTransportConfigurat
     }
 
     @Override
-    public String getDefaultRecipientAddress(UserType recipient) {
+    public String getDefaultRecipientAddress(FocusType recipient) {
         return recipient.getEmailAddress() != null ? recipient.getEmailAddress() : "no-address";
     }
 
@@ -84,7 +84,7 @@ public class TestMessageTransport implements Transport<CustomTransportConfigurat
     }
 
     @Override
-    public void init(@NotNull CustomTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
+    public void configure(@NotNull CustomTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
         this.configuration = configuration;
         name = configuration.getName();
     }

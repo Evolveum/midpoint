@@ -13,14 +13,19 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.notifications.impl.events.*;
-
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.notifications.api.events.*;
+import com.evolveum.midpoint.notifications.api.events.CaseEvent;
+import com.evolveum.midpoint.notifications.api.events.CaseManagementEvent;
+import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
+import com.evolveum.midpoint.notifications.api.events.WorkItemEvent;
+import com.evolveum.midpoint.notifications.impl.events.WorkItemAllocationEventImpl;
+import com.evolveum.midpoint.notifications.impl.events.WorkItemCustomEventImpl;
+import com.evolveum.midpoint.notifications.impl.events.WorkItemEventImpl;
+import com.evolveum.midpoint.notifications.impl.events.WorkItemLifecycleEventImpl;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -49,10 +54,7 @@ public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseMa
     }
 
     @Override
-    protected UserType getDefaultRecipient(
-            CaseManagementEvent event,
-            SimpleWorkflowNotifierType configuration,
-            OperationResult result) {
+    protected UserType getDefaultRecipient(CaseManagementEvent event, OperationResult result) {
         @Nullable SimpleObjectRef recipientRef;
         if (event instanceof CaseEvent) {
             recipientRef = event.getRequester();
@@ -351,13 +353,20 @@ public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseMa
             return "cancelled";        // OK?
         }
         switch (operationKind) {
-            case CLAIM: return "claimed";
-            case RELEASE: return "released";
-            case COMPLETE: return "completed";
-            case DELEGATE: return "delegated";
-            case ESCALATE: return "escalated";
-            case CANCEL: return "cancelled";
-            default: throw new IllegalArgumentException("operation kind: " + operationKind);
+            case CLAIM:
+                return "claimed";
+            case RELEASE:
+                return "released";
+            case COMPLETE:
+                return "completed";
+            case DELEGATE:
+                return "delegated";
+            case ESCALATE:
+                return "escalated";
+            case CANCEL:
+                return "cancelled";
+            default:
+                throw new IllegalArgumentException("operation kind: " + operationKind);
         }
     }
 

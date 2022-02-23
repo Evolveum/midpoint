@@ -22,12 +22,11 @@ public interface PrismContainerWrapper<C extends Containerable> extends ItemWrap
 
     boolean isExpanded();
 
-
     ItemStatus getStatus();
 
     void setVirtual(boolean virtual);
-    boolean isVirtual();
 
+    boolean isVirtual();
 
     <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException;
     <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier);

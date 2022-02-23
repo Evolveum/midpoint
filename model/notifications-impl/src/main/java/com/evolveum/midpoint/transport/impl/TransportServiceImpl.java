@@ -186,7 +186,7 @@ public class TransportServiceImpl implements TransportService {
             Transport<CustomTransportConfigurationType> transport = className != null
                     ? (Transport<CustomTransportConfigurationType>) Class.forName(className).getConstructor().newInstance()
                     : new CustomMessageTransport();
-            transport.init(customConfig, transportSupport);
+            transport.configure(customConfig, transportSupport);
             registerTransport(transport);
             transportsFromSysConfig.add(transport.getName());
         } catch (ReflectiveOperationException | ClassCastException e) {
@@ -202,7 +202,7 @@ public class TransportServiceImpl implements TransportService {
             return;
         }
         Transport<C> transport = transportSupplier.get();
-        transport.init(transportConfig, transportSupport);
+        transport.configure(transportConfig, transportSupport);
         registerTransport(transport);
         transportsFromSysConfig.add(transport.getName());
     }

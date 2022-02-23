@@ -15,16 +15,10 @@
                 <name>internalLoginForm</name>
                 <description>Internal username/password authentication, default user password, login form</description>
             </loginForm>
-            <oidc>
-                <name>oidcResourceServer</name>
-                <resourceServer>
-                    <trustedAlgorithm>HS384</trustedAlgorithm>
-                    <singleSymmetricKey>
-                        <clearValue>aRpjWIG4mI-SMG6KuEIX5PWT8o-_onPnh8OWoF_3-aMqgYM3ef4JLrHbk0lbQm91L-Mx0YSBFSHqPiAy6WQV9Q</clearValue>
-                    </singleSymmetricKey>
-                    <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
-                </resourceServer>
-            </oidc>
+            <httpBasic>
+                <name>internalBasic</name>
+                <description>Internal username/password authentication, using HTTP basic auth</description>
+            </httpBasic>
         </modules>
         <sequence>
             <name>admin-gui-default</name>
@@ -58,7 +52,7 @@
                 <urlSuffix>rest-default</urlSuffix>
             </channel>
             <module>
-                <name>oidcResourceServer</name>
+                <name>internalBasic</name>
                 <order>10</order>
                 <necessity>sufficient</necessity>
             </module>

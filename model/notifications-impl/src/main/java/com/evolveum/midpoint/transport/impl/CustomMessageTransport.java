@@ -38,7 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomTransportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * TODO: make this a good superclass for custom subclasses
@@ -55,7 +55,9 @@ public class CustomMessageTransport implements Transport<CustomTransportConfigur
     private TransportSupport transportSupport;
 
     @Override
-    public void init(@NotNull CustomTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
+    public void configure(
+            @NotNull CustomTransportConfigurationType configuration,
+            @NotNull TransportSupport transportSupport) {
         this.configuration = Objects.requireNonNull(configuration);
         name = Objects.requireNonNull(configuration.getName());
         this.transportSupport = Objects.requireNonNull(transportSupport);
@@ -156,8 +158,8 @@ public class CustomMessageTransport implements Transport<CustomTransportConfigur
     }
 
     @Override
-    public String getDefaultRecipientAddress(UserType recipient) {
-        return "anything";
+    public String getDefaultRecipientAddress(FocusType recipient) {
+        return null;
     }
 
     @Override

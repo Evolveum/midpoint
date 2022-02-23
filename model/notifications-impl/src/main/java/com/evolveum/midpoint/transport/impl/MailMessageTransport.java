@@ -11,10 +11,8 @@ import static com.evolveum.midpoint.transport.impl.TransportUtil.formatToFileOld
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
+import java.util.Objects;
+import java.util.*;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
@@ -61,9 +59,11 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
     private TransportSupport transportSupport;
 
     @Override
-    public void init(@NotNull MailTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
-        this.configuration = java.util.Objects.requireNonNull(configuration);
-        name = java.util.Objects.requireNonNull(configuration.getName());
+    public void configure(
+            @NotNull MailTransportConfigurationType configuration,
+            @NotNull TransportSupport transportSupport) {
+        this.configuration = Objects.requireNonNull(configuration);
+        name = Objects.requireNonNull(configuration.getName());
         this.transportSupport = transportSupport;
     }
 
@@ -304,7 +304,7 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
     }
 
     @Override
-    public String getDefaultRecipientAddress(UserType recipient) {
+    public String getDefaultRecipientAddress(FocusType recipient) {
         return recipient.getEmailAddress();
     }
 

@@ -176,7 +176,7 @@ public interface RepositoryService {
     /**
      * Returns object version for provided OID.
      * <p>
-     * Must fail if object with the OID does not exists.
+     * Must fail if object with the OID does not exist.
      * <p>
      * This is a supposed to be a very lightweight and cheap operation. It is used to support
      * efficient caching of expensive objects.
@@ -233,9 +233,9 @@ public interface RepositoryService {
 
     /**
      * <p>Modifies object using relative change description.</p>
-     * Must fail if user with
-     * provided OID does not exists. Must fail if any of the described changes
-     * cannot be applied. Should be atomic.
+     * Must fail if user with provided OID does not exist.
+     * Must fail if any of the described changes cannot be applied.
+     * Should be atomic.
      * </p><p>
      * If two or more modify operations are executed in parallel, the operations
      * should be merged. In case that the operations are in conflict (e.g. one
@@ -320,7 +320,7 @@ public interface RepositoryService {
     /**
      * <p>Deletes object with specified OID.</p>
      * <p>
-     * Must fail if object with specified OID does not exists. Should be atomic.
+     * Must fail if object with specified OID does not exist. Should be atomic.
      * </p>
      *
      * @param oid OID of object to delete

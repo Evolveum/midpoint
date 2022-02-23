@@ -11,6 +11,8 @@ import java.util.Collection;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -38,6 +40,8 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
@@ -459,26 +463,33 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     protected void recordPasswordAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
-            @NotNull AuthenticationBehavioralDataType passwordType, boolean audit) {
+            @NotNull AuthenticationBehavioralDataType behavioralData, boolean audit) {
         FocusType focusBefore = principal.getFocus().clone();
-        Integer failedLogins = passwordType.getFailedLogins();
+        Integer failedLogins = behavioralData.getFailedLogins();
+        boolean successLoginAfterFail = false;
         if (failedLogins != null && failedLogins > 0) {
-            passwordType.setFailedLogins(0);
+            behavioralData.setFailedLogins(0);
+            successLoginAfterFail = true;
         }
         LoginEventType event = new LoginEventType();
         event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
         event.setFrom(connEnv.getRemoteHostAddress());
 
-        passwordType.setPreviousSuccessfulLogin(passwordType.getLastSuccessfulLogin());
-        passwordType.setLastSuccessfulLogin(event);
+        behavioralData.setPreviousSuccessfulLogin(behavioralData.getLastSuccessfulLogin());
+        behavioralData.setLastSuccessfulLogin(event);
 
         ActivationType activation = principal.getFocus().getActivation();
         if (activation != null) {
+            if (LockoutStatusType.LOCKED.equals(activation.getLockoutStatus())) {
+                successLoginAfterFail = true;
+            }
             activation.setLockoutStatus(LockoutStatusType.NORMAL);
             activation.setLockoutExpirationTimestamp(null);
         }
 
-        focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+        if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(successLoginAfterFail)) {
+            focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+        }
         if (audit) {
             recordAuthenticationSuccess(principal, connEnv);
         }
@@ -510,10 +521,10 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     protected void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
-            @NotNull AuthenticationBehavioralDataType passwordType, CredentialPolicyType credentialsPolicy, String reason, boolean audit) {
+            @NotNull AuthenticationBehavioralDataType behavioralData, CredentialPolicyType credentialsPolicy, String reason, boolean audit) {
         FocusType focusBefore = principal.getFocus().clone();
-        Integer failedLogins = passwordType.getFailedLogins();
-        LoginEventType lastFailedLogin = passwordType.getLastFailedLogin();
+        Integer failedLogins = behavioralData.getFailedLogins();
+        LoginEventType lastFailedLogin = behavioralData.getLastFailedLogin();
         XMLGregorianCalendar lastFailedLoginTs = null;
         if (lastFailedLogin != null) {
             lastFailedLoginTs = lastFailedLogin.getTimestamp();
@@ -536,13 +547,13 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             failedLogins++;
         }
 
-        passwordType.setFailedLogins(failedLogins);
+        behavioralData.setFailedLogins(failedLogins);
 
         LoginEventType event = new LoginEventType();
         event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
         event.setFrom(connEnv.getRemoteHostAddress());
 
-        passwordType.setLastFailedLogin(event);
+        behavioralData.setLastFailedLogin(event);
 
         ActivationType activationType = principal.getFocus().getActivation();
 
@@ -560,7 +571,9 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             activationType.setLockoutExpirationTimestamp(lockoutExpirationTs);
         }
 
-        focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+        if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(true)) {
+            focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+        }
         if (audit) {
             recordAuthenticationFailure(principal, connEnv, reason);
         }

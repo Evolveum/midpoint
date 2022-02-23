@@ -26,9 +26,9 @@ import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralTransportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /** Legacy transport that should be removed after 4.5; type parameter is irrelevant. */
 @Deprecated
@@ -82,7 +82,7 @@ public class LegacyFileTransport implements Transport<GeneralTransportConfigurat
     }
 
     @Override
-    public String getDefaultRecipientAddress(UserType recipient) {
+    public String getDefaultRecipientAddress(FocusType recipient) {
         return PolyString.getOrig(recipient.getName()) + " <" + recipient.getEmailAddress() + ">";
     }
 
@@ -92,7 +92,7 @@ public class LegacyFileTransport implements Transport<GeneralTransportConfigurat
     }
 
     @Override
-    public void init(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
+    public void configure(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
         // not called for legacy transport component
     }
 

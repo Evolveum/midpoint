@@ -78,7 +78,7 @@ public class RelationsContentPanel extends MultivalueContainerListPanelWithDetai
                     }
                 },
                 new PrismPropertyWrapperColumn<>(getContainerModel(), RelationDefinitionType.F_DESCRIPTION,
-                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase())
+                        AbstractItemWrapperColumn.ColumnType.STRING, getPageBase())
         );
     }
 

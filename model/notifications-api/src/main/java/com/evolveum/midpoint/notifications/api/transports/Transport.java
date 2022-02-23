@@ -11,8 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralTransportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Contract for a message transport instance, which is mostly SPI type contract.
@@ -21,6 +21,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @param <C> configuration type related to the transport
  */
 public interface Transport<C extends GeneralTransportConfigurationType> {
+
+    /**
+     * Configures transport instance - this must be fast and exception free.
+     * This is not the place to start any connections or sessions; this is called after sysconfig is changed.
+     *
+     * @param configuration portion of the configuration relevant to this transport
+     * @param transportSupport support object with dependencies
+     */
+    void configure(@NotNull C configuration, @NotNull TransportSupport transportSupport);
 
     /**
      * Sends the message via this transport.
@@ -35,12 +44,10 @@ public interface Transport<C extends GeneralTransportConfigurationType> {
      */
     void send(Message message, @Deprecated String transportName, Event event, Task task, OperationResult parentResult);
 
-    String getDefaultRecipientAddress(UserType recipient);
+    String getDefaultRecipientAddress(FocusType recipient);
 
     String getName();
 
     // not-null for new transports, but legacy transports return null (remove after 4.6 cleanup if that happens)
     C getConfiguration();
-
-    void init(@NotNull C configuration, @NotNull TransportSupport transportSupport);
 }

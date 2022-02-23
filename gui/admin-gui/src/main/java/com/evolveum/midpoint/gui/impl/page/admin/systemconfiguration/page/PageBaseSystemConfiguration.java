@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -23,6 +25,9 @@ import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
+import java.util.Arrays;
+import java.util.List;
 
 public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDetails<SystemConfigurationType, AssignmentHolderDetailsModel<SystemConfigurationType>> {
 
@@ -79,9 +84,18 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
 
             @Override
             protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<SystemConfigurationType> assignmentHolder) {
+                CompiledGuiProfile profile = getModelServiceLocator().getCompiledGuiProfile();
                 try {
-                    QName type = GuiImplUtil.getContainerableTypeName(getDetailsType());
-                    GuiObjectDetailsPageType defaultPageConfig = getModelServiceLocator().getCompiledGuiProfile().findObjectDetailsConfiguration(type);
+                    GuiObjectDetailsPageType defaultPageConfig = null;
+                    for (Class<?extends Containerable> clazz : getAllDetailsTypes()) {
+                        QName type = GuiImplUtil.getContainerableTypeName(clazz);
+                        if (defaultPageConfig == null) {
+                            defaultPageConfig = profile.findObjectDetailsConfiguration(type);
+                        } else {
+                            GuiObjectDetailsPageType anotherConfig = profile.findObjectDetailsConfiguration(type);
+                            defaultPageConfig = getModelServiceLocator().getAdminGuiConfigurationMergeManager().mergeObjectDetailsPageConfiguration(defaultPageConfig, anotherConfig);
+                        }
+                    }
 
                     return applyArchetypePolicy(defaultPageConfig);
                 } catch (Exception ex) {
@@ -91,6 +105,10 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
                 return null;
             }
         };
+    }
+
+    public List<Class<? extends Containerable>> getAllDetailsTypes() {
+        return Arrays.asList(getDetailsType());
     }
 
     public Class<? extends Containerable> getDetailsType() {

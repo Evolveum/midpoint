@@ -9,8 +9,6 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import java.io.Serializable;
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
-
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +17,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 @Component
