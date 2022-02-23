@@ -140,6 +140,18 @@ import org.apache.wicket.model.IModel;
         type = "DeploymentInformationType",
         expanded = true
 )
+@PanelInstance(
+        identifier = "internalsPanel",
+        applicableForType = InternalsConfigurationType.class,
+        display = @PanelDisplay(
+                label = "InternalsConfigurationPanel.label",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 10
+        ),
+        containerPath = "internals",
+        type = "InternalsConfigurationType",
+        expanded = true
+)
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";
