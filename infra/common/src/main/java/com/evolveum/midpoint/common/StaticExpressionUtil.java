@@ -127,8 +127,9 @@ public class StaticExpressionUtil {
         for (Object valueElement : valueElements) {
             RawType rawType = getRawType(valueElement, contextDescription);
             Object rawValue = rawType.getParsedRealValue(null, null);
-            // TODO: This is very crude, but without definition we don't know how to parse the value,
+            // This is very crude, but without definition we don't know how to parse the value,
             //  let's just take its value as is and see what conversion does with it.
+            //  User has always the option to use the xsi:type for value to avoid RawType.Raw value.
             if (!rawType.isParsed()) {
                 rawValue = rawType.getValue();
             }
