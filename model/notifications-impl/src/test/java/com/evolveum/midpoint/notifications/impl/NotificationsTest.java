@@ -9,8 +9,7 @@ package com.evolveum.midpoint.notifications.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.groovyExpression;
-import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.velocityExpression;
+import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.*;
 
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -336,8 +335,8 @@ public class NotificationsTest extends AbstractIntegrationTest {
         event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
                 new UserType(prismContext)
                         .preferredLanguage("sk")
+                        // this will be returned by TestMessageTransport.getDefaultRecipientAddress
                         .emailAddress("user@example.com")));
-        // this will be returned by TestMessageTransport.getDefaultRecipientAddress
         notificationManager.processEvent(event, getTestTask(), result);
 
         then("transport sends the message");
@@ -345,6 +344,46 @@ public class NotificationsTest extends AbstractIntegrationTest {
         Message message = testTransport.getMessages().get(0);
         assertThat(message).isNotNull();
         assertThat(message.getTo()).containsExactlyInAnyOrder("user@example.com");
+        assertThat(message.getBody()).isEqualTo(messageBody);
+    }
+
+    @Test
+    public void test210RecipientExpressionReturningLiteralValue() throws Exception {
+        OperationResult result = getTestOperationResult();
+
+        given("configuration with notifier's recipient expression returning literal value");
+        String messageBody = "This is message body"; // velocity template without any placeholders
+        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
+                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
+                .replace(new MessageTransportConfigurationType(prismContext)
+                        .customTransport(new CustomTransportConfigurationType(prismContext)
+                                .name("test")
+                                .type(TestMessageTransport.class.getName())))
+                .item(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION)
+                .replace(new NotificationConfigurationType(prismContext)
+                        .handler(new EventHandlerType()
+                                .generalNotifier(new GeneralNotifierType()
+                                        // provided with the event below
+                                        .recipientExpression(literalExpression("literal@example.com"))
+                                        .bodyExpression(velocityExpression(messageBody))
+                                        .transport("test"))))
+                .asItemDeltas();
+        repositoryService.modifyObject(
+                SystemConfigurationType.class, SYS_CONFIG_OID, modifications, result);
+        TestMessageTransport testTransport = (TestMessageTransport) transportService.getTransport("test");
+        assertThat(testTransport.getMessages()).isEmpty();
+
+        when("event is sent to notification manager");
+        CustomEventImpl event = new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
+                null, // TODO why is this not nullable?
+                EventStatusType.SUCCESS, "test-channel");
+        notificationManager.processEvent(event, getTestTask(), result);
+
+        then("transport sends the message");
+        assertThat(testTransport.getMessages()).hasSize(1);
+        Message message = testTransport.getMessages().get(0);
+        assertThat(message).isNotNull();
+        assertThat(message.getTo()).containsExactlyInAnyOrder("literal@example.com");
         assertThat(message.getBody()).isEqualTo(messageBody);
     }
 
@@ -476,5 +515,4 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 .isFatalError() // TODO should this really be fatal error?
                 .hasMessage("Unknown transport named 'nonexistent'");
     }
-
 }

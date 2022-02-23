@@ -60,4 +60,9 @@ public class SimpleExpressionUtil {
                         .language(languageUrl)
                         .code(code)));
     }
+
+    public static ExpressionType literalExpression(Object literalValue) {
+        return new ExpressionType().expressionEvaluator(
+                new ObjectFactory().createValue(literalValue));
+    }
 }
