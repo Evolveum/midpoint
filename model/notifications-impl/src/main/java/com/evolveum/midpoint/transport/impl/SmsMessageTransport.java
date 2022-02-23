@@ -365,7 +365,7 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
     }
 
     @Override
-    public String getDefaultRecipientAddress(UserType recipient) {
+    public String getDefaultRecipientAddress(FocusType recipient) {
         return recipient.getTelephoneNumber();
     }
 

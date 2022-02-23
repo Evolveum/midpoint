@@ -2362,7 +2362,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         property.addRealValue("q");
 
         List evaluators = expression.getExpressionEvaluator();
-        Collection<JAXBElement<RawType>> collection = StaticExpressionUtil.serializeValueElements(property, null);
+        Collection<JAXBElement<RawType>> collection = StaticExpressionUtil.serializeValueElements(property);
         ObjectFactory of = new ObjectFactory();
         for (JAXBElement<RawType> obj : collection) {
             //noinspection unchecked

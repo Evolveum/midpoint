@@ -10137,7 +10137,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         This is a "quantum" state: shadow is alive, but not yet alive at the same time. It probably already
-                        exists on the resource (hence exists=true). But it does not exists in the snapshot yet. Gestating shadows
+                        exists on the resource (hence exists=true). But it does not exist in the snapshot yet. Gestating shadows
                         will not appear in resource searches. This should not be a problem for reconciliation, because they
                         should be linked and they will be processed by reconciliation anyway.
                     </xsd:documentation>
@@ -20643,7 +20643,7 @@
                     </xsd:appinfo>
                     <xsd:documentation>
                         The account is not usable. E.g. because the associated shadow does
-                        not exist any more, resource does not exists any more, etc.
+                        not exist anymore, resource does not exist anymore, etc.
                         Such account link will be removed.
                     </xsd:documentation>
                 </xsd:annotation>

@@ -17,7 +17,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOp
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelInstances;
 import com.evolveum.midpoint.web.application.PanelType;
 
 import org.apache.cxf.common.util.CollectionUtils;
@@ -35,14 +34,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 @PanelType(name = "orgMembers")
-@PanelInstances(instances = {
-        @PanelInstance(identifier = "orgMembers", applicableForType = OrgType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 60)),
-        @PanelInstance(identifier = "orgGovernance", applicableForType = OrgType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 70))
-})
+@PanelInstance(identifier = "orgMembers", applicableForType = OrgType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 60))
+@PanelInstance(identifier = "orgGovernance", applicableForType = OrgType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 70))
 public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     private static final long serialVersionUID = 1L;
 

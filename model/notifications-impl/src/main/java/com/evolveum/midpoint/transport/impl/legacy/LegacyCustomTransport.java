@@ -181,8 +181,8 @@ public class LegacyCustomTransport implements Transport<GeneralTransportConfigur
     }
 
     @Override
-    public String getDefaultRecipientAddress(UserType recipient) {
-        return "anything";
+    public String getDefaultRecipientAddress(FocusType recipient) {
+        return null;
     }
 
     @Override

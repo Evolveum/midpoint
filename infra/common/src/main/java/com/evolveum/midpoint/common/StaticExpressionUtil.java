@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,16 +9,10 @@ package com.evolveum.midpoint.common;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -36,7 +30,6 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  * in provisioning scripts.
  *
  * @author Radovan Semancik
- *
  */
 public class StaticExpressionUtil {
 
@@ -54,16 +47,22 @@ public class StaticExpressionUtil {
         }
         if (output == null) {
             switch (multiplicity) {
-                case MULTI: return new ArrayList<>(0);
-                case SINGLE: return null;
-                default: throw new IllegalStateException("Unknown return type "+multiplicity);
+                case MULTI:
+                    return new ArrayList<>(0);
+                case SINGLE:
+                    return null;
+                default:
+                    throw new IllegalStateException("Unknown return type " + multiplicity);
             }
         } else {
             Collection<?> realValues = output.getRealValues();
             switch (multiplicity) {
-                case MULTI: return realValues;
-                case SINGLE: return MiscUtil.extractSingleton(realValues);
-                default: throw new IllegalStateException("Unknown return type "+multiplicity);
+                case MULTI:
+                    return realValues;
+                case SINGLE:
+                    return MiscUtil.extractSingleton(realValues);
+                default:
+                    throw new IllegalStateException("Unknown return type " + multiplicity);
             }
         }
     }
@@ -86,7 +85,7 @@ public class StaticExpressionUtil {
     public static ItemDefinition<?> deriveOutputDefinitionFromValueElements(QName elementName, Collection<JAXBElement<?>> valueElements, String contextDescription, PrismContext prismContext)
             throws SchemaException {
         QName overallType = null;
-        for (Object valueElement: valueElements) {
+        for (Object valueElement : valueElements) {
             RawType rawType = getRawType(valueElement, contextDescription);
             QName currentType = rawType.getExplicitTypeName();
             if (currentType != null) {
@@ -104,12 +103,12 @@ public class StaticExpressionUtil {
         return prismContext.getSchemaRegistry().createAdHocDefinition(elementName, overallType, 0, maxOccurs);
     }
 
-    public static <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> parseValueElements(Collection<?> valueElements,
-            ID outputDefinition, String contextDescription) throws SchemaException {
-        Item<IV,ID> output = null;
-        for (Object valueElement: valueElements) {
+    public static <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> parseValueElements(
+            Collection<?> valueElements, ID outputDefinition, String contextDescription) throws SchemaException {
+        Item<IV, ID> output = null;
+        for (Object valueElement : valueElements) {
             RawType rawType = getRawType(valueElement, contextDescription);
-            Item<IV,ID> elementItem = rawType.getParsedItem(outputDefinition);
+            Item<IV, ID> elementItem = rawType.getParsedItem(outputDefinition);
             if (output == null) {
                 output = elementItem;
             } else {
@@ -119,25 +118,45 @@ public class StaticExpressionUtil {
         return output;
     }
 
+    /**
+     * Parses value elements without definitions into raw values - this allows further conversion.
+     */
+    public static List<Object> parseValueElements(
+            Collection<?> valueElements, String contextDescription) throws SchemaException {
+        List<Object> values = new ArrayList<>();
+        for (Object valueElement : valueElements) {
+            RawType rawType = getRawType(valueElement, contextDescription);
+            Object rawValue = rawType.getParsedRealValue(null, null);
+            // This is very crude, but without definition we don't know how to parse the value,
+            //  let's just take its value as is and see what conversion does with it.
+            //  User has always the option to use the xsi:type for value to avoid RawType.Raw value.
+            if (!rawType.isParsed()) {
+                rawValue = rawType.getValue();
+            }
+            values.add(rawValue);
+        }
+        return values;
+    }
+
     private static RawType getRawType(Object valueElement, String contextDescription) throws SchemaException {
         if (!(valueElement instanceof JAXBElement<?>)) {
-            throw new SchemaException("Literal expression cannot handle element "+valueElement+" "+valueElement.getClass().getName()+" in "
-                    +contextDescription);
+            throw new SchemaException("Literal expression cannot handle element " + valueElement + " "
+                    + valueElement.getClass().getName() + " in " + contextDescription);
         }
         QName valueElementName = JAXBUtil.getElementQName(valueElement);
         if (!valueElementName.equals(SchemaConstants.C_VALUE)) {
-            throw new SchemaException("Literal expression cannot handle element <"+valueElementName + "> in "+ contextDescription);
+            throw new SchemaException("Literal expression cannot handle element <" + valueElementName + "> in " + contextDescription);
         }
-        JAXBElement<?> jaxbElement = (JAXBElement<?>)valueElement;
+        JAXBElement<?> jaxbElement = (JAXBElement<?>) valueElement;
         // not checking declaredType because it may be Object.class instead ... but actual type must be of RawType
         if (jaxbElement.getValue() != null && !(jaxbElement.getValue() instanceof RawType)) {
-                        throw new SchemaException("Literal expression cannot handle JAXBElement value type "+jaxbElement.getValue().getClass()+" in "
-                                +contextDescription);
-                    }
-        return (RawType)jaxbElement.getValue();
+            throw new SchemaException("Literal expression cannot handle JAXBElement value type "
+                    + jaxbElement.getValue().getClass() + " in " + contextDescription);
+        }
+        return (RawType) jaxbElement.getValue();
     }
 
-    public static <IV extends PrismValue,ID extends ItemDefinition> List<JAXBElement<RawType>> serializeValueElements(Item<IV,ID> item, String contextDescription) throws SchemaException {
+    public static <IV extends PrismValue, ID extends ItemDefinition> List<JAXBElement<RawType>> serializeValueElements(Item<IV, ID> item) throws SchemaException {
         if (item == null) {
             return null;
         }
@@ -150,5 +169,4 @@ public class StaticExpressionUtil {
         }
         return elements;
     }
-
 }

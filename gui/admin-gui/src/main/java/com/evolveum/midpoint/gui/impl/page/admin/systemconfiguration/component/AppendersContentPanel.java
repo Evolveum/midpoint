@@ -80,7 +80,7 @@ public class AppendersContentPanel extends MultivalueContainerListPanelWithDetai
                     }
                 },
                 new PrismPropertyWrapperColumn<>(getContainerModel(), AppenderConfigurationType.F_PATTERN,
-                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
+                        AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()) {
 
                     @Override
                     protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AppenderConfigurationType>> model) {

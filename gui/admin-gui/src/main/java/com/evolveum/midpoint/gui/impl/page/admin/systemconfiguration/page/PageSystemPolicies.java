@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -17,8 +17,9 @@ import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+
+import java.util.Arrays;
+import java.util.List;
 
 @PageDescriptor(
         urls = {
@@ -45,6 +46,16 @@ public class PageSystemPolicies extends PageBaseSystemConfiguration {
 
     public PageSystemPolicies(PrismObject<SystemConfigurationType> object) {
         super(object);
+    }
+
+    @Override
+    public List<Class<? extends Containerable>> getAllDetailsTypes() {
+        return Arrays.asList(
+                ObjectPolicyConfigurationType.class,
+                GlobalPolicyRuleType.class,
+                ProjectionPolicyType.class,
+                CleanupPoliciesType.class
+        );
     }
 
     @Override

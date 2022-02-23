@@ -93,7 +93,7 @@ class DeleteHelper {
                 result.muteLastSubresultError();
                 shadowManager.deleteShadow(repoShadow, task, result);
                 result.recordHandledError(
-                        "Resource defined in shadow does not exists. Shadow was deleted from the repository.");
+                        "Resource defined in shadow does not exist. Shadow was deleted from the repository.");
                 return null;
             } else {
                 throw ex;

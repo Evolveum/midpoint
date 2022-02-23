@@ -14,24 +14,20 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelInstances;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "basic", defaultContainerPath = "empty")
-@PanelInstances(instances = {
-        @PanelInstance(identifier = "basic",
-                applicableForType = AssignmentHolderType.class,
-                excludeTypes = { TaskType.class, ResourceType.class },
-                defaultPanel = true,
-                display = @PanelDisplay(label = "pageAdminFocus.basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10)),
-        @PanelInstance(identifier = "basic",
-                applicableForType = ResourceType.class,
-                applicableForOperation = OperationTypeType.ADD,
-                defaultPanel = true,
-                display = @PanelDisplay(label = "pageAdminFocus.basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10))
-}
-)
+@PanelInstance(identifier = "basic",
+        applicableForType = AssignmentHolderType.class,
+        excludeTypes = { TaskType.class, ResourceType.class },
+        defaultPanel = true,
+        display = @PanelDisplay(label = "pageAdminFocus.basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10))
+@PanelInstance(identifier = "basic",
+        applicableForType = ResourceType.class,
+        applicableForOperation = OperationTypeType.ADD,
+        defaultPanel = true,
+        display = @PanelDisplay(label = "pageAdminFocus.basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10))
 public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
 
     private static final String ID_MAIN_PANEL = "properties";

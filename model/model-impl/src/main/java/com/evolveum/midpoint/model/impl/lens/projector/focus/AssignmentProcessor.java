@@ -754,7 +754,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                         if (projectionContext.isExists()) {
                             LOGGER.trace("Projection {} legal: exists in NONE policy", desc);
                         } else {
-                            LOGGER.trace("Projection {} illegal: does not exists in NONE policy", desc);
+                            LOGGER.trace("Projection {} illegal: does not exist in NONE policy", desc);
                         }
                         // Everything that exists was legal and is legal. Nothing really changes.
                         projectionContext.setLegal(projectionContext.isExists());

@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.repo.common.expression.evaluator;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -31,7 +33,7 @@ import com.evolveum.midpoint.util.exception.*;
  * appropriate name for the field. Moreover, for all other uses it really _is_ the expression evaluator bean. So leaving
  * fixing this to the future. [pmed]
  */
-public class LiteralExpressionEvaluator<V extends PrismValue,D extends ItemDefinition>
+public class LiteralExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
         extends AbstractExpressionEvaluator<V, D, Collection<JAXBElement<?>>> {
 
     private Item<V, D> literalItem;
@@ -49,7 +51,8 @@ public class LiteralExpressionEvaluator<V extends PrismValue,D extends ItemDefin
 
         ExpressionUtil.checkEvaluatorProfileSimple(this, context);
 
-        Item<V,D> output = CloneUtil.clone(parseLiteralItem(context.getContextDescription()));
+        // Cached parsed value is defensively cloned so it can be further changed.
+        Item<V, D> output = CloneUtil.clone(parseLiteralItem(context));
 
         for (V value : output.getValues()) {
             addInternalOrigin(value, context);
@@ -60,6 +63,38 @@ public class LiteralExpressionEvaluator<V extends PrismValue,D extends ItemDefin
         return outputTriple;
     }
 
+    private Item<V, D> parseLiteralItem(ExpressionEvaluationContext context) throws SchemaException {
+        if (!literalItemParsed) {
+            Function<Object, Object> additionalConvertor = context.getAdditionalConvertor();
+            if (additionalConvertor == null) {
+                // simple case, we use the definition as declared
+                literalItem = StaticExpressionUtil.parseValueElements(
+                        expressionEvaluatorBean, outputDefinition, context.getContextDescription());
+            } else {
+                literalItem = parseAndConvert(context);
+            }
+            literalItemParsed = true;
+        }
+        return literalItem;
+    }
+
+    private Item<V, D> parseAndConvert(ExpressionEvaluationContext context) throws SchemaException {
+        //noinspection unchecked
+        Item<V, D> item = outputDefinition.instantiate();
+        List<Object> values = StaticExpressionUtil.parseValueElements(
+                expressionEvaluatorBean, context.getContextDescription());
+        Function<Object, Object> convertor = context.getAdditionalConvertor();
+        for (Object value : values) {
+            PrismValue prismValue = prismContext.itemFactory().createValue(convertor.apply(value));
+            //noinspection unchecked
+            item.add((V) prismValue);
+        }
+        return item;
+    }
+
+    /*
+    TODO: Original questionable code that didn't support additional convertor.
+     Shouldn't convertor go into makeExpression already? Is should not change for one expression like variables.
     private Item<V, D> parseLiteralItem(String contextDescription) throws SchemaException {
         if (!literalItemParsed) {
             literalItem = StaticExpressionUtil.parseValueElements(expressionEvaluatorBean, outputDefinition, contextDescription);
@@ -67,23 +102,20 @@ public class LiteralExpressionEvaluator<V extends PrismValue,D extends ItemDefin
         }
         return literalItem;
     }
+    */
 
     @Override
     public String shortDebugDump() {
-        try {
-            return "literal: " + shortDebugDump(parseLiteralItem("shortDebugDump"));
-        } catch (SchemaException e) {
-            return "literal: couldn't parse: " + expressionEvaluatorBean;
-        }
-    }
-
-    private String shortDebugDump(Item<V, D> item) {
-        if (item == null || item.hasNoValues()) {
-            return "no values";
-        } else if (item.size() == 1) {
-            return String.valueOf(item.getAnyValue());
+        // TODO previously shortDebugDump called parseLiteralItem, but to get the right value
+        //  it needs ExpressionEvaluationContext (corner cases like additional converters).
+        if (!literalItemParsed) {
+            return "literal: not-parsed-yet";
+        } else if (literalItem == null || literalItem.hasNoValues()) {
+            return "literal: no values";
+        } else if (literalItem.size() == 1) {
+            return "literal: " + literalItem.getAnyValue();
         } else {
-            return String.valueOf(item.getValues());
+            return "literal: " + literalItem.getValues();
         }
     }
 }
