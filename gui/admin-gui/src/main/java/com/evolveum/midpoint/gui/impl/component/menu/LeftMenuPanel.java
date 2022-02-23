@@ -631,16 +631,15 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
 
     private void createSystemConfigurationMenu(SideBarMenuItem item) {
-        // new system config menu item
-//        MainMenuItem system = createMainMenuItem("PageAdmin.menu.top.configuration.basic", "fa fa-cog", com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
-//        PageBase page = getPageBase();
-//        if (page != null && PageBaseSystemConfiguration.class.isAssignableFrom(page.getClass())) {
-//
-//            // title key is not nice - model should be sent there...
-//            MenuItem menuItem = new MenuItem(page.getClass().getSimpleName() + ".title", page.getClass(), new PageParameters());
-//            system.addMenuItem(menuItem);
-//        }
-//        item.addMainMenuItem(system);
+        MainMenuItem system = createMainMenuItem("PageAdmin.menu.top.configuration.basic", "fa fa-cog", com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
+        PageBase page = getPageBase();
+        if (page != null && PageBaseSystemConfiguration.class.isAssignableFrom(page.getClass())) {
+
+            // title key is not nice - model should be sent there...
+            MenuItem menuItem = new MenuItem(page.getClass().getSimpleName() + ".title", page.getClass(), new PageParameters());
+            system.addMenuItem(menuItem);
+        }
+        item.addMainMenuItem(system);
 
         MainMenuItem systemConfigMenu = createMainMenuItem("PageAdmin.menu.top.configuration.basic", "fa fa-cog");
         createSystemConfigurationTabMebu(systemConfigMenu);
