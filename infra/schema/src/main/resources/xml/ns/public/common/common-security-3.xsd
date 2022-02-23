@@ -887,14 +887,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="issuerUri" type="xsd:string" minOccurs="1" maxOccurs="1" default="false">
+            <xsd:element name="issuerUri" type="xsd:string" minOccurs="0" maxOccurs="1" >
                 <xsd:annotation>
                     <xsd:documentation>
                         Issuer identifier uri for the OpenID Connect provider.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="jwkSetUri" type="xsd:string" minOccurs="0" maxOccurs="1" default="false">
+            <xsd:element name="jwkSetUri" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Uri for the JSON Web Key (JWK) Set endpoint.
@@ -1313,8 +1313,68 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="updatingFocusBehavior" type="tns:UpdatingFocusBehaviorType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:since>4.5</a:since>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Option for updating focus authentication behaviour attributes. We can enable/disable updating of focus
+                        behavior  during every login, or we can use option for updating behaviour only when login failed and
+                        during success login after fails login. Default value is 'everyLogin'.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:simpleType name="UpdatingFocusBehaviorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Option for updating focus authentication behaviour attributes. We can enable/disable updating of focus
+                behavior  during every login, or we can use option for updating behaviour only when login failed and
+                during success login after fails login.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="enabled">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Behaviour attributes will be updated every login.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ENABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="disabled">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Authentication behaviour attributes will not be updated during login.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DISABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="onlyUnsuccessfulLogin">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Authentication behaviour attributes will be updated when login failed and when login will be success,
+                        but previous login was unsuccessful and midPoint need update attributes as is number of login fails
+                        and lockout state.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONLY_UNSUCCESSFUL_LOGIN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="AuthenticationSequenceChannelType">
         <xsd:annotation>
