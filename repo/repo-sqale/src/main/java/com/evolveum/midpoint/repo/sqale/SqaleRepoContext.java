@@ -160,10 +160,6 @@ public class SqaleRepoContext extends SqlRepoContext {
         return extItemCache.resolveExtensionItem(extItemKey);
     }
 
-    public @Nullable MExtItem getExtensionItem(@NotNull MExtItem.ItemNameKey extItemKey) {
-        return extItemCache.getExtensionItem(extItemKey);
-    }
-
     public @Nullable MExtItem getExtensionItem(Integer id) {
         return extItemCache.getExtensionItem(id);
     }
