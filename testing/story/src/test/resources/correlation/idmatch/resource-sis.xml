@@ -203,4 +203,9 @@
             </reaction>
         </objectSynchronization>
     </synchronization>
+
+    <business>
+        <correlatorRef oid="8d537583-d475-48c4-b23d-5e71e1ef4e2a" type="OrgType"/>
+        <correlatorActionMaxDuration>P5D</correlatorActionMaxDuration>
+    </business>
 </c:resource>

@@ -45,11 +45,6 @@ public class ApprovalStageOpeningResultImpl implements StageOpeningResult {
     }
 
     @Override
-    public boolean areWorkItemsPreExisting() {
-        return false;
-    }
-
-    @Override
     public @NotNull Collection<WorkItemTimedActionsType> getTimedActionsCollection() {
         return timedActionsCollection;
     }

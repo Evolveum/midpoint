@@ -6,23 +6,27 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.common.Clock;
+import com.google.common.annotations.VisibleForTesting;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcherAware;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnector;
+import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnectorConfiguration;
+import com.evolveum.midpoint.provisioning.ucf.api.Operation;
+import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManualConnectorInstance;
 import com.evolveum.midpoint.repo.api.RepositoryAware;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -37,7 +41,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseState;
 import com.evolveum.midpoint.schema.util.cases.ManualCaseUtils;
@@ -52,13 +55,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.*;
-
-import com.google.common.annotations.VisibleForTesting;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * @author Radovan Semancik
@@ -82,8 +81,6 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
     @VisibleForTesting
     private static int randomDelayRange = 0;
-
-    private static final String DEFAULT_OPERATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
 
     private static final Random RND = new Random();
 
@@ -145,8 +142,15 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             shadowName = getShadowIdentifier(ShadowUtil.getPrimaryIdentifiers(object));
         }
         String description = "Please create resource account: "+shadowName;
-        PrismObject<CaseType> aCase = addCase("create", description, ShadowUtil.getResourceOid(object.asObjectable()),
-                shadowName, null, objectDeltaType, task, result);
+        PrismObject<CaseType> aCase = addCase(
+                "create",
+                description,
+                ShadowUtil.getResourceOid(object.asObjectable()),
+                shadowName,
+                null,
+                objectDeltaType,
+                task,
+                result);
         return aCase.getOid();
     }
 
@@ -161,7 +165,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             }
         }
         Collection<ItemDelta> changeDeltas = changes.stream()
-                .filter(change -> change != null)
+                .filter(Objects::nonNull)
                 .map(change -> ((PropertyModificationOperation)change).getPropertyDelta())
                 .collect(Collectors.toList());
         ObjectDelta<? extends ShadowType> objectDelta = getPrismContext().deltaFactory().object()
@@ -201,10 +205,15 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         return aCase.getOid();
     }
 
-    private PrismObject<CaseType> addCase(String operation, String description, String resourceOid, String shadowName, String shadowOid,
-            ObjectDeltaType objectDelta, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
-        CaseType aCase = new CaseType(getPrismContext());
-
+    private PrismObject<CaseType> addCase(
+            String operation,
+            String description,
+            String resourceOid,
+            String shadowName,
+            @Nullable String shadowOid,
+            ObjectDeltaType objectDelta,
+            Task task,
+            OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
         if (randomDelayRange != 0) {
             int waitMillis = RND.nextInt(randomDelayRange);
             LOGGER.info("Manual connector waiting {} ms before creating the case", waitMillis);
@@ -224,111 +233,41 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             // object not found" with subsequent handling as such.
             throw new SystemException("Resource " + resourceOid + " couldn't be found", e);
         }
-        ResourceBusinessConfigurationType businessConfiguration = resource.asObjectable().getBusiness();
-        List<ObjectReferenceType> operators = new ArrayList<>();
-        if (businessConfiguration != null) {
-            businessConfiguration.getOperatorRef().forEach((ObjectReferenceType operatorRef) -> {
+        ObjectReferenceType archetypeRef =
+                ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_MANUAL_CASE.value(), ObjectTypes.ARCHETYPE);
 
-                if (operatorRef.getType().equals(RoleType.COMPLEX_TYPE)
-                        || operatorRef.getType().equals(OrgType.COMPLEX_TYPE)) {
-                    ObjectQuery membersQuery = getPrismContext().queryFor(UserType.class)
-                            .type(UserType.class)
-                            .item(FocusType.F_ROLE_MEMBERSHIP_REF)
-                            .ref(getPrismContext().itemFactory().createReferenceValue(operatorRef.getOid()))
-                            .build();
-
-                    List<PrismObject<UserType>> members = null;
-
-                    try {
-                        members = repositoryService.searchObjects(UserType.class, membersQuery, null, result);
-                    } catch (SchemaException ex) {
-                        LOGGER.error("Manual connector could not find members in operators role {}", operatorRef.getOid(), ex);
-                    }
-
-                    if (members != null && !members.isEmpty()) {
-                        operators.addAll(ObjectTypeUtil.objectListToReferences(members));
-                    }
-                } else {
-                    operators.add(operatorRef);
-                }
-            });
-        }
-        if (operators.isEmpty() && configuration.getDefaultAssignee() != null) {
-            ObjectQuery query = getPrismContext().queryFor(UserType.class)
-                    .item(UserType.F_NAME).eqPoly(configuration.getDefaultAssignee()).matchingOrig()
-                    .build();
-            List<PrismObject<UserType>> defaultAssignees = repositoryService
-                    .searchObjects(UserType.class, query, null, result);
-            if (defaultAssignees.isEmpty()) {
-                LOGGER.warn("Default assignee named '{}' was not found; using system-wide default instead.",
-                        configuration.getDefaultAssignee());
-            } else {
-                assert defaultAssignees.size() == 1;
-                operators.addAll(ObjectTypeUtil.objectListToReferences(defaultAssignees));
-            }
-        }
-        if (operators.isEmpty()) {
-            operators.add(new ObjectReferenceType().oid(DEFAULT_OPERATOR_OID).type(UserType.COMPLEX_TYPE));
-        }
-
-        String caseOid = OidUtil.generateOid();
-
-        aCase.setOid(caseOid);
-        String caseName = String.format("Request to %s '%s' on '%s'", operation, shadowName, resource.getName().getOrig());
-        aCase.setName(new PolyStringType(caseName));
-
-        aCase.setDescription(description);
-
-        aCase.setState(SchemaConstants.CASE_STATE_CREATED);  // Case opening process will be completed by CaseEngine
-
-        aCase.setObjectRef(new ObjectReferenceType().oid(resourceOid).type(ResourceType.COMPLEX_TYPE));
-
-        aCase.setTargetRef(new ObjectReferenceType().oid(shadowOid).targetName(shadowName).type(ShadowType.COMPLEX_TYPE));
-
-        if (task != null) {
-            aCase.setRequestorRef(task.getOwnerRef());
-        }
-
-        aCase.beginManualProvisioningContext()
-                .beginPendingOperation()
-                    .type(PendingOperationTypeType.MANUAL)
-                    .delta(objectDelta)
-                .<ManualProvisioningContextType>end()
+        // @formatter:off
+        CaseType aCase = new CaseType(getPrismContext())
+                .name(String.format("Request to %s '%s' on '%s'", operation, shadowName, resource.getName().getOrig()))
+                .description(description)
+                .state(SchemaConstants.CASE_STATE_CREATED) // Case opening process will be completed by CaseEngine
+                .objectRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                .requestorRef(task != null ? task.getOwnerRef() : null)
+                .beginManualProvisioningContext()
+                    .beginPendingOperation()
+                        .type(PendingOperationTypeType.MANUAL)
+                        .delta(objectDelta)
+                    .<ManualProvisioningContextType>end()
+                    .schema(createCaseSchema(resource.asObjectable().getBusiness()))
+                .<CaseType>end()
+                .archetypeRef(archetypeRef.clone())
+                .beginAssignment()
+                    .targetRef(archetypeRef)
+                .<CaseType>end()
+                .beginMetadata()
+                    .createTimestamp(clock.currentTimeXMLGregorianCalendar())
                 .end();
+        // @formatter:on
 
-        ObjectReferenceType archetypeRef = ObjectTypeUtil
-                .createObjectRef(SystemObjectsType.ARCHETYPE_MANUAL_CASE.value(), ObjectTypes.ARCHETYPE);
-        aCase.getArchetypeRef().add(archetypeRef.clone());
-        aCase.beginAssignment().targetRef(archetypeRef).end();
-
-        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        aCase.beginMetadata().setCreateTimestamp(now);
-
-        XMLGregorianCalendar deadline;
-        if (businessConfiguration != null && businessConfiguration.getOperatorActionMaxDuration() != null) {
-            deadline = CloneUtil.clone(now);
-            deadline.add(businessConfiguration.getOperatorActionMaxDuration());
-        } else {
-            deadline = null;
-        }
-
-        for (ObjectReferenceType operator : operators) {
-            CaseWorkItemType workItem = new CaseWorkItemType(getPrismContext())
-                    .originalAssigneeRef(operator.clone())
-                    .assigneeRef(operator.clone())
-                    .name(aCase.getName())
-                    .createTimestamp(now)
-                    .deadline(deadline);
-            aCase.getWorkItem().add(workItem);
+        if (shadowOid != null) {
+            aCase.targetRef(shadowOid, ShadowType.COMPLEX_TYPE);
         }
 
         // TODO: case payload
         // TODO: a lot of other things
 
-        // TODO: move to case-manager
-
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("CREATING CASE:\n{}", aCase.debugDump(1));
+            LOGGER.trace("CREATING CASE:\n{}", aCase.debugDumpLazily(1));
         }
 
         repositoryService.addObject(aCase.asPrismObject(), null, result);
@@ -336,6 +275,18 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         // "Admitting" the case into case management: e.g. sending notifications, auditing the case creation, and so on
         caseEventDispatcher.dispatchCaseCreationEvent(aCase, task, result);
         return aCase.asPrismObject();
+    }
+
+    private SimpleCaseSchemaType createCaseSchema(@Nullable ResourceBusinessConfigurationType business) {
+        if (business == null) {
+            return null;
+        }
+        SimpleCaseSchemaType schema = new SimpleCaseSchemaType(getPrismContext());
+        schema.getAssigneeRef().addAll(
+                CloneUtil.cloneCollectionMembers(business.getOperatorRef()));
+        schema.setDefaultAssigneeName(configuration.getDefaultAssignee());
+        schema.setDuration(business.getOperatorActionMaxDuration());
+        return schema;
     }
 
     @Override

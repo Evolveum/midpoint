@@ -1,0 +1,17 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        oid="7c8d1fcc-5033-4275-8396-b3ce02e218a9">
+    <name>alice</name>
+    <!-- just to make sure approvers are not included among assignees when a case is created -->
+    <assignment>
+        <targetRef oid="8d537583-d475-48c4-b23d-5e71e1ef4e2a" type="OrgType" relation="org:approver"/>
+    </assignment>
+    <fullName>Alice the Approver</fullName>
+</user>

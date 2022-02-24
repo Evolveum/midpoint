@@ -17,7 +17,7 @@ public class DefaultStageClosingResult implements StageClosingResult {
 
     @NotNull private final String stageOutcomeUri;
 
-    public DefaultStageClosingResult(@NotNull String stageOutcomeUri) {
+    DefaultStageClosingResult(@NotNull String stageOutcomeUri) {
         this.stageOutcomeUri = stageOutcomeUri;
     }
 

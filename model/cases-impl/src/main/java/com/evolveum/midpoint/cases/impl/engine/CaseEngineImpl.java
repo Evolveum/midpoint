@@ -184,7 +184,7 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
                 return found.get();
             }
         }
-        return new DefaultEngineExtension();
+        return new DefaultEngineExtension(beans);
     }
 
     private Optional<EngineExtension> findRegisteredExtension(@NotNull String archetypeOid) {

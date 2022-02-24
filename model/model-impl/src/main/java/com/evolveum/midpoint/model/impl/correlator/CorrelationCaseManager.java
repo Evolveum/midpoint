@@ -19,6 +19,7 @@ import com.evolveum.midpoint.cases.api.CaseEngine;
 import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.cases.api.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -85,6 +86,7 @@ public class CorrelationCaseManager {
      */
     public void createOrUpdateCase(
             @NotNull ShadowType resourceObject,
+            @NotNull ResourceType resource,
             @NotNull FocusType preFocus,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -92,7 +94,7 @@ public class CorrelationCaseManager {
         checkOid(resourceObject);
         CaseType aCase = findCorrelationCase(resourceObject, true, result);
         if (aCase == null) {
-            createCase(resourceObject, preFocus, task, result);
+            createCase(resourceObject, resource, preFocus, task, result);
         } else {
             updateCase(aCase, preFocus, result);
         }
@@ -104,23 +106,25 @@ public class CorrelationCaseManager {
 
     private void createCase(
             ShadowType resourceObject,
+            ResourceType resource,
             FocusType preFocus,
             Task task,
             OperationResult result)
             throws SchemaException {
-        String assigneeOid = SystemObjectsType.USER_ADMINISTRATOR.value(); // temporary
         CaseType newCase = new CaseType(prismContext)
                 .name(getCaseName(resourceObject))
                 .objectRef(createObjectRefWithFullObject(resourceObject))
+                .targetRef(resourceObject.getResourceRef().clone())
+                .requestorRef(task != null ? task.getOwnerRef() : null)
                 .archetypeRef(createArchetypeRef())
                 .assignment(new AssignmentType(prismContext)
                         .targetRef(createArchetypeRef()))
                 .correlationContext(new CaseCorrelationContextType(prismContext)
-                        .preFocusRef(ObjectTypeUtil.createObjectRefWithFullObject(preFocus)))
+                        .preFocusRef(ObjectTypeUtil.createObjectRefWithFullObject(preFocus))
+                        .schema(createCaseSchema(resource.getBusiness())))
                 .state(SchemaConstants.CASE_STATE_CREATED)
-                .workItem(new CaseWorkItemType(PrismContext.get())
-                        .name(getWorkItemName(resourceObject))
-                        .assigneeRef(assigneeOid, UserType.COMPLEX_TYPE));
+                .metadata(new MetadataType(PrismContext.get())
+                    .createTimestamp(clock.currentTimeXMLGregorianCalendar()));
         try {
             repositoryService.addObject(newCase.asPrismObject(), null, result);
         } catch (ObjectAlreadyExistsException e) {
@@ -128,6 +132,17 @@ public class CorrelationCaseManager {
         }
 
         caseEventDispatcher.dispatchCaseCreationEvent(newCase, task, result);
+    }
+
+    private SimpleCaseSchemaType createCaseSchema(@Nullable ResourceBusinessConfigurationType business) {
+        if (business == null) {
+            return null;
+        }
+        SimpleCaseSchemaType schema = new SimpleCaseSchemaType(PrismContext.get());
+        schema.getAssigneeRef().addAll(
+                CloneUtil.cloneCollectionMembers(business.getCorrelatorRef()));
+        schema.setDuration(business.getCorrelatorActionMaxDuration());
+        return schema;
     }
 
     // Temporary implementation
@@ -256,7 +271,7 @@ public class CorrelationCaseManager {
      */
     public void completeCorrelationCase(
             @NotNull CaseType aCase,
-            @NotNull CaseCloser caseCloser,
+            @NotNull CorrelationService.CaseCloser caseCloser,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
@@ -386,11 +401,5 @@ public class CorrelationCaseManager {
                                 ShadowType.class),
                         () -> "No embedded shadow in " + aCase);
         provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
-    }
-
-    @FunctionalInterface
-    public interface CaseCloser {
-        /** Closes the case in repository. */
-        void closeCaseInRepository(OperationResult result) throws ObjectNotFoundException;
     }
 }

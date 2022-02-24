@@ -9,29 +9,24 @@ package com.evolveum.midpoint.cases.impl.engine.extension;
 
 import com.evolveum.midpoint.cases.api.extensions.*;
 
+import com.evolveum.midpoint.cases.impl.engine.CaseBeans;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleCaseSchemaType;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Engine extension for "other" case archetypes. Currently used for manual provisioning and correlation cases,
@@ -41,6 +36,12 @@ public class DefaultEngineExtension implements EngineExtension {
 
     private static final Trace LOGGER = TraceManager.getTrace(DefaultEngineExtension.class);
 
+    @NotNull private final CaseBeans beans;
+
+    public DefaultEngineExtension(@NotNull CaseBeans beans) {
+        this.beans = beans;
+    }
+
     @Override
     public @NotNull Collection<String> getArchetypeOids() {
         return List.of(); // This extension is applied "manually" after no suitable extension is found.
@@ -48,7 +49,8 @@ public class DefaultEngineExtension implements EngineExtension {
 
     @Override
     public void finishCaseClosing(@NotNull CaseEngineOperation operation, @NotNull OperationResult result)
-            throws ObjectNotFoundException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ConfigurationException {
         // No special action here. Let's just close the case.
         operation.closeCaseInRepository(result);
     }
@@ -65,8 +67,15 @@ public class DefaultEngineExtension implements EngineExtension {
 
     @Override
     public @NotNull StageOpeningResult processStageOpening(CaseEngineOperation operation, OperationResult result) {
-        // In the future we might return sensible work items here (e.g. for escalation, etc).
-        return new DefaultStageOpeningResult();
+        return new DefaultStageOpeningResult(
+                beans.simpleStageOpeningHelper.createWorkItems(
+                        getCaseSchema(operation),
+                        operation,
+                        result));
+    }
+
+    protected SimpleCaseSchemaType getCaseSchema(CaseEngineOperation operation) {
+        return null;
     }
 
     @Override
@@ -80,27 +89,31 @@ public class DefaultEngineExtension implements EngineExtension {
     @Override
     public @NotNull StageClosingResult processStageClosing(CaseEngineOperation operation, OperationResult result) {
 
-        Set<String> allOutcomes = operation.getCurrentCase().getWorkItem().stream()
+        List<String> outcomesFromEarliest = operation.getCurrentCase().getWorkItem().stream()
                 .filter(wi -> wi.getCloseTimestamp() != null)
+                .sorted(Comparator.comparing(wi -> XmlTypeConverter.toMillis(wi.getCloseTimestamp())))
                 .map(AbstractWorkItemType::getOutput)
                 .filter(Objects::nonNull)
                 .map(AbstractWorkItemOutputType::getOutcome)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
 
-        // This is relevant for manual cases
+        Set<String> uniqueOutcomes = new HashSet<>(outcomesFromEarliest);
+        if (uniqueOutcomes.size() > 1) {
+            LOGGER.warn("Different outcomes for {}: {}", operation, uniqueOutcomes);
+        }
+
         return new DefaultStageClosingResult(
-                getOutcomeUri(allOutcomes));
+                selectOutcomeUri(outcomesFromEarliest, uniqueOutcomes));
     }
 
-    private @NotNull String getOutcomeUri(Set<String> outcomes) {
-        if (outcomes.isEmpty()) {
-            return OperationResultStatusType.SUCCESS.toString();
-        } else if (outcomes.size() == 1) {
-            return requireNonNull(outcomes.iterator().next());
+    protected String selectOutcomeUri(List<String> outcomesFromEarliest, Set<String> uniqueOutcomes) {
+        if (uniqueOutcomes.size() == 1) {
+            return uniqueOutcomes.iterator().next();
+        } else if (outcomesFromEarliest.isEmpty()) {
+            return null;
         } else {
-            LOGGER.warn("Conflicting outcomes: {}", outcomes);
-            return OperationResultStatusType.UNKNOWN.toString();
+            return outcomesFromEarliest.get(0);
         }
     }
 

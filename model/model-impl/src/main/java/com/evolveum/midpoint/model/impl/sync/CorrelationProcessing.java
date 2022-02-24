@@ -145,6 +145,7 @@ class CorrelationProcessing<F extends FocusType> {
             }
             beans.correlationCaseManager.createOrUpdateCase(
                     shadow,
+                    syncCtx.getResource().asObjectable(),
                     syncCtx.getPreFocus(),
                     task,
                     result);

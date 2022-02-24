@@ -20,6 +20,12 @@ import java.util.List;
 
 public class DefaultStageOpeningResult implements StageOpeningResult {
 
+    @NotNull private final List<CaseWorkItemType> newWorkItems;
+
+    DefaultStageOpeningResult(@NotNull List<CaseWorkItemType> newWorkItems) {
+        this.newWorkItems = newWorkItems;
+    }
+
     @Override
     public @Nullable StageClosingResult getAutoClosingInformation() {
         return null;
@@ -27,12 +33,7 @@ public class DefaultStageOpeningResult implements StageOpeningResult {
 
     @Override
     public @NotNull Collection<CaseWorkItemType> getNewWorkItems() {
-        return List.of();
-    }
-
-    @Override
-    public boolean areWorkItemsPreExisting() {
-        return true;
+        return newWorkItems;
     }
 
     @Override

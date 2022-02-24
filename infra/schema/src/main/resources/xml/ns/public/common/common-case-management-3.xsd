@@ -1293,6 +1293,19 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="pendingOperation" type="tns:PendingOperationType" minOccurs="0"/>
+            <xsd:element name="schema" type="tns:SimpleCaseSchemaType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to create work items for the case?
+
+                        EXPERIMENTAL. TEMPORARY.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.5</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -1330,8 +1343,59 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="schema" type="tns:SimpleCaseSchemaType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to create work items for the case?
+
+                        EXPERIMENTAL. TEMPORARY.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="correlationContext" type="tns:CaseCorrelationContextType" />
+
+    <xsd:complexType name="SimpleCaseSchemaType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Simple schema describing how work items for a case should be created.
+                Used for manual provisioning and correlation cases.
+
+                TEMPORARY.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:experimental>true</a:experimental>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="assigneeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Who should be assigned the work items that are created?
+                        It may point to user or an abstract role. Abstract roles are expanded.
+                        If more than one assignee is specified they are considered equivalent.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultAssigneeName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The name (not OID) of an assignee to be used if the resolution of the assigneeRef yields no one.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="duration" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Duration for work items being created.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 </xsd:schema>

@@ -64,4 +64,14 @@ public interface CorrelationService {
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException;
+
+    void completeCorrelationCase(CaseType currentCase, CaseCloser closeCaseInRepository, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
+
+    @FunctionalInterface
+    interface CaseCloser {
+        /** Closes the case in repository. */
+        void closeCaseInRepository(OperationResult result) throws ObjectNotFoundException;
+    }
 }

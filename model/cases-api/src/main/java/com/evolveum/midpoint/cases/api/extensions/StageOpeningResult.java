@@ -33,8 +33,6 @@ public interface StageOpeningResult extends DebugDumpable {
     /** Work items that should be added to the case. */
     @NotNull Collection<CaseWorkItemType> getNewWorkItems();
 
-    boolean areWorkItemsPreExisting();
-
     /** TODO */
     @NotNull Collection<WorkItemTimedActionsType> getTimedActionsCollection();
 
@@ -42,7 +40,6 @@ public interface StageOpeningResult extends DebugDumpable {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "autoClosingInformation", getAutoClosingInformation(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "newWorkItems", getNewWorkItems(), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "areWorkItemsPreExisting", areWorkItemsPreExisting(), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "timedActionsCollection", getTimedActionsCollection(), indent + 1);
         return sb.toString();
     }

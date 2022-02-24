@@ -7,16 +7,21 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.cases;
 
-import com.evolveum.midpoint.cases.api.CaseEngineOperation;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.cases.api.extensions.StageOpeningResult;
 import com.evolveum.midpoint.cases.api.temporary.ComputationMode;
-import com.evolveum.midpoint.wf.impl.util.ComputationResult;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.MidpointParsingMigrator;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -24,18 +29,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.ApprovalBeans;
+import com.evolveum.midpoint.wf.impl.util.ComputationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Opens the approval stage.
@@ -102,11 +97,9 @@ public class CaseStageOpening extends AbstractCaseStageProcessing {
         assert !approverRefs.isEmpty();
         XMLGregorianCalendar createTimestamp = beans.clock.currentTimeXMLGregorianCalendar();
         XMLGregorianCalendar deadline = getDeadline(createTimestamp);
-        AtomicLong idCounter = new AtomicLong(
-                defaultIfNull(currentCase.asPrismObject().getHighestId(), 0L) + 1);
         for (ObjectReferenceType approverRef : approverRefs) {
             newWorkItems.add(
-                    createWorkItem(createTimestamp, deadline, idCounter, approverRef, result));
+                    createWorkItem(createTimestamp, deadline, approverRef, result));
         }
     }
 
@@ -123,12 +116,10 @@ public class CaseStageOpening extends AbstractCaseStageProcessing {
     private @NotNull CaseWorkItemType createWorkItem(
             @NotNull XMLGregorianCalendar createTimestamp,
             @Nullable XMLGregorianCalendar deadline,
-            @NotNull AtomicLong idCounter,
             @NotNull ObjectReferenceType approverRef,
             @NotNull OperationResult result) {
         CaseWorkItemType workItem = new CaseWorkItemType(PrismContext.get())
                 .name(currentCase.getName())
-                .id(idCounter.getAndIncrement())
                 .stageNumber(stageDef.getNumber())
                 .createTimestamp(createTimestamp)
                 .deadline(deadline);

@@ -150,4 +150,11 @@ public class CorrelationServiceImpl implements CorrelationService {
                 asObjectable(systemObjectCache.getSystemConfiguration(result)),
                 task);
     }
+
+    @Override
+    public void completeCorrelationCase(CaseType currentCase, CaseCloser caseCloser, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        correlationCaseManager.completeCorrelationCase(currentCase, caseCloser, task, result);
+    }
 }
