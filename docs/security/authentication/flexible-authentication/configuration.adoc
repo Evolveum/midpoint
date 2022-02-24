@@ -1089,8 +1089,36 @@ This authentication sequence is applicable only to node group that have active a
 | true
 | _AuthenticationSequenceModuleType_
 
+
+| `updatingFocusBehavior`
+| Option for updating focus authentication behaviour attributes.
+| false
+| _UpdatingFocusBehaviorType_
+
 |===
 
+==== UpdatingFocusBehaviorType
+
+We can enable/disable updating of focus authentication behavior during every login, or we can use option for updating behaviour only when login failed and during success login after fails login. Default value is 'everyLogin'. Possible values are:
+
+[%autowidth]
+|===
+| Value | Description
+
+| `enabled`
+| Behaviour attributes will be updated every login.
+
+
+| `disabled`
+| Authentication behaviour attributes will not be updated during login.
+
+
+| `onlyUnsuccessfulLogin`
+| Authentication behaviour attributes will be updated when login failed and when login will be success,
+but previous login was unsuccessful and midPoint need update attributes as is number of login fails
+and lockout state.
+
+|===
 
 ==== AuthenticationSequenceChannelType
 
@@ -1264,12 +1292,6 @@ Those are the limitations of current implementation of flexible authentication m
 * Configuration schema for flexible authentication is designed to be mostly complete.
 However, not all configuration options are currently supported.
 
-* Flexible authentication is currently supported only for midPoint administration GUI.
-Only internal password authentication and SAML2 is officially supported.
-The rest of the functionality is considered to be xref:/midpoint/versioning/experimental/[experimental].
-
-* OpenID Connect protocol is not supported yet.
-
 * Social login functionality is not supported yet.
 
 * It is unlikely that midPoint could be used as a member of identity federation directly.
@@ -1284,9 +1306,7 @@ We support only SUFFICIENT modules in 4.1.
 
 * Authentication modules for SOAP web services are not supported because SOAP is deprecated and it will be removed soon.
 
-* REST service supports HTTP basic authentication only.
-Distributed authentication protocols (OpenID Connect, SAML) are not supported yet.
-REST support for flexible authentication is xref:/midpoint/versioning/experimental.adoc[experimental].
+* REST service supports HTTP basic authentication and OpenID Connect authentication.
 
 * Even though the authentication configuration often suggests that there may be more than one instances of credentials (password, nonce), midPoint currently supports only a single password, single nonce and a single set of security questions.
 Multiple credentials are not supported.
