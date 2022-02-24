@@ -719,6 +719,12 @@ Such properties were tagged as _deprecated_ in schema of saml2 authentication mo
 
 ==== Module oidc
 
+[TIP]
+.MidPoint 4.5 and later
+
+This feature is available only in midPoint 4.5 and later.
+
+
 OIDC authentication module supports authentication via Identity provider that support OpenID connect.
 
 Oidc Authentication module contains two different kind of configuration. One for GUI with channel _http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user_, that was defined by attribute _client_, and one for REST with channel _http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest_, that was defined by attribute _resourceServer_.
