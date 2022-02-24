@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
@@ -60,6 +61,17 @@ public class QShadow extends QObject<MShadow> {
             ColumnMetadata.named("synchronizationTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata ATTRIBUTES =
             ColumnMetadata.named("attributes").ofType(JSONB_TYPE);
+    // correlation
+    public static final ColumnMetadata CORRELATION_START_TIMESTAMP =
+            ColumnMetadata.named("correlationStartTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata CORRELATION_END_TIMESTAMP =
+            ColumnMetadata.named("correlationEndTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata CORRELATION_CASE_OPEN_TIMESTAMP =
+            ColumnMetadata.named("correlationCaseOpenTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata CORRELATION_CASE_CLOSE_TIMESTAMP =
+            ColumnMetadata.named("correlationCaseCloseTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata CORRELATION_SITUATION =
+            ColumnMetadata.named("correlationSituation").ofType(Types.OTHER);
 
     // columns and relations
 
@@ -89,6 +101,17 @@ public class QShadow extends QObject<MShadow> {
             createInstant("synchronizationTimestamp", SYNCHRONIZATION_TIMESTAMP);
     public final JsonbPath attributes =
             addMetadata(add(new JsonbPath(forProperty("attributes"))), ATTRIBUTES);
+    // correlation
+    public final DateTimePath<Instant> correlationStartTimestamp =
+            createInstant("correlationStartTimestamp", CORRELATION_START_TIMESTAMP);
+    public final DateTimePath<Instant> correlationEndTimestamp =
+            createInstant("correlationEndTimestamp", CORRELATION_END_TIMESTAMP);
+    public final DateTimePath<Instant> correlationCaseOpenTimestamp =
+            createInstant("correlationCaseOpenTimestamp", CORRELATION_CASE_OPEN_TIMESTAMP);
+    public final DateTimePath<Instant> correlationCaseCloseTimestamp =
+            createInstant("correlationCaseCloseTimestamp", CORRELATION_CASE_CLOSE_TIMESTAMP);
+    public final EnumPath<CorrelationSituationType> correlationSituation =
+            createEnum("correlationSituation", CorrelationSituationType.class, CORRELATION_SITUATION);
 
     public QShadow(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

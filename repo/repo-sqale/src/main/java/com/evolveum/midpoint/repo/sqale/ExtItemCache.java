@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -29,7 +29,6 @@ public class ExtItemCache {
 
     private final Map<Integer, MExtItem> idToExtItem = new ConcurrentHashMap<>();
     private final Map<MExtItem.Key, MExtItem> keyToExtItem = new ConcurrentHashMap<>();
-    private final Map<MExtItem.ItemNameKey, MExtItem> itemNameToExtItem = new ConcurrentHashMap<>();
 
     // WARNING: Each .get() creates new connection, always use in try-with-resource block!
     private Supplier<JdbcSession> jdbcSessionSupplier;
@@ -44,7 +43,6 @@ public class ExtItemCache {
         // this can be called repeatedly in tests, so the clear may be necessary
         idToExtItem.clear();
         keyToExtItem.clear();
-        itemNameToExtItem.clear();
 
         QExtItem uri = QExtItem.DEFAULT;
         List<MExtItem> result;
@@ -65,7 +63,6 @@ public class ExtItemCache {
     private void updateMaps(MExtItem row) {
         idToExtItem.put(row.id, row);
         keyToExtItem.put(row.key(), row);
-        itemNameToExtItem.put(row.itemNameKey(), row);
     }
 
     public synchronized @NotNull MExtItem resolveExtensionItem(@NotNull MExtItem.Key extItemKey) {
@@ -119,32 +116,6 @@ public class ExtItemCache {
             updateMaps(row);
         }
         return row;
-    }
-
-    public @Nullable MExtItem getExtensionItem(@NotNull MExtItem.ItemNameKey extItemKey) {
-        if (jdbcSessionSupplier == null) {
-            throw new IllegalStateException("Ext item cache was not initialized yet!");
-        }
-
-        MExtItem extItem = itemNameToExtItem.get(extItemKey);
-        if (extItem != null) {
-            return extItem;
-        }
-
-        try (JdbcSession jdbcSession = jdbcSessionSupplier.get().startReadOnlyTransaction()) {
-            extItem = jdbcSession.newQuery()
-                    .from(QExtItem.DEFAULT)
-                    .select(QExtItem.DEFAULT)
-                    .where(QExtItem.DEFAULT.itemName.eq(extItemKey.itemName)
-                            .and(QExtItem.DEFAULT.holderType.eq(extItemKey.holderType)))
-                    // TODO let's consider fetchOne that throws if count > 1, right now we're not confident enough to do so.
-                    .fetchFirst();
-        }
-
-        if (extItem != null) {
-            updateMaps(extItem);
-        }
-        return extItem;
     }
 
     public @Nullable MExtItem getExtensionItem(Integer id) {

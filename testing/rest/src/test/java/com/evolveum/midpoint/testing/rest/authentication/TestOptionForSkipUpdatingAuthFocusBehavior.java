@@ -26,17 +26,17 @@ public class TestOptionForSkipUpdatingAuthFocusBehavior extends TestAbstractAuth
     public static final File SECURITY_POLICY_ONLY_UNSUCCESSFUL = new File(BASE_REPO_DIR, "security-policy-unsuccessful.xml");
 
     @Test
-    public void defaultOptionTest() throws Exception {
+    public void test001DefaultOption() throws Exception {
         runEnabledOptionTest(SECURITY_POLICY_DEFAULT);
     }
 
     @Test
-    public void enabledOptionTest() throws Exception {
+    public void test002EnabledOption() throws Exception {
         runEnabledOptionTest(SECURITY_POLICY_ENABLED);
     }
 
-    @Test(dependsOnMethods = {"defaultOptionTest", "enabledOptionTest"})
-    public void disabledOptionTest() throws Exception {
+    @Test
+    public void test003DisabledOption() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_DISABLED);
 
         WebClient client = prepareUnsuccessfulClient();
@@ -49,8 +49,8 @@ public class TestOptionForSkipUpdatingAuthFocusBehavior extends TestAbstractAuth
         assertNumberOfFailedLogin(getUser(USER_ADMINISTRATOR_OID), 0);
     }
 
-    @Test(dependsOnMethods = {"disabledOptionTest"})
-    public void onlyUnsuccessfulOptionTest() throws Exception {
+    @Test
+    public void test004OnlyUnsuccessfulOption() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_ONLY_UNSUCCESSFUL);
 
         WebClient clientUnsuccessful = prepareUnsuccessfulClient();

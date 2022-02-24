@@ -53,7 +53,7 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
     public abstract AuthzClient getAuthzClient();
 
     @Test
-    public void oidcAuthByIssuerUriTest() throws Exception {
+    public void test001OidcAuthByIssuerUri() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_ISSUER_URI);
 
         WebClient client = prepareClient();
@@ -66,7 +66,7 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
     }
 
     @Test
-    public void oidcAuthByJWSUriTest() throws Exception {
+    public void test002OidcAuthByJWSUri() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_JWS_URI);
 
         WebClient client = prepareClient();
@@ -79,7 +79,7 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
     }
 
     @Test
-    public void oidcAuthByJWSUriWithWrongAlgTest() throws Exception {
+    public void test003OidcAuthByJWSUriWithWrongAlg() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_JWS_URI_WRONG_ALG);
 
         WebClient client = prepareClient();
@@ -92,7 +92,7 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
     }
 
     @Test
-    public void oidcAuthByPublicKeyTest() throws Exception {
+    public void test004OidcAuthByPublicKey() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_PUBLIC_KEY);
 
         WebClient client = prepareClient();
@@ -105,7 +105,7 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
     }
 
     @Test
-    public void oidcAuthByPublicKeyWithWrongAlgTest() throws Exception {
+    public void test005oidcAuthByPublicKeyWithWrongAlg() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_PUBLIC_KEY_WRONG_ALG);
 
         WebClient client = prepareClient();
@@ -118,7 +118,7 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
     }
 
     @Test
-    public void oidcAuthBySymmetricKey() throws Exception {
+    public void test006OidcAuthBySymmetricKey() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_SYMMETRIC_KEY);
 
         WebClient client = prepareClient();
@@ -131,7 +131,7 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
     }
 
     @Test
-    public void oidcAuthBySymmetricKeyWithWrongAlgTest() throws Exception {
+    public void test007OidcAuthBySymmetricKeyWithWrongAlg() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_SYMMETRIC_KEY_WRONG_KEY);
 
         WebClient client = prepareClient();

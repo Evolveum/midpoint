@@ -111,6 +111,8 @@ CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
 
 CREATE TYPE AvailabilityStatusType AS ENUM ('DOWN', 'UP', 'BROKEN');
 
+CREATE TYPE CorrelationSituationType AS ENUM ('UNCERTAIN', 'EXISTING_OWNER', 'NO_OWNER', 'ERROR');
+
 CREATE TYPE LockoutStatusType AS ENUM ('NORMAL', 'LOCKED');
 
 CREATE TYPE NodeOperationalStateType AS ENUM ('UP', 'DOWN', 'STARTING');
@@ -875,7 +877,13 @@ CREATE TABLE m_shadow (
     primaryIdentifierValue TEXT,
     synchronizationSituation SynchronizationSituationType,
     synchronizationTimestamp TIMESTAMPTZ,
-    attributes JSONB
+    attributes JSONB,
+    -- correlation
+    correlationStartTimestamp TIMESTAMPTZ,
+    correlationEndTimestamp TIMESTAMPTZ,
+    correlationCaseOpenTimestamp TIMESTAMPTZ,
+    correlationCaseCloseTimestamp TIMESTAMPTZ,
+    correlationSituation CorrelationSituationType
 )
     INHERITS (m_object);
 
@@ -899,6 +907,10 @@ CREATE INDEX m_shadow_fullTextInfo_idx ON m_shadow USING gin (fullTextInfo gin_t
 CREATE INDEX m_shadow_resourceRefTargetOid_idx ON m_shadow (resourceRefTargetOid);
 CREATE INDEX m_shadow_createTimestamp_idx ON m_shadow (createTimestamp);
 CREATE INDEX m_shadow_modifyTimestamp_idx ON m_shadow (modifyTimestamp);
+CREATE INDEX m_shadow_correlationStartTimestamp_idx ON m_shadow (correlationStartTimestamp);
+CREATE INDEX m_shadow_correlationEndTimestamp_idx ON m_shadow (correlationEndTimestamp);
+CREATE INDEX m_shadow_correlationCaseOpenTimestamp_idx ON m_shadow (correlationCaseOpenTimestamp);
+CREATE INDEX m_shadow_correlationCaseCloseTimestamp_idx ON m_shadow (correlationCaseCloseTimestamp);
 
 /*
 TODO: reconsider, especially boolean things like dead (perhaps WHERE in other indexes?)
@@ -1889,4 +1901,4 @@ END $$;
 -- endregion
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
-call apply_change(3, $$ SELECT 1 $$, true);
+call apply_change(5, $$ SELECT 1 $$, true);
