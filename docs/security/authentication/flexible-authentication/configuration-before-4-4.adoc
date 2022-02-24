@@ -1,5 +1,5 @@
 = Flexible Authentication Configuration before 4.4
-:page-nav-title: Configuration
+:page-nav-title: Configuration before 4.4
 :page-wiki-name: Flexible Authentication Configuration
 :page-wiki-id: 41517151
 :page-wiki-metadata-create-user: lskublik
