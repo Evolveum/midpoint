@@ -225,8 +225,13 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases() {
         // In the future we may define the value also on resource or even global system level
-        return definitionBean.getInboundMappingsEvaluation() != null ?
-                definitionBean.getInboundMappingsEvaluation().getDefaultEvaluationPhases() : null;
+        if (definitionBean.getMappingsEvaluation() == null) {
+            return null;
+        }
+        if (definitionBean.getMappingsEvaluation().getInbound() == null) {
+            return null;
+        }
+        return definitionBean.getMappingsEvaluation().getInbound().getDefaultEvaluationPhases();
     }
 
     @Override

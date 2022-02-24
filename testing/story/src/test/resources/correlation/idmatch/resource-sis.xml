@@ -58,14 +58,14 @@
                     <expression> <!-- cannot use "source" because there's no definition for that piece of data -->
                         <!-- Hack. This mapping should be invokable directly. -->
                         <!-- We assume the reference ID is present. -->
-                        <path>$shadow/correlationState/referenceId</path>
+                        <path>$shadow/correlation/correlatorState/referenceId</path>
                     </expression>
                     <target>
                         <path>extension/referenceId</path>
                     </target>
                     <evaluationPhases>
                         <!-- Before correlation, this ID may not be known. -->
-                        <exclude>correlation</exclude>
+                        <exclude>beforeCorrelation</exclude>
                     </evaluationPhases>
                 </inbound>
                 <inbound>
@@ -117,89 +117,95 @@
                     </target>
                 </inbound>
             </attribute>
-            <inboundMappingsEvaluation>
-                <defaultEvaluationPhases>
-                    <phase>clockwork</phase>
-                    <phase>correlation</phase>
-                </defaultEvaluationPhases>
-            </inboundMappingsEvaluation>
+            <mappingsEvaluation>
+                <inbound>
+                    <defaultEvaluationPhases>
+                        <phase>clockwork</phase>
+                        <phase>beforeCorrelation</phase>
+                    </defaultEvaluationPhases>
+                </inbound>
+            </mappingsEvaluation>
         </objectType>
     </schemaHandling>
-
     <synchronization>
         <objectSynchronization>
             <enabled>true</enabled>
             <kind>account</kind>
             <intent>default</intent>
-            <correlationProperties>
-                <property>
-                    <source>assignment/extension/givenName</source>
-                    <primaryTarget>givenName</primaryTarget>
-                </property>
-                <property>
-                    <source>assignment/extension/familyName</source>
-                    <primaryTarget>familyName</primaryTarget>
-                </property>
-                <property>
-                    <source>assignment/extension/dateOfBirth</source>
-                    <primaryTarget>extension/dateOfBirth</primaryTarget>
-                </property>
-                <property>
-                    <source>assignment/extension/nationalId</source>
-                    <primaryTarget>extension/nationalId</primaryTarget>
-                </property>
-            </correlationProperties>
-            <correlators>
-                <idMatch>
-                    <!-- <sorLabel>midpoint</sorLabel>--> <!-- this is the default -->
-                    <sorIdentifierPrefix>sis-</sorIdentifierPrefix>
-                    <sorIdentifierProperty>assignment/extension/sourceId</sorIdentifierProperty>
+            <correlationDefinition>
+                <correlators>
+                    <idMatch>
+                        <!-- <sorLabel>midpoint</sorLabel>--> <!-- this is the default -->
+                        <sorIdentifierPrefix>sis-</sorIdentifierPrefix>
+                        <sorIdentifierProperty>assignment/extension/sourceId</sorIdentifierProperty>
 
-                    <!-- URL and credentials are ignored when dummy ID Match Service implementation is used.
-                         They are used only when running TestIdMatchReal (not part of the test suite). -->
-                    <url>http://localhost:9090/match/api/1</url>
-                    <username>administrator</username>
-                    <password><t:clearValue>5ecr3t</t:clearValue></password>
-                    <followOn>
-                        <filter>
+                        <!-- URL and credentials are ignored when dummy ID Match Service implementation is used.
+                             They are used only when running TestIdMatchReal (not part of the test suite). -->
+                        <url>http://localhost:9090/match/api/1</url>
+                        <username>administrator</username>
+                        <password><t:clearValue>5ecr3t</t:clearValue></password>
+                        <followOn>
                             <filter>
-                                <q:equal>
-                                    <q:path>extension/referenceId</q:path>
-                                    <expression>
-                                        <!-- TODO here will be $focus/extension/referenceId, or even extension/referenceId -->
-                                        <path>$correlationState/referenceId</path>
-                                    </expression>
-                                </q:equal>
+                                <ownerFilter>
+                                    <q:equal>
+                                        <q:path>extension/referenceId</q:path>
+                                        <expression>
+                                            <!-- TODO here will be $focus/extension/referenceId, or even extension/referenceId -->
+                                            <path>$correlatorState/referenceId</path>
+                                        </expression>
+                                    </q:equal>
+                                </ownerFilter>
                             </filter>
-                        </filter>
-                    </followOn>
-                </idMatch>
-            </correlators>
+                        </followOn>
+                    </idMatch>
+                </correlators>
+                <cases/>
+                <correlationProperties>
+                    <property>
+                        <source>assignment/extension/givenName</source>
+                        <primaryTarget>givenName</primaryTarget>
+                    </property>
+                    <property>
+                        <source>assignment/extension/familyName</source>
+                        <primaryTarget>familyName</primaryTarget>
+                    </property>
+                    <property>
+                        <source>assignment/extension/dateOfBirth</source>
+                        <primaryTarget>extension/dateOfBirth</primaryTarget>
+                    </property>
+                    <property>
+                        <source>assignment/extension/nationalId</source>
+                        <primaryTarget>extension/nationalId</primaryTarget>
+                    </property>
+                </correlationProperties>
+            </correlationDefinition>
             <reaction>
                 <situation>linked</situation>
                 <synchronize>true</synchronize>
             </reaction>
             <reaction>
                 <situation>deleted</situation>
-                <synchronize>true</synchronize>
                 <action>
                     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unlinked</situation>
-                <synchronize>true</synchronize>
                 <action>
                     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
-                <synchronize>true</synchronize>
                 <action>
                     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
                 </action>
             </reaction>
         </objectSynchronization>
     </synchronization>
+
+    <business>
+        <correlatorRef oid="8d537583-d475-48c4-b23d-5e71e1ef4e2a" type="OrgType"/>
+        <correlatorActionMaxDuration>P5D</correlatorActionMaxDuration>
+    </business>
 </c:resource>

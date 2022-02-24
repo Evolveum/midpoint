@@ -30,7 +30,6 @@ class NoOpCorrelator implements Correlator {
     @Override
     public CorrelationResult correlate(
             @NotNull CorrelationContext correlationContext,
-            @NotNull Task task,
             @NotNull OperationResult result) {
 
         LOGGER.debug("Returning no owner.");

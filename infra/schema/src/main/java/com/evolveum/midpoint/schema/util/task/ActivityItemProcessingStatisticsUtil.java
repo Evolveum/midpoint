@@ -173,8 +173,19 @@ public class ActivityItemProcessingStatisticsUtil {
      */
     public static String getLastProcessedObjectName(ActivityItemProcessingStatisticsType info,
             Predicate<ProcessedItemSetType> itemSetFilter) {
-        ProcessedItemType lastSuccess = getLastProcessedObject(info, itemSetFilter);
-        return lastSuccess != null ? lastSuccess.getName() : null;
+        ProcessedItemType last = getLastProcessedObject(info, itemSetFilter);
+        return last != null ? last.getName() : null;
+    }
+
+    /**
+     * Returns message about the item that was last processed by given task in item set defined by the filter.
+     *
+     * TODO this should operate on a tree!
+     */
+    public static String getLastProcessedItemMessage(ActivityItemProcessingStatisticsType info,
+            Predicate<ProcessedItemSetType> itemSetFilter) {
+        ProcessedItemType last = getLastProcessedObject(info, itemSetFilter);
+        return last != null ? last.getMessage() : null;
     }
 
     /**

@@ -11,12 +11,17 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
+
+import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.correlator.FullCorrelationContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -65,14 +70,17 @@ public class CorrelationContextDto implements Serializable {
     }
 
     private void load(CaseType aCase, PageBase pageBase, Task task, OperationResult result) throws CommonException {
-        resolveObjectsInCorrelationContext(aCase.getCorrelationContext(), pageBase, task, result);
-        createCorrelationOptions(aCase.getCorrelationContext());
+        ResourceObjectOwnerOptionsType ownerOptions = CorrelationCaseUtil.getOwnerOptions(aCase);
+        if (ownerOptions != null) {
+            resolvePotentialOwners(ownerOptions, pageBase, task, result);
+        }
+        createCorrelationOptions(aCase);
         createCorrelationPropertiesDefinitions(aCase, pageBase, task, result);
     }
 
-    private void resolveObjectsInCorrelationContext(CorrelationContextType correlationContext, PageBase pageBase, Task task, OperationResult result) {
-        for (PotentialOwnerType potentialOwner : correlationContext.getPotentialOwners().getPotentialOwner()) {
-            resolve(potentialOwner.getCandidateOwnerRef(), "candidate " + potentialOwner.getUri(), pageBase, task, result);
+    private void resolvePotentialOwners(ResourceObjectOwnerOptionsType potentialOwners, PageBase pageBase, Task task, OperationResult result) {
+        for (ResourceObjectOwnerOptionType potentialOwner : potentialOwners.getOption()) {
+            resolve(potentialOwner.getCandidateOwnerRef(), "candidate " + potentialOwner.getIdentifier(), pageBase, task, result);
         }
     }
 
@@ -101,13 +109,15 @@ public class CorrelationContextDto implements Serializable {
         }
     }
 
-    private void createCorrelationOptions(CorrelationContextType context) {
+    private void createCorrelationOptions(CaseType aCase) throws SchemaException {
+        CaseCorrelationContextType context = aCase.getCorrelationContext();
         int suggestionNumber = 1;
-        for (PotentialOwnerType potentialOwner : context.getPotentialOwners().getPotentialOwner()) {
-            if (SchemaConstants.CORRELATION_NONE_URI.equals(potentialOwner.getUri())) {
+        for (ResourceObjectOwnerOptionType potentialOwner : CorrelationCaseUtil.getOwnerOptionsList(aCase)) {
+            OwnerOptionIdentifier identifier = OwnerOptionIdentifier.of(potentialOwner);
+            if (identifier.isNewOwner()) {
                 optionHeaders.add(0, TEXT_BEING_CORRELATED);
                 correlationOptions.add(0,
-                        new CorrelationOptionDto(context.getPreFocusRef()));
+                        new CorrelationOptionDto(potentialOwner, context.getPreFocusRef()));
             } else {
                 optionHeaders.add(String.format(TEXT_CANDIDATE, suggestionNumber));
                 correlationOptions.add(
@@ -121,7 +131,8 @@ public class CorrelationContextDto implements Serializable {
             throws CommonException {
         FullCorrelationContext instantiationContext =
                 pageBase.getCorrelationService().getFullCorrelationContext(aCase.asPrismObject(), task, result);
-        CorrelationPropertiesDefinitionType propertiesBean = instantiationContext.synchronizationBean.getCorrelationProperties();
+        CorrelationPropertiesDefinitionType propertiesBean = // TODO what if there's no definition?
+                instantiationContext.synchronizationBean.getCorrelationDefinition().getCorrelationProperties();
         CorrelationOptionDto newOwnerOption = getNewOwnerOption();
         if (propertiesBean != null) {
             PrismObject<?> preFocus = newOwnerOption != null ? newOwnerOption.getObject() : null;

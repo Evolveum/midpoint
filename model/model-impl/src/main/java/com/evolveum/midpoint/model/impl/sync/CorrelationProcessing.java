@@ -1,0 +1,224 @@
+/*
+ * Copyright (C) 2010-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+package com.evolveum.midpoint.model.impl.sync;
+
+import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
+import com.evolveum.midpoint.model.api.correlator.Correlator;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowCorrelationStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+
+/**
+ * Manages correlation that occurs _during synchronization pre-processing_.
+ *
+ * The correlation itself is delegated to appropriate {@link Correlator} instance.
+ *
+ * Specific responsibilities:
+ *
+ * 1. updating shadow with the result of the correlation
+ * 2. calls {@link CorrelationCaseManager} to open, update, or cancel cases (if needed)
+ */
+class CorrelationProcessing<F extends FocusType> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationProcessing.class);
+
+    @NotNull private final SynchronizationContext<F> syncCtx;
+
+    @NotNull private final Task task;
+
+    @NotNull private final ModelBeans beans;
+
+    /** Shadow being correlated. It is a full shadow. */
+    @NotNull private final ShadowType shadow;
+
+    /** Context of the whole correlation. Used when called the root correlator. */
+    @NotNull private final CorrelationContext correlationContext;
+
+    /** [Instantiation] context of the root correlator. */
+    @NotNull private final CorrelatorContext<?> rootCorrelatorContext;
+
+    /**
+     * When this particular correlation started. Will not be propagated to the shadow if there's another
+     * (presumably earlier) correlation start is already there.
+     */
+    @NotNull private final XMLGregorianCalendar thisCorrelationStart;
+
+    /**
+     * What timestamp to write as "correlation end": current timestamp if we're done, and null otherwise.
+     * Kept globally to use e.g. for case cancel record. TODO not implemented yet
+     */
+    private XMLGregorianCalendar thisCorrelationEnd;
+
+    CorrelationProcessing(@NotNull SynchronizationContext<F> syncCtx, @NotNull ModelBeans beans)
+            throws SchemaException, ConfigurationException {
+        this.syncCtx = syncCtx;
+        this.task = syncCtx.getTask();
+        this.beans = beans;
+        this.shadow = syncCtx.getShadowedResourceObject().asObjectable();
+        this.correlationContext = new CorrelationContext(
+                shadow,
+                syncCtx.getPreFocus(),
+                syncCtx.getResource().asObjectable(),
+                syncCtx.getObjectTypeDefinition(),
+                asObjectable(syncCtx.getSystemConfiguration()),
+                syncCtx.getTask());
+        this.rootCorrelatorContext =
+                CorrelatorContext.create(syncCtx.getCorrelators().clone(), syncCtx.getObjectSynchronizationBean());
+        this.thisCorrelationStart = XmlTypeConverter.createXMLGregorianCalendar();
+    }
+
+    public CorrelationResult process(OperationResult result) throws CommonException {
+
+        CorrelationResult correlationResult = executeRootCorrelator(result);
+
+        applyResultToShadow(correlationResult);
+
+        if (correlationResult.isUncertain()) {
+            processUncertainResult(result);
+        } else if (correlationResult.isError()) {
+            // Nothing to do here
+        } else {
+            processFinalResult(result);
+        }
+        return correlationResult;
+    }
+
+    private @NotNull CorrelationResult executeRootCorrelator(OperationResult result) {
+
+        syncCtx.setCorrelationContext(correlationContext);
+
+        CorrelationResult correlationResult;
+
+        try {
+            correlationResult =
+                    beans.correlatorFactoryRegistry.instantiateCorrelator(rootCorrelatorContext, task, result)
+                            .correlate(correlationContext, result);
+        } catch (Exception e) { // Other kinds of Throwable are intentionally passed upwards
+            // The exception will be (probably) rethrown, so the stack trace is not strictly necessary here.
+            LoggingUtils.logException(LOGGER, "Correlation ended with an exception", e);
+            correlationResult = CorrelationResult.error(e);
+        }
+
+        LOGGER.trace("Correlation result:\n{}", correlationResult.debugDumpLazily(1));
+
+        if (correlationResult.isDone()) {
+            thisCorrelationEnd = XmlTypeConverter.createXMLGregorianCalendar();
+        } else {
+            thisCorrelationEnd = null;
+        }
+
+        return correlationResult;
+    }
+
+    private void processUncertainResult(OperationResult result) throws SchemaException {
+        if (rootCorrelatorContext.shouldCreateCases()) {
+            if (getShadowCorrelationCaseOpenTimestamp() == null) {
+                syncCtx.addShadowDeltas(
+                        PrismContext.get().deltaFor(ShadowType.class)
+                                .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_OPEN_TIMESTAMP)
+                                .replace(XmlTypeConverter.createXMLGregorianCalendar())
+                                .asItemDeltas());
+            }
+            beans.correlationCaseManager.createOrUpdateCase(
+                    shadow,
+                    syncCtx.getResource().asObjectable(),
+                    syncCtx.getPreFocus(),
+                    task,
+                    result);
+        }
+    }
+
+    private void processFinalResult(OperationResult result) throws SchemaException {
+        beans.correlationCaseManager.closeCaseIfStillOpen(getShadow(), result);
+        // TODO record case close if needed
+    }
+
+    private void applyResultToShadow(CorrelationResult correlationResult) throws SchemaException {
+        S_ItemEntry builder = PrismContext.get().deltaFor(ShadowType.class);
+        if (getShadowCorrelationStartTimestamp() == null) {
+            builder = builder
+                    .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_START_TIMESTAMP)
+                    .replace(thisCorrelationStart);
+        }
+        builder = builder
+                .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP)
+                .replace(thisCorrelationEnd);
+        if (correlationResult.isError()) {
+            if (getShadowCorrelationSituation() == null) {
+                // We set ERROR only if there is no previous situation recorded
+                // ...and we set none of the other items.
+                builder = builder
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION)
+                        .replace(CorrelationSituationType.ERROR);
+            }
+        } else {
+            // @formatter:off
+            builder = builder
+                    .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION)
+                        .replace(correlationResult.getSituation())
+                    .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_OWNER_OPTIONS)
+                        .replace(CloneUtil.clone(correlationResult.getOwnerOptions()))
+                    .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_RESULTING_OWNER)
+                        .replace(ObjectTypeUtil.createObjectRef(correlationResult.getOwner()))
+                    // The following may be already applied by the correlator. But better twice than not at all.
+                    .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATOR_STATE)
+                        .replace(correlationContext.getCorrelatorState());
+            // @formatter:on
+        }
+
+        syncCtx.addShadowDeltas(
+                builder.asItemDeltas());
+    }
+
+    private @NotNull ShadowType getShadow() {
+        return syncCtx.getShadowedResourceObject().asObjectable();
+    }
+
+    private @Nullable ShadowCorrelationStateType getShadowCorrelationState() {
+        return getShadow().getCorrelation();
+    }
+
+    private @Nullable XMLGregorianCalendar getShadowCorrelationStartTimestamp() {
+        ShadowCorrelationStateType state = getShadowCorrelationState();
+        return state != null ? state.getCorrelationStartTimestamp() : null;
+    }
+
+    private @Nullable XMLGregorianCalendar getShadowCorrelationCaseOpenTimestamp() {
+        ShadowCorrelationStateType state = getShadowCorrelationState();
+        return state != null ? state.getCorrelationCaseOpenTimestamp() : null;
+    }
+
+    private @Nullable CorrelationSituationType getShadowCorrelationSituation() {
+        ShadowCorrelationStateType state = getShadowCorrelationState();
+        return state != null ? state.getSituation() : null;
+    }
+}

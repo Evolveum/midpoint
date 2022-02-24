@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -91,7 +92,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                         CaseType correlationCase = getObjectDetailsModels().getObjectType();
                         WorkItemId workItemId = WorkItemId.of(correlationCase.getWorkItem().get(0));
                         AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
-                                .outcome(item.getModelObject().getUri());
+                                .outcome(item.getModelObject().getIdentifier());
 
                         Task task = getPageBase().createSimpleTask("DecideCorrelation");
                         OperationResult result = task.getResult();
@@ -161,8 +162,8 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     private IModel<CorrelationContextDto> createCorrelationContextModel() {
         return new ReadOnlyModel<>(() -> {
             CaseType aCase = getObjectDetailsModels().getObjectType();
-            CorrelationContextType correlationContext = aCase.getCorrelationContext();
-            if (correlationContext == null || correlationContext.getPotentialOwners() == null) {
+            CaseCorrelationContextType correlationContext = aCase.getCorrelationContext();
+            if (correlationContext == null || CorrelationCaseUtil.getOwnerOptions(aCase) == null) {
                 return null;
             }
 

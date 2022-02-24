@@ -7,12 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.correlator.correlation;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.impl.correlator.TestingAccount;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType.*;
 
 /**
  * A {@link TestingAccount} customized to support correlators tests.
@@ -27,19 +30,19 @@ class CorrelationTestingAccount extends TestingAccount {
         super(account);
     }
 
-    CorrelationResult.Status getExpectedCorrelationStatus() {
+    CorrelationSituationType getExpectedCorrelationSituation() {
         String testString = getTestString();
         if (testString == null || testString.isEmpty()) {
             throw new IllegalStateException("Invalid expected result ('test' attribute): '" + testString + "'");
         }
         switch (testString) {
             case NONE:
-                return CorrelationResult.Status.NO_OWNER;
+                return NO_OWNER;
             case UNCERTAIN_WITHOUT_CASE:
             case UNCERTAIN_WITH_CASE:
-                return CorrelationResult.Status.UNCERTAIN;
+                return UNCERTAIN;
             default:
-                return CorrelationResult.Status.EXISTING_OWNER;
+                return EXISTING_OWNER;
         }
     }
 
@@ -48,7 +51,7 @@ class CorrelationTestingAccount extends TestingAccount {
     }
 
     String getExpectedOwnerName() {
-        if (getExpectedCorrelationStatus() == CorrelationResult.Status.EXISTING_OWNER) {
+        if (getExpectedCorrelationSituation() == EXISTING_OWNER) {
             return getTestString();
         } else {
             return null;

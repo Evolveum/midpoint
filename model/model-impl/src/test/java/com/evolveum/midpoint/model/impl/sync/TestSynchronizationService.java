@@ -10,6 +10,12 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 
+import com.evolveum.midpoint.test.DummyTestResource;
+
+import com.evolveum.midpoint.test.TestTask;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -41,12 +47,6 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -62,6 +62,12 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     private static final String GROUP_PIRATES_DUMMY_NAME = "pirates";
 
     private static final String INTENT_GROUP = "group";
+
+    private static final DummyTestResource RESOURCE_DUMMY_BROKEN =
+            new DummyTestResource(TEST_DIR, "resource-dummy-broken.xml", "ba2099e5-7c6b-4742-a13a-0cbc476aeb01", "broken");
+
+    private static final TestTask TASK_IMPORT_DUMMY_BROKEN =
+            new TestTask(TEST_DIR, "task-import-dummy-broken.xml", "826071d1-5f8b-4d44-af0a-f0e7970f01a4");
 
     @Autowired SynchronizationService synchronizationService;
     @Autowired Clockwork clockwork;
@@ -81,6 +87,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         initDummyResourcePirate(RESOURCE_DUMMY_LIMITED_NAME,
                 RESOURCE_DUMMY_LIMITED_FILE, RESOURCE_DUMMY_LIMITED_OID, initTask, initResult);
+
+        initAndTestDummyResource(RESOURCE_DUMMY_BROKEN, initTask, initResult);
     }
 
     @Test
@@ -993,6 +1001,40 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
 
+    }
+
+    @Test
+    public void test400BrokenCorrelator() throws Exception {
+        given("dummy account exists on a resource with broken correlator");
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String accountName = "test400";
+        RESOURCE_DUMMY_BROKEN.controller.addAccount(accountName);
+
+        when("import task is run");
+        TASK_IMPORT_DUMMY_BROKEN.initialize(this, task, result);
+        waitForTaskCloseOrSuspend(TASK_IMPORT_DUMMY_BROKEN.oid, 20000);
+
+        then("error is correctly recorded both in task and in shadow");
+
+        // Adapt this if the details of error handling in synchronization service are changed.
+        String expectedMessage = "Error occurred during resource object shadow owner lookup, reason: Circuit is broken";
+
+        TASK_IMPORT_DUMMY_BROKEN.assertAfter()
+                .rootActivityState()
+                    .progress()
+                        .assertCommitted(0, 1, 0)
+                    .end()
+                    .itemProcessingStatistics()
+                        .assertTotalCounts(0, 1, 0)
+                        .assertLastFailureObjectName(accountName)
+                        .assertLastFailureMessage(expectedMessage);
+
+        PrismObject<ShadowType> shadow = findShadowByPrismName(accountName, RESOURCE_DUMMY_BROKEN.getResource(), result);
+        assertShadowAfter(shadow)
+                .assertCorrelationSituation(CorrelationSituationType.ERROR)
+                .assertHasComplexOperationExecutionFailureWithMessage(TASK_IMPORT_DUMMY_BROKEN.oid, expectedMessage);
     }
 
     private void setDebugListener() {

@@ -66,17 +66,13 @@ class ExpressionCorrelator implements Correlator {
     @Override
     public CorrelationResult correlate(
             @NotNull CorrelationContext correlationContext,
-            @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        correlationContext.setManualCorrelationConfiguration(
-                configuration.getManual());
-
         LOGGER.trace("Correlating:\n{}", correlationContext.debugDumpLazily(1));
 
-        return new Correlation<>(correlationContext, task)
+        return new Correlation<>(correlationContext)
                 .execute(result);
     }
 
@@ -99,12 +95,10 @@ class ExpressionCorrelator implements Correlator {
         /** TODO: determine from the resource */
         @Nullable private final ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
-        Correlation(
-                @NotNull CorrelationContext correlationContext,
-                @NotNull Task task) {
+        Correlation(@NotNull CorrelationContext correlationContext) {
             this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
-            this.task = task;
+            this.task = correlationContext.getTask();
             this.contextDescription =
                     ("expression correlator" +
                             (configuration.getName() != null ? " '" + configuration.getName() + "'" : ""))
@@ -116,13 +110,7 @@ class ExpressionCorrelator implements Correlator {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             List<F> candidateOwners = findCandidatesUsingExpressions(result);
-            return beans.builtInCaseManager.createCorrelationResultOrCase(
-                    resourceObject,
-                    correlationContext.getPreFocus(),
-                    candidateOwners,
-                    correlationContext,
-                    task,
-                    result);
+            return beans.builtInResultCreator.createCorrelationResult(candidateOwners, correlationContext);
         }
 
         private @NotNull List<F> findCandidatesUsingExpressions(OperationResult result)

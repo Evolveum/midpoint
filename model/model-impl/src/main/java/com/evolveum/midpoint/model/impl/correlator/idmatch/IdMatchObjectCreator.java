@@ -136,8 +136,10 @@ class IdMatchObjectCreator {
 
     private List<CorrelationPropertyDefinitionType> getExplicitPropertyDefinitions() {
         ObjectSynchronizationType synchronizationBean = correlatorContext.getSynchronizationBean();
-        if (synchronizationBean != null && synchronizationBean.getCorrelationProperties() != null) {
-            return synchronizationBean.getCorrelationProperties().getProperty();
+        if (synchronizationBean != null
+                && synchronizationBean.getCorrelationDefinition() != null
+                && synchronizationBean.getCorrelationDefinition().getCorrelationProperties() != null) {
+            return synchronizationBean.getCorrelationDefinition().getCorrelationProperties().getProperty();
         } else {
             return List.of();
         }

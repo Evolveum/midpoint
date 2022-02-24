@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.testing.story.correlation;
 
+import com.evolveum.midpoint.model.api.correlator.idmatch.MatchingRequest;
 import com.evolveum.midpoint.model.test.idmatch.DummyIdMatchServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
 /**
  * Testing identity matching using real ID Match implementation (currently COmanage Match).
@@ -17,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType
  * REQUIREMENTS:
  *
  * 1) The COmanage Match runs as an external system. See `resource-ais.xml` for URL and credentials.
- * 2) The COmanage Match is configured like {@link DummyIdMatchServiceImpl#executeMatch(ShadowAttributesType, OperationResult)}.
+ * 2) The COmanage Match is configured like {@link DummyIdMatchServiceImpl#executeMatch(MatchingRequest, OperationResult)}.
  * 3) The database of the service is initially empty (no records).
  *
  * This test runs manually.

@@ -91,6 +91,11 @@ public class ActivityItemProcessingStatisticsAsserter<RA> extends AbstractAssert
         return this;
     }
 
+    public ActivityItemProcessingStatisticsAsserter<RA> assertLastFailureMessage(String expected) {
+        assertEquals("Wrong 'last failure' message", expected, getLastFailedItemMessage());
+        return this;
+    }
+
     @Override
     protected String desc() {
         return getDetails();
@@ -127,5 +132,10 @@ public class ActivityItemProcessingStatisticsAsserter<RA> extends AbstractAssert
 
     private String getLastFailedObjectName() {
         return ActivityItemProcessingStatisticsUtil.getLastProcessedObjectName(information, OutcomeKeyedCounterTypeUtil::isFailure);
+    }
+
+    private String getLastFailedItemMessage() {
+        return ActivityItemProcessingStatisticsUtil.getLastProcessedItemMessage(
+                information, OutcomeKeyedCounterTypeUtil::isFailure);
     }
 }

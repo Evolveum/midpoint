@@ -126,6 +126,6 @@ class PreSource extends MSource {
 
     @Override
     @NotNull InboundMappingEvaluationPhaseType getCurrentEvaluationPhase() {
-        return InboundMappingEvaluationPhaseType.CORRELATION;
+        return InboundMappingEvaluationPhaseType.BEFORE_CORRELATION;
     }
 }

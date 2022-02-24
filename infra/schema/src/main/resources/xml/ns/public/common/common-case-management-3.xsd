@@ -191,7 +191,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="correlationContext" type="tns:CorrelationContextType" minOccurs="0">
+                    <xsd:element name="correlationContext" type="tns:CaseCorrelationContextType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Information related to correlation request that is to be resolved.
@@ -1293,16 +1293,28 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="pendingOperation" type="tns:PendingOperationType" minOccurs="0"/>
+            <xsd:element name="schema" type="tns:SimpleCaseSchemaType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to create work items for the case?
+
+                        EXPERIMENTAL. TEMPORARY.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.5</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="manualProvisioningContext" type="tns:ManualProvisioningContextType" />
 
-    <xsd:complexType name="CorrelationContextType">
+    <xsd:complexType name="CaseCorrelationContextType">
         <xsd:annotation>
             <xsd:documentation>
                 Information related to correlation request that is to be resolved.
-                TODO resolve naming collision with CorrelationContext
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
@@ -1331,78 +1343,56 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="potentialOwners" type="tns:PotentialOwnersType" minOccurs="0">
+            <xsd:element name="schema" type="tns:SimpleCaseSchemaType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO (also the name)
+                        How to create work items for the case?
+
+                        EXPERIMENTAL. TEMPORARY.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="correlationContext" type="tns:CorrelationContextType" />
+    <xsd:element name="correlationContext" type="tns:CaseCorrelationContextType" />
 
-    <xsd:complexType name="PotentialOwnersType">
+    <xsd:complexType name="SimpleCaseSchemaType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO (also rename this class if needed)
+                Simple schema describing how work items for a case should be created.
+                Used for manual provisioning and correlation cases.
+
+                TEMPORARY.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:container>true</a:container>
+                <a:container/>
                 <a:experimental>true</a:experimental>
+                <a:since>4.5</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="potentialOwner" type="tns:PotentialOwnerType"
-                    minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="assigneeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Potential matches among which (if any) the user should decide. Should be at least two,
-                        otherwise there's nothing to decide. (TODO: decide on the "create new option").
+                        Who should be assigned the work items that are created?
+                        It may point to user or an abstract role. Abstract roles are expanded.
+                        If more than one assignee is specified they are considered equivalent.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="potentialOwners" type="tns:PotentialOwnersType"/>
-
-    <xsd:complexType name="PotentialOwnerType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO (also rename this class if needed)
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:experimental>true</a:experimental>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="uri" type="xsd:anyURI" minOccurs="0">
+            <xsd:element name="defaultAssigneeName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        URI used to reference this option in the work item outcome.
-                        TODO remove if this is going to be stored directly in the shadow
+                        The name (not OID) of an assignee to be used if the resolution of the assigneeRef yields no one.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="confidence" type="xsd:int" minOccurs="0">
+            <xsd:element name="duration" type="xsd:duration" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        An integer between 0 and 100. TODO
+                        Duration for work items being created.
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="candidateOwnerRef" type="tns:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The candidate owner. Null if a new owner has to be created. (TODO reconsider this)
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

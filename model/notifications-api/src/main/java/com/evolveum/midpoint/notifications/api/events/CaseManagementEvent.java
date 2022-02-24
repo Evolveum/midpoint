@@ -11,8 +11,8 @@ import com.evolveum.midpoint.notifications.api.OperationStatus;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseCorrelationContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ManualProvisioningContextType;
 
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +52,7 @@ public interface CaseManagementEvent extends Event {
         return getCase().getManualProvisioningContext();
     }
 
-    default @Nullable CorrelationContextType getCorrelationContext() {
+    default @Nullable CaseCorrelationContextType getCorrelationContext() {
         return getCase().getCorrelationContext();
     }
 

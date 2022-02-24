@@ -72,6 +72,14 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
     private static final TestResource<OrgType> ORG_PROGRAM_SW_ENG_DOCTORAL =
             new TestResource<>(TEST_DIR, "040-org-program-sw-eng-doctoral.xml", "edb74c31-f17e-4b80-b255-5115e4b54c60");
 
+    private static final TestResource<OrgType> ORG_CORRELATION_OPERATORS =
+            new TestResource<>(TEST_DIR, "060-org-correlation-operators.xml", "8d537583-d475-48c4-b23d-5e71e1ef4e2a");
+
+    private static final TestResource<UserType> USER_FRED =
+            new TestResource<>(TEST_DIR, "100-user-fred.xml", "75369757-ae32-48ac-86f7-7b24fc687c70");
+    private static final TestResource<UserType> USER_ALICE =
+            new TestResource<>(TEST_DIR, "110-user-alice.xml", "7c8d1fcc-5033-4275-8396-b3ce02e218a9");
+
     private static final CsvResource RESOURCE_SIS = new CsvResource(TEST_DIR, "resource-sis.xml",
             "21d4788c-15eb-40cc-8ac5-3cd379362ffe", "resource-sis.csv",
             "sisId,firstName,lastName,born,nationalId,studyProgram");
@@ -107,6 +115,11 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         addObject(ORG_PROGRAM_SW_ENG, initTask, initResult);
         addObject(ORG_PROGRAM_SW_ENG_DOCTORAL, initTask, initResult);
 
+        addObject(ORG_CORRELATION_OPERATORS, initTask, initResult);
+        addObject(USER_FRED, initTask, initResult);
+        addObject(USER_ALICE, initTask, initResult); // approver of correlation operators org - not to be included in the case
+        assignOrg(USER_ADMINISTRATOR_OID, ORG_CORRELATION_OPERATORS.oid, initTask, initResult);
+
         RESOURCE_SIS.initialize(initTask, initResult);
         assertSuccess(
                 modelService.testResource(RESOURCE_SIS.oid, initTask));
@@ -139,7 +152,6 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         then();
         // @formatter:off
         TASK_IMPORT_SIS.assertAfter()
-                .display()
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()
@@ -205,7 +217,6 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         then();
         // @formatter:off
         TASK_IMPORT_SIS.assertAfter()
-                .display()
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()
@@ -265,7 +276,6 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         then();
         // @formatter:off
         TASK_IMPORT_SIS.assertAfter()
-                .display()
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()
@@ -319,7 +329,13 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                 .display()
                 .assertOpen()
                 .workItems()
-                    .assertWorkItems(1);
+                    .assertWorkItems(2)
+                    .forOriginalAssignee(USER_ADMINISTRATOR_OID)
+                        .assertDeadlineApproximately("P5D")
+                    .end()
+                    .forOriginalAssignee(USER_FRED.oid)
+                        .assertDeadlineApproximately("P5D")
+                    .end();
         // @formatter:on
 
         displayValue("correlation case", prismContext.xmlSerializer().serializeRealValue(correlationCase));
@@ -348,7 +364,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
 
         // TODO adapt when URIs are changed to use OIDs
         AbstractWorkItemOutputType output = new AbstractWorkItemOutputType(prismContext)
-                .outcome(SchemaConstants.CORRELATION_OPTION_PREFIX + getReferenceId(john)); // unqualified should be OK here
+                .outcome(SchemaConstants.CORRELATION_EXISTING_PREFIX + getReferenceId(john)); // unqualified should be OK here
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();
@@ -385,8 +401,9 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                 .display()
                 .assertClosed()
                 .workItems()
-                    .single()
-                    .assertClosed();
+                    .assertWorkItems(2)
+                    .forOriginalAssignee(USER_ADMINISTRATOR_OID).assertClosed().end()
+                    .forOriginalAssignee(USER_FRED.oid).assertClosed().end();
         // @formatter:on
 
         displayDumpable("audit", dummyAuditService);
@@ -414,7 +431,6 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         then();
         // @formatter:off
         TASK_IMPORT_SIS.assertAfter()
-                .display()
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()
@@ -450,7 +466,6 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         then();
         // @formatter:off
         TASK_IMPORT_SIS.assertAfter()
-                .display()
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()

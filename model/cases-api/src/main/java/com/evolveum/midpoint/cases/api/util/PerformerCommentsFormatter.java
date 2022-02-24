@@ -19,8 +19,25 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface PerformerCommentsFormatter {
 
+    PerformerCommentsFormatter EMPTY = new EmptyPerformerCommentsFormatterImpl();
+
     String formatComment(@NotNull AbstractWorkItemType workItem, Task task, OperationResult result);
 
     String formatComment(@NotNull WorkItemCompletionEventType event, Task task, OperationResult result);
 
+    /**
+     * Simple "no-op" formatter to be used when no real implementation is available.
+     */
+    class EmptyPerformerCommentsFormatterImpl implements PerformerCommentsFormatter {
+
+        @Override
+        public String formatComment(@NotNull AbstractWorkItemType workItem, Task task, OperationResult result) {
+            return workItem.getOutput() != null ? workItem.getOutput().getComment() : null;
+        }
+
+        @Override
+        public String formatComment(@NotNull WorkItemCompletionEventType event, Task task, OperationResult result) {
+            return event.getOutput() != null ? event.getOutput().getComment() : null;
+        }
+    }
 }

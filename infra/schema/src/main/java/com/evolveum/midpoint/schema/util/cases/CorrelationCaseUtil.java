@@ -7,30 +7,42 @@
 
 package com.evolveum.midpoint.schema.util.cases;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import java.util.List;
+
+import com.evolveum.midpoint.util.MiscUtil;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.util.QNameUtil.uriToQName;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class CorrelationCaseUtil {
 
-    public static boolean isNewOwner(@NotNull String outcomeUri) {
-        return SchemaConstants.CORRELATION_NONE.equals(
-                getLocalPart(outcomeUri));
-    }
-
-    private static String getLocalPart(@NotNull String outcomeUri) {
-        return uriToQName(outcomeUri, true)
-                .getLocalPart();
-    }
-
-    public static String getExistingOwnerId(@NotNull String outcomeUri) {
-        String localPart = getLocalPart(outcomeUri);
-        if (localPart.startsWith(SchemaConstants.CORRELATION_OPTION_PREFIX)) {
-            return localPart.substring(SchemaConstants.CORRELATION_OPTION_PREFIX.length());
+    public static @Nullable ResourceObjectOwnerOptionsType getOwnerOptions(@NotNull CaseType aCase) {
+        ShadowType shadow = (ShadowType) ObjectTypeUtil.getObjectFromReference(aCase.getObjectRef());
+        if (shadow != null && shadow.getCorrelation() != null) {
+            return shadow.getCorrelation().getOwnerOptions();
         } else {
             return null;
         }
+    }
+
+    public static @NotNull List<ResourceObjectOwnerOptionType> getOwnerOptionsList(@NotNull CaseType aCase) {
+        var info = getOwnerOptions(aCase);
+        return info != null ? info.getOption() : List.of();
+    }
+
+    public static @NotNull String getShadowOidRequired(@NotNull CaseType aCase) throws SchemaException {
+        return MiscUtil.requireNonNull(
+                MiscUtil.requireNonNull(
+                                aCase.getObjectRef(), () -> "No objectRef in " + aCase)
+                        .getOid(), () -> "No shadow OID in " + aCase);
+
     }
 }

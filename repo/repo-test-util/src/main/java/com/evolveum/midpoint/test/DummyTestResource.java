@@ -7,12 +7,16 @@
 
 package com.evolveum.midpoint.test;
 
+import java.io.File;
+import java.io.IOException;
+
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.FailableProcessor;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import java.io.File;
 
 /**
  * Representation of Dummy Resource in tests.
@@ -32,6 +36,12 @@ public class DummyTestResource extends TestResource<ResourceType> {
         super(dir, fileName, oid);
         this.name = name;
         this.controllerInitLambda = controllerInitLambda;
+    }
+
+    @Override
+    public void reload(OperationResult result) throws SchemaException, IOException, ObjectNotFoundException {
+        super.reload(result);
+        controller.setResource(getObject());
     }
 
     public PrismObject<ResourceType> getResource() {
