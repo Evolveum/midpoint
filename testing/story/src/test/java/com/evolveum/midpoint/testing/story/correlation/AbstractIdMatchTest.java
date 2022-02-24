@@ -80,11 +80,11 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
     private static final TestResource<UserType> USER_ALICE =
             new TestResource<>(TEST_DIR, "110-user-alice.xml", "7c8d1fcc-5033-4275-8396-b3ce02e218a9");
 
-    private static final CsvResource RESOURCE_SIS = new CsvResource(TEST_DIR, "resource-sis.xml",
+    static final CsvResource RESOURCE_SIS = new CsvResource(TEST_DIR, "resource-sis.xml",
             "21d4788c-15eb-40cc-8ac5-3cd379362ffe", "resource-sis.csv",
             "sisId,firstName,lastName,born,nationalId,studyProgram");
 
-    private static final TestTask TASK_IMPORT_SIS = new TestTask(TEST_DIR, "task-import-sis.xml",
+    static final TestTask TASK_IMPORT_SIS = new TestTask(TEST_DIR, "task-import-sis.xml",
             "95ebbf1e-9c71-4870-a1fb-dc47ce6856c9", 30000);
 
     private static final String NS_EXT = "http://example.com/idmatch";

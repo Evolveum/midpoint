@@ -51,7 +51,7 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
     /**
      * The algorithm for matching:
      *
-     * - If familyName, dateOfBirth, nationalId exactly match -> the this is 100% automatic match (regardless given name)
+     * - If familyName, dateOfBirth, nationalId exactly match -> the this is 100% automatic match (regardless of given name)
      * - If either nationalId matches (regardless of the rest), or givenName + familyName + dateOfBirth match (regardless
      * of nationalId), then this is an approximate match
      * - otherwise no match is reported
@@ -92,16 +92,23 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
                     approximateMatches.stream().map(String::valueOf).collect(Collectors.joining("\n")));
             Collection<PotentialMatch> potentialMatches = approximateMatches.stream()
                     .map(this::createPotentialMatch)
-                    .collect(Collectors.toSet());
-            Record equal = getSamePendingMatch(givenName, familyName, dateOfBirth, nationalId);
-            if (equal != null) {
-                return MatchingResult.forUncertain(equal.matchId, potentialMatches);
+                    .collect(Collectors.toCollection(HashSet::new));
+            Record existingPendingMatch = getSamePendingMatch(givenName, familyName, dateOfBirth, nationalId);
+            String matchId;
+            if (existingPendingMatch != null) {
+                matchId = existingPendingMatch.matchId;
             } else {
-                String matchId = String.valueOf(matchIdCounter.getAndIncrement());
+                matchId = String.valueOf(matchIdCounter.getAndIncrement());
                 records.add(
                         new Record(attributes, null, matchId));
-                return MatchingResult.forUncertain(matchId, potentialMatches);
             }
+            // "no match" potential match
+            potentialMatches.add(
+                    new PotentialMatch(
+                            50,
+                            null,
+                            request.getObject().getAttributes()));
+            return MatchingResult.forUncertain(matchId, potentialMatches);
         }
 
         LOGGER.info("No match");

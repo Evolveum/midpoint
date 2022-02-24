@@ -44,5 +44,5 @@ public interface Correlator {
             @NotNull CaseType aCase,
             @NotNull String outcomeUri,
             @NotNull Task task,
-            @NotNull OperationResult result) throws SchemaException, CommunicationException;
+            @NotNull OperationResult result) throws SchemaException, CommunicationException, SecurityViolationException;
 }

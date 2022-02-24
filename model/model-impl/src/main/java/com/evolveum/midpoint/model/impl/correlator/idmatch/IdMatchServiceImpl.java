@@ -15,6 +15,10 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+
+import com.evolveum.midpoint.util.exception.*;
+
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.github.openjson.JSONArray;
@@ -26,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.idmatch.*;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.constants.ResponseType;
-import com.evolveum.midpoint.model.impl.correlator.idmatch.data.structure.JsonRequest;
+import com.evolveum.midpoint.model.impl.correlator.idmatch.data.PersonRequest;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.operations.Client;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -37,10 +41,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IdMatchAttributesType;
@@ -82,43 +82,32 @@ public class IdMatchServiceImpl implements IdMatchService {
 
     private static final String DEFAULT_SOR_LABEL = "midpoint";
 
-    /**
-     * Should we return "none of the above matches" option among potential matches? (Under assumption that
-     * ID Match service provides us with such option?)
-     *
-     * TODO consider removing
-     */
-    @VisibleForTesting
-    private final boolean includeNoneMatchesOption;
-
     private IdMatchServiceImpl(
             @NotNull String url,
             @Nullable String username,
             @Nullable ProtectedStringType password,
-            @Nullable String sorLabel,
-            boolean includeNoneMatchesOption) {
+            @Nullable String sorLabel) {
         this.url = url;
         this.username = username;
         this.password = password;
         this.sorLabel = Objects.requireNonNullElse(sorLabel, DEFAULT_SOR_LABEL);
-        this.includeNoneMatchesOption = includeNoneMatchesOption;
     }
 
     @Override
     public @NotNull MatchingResult executeMatch(@NotNull MatchingRequest request, @NotNull OperationResult result)
-            throws CommunicationException, SchemaException {
+            throws CommunicationException, SchemaException, SecurityViolationException {
 
         LOGGER.trace("Executing match:\n{}", request.debugDumpLazily(1));
 
         Client client = createClient();
 
-        JsonRequest jsonRequest = generateMatchRequest(request.getObject());
-        client.peoplePut(jsonRequest); // TODO reconsider
+        PersonRequest personRequest = generateMatchRequest(request.getObject());
+        client.putPerson(personRequest); // TODO reconsider
 
         int responseCode = client.getResponseCode();
         if (responseCode == ResponseType.CREATED.getResponseCode() ||
                 responseCode == ResponseType.EXISTING.getResponseCode()) {
-            return processKnownReferenceId(client, jsonRequest);
+            return processKnownReferenceId(client, personRequest);
         } else if (responseCode == ResponseType.ACCEPTED.getResponseCode()) {
             return processUnknownReferenceId(client);
         } else {
@@ -130,10 +119,11 @@ public class IdMatchServiceImpl implements IdMatchService {
      * The reference ID is known - either existing one was assigned or a new one was created.
      * (We treat both cases in the same way.)
      */
-    private @NotNull MatchingResult processKnownReferenceId(Client client, JsonRequest jsonRequest) {
+    private @NotNull MatchingResult processKnownReferenceId(Client client, PersonRequest personRequest)
+            throws CommunicationException, SecurityViolationException {
         // COmanage implementation sometimes returns no data on 200/201 response, so let's fetch it explicitly
         // TODO avoid re-fetching if the service returned the data
-        client.peopleById(jsonRequest.getSorLabel(), jsonRequest.getSorId());
+        client.getPerson(personRequest);
 
         String entity = client.getEntity();
         String metaSection = parseJsonObject(entity, "meta");
@@ -148,7 +138,8 @@ public class IdMatchServiceImpl implements IdMatchService {
     /**
      * The reference ID is not known - the result is uncertain. We have to provide a list of potential matches.
      */
-    private @NotNull MatchingResult processUnknownReferenceId(Client client) throws SchemaException {
+    private @NotNull MatchingResult processUnknownReferenceId(Client client)
+            throws SchemaException, CommunicationException, SecurityViolationException {
         String entity = client.getEntity();
         String matchRequestId = parseJsonObject(entity, MATCH_REQUEST_ID);
 
@@ -167,7 +158,20 @@ public class IdMatchServiceImpl implements IdMatchService {
 
     @NotNull
     private Client createClient() {
-        return new Client(url, username, password != null ? password.getClearValue() : null);
+        return new Client(url, username, getPasswordCleartext());
+    }
+
+    @Nullable
+    private String getPasswordCleartext() {
+        try {
+            if (password != null) {
+                return PrismContext.get().getDefaultProtector().decryptString(password);
+            } else {
+                return null;
+            }
+        } catch (EncryptionException e) {
+            throw new SystemException("Couldn't decrypt the password: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -240,10 +244,6 @@ public class IdMatchServiceImpl implements IdMatchService {
 
         String rawReferenceId = jsonObject.getString(REFERENCE_REQUEST_ID);
         String referenceId = fromRawReferenceId(rawReferenceId);
-        if (referenceId == null && !includeNoneMatchesOption) {
-            LOGGER.trace("Skipping 'none matches' option: {}", candidate);
-            return List.of();
-        }
 
         if (jsonObject.has("sorRecords")) {
             List<PotentialMatch> potentialMatches = new ArrayList<>();
@@ -342,8 +342,10 @@ public class IdMatchServiceImpl implements IdMatchService {
      * And when resolving an open match request, `referenceId` must be present - either real one or `new` (to create
      * a new ID), and `matchRequestId` should be present (if previously returned by the ID Match service).
      */
-    private JsonRequest generateJsonRequest(@NotNull IdMatchObject idMatchObject,
-            @Nullable String referenceId, @Nullable String matchRequestId) {
+    private PersonRequest createPersonRequest(
+            @NotNull IdMatchObject idMatchObject,
+            @Nullable String referenceId,
+            @Nullable String matchRequestId) {
 
         try {
             JsonFactory factory = new JsonFactory(); // todo from jackson-core?
@@ -375,7 +377,7 @@ public class IdMatchServiceImpl implements IdMatchService {
             generator.writeEndObject();
             generator.close();
 
-            return new JsonRequest(sorLabel, idMatchObject.getSorIdentifierValue(), String.valueOf(jsonString));
+            return new PersonRequest(sorLabel, idMatchObject.getSorIdentifierValue(), String.valueOf(jsonString));
         } catch (IOException e) {
             // We really don't expect IOException here. Let's not bother with it, and throw
             // a SystemException, because this is most probably some weirdness.
@@ -397,26 +399,26 @@ public class IdMatchServiceImpl implements IdMatchService {
         }
     }
 
-    public JsonRequest generateMatchRequest(@NotNull IdMatchObject idMatchObject)
+    public PersonRequest generateMatchRequest(@NotNull IdMatchObject idMatchObject)
             throws SchemaException {
-        return generateJsonRequest(idMatchObject, null, null);
+        return createPersonRequest(idMatchObject, null, null);
     }
 
-    public JsonRequest generateResolveRequest(@NotNull IdMatchObject idMatchObject,
+    public PersonRequest generateResolveRequest(@NotNull IdMatchObject idMatchObject,
             @NotNull String referenceId, @Nullable String matchRequestId) throws SchemaException {
-        return generateJsonRequest(idMatchObject, referenceId, matchRequestId);
+        return createPersonRequest(idMatchObject, referenceId, matchRequestId);
     }
 
     @Override
     public void resolve(
             @NotNull IdMatchObject idMatchObject, @Nullable String matchRequestId,
             @Nullable String referenceId,
-            @NotNull OperationResult result) throws CommunicationException, SchemaException {
+            @NotNull OperationResult result) throws CommunicationException, SchemaException, SecurityViolationException {
 
         String nativeReferenceId = referenceId != null ? referenceId : NEW_REFERENCE_ID;
-        JsonRequest request = generateResolveRequest(idMatchObject, nativeReferenceId, matchRequestId);
+        PersonRequest request = generateResolveRequest(idMatchObject, nativeReferenceId, matchRequestId);
         Client client = createClient();
-        client.peoplePut(request);
+        client.putPerson(request);
     }
 
     /**
@@ -428,8 +430,7 @@ public class IdMatchServiceImpl implements IdMatchService {
                         () -> new ConfigurationException("No URL in ID Match service configuration")),
                 configuration.getUsername(),
                 configuration.getPassword(),
-                configuration.getSorLabel(),
-                true);
+                configuration.getSorLabel());
     }
 
     /**
@@ -444,8 +445,6 @@ public class IdMatchServiceImpl implements IdMatchService {
                 url,
                 username,
                 password,
-                null,
-                false // Our tests currently expect that "none matches" option is not included.
-        );
+                null);
     }
 }

@@ -7,17 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.correlator.idmatch.constants;
 
-public enum Channel {
+public enum ServicePath {
 
-
-    URL_PREFIX_MAIN_OPERATIONS("/v1/people/"),
-    URL_PREFIX_GET_MATCH_REQUEST_MATCH_ID("/v1/matchRequests/"),
-    URL_PREFIX_GET_MATCH_REQUEST_REFERENCE_ID("/v1/matchRequests?referenceId=");
-
+    PEOPLE("/v1/people/"),
+    MATCH_REQUESTS("/v1/matchRequests/"),
+    MATCH_REQUESTS_WITH_REFERENCE_ID("/v1/matchRequests?referenceId=");
 
     private final String url;
 
-    Channel(String envUrl) {
+    ServicePath(String envUrl) {
         this.url = envUrl;
     }
 

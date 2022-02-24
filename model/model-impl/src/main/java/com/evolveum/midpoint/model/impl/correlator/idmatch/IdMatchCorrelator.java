@@ -248,7 +248,7 @@ class IdMatchCorrelator implements Correlator {
             @NotNull CaseType aCase,
             @NotNull String outcomeUri,
             @NotNull Task task,
-            @NotNull OperationResult result) throws SchemaException, CommunicationException {
+            @NotNull OperationResult result) throws SchemaException, CommunicationException, SecurityViolationException {
         ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(aCase);
         FocusType preFocus = CorrelatorUtil.getPreFocusFromCorrelationCase(aCase);
         IdMatchObject idMatchObject = prepareIdMatchObject(preFocus, shadow);

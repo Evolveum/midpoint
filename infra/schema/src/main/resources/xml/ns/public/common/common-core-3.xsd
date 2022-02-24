@@ -3573,7 +3573,7 @@
                     </xsd:element>
                     <xsd:element name="consistency" type="tns:ResourceConsistencyType" minOccurs="0"/>
                     <xsd:element name="caching" type="tns:CachingPolicyType" minOccurs="0"/>
-                    <xsd:element ref="tns:synchronization" minOccurs="0"/>
+                    <xsd:element name="synchronization" type="tns:SynchronizationType" minOccurs="0"/>
                     <xsd:element name="business" type="tns:ResourceBusinessConfigurationType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
@@ -8857,6 +8857,9 @@
                 resource. This applies to all flavors of synchronization
                 (live sync, reconciliation, import, ...)
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="objectSynchronizationSorter" type="tns:ObjectSynchronizationSorterType" minOccurs="0" maxOccurs="1"/>
@@ -8871,6 +8874,9 @@
                 specific type of object, e.g. User. This applies to all flavors of synchronization
                 (live sync, reconciliation, import, ...)
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0">
@@ -9073,6 +9079,7 @@
             </xsd:element>
             <xsd:element name="reaction" type="tns:SynchronizationReactionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ObjectSynchronizationSorterType">
@@ -23520,6 +23527,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.5</a:since>
+                        <a:elaborate>true</a:elaborate>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -23581,6 +23589,7 @@
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
                 <a:experimental>true</a:experimental>
+                <a:elaborate>true</a:elaborate>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

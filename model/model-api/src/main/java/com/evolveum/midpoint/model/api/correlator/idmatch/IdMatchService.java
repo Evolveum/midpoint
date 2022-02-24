@@ -11,6 +11,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +25,7 @@ public interface IdMatchService {
      * Request a match for given resource object attributes.
      */
     @NotNull MatchingResult executeMatch(@NotNull MatchingRequest request, @NotNull OperationResult result)
-            throws CommunicationException, SchemaException;
+            throws CommunicationException, SchemaException, SecurityViolationException;
 
     /**
      * Resolves a pending match.
@@ -37,5 +38,5 @@ public interface IdMatchService {
             @NotNull IdMatchObject idMatchObject,
             @Nullable String matchRequestId,
             @Nullable String referenceId,
-            @NotNull OperationResult result) throws CommunicationException, SchemaException;
+            @NotNull OperationResult result) throws CommunicationException, SchemaException, SecurityViolationException;
 }

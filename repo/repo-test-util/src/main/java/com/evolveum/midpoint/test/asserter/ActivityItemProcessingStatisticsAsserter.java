@@ -96,6 +96,11 @@ public class ActivityItemProcessingStatisticsAsserter<RA> extends AbstractAssert
         return this;
     }
 
+    public ActivityItemProcessingStatisticsAsserter<RA> assertLastFailureMessageContaining(String expected) {
+        assertThat(getLastFailedItemMessage()).as("last failure message").contains(expected);
+        return this;
+    }
+
     @Override
     protected String desc() {
         return getDetails();

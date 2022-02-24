@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.correlator.idmatch.data.structure;
+package com.evolveum.midpoint.model.impl.correlator.idmatch.data;
 
 /**
  * Represents a JSON request to match a person (`Request`) or to force a reconciliation of
@@ -13,9 +13,9 @@ package com.evolveum.midpoint.model.impl.correlator.idmatch.data.structure;
  *
  * TODO consider nullity of the properties
  */
-public class JsonRequest {
+public class PersonRequest {
 
-    public JsonRequest(String sorLabel, String sorId, String objectToSend) {
+    public PersonRequest(String sorLabel, String sorId, String objectToSend) {
         this.sorLabel = sorLabel;
         this.sorId = sorId;
         this.objectToSend = objectToSend;
