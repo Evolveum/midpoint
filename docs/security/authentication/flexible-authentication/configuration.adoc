@@ -1105,7 +1105,7 @@ This authentication sequence is applicable only to node group that have active a
 
 ==== UpdatingFocusBehaviorType
 
-We can enable/disable updating of focus authentication behavior during every login, or we can use option for updating behaviour only when login failed and during success login after fails login. Default value is 'everyLogin'. Possible values are:
+We can enable/disable updating of focus authentication behavior (such as information about last login time) during every login, or we can use option for updating behaviour only when login failed and during success login after fails login. Default value is 'everyLogin'. Possible values are:
 
 [%autowidth]
 |===
