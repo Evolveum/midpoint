@@ -365,7 +365,7 @@ public class IdMatchServiceImpl implements IdMatchService {
                 String elementName = fromMidPointAttributeName(property.getElementName());
                 String elementRealValue = getStringValue(property);
 
-                generator.writeFieldName(elementName.toLowerCase());
+                generator.writeFieldName(elementName);
                 generator.writeString(elementRealValue);
             }
 
