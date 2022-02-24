@@ -74,6 +74,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Note: don't autowire this bean by implementing class, as it is
  * proxied by Spring AOP. Use the interface instead.
  *
+ * TODO improve the error handling for the whole class
+ *
  * @author lazyman
  * @author Radovan Semancik
  */
@@ -454,7 +456,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             throw new SystemException(
                     "Error occurred during resource object shadow owner lookup, reason: " + ex.getMessage(), ex);
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -537,8 +539,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      */
     private <F extends FocusType> void determineSituationWithOwnerNotLinked(SynchronizationContext<F> syncCtx,
             ResourceObjectShadowChangeDescription change, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            throws CommonException {
 
         if (change.isDelete()) {
             // account was deleted and it was not linked
@@ -590,11 +591,18 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
         LOGGER.debug("Determined synchronization situation: {} with owner: {}", state, owner);
 
-        // TODO write correlation result to the shadow (or later - along with the update of the sync situation)
-
         syncCtx.setCorrelatedOwner(owner);
         if (syncCtx.getSituation() == null) {
             syncCtx.setSituation(state);
+        }
+
+        if (correlationResult.isError()) {
+            // This is a very crude and preliminary error handling: we just write pending deltas to the shadow
+            // (if there are any), to have a record of the unsuccessful correlation. Normally, we should do this
+            // along with the other sync metadata. But the error handling in this class is not ready for it (yet).
+            savePendingDeltas(syncCtx, result);
+            correlationResult.throwCommonOrRuntimeExceptionIfPresent();
+            throw new AssertionError("Not here");
         }
     }
 
@@ -850,17 +858,16 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      */
     private <F extends FocusType> void saveSyncMetadata(SynchronizationContext<F> syncCtx,
             ResourceObjectShadowChangeDescription change, boolean full, OperationResult result) {
-        PrismObject<ShadowType> shadow = syncCtx.getShadowedResourceObject();
-
-        Task task = syncCtx.getTask();
 
         try {
+            PrismObject<ShadowType> shadow = syncCtx.getShadowedResourceObject();
             ShadowType shadowBean = shadow.asObjectable();
+
             // new situation description
             XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-            List<ItemDelta<?, ?>> deltas =
+            syncCtx.addShadowDeltas(
                     createSynchronizationSituationAndDescriptionDelta(
-                            shadow, syncCtx.getSituation(), change.getSourceChannel(), full, now);
+                            shadow, syncCtx.getSituation(), change.getSourceChannel(), full, now));
 
             S_ItemEntry builder = prismContext.deltaFor(ShadowType.class);
 
@@ -876,13 +883,26 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 builder = builder.item(ShadowType.F_TAG).replace(syncCtx.getTag());
             }
 
-            List<ItemDelta<?, ?>> builderDeltas = builder.asItemDeltas();
-            deltas.addAll(builderDeltas);
-            deltas.addAll(syncCtx.getPendingShadowDeltas());
-            syncCtx.clearPendingShadowDeltas();
+            syncCtx.addShadowDeltas(
+                    builder.asItemDeltas());
 
-            repositoryService.modifyObject(shadowBean.getClass(), shadow.getOid(), deltas, result);
-            ItemDeltaCollectionsUtil.applyTo(builderDeltas, shadow); // pending deltas are already applied
+            savePendingDeltas(syncCtx, result);
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e, "while preparing shadow modifications");
+        }
+    }
+
+    private void savePendingDeltas(SynchronizationContext<?> syncCtx, OperationResult result) throws SchemaException {
+        Task task = syncCtx.getTask();
+        PrismObject<ShadowType> shadow = syncCtx.getShadowedResourceObject();
+
+        try {
+            beans.cacheRepositoryService.modifyObject(
+                    ShadowType.class,
+                    shadow.getOid(),
+                    syncCtx.getPendingShadowDeltas(),
+                    result);
+            syncCtx.clearPendingShadowDeltas();
             task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, null);
         } catch (ObjectNotFoundException ex) {
             task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, ex);
