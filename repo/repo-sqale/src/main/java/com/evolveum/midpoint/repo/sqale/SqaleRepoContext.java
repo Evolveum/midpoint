@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -71,12 +71,13 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(AvailabilityStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(ChangeType.class)); // used in old audit
         querydslConfig.register(new EnumAsObjectType<>(ChangeTypeType.class));
+        querydslConfig.register(new EnumAsObjectType<>(CorrelationSituationType.class));
+        querydslConfig.register(new EnumAsObjectType<>(LockoutStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(MContainerType.class));
         querydslConfig.register(new EnumAsObjectType<>(MExtItemHolderType.class));
         querydslConfig.register(new EnumAsObjectType<>(MExtItemCardinality.class));
         querydslConfig.register(new EnumAsObjectType<>(MObjectType.class));
         querydslConfig.register(new EnumAsObjectType<>(MReferenceType.class));
-        querydslConfig.register(new EnumAsObjectType<>(LockoutStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(NodeOperationalStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationExecutionRecordTypeType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationResultStatusType.class));

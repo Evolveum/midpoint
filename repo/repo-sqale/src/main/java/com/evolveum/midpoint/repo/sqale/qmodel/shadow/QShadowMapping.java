@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,13 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -46,6 +41,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowCorrelationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -91,6 +87,17 @@ public class QShadowMapping
         addItemMapping(F_SYNCHRONIZATION_TIMESTAMP,
                 timestampMapper(q -> q.synchronizationTimestamp));
         addExtensionMapping(F_ATTRIBUTES, MExtItemHolderType.ATTRIBUTES, q -> q.attributes);
+        addNestedMapping(F_CORRELATION, ShadowCorrelationStateType.class)
+                .addItemMapping(ShadowCorrelationStateType.F_CORRELATION_START_TIMESTAMP,
+                        timestampMapper(q -> q.correlationStartTimestamp))
+                .addItemMapping(ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP,
+                        timestampMapper(q -> q.correlationEndTimestamp))
+                .addItemMapping(ShadowCorrelationStateType.F_CORRELATION_CASE_OPEN_TIMESTAMP,
+                        timestampMapper(q -> q.correlationCaseOpenTimestamp))
+                .addItemMapping(ShadowCorrelationStateType.F_CORRELATION_CASE_CLOSE_TIMESTAMP,
+                        timestampMapper(q -> q.correlationCaseCloseTimestamp))
+                .addItemMapping(ShadowCorrelationStateType.F_SITUATION,
+                        enumMapper(q -> q.correlationSituation));
 
         // Item mapping to update the count, relation resolver for query with EXISTS filter.
         addItemMapping(F_PENDING_OPERATION, new SqaleItemSqlMapper<>(
@@ -131,6 +138,14 @@ public class QShadowMapping
         row.synchronizationSituation = shadow.getSynchronizationSituation();
         row.synchronizationTimestamp = MiscUtil.asInstant(shadow.getSynchronizationTimestamp());
         row.attributes = processExtensions(shadow.getAttributes(), MExtItemHolderType.ATTRIBUTES);
+        ShadowCorrelationStateType correlation = shadow.getCorrelation();
+        if (correlation != null) {
+            row.correlationStartTimestamp = MiscUtil.asInstant(correlation.getCorrelationStartTimestamp());
+            row.correlationEndTimestamp = MiscUtil.asInstant(correlation.getCorrelationEndTimestamp());
+            row.correlationCaseOpenTimestamp = MiscUtil.asInstant(correlation.getCorrelationCaseOpenTimestamp());
+            row.correlationCaseCloseTimestamp = MiscUtil.asInstant(correlation.getCorrelationCaseCloseTimestamp());
+            row.correlationSituation = correlation.getSituation();
+        }
         return row;
     }
 

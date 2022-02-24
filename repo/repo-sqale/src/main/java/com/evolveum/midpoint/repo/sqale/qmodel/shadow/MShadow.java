@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,6 +12,7 @@ import java.util.UUID;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
@@ -35,4 +36,10 @@ public class MShadow extends MObject {
     public SynchronizationSituationType synchronizationSituation;
     public Instant synchronizationTimestamp;
     public Jsonb attributes;
+    // correlation
+    public Instant correlationStartTimestamp;
+    public Instant correlationEndTimestamp;
+    public Instant correlationCaseOpenTimestamp;
+    public Instant correlationCaseCloseTimestamp;
+    public CorrelationSituationType correlationSituation;
 }
