@@ -27,11 +27,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.*;
-
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Opens a default unnumbered stage (if stages are not used), or a regular - i.e. numbered - one.
@@ -81,7 +80,7 @@ class OpenStageAction extends InternalAction {
         }
 
         AtomicLong idCounter = new AtomicLong(
-                defaultIfNull(currentCase.asPrismObject().getHighestId(), 0L) + 1);
+                Objects.requireNonNullElse(currentCase.asPrismObject().getHighestId(), 0L) + 1);
 
         LOGGER.trace("Got {} work items to create", openingInformation.getNewWorkItems().size());
         for (CaseWorkItemType newWorkItem : openingInformation.getNewWorkItems()) {
