@@ -152,7 +152,6 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         then();
         // @formatter:off
         TASK_IMPORT_SIS.assertAfter()
-                .display()
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()
@@ -218,7 +217,6 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         then();
         // @formatter:off
         TASK_IMPORT_SIS.assertAfter()
-                .display()
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()
@@ -278,7 +276,6 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         then();
         // @formatter:off
         TASK_IMPORT_SIS.assertAfter()
-                .display()
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()
@@ -434,7 +431,6 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         then();
         // @formatter:off
         TASK_IMPORT_SIS.assertAfter()
-                .display()
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()
@@ -470,7 +466,6 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         then();
         // @formatter:off
         TASK_IMPORT_SIS.assertAfter()
-                .display()
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()

@@ -582,6 +582,21 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         throw new AssertionError("No complex operation execution record for task OID " + taskOid + " and status " + status);
     }
 
+    /**
+     * Preliminary test method (until full operation execution asserter is created).
+     */
+    public PrismObjectAsserter<O, RA> assertHasComplexOperationExecutionFailureWithMessage(String taskOid, String message) {
+        for (OperationExecutionType record : getObjectable().getOperationExecution()) {
+            if (matches(record, OperationExecutionRecordTypeType.COMPLEX, taskOid, OperationResultStatusType.FATAL_ERROR)
+                    && message.equals(record.getMessage())) {
+                assertRecordSanity(record);
+                return this;
+            }
+        }
+        throw new AssertionError("No complex operation execution record for task OID "
+                + taskOid + " and status FATAL_ERROR with message " + message);
+    }
+
     // TEMPORARY! TODO Create OperationExecutionAsserter
     private void assertRecordSanity(OperationExecutionType record) {
         if (isError(record.getStatus())) {

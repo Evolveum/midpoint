@@ -49,7 +49,8 @@ public class TestTask extends TestResource<TaskType> {
     }
 
     /**
-     * Initializes the task.
+     * Initializes the task - i.e. imports it into repository (via model).
+     * This may or may not start the task, depending on the execution state in the file.
      *
      * @param test To provide access to necessary functionality. Temporary!
      */
@@ -71,6 +72,7 @@ public class TestTask extends TestResource<TaskType> {
     }
 
     public TaskAsserter<Void> assertAfter() throws SchemaException, ObjectNotFoundException {
-        return test.assertTask(oid, "after");
+        return test.assertTask(oid, "after")
+                .display();
     }
 }

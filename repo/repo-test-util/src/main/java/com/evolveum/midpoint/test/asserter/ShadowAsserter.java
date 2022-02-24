@@ -361,4 +361,17 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return MiscUtil.castSafely(
                 getCorrelatorStateRequired(), IdMatchCorrelatorStateType.class);
     }
+
+    /**
+     * Temporary: until correlation state asserter is implemented.
+     */
+    public ShadowAsserter<RA> assertCorrelationSituation(CorrelationSituationType expected) {
+        assertThat(getCorrelationSituation()).as("correlation situation").isEqualTo(expected);
+        return this;
+    }
+
+    private CorrelationSituationType getCorrelationSituation() {
+        ShadowCorrelationStateType correlation = getObjectable().getCorrelation();
+        return correlation != null ? correlation.getSituation() : null;
+    }
 }
