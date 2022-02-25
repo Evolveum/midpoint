@@ -263,8 +263,6 @@
                 </q:equal>
             </correlation>
 
-            <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
-
             <reaction>
                 <situation>linked</situation>
                 <synchronize>true</synchronize>

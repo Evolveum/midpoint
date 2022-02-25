@@ -192,6 +192,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationResultListener = new DebugReconciliationResultListener();
         reconciliationActivityHandler.setReconciliationResultListener(reconciliationResultListener);
 
+        // Object templates (must be imported before resource, otherwise there are validation warnigns)
+        repoAddObjectFromFile(USER_TEMPLATE_LIME.file, initResult);
+
         dummyResourceCtlAzure = DummyResourceContoller.create(RESOURCE_DUMMY_AZURE_NAME, resourceDummyAzure);
         dummyResourceCtlAzure.extendSchemaPirate();
         dummyResourceCtlAzure.addOrgTop();
@@ -229,9 +232,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         repoAddObjectFromFile(PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE.file, initResult);
 
         applyPasswordPolicy(PASSWORD_POLICY_GLOBAL_OID, SECURITY_POLICY_OID, initTask, initResult);
-
-        // Object templates
-        repoAddObjectFromFile(USER_TEMPLATE_LIME.file, initResult);
 
         // Users
         userImporter = repoAddObjectFromFile(USER_IMPORTER.file, initResult);

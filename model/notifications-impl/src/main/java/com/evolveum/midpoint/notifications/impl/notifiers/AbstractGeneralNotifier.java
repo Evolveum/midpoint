@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -172,18 +173,19 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
         MessageTemplateContentType messageTemplateContent = findMessageContent(notifierConfig, recipient, result);
 
-        String body = getBody(event, notifierConfig, variables, transportName, task, result, messageTemplateContent);
+        String body = getBody(event, notifierConfig, messageTemplateContent, variables, transportName, task, result);
         if (body == null) {
             getLogger().debug("Skipping notification as null body was provided for transport={}", transportName);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No message body");
             return 0;
         }
 
-        String contentType = messageTemplateContent != null ? messageTemplateContent.getContentType() : null;
-        if (contentType == null) {
-            contentType = notifierConfig.getContentType();
+        String contentType = notifierConfig.getContentType();
+        if (contentType == null && messageTemplateContent != null) {
+            contentType = messageTemplateContent.getContentType();
         }
         if (contentType == null) {
+            // Message template does not have contentTypeExpression, no need to check.
             contentType = getContentTypeFromExpression(event, notifierConfig, variables, task, result);
         }
         if (contentType == null) {
@@ -191,50 +193,56 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             contentType = getContentType();
         }
 
-        List<NotificationMessageAttachmentType> attachments =
-                getAttachmentsFromExpression(event, notifierConfig, variables, task, result);
-
-        String subject = messageTemplateContent != null
-                ? getStringFromExpression(event, variables, task, result, messageTemplateContent.getSubjectExpression(), "subject", false)
-                : null;
-        if (subject == null) {
-            subject = getSubjectFromExpression(event, notifierConfig, variables, task, result);
+        ExpressionType subjectExpression = notifierConfig.getSubjectExpression();
+        if (subjectExpression == null && messageTemplateContent != null) {
+            subjectExpression = messageTemplateContent.getSubjectExpression();
         }
-        if (subject == null) {
-            subject = notifierConfig.getSubjectPrefix() != null ? notifierConfig.getSubjectPrefix() : "";
-            subject += getSubject(event, notifierConfig, transportName, task, result);
+        String subject;
+        if (subjectExpression != null) {
+            subject = getStringFromExpression(event, variables, task, result, subjectExpression, "subject", false);
+        } else {
+            String subjectPrefix = notifierConfig.getSubjectPrefix();
+            String defaultSubject = getSubject(event, notifierConfig, transportName, task, result);
+            subject = Strings.isNullOrEmpty(subjectPrefix)
+                    ? subjectPrefix + Strings.nullToEmpty(defaultSubject) // here we don't want nulls, but ""
+                    : defaultSubject; // can be null
         }
 
-        if (attachments == null) {
-            attachments = notifierConfig.getAttachment();
-            if (attachments == null || attachments.isEmpty()) {
-                attachments = getAttachment(event, notifierConfig, transportName, task, result);
+        List<NotificationMessageAttachmentType> attachments = new ArrayList<>();
+        ExpressionType attachmentExpression = notifierConfig.getAttachmentExpression();
+        if (attachmentExpression == null && messageTemplateContent != null) {
+            attachmentExpression = messageTemplateContent.getAttachmentExpression();
+        }
+
+        if (attachmentExpression != null) {
+            attachments.addAll(getAttachmentsFromExpression(event, attachmentExpression, variables, task, result));
+        }
+        if (messageTemplateContent != null) {
+            attachments.addAll(messageTemplateContent.getAttachment());
+        }
+        attachments.addAll(notifierConfig.getAttachment());
+        if (attachments.isEmpty() && attachmentExpression == null) {
+            List<NotificationMessageAttachmentType> defaultAttachments =
+                    getAttachment(event, notifierConfig, transportName, task, result);
+            if (defaultAttachments != null) {
+                attachments.addAll(defaultAttachments);
             }
-        } else if (notifierConfig.getAttachment() != null) {
-            attachments.addAll(notifierConfig.getAttachment());
         }
 
-        // TODO use messageContent for other content components (attachments)
-
+        // setting prepared message content
         Message message = new Message();
         message.setBody(body);
         message.setSubject(subject);
         message.setContentType(contentType);
+        message.setAttachments(attachments);
 
-        String from = getFromFromExpression(event, notifierConfig, variables, task, result);
-        if (from != null) {
-            message.setFrom(from);
-        }
-
+        // setting addressing information
+        message.setFrom(getFromFromExpression(event, notifierConfig, variables, task, result));
         message.setTo(List.of(address));
         message.setCc(getCcBccAddresses(notifierConfig.getCcExpression(),
                 variables, "notification cc-expression", task, result));
         message.setBcc(getCcBccAddresses(notifierConfig.getBccExpression(),
                 variables, "notification bcc-expression", task, result));
-
-        if (attachments != null) {
-            message.setAttachments(attachments);
-        }
 
         getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
         transport.send(message, transportName, event, task, result);
@@ -257,20 +265,18 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     }
 
     @Nullable
-    private String getBody(E event, N notifierConfig, VariablesMap variables, String transportName,
-            Task task, OperationResult result, MessageTemplateContentType messageContent) throws SchemaException {
-        String body;
-        ExpressionType bodyExpression = messageContent != null ? messageContent.getBodyExpression() : null;
-        if (bodyExpression == null) {
-            bodyExpression = notifierConfig.getBodyExpression();
+    private String getBody(E event, N notifierConfig, MessageTemplateContentType messageContent, VariablesMap variables, String transportName,
+            Task task, OperationResult result) throws SchemaException {
+        ExpressionType bodyExpression = notifierConfig.getBodyExpression();
+        if (bodyExpression == null && messageContent != null) {
+            bodyExpression = messageContent.getBodyExpression();
         }
         if (bodyExpression != null) {
-            body = getBodyFromExpression(event, bodyExpression, variables, task, result);
+            return getBodyFromExpression(event, bodyExpression, variables, task, result);
         } else {
             // default hardcoded in notifier classes
-            body = getBody(event, notifierConfig, transportName, task, result);
+            return getBody(event, notifierConfig, transportName, task, result);
         }
-        return body;
     }
 
     @Nullable
@@ -348,10 +354,13 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         return null;
     }
 
-    // for future extension
-    @SuppressWarnings("unused")
-    protected List<NotificationMessageAttachmentType> getAttachment(E event, N generalNotifierType,
-            String transportName, Task task, OperationResult result) {
+    /**
+     * Returns default attachments, only used if no attachment is specified in notifier or message template.
+     * This is not called even if some attachment expression is specified and returns null because that
+     * explicitly means "no attachments".
+     */
+    protected List<NotificationMessageAttachmentType> getAttachment(
+            E event, N generalNotifierType, String transportName, Task task, OperationResult result) {
         return null;
     }
 
@@ -407,12 +416,6 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         return addresses;
     }
 
-    private String getSubjectFromExpression(E event, N generalNotifierType, VariablesMap variables,
-            Task task, OperationResult result) {
-        return getStringFromExpression(event, variables,
-                task, result, generalNotifierType.getSubjectExpression(), "subject", false);
-    }
-
     private String getFromFromExpression(E event, N generalNotifierType, VariablesMap variables,
             Task task, OperationResult result) {
         return getStringFromExpression(event, variables,
@@ -459,19 +462,15 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
     }
 
-    private List<NotificationMessageAttachmentType> getAttachmentsFromExpression(E event, N generalNotifierType, VariablesMap variables,
-            Task task, OperationResult result) {
-        if (generalNotifierType.getAttachmentExpression() != null) {
-            List<NotificationMessageAttachmentType> attachment = evaluateNotificationMessageAttachmentTypeExpressionChecked(generalNotifierType.getAttachmentExpression(), variables, "contentType expression",
-                    task, result);
-            if (attachment == null) {
-                getLogger().debug("attachment expression for event {} returned nothing.", event.getId());
-                return null;
-            }
-            return attachment;
-        } else {
-            return null;
+    private @NotNull List<NotificationMessageAttachmentType> getAttachmentsFromExpression(E event,
+            @NotNull ExpressionType attachmentExpression, VariablesMap variables, Task task, OperationResult result) {
+        List<NotificationMessageAttachmentType> attachment = expressionHelper.evaluateAttachmentExpressionChecked(
+                attachmentExpression, variables, "attachment expression", task, result);
+        if (attachment == null) {
+            getLogger().debug("attachment expression for event {} returned nothing.", event.getId());
+            return List.of();
         }
+        return attachment;
     }
 
     boolean isWatchAuxiliaryAttributes(N configuration) {
