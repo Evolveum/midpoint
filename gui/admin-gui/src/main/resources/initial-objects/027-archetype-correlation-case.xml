@@ -40,9 +40,10 @@
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>
                     </display>
-                    <displayOrder>40</displayOrder>
+                    <displayOrder>1</displayOrder>
                     <panelType>correlationContext</panelType>
                     <type>c:CaseType</type>
+                    <default>true</default>
                 </panel>
             </objectDetails>
         </adminGuiConfiguration>
