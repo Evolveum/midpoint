@@ -53,21 +53,4 @@ public class PageSystemNotification extends PageBaseSystemConfiguration {
     public List<Class<? extends Containerable>> getAllDetailsTypes() {
         return Arrays.asList(NotificationConfigurationType.class, MessageTransportConfigurationType.class);
     }
-
-//    @Override
-//    protected List<ITab> createTabs() {
-//        List<ITab> tabs = new ArrayList<>();
-//        tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.notifications.title")) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public WebMarkupContainer getPanel(String panelId) {
-//                PrismContainerWrapperModel<SystemConfigurationType, NotificationConfigurationType> model = createModel(getObjectModel(),
-//                        SystemConfigurationType.F_NOTIFICATION_CONFIGURATION);
-//                return new NotificationConfigTabPanel(panelId, model);
-//            }
-//        });
-//        return tabs;
-//    }
 }
