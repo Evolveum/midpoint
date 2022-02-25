@@ -33,7 +33,7 @@
 
     <!-- region persistent objects/containers -->
     <!--
-    TODO: Can this fully replace NotificationMessageType? It better does. Planned AFTER MessageTemplates (lower).
+    TODO: Can this fully replace NotificationMessageType? It better does. Not-planned for 4.5.
     See: https://docs.evolveum.com/midpoint/projects/idmatch/notification-hypo-design/
     <xsd:complexType name="MessageType">
         <xsd:annotation>
@@ -154,20 +154,11 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="contentTypeExpression" type="c:ExpressionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Expression returning body content type, e.g. text/plain (the default), text/html, and so on.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>MessageTemplateContentType.contentTypeExpression</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="attachment" type="tns:NotificationMessageAttachmentType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Message attachment(s) to be sent out.
+                        Can be combined with `attachmentExpression`.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>MessageTemplateContentType.attachment</a:displayName>
@@ -408,7 +399,7 @@
                 Configuration of a particular mail server host.
             </xsd:documentation>
             <xsd:appinfo>
-                <!--TODO: causes NPE TestCryptoUtil in mail.getServer().get(0).getPassword() returns value that returns null for getEncryptedDataType() -->
+                <!-- Causes NPE TestCryptoUtil in mail.getServer().get(0).getPassword() returns value that returns null for getEncryptedDataType() -->
                 <!--<a:container/>-->
                 <a:displayName>MailServerConfigurationType.details</a:displayName>
             </xsd:appinfo>
@@ -780,7 +771,6 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="handler" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded"/> <!-- implicit fork -->
-            <!-- TODO add notificationTransportConfiguration section for notification specific config. -->
 
             <!-- Left for compatibility, but use new messageTransportConfiguration. -->
             <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0">
@@ -821,6 +811,8 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+
+            <!-- TODO: currently disabled, support not implemented in 4.5, use global transport configuration instead.
             <xsd:element name="transportConfig" type="tns:NotificationTransportConfigType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -832,6 +824,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            -->
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType"/>
@@ -1397,20 +1390,13 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Reference to the message template that produces the content of the message.
-                                If other content related expression is used it overrides the one from the message template.
+                                If other content related expressions are used they override the ones from the message template.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:MessageTemplateType</a:objectReferenceTargetType>
                                 <a:displayName>GeneralNotifierType.template</a:displayName>
                                 <a:since>4.5</a:since>
                             </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="contentTypeExpression" type="c:ExpressionType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                contentType used in email
-                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="subjectExpression" type="c:ExpressionType" minOccurs="0">
@@ -1442,10 +1428,20 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="contentTypeExpression" type="c:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Body content type, e.g. text/plain (the default), text/html, and so on - specified as expression.
+                                If `contentType` element is used, this one is ignored.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="attachment" type="tns:NotificationMessageAttachmentType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Message attachment(s) to be sent out.
+                                Can be combined with `attachmentExpression`.
+                                If message template is used, its `attachment` are also added to the final list of attachments.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
@@ -1455,8 +1451,9 @@
                     <xsd:element name="attachmentExpression" type="tns:ExpressionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                An expression that returns message attachment(s) to be sent out. Returned objects should be
-                                of type NotificationMessageAttachmentType.
+                                An expression that returns message attachment(s) to be sent out.
+                                Returned objects should be of type NotificationMessageAttachmentType.
+                                If message template is used, its `attachmentExpression` is ignored.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
@@ -1511,7 +1508,6 @@
                 Type for recipient expression, which can be either a focus or a string.
                 Focus can be returned as FocusObject directly or wrapped in PrismObject.
                 This is an internal structure to support multiple return types for recipient.
-                <!-- TODO any other supported return type for focus? SimpleObjectRef? Other kind of ref? -->
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
@@ -1544,6 +1540,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Type for more descriptive message transport declaration inside notifiers.
+                Enables the transport for the notifier, the `transport` element with the same name is not necessary.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>

@@ -1,26 +1,13 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,13 +17,17 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.notifications.api.events.TaskEvent;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author skublik
@@ -143,7 +134,7 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
         }
         attachment.setContentType("text/" + type);
         attachment.setContentFromFile(filePath);
-        List attachments = new ArrayList();
+        List<NotificationMessageAttachmentType> attachments = new ArrayList<>();
         attachments.add(attachment);
         return attachments;
     }
@@ -154,12 +145,9 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
         Task task = event.getTask();
         PrismObject<ReportType> report = getReportFromTask(task, opTask, opResult);
 
-        StringBuilder body = new StringBuilder();
-
-        body.append("Notification about creating of report.\n\n");
-        body.append("Report: ").append(report.getName()).append("\n\n");
-        body.append("You can see report output in attachment.").append("\n");
-        return body.toString();
+        return "Notification about creating of report.\n\n"
+                + "Report: " + report.getName() + "\n\n"
+                + "You can see report output in attachment." + "\n";
     }
 
     private PrismObject<ReportType> getReportFromTask(Task task, Task opTask, OperationResult opResult) {
@@ -178,7 +166,7 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
                         "resolving report",
                         opTask,
                         opResult
-                        ).asPrismContainer();
+                ).asPrismContainer();
             }
             return task.getObject(ReportType.class, opResult);
         } catch (CommonException e) {

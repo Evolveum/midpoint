@@ -5,15 +5,14 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.correlator.idmatch.operations.auth;
+package com.evolveum.midpoint.model.impl.correlator.idmatch.operations;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 
-public class AuthenticationProvider implements Authentication {
-
+public class AuthenticationProvider {
 
     private String username;
     private String password;
@@ -22,7 +21,6 @@ public class AuthenticationProvider implements Authentication {
         this.username = username;
         this.password = password;
     }
-
 
     public String getUsername() {
         return username;
@@ -40,8 +38,6 @@ public class AuthenticationProvider implements Authentication {
         this.password = password;
     }
 
-
-    @Override
     public CredentialsProvider provider() {
         CredentialsProvider provider = new BasicCredentialsProvider();
         provider.setCredentials(
@@ -50,5 +46,4 @@ public class AuthenticationProvider implements Authentication {
         );
         return provider;
     }
-
 }

@@ -92,6 +92,7 @@ public class CsvResource extends TestResource<ResourceType> {
             throws IOException, CommonException {
         prepareObject();
         importObject(task, result);
+        reload(result);
     }
 
     private void prepareObject() throws SchemaException, IOException {

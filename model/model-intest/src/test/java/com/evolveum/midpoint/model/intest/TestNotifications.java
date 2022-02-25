@@ -1,15 +1,42 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest;
 
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.*;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.impl.events.CustomEventImpl;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -33,31 +60,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.Test;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
-import static java.util.Collections.singletonList;
-import static org.testng.AssertJUnit.*;
-
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
@@ -139,7 +143,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test100ModifyUserAddAccount() throws Exception {
-        // GIVEN
+        given();
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + ".test100ModifyUserAddAccount");
         task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         OperationResult result = task.getResult();
@@ -147,7 +151,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
         when();
         ObjectDelta<UserType> userDelta = createAddAccountDelta(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE);
         // This is to test for MID-5849. The applicability checking was not correct, so it passed even if there we no items
@@ -159,7 +162,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                         .asItemDelta());
         executeChanges(userDelta, null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -237,7 +239,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test119ModifyUserDeleteAccount() throws Exception {
 
-        // GIVEN
+        given();
         Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
@@ -252,11 +254,9 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         userDelta.addModification(accountDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
-        // WHEN
         when();
         modelService.executeChanges(deltas, null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result, 2);
@@ -271,7 +271,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         // Check is shadow is gone
         try {
             repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-            AssertJUnit.fail("Shadow "+accountJackOid+" still exists");
+            AssertJUnit.fail("Shadow " + accountJackOid + " still exists");
         } catch (ObjectNotFoundException e) {
             // This is OK
         }
@@ -308,18 +308,16 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test131ModifyUserJackAssignAccount() throws Exception {
-        // GIVEN
+        given();
         Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
         when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
@@ -379,16 +377,14 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test140ModifyUserJackAssignRole() throws Exception {
-        // GIVEN
+        given();
         Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
-        // WHEN
         when();
         assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
@@ -429,12 +425,11 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test150ModifyUserJackModifyAssignment() throws Exception {
-        // GIVEN
+        given();
         Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
-        // WHEN
         when();
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
@@ -445,7 +440,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                         .replace("hi")
                         .asObjectDeltaCast(jack.getOid()), null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
@@ -474,11 +468,11 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                 + "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
                 + "\n"
                 + "The user record was modified. Modified attributes are:\n"
-                + " - Assignment["+id+"]/Description:\n"
+                + " - Assignment[" + id + "]/Description:\n"
                 + "   - REPLACE: hi\n"
                 + "\n"
                 + "Notes:\n"
-                + " - Assignment["+id+"]:\n"
+                + " - Assignment[" + id + "]:\n"
                 + "    - Description: hi\n"
                 + "    - Target: Superuser (role) [default]\n"
                 + "\n"
@@ -488,12 +482,11 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test160ModifyUserJackDeleteAssignment() throws Exception {
-        // GIVEN
+        given();
         Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
-        // WHEN
         when();
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
@@ -504,7 +497,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                         .delete(new AssignmentType(prismContext).id(id))
                         .asObjectDeltaCast(jack.getOid()), null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
@@ -582,17 +574,15 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test200SendSmsUsingGet() {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         Event event = new CustomEventImpl(lightweightIdentifierGenerator, "get", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
@@ -604,17 +594,15 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test210SendSmsUsingPost() {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         Event event = new CustomEventImpl(lightweightIdentifierGenerator, "post", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
@@ -634,21 +622,21 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test215SendSmsUsingGeneralPost() {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
+        int messagesHandledOld = httpHandler.messagesHandled;
 
-        // WHEN
         when();
         Event event = new CustomEventImpl(lightweightIdentifierGenerator, "general-post", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
 
+        assertThat(httpHandler.messagesHandled).isEqualTo(messagesHandledOld + 3); // 3 messages for 3 recipients
         assertNotNull("No http request found", httpHandler.lastRequest);
         assertEquals("Wrong HTTP method", "POST", httpHandler.lastRequest.method);
         assertEquals("Wrong URI", "/send", httpHandler.lastRequest.uri.toString());
@@ -659,22 +647,21 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         String password = "5ecr3t";
         String expectedAuthorization = "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.ISO_8859_1));
         assertEquals("Wrong Authorization header", singletonList(expectedAuthorization), httpHandler.lastRequest.headers.get("authorization"));
-        assertEquals("Wrong 1st line of body", "Body=\"body\"&To=[%2B123, %2B456, %2B789]&From=from", httpHandler.lastRequest.body.get(0));
+        // only the last recipient here
+        assertEquals("Wrong 1st line of body", "Body=\"body\"&To=[%2B789]&From=from", httpHandler.lastRequest.body.get(0));
     }
 
     @Test
     public void test220SendSmsViaProxy() {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         Event event = new CustomEventImpl(lightweightIdentifierGenerator, "get-via-proxy", null,
                 "hello world via proxy", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
@@ -687,19 +674,17 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test300CheckVariables() {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareNotifications();
 
-        // WHEN
         when();
         Event event = new CustomEventImpl(lightweightIdentifierGenerator, "check-variables", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
@@ -710,19 +695,17 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test400StringAttachment() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
-        // WHEN
         when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testStringAttachmentUser")
                 .asPrismObject();
         addObject(user);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess("addObject result", result);
@@ -744,19 +727,17 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test410ByteAttachment() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
-        // WHEN
         when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testByteAttachmentUser")
                 .asPrismObject();
         addObject(user);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess("addObject result", result);
@@ -783,7 +764,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                 + "m3pFJat9Ekl5H/2Q==";
         byte[] origJPEG = Base64.getDecoder().decode(origJPEGString);
         Object content = RawType.getValue(message.getAttachments().get(0).getContent());
-        if(!(content instanceof byte[]) || !Arrays.equals(origJPEG, (byte[])content)) {
+        if (!(content instanceof byte[]) || !Arrays.equals(origJPEG, (byte[]) content)) {
             throw new AssertionError("Wrong content of attachments expected:" + Arrays.toString(origJPEG) + " but was:" + content);
         }
         assertEquals("Wrong fileName of attachments", "alf.jpg", message.getAttachments().get(0).getFileName());
@@ -792,19 +773,17 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test420AttachmentFromFile() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
-        // WHEN
         when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testAttachmentFromFileUser")
                 .asPrismObject();
         addObject(user);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess("addObject result", result);
@@ -825,19 +804,17 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test430ExpressionAttachment() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
-        // WHEN
         when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testExpressionAttachmentUser")
                 .asPrismObject();
         addObject(user);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess("addObject result", result);
@@ -909,9 +886,9 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         UserType user = new UserType(prismContext)
                 .name("test510")
                 .beginAssignment()
-                    .beginConstruction()
-                        .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
-                    .<AssignmentType>end()
+                .beginConstruction()
+                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                .<AssignmentType>end()
                 .end();
 
         addObject(user.asPrismObject(), task, result);
@@ -967,6 +944,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         }
 
         private Request lastRequest;
+        private int messagesHandled;
 
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
@@ -988,6 +966,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
             } else {
                 response = "OK";
                 responseCode = 200;
+                messagesHandled++; // we want to count only OK messages, not authorization requests
             }
             httpExchange.sendResponseHeaders(responseCode, response.length());
             OutputStream os = httpExchange.getResponseBody();

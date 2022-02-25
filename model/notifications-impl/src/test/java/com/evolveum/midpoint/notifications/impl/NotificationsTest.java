@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.notifications.api.transports.TransportService;
 import com.evolveum.midpoint.notifications.impl.events.CustomEventImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -33,6 +35,7 @@ import com.evolveum.midpoint.transport.impl.CustomMessageTransport;
 import com.evolveum.midpoint.transport.impl.FileMessageTransport;
 import com.evolveum.midpoint.transport.impl.MailMessageTransport;
 import com.evolveum.midpoint.transport.impl.SmsMessageTransport;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-notifications-test.xml" })
@@ -79,35 +82,25 @@ public class NotificationsTest extends AbstractIntegrationTest {
     @Test
     public void test010CustomTransportRegistration() throws Exception {
         given("configuration change with custom transport");
-        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
-                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
-                .replace(new MessageTransportConfigurationType(prismContext)
-                        .customTransport(new CustomTransportConfigurationType(prismContext)
-                                .name("foo")
-                                .type(TestMessageTransport.class.getName())))
-                .asItemDeltas();
+        Collection<? extends ItemDelta<?, ?>> modifications =
+                systemConfigModificationWithTestTransport("test").asItemDeltas();
 
         when("sysconfig is modified in repository");
         repositoryService.modifyObject(
                 SystemConfigurationType.class, SYS_CONFIG_OID, modifications, getTestOperationResult());
 
         then("transport of the right type is registered");
-        assertThat(transportService.getTransport("foo"))
+        assertThat(transportService.getTransport("test"))
                 .isNotNull()
                 .isInstanceOf(TestMessageTransport.class);
-        assertThat(transportService.getTransport("foo").getName()).isEqualTo("foo");
+        assertThat(transportService.getTransport("test").getName()).isEqualTo("test");
     }
 
     @Test
     public void test020TransportSysconfigChangeRemovesObsoleteTransports() throws Exception {
         given("sysconfig with transport foo");
-        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
-                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
-                .replace(new MessageTransportConfigurationType(prismContext)
-                        .customTransport(new CustomTransportConfigurationType(prismContext)
-                                .name("foo")
-                                .type(TestMessageTransport.class.getName())))
-                .asItemDeltas();
+        Collection<? extends ItemDelta<?, ?>> modifications =
+                systemConfigModificationWithTestTransport("foo").asItemDeltas();
         repositoryService.modifyObject(
                 SystemConfigurationType.class, SYS_CONFIG_OID, modifications, getTestOperationResult());
         assertThat(transportService.getTransport("foo")).isNotNull();
@@ -211,12 +204,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
 
         given("configuration with custom transport and some notifier");
         String messageBody = "This is message body"; // velocity template without any placeholders
-        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
-                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
-                .replace(new MessageTransportConfigurationType(prismContext)
-                        .customTransport(new CustomTransportConfigurationType(prismContext)
-                                .name("test")
-                                .type(TestMessageTransport.class.getName())))
+        Collection<? extends ItemDelta<?, ?>> modifications = systemConfigModificationWithTestTransport("test")
                 .item(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION)
                 .replace(new NotificationConfigurationType(prismContext)
                         .handler(new EventHandlerType()
@@ -262,23 +250,23 @@ public class NotificationsTest extends AbstractIntegrationTest {
                                         + "Resource: $!event.resourceName (oid $event.resourceOid)\n\n"
                                         + "An account has been successfully created on the resource with attributes:\n"
                                         + "$event.contentAsFormattedList\n"
-                                        + "Channel: $!event.channel")))
+                                        + "Channel: $!event.channel"))
+                                .attachment(new NotificationMessageAttachmentType()
+                                        .contentType("text/plain")
+                                        .content("some-text".getBytes(StandardCharsets.UTF_8))))
                         .asPrismObject(),
                 null, result);
 
         and("configuration with transport and notifier using the template");
-        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
-                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
-                .replace(new MessageTransportConfigurationType(prismContext)
-                        .customTransport(new CustomTransportConfigurationType(prismContext)
-                                .name("test")
-                                .type(TestMessageTransport.class.getName())))
+        Collection<? extends ItemDelta<?, ?>> modifications = systemConfigModificationWithTestTransport("test")
                 .item(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION)
                 .replace(new NotificationConfigurationType(prismContext)
                         .handler(new EventHandlerType()
                                 .generalNotifier(new GeneralNotifierType()
                                         .messageTemplateRef(createObjectReference(
                                                 templateOid, MessageTemplateType.COMPLEX_TYPE, null))
+                                        // overrides content from the template
+//                                        .subjectExpression(velocityExpression("notifier-subject"))
                                         .transport("test"))))
                 .asItemDeltas();
         repositoryService.modifyObject(
@@ -299,6 +287,8 @@ public class NotificationsTest extends AbstractIntegrationTest {
         Message message = ((TestMessageTransport) transportService.getTransport("test")).getMessages().get(0);
         assertThat(message).isNotNull();
         assertThat(message.getTo()).containsExactlyInAnyOrder("user@example.com");
+        assertThat(message.getBody()).startsWith("Notification about");
+        assertThat(message.getSubject()).isEqualTo("template-subject");
     }
 
     @Test
@@ -307,12 +297,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
 
         given("configuration with notifier's recipient expression returning focus object");
         String messageBody = "This is message body"; // velocity template without any placeholders
-        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
-                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
-                .replace(new MessageTransportConfigurationType(prismContext)
-                        .customTransport(new CustomTransportConfigurationType(prismContext)
-                                .name("test")
-                                .type(TestMessageTransport.class.getName())))
+        Collection<? extends ItemDelta<?, ?>> modifications = systemConfigModificationWithTestTransport("test")
                 .item(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION)
                 .replace(new NotificationConfigurationType(prismContext)
                         .handler(new EventHandlerType()
@@ -353,12 +338,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
 
         given("configuration with notifier's recipient expression returning literal value");
         String messageBody = "This is message body"; // velocity template without any placeholders
-        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
-                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
-                .replace(new MessageTransportConfigurationType(prismContext)
-                        .customTransport(new CustomTransportConfigurationType(prismContext)
-                                .name("test")
-                                .type(TestMessageTransport.class.getName())))
+        Collection<? extends ItemDelta<?, ?>> modifications = systemConfigModificationWithTestTransport("test")
                 .item(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION)
                 .replace(new NotificationConfigurationType(prismContext)
                         .handler(new EventHandlerType()
@@ -385,6 +365,65 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(message).isNotNull();
         assertThat(message.getTo()).containsExactlyInAnyOrder("literal@example.com");
         assertThat(message.getBody()).isEqualTo(messageBody);
+    }
+
+    @Test // TODO
+    public void test120NotifierWithMessageTemplateReferenceOverridingContentParts() throws Exception {
+        OperationResult result = getTestOperationResult();
+
+        given("message template");
+        String objectName = "messageTemplate" + getTestNumber();
+        String templateOid = repositoryService.addObject(
+                new MessageTemplateType(prismContext)
+                        .name(objectName)
+                        .defaultContent(new MessageTemplateContentType(prismContext)
+                                .subjectExpression(velocityExpression("template-subject"))
+                                .bodyExpression(velocityExpression("Notification about account-related operation\n\n"
+                                        + "#if ($event.requesteeObject)Owner: $!event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)#end\n\n"
+                                        + "Resource: $!event.resourceName (oid $event.resourceOid)\n\n"
+                                        + "An account has been successfully created on the resource with attributes:\n"
+                                        + "$event.contentAsFormattedList\n"
+                                        + "Channel: $!event.channel"))
+                                .contentType("text/plain")
+                                .attachment(new NotificationMessageAttachmentType()
+                                        .contentType("text/plain")
+                                        .content("some-text".getBytes(StandardCharsets.UTF_8))))
+                        .asPrismObject(),
+                null, result);
+
+        and("configuration with transport and notifier using the template");
+        Collection<? extends ItemDelta<?, ?>> modifications = systemConfigModificationWithTestTransport("test")
+                .item(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION)
+                .replace(new NotificationConfigurationType(prismContext)
+                        .handler(new EventHandlerType()
+                                .generalNotifier(new GeneralNotifierType()
+                                        .messageTemplateRef(createObjectReference(
+                                                templateOid, MessageTemplateType.COMPLEX_TYPE, null))
+                                        // overrides content from the template
+//                                        .subjectExpression(velocityExpression("notifier-subject"))
+                                        .transport("test"))))
+                .asItemDeltas();
+        repositoryService.modifyObject(
+                SystemConfigurationType.class, SYS_CONFIG_OID, modifications, result);
+        assertThat(((TestMessageTransport) transportService.getTransport("test")).getMessages()).isEmpty();
+
+        when("event is sent to notification manager");
+        CustomEventImpl event = new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
+                null, // TODO why is this not nullable?
+                EventStatusType.SUCCESS, "test-channel");
+        // This is used as default recipient, no recipient results in no message.
+        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+                new UserType(prismContext).emailAddress("user@example.com")));
+        notificationManager.processEvent(event, getTestTask(), result);
+
+        then("transport sends the message");
+        assertThat(((TestMessageTransport) transportService.getTransport("test")).getMessages()).hasSize(1);
+        Message message = ((TestMessageTransport) transportService.getTransport("test")).getMessages().get(0);
+        assertThat(message).isNotNull();
+        assertThat(message.getTo()).containsExactlyInAnyOrder("user@example.com");
+        assertThat(message.getBody()).startsWith("Notification about");
+        assertThat(message.getSubject()).isEqualTo("template-subject");
+        assertThat(message.getAttachments()).hasSize(1);
     }
 
     @Test
@@ -416,12 +455,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
     @Test
     public void test910NotifierWithoutRecipientAndEventWithoutDefaultRecipientDoesNotSendAnything() throws Exception {
         given("configuration with transport and notifier without recipient expression");
-        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
-                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
-                .replace(new MessageTransportConfigurationType(prismContext)
-                        .customTransport(new CustomTransportConfigurationType(prismContext)
-                                .name("foo")
-                                .type(TestMessageTransport.class.getName())))
+        Collection<? extends ItemDelta<?, ?>> modifications = systemConfigModificationWithTestTransport("foo")
                 .item(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION)
                 .replace(new NotificationConfigurationType(prismContext)
                         .handler(new EventHandlerType()
@@ -452,12 +486,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
     @Test
     public void test920NotifierWithoutBodyDoesNotSendAnything() throws Exception {
         given("configuration with transport and notifier without body expression");
-        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
-                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
-                .replace(new MessageTransportConfigurationType(prismContext)
-                        .customTransport(new CustomTransportConfigurationType(prismContext)
-                                .name("foo")
-                                .type(TestMessageTransport.class.getName())))
+        Collection<? extends ItemDelta<?, ?>> modifications = systemConfigModificationWithTestTransport("foo")
                 .item(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION)
                 .replace(new NotificationConfigurationType(prismContext)
                         .handler(new EventHandlerType()
@@ -514,5 +543,18 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThatOperationResult(result)
                 .isFatalError() // TODO should this really be fatal error?
                 .hasMessage("Unknown transport named 'nonexistent'");
+    }
+
+    /**
+     * Shortcut for system config modification with typical test transport setup.
+     * You can fluently continue with another `.item()` or finish with `.asItemDeltas()`.
+     */
+    private S_ItemEntry systemConfigModificationWithTestTransport(String transportName) throws SchemaException {
+        return prismContext.deltaFor(SystemConfigurationType.class)
+                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
+                .replace(new MessageTransportConfigurationType(prismContext)
+                        .customTransport(new CustomTransportConfigurationType(prismContext)
+                                .name(transportName)
+                                .type(TestMessageTransport.class.getName())));
     }
 }

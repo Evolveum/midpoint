@@ -1368,7 +1368,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
     }
 
-    @Test
+    @Test(enabled = false) // This no longer works as the work item creation is now done in cases-impl module
     public void test231CaseHasExpectedNumbersOfWorkItemsWithExpectedAssignees() throws Exception {
         // GIVEN
         Task task = getTestTask();

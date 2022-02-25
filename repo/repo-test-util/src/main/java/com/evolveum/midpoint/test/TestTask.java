@@ -71,6 +71,12 @@ public class TestTask extends TestResource<TaskType> {
         test.waitForTaskFinish(oid, true, startTime, timeout, false);
     }
 
+    public void rerunErrorsOk(OperationResult result) throws CommonException {
+        long startTime = System.currentTimeMillis();
+        test.restartTask(oid, result);
+        test.waitForTaskFinish(oid, true, startTime, timeout, true);
+    }
+
     public TaskAsserter<Void> assertAfter() throws SchemaException, ObjectNotFoundException {
         return test.assertTask(oid, "after")
                 .display();
