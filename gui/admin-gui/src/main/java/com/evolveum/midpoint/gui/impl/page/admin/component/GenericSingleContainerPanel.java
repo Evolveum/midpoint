@@ -105,18 +105,6 @@ import org.apache.wicket.model.IModel;
         expanded = true
 )
 @PanelInstance(
-        identifier = "notificationPanel",
-        applicableForType = NotificationConfigurationType.class,
-        display = @PanelDisplay(
-                label = "NotificationContentPanel.label",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 10
-        ),
-        containerPath = "notificationConfiguration",
-        type = "NotificationConfigurationType",
-        expanded = true
-)
-@PanelInstance(
         identifier = "accessCertificationPanel",
         applicableForType = AccessCertificationConfigurationType.class,
         display = @PanelDisplay(
