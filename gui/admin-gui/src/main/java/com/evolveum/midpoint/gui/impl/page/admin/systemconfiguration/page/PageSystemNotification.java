@@ -17,6 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MessageTransportConf
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.Arrays;
@@ -53,21 +54,4 @@ public class PageSystemNotification extends PageBaseSystemConfiguration {
     public List<Class<? extends Containerable>> getAllDetailsTypes() {
         return Arrays.asList(NotificationConfigurationType.class, MessageTransportConfigurationType.class);
     }
-
-//    @Override
-//    protected List<ITab> createTabs() {
-//        List<ITab> tabs = new ArrayList<>();
-//        tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.notifications.title")) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public WebMarkupContainer getPanel(String panelId) {
-//                PrismContainerWrapperModel<SystemConfigurationType, NotificationConfigurationType> model = createModel(getObjectModel(),
-//                        SystemConfigurationType.F_NOTIFICATION_CONFIGURATION);
-//                return new NotificationConfigTabPanel(panelId, model);
-//            }
-//        });
-//        return tabs;
-//    }
 }

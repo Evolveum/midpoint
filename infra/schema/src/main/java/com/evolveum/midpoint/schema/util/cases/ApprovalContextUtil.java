@@ -235,7 +235,7 @@ public class ApprovalContextUtil {
         if (aCase == null || aCase.getStageNumber() == null) {
             return null;
         }
-        return getStageDefinition(getApprovalContextRequired(aCase), aCase.getStageNumber());
+        return getStageDefinition(aCase.getApprovalContext(), aCase.getStageNumber());
     }
 
     public static int getStageNumberRequired(@NotNull CaseType aCase) {

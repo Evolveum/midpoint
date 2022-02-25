@@ -183,6 +183,12 @@
         <xsd:annotation>
             <xsd:documentation>
                 Single language localization for the message template.
+                If `attachmentExpression` is not specified, the one from the default content will be used.
+                If no `attachment` is not specified, the ones from the default content will be used.
+                This allows for language specific attachments without the need to re-specify the ones that
+                are not language specific.
+                It is also possible to override `attachmentExpression` for language specific one and leave
+                `attachment` empty to use the ones defined in `attachment` element of the default content.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>

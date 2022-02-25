@@ -455,7 +455,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                 config.setType(def.getTypeName());
             }
         }
-        createDefaultVirtualContainer(config, panelType.defaultContainerPath(), false);
+        createDefaultVirtualContainer(config, panelType.defaultContainerPath(), null);
 
         if (panelType.experimental() && BooleanUtils.isNotTrue(experimentalFeaturesEnabled)) {
             config.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);

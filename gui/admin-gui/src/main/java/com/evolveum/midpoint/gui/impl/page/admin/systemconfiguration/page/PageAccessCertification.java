@@ -49,18 +49,4 @@ public class PageAccessCertification extends PageBaseSystemConfiguration {
     public Class<? extends Containerable> getDetailsType() {
         return AccessCertificationConfigurationType.class;
     }
-
-//    @Override
-//    protected List<ITab> createTabs() {
-//        List<ITab> tabs = new ArrayList<>();
-//        tabs.add(new PanelTab(createStringResource("pageSystemConfiguration.accessCertification.title")) {
-//
-//            @Override
-//            public WebMarkupContainer createPanel(String panelId) {
-//                return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_ACCESS_CERTIFICATION, AccessCertificationConfigurationType.COMPLEX_TYPE);
-//            }
-//
-//        });
-//        return tabs;
-//    }
 }

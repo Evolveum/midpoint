@@ -39,7 +39,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.cases.component.Correlat
 
 @PanelType(name = "correlationContext")
 @PanelInstance(identifier = "correlationContext",
-        display = @PanelDisplay(label = "PageCase.correlationContextPanel", order = 40))
+        display = @PanelDisplay(label = "PageCase.correlationContextPanel", order = 1))
 public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, CaseDetailsModels> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationContextDto.class);

@@ -7,15 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -31,9 +22,17 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.PageInternals;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -68,10 +67,6 @@ public class PageSystemConfiguration extends PageBase {
     private void initLayout() {
         IModel<List<CompositedIconButtonDto>> model = Model.ofList(Arrays.asList(
                 createCompositedButton("fa fa-wrench", PageSystemBasic.class),
-//                createCompositedButton("Object policies", "fa  fa-umbrella", PageObjectPoliciesConfiguration.class)
-//                createCompositedButton("Global policy rule", "fa fa-eye", PageGlobalPolicyRule.class)
-//                createCompositedButton("Global projection policy", "fa fa-globe", PageGlobalProjectionPolicy.class)
-//                createCompositedButton("Cleanup policy", "fa  fa-eraser", PageCleanupPolicy.class)
                 createCompositedButton("fa fa-camera", PageSystemPolicies.class),
                 createCompositedButton("fa fa-envelope", PageSystemNotification.class),
                 createCompositedButton("fa fa-file-text", PageSystemLogging.class),

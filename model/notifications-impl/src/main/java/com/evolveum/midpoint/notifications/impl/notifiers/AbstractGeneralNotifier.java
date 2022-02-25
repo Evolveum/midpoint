@@ -8,7 +8,6 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -204,8 +203,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             String subjectPrefix = notifierConfig.getSubjectPrefix();
             String defaultSubject = getSubject(event, notifierConfig, transportName, task, result);
             subject = Strings.isNullOrEmpty(subjectPrefix)
-                    ? subjectPrefix + Strings.nullToEmpty(defaultSubject) // here we don't want nulls, but ""
-                    : defaultSubject; // can be null
+                    ? defaultSubject // can be null
+                    : subjectPrefix + Strings.nullToEmpty(defaultSubject); // here we don't want nulls, but ""
         }
 
         List<NotificationMessageAttachmentType> attachments = new ArrayList<>();
@@ -294,6 +293,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                 if (recipientRef != null) {
                     MessageTemplateContentType localizedContent = findLocalizedContent(messageTemplate, recipientRef);
                     if (localizedContent != null) {
+                        inheritAttachmentSetupFromDefaultContent(localizedContent, content);
                         content = localizedContent; // otherwise it's default content
                     }
                 }
@@ -303,16 +303,34 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         return null;
     }
 
+    private void inheritAttachmentSetupFromDefaultContent(
+            MessageTemplateContentType localizedContent, MessageTemplateContentType defaultContent) {
+        List<NotificationMessageAttachmentType> localizedAttachments = localizedContent.getAttachment();
+        List<NotificationMessageAttachmentType> defaultAttachments = defaultContent.getAttachment();
+        if (localizedAttachments.isEmpty() && !defaultAttachments.isEmpty()) {
+            localizedAttachments.addAll(defaultAttachments);
+        }
+
+        ExpressionType defaultAttachmentExpression = defaultContent.getAttachmentExpression();
+        if (localizedContent.getAttachmentExpression() == null && defaultAttachmentExpression != null) {
+            localizedContent.setAttachmentExpression(defaultAttachmentExpression);
+        }
+    }
+
     private MessageTemplateContentType findLocalizedContent(
             @NotNull MessageTemplateType messageTemplate, @NotNull ObjectReferenceType recipientRef) {
-        FocusType recipientFocus = (FocusType) recipientRef.getObjectable();
+        FocusType recipientFocus = (FocusType) recipientRef.asReferenceValue().getOriginObject();
         if (recipientFocus == null) {
             // TODO can focus be possibly null here? shouldn't it be resolved already if ref is not null?
             return null;
         }
 //        Locale recipientLocale = LocaleUtils.toLocale(
-        String recipientLocale = Objects.requireNonNullElse(
-                recipientFocus.getPreferredLanguage(), recipientFocus.getLocale());
+        // TODO: This order or locale first? This is how it's used in GUI.
+        //  Also, utility method to get Locale from focus should probably be extracted, but where to?
+        String recipientLocale = recipientFocus.getPreferredLanguage();
+        if (recipientLocale == null) {
+            recipientLocale = recipientFocus.getLocale();
+        }
         if (recipientLocale == null) {
             return null;
         }
