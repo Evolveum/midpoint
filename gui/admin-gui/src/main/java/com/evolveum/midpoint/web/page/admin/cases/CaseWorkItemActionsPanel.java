@@ -222,6 +222,9 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private boolean isApproveRejectButtonVisible() {
+        if (CaseTypeUtil.isCorrelationCase(CaseWorkItemUtil.getCase(getCaseWorkItemModelObject()))) {
+            return false;
+        }
         if (CaseWorkItemUtil.isCaseWorkItemClosed(getModelObject()) ||
                 CaseWorkItemUtil.isWorkItemClaimable(getModelObject())) {
             return false; // checking separately to avoid needless authorization checking
