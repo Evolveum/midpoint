@@ -11,8 +11,6 @@ import static org.testng.Assert.assertEquals;
 import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.*;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 
-import com.evolveum.midpoint.web.page.admin.configuration.system.*;
-
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -55,26 +53,6 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
     @Test
     public void test002testPageSystemConfigurationBasic() {
         renderPage(PageSystemBasic.class);
-    }
-
-    @Test
-    public void test003testPageObjectPoliciesConfiguration() {
-        renderPage(PageObjectPoliciesConfiguration.class);
-    }
-
-    @Test
-    public void test004testPageGlobalPolicyRule() {
-        renderPage(PageGlobalPolicyRule.class);
-    }
-
-    @Test
-    public void test005testPageGlobalProjectionPolicy() {
-        renderPage(PageGlobalProjectionPolicy.class);
-    }
-
-    @Test
-    public void test006testPageCleanupPolicy() {
-        renderPage(PageCleanupPolicy.class);
     }
 
     @Test

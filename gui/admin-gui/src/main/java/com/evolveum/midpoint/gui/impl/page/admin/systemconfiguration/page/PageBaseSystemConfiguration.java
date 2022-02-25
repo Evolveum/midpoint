@@ -6,17 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -26,6 +20,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPage
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import javax.xml.namespace.QName;
 import java.util.Arrays;
 import java.util.List;
 
@@ -58,7 +57,7 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
 
             @Override
             protected String getDefaultIconCssClass() {
-                return null;
+                return getSummaryIconCssClass();
             }
 
             @Override
@@ -70,7 +69,20 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
             protected String getBoxAdditionalCssClass() {
                 return null;
             }
+
+            @Override
+            protected IModel<String> getDisplayNameModel() {
+                return getPageTitleModel();
+            }
         };
+    }
+
+    protected String getSummaryIconCssClass() {
+        return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON;
+    }
+
+    protected IModel<String> getSummaryDisplayNameModel() {
+        return getPageTitleModel();
     }
 
     @Override
@@ -87,7 +99,7 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
                 CompiledGuiProfile profile = getModelServiceLocator().getCompiledGuiProfile();
                 try {
                     GuiObjectDetailsPageType defaultPageConfig = null;
-                    for (Class<?extends Containerable> clazz : getAllDetailsTypes()) {
+                    for (Class<? extends Containerable> clazz : getAllDetailsTypes()) {
                         QName type = GuiImplUtil.getContainerableTypeName(clazz);
                         if (defaultPageConfig == null) {
                             defaultPageConfig = profile.findObjectDetailsConfiguration(type);
