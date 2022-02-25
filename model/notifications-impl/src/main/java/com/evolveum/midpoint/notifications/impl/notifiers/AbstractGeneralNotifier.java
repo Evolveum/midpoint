@@ -8,7 +8,6 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -305,14 +304,18 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
     private MessageTemplateContentType findLocalizedContent(
             @NotNull MessageTemplateType messageTemplate, @NotNull ObjectReferenceType recipientRef) {
-        FocusType recipientFocus = (FocusType) recipientRef.getObjectable();
+        FocusType recipientFocus = (FocusType) recipientRef.asReferenceValue().getOriginObject();
         if (recipientFocus == null) {
             // TODO can focus be possibly null here? shouldn't it be resolved already if ref is not null?
             return null;
         }
 //        Locale recipientLocale = LocaleUtils.toLocale(
-        String recipientLocale = Objects.requireNonNullElse(
-                recipientFocus.getPreferredLanguage(), recipientFocus.getLocale());
+        // TODO: This order or locale first? This is how it's used in GUI.
+        //  Also, utility method to get Locale from focus should probably be extracted, but where to?
+        String recipientLocale = recipientFocus.getPreferredLanguage();
+        if (recipientLocale == null) {
+            recipientLocale = recipientFocus.getLocale();
+        }
         if (recipientLocale == null) {
             return null;
         }

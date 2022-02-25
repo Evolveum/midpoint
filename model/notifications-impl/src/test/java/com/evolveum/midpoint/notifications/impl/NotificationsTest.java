@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -218,9 +219,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(testTransport.getMessages()).isEmpty();
 
         when("event is sent to notification manager");
-        CustomEventImpl event = new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
-                null, // TODO why is this not nullable?
-                EventStatusType.SUCCESS, "test-channel");
+        CustomEventImpl event = createCustomEvent();
         // This is used as default recipient, no recipient results in no message.
         event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
                 new UserType(prismContext).emailAddress("user@example.com")));
@@ -274,9 +273,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(((TestMessageTransport) transportService.getTransport("test")).getMessages()).isEmpty();
 
         when("event is sent to notification manager");
-        CustomEventImpl event = new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
-                null, // TODO why is this not nullable?
-                EventStatusType.SUCCESS, "test-channel");
+        CustomEventImpl event = createCustomEvent();
         // This is used as default recipient, no recipient results in no message.
         event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
                 new UserType(prismContext).emailAddress("user@example.com")));
@@ -313,9 +310,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(testTransport.getMessages()).isEmpty();
 
         when("event is sent to notification manager");
-        CustomEventImpl event = new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
-                null, // TODO why is this not nullable?
-                EventStatusType.SUCCESS, "test-channel");
+        CustomEventImpl event = createCustomEvent();
         // This is used as default recipient, no recipient results in no message.
         event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
                 new UserType(prismContext)
@@ -354,9 +349,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(testTransport.getMessages()).isEmpty();
 
         when("event is sent to notification manager");
-        CustomEventImpl event = new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
-                null, // TODO why is this not nullable?
-                EventStatusType.SUCCESS, "test-channel");
+        CustomEventImpl event = createCustomEvent();
         notificationManager.processEvent(event, getTestTask(), result);
 
         then("transport sends the message");
@@ -407,9 +400,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(((TestMessageTransport) transportService.getTransport("test")).getMessages()).isEmpty();
 
         when("event is sent to notification manager");
-        CustomEventImpl event = new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
-                null,
-                EventStatusType.SUCCESS, "test-channel");
+        CustomEventImpl event = createCustomEvent();
         // This is used as default recipient, no recipient results in no message.
         event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
                 new UserType(prismContext).emailAddress("user@example.com")));
@@ -423,8 +414,79 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(message.getBody()).isEqualTo("notifier-body");
         assertThat(message.getSubject()).isEqualTo("notifier-subject");
         assertThat(message.getAttachments()).hasSize(2)
-                .anyMatch(a -> a.getContent().equals("attachment1"))
-                .anyMatch(a -> a.getContent().equals("attachment2"));
+                .anyMatch(a -> a.getContent().toString().equals("RawType: (parsed:string): PPV(String:attachment1))"))
+                .anyMatch(a -> a.getContent().toString().equals("RawType: (parsed:string): PPV(String:attachment2))"));
+    }
+
+    @Test
+    public void test150NotifierWithLocalizedMessageTemplate() throws Exception {
+        OperationResult result = getTestOperationResult();
+
+        given("localized message template");
+        String objectName = "messageTemplate" + getTestNumber();
+        String templateOid = repositoryService.addObject(
+                new MessageTemplateType(prismContext)
+                        .name(objectName)
+                        .defaultContent(new MessageTemplateContentType(prismContext)
+                                .bodyExpression(velocityExpression("template-body-default")))
+                        .localizedContent(new LocalizedMessageTemplateContentType(prismContext)
+                                .language("sk")
+                                .bodyExpression(velocityExpression("template-body-sk")))
+                        .asPrismObject(),
+                null, result);
+
+        and("configuration with transport and notifier using the template");
+        Collection<? extends ItemDelta<?, ?>> modifications = systemConfigModificationWithTestTransport("test")
+                .item(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION)
+                .replace(new NotificationConfigurationType(prismContext)
+                        .handler(new EventHandlerType()
+                                .generalNotifier(new GeneralNotifierType()
+                                        .messageTemplateRef(createObjectReference(
+                                                templateOid, MessageTemplateType.COMPLEX_TYPE, null))
+                                        .transport("test"))))
+                .asItemDeltas();
+        repositoryService.modifyObject(
+                SystemConfigurationType.class, SYS_CONFIG_OID, modifications, result);
+        assertThat(((TestMessageTransport) transportService.getTransport("test")).getMessages()).isEmpty();
+
+        when("event is sent to notification manager, recipient has no language set");
+        CustomEventImpl event = createCustomEvent();
+        // This is used as default recipient, no recipient results in no message.
+        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+                new UserType(prismContext).emailAddress("user@example.com")));
+        notificationManager.processEvent(event, getTestTask(), result);
+
+        then("transport sends the message with default template content");
+        assertThat(((TestMessageTransport) transportService.getTransport("test")).getMessages()).hasSize(1);
+        Message message = ((TestMessageTransport) transportService.getTransport("test")).getMessages().get(0);
+        assertThat(message.getTo()).containsExactlyInAnyOrder("user@example.com");
+        assertThat(message.getBody()).isEqualTo("template-body-default");
+
+        // now when-then for sk language
+        when("event is sent to notification manager, recipient has 'sk' language set");
+        event = createCustomEvent();
+        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+                new UserType(prismContext).emailAddress("user2@example.com").preferredLanguage("sk")));
+        notificationManager.processEvent(event, getTestTask(), result);
+
+        then("transport sends the message with template content for 'sk' language");
+        assertThat(((TestMessageTransport) transportService.getTransport("test")).getMessages()).hasSize(2);
+        message = ((TestMessageTransport) transportService.getTransport("test")).getMessages().get(1);
+        assertThat(message.getTo()).containsExactlyInAnyOrder("user2@example.com");
+        assertThat(message.getBody()).isEqualTo("template-body-sk");
+
+        // now when-then for other language
+        when("event is sent to notification manager, recipient has 'uk' language set");
+        event = createCustomEvent();
+        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+                new UserType(prismContext).emailAddress("user3@example.com").preferredLanguage("uk")));
+        notificationManager.processEvent(event, getTestTask(), result);
+
+        then("transport sends the message with default template content, because no localized content for specified language is found");
+        assertThat(((TestMessageTransport) transportService.getTransport("test")).getMessages()).hasSize(3);
+        message = ((TestMessageTransport) transportService.getTransport("test")).getMessages().get(2);
+        assertThat(message.getTo()).containsExactlyInAnyOrder("user3@example.com");
+        assertThat(message.getBody()).isEqualTo("template-body-default");
     }
 
     @Test
@@ -441,9 +503,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 SystemConfigurationType.class, SYS_CONFIG_OID, modifications, result);
 
         when("event is sent to notification manager");
-        CustomEventImpl event = new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
-                null, // TODO why is this not nullable?
-                EventStatusType.SUCCESS, "test-channel");
+        CustomEventImpl event = createCustomEvent();
         notificationManager.processEvent(event, getTestTask(), result);
 
         then("result is success, but no message was sent because there is no transport");
@@ -470,9 +530,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(testTransport.getMessages()).isEmpty();
 
         when("event without default recipient is sent to notification manager");
-        CustomEventImpl event = new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
-                null, // TODO why is this not nullable?
-                EventStatusType.SUCCESS, "test-channel");
+        CustomEventImpl event = createCustomEvent();
         // No requestee set, that would be taken as default recipient, see test100
         notificationManager.processEvent(event, getTestTask(), result);
 
@@ -501,9 +559,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(testTransport.getMessages()).isEmpty();
 
         when("event with default recipient is sent to notification manager");
-        CustomEventImpl event = new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
-                null, // TODO why is this not nullable?
-                EventStatusType.SUCCESS, "test-channel");
+        CustomEventImpl event = createCustomEvent();
         // this will be used as default recipient
         event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
                 new UserType(prismContext).emailAddress("user@example.com")));
@@ -532,9 +588,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 SystemConfigurationType.class, SYS_CONFIG_OID, modifications, result);
 
         when("event without default recipient is sent to notification manager");
-        CustomEventImpl event = new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
-                null, // TODO why is this not nullable?
-                EventStatusType.SUCCESS, "test-channel");
+        CustomEventImpl event = createCustomEvent();
         // this will be used as default recipient
         event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
                 new UserType(prismContext).emailAddress("user@example.com")));
@@ -557,5 +611,12 @@ public class NotificationsTest extends AbstractIntegrationTest {
                         .customTransport(new CustomTransportConfigurationType(prismContext)
                                 .name(transportName)
                                 .type(TestMessageTransport.class.getName())));
+    }
+
+    @NotNull
+    private CustomEventImpl createCustomEvent() {
+        return new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
+                null, // TODO why is this not nullable?
+                EventStatusType.SUCCESS, "test-channel");
     }
 }
