@@ -158,6 +158,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Message attachment(s) to be sent out.
+                        Can be combined with `attachmentExpression`.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>MessageTemplateContentType.attachment</a:displayName>
@@ -1389,7 +1390,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Reference to the message template that produces the content of the message.
-                                If other content related expression is used it overrides the one from the message template.
+                                If other content related expressions are used they override the ones from the message template.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:MessageTemplateType</a:objectReferenceTargetType>
@@ -1439,6 +1440,8 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Message attachment(s) to be sent out.
+                                Can be combined with `attachmentExpression`.
+                                If message template is used, its `attachment` are also added to the final list of attachments.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
@@ -1448,8 +1451,9 @@
                     <xsd:element name="attachmentExpression" type="tns:ExpressionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                An expression that returns message attachment(s) to be sent out. Returned objects should be
-                                of type NotificationMessageAttachmentType.
+                                An expression that returns message attachment(s) to be sent out.
+                                Returned objects should be of type NotificationMessageAttachmentType.
+                                If message template is used, its `attachmentExpression` is ignored.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>

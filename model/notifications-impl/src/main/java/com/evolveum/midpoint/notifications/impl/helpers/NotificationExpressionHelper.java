@@ -184,7 +184,7 @@ public class NotificationExpressionHelper {
         return result;
     }
 
-    public List<NotificationMessageAttachmentType> evaluateNotificationMessageAttachmentTypeExpressionChecked(
+    public List<NotificationMessageAttachmentType> evaluateAttachmentExpressionChecked(
             ExpressionType expressionType, VariablesMap variablesMap,
             String shortDesc, Task task, OperationResult result) {
 
