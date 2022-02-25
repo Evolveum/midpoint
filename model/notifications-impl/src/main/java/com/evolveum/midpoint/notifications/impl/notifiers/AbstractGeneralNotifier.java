@@ -204,8 +204,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             String subjectPrefix = notifierConfig.getSubjectPrefix();
             String defaultSubject = getSubject(event, notifierConfig, transportName, task, result);
             subject = Strings.isNullOrEmpty(subjectPrefix)
-                    ? subjectPrefix + Strings.nullToEmpty(defaultSubject) // here we don't want nulls, but ""
-                    : defaultSubject; // can be null
+                    ? defaultSubject // can be null
+                    : subjectPrefix + Strings.nullToEmpty(defaultSubject); // here we don't want nulls, but ""
         }
 
         List<NotificationMessageAttachmentType> attachments = new ArrayList<>();

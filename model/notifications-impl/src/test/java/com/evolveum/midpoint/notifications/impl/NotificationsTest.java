@@ -367,8 +367,8 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(message.getBody()).isEqualTo(messageBody);
     }
 
-    @Test // TODO
-    public void test120NotifierWithMessageTemplateReferenceOverridingContentParts() throws Exception {
+    @Test
+    public void test120NotifierWithMessageTemplateReferenceAndOverridingContentParts() throws Exception {
         OperationResult result = getTestOperationResult();
 
         given("message template");
@@ -378,16 +378,11 @@ public class NotificationsTest extends AbstractIntegrationTest {
                         .name(objectName)
                         .defaultContent(new MessageTemplateContentType(prismContext)
                                 .subjectExpression(velocityExpression("template-subject"))
-                                .bodyExpression(velocityExpression("Notification about account-related operation\n\n"
-                                        + "#if ($event.requesteeObject)Owner: $!event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)#end\n\n"
-                                        + "Resource: $!event.resourceName (oid $event.resourceOid)\n\n"
-                                        + "An account has been successfully created on the resource with attributes:\n"
-                                        + "$event.contentAsFormattedList\n"
-                                        + "Channel: $!event.channel"))
+                                .bodyExpression(velocityExpression("template-body"))
                                 .contentType("text/plain")
                                 .attachment(new NotificationMessageAttachmentType()
                                         .contentType("text/plain")
-                                        .content("some-text".getBytes(StandardCharsets.UTF_8))))
+                                        .content("attachment1")))
                         .asPrismObject(),
                 null, result);
 
@@ -400,7 +395,11 @@ public class NotificationsTest extends AbstractIntegrationTest {
                                         .messageTemplateRef(createObjectReference(
                                                 templateOid, MessageTemplateType.COMPLEX_TYPE, null))
                                         // overrides content from the template
-//                                        .subjectExpression(velocityExpression("notifier-subject"))
+                                        .subjectExpression(velocityExpression("notifier-subject"))
+                                        .bodyExpression(velocityExpression("notifier-body"))
+                                        .attachment(new NotificationMessageAttachmentType()
+                                                .contentType("text/plain")
+                                                .content("attachment2"))
                                         .transport("test"))))
                 .asItemDeltas();
         repositoryService.modifyObject(
@@ -409,21 +408,23 @@ public class NotificationsTest extends AbstractIntegrationTest {
 
         when("event is sent to notification manager");
         CustomEventImpl event = new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
-                null, // TODO why is this not nullable?
+                null,
                 EventStatusType.SUCCESS, "test-channel");
         // This is used as default recipient, no recipient results in no message.
         event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
                 new UserType(prismContext).emailAddress("user@example.com")));
         notificationManager.processEvent(event, getTestTask(), result);
 
-        then("transport sends the message");
+        then("transport sends the message with content from notifier overriding the declared template parts");
         assertThat(((TestMessageTransport) transportService.getTransport("test")).getMessages()).hasSize(1);
         Message message = ((TestMessageTransport) transportService.getTransport("test")).getMessages().get(0);
         assertThat(message).isNotNull();
         assertThat(message.getTo()).containsExactlyInAnyOrder("user@example.com");
-        assertThat(message.getBody()).startsWith("Notification about");
-        assertThat(message.getSubject()).isEqualTo("template-subject");
-        assertThat(message.getAttachments()).hasSize(1);
+        assertThat(message.getBody()).isEqualTo("notifier-body");
+        assertThat(message.getSubject()).isEqualTo("notifier-subject");
+        assertThat(message.getAttachments()).hasSize(2)
+                .anyMatch(a -> a.getContent().equals("attachment1"))
+                .anyMatch(a -> a.getContent().equals("attachment2"));
     }
 
     @Test
