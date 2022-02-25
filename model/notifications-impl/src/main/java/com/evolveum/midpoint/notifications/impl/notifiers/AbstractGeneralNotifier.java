@@ -293,6 +293,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                 if (recipientRef != null) {
                     MessageTemplateContentType localizedContent = findLocalizedContent(messageTemplate, recipientRef);
                     if (localizedContent != null) {
+                        inheritAttachmentSetupFromDefaultContent(localizedContent, content);
                         content = localizedContent; // otherwise it's default content
                     }
                 }
@@ -300,6 +301,20 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             }
         }
         return null;
+    }
+
+    private void inheritAttachmentSetupFromDefaultContent(
+            MessageTemplateContentType localizedContent, MessageTemplateContentType defaultContent) {
+        List<NotificationMessageAttachmentType> localizedAttachments = localizedContent.getAttachment();
+        List<NotificationMessageAttachmentType> defaultAttachments = defaultContent.getAttachment();
+        if (localizedAttachments.isEmpty() && !defaultAttachments.isEmpty()) {
+            localizedAttachments.addAll(defaultAttachments);
+        }
+
+        ExpressionType defaultAttachmentExpression = defaultContent.getAttachmentExpression();
+        if (localizedContent.getAttachmentExpression() == null && defaultAttachmentExpression != null) {
+            localizedContent.setAttachmentExpression(defaultAttachmentExpression);
+        }
     }
 
     private MessageTemplateContentType findLocalizedContent(
