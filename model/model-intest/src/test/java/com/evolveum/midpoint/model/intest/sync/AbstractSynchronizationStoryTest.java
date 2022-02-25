@@ -918,13 +918,21 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         notificationManager.setDisabled(true);
     }
 
-    private void assumeUserTemplate(String templateOid, ResourceType resource, String syncConfigName, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        SynchronizationType resourceSync = resource.getSynchronization();
-        resourceSync.getObjectSynchronization().get(0).setObjectTemplateRef(ObjectTypeUtil.createObjectRef(templateOid, ObjectTypes.OBJECT_TEMPLATE));
+    private void assumeUserTemplate(String templateOid, ResourceType resource, String syncConfigName, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
-        Collection<? extends ItemDelta<?, ?>> refDelta = prismContext.deltaFactory().property()
-                .createModificationReplacePropertyCollection(ResourceType.F_SYNCHRONIZATION, resource.asPrismObject().getDefinition(), resourceSync);
-        repositoryService.modifyObject(ResourceType.class, resource.getOid(), refDelta, result);
+        repositoryService.modifyObject(
+                ResourceType.class,
+                resource.getOid(),
+                deltaFor(ResourceType.class)
+                        .item(ResourceType.F_SYNCHRONIZATION,
+                                SynchronizationType.F_OBJECT_SYNCHRONIZATION,
+                                resource.getSynchronization().getObjectSynchronization().get(0).getId(),
+                                ObjectSynchronizationType.F_OBJECT_TEMPLATE_REF)
+                        .replace(
+                                ObjectTypeUtil.createObjectRef(templateOid, ObjectTypes.OBJECT_TEMPLATE))
+                        .asItemDeltas(),
+                result);
 
         ResourceType res = repositoryService.getObject(ResourceType.class, resource.getOid(), null, result).asObjectable();
         assertNotNull(res);

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.IOException;
@@ -321,4 +322,22 @@ public class TestSchemaRegistry extends AbstractUnitTest {
         return new MidPointPrismContextFactory();
     }
 
+    /**
+     * See MID-7690. (Here the lookup works.)
+     */
+    @Test
+    public void testMismatchedDefinitionLookup() throws SchemaException, IOException, SAXException {
+        given("creating schema registry and looking up ResourceType definition");
+        SchemaRegistry schemaRegistry = getContextFactory()
+                .createInitializedPrismContext()
+                .getSchemaRegistry();
+        PrismObjectDefinition<ResourceType> objectDefinition =
+                schemaRegistry.findObjectDefinitionByCompileTimeClass(ResourceType.class);
+
+        when("looking up a definition for 'synchronization' (now container) assuming it's a property");
+        PrismPropertyDefinition<?> propDef = objectDefinition.findPropertyDefinition(ResourceType.F_SYNCHRONIZATION);
+
+        then("asserting it's null");
+        assertThat(propDef).as("definition of property 'synchronization'").isNull();
+    }
 }

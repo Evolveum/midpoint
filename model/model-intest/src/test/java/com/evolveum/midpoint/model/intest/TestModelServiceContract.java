@@ -3311,6 +3311,32 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertCustomColumn("foo", "test");
     }
 
+    /**
+     * Tests the sanity of transformed schema. Currently there is a specific problem
+     * with looking up container definitions pretending they are properties. See
+     * also `TestSchemaRegistry.testMismatchedDefinitionLookup`.
+     *
+     * See MID-7690.
+     *
+     * This test is in this class because I've found no suitable test class in model-impl module.
+     */
+    @Test(enabled = false)
+    public void test500MismatchedDefinitionLookupInTransformedSchema() throws CommonException {
+        given("obtaining ResourceType definition via model-api");
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<ResourceType> resource =
+                modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        PrismObjectDefinition<ResourceType> objectDefinition = resource.getDefinition();
+
+        when("looking up a definition for 'synchronization' (now container) assuming it's a property");
+        PrismPropertyDefinition<?> propDef = objectDefinition.findPropertyDefinition(ResourceType.F_SYNCHRONIZATION);
+
+        then("asserting it's null");
+        assertThat(propDef).as("definition of property 'synchronization'").isNull();
+    }
+
     private String addTestRole(Task task, OperationResult result) throws CommonException {
         RoleType role = new RoleType(prismContext)
                 .name("test410");
