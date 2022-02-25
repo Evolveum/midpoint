@@ -502,20 +502,6 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 .anyMatch(a -> getRawValue(a.getContent()).equals("default-content2"));
     }
 
-    private Message getSingleMessage(TestMessageTransport testTransport) {
-        assertThat(testTransport.getMessages()).hasSize(1);
-        Message message = testTransport.getMessages().get(0);
-        return message;
-    }
-
-    private Object getRawValue(Object value) {
-        try {
-            return RawType.getValue(value);
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     @Test
     public void test200RecipientExpressionReturningFocus() throws Exception {
         OperationResult result = getTestOperationResult();
@@ -527,7 +513,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 .replace(new NotificationConfigurationType(prismContext)
                         .handler(new EventHandlerType()
                                 .generalNotifier(new GeneralNotifierType()
-                                        // provided with the event below
+                                        // requestee provided with the event below
                                         .recipientExpression(groovyExpression("return requestee"))
                                         .bodyExpression(velocityExpression(messageBody))
                                         .transport("test"))))
@@ -542,7 +528,6 @@ public class NotificationsTest extends AbstractIntegrationTest {
         // This is used as default recipient, no recipient results in no message.
         event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
                 new UserType(prismContext)
-                        .preferredLanguage("sk")
                         // this will be returned by TestMessageTransport.getDefaultRecipientAddress
                         .emailAddress("user@example.com")));
         notificationManager.processEvent(event, getTestTask(), result);
@@ -565,7 +550,6 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 .replace(new NotificationConfigurationType(prismContext)
                         .handler(new EventHandlerType()
                                 .generalNotifier(new GeneralNotifierType()
-                                        // provided with the event below
                                         .recipientExpression(literalExpression("literal@example.com"))
                                         .bodyExpression(velocityExpression(messageBody))
                                         .transport("test"))))
@@ -583,6 +567,48 @@ public class NotificationsTest extends AbstractIntegrationTest {
         Message message = getSingleMessage(testTransport);
         assertThat(message).isNotNull();
         assertThat(message.getTo()).containsExactlyInAnyOrder("literal@example.com");
+        assertThat(message.getBody()).isEqualTo(messageBody);
+    }
+
+    @Test
+    public void test300MessageTransportUsingRecipientAddressExpression() throws Exception {
+        OperationResult result = getTestOperationResult();
+
+        given("configuration with transport using recipient address expression");
+        String messageBody = "This is message body"; // velocity template without any placeholders
+        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
+                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
+                .replace(new MessageTransportConfigurationType(prismContext)
+                        .customTransport(new CustomTransportConfigurationType(prismContext)
+                                .name("test")
+                                .recipientAddressExpression(groovyExpression("this.binding.variables.each {k,v -> println \"$k = $v\"};\n"
+                                        + "return 'xxx' + recipient.emailAddress"))
+                                .type(TestMessageTransport.class.getName())))
+                .item(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION)
+                .replace(new NotificationConfigurationType(prismContext)
+                        .handler(new EventHandlerType()
+                                .generalNotifier(new GeneralNotifierType()
+                                        // requestee provided with the event below
+                                        .recipientExpression(groovyExpression("return requestee"))
+                                        .bodyExpression(velocityExpression(messageBody))
+                                        .transport("test"))))
+                .asItemDeltas();
+        repositoryService.modifyObject(
+                SystemConfigurationType.class, SYS_CONFIG_OID, modifications, result);
+        TestMessageTransport testTransport = (TestMessageTransport) transportService.getTransport("test");
+        assertThat(testTransport.getMessages()).isEmpty();
+
+        when("event with requestee is sent to notification manager");
+        CustomEventImpl event = createCustomEvent();
+        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+                new UserType(prismContext).emailAddress("user@example.com")));
+        notificationManager.processEvent(event, getTestTask(), result);
+
+        then("transport sends the message");
+        Message message = getSingleMessage(testTransport);
+        assertThat(message).isNotNull();
+        and("address is based on notifier/recipientExpression -> transport/recipientAddressExpression chain");
+        assertThat(message.getTo()).containsExactlyInAnyOrder("xxxuser@example.com");
         assertThat(message.getBody()).isEqualTo(messageBody);
     }
 
@@ -715,5 +741,19 @@ public class NotificationsTest extends AbstractIntegrationTest {
         return new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
                 null, // TODO why is this not nullable?
                 EventStatusType.SUCCESS, "test-channel");
+    }
+
+    private Message getSingleMessage(TestMessageTransport testTransport) {
+        assertThat(testTransport.getMessages()).hasSize(1);
+        Message message = testTransport.getMessages().get(0);
+        return message;
+    }
+
+    private Object getRawValue(Object value) {
+        try {
+            return RawType.getValue(value);
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
