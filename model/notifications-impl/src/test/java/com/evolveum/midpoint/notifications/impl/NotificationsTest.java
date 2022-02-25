@@ -367,6 +367,65 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(message.getBody()).isEqualTo(messageBody);
     }
 
+    @Test // TODO
+    public void test120NotifierWithMessageTemplateReferenceOverridingContentParts() throws Exception {
+        OperationResult result = getTestOperationResult();
+
+        given("message template");
+        String objectName = "messageTemplate" + getTestNumber();
+        String templateOid = repositoryService.addObject(
+                new MessageTemplateType(prismContext)
+                        .name(objectName)
+                        .defaultContent(new MessageTemplateContentType(prismContext)
+                                .subjectExpression(velocityExpression("template-subject"))
+                                .bodyExpression(velocityExpression("Notification about account-related operation\n\n"
+                                        + "#if ($event.requesteeObject)Owner: $!event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)#end\n\n"
+                                        + "Resource: $!event.resourceName (oid $event.resourceOid)\n\n"
+                                        + "An account has been successfully created on the resource with attributes:\n"
+                                        + "$event.contentAsFormattedList\n"
+                                        + "Channel: $!event.channel"))
+                                .contentType("text/plain")
+                                .attachment(new NotificationMessageAttachmentType()
+                                        .contentType("text/plain")
+                                        .content("some-text".getBytes(StandardCharsets.UTF_8))))
+                        .asPrismObject(),
+                null, result);
+
+        and("configuration with transport and notifier using the template");
+        Collection<? extends ItemDelta<?, ?>> modifications = systemConfigModificationWithTestTransport("test")
+                .item(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION)
+                .replace(new NotificationConfigurationType(prismContext)
+                        .handler(new EventHandlerType()
+                                .generalNotifier(new GeneralNotifierType()
+                                        .messageTemplateRef(createObjectReference(
+                                                templateOid, MessageTemplateType.COMPLEX_TYPE, null))
+                                        // overrides content from the template
+//                                        .subjectExpression(velocityExpression("notifier-subject"))
+                                        .transport("test"))))
+                .asItemDeltas();
+        repositoryService.modifyObject(
+                SystemConfigurationType.class, SYS_CONFIG_OID, modifications, result);
+        assertThat(((TestMessageTransport) transportService.getTransport("test")).getMessages()).isEmpty();
+
+        when("event is sent to notification manager");
+        CustomEventImpl event = new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
+                null, // TODO why is this not nullable?
+                EventStatusType.SUCCESS, "test-channel");
+        // This is used as default recipient, no recipient results in no message.
+        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+                new UserType(prismContext).emailAddress("user@example.com")));
+        notificationManager.processEvent(event, getTestTask(), result);
+
+        then("transport sends the message");
+        assertThat(((TestMessageTransport) transportService.getTransport("test")).getMessages()).hasSize(1);
+        Message message = ((TestMessageTransport) transportService.getTransport("test")).getMessages().get(0);
+        assertThat(message).isNotNull();
+        assertThat(message.getTo()).containsExactlyInAnyOrder("user@example.com");
+        assertThat(message.getBody()).startsWith("Notification about");
+        assertThat(message.getSubject()).isEqualTo("template-subject");
+        assertThat(message.getAttachments()).hasSize(1);
+    }
+
     @Test
     public void test900NotifierWithoutTransportDoesNotSendAnything() throws Exception {
         given("configuration with notifier without transport");

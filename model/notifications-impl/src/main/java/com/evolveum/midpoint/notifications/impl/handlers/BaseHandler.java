@@ -92,11 +92,6 @@ public abstract class BaseHandler<E extends Event, C extends BaseEventHandlerTyp
         return expressionHelper.evaluateExpressionChecked(expressionType, VariablesMap, shortDesc, task, result);
     }
 
-    protected List<NotificationMessageAttachmentType> evaluateNotificationMessageAttachmentTypeExpressionChecked(ExpressionType expressionType, VariablesMap VariablesMap,
-            String shortDesc, Task task, OperationResult result) {
-        return expressionHelper.evaluateNotificationMessageAttachmentTypeExpressionChecked(expressionType, VariablesMap, shortDesc, task, result);
-    }
-
     protected VariablesMap getDefaultVariables(E event, OperationResult result) {
         return expressionHelper.getDefaultVariables(event, result);
     }
