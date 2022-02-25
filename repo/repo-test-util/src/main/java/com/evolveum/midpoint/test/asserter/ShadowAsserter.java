@@ -333,6 +333,13 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
+    public ShadowAsserter<RA> assertHasMatchReferenceId() throws SchemaException {
+        assertThat(getIdMatchCorrelatorStateRequired().getReferenceId())
+                .as("referenceId")
+                .isNotNull();
+        return this;
+    }
+
     public ShadowAsserter<RA> assertMatchRequestId(String id) throws SchemaException {
         assertThat(getIdMatchCorrelatorStateRequired().getMatchRequestId())
                 .as("matchRequestId")

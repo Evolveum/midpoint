@@ -105,19 +105,33 @@ class IdMatchCorrelator implements Correlator {
 
         LOGGER.trace("Correlating:\n{}", correlationContext.debugDumpLazily(1));
 
-        return new Correlation(correlationContext)
+        return new CorrelationOperation(correlationContext)
                 .execute(result);
     }
 
-    private class Correlation {
-        @NotNull private final ShadowType resourceObject;
-        @NotNull private final CorrelationContext correlationContext;
-        @NotNull private final Task task;
+    private class Operation {
 
-        Correlation(@NotNull CorrelationContext correlationContext) {
+        @NotNull final ShadowType resourceObject;
+        @NotNull final CorrelationContext correlationContext;
+        @NotNull final Task task;
+
+        Operation(@NotNull CorrelationContext correlationContext) {
             this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
             this.task = correlationContext.getTask();
+        }
+
+        IdMatchObject prepareIdMatchObjectFromContext() throws SchemaException {
+            return prepareIdMatchObject(
+                    correlationContext.getPreFocus(),
+                    correlationContext.getResourceObject());
+        }
+    }
+
+    private class CorrelationOperation extends Operation {
+
+        CorrelationOperation(@NotNull CorrelationContext correlationContext) {
+            super(correlationContext);
         }
 
         public CorrelationResult execute(OperationResult result)
@@ -126,9 +140,7 @@ class IdMatchCorrelator implements Correlator {
 
             MatchingRequest mRequest =
                     new MatchingRequest(
-                            prepareIdMatchObject(
-                                    correlationContext.getPreFocus(),
-                                    correlationContext.getResourceObject()));
+                            prepareIdMatchObjectFromContext());
             MatchingResult mResult = service.executeMatch(mRequest, result);
             LOGGER.trace("Matching result:\n{}", mResult.debugDumpLazily(1));
 
@@ -240,6 +252,35 @@ class IdMatchCorrelator implements Correlator {
         private ResourceObjectOwnerOptionType createPotentialMatchBeanForNewIdentity() {
             return new ResourceObjectOwnerOptionType(PrismContext.get())
                     .identifier(OwnerOptionIdentifier.forNoOwner().getStringValue());
+        }
+    }
+
+    @Override
+    public void update(@NotNull CorrelationContext correlationContext, @NotNull OperationResult result)
+            throws SchemaException, CommunicationException, SecurityViolationException {
+
+        LOGGER.trace("Updating:\n{}", correlationContext.debugDumpLazily(1));
+        new UpdateOperation(correlationContext)
+                .execute(result);
+    }
+
+    private class UpdateOperation extends Operation {
+
+        UpdateOperation(@NotNull CorrelationContext correlationContext) {
+            super(correlationContext);
+        }
+
+        public void execute(OperationResult result)
+                throws SchemaException, CommunicationException, SecurityViolationException {
+
+            IdMatchCorrelatorStateType correlatorState =
+                    ShadowUtil.getCorrelatorStateRequired(
+                            correlationContext.getResourceObject(), IdMatchCorrelatorStateType.class);
+
+            service.update(
+                    prepareIdMatchObjectFromContext(),
+                    correlatorState.getReferenceId(),
+                    result);
         }
     }
 

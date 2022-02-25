@@ -101,15 +101,15 @@ public class IdMatchServiceImpl implements IdMatchService {
 
         Client client = createClient();
 
-        PersonRequest personRequest = generateMatchRequest(request.getObject());
-        client.putPerson(personRequest); // TODO reconsider
+        PersonRequest matchRequest = generateMatchOrUpdateRequest(request.getObject());
+        client.putPerson(matchRequest); // TODO reconsider
 
         int responseCode = client.getResponseCode();
         if (responseCode == ResponseType.CREATED.getResponseCode() ||
                 responseCode == ResponseType.EXISTING.getResponseCode()) {
-            return processKnownReferenceId(client, personRequest);
+            return processKnownReferenceId(client, matchRequest);
         } else if (responseCode == ResponseType.ACCEPTED.getResponseCode()) {
-            return processUnknownReferenceId(client);
+            return processUnknownReferenceId(client, client.getEntity());
         } else {
             throw new IllegalStateException("Unsupported ID Match Service response: " + responseCode + ": " + client.getMessage());
         }
@@ -119,15 +119,15 @@ public class IdMatchServiceImpl implements IdMatchService {
      * The reference ID is known - either existing one was assigned or a new one was created.
      * (We treat both cases in the same way.)
      */
-    private @NotNull MatchingResult processKnownReferenceId(Client client, PersonRequest personRequest)
+    private @NotNull MatchingResult processKnownReferenceId(Client client, PersonRequest matchRequest)
             throws CommunicationException, SecurityViolationException {
         // COmanage implementation sometimes returns no data on 200/201 response, so let's fetch it explicitly
         // TODO avoid re-fetching if the service returned the data
-        client.getPerson(personRequest);
+        client.getPerson(matchRequest);
 
         String entity = client.getEntity();
-        String metaSection = parseJsonObject(entity, "meta");
-        String referenceId = parseJsonObject(metaSection, REFERENCE_REQUEST_ID);
+        String metaSection = getJsonElement(entity, "meta");
+        String referenceId = getJsonElement(metaSection, REFERENCE_REQUEST_ID);
 
         MiscUtil.stateCheck(referenceId != null && !referenceId.isEmpty(),
                 "Null or empty reference ID in %s", entity);
@@ -138,10 +138,9 @@ public class IdMatchServiceImpl implements IdMatchService {
     /**
      * The reference ID is not known - the result is uncertain. We have to provide a list of potential matches.
      */
-    private @NotNull MatchingResult processUnknownReferenceId(Client client)
+    private @NotNull MatchingResult processUnknownReferenceId(Client client, String matchResponseText)
             throws SchemaException, CommunicationException, SecurityViolationException {
-        String entity = client.getEntity();
-        String matchRequestId = parseJsonObject(entity, MATCH_REQUEST_ID);
+        String matchRequestId = getJsonElement(matchResponseText, MATCH_REQUEST_ID);
 
         // COmanage does not provide us with the complete information (potential matches), so we have to
         // fetch them ourselves.
@@ -154,6 +153,22 @@ public class IdMatchServiceImpl implements IdMatchService {
         } catch (JSONException e) {
             throw new SchemaException("Unexpected exception while parsing ID Match response: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void update(
+            @NotNull IdMatchObject idMatchObject,
+            @Nullable String referenceId,
+            @NotNull OperationResult result)
+            throws CommunicationException, SchemaException, SecurityViolationException {
+
+        LOGGER.trace("Updating object with reference ID {}:\n{}", referenceId, idMatchObject.debugDumpLazily(1));
+
+        // It looks like COmanage Match ignores reference ID when updating. So we don't bother with putting it here.
+        createClient().putPerson(
+                generateMatchOrUpdateRequest(idMatchObject));
+
+        // 4xx and 5xx errors are treated in the client. We accept all the other codes.
     }
 
     @NotNull
@@ -322,13 +337,10 @@ public class IdMatchServiceImpl implements IdMatchService {
     /**
      * Parses a String representation of a JSON object and returns given sub-element.
      */
-    private String parseJsonObject(String jsonObject, String elementName) {
-        JSONObject object;
-        String element;
+    private String getJsonElement(String jsonObject, String elementName) {
         try {
-            object = new JSONObject(jsonObject);
-            element = object.getString(elementName); // TODO is this a re-serialization?
-            return element;
+            JSONObject object = new JSONObject(jsonObject);
+            return object.getString(elementName); // TODO is this a re-serialization?
         } catch (JSONException e) {
             throw new SystemException(e); // at least for now
         }
@@ -381,7 +393,7 @@ public class IdMatchServiceImpl implements IdMatchService {
         } catch (IOException e) {
             // We really don't expect IOException here. Let's not bother with it, and throw
             // a SystemException, because this is most probably some weirdness.
-            throw new SystemException("Unexpected IOException: " + e.getMessage(), e);
+            throw SystemException.unexpected(e, "while constructing ID Match JSON request");
         }
     }
 
@@ -399,13 +411,14 @@ public class IdMatchServiceImpl implements IdMatchService {
         }
     }
 
-    public PersonRequest generateMatchRequest(@NotNull IdMatchObject idMatchObject)
-            throws SchemaException {
+    private PersonRequest generateMatchOrUpdateRequest(@NotNull IdMatchObject idMatchObject) {
         return createPersonRequest(idMatchObject, null, null);
     }
 
-    public PersonRequest generateResolveRequest(@NotNull IdMatchObject idMatchObject,
-            @NotNull String referenceId, @Nullable String matchRequestId) throws SchemaException {
+    public PersonRequest generateResolveRequest(
+            @NotNull IdMatchObject idMatchObject,
+            @NotNull String referenceId,
+            @Nullable String matchRequestId) throws SchemaException {
         return createPersonRequest(idMatchObject, referenceId, matchRequestId);
     }
 

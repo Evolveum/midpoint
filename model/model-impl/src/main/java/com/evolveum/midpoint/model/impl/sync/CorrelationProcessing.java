@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -91,15 +92,17 @@ class CorrelationProcessing<F extends FocusType> {
                 syncCtx.getObjectTypeDefinition(),
                 asObjectable(syncCtx.getSystemConfiguration()),
                 syncCtx.getTask());
+        syncCtx.setCorrelationContext(correlationContext);
         this.rootCorrelatorContext =
                 CorrelatorContext.create(syncCtx.getCorrelators().clone(), syncCtx.getObjectSynchronizationBean());
         this.thisCorrelationStart = XmlTypeConverter.createXMLGregorianCalendar();
     }
 
-    public CorrelationResult process(OperationResult result) throws CommonException {
+    @NotNull public CorrelationResult correlate(OperationResult result) throws CommonException {
 
-        CorrelationResult correlationResult = executeRootCorrelator(result);
+        assert syncCtx.getLinkedOwner() == null;
 
+        CorrelationResult correlationResult = correlateInRootCorrelator(result);
         applyResultToShadow(correlationResult);
 
         if (correlationResult.isUncertain()) {
@@ -112,16 +115,22 @@ class CorrelationProcessing<F extends FocusType> {
         return correlationResult;
     }
 
-    private @NotNull CorrelationResult executeRootCorrelator(OperationResult result) {
+    @Experimental
+    void update(OperationResult result)
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        // We throw all exceptions from the correlator. We have no structure to return the exception in.
+        instantiateRootCorrelator(result)
+                .update(correlationContext, result);
+    }
 
-        syncCtx.setCorrelationContext(correlationContext);
+    private @NotNull CorrelationResult correlateInRootCorrelator(OperationResult result) {
 
         CorrelationResult correlationResult;
 
         try {
-            correlationResult =
-                    beans.correlatorFactoryRegistry.instantiateCorrelator(rootCorrelatorContext, task, result)
-                            .correlate(correlationContext, result);
+            correlationResult = instantiateRootCorrelator(result)
+                    .correlate(correlationContext, result);
         } catch (Exception e) { // Other kinds of Throwable are intentionally passed upwards
             // The exception will be (probably) rethrown, so the stack trace is not strictly necessary here.
             LoggingUtils.logException(LOGGER, "Correlation ended with an exception", e);
@@ -137,6 +146,11 @@ class CorrelationProcessing<F extends FocusType> {
         }
 
         return correlationResult;
+    }
+
+    @NotNull
+    private Correlator instantiateRootCorrelator(OperationResult result) throws ConfigurationException {
+        return beans.correlatorFactoryRegistry.instantiateCorrelator(rootCorrelatorContext, task, result);
     }
 
     private void processUncertainResult(OperationResult result) throws SchemaException {

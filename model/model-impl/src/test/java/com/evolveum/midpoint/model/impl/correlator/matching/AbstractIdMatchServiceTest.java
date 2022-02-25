@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.api.correlator.idmatch.*;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -264,5 +265,45 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
                 ShadowUtil.getAttributeValue(shadow, SchemaConstants.ICFS_UID),
                 () -> "no UID attribute in " + shadow);
         return IdMatchObject.create(uid, shadow.getAttributes());
+    }
+
+    @Test
+    public void test200UpdateAccount() throws CommonException {
+        OperationResult result = getTestOperationResult();
+
+        given("last account on the test resource");
+
+        MatchingTestingAccount lastAccount = accounts.get(accounts.size() - 1);
+        displayDumpable("using last account", lastAccount);
+
+        ShadowType updatedShadow = lastAccount.getShadow().clone();
+
+        when("modifying the account and updating in ID Match service");
+
+        // Updating national ID
+        updatedShadow.asPrismObject()
+                .findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, "nationalId"))
+                .setRealValue("XXXXXX");
+
+        service.update(
+                createMatchObject(updatedShadow),
+                lastAccount.referenceId,
+                result);
+
+        then("correlation of changed data yields expected reference ID");
+
+        // Changing icfs:uid to make it look like a different record
+        updatedShadow.asPrismObject()
+                .findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID))
+                .setRealValue("999999");
+
+        MatchingResult reMatchingResult = service.executeMatch(
+                new MatchingRequest(
+                        createMatchObject(updatedShadow)),
+                result);
+
+        assertThat(reMatchingResult.getReferenceId())
+                .as("reference ID obtained for updated shadow")
+                .isEqualTo(lastAccount.referenceId);
     }
 }

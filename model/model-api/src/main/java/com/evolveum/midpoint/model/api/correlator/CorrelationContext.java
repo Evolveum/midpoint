@@ -21,9 +21,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * The context of the correlation operation(s).
+ * The context of the correlation and correlator state update operations.
+ * (Both work on an object being synchronized. The use in the latter case is experimental, though.)
  *
- * Created by caller of {@link Correlator#correlate(CorrelationContext, OperationResult)} method, but then updated
+ * Created by _the caller_ of {@link Correlator#correlate(CorrelationContext, OperationResult)} method, but then updated
  * by the method implementation(s) themselves.
  *
  * Not to be confused with {@link CorrelatorContext} which describes the context of the whole {@link Correlator} lifespan.

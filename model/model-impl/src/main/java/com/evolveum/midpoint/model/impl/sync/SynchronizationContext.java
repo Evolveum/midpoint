@@ -620,4 +620,24 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
             delta.applyTo(shadowedResourceObject);
         }
     }
+
+    /**
+     * Should we update correlators' state? (With or without re-correlation, at least for the time being.)
+     *
+     * Currently a temporary implementation based on checking id-match related flag in task extension.
+     */
+    public boolean isCorrelatorsUpdateRequested() {
+        return Boolean.TRUE.equals(
+                task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_UPDATE_ID_MATCH));
+    }
+
+    /**
+     * Are we updating the correlators' state and ignoring the (potentially updated) correlation result?
+     *
+     * This is a temporary response to the question of what we have to do if the correlator comes
+     * to a conclusion different from the original one: we ignore it.
+     */
+    boolean isUpdatingCorrelatorsOnly() {
+        return isCorrelatorsUpdateRequested() && getLinkedOwner() != null;
+    }
 }

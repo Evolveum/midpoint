@@ -28,6 +28,15 @@ public interface IdMatchService {
             throws CommunicationException, SchemaException, SecurityViolationException;
 
     /**
+     * Updates an object in ID Match service.
+     */
+    void update(
+            @NotNull IdMatchObject idMatchObject,
+            @Nullable String referenceId,
+            @NotNull OperationResult result)
+            throws CommunicationException, SchemaException, SecurityViolationException;
+
+    /**
      * Resolves a pending match.
      *
      * @param idMatchObject Object whose pending match is to be updated.
