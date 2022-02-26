@@ -6,24 +6,19 @@
   -->
 
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-        oid="3fd6d6a8-4cd3-4d46-bdca-bec123dbd507">
-    <name>update-sis</name>
-    <extension>
-        <mext:updateIdMatch>true</mext:updateIdMatch>
-    </extension>
+    oid="805b1477-edbd-48db-bb34-2710e4dbeed4">
+    <name>import-sis</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionState>closed</executionState>
     <activity>
         <work>
             <import>
                 <resourceObjects>
-                    <resourceRef oid="21d4788c-15eb-40cc-8ac5-3cd379362ffe"/>
+                    <resourceRef oid="afb142f9-2218-491a-8b99-ce5713ca424d"/>
                     <kind>account</kind>
                     <intent>default</intent>
                 </resourceObjects>
             </import>
         </work>
-        <executionMode>dryRun</executionMode>
     </activity>
 </task>

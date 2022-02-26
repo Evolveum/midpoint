@@ -57,6 +57,15 @@ public class MatchingUtil {
         return properties;
     }
 
+    @SuppressWarnings("unused") // Used from scripts
+    public static Set<String> getValuesForPath(ObjectType object, Object... pathComponents) {
+        return getValuesForPath(object.asPrismObject(), ItemPath.create(pathComponents));
+    }
+
+    public static Set<String> getValuesForPath(ObjectType object, ItemPath path) {
+        return getValuesForPath(object.asPrismObject(), path);
+    }
+
     public static Set<String> getValuesForPath(PrismObject<?> object, ItemPath path) {
         return object.getAllValues(path).stream()
                 .filter(Objects::nonNull)
