@@ -236,16 +236,16 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     }
 
     // TODO reconsider cloning here
-    public @NotNull CorrelatorsType getCorrelators() {
+    public @NotNull CompositeCorrelatorType getCorrelators() {
         if (objectSynchronization.getCorrelationDefinition() != null && objectSynchronization.getCorrelationDefinition().getCorrelators() != null) {
             return objectSynchronization.getCorrelationDefinition().getCorrelators().clone();
         } else if (objectSynchronization.getCorrelation().isEmpty()) {
             LOGGER.debug("No correlation information present. Will always find no owner. In: {}", this);
-            return new CorrelatorsType(PrismContext.get())
+            return new CompositeCorrelatorType(PrismContext.get())
                     .beginNone().end();
         } else {
-            CorrelatorsType correlators =
-                    new CorrelatorsType(PrismContext.get())
+            CompositeCorrelatorType correlators =
+                    new CompositeCorrelatorType(PrismContext.get())
                             .beginFilter()
                             .confirmation(CloneUtil.clone(objectSynchronization.getConfirmation()))
                             .end();

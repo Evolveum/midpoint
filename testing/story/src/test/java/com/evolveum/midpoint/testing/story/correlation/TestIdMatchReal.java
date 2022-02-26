@@ -143,7 +143,7 @@ public class TestIdMatchReal extends AbstractIdMatchTest {
                 synchronizationId,
                 ObjectSynchronizationType.F_CORRELATION_DEFINITION,
                 CorrelationDefinitionType.F_CORRELATORS,
-                CorrelatorsType.F_ID_MATCH,
+                CompositeCorrelatorType.F_ID_MATCH,
                 idMatchId);
     }
 }

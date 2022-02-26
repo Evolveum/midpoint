@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 
 /**
@@ -48,7 +48,7 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> {
     }
 
     public static CorrelatorContext<?> create(
-            @NotNull CorrelatorsType correlators,
+            @NotNull CompositeCorrelatorType correlators,
             @Nullable ObjectSynchronizationType objectSynchronizationBean) {
         return new CorrelatorContext<>(
                 CorrelatorConfiguration.getConfiguration(correlators),

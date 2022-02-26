@@ -26,8 +26,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.Objects;
 
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
-
 /**
  * TODO
  *
@@ -75,7 +73,7 @@ class CompositeCorrelator extends BaseCorrelator {
 
         @NotNull private final CorrelationContext correlationContext;
         @NotNull private final Task task;
-        @NotNull private final String contextDescription;
+        @NotNull private final String contextDescription; // TODO
 
         @NotNull private final List<CorrelationResult> authoritativeResults = new ArrayList<>();
         @NotNull private final List<CorrelationResult> nonAuthoritativeResults = new ArrayList<>();
@@ -94,12 +92,8 @@ class CompositeCorrelator extends BaseCorrelator {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
 
-            configCheck(getConfiguration().getComponents() != null,
-                    "The 'components' item is missing in %s", contextDescription);
-
             List<CorrelatorConfiguration> childConfigurations =
-                    CorrelatorConfiguration.getConfigurationsSorted(
-                            getConfiguration().getComponents());
+                    CorrelatorConfiguration.getConfigurationsSorted(getConfiguration());
 
             checkIfAuthoritativeAfterNotAuthoritative(childConfigurations);
 

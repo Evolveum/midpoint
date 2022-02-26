@@ -10,8 +10,8 @@ package com.evolveum.midpoint.model.api.correlator;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorAuthorityLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorsType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -59,17 +59,33 @@ public abstract class CorrelatorConfiguration {
      *
      * @throws IllegalArgumentException If there's not exactly one configuration there.
      */
-    public static @NotNull CorrelatorConfiguration getConfiguration(CorrelatorsType correlators) {
+    public static @NotNull CorrelatorConfiguration getConfiguration(CompositeCorrelatorType correlators) {
         Collection<CorrelatorConfiguration> configurations = getConfigurations(correlators);
         argCheck(!configurations.isEmpty(), "No correlator configurations in %s", correlators);
-        argCheck(configurations.size() == 1, "Multiple correlator configurations in %s", correlators);
-        return configurations.iterator().next();
+
+        if (configurations.size() == 1) {
+            CorrelatorConfiguration configuration = configurations.iterator().next();
+            if (canBeStandalone(configuration)) {
+                return configuration;
+            }
+        }
+
+        // This is the default composite correlator.
+        return new TypedCorrelationConfiguration(correlators);
+    }
+
+    /**
+     * Currently, a configuration that is not non-authoritative can be run as standalone - without wrapping
+     * in composite correlator.
+     */
+    private static boolean canBeStandalone(CorrelatorConfiguration configuration) {
+        return configuration.getAuthority() != CorrelatorAuthorityLevelType.NON_AUTHORITATIVE;
     }
 
     /**
      * Extracts {@link CorrelatorConfiguration} objects from given "correlators" structure (both typed and untyped).
      */
-    public static @NotNull Collection<CorrelatorConfiguration> getConfigurations(@NotNull CorrelatorsType correlatorsBean) {
+    public static @NotNull Collection<CorrelatorConfiguration> getConfigurations(@NotNull CompositeCorrelatorType correlatorsBean) {
         List<CorrelatorConfiguration> configurations =
                 Stream.of(
                                 correlatorsBean.getNone().stream(),
@@ -101,7 +117,7 @@ public abstract class CorrelatorConfiguration {
         return configurations;
     }
 
-    public static List<CorrelatorConfiguration> getConfigurationsSorted(CorrelatorsType correlatorsBean) {
+    public static List<CorrelatorConfiguration> getConfigurationsSorted(CompositeCorrelatorType correlatorsBean) {
         List<CorrelatorConfiguration> configurations = new ArrayList<>(getConfigurations(correlatorsBean));
         configurations.sort(
                 Comparator.nullsLast(Comparator.comparing(CorrelatorConfiguration::getOrder))
