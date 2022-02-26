@@ -2229,6 +2229,22 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="recipientAddressExpression" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional expression for recipient address returned as a String.
+                        This is useful when the recipient is provided as a Focus object (e.g. from the notifier),
+                        this object is available as `recipient` input variable into the expression.
+                        This is not used if the recipient address was already resolved and is available
+                        only as a String instead of a Focus.
+                        If this expression is not specified, the default conversion provided by the method
+                        `getDefaultRecipientAddress(Focus)` in the `Transport` implementation will be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GeneralTransportConfigurationType.whiteList</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="debug" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
