@@ -42,8 +42,10 @@ public interface IdMatchService {
      * @param idMatchObject Object whose pending match is to be updated.
      * @param matchRequestId Identifier of the match request (if provided by the service)
      * @param referenceId What reference ID to assign. Null means "generate new".
+     *
+     * @return Current reference ID
      */
-    void resolve(
+    @NotNull String resolve(
             @NotNull IdMatchObject idMatchObject,
             @Nullable String matchRequestId,
             @Nullable String referenceId,

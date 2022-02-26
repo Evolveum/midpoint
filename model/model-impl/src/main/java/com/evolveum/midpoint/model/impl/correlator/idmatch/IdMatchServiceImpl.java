@@ -119,11 +119,11 @@ public class IdMatchServiceImpl implements IdMatchService {
      * The reference ID is known - either existing one was assigned or a new one was created.
      * (We treat both cases in the same way.)
      */
-    private @NotNull MatchingResult processKnownReferenceId(Client client, PersonRequest matchRequest)
+    private @NotNull MatchingResult processKnownReferenceId(Client client, PersonRequest personRequest)
             throws CommunicationException, SecurityViolationException {
         // COmanage implementation sometimes returns no data on 200/201 response, so let's fetch it explicitly
         // TODO avoid re-fetching if the service returned the data
-        client.getPerson(matchRequest);
+        client.getPerson(personRequest);
 
         String entity = client.getEntity();
         String metaSection = getJsonElement(entity, "meta");
@@ -423,7 +423,7 @@ public class IdMatchServiceImpl implements IdMatchService {
     }
 
     @Override
-    public void resolve(
+    public @NotNull String resolve(
             @NotNull IdMatchObject idMatchObject, @Nullable String matchRequestId,
             @Nullable String referenceId,
             @NotNull OperationResult result) throws CommunicationException, SchemaException, SecurityViolationException {
@@ -432,6 +432,11 @@ public class IdMatchServiceImpl implements IdMatchService {
         PersonRequest request = generateResolveRequest(idMatchObject, nativeReferenceId, matchRequestId);
         Client client = createClient();
         client.putPerson(request);
+
+        return MiscUtil.requireNonNull(
+                processKnownReferenceId(client, request)
+                        .getReferenceId(),
+                () -> new IllegalStateException("No reference ID after resolution of " + idMatchObject.getSorIdentifierValue()));
     }
 
     /**

@@ -23637,6 +23637,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="composite" type="tns:CompositeCorrelatorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -23665,6 +23672,18 @@
                     <xsd:appinfo>
                         <a:displayName>AbstractCorrelatorType.order</a:displayName>
                         <a:displayOrder>10</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="authority" type="tns:CorrelatorAuthorityLevelType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractCorrelatorType.authority</a:displayName>
+                        <a:displayOrder>15</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -23725,6 +23744,56 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:simpleType name="CorrelatorAuthorityLevelType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+
+                Note to implementers: The ordering of values in this enum is of decreasing authoritativeness.
+                If two correlators have the same order value, they will be ordered according to the value of authority level.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="principal">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If the correlator provides an owner (must be 0 or 1), it is taken immediately as the result
+                        of the correlation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PRINCIPAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="authoritative">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If the correlator provides an owner (must be 0 or 1), it is considered along with other
+                        results from authoritative correlators. If - by chance - they return contradicting answers,
+                        they are presented to the operator.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTHORITATIVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="nonAuthoritative">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+
+                        Note that the evaluation stops before the first non-authoritative correlator, if there is
+                        an authoritative owner found at that time. So all authoritative/principal should be evaluated
+                        before the first non-authoritative correlator.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NON_AUTHORITATIVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="NoOpCorrelatorType">
         <xsd:annotation>
@@ -23961,6 +24030,33 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="idMatchCorrelator" type="tns:IdMatchCorrelatorType"/>
+
+    <xsd:complexType name="CompositeCorrelatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCorrelatorType">
+                <xsd:sequence>
+                    <xsd:element name="components" type="tns:CorrelatorsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Children correlators.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="compositeCorrelator" type="tns:CompositeCorrelatorType"/>
 
     <xsd:complexType name="CorrelationPropertiesDefinitionType">
         <xsd:annotation>

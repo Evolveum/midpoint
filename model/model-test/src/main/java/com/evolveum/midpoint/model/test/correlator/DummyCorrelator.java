@@ -31,20 +31,11 @@ class DummyCorrelator implements Correlator {
     }
 
     @Override
-    public CorrelationResult correlate(
+    public @NotNull CorrelationResult correlate(
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result) {
         // TODO
         return CorrelationResult.uncertain(
                 new ResourceObjectOwnerOptionsType(PrismContext.get()));
-    }
-
-    @Override
-    public void resolve(
-            @NotNull CaseType aCase,
-            @NotNull String outcomeUri,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        throw new UnsupportedOperationException();
     }
 }

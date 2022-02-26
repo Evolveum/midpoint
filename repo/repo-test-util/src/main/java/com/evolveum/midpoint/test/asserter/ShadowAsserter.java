@@ -23,6 +23,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Objects;
 
 @SuppressWarnings("UnusedReturnValue")
@@ -380,5 +381,21 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
     private CorrelationSituationType getCorrelationSituation() {
         ShadowCorrelationStateType correlation = getObjectable().getCorrelation();
         return correlation != null ? correlation.getSituation() : null;
+    }
+
+    public ShadowAsserter<RA> assertPotentialOwnerOptions(int expected) {
+        assertThat(getPotentialOwnerOptions())
+                .as("potential owner options")
+                .hasSize(expected);
+        return this;
+    }
+
+    private List<ResourceObjectOwnerOptionType> getPotentialOwnerOptions() {
+        ShadowCorrelationStateType state = getObjectable().getCorrelation();
+        if (state == null || state.getOwnerOptions() == null) {
+            return List.of();
+        } else {
+            return state.getOwnerOptions().getOption();
+        }
     }
 }

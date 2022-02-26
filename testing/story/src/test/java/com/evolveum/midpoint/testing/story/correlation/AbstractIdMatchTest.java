@@ -97,14 +97,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
     private static final String NS_EXT = "http://example.com/idmatch";
     private static final ItemName EXT_REFERENCE_ID = new ItemName(NS_EXT, "referenceId");
 
-    @Autowired CorrelationCaseManager correlationCaseManager;
-    @Autowired CaseService caseService;
-
-    /** This is the initialized object (retrieved from the repo). */
-    private ResourceType resourceSis;
-
     private UserType john;
-    private UserType mary;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -127,10 +120,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         addObject(USER_ALICE, initTask, initResult); // approver of correlation operators org - not to be included in the case
         assignOrg(USER_ADMINISTRATOR_OID, ORG_CORRELATION_OPERATORS.oid, initTask, initResult);
 
-        RESOURCE_SIS.initialize(initTask, initResult);
-        assertSuccess(
-                modelService.testResource(RESOURCE_SIS.oid, initTask));
-        resourceSis = repositoryService.getObject(ResourceType.class, RESOURCE_SIS.oid, null, initResult).asObjectable();
+        RESOURCE_SIS.initializeAndTest(this, initTask, initResult);
 
         TASK_IMPORT_SIS.initialize(this, initTask, initResult); // importing in closed state
         TASK_UPDATE_SIS.initialize(this, initTask, initResult); // importing in closed state
@@ -172,7 +162,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                         .assertTransitions(1)
                     .end();
 
-        mary = findUserByUsername("smith1").asObjectable();
+        UserType mary = findUserByUsername("smith1").asObjectable();
         assertUser(mary, "Mary after")
                 .display()
                 .assertFullName("Mary Smith")
@@ -621,6 +611,6 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
     }
 
     private PrismObject<ShadowType> getShadow(String name, OperationResult result) throws SchemaException {
-        return findShadowByPrismName(name, resourceSis.asPrismObject(), result);
+        return findShadowByPrismName(name, RESOURCE_SIS.getObject(), result);
     }
 }

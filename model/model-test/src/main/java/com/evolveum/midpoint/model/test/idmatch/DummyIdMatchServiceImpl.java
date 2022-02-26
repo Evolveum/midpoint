@@ -180,7 +180,7 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
     }
 
     @Override
-    public void resolve(
+    public @NotNull String resolve(
             @NotNull IdMatchObject idMatchObject,
             @Nullable String matchRequestId,
             @Nullable String referenceId,
@@ -195,6 +195,7 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
                 () -> new IllegalArgumentException("No record with match request ID " + matchRequestId));
         singleMatching.referenceId = referenceId != null ?
                 referenceId : UUID.randomUUID().toString();
+        return singleMatching.referenceId;
     }
 
     private static String getValue(IdMatchAttributesType attributes, String name) {

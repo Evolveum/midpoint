@@ -8,19 +8,18 @@
 package com.evolveum.midpoint.schema.util.cases;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class CorrelationCaseUtil {
 
@@ -34,7 +33,7 @@ public class CorrelationCaseUtil {
     }
 
     public static @NotNull List<ResourceObjectOwnerOptionType> getOwnerOptionsList(@NotNull CaseType aCase) {
-        var info = getOwnerOptions(aCase);
+        ResourceObjectOwnerOptionsType info = getOwnerOptions(aCase);
         return info != null ? info.getOption() : List.of();
     }
 
@@ -44,5 +43,26 @@ public class CorrelationCaseUtil {
                                 aCase.getObjectRef(), () -> "No objectRef in " + aCase)
                         .getOid(), () -> "No shadow OID in " + aCase);
 
+    }
+
+    public static AbstractWorkItemOutputType createDefaultOutput(String ownerOid) {
+        return new AbstractWorkItemOutputType(PrismContext.get())
+                .outcome(ownerOid != null ?
+                        OwnerOptionIdentifier.forExistingOwner(ownerOid).getStringValue() :
+                        OwnerOptionIdentifier.forNoOwner().getStringValue());
+    }
+
+    // Throws an exception if there's a problem.
+    public static @Nullable ObjectReferenceType getResultingOwnerRef(@NotNull CaseType aCase) throws SchemaException {
+        String outcomeUri = MiscUtil.requireNonNull(
+                aCase.getOutcome(), () -> "No outcome in " + aCase);
+        List<ResourceObjectOwnerOptionType> matchingOptions = getOwnerOptionsList(aCase).stream()
+                .filter(option -> outcomeUri.equals(option.getIdentifier()))
+                .collect(Collectors.toList());
+        ResourceObjectOwnerOptionType matchingOption = MiscUtil.extractSingletonRequired(matchingOptions,
+                () -> new SchemaException("Multiple matching options for outcome " + outcomeUri + ": "
+                        + matchingOptions + " in " + aCase),
+                () -> new SchemaException("No matching option for outcome " + outcomeUri + " in " + aCase));
+        return matchingOption.getCandidateOwnerRef();
     }
 }

@@ -19,9 +19,9 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -53,7 +53,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  * (This is the most usual approach to correlation; and the only one - besides so-called synchronization sorter -
  * before midPoint 4.5.)
  */
-class FilterCorrelator implements Correlator {
+class FilterCorrelator extends BaseCorrelator {
 
     private static final Trace LOGGER = TraceManager.getTrace(FilterCorrelator.class);
 
@@ -72,26 +72,19 @@ class FilterCorrelator implements Correlator {
     }
 
     @Override
-    public CorrelationResult correlate(
+    public @NotNull CorrelationResult correlateInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-
-        LOGGER.trace("Correlating:\n{}", correlationContext.debugDumpLazily(1));
 
         return new Correlation<>(correlationContext)
                 .execute(result);
     }
 
     @Override
-    public void resolve(
-            @NotNull CaseType aCase,
-            @NotNull String outcomeUri,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        // This correlator should never create any correlation cases.
-        throw new IllegalStateException("The resolve() method should not be called for this correlator");
+    protected Trace getLogger() {
+        return LOGGER;
     }
 
     private class Correlation<F extends FocusType> {
@@ -163,8 +156,13 @@ class FilterCorrelator implements Correlator {
                 return true;
             } else {
                 boolean value = ExpressionUtil.evaluateConditionDefaultFalse(
-                        getVariablesMap(null), condition, expressionProfile, beans.expressionFactory,
-                        "filter condition in " + contextDescription, task, result);
+                        getVariablesMap(correlationContext.getPreFocus()),
+                        condition,
+                        expressionProfile,
+                        beans.expressionFactory,
+                        "filter condition in " + contextDescription,
+                        task,
+                        result);
                 LOGGER.trace("Condition {} in correlation filter evaluated to {}", condition, value);
                 return value;
             }
@@ -210,8 +208,15 @@ class FilterCorrelator implements Correlator {
                 return origQuery;
             } else {
                 LOGGER.trace("Evaluating query expression(s)");
-                return ExpressionUtil.evaluateQueryExpressions(origQuery, getVariablesMap(null), expressionProfile,
-                        beans.expressionFactory, PrismContext.get(), contextDescription, task, result);
+                return ExpressionUtil.evaluateQueryExpressions(
+                        origQuery,
+                        getVariablesMap(correlationContext.getPreFocus()),
+                        expressionProfile,
+                        beans.expressionFactory,
+                        PrismContext.get(),
+                        contextDescription,
+                        task,
+                        result);
             }
         }
 
@@ -262,6 +267,7 @@ class FilterCorrelator implements Correlator {
                     beans.expressionFactory.makeExpression(
                             configuration.getConfirmation(), outputDefinition, expressionProfile, shortDesc, task, result);
 
+            // TODO contention for "focus" variable (candidate, pre-focus)
             VariablesMap variables = getVariablesMap(candidate);
             ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
             PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder

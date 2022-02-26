@@ -25,11 +25,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowCorrelationStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,6 +47,8 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 class CorrelationProcessing<F extends FocusType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationProcessing.class);
+
+    private static final String OP_CORRELATE = CorrelationProcessing.class.getName() + ".correlate";
 
     @NotNull private final SynchronizationContext<F> syncCtx;
 
@@ -98,21 +96,75 @@ class CorrelationProcessing<F extends FocusType> {
         this.thisCorrelationStart = XmlTypeConverter.createXMLGregorianCalendar();
     }
 
-    @NotNull public CorrelationResult correlate(OperationResult result) throws CommonException {
+    @NotNull public CorrelationResult correlate(OperationResult parentResult) throws CommonException {
 
         assert syncCtx.getLinkedOwner() == null;
 
-        CorrelationResult correlationResult = correlateInRootCorrelator(result);
-        applyResultToShadow(correlationResult);
-
-        if (correlationResult.isUncertain()) {
-            processUncertainResult(result);
-        } else if (correlationResult.isError()) {
-            // Nothing to do here
-        } else {
-            processFinalResult(result);
+        CorrelationResult existing = getResultFromExistingState(parentResult);
+        if (existing != null) {
+            LOGGER.debug("Result determined from existing correlation state in shadow: {}", existing.getSituation());
+            return existing;
         }
-        return correlationResult;
+
+        OperationResult result = parentResult.subresult(OP_CORRELATE)
+                .build();
+        try {
+            CorrelationResult correlationResult = correlateInRootCorrelator(result);
+            applyResultToShadow(correlationResult);
+
+            if (correlationResult.isUncertain()) {
+                processUncertainResult(result);
+            } else if (correlationResult.isError()) {
+                // Nothing to do here
+            } else {
+                processFinalResult(result);
+            }
+            result.addArbitraryObjectAsReturn("correlationResult", correlationResult);
+            return correlationResult;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    private CorrelationResult getResultFromExistingState(OperationResult result) throws SchemaException {
+        ShadowType shadow = syncCtx.getShadowedResourceObject().asObjectable();
+        if (shadow.getCorrelation() == null) {
+            return null;
+        }
+        CorrelationSituationType situation = shadow.getCorrelation().getSituation();
+        if (situation == CorrelationSituationType.EXISTING_OWNER && shadow.getCorrelation().getResultingOwner() != null) {
+            ObjectType owner = resolveExistingOwner(shadow.getCorrelation().getResultingOwner(), result);
+            if (owner != null) {
+                return CorrelationResult.existingOwner(owner);
+            } else {
+                // Something is wrong. Let us try the correlation (again).
+                // TODO perhaps we should clear the correlation state from the shadow
+                return null;
+            }
+        } else if (situation == CorrelationSituationType.NO_OWNER) {
+            return CorrelationResult.noOwner();
+        } else {
+            // We need to do the correlation
+            return null;
+        }
+    }
+
+    private @Nullable ObjectType resolveExistingOwner(@NotNull ObjectReferenceType ownerRef, OperationResult result)
+            throws SchemaException {
+        try {
+            return beans.cacheRepositoryService.getObject(
+                            ObjectTypeUtil.getTargetClassFromReference(ownerRef),
+                            ownerRef.getOid(),
+                            null,
+                            result)
+                    .asObjectable();
+        } catch (ObjectNotFoundException e) {
+            LOGGER.error("Owner reference {} cannot be resolved", ownerRef, e);
+            return null;
+        }
     }
 
     @Experimental

@@ -7,11 +7,20 @@
 
 package com.evolveum.midpoint.model.impl.correlator.expression;
 
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -32,20 +41,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.util.DebugUtil.lazy;
-
 /**
  * A correlator based on expressions that directly provide focal object(s) (or their references) for given resource object.
  * Similar to synchronization sorter, but simpler - it treats only correlation, not the classification part.
  */
-class ExpressionCorrelator implements Correlator {
+class ExpressionCorrelator extends BaseCorrelator {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionCorrelator.class);
 
@@ -64,26 +64,19 @@ class ExpressionCorrelator implements Correlator {
     }
 
     @Override
-    public CorrelationResult correlate(
+    public @NotNull CorrelationResult correlateInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-
-        LOGGER.trace("Correlating:\n{}", correlationContext.debugDumpLazily(1));
 
         return new Correlation<>(correlationContext)
                 .execute(result);
     }
 
     @Override
-    public void resolve(
-            @NotNull CaseType aCase,
-            @NotNull String outcomeUri,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        // This correlator should never create any correlation cases.
-        throw new IllegalStateException("The resolve() method should not be called for this correlator");
+    protected Trace getLogger() {
+        return LOGGER;
     }
 
     private class Correlation<F extends FocusType> {
