@@ -35,7 +35,7 @@ import java.io.IOException;
  */
 public class TestIdMatchReal extends AbstractIdMatchTest {
 
-    // No ID Match Service override, so the URL configured in the resource will be used.
+    // No ID Match Service override here, so the URL configured in the resource will be used.
 
     /**
      * Attempt to correlate using wrong credentials.

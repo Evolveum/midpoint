@@ -60,6 +60,7 @@
                 setExtensionValue(assignment, 'familyName', familyName)
                 setExtensionValue(assignment, 'dateOfBirth', dateOfBirth)
                 setExtensionValue(assignment, 'nationalId', normalizeNationalId(nationalId))
+                setExtensionValue(assignment, 'correlation', true)
 
                 if (targetName != null) {
                     target = midpoint.getOrgByName(targetName)

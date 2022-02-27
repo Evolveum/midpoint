@@ -44,7 +44,7 @@ import java.util.Objects;
  * - E-mail addresses are kept in HR for the simplicity. We assume that _some_ of the accounts
  * on target may have e-mail addresses or employee numbers present.
  */
-public class TestCorrelationSimple extends AbstractCorrelationTest {
+public abstract class AbstractSimpleCorrelationTest extends AbstractCorrelationTest {
 
     public static final File TEST_DIR = new File(AbstractCorrelationTest.TEST_DIR, "simple");
 
@@ -56,7 +56,10 @@ public class TestCorrelationSimple extends AbstractCorrelationTest {
     private static final CsvResource RESOURCE_HR = new CsvResource(TEST_DIR, "resource-hr.xml",
             "e09ffb8a-3f16-4b72-a61c-068f0039b876", "resource-hr.csv");
 
-    private static final CsvResource RESOURCE_TARGET = new CsvResource(TEST_DIR, "resource-target.xml",
+    static final CsvResource RESOURCE_TARGET = new CsvResource(TEST_DIR, "resource-target.xml",
+            "917e846f-39a5-423e-a63a-b00c3595da37", "resource-target.csv");
+
+    static final CsvResource RESOURCE_TARGET_SIMPLIFIED = new CsvResource(TEST_DIR, "resource-target-simplified.xml",
             "917e846f-39a5-423e-a63a-b00c3595da37", "resource-target.csv");
 
     private static final TestTask TASK_IMPORT_HR = new TestTask(TEST_DIR, "task-import-hr.xml",
@@ -68,6 +71,8 @@ public class TestCorrelationSimple extends AbstractCorrelationTest {
     private static final int HR_ACCOUNTS = 5;
     private static final int TARGET_ACCOUNTS = 6;
 
+    abstract CsvResource getTargetResource();
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -75,7 +80,7 @@ public class TestCorrelationSimple extends AbstractCorrelationTest {
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
 
         RESOURCE_HR.initializeAndTest(this, initTask, initResult);
-        RESOURCE_TARGET.initializeAndTest(this, initTask, initResult);
+        getTargetResource().initializeAndTest(this, initTask, initResult);
 
         TASK_IMPORT_HR.initialize(this, initTask, initResult);
         TASK_IMPORT_TARGET.initialize(this, initTask, initResult);
@@ -229,7 +234,7 @@ public class TestCorrelationSimple extends AbstractCorrelationTest {
 
     private @NotNull PrismObject<ShadowType> getTargetShadow(String name, OperationResult result) throws SchemaException {
         return Objects.requireNonNull(
-                findShadowByPrismName(name, RESOURCE_TARGET.getObject(), result),
+                findShadowByPrismName(name, getTargetResource().getObject(), result),
                 () -> "no target shadow of '" + name + "' was found");
     }
 

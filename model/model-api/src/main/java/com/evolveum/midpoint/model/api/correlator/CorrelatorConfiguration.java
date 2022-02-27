@@ -91,7 +91,7 @@ public abstract class CorrelatorConfiguration {
                                 correlatorsBean.getNone().stream(),
                                 correlatorsBean.getFilter().stream(),
                                 correlatorsBean.getExpression().stream(),
-                                correlatorsBean.getItem().stream(),
+                                correlatorsBean.getItems().stream(),
                                 correlatorsBean.getComposite().stream(),
                                 correlatorsBean.getIdMatch().stream())
                         .flatMap(s -> s)

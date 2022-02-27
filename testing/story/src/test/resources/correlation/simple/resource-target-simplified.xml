@@ -141,84 +141,31 @@
             <intent>default</intent>
             <correlationDefinition>
                 <correlators>
-                    <name>composite</name>
                     <documentation>Implements correlation rules #1-#4 (see TestCorrelationSimple javadoc)</documentation>
-                    <filter>
-                        <order>10</order>
+                    <items>
                         <authority>authoritative</authority>
-                        <name>employee number</name>
-                        <documentation>Matching on employeeNumber (rule #1).</documentation>
-                        <ownerFilter>
-                            <q:equal>
-                                <q:path>employeeNumber</q:path>
-                                <expression>
-                                    <path>$focus/employeeNumber</path>
-                                </expression>
-                            </q:equal>
-                            <condition>
-                                <script>
-                                    <code>focus.employeeNumber != null</code>
-                                </script>
-                            </condition>
-                        </ownerFilter>
-                    </filter>
-                    <filter>
-                        <order>20</order>
+                        <item>
+                            <path>employeeNumber</path>
+                        </item>
+                    </items>
+                    <items>
                         <authority>authoritative</authority>
-                        <name>email address</name>
-                        <documentation>Matching on emailAddress (rule #2).</documentation>
-                        <ownerFilter>
-                            <q:equal>
-                                <q:path>emailAddress</q:path>
-                                <expression>
-                                    <path>$focus/emailAddress</path>
-                                </expression>
-                            </q:equal>
-                            <condition>
-                                <script>
-                                    <code>focus.emailAddress != null</code>
-                                </script>
-                            </condition>
-                        </ownerFilter>
-                    </filter>
-                    <filter>
-                        <order>30</order>
+                        <item>
+                            <path>emailAddress</path>
+                        </item>
+                    </items>
+                    <items>
                         <authority>nonAuthoritative</authority>
-                        <name>family name</name>
-                        <documentation>Non-authoritative matching on familyName (rule #3).</documentation>
-                        <ownerFilter>
-                            <q:equal>
-                                <q:path>familyName</q:path>
-                                <expression>
-                                    <path>$focus/familyName</path>
-                                </expression>
-                            </q:equal>
-                            <condition>
-                                <script>
-                                    <code>focus.familyName != null</code>
-                                </script>
-                            </condition>
-                        </ownerFilter>
-                    </filter>
-                    <filter>
-                        <order>40</order>
+                        <item>
+                            <path>familyName</path>
+                        </item>
+                    </items>
+                    <items>
                         <authority>nonAuthoritative</authority>
-                        <name>telephone number</name>
-                        <documentation>Non-authoritative matching on telephoneNumber (rule #4).</documentation>
-                        <ownerFilter>
-                            <q:equal>
-                                <q:path>telephoneNumber</q:path>
-                                <expression>
-                                    <path>$focus/telephoneNumber</path>
-                                </expression>
-                            </q:equal>
-                            <condition>
-                                <script>
-                                    <code>focus.telephoneNumber != null</code>
-                                </script>
-                            </condition>
-                        </ownerFilter>
-                    </filter>
+                        <item>
+                            <path>telephoneNumber</path>
+                        </item>
+                    </items>
                 </correlators>
                 <cases/>
             </correlationDefinition>

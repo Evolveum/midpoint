@@ -32,13 +32,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Here we test the correlation that uses the internal correlator.
  *
- * Contrary to {@link TestCorrelationSimple} here we allow a user to have multiple accounts on the source resource (`SIS`).
+ * Contrary to {@link AbstractSimpleCorrelationTest} here we allow a user to have multiple accounts on the source resource (`SIS`).
  * They are mapped into assignments; personal data are kept in those assignments. There is an algorithm to find
  * the "authoritative" assignment that provides the authoritative personal data for the user.
  *
  * The correlation is, however, done against all the assignments; not only to the selected authoritative data.
  */
-public class TestCorrelationMultiAccounts extends AbstractCorrelationTest {
+public abstract class AbstractMultiAccountsCorrelationTest extends AbstractCorrelationTest {
 
     public static final File TEST_DIR = new File(AbstractCorrelationTest.TEST_DIR, "multi-accounts");
 
@@ -67,7 +67,11 @@ public class TestCorrelationMultiAccounts extends AbstractCorrelationTest {
     private static final TestResource<OrgType> ORG_PROGRAM_SW_ENG_DOCTORAL =
             new TestResource<>(TEST_DIR, "040-org-program-sw-eng-doctoral.xml", "474c95ce-59f0-4104-8a64-f3d0406234f0");
 
-    private static final CsvResource RESOURCE_SIS = new CsvResource(TEST_DIR, "resource-sis.xml",
+    static final CsvResource RESOURCE_SIS = new CsvResource(TEST_DIR, "resource-sis.xml",
+            "afb142f9-2218-491a-8b99-ce5713ca424d", "resource-sis.csv",
+            "sisId,firstName,lastName,born,nationalId,studyProgram");
+
+    static final CsvResource RESOURCE_SIS_SIMPLIFIED = new CsvResource(TEST_DIR, "resource-sis-simplified.xml",
             "afb142f9-2218-491a-8b99-ce5713ca424d", "resource-sis.csv",
             "sisId,firstName,lastName,born,nationalId,studyProgram");
 
@@ -75,6 +79,8 @@ public class TestCorrelationMultiAccounts extends AbstractCorrelationTest {
             "805b1477-edbd-48db-bb34-2710e4dbeed4", 30000);
 
     private UserType john;
+
+    abstract CsvResource getSisResource();
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -92,7 +98,7 @@ public class TestCorrelationMultiAccounts extends AbstractCorrelationTest {
         addObject(ORG_PROGRAM_SW_ENG, initTask, initResult);
         addObject(ORG_PROGRAM_SW_ENG_DOCTORAL, initTask, initResult);
 
-        RESOURCE_SIS.initializeAndTest(this, initTask, initResult);
+        getSisResource().initializeAndTest(this, initTask, initResult);
 
         TASK_IMPORT_SIS.initialize(this, initTask, initResult); // importing in closed state
     }
@@ -112,8 +118,8 @@ public class TestCorrelationMultiAccounts extends AbstractCorrelationTest {
         given();
         OperationResult result = getTestOperationResult();
 
-        RESOURCE_SIS.appendLine("1,Mary,Smith,2006-04-10,060410/1993,bioch");
-        RESOURCE_SIS.appendLine("2,John,Smith,2004-02-06,040206/1328,sw-eng");
+        getSisResource().appendLine("1,Mary,Smith,2006-04-10,060410/1993,bioch");
+        getSisResource().appendLine("2,John,Smith,2004-02-06,040206/1328,sw-eng");
 
         when();
         TASK_IMPORT_SIS.rerun(result);
@@ -176,7 +182,7 @@ public class TestCorrelationMultiAccounts extends AbstractCorrelationTest {
 
         // A slight change in the given name. ID Match should automatically assign the same ID.
         // National ID should be normalized before contacting ID Match.
-        RESOURCE_SIS.appendLine("3,Ian,Smith,2004-02-06,040206-1328,math");
+        getSisResource().appendLine("3,Ian,Smith,2004-02-06,040206-1328,math");
 
         when();
         TASK_IMPORT_SIS.rerun(result);
@@ -234,7 +240,7 @@ public class TestCorrelationMultiAccounts extends AbstractCorrelationTest {
         // National ID without the last four digits. The algorithm should stop and ask the operator.
         // Here we intentionally use given name of Ian, that is NOT authoritative (i.e. it's present only
         // in an assignment).
-        RESOURCE_SIS.appendLine("4,Ian,Smith,2004-02-06,040206,e-eng");
+        getSisResource().appendLine("4,Ian,Smith,2004-02-06,040206,e-eng");
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();
@@ -411,7 +417,7 @@ public class TestCorrelationMultiAccounts extends AbstractCorrelationTest {
         OperationResult result = getTestOperationResult();
 
         given("different national ID, same name and date of birth. (To be consulted with operator.)");
-        RESOURCE_SIS.appendLine("6,John,Smith,2004-02-06,040206/8824,sw-eng-doctoral");
+        getSisResource().appendLine("6,John,Smith,2004-02-06,040206/8824,sw-eng-doctoral");
 
         when("the task is executed");
         TASK_IMPORT_SIS.rerun(result);
@@ -521,7 +527,7 @@ public class TestCorrelationMultiAccounts extends AbstractCorrelationTest {
         OperationResult result = task.getResult();
 
         given("same national ID, different name");
-        RESOURCE_SIS.appendLine("7,Jim,Sanchez,2004-02-06,040206/8824,math");
+        getSisResource().appendLine("7,Jim,Sanchez,2004-02-06,040206/8824,math");
 
         when("the task is executed");
         TASK_IMPORT_SIS.rerun(result);
@@ -578,6 +584,6 @@ public class TestCorrelationMultiAccounts extends AbstractCorrelationTest {
     }
 
     private PrismObject<ShadowType> getShadow(String name, OperationResult result) throws SchemaException {
-        return findShadowByPrismName(name, RESOURCE_SIS.getObject(), result);
+        return findShadowByPrismName(name, getSisResource().getObject(), result);
     }
 }
