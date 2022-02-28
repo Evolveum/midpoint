@@ -104,7 +104,10 @@ public class ConnectorConfiguration {
             allTargets.addAll(targets.getArtemis());
             allTargets.addAll(targets.getOther());
         }
-        allTargets.sort(Comparator.nullsLast(Comparator.comparing(AsyncProvisioningTargetType::getOrder)));
+        allTargets.sort(
+                Comparator.comparing(
+                        AsyncProvisioningTargetType::getOrder,
+                        Comparator.nullsLast(Comparator.naturalOrder())));
         return allTargets;
     }
 

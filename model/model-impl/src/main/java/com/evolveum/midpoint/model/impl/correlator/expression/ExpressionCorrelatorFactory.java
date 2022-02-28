@@ -51,6 +51,6 @@ public class ExpressionCorrelatorFactory implements CorrelatorFactory<Expression
             @NotNull CorrelatorContext<ExpressionCorrelatorType> context,
             @NotNull Task task,
             @NotNull OperationResult result) throws ConfigurationException {
-        return new ExpressionCorrelator(context.getConfigurationBean(), beans);
+        return new ExpressionCorrelator(context, beans);
     }
 }
