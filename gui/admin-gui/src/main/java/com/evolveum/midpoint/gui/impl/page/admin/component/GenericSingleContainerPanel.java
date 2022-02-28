@@ -66,7 +66,14 @@ import org.apache.wicket.model.IModel;
         ),
         containerPath = "adminGuiConfiguration",
         type = "AdminGuiConfigurationType",
-        expanded = true
+        expanded = true,
+        hiddenContainers = {
+                "adminGuiConfiguration/additionalMenuLink",
+                "adminGuiConfiguration/userDashboardLink",
+                "adminGuiConfiguration/objectCollectionViews",
+                "adminGuiConfiguration/objectDetails",
+                "adminGuiConfiguration/configurableUserDashboard"
+        }
 )
 @PanelInstance(
         identifier = "wfConfigurationPanel",
