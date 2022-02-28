@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -106,5 +108,10 @@ public class ConfigurableUserDashboardContentPanel extends MultivalueContainerLi
     @Override
     protected UserProfileStorage.TableId getTableId() {
         return UserProfileStorage.TableId.PAGE_MESSAGE_TEMPLATE_LOCALIZED_CONTENT_PANEL;    // todo fix
+    }
+
+    @Override
+    protected List<InlineMenuItem> createInlineMenu() {
+        return getDefaultMenuActions();
     }
 }

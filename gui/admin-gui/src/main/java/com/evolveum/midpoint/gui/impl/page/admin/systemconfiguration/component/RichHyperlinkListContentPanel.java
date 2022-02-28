@@ -56,7 +56,10 @@ public abstract class RichHyperlinkListContentPanel extends MultivalueContainerL
                     protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<RichHyperlinkType>> model) {
                         RichHyperlinkListContentPanel.this.itemDetailsPerformed(target, model);
                     }
-                }
+                },
+                new PrismPropertyWrapperColumn<>(getContainerModel(), RichHyperlinkType.F_TARGET_URL, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()),
+                new PrismPropertyWrapperColumn<>(getContainerModel(), RichHyperlinkType.F_ICON, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()),
+                new PrismPropertyWrapperColumn<>(getContainerModel(), RichHyperlinkType.F_COLOR, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase())
         );
     }
 
