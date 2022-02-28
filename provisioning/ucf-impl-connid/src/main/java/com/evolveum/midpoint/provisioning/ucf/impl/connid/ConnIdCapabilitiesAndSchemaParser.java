@@ -73,10 +73,10 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityHostType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -343,13 +343,13 @@ public class ConnIdCapabilitiesAndSchemaParser {
                 || connIdSupportedOperations.contains(ScriptOnConnectorApiOp.class)) {
             ScriptCapabilityType capScript = new ScriptCapabilityType();
             if (connIdSupportedOperations.contains(ScriptOnResourceApiOp.class)) {
-                Host host = new Host();
+                ScriptCapabilityHostType host = new ScriptCapabilityHostType();
                 host.setType(ProvisioningScriptHostType.RESOURCE);
                 capScript.getHost().add(host);
                 // language is unknown here
             }
             if (connIdSupportedOperations.contains(ScriptOnConnectorApiOp.class)) {
-                Host host = new Host();
+                ScriptCapabilityHostType host = new ScriptCapabilityHostType();
                 host.setType(ProvisioningScriptHostType.CONNECTOR);
                 capScript.getHost().add(host);
                 // language is unknown here

@@ -7668,7 +7668,7 @@
             <xsd:element name="name" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of the expression (function). The name is used for several purposed.
+                        Name of the expression (function). The name is used for several purposes.
                         If the expression is a function in a function library then this name identifies
                         the function (the name must be unique in the whole library).
                         But even if the expression is not part of the library the name may still be used
