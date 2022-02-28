@@ -261,7 +261,7 @@ public class LoggingConfigurationManager {
         generateAuditingLogConfig(config.getAuditing(), sb);
 
         if (null != config.getAdvanced()) {
-            for (Object item : config.getAdvanced().getContent()) {
+            for (Object item : config.getAdvanced().getAny()) {
                 sb.append(item.toString());
                 sb.append("\n");
             }
