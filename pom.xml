@@ -1765,6 +1765,10 @@
 
                                 <!--dependency contains bug when dependency is used only in annotation, we use it in authentication-impl -->
                                 <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-autoconfigure</ignoredUnusedDeclaredDependency>
+                                
+                                <!--  Since generated code depends on prism-impl, it needs sometime to be runtime/ compile
+                                      but report can not detect this uses (and if you change scope, it can not compile target project -->
+                                <ignoredUsedUndeclaredDependency>com.evolveum.prism:prism-impl</ignoredUsedUndeclaredDependency>
                             </ignoredUnusedDeclaredDependencies>
                             <ignoredUsedUndeclaredDependencies>
                                 <!--
