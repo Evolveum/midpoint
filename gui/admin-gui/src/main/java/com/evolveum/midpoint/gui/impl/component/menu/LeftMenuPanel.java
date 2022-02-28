@@ -641,9 +641,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         }
         item.addMainMenuItem(system);
 
-        MainMenuItem systemConfigMenu = createMainMenuItem("PageAdmin.menu.top.configuration.basic", "fa fa-cog");
-        createSystemConfigurationTabMebu(systemConfigMenu);
-        item.addMainMenuItem(systemConfigMenu);
+//        MainMenuItem systemConfigMenu = createMainMenuItem("PageAdmin.menu.top.configuration.basic", "fa fa-cog");
+//        createSystemConfigurationTabMebu(systemConfigMenu);
+//        item.addMainMenuItem(systemConfigMenu);
     }
 
     private void createSystemConfigurationTabMebu(MainMenuItem systemConfigMenu) {
