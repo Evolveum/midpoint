@@ -276,6 +276,17 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
             }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel = ((ColumnMenuAction<PrismContainerValueWrapper<CaseWorkItemType>>) getAction()).getRowModel();
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getRealValue() != null) {
+                    CaseWorkItemType workItem = rowModel.getObject().getRealValue();
+                    return Model.of(!CaseTypeUtil.isCorrelationCase(CaseTypeUtil.getCase(workItem)));
+                } else {
+                    return super.getVisible();
+                }
+            }
         });
         menu.add(new ButtonInlineMenuItem(createStringResource("pageWorkItem.button.approve")) {
             private static final long serialVersionUID = 1L;
@@ -310,6 +321,17 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 return createStringResource("CaseWorkItemsPanel.confirmWorkItemsApproveAction");
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel = ((ColumnMenuAction<PrismContainerValueWrapper<CaseWorkItemType>>) getAction()).getRowModel();
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getRealValue() != null) {
+                    CaseWorkItemType workItem = rowModel.getObject().getRealValue();
+                    return Model.of(!CaseTypeUtil.isCorrelationCase(CaseTypeUtil.getCase(workItem)));
+                } else {
+                    return super.getVisible();
+                }
             }
         });
 
