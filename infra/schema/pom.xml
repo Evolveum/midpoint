@@ -92,17 +92,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
         </dependency>
-        <!-- Needed only for #toStrings of prism classes. -->
-        <dependency>
-            <groupId>org.apache.cxf.xjc-utils</groupId>
-            <artifactId>cxf-xjc-runtime</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.annotation</groupId>
-                    <artifactId>javax.annotation-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
@@ -110,10 +99,6 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jvnet.jaxb2_commons</groupId>
-            <artifactId>jaxb2-basics-runtime</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -140,18 +125,10 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- TODO this should go away with WSDLs -->
-        <dependency>
-            <groupId>javax.xml.ws</groupId>
-            <artifactId>jaxws-api</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-ws-metadata_2.0_spec</artifactId>
         </dependency>
 
         <dependency>
@@ -221,78 +198,13 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-codegen-plugin</artifactId>
-                <version>${cxf.version}</version>
-                <executions>
-                    <execution>
-                        <id>generate-sources</id>
-                        <phase>generate-sources</phase>
-                        <configuration>
-                            <sourceRoot>${project.build.directory}/generated/cxf</sourceRoot>
-                            <wsdlRoot>${project.directory}/src/main/resources/xml</wsdlRoot>
-                            <wsdlOptions>
-                                <wsdlOption>
-                                    <wsdl>src/main/resources/xml/ns/private/webservice/modelService.wsdl</wsdl>
-                                    <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
-                                    <extraargs>
-                                        <extraarg>-impl</extraarg>
-                                        <extraarg>-verbose</extraarg>
-                                        <extraarg>-xjc-Xts</extraarg>
-                                        <extraarg>-xjc-XhashCode</extraarg>
-                                        <extraarg>
-                                            -xjc-XhashCode-hashCodeStrategyClass=com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy
-                                        </extraarg>
-                                        <extraarg>-xjc-Xequals</extraarg>
-                                        <extraarg>
-                                            -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
-                                        </extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
-                                        <extraarg>-xjc-Xmidpoint</extraarg>
-                                    </extraargs>
-                                </wsdlOption>
-                            </wsdlOptions>
-                            <!--
-                            This avoids going online for schema checking which may slow down the build sometimes extremely,
-                            e.g. when firewall is set to drop SYN packet silently during connection.
-                            -->
-                            <additionalJvmArgs>-Dcom.sun.tools.xjc.api.impl.s2j.SchemaCompilerImpl.noCorrectnessCheck=true</additionalJvmArgs>
-                        </configuration>
-                        <goals>
-                            <goal>wsdl2java</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.cxf.xjcplugins</groupId>
-                        <artifactId>cxf-xjc-ts</artifactId>
-                        <version>${cxf-xjc.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.jvnet.jaxb2_commons</groupId>
-                        <artifactId>jaxb2-basics</artifactId>
-                        <version>0.10.0</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>com.evolveum.prism.tools</groupId>
-                        <artifactId>xjc-plugin</artifactId>
-                        <version>${project.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
+
             <plugin>
                 <groupId>com.evolveum.prism</groupId>
                 <artifactId>prism-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>
-                    <schemaFiles>
+                     <schemaFiles>
                         <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
@@ -310,6 +222,101 @@
                         <phase>package</phase>
                         <goals>
                             <goal>schemadoc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.evolveum.prism</groupId>
+                <artifactId>prism-codegen-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <configuration>
+                    <schemaFiles>
+                        <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/common/audit-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/resource/capabilities-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/connector-schema-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-3.xsd</schemaFile>
+                    </schemaFiles>
+                    <wsdlFiles>
+                        <wsdlFile>src/main/resources/xml/ns/public/common/fault-3.wsdl</wsdlFile>
+                        <wsdlFile>src/main/resources/xml/ns/public/model/model-3.wsdl</wsdlFile>
+                    </wsdlFiles>
+                    <catalogFiles>
+                        <catalogFile>src/compile/resources/jax-ws-catalog.xml</catalogFile>
+                        <catalogFile>src/main/resources/META-INF/schemas-in-this-module.xml</catalogFile>   <!-- nextCatalog doesn't work for unknown reason -->
+                    </catalogFiles>
+                    <constants>
+                      <constant>
+                        <prefix>C</prefix>
+                        <namespace>http://midpoint.evolveum.com/xml/ns/public/common/common-3</namespace>
+                        <name>COMMON</name>
+                      </constant>
+                      <constant>
+                        <prefix>T</prefix>
+                        <namespace>http://prism.evolveum.com/xml/ns/public/types-3</namespace>
+                        <name>TYPES</name>
+                      </constant>
+                      <constant>
+                        <prefix>Q</prefix>
+                        <namespace>http://prism.evolveum.com/xml/ns/public/query-3</namespace>
+                        <name>QUERY</name>
+                      </constant>
+                      <constant>
+                        <prefix>R_CAP</prefix>
+                        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3</namespace>
+                        <name>CAPABILITIES</name>
+                      </constant>
+                      <constant>
+                        <prefix>A</prefix>
+                        <namespace>http://prism.evolveum.com/xml/ns/public/annotation-3</namespace>
+                        <name>ANNOTATION</name>
+                      </constant>
+                      <constant>
+                        <prefix>S</prefix>
+                        <namespace>http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd</namespace>
+                        <name>SITUATION</name>
+                      </constant>
+                      <constant>
+                        <prefix>SC</prefix>
+                        <namespace>http://midpoint.evolveum.com/xml/ns/public/model/scripting-3</namespace>
+                        <name>SCRIPTING</name>
+                      </constant>
+                      <constant>
+                        <prefix>ICF_S</prefix>
+                        <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3</namespace>
+                        <name>ICF_SCHEMA</name>
+                      </constant>
+                      <constant>
+                        <prefix>ICF_C</prefix>
+                        <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3</namespace>
+                        <name>ICF_CONFIGURATION</name>
+                      </constant>
+                      <constant>
+                        <prefix>ENC</prefix>
+                        <namespace>http://www.w3.org/2001/04/xmlenc#</namespace>
+                        <name>XML_ENC</name>
+                      </constant>
+                      <constant>
+                        <prefix>DSIG</prefix>
+                        <namespace>http://www.w3.org/2000/09/xmldsig#</namespace>
+                        <name>XML_DSIG</name>
+                      </constant>
+                      <constant>
+                        <prefix>XSD</prefix>
+                        <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+                        <name>XSD</name>
+                      </constant>
+                      </constants>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>codegen</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>codegen</goal>
                         </goals>
                     </execution>
                 </executions>
