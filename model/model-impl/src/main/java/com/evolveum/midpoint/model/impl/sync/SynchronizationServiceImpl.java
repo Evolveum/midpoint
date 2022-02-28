@@ -444,10 +444,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         try {
             findLinkedOwner(syncCtx, change, result);
 
-            if (syncCtx.getLinkedOwner() != null) {
-                determineSituationWithOwnerLinked(syncCtx, change, result);
+            if (syncCtx.getLinkedOwner() == null || syncCtx.isCorrelatorsUpdateRequested()) {
+                determineSituationWithCorrelators(syncCtx, change, result);
             } else {
-                determineSituationWithOwnerNotLinked(syncCtx, change, result);
+                determineSituationWithoutCorrelators(syncCtx, change, result);
             }
             logSituation(syncCtx, change);
         } catch (Exception ex) {
@@ -473,8 +473,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         syncCtx.setLinkedOwner((F) asObjectable(owner));
     }
 
-    private <F extends FocusType> void determineSituationWithOwnerLinked(SynchronizationContext<F> syncCtx,
+    private <F extends FocusType> void determineSituationWithoutCorrelators(SynchronizationContext<F> syncCtx,
             ResourceObjectShadowChangeDescription change, OperationResult result) throws ConfigurationException {
+
+        assert syncCtx.getLinkedOwner() != null;
 
         checkLinkedAndCorrelatedOwnersMatch(syncCtx, result);
 
@@ -530,26 +532,32 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     }
 
     /**
+     * EITHER (todo update the description):
+     *
      * account is not linked to user. you have to use correlation and
      * confirmation rule to be sure user for this account doesn't exists
      * resourceShadow only contains the data that were in the repository before
      * the change. But the correlation/confirmation should work on the updated
      * data. Therefore let's apply the changes before running
      * correlation/confirmation
+     *
+     * OR
+     *
+     * We need to update the correlator state.
      */
-    private <F extends FocusType> void determineSituationWithOwnerNotLinked(SynchronizationContext<F> syncCtx,
+    private <F extends FocusType> void determineSituationWithCorrelators(SynchronizationContext<F> syncCtx,
             ResourceObjectShadowChangeDescription change, OperationResult result)
             throws CommonException {
 
         if (change.isDelete()) {
-            // account was deleted and it was not linked
+            // account was deleted and it was not linked; there is nothing to do (not even updating the correlators)
             if (syncCtx.getSituation() == null) {
                 syncCtx.setSituation(SynchronizationSituationType.DELETED);
             }
             return;
         }
 
-        if (syncCtx.getCorrelatedOwner() != null) { // e.g. from sync sorter
+        if (!syncCtx.isCorrelatorsUpdateRequested() && syncCtx.getCorrelatedOwner() != null) { // e.g. from sync sorter
             LOGGER.trace("Correlated owner present in synchronization context: {}", syncCtx.getCorrelatedOwner());
             if (syncCtx.getSituation() == null) {
                 syncCtx.setSituation(SynchronizationSituationType.UNLINKED);
@@ -563,9 +571,15 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         evaluatePreMappings(syncCtx, result);
 
+        if (syncCtx.isUpdatingCorrelatorsOnly()) {
+            new CorrelationProcessing<>(syncCtx, beans)
+                    .update(result);
+            return;
+        }
+
         CorrelationResult correlationResult =
                 new CorrelationProcessing<>(syncCtx, beans)
-                        .process(result);
+                        .correlate(result);
 
         LOGGER.debug("Correlation result:\n{}", correlationResult.debugDumpLazily(1));
 

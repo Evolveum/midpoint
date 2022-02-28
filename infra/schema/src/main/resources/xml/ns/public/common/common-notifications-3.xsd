@@ -183,6 +183,12 @@
         <xsd:annotation>
             <xsd:documentation>
                 Single language localization for the message template.
+                If `attachmentExpression` is not specified, the one from the default content will be used.
+                If no `attachment` is not specified, the ones from the default content will be used.
+                This allows for language specific attachments without the need to re-specify the ones that
+                are not language specific.
+                It is also possible to override `attachmentExpression` for language specific one and leave
+                `attachment` empty to use the ones defined in `attachment` element of the default content.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -2217,6 +2223,22 @@
                         and should provide a boolean value: "true" means "pass through", "false" means "block".
 
                         At most one of "blackList", "whiteList" and "recipientFilterExpression" can be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GeneralTransportConfigurationType.whiteList</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="recipientAddressExpression" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional expression for recipient address returned as a String.
+                        This is useful when the recipient is provided as a Focus object (e.g. from the notifier),
+                        this object is available as `recipient` input variable into the expression.
+                        This is not used if the recipient address was already resolved and is available
+                        only as a String instead of a Focus.
+                        If this expression is not specified, the default conversion provided by the method
+                        `getDefaultRecipientAddress(Focus)` in the `Transport` implementation will be used.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>GeneralTransportConfigurationType.whiteList</a:displayName>

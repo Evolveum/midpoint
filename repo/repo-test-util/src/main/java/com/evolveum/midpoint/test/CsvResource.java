@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
@@ -88,10 +89,24 @@ public class CsvResource extends TestResource<ResourceType> {
         this.initialContent = initialContent;
     }
 
+    /**
+     * Imports the resource (using appropriate importer e.g. model importer) and reloads it - to have all the metadata.
+     */
     public void initialize(Task task, OperationResult result)
             throws IOException, CommonException {
         prepareObject();
         importObject(task, result);
+        reload(result);
+    }
+
+    /**
+     * Imports the resource, tests it, and reloads it (to have e.g. the schema).
+     */
+    public void initializeAndTest(ResourceTester tester, Task task, OperationResult result) throws CommonException, IOException {
+        prepareObject();
+        importObject(task, result);
+        assertSuccess(
+                tester.testResource(oid, task));
         reload(result);
     }
 

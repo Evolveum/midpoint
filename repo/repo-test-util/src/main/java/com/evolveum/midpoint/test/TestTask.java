@@ -33,15 +33,14 @@ public class TestTask extends TestResource<TaskType> {
     private static final long DEFAULT_TIMEOUT = 250_000;
 
     /** Default timeout when waiting for this task completion. */
-    private final long timeout;
+    private final long defaultTimeout;
 
     /** Temporary: this is how we access the necessary functionality. */
     private AbstractIntegrationTest test;
 
-    public TestTask(@NotNull File dir, @NotNull String fileName, @NotNull String oid,
-            long timeout) {
+    public TestTask(@NotNull File dir, @NotNull String fileName, @NotNull String oid, long defaultTimeout) {
         super(dir, fileName, oid);
-        this.timeout = timeout;
+        this.defaultTimeout = defaultTimeout;
     }
 
     public TestTask(@NotNull File dir, @NotNull String fileName, @NotNull String oid) {
@@ -68,13 +67,13 @@ public class TestTask extends TestResource<TaskType> {
     public void rerun(OperationResult result) throws CommonException {
         long startTime = System.currentTimeMillis();
         test.restartTask(oid, result);
-        test.waitForTaskFinish(oid, true, startTime, timeout, false);
+        test.waitForTaskFinish(oid, true, startTime, defaultTimeout, false);
     }
 
     public void rerunErrorsOk(OperationResult result) throws CommonException {
         long startTime = System.currentTimeMillis();
         test.restartTask(oid, result);
-        test.waitForTaskFinish(oid, true, startTime, timeout, true);
+        test.waitForTaskFinish(oid, true, startTime, defaultTimeout, true);
     }
 
     public TaskAsserter<Void> assertAfter() throws SchemaException, ObjectNotFoundException {

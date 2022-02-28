@@ -1,0 +1,7 @@
+login,givenName,sn,mail,telephoneNumber,employeeNumber,note
+js1,John,Smith,,,1,This is jsmith1@evolveum.com (smith1): should be auto-correlated by employee number
+js2,John,Smith,jsmith2@evolveum.com,,,This is jsmith2@evolveum.com (smith2): should be auto-correlated by email address
+ag3,Alice,Green,,,,This is agreen3@evolveum.com (green1): manual correlation thanks to the last name
+bb4,Bob,BLACK,,+421-123-456-004,,This is rblack4@evolveum.com (black1): manual correlation thanks to the phone number
+rb5,Robert,Black,,,,This is rblack5@evolveum.com (black2) - manual correlation will be started with two candidates (by surname)
+nn6,Nobody,Nobody,,+421-123-456-005,,This has no corresponding record in HR - here it has phone# of rblack5 by mistake - manual correlation should be requested

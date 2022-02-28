@@ -88,6 +88,15 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="correlation" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <!-- TODO how to hide from UI? -->
+                        <a:displayName>Correlation-enabled</a:displayName>
+                        <a:displayOrder>999</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 </xsd:schema>

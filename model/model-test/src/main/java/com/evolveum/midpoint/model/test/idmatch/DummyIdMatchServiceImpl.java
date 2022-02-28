@@ -15,6 +15,9 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,9 +45,10 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
     private static final String ATTR_NATIONAL_ID = "nationalId";
 
     /**
-     * Current records.
+     * Current records, indexed by SOR identifier value. (Assuming single SOR.)
+     * It looks like that COmanage Match does it in the same way.
      */
-    @NotNull private final List<Record> records = new ArrayList<>();
+    @NotNull private final LinkedHashMap<String, Record> recordsMap = new LinkedHashMap<>();
 
     @NotNull private final AtomicInteger matchIdCounter = new AtomicInteger();
 
@@ -58,15 +62,30 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
      */
     @Override
     public @NotNull MatchingResult executeMatch(@NotNull MatchingRequest request, @NotNull OperationResult result) {
-        IdMatchAttributesType attributes = request.getObject().getAttributes();
+        IdMatchObject idMatchObject = request.getObject();
+        String sorIdentifierValue = idMatchObject.getSorIdentifierValue();
+        IdMatchAttributesType attributes = idMatchObject.getAttributes();
         String givenName = getValue(attributes, ATTR_GIVEN_NAME);
         String familyName = getValue(attributes, ATTR_FAMILY_NAME);
         String dateOfBirth = getValue(attributes, ATTR_DATE_OF_BIRTH);
         String nationalId = getValue(attributes, ATTR_NATIONAL_ID);
         LOGGER.info("Looking for {}:{}:{}:{}", givenName, familyName, dateOfBirth, nationalId);
 
+        Record existingRecord = recordsMap.get(sorIdentifierValue);
+        if (existingRecord != null && existingRecord.referenceId != null) {
+            LOGGER.info("Existing record found, with reference ID of {}:\n{}", existingRecord.referenceId, existingRecord);
+            return MatchingResult.forReferenceId(existingRecord.referenceId);
+        }
+
+        Record currentRecord;
+        if (existingRecord == null) {
+            currentRecord = addRecord(idMatchObject);
+        } else {
+            currentRecord = updateRecord(existingRecord, idMatchObject);
+        }
+
         // 1. familyName + dateOfBirth + nationalId match -> automatic match
-        Set<String> fullMatch = records.stream()
+        Set<String> fullMatch = recordsMap.values().stream()
                 .filter(r ->
                         r.hasReferenceId()
                                 && r.matchesFamilyName(familyName)
@@ -77,12 +96,14 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
         if (!fullMatch.isEmpty()) {
             LOGGER.info("Full match(es):\n{}", String.join("\n", fullMatch));
             assertThat(fullMatch).as("Fully matching reference IDs").hasSize(1);
-            return MatchingResult.forReferenceId(fullMatch.iterator().next());
+            String referenceId = fullMatch.iterator().next();
+            currentRecord.referenceId = referenceId;
+            return MatchingResult.forReferenceId(referenceId);
         }
 
         // 2. nationalId match without the others -> manual correlation
         // 3. givenName + familyName + dateOfBirth match -> manual correlation
-        List<Record> approximateMatches = records.stream()
+        List<Record> approximateMatches = recordsMap.values().stream()
                 .filter(r -> r.hasReferenceId()
                         && (r.matchesNationalId(nationalId)
                         || r.matchesGivenName(givenName) && r.matchesFamilyName(familyName) && r.matchesDateOfBirth(dateOfBirth)))
@@ -93,29 +114,62 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
             Collection<PotentialMatch> potentialMatches = approximateMatches.stream()
                     .map(this::createPotentialMatch)
                     .collect(Collectors.toCollection(HashSet::new));
-            Record existingPendingMatch = getSamePendingMatch(givenName, familyName, dateOfBirth, nationalId);
-            String matchId;
-            if (existingPendingMatch != null) {
-                matchId = existingPendingMatch.matchId;
-            } else {
-                matchId = String.valueOf(matchIdCounter.getAndIncrement());
-                records.add(
-                        new Record(attributes, null, matchId));
+
+            if (currentRecord.matchId == null) {
+                currentRecord.matchId = String.valueOf(matchIdCounter.getAndIncrement());
             }
-            // "no match" potential match
+            // "no match" option
             potentialMatches.add(
                     new PotentialMatch(
                             50,
                             null,
-                            request.getObject().getAttributes()));
-            return MatchingResult.forUncertain(matchId, potentialMatches);
+                            idMatchObject.getAttributes()));
+            return MatchingResult.forUncertain(currentRecord.matchId, potentialMatches);
         }
 
         LOGGER.info("No match");
         // No match (for sure)
-        String referenceId = UUID.randomUUID().toString();
-        records.add(new Record(attributes, referenceId, null));
-        return MatchingResult.forReferenceId(referenceId);
+        currentRecord.referenceId = UUID.randomUUID().toString();
+        return MatchingResult.forReferenceId(currentRecord.referenceId);
+    }
+
+    @Override
+    public void update(@NotNull IdMatchObject idMatchObject, @Nullable String referenceId, @NotNull OperationResult result)
+            throws CommunicationException, SchemaException, SecurityViolationException {
+
+        LOGGER.info("Updating:\n{}", idMatchObject.debugDump(1));
+
+        Record existingRecord =
+                Objects.requireNonNull(
+                        recordsMap.get(idMatchObject.getSorIdentifierValue()),
+                        () -> "No record for SOR identifier value: " + idMatchObject.getSorIdentifierValue());
+
+        // It looks like COmanage Match ignores referenceId when updating a record. So neither do we.
+        updateRecord(existingRecord, idMatchObject);
+    }
+
+    private Record addRecord(@NotNull IdMatchObject idMatchObject) {
+        Record newRecord = new Record(
+                idMatchObject.getSorIdentifierValue(),
+                idMatchObject.getAttributes(),
+                null,
+                null);
+        recordsMap.put(
+                idMatchObject.getSorIdentifierValue(),
+                newRecord);
+        return newRecord;
+    }
+
+    private Record updateRecord(Record existing, @NotNull IdMatchObject idMatchObject) {
+        Record newRecord = new Record(
+                idMatchObject.getSorIdentifierValue(),
+                idMatchObject.getAttributes(),
+                existing.referenceId,
+                existing.matchId);
+        recordsMap.put(
+                idMatchObject.getSorIdentifierValue(),
+                newRecord);
+        return newRecord;
     }
 
     private PotentialMatch createPotentialMatch(Record matchingRecord) {
@@ -125,26 +179,14 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
                 matchingRecord.getAttributes());
     }
 
-    private Record getSamePendingMatch(String givenName, String familyName, String dateOfBirth, String nationalId) {
-        List<Record> equalPendingRecords = records.stream()
-                .filter(r -> r.referenceId == null
-                        && r.matchesGivenName(givenName)
-                        && r.matchesFamilyName(familyName)
-                        && r.matchesDateOfBirth(dateOfBirth)
-                        && r.matchesNationalId(nationalId))
-                .collect(Collectors.toList());
-        return MiscUtil.extractSingleton(
-                equalPendingRecords,
-                () -> new IllegalStateException("Multiple equal pending records: " + equalPendingRecords));
-    }
-
     @Override
-    public void resolve(
-            @NotNull IdMatchObject idMatchObject, @Nullable String matchRequestId,
+    public @NotNull String resolve(
+            @NotNull IdMatchObject idMatchObject,
+            @Nullable String matchRequestId,
             @Nullable String referenceId,
             @NotNull OperationResult result) {
         argCheck(matchRequestId != null, "Match request ID must be provided");
-        var matching = records.stream()
+        var matching = recordsMap.values().stream()
                 .filter(r -> r.matchesMatchRequestId(matchRequestId))
                 .collect(Collectors.toList());
         var singleMatching = MiscUtil.extractSingletonRequired(
@@ -153,6 +195,7 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
                 () -> new IllegalArgumentException("No record with match request ID " + matchRequestId));
         singleMatching.referenceId = referenceId != null ?
                 referenceId : UUID.randomUUID().toString();
+        return singleMatching.referenceId;
     }
 
     private static String getValue(IdMatchAttributesType attributes, String name) {
@@ -166,28 +209,40 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
     }
 
     /** Used for manual setup of the matcher state. */
-    public void addRecord(@NotNull ShadowAttributesType attributes, @Nullable String referenceId, @Nullable String matchId)
+    public void addRecord(
+            @NotNull String sorIdentifierValue,
+            @NotNull ShadowAttributesType attributes,
+            @Nullable String referenceId,
+            @Nullable String matchId)
             throws SchemaException {
         IdMatchAttributesType repackaged =
                 IdMatchObject.create("dummy", attributes).getAttributes();
-        addRecord(repackaged, referenceId, matchId);
+        addRecord(sorIdentifierValue, repackaged, referenceId, matchId);
     }
 
     /** Used for manual setup of the matcher state. */
-    public void addRecord(@NotNull IdMatchAttributesType attributes, @Nullable String referenceId, @Nullable String matchId) {
-        records.add(
-                new Record(attributes, referenceId, matchId));
+    public void addRecord(
+            @NotNull String sorIdentifierValue,
+            @NotNull IdMatchAttributesType attributes,
+            @Nullable String referenceId,
+            @Nullable String matchId) {
+        recordsMap.put(
+                sorIdentifierValue,
+                new Record(sorIdentifierValue, attributes, referenceId, matchId));
     }
 
     private static class Record {
-        private final IdMatchAttributesType attributes;
+        @NotNull private final String sorIdentifierValue;
+        @NotNull private final IdMatchAttributesType attributes;
         private String referenceId;
-        private final String matchId;
+        private String matchId;
 
         private Record(
+                @NotNull String sorIdentifierValue,
                 @NotNull IdMatchAttributesType attributes,
                 String referenceId,
                 String matchId) {
+            this.sorIdentifierValue = sorIdentifierValue;
             this.attributes = attributes;
             this.referenceId = referenceId;
             this.matchId = matchId;
@@ -219,6 +274,16 @@ public class DummyIdMatchServiceImpl implements IdMatchService {
 
         public @NotNull IdMatchAttributesType getAttributes() {
             return attributes;
+        }
+
+        @Override
+        public String toString() {
+            return "Record{" +
+                    "sorIdentifierValue='" + sorIdentifierValue + '\'' +
+                    ", attributes=" + attributes +
+                    ", referenceId='" + referenceId + '\'' +
+                    ", matchId='" + matchId + '\'' +
+                    '}';
         }
     }
 }

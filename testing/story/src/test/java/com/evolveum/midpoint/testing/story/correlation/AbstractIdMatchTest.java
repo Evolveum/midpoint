@@ -7,41 +7,39 @@
 
 package com.evolveum.midpoint.testing.story.correlation;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
 
 import java.io.File;
 import java.io.IOException;
-
-import com.evolveum.midpoint.model.api.CaseService;
-import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
-
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
-import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.CsvResource;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.TestTask;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Here we test the correlation that uses an ID Match implementation (real or dummy one).
  *
  * There are two source systems: `SIS` (Student Information System) and `HR` (Human Resources).
- * They provide accounts using import, live sync, and reconciliation activities.
+ * But only `SIS` is currently implemented here.
  */
 public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
 
@@ -87,17 +85,13 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
     static final TestTask TASK_IMPORT_SIS = new TestTask(TEST_DIR, "task-import-sis.xml",
             "95ebbf1e-9c71-4870-a1fb-dc47ce6856c9", 30000);
 
+    private static final TestTask TASK_UPDATE_SIS = new TestTask(TEST_DIR, "task-update-sis.xml",
+            "3fd6d6a8-4cd3-4d46-bdca-bec123dbd507", 30000);
+
     private static final String NS_EXT = "http://example.com/idmatch";
     private static final ItemName EXT_REFERENCE_ID = new ItemName(NS_EXT, "referenceId");
 
-    @Autowired CorrelationCaseManager correlationCaseManager;
-    @Autowired CaseService caseService;
-
-    /** This is the initialized object (retrieved from the repo). */
-    private ResourceType resourceSis;
-
     private UserType john;
-    private UserType mary;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -120,12 +114,10 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         addObject(USER_ALICE, initTask, initResult); // approver of correlation operators org - not to be included in the case
         assignOrg(USER_ADMINISTRATOR_OID, ORG_CORRELATION_OPERATORS.oid, initTask, initResult);
 
-        RESOURCE_SIS.initialize(initTask, initResult);
-        assertSuccess(
-                modelService.testResource(RESOURCE_SIS.oid, initTask));
-        resourceSis = repositoryService.getObject(ResourceType.class, RESOURCE_SIS.oid, null, initResult).asObjectable();
+        RESOURCE_SIS.initializeAndTest(this, initTask, initResult);
 
         TASK_IMPORT_SIS.initialize(this, initTask, initResult); // importing in closed state
+        TASK_UPDATE_SIS.initialize(this, initTask, initResult); // importing in closed state
     }
 
     @Override
@@ -164,7 +156,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                         .assertTransitions(1)
                     .end();
 
-        mary = findUserByUsername("smith1").asObjectable();
+        UserType mary = findUserByUsername("smith1").asObjectable();
         assertUser(mary, "Mary after")
                 .display()
                 .assertFullName("Mary Smith")
@@ -313,7 +305,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                 .assertLinks(2, 0);
         // @formatter:on
 
-        PrismObject<ShadowType> newShadow = findShadowByPrismName("4", resourceSis.asPrismObject(), result);
+        PrismObject<ShadowType> newShadow = getShadow("4", result);
 
         assertShadow(newShadow, "after")
                 .display()
@@ -357,7 +349,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ShadowType newShadow = findShadowByPrismName("4", resourceSis.asPrismObject(), result).asObjectable();
+        ShadowType newShadow = getShadow("4", result).asObjectable();
         CaseType correlationCase = java.util.Objects.requireNonNull(
                 correlationCaseManager.findCorrelationCase(newShadow, true, result));
         WorkItemId workItemId = WorkItemId.of(correlationCase.getWorkItem().get(0));
@@ -389,7 +381,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                 .assertLinks(3, 0);
         // @formatter:on
 
-        PrismObject<ShadowType> newShadowAfter = findShadowByPrismName("4", resourceSis.asPrismObject(), result);
+        PrismObject<ShadowType> newShadowAfter = getShadow("4", result);
         assertShadow(newShadowAfter, "after")
                 .display()
                 .assertSynchronizationSituation(LINKED)
@@ -448,22 +440,21 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
     }
 
     /**
-     * Manually resolvable ambiguity (two options) - will be resolved to existing person.
+     * Manually resolvable ambiguity (two options) - will be resolved to new person.
      *
      * A new (different) case should be created.
      */
-    @Test(enabled = false)
-    public void test150ImportIanTwoOptions() throws CommonException, IOException {
-        given();
+    @Test
+    public void test150ImportJohnTwoOptions() throws CommonException, IOException {
         OperationResult result = getTestOperationResult();
 
-        // National ID without the last four digits. The algorithm should stop and ask the operator.
-        RESOURCE_SIS.appendLine("5,Ian,Smith,2004-02-06,0402060000,ian@evolveum.com");
+        given("different national ID, same name and date of birth. (To be consulted with operator.)");
+        RESOURCE_SIS.appendLine("6,John,Smith,2004-02-06,040206/8824,sw-eng-doctoral");
 
-        when();
+        when("the task is executed");
         TASK_IMPORT_SIS.rerun(result);
 
-        then();
+        then("a case should be created");
         // @formatter:off
         TASK_IMPORT_SIS.assertAfter()
                 .assertClosed()
@@ -483,19 +474,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                     .end();
         // @formatter:on
 
-        assertUser(findUserByEmail("ian@evolveum.com"), "Ian after")
-                .display()
-                .assertName(john.getName().getOrig()) // unchanged
-                .assertGivenName("Ian") // unchanged
-                .assertEmployeeNumber("4"); // unchanged
-
-        assertUser(findUserByEmail("mary@evolveum.com"), "Mary after")
-                .display()
-                .assertName(mary.getName().getOrig()) // unchanged
-                .assertGivenName("Mary") // unchanged
-                .assertEmployeeNumber("2"); // unchanged
-
-        PrismObject<ShadowType> newShadow = findShadowByPrismName("5", resourceSis.asPrismObject(), result);
+        PrismObject<ShadowType> newShadow = getShadow("6", result);
 
         assertShadow(newShadow, "after")
                 .display()
@@ -511,24 +490,121 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                 .display()
                 .assertOpen()
                 .workItems()
-                    .assertWorkItems(1);
+                    .assertWorkItems(2);
         // @formatter:on
 
         var xml = prismContext.xmlSerializer().serialize(correlationCase.asPrismObject());
         displayValue("Case XML", xml);
     }
 
-    private @NotNull UserType findUserByEmail(@NotNull String email) throws SchemaException {
-        return MiscUtil.extractSingletonRequired(
-                repositoryService.searchObjects(
-                        UserType.class,
-                        queryFor(UserType.class)
-                                .item(UserType.F_EMAIL_ADDRESS).eq(email)
-                                .build(),
-                        null,
-                        getTestOperationResult()),
-                () -> new AssertionError("Multiple users with email: " + email),
-                () -> new AssertionError("No user with email: " + email))
-                .asObjectable();
+    /**
+     * Two accounts are updated:
+     *
+     * 1) account #4 (i.e. "4,John,Smith,2004-02-06,040206,e-eng") is updated to national ID of "111111" and last name of "S",
+     * 2) account #6 (i.e. "6,John,Smith,2004-02-06,040206/8824,sw-eng-doctoral") to national ID "222222" and last name of "T".
+     *
+     * The former is an example of resolved case, the latter of unresolved one.
+     *
+     * The immediate result for #4 is not visible: it was updated in the ID Match service.
+     *
+     * But the #6 should be resolved, as the update operation for uncorrelated shadows is implemented (in midPoint)
+     * as just another correlation attempt. We check that.
+     */
+    @Test
+    public void test200UpdateTwoAccounts() throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("accounts #4 and #6 are updated on SIS");
+        modifyNationalId("4", "nationalId", "111111", task, result);
+        modifyNationalId("4", "lastName", "S", task, result);
+        modifyNationalId("6", "nationalId", "222222", task, result);
+        modifyNationalId("6", "lastName", "T", task, result);
+
+        when("update task is run");
+        TASK_UPDATE_SIS.rerun(result);
+
+        then("the status of the task should be OK");
+        // @formatter:off
+        TASK_UPDATE_SIS.assertAfter()
+                .assertClosed()
+                .assertSuccess();
+        // @formatter:on
+
+        and("#6 should be correlated now");
+        assertShadowAfter(getShadow("6", result))
+                .assertHasMatchReferenceId()
+                .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
+                .assertSynchronizationSituation(UNMATCHED);
+
+        // TODO case close timestamp should be set (it is not now!)
+    }
+
+    private void modifyNationalId(String uid, String attrName, String newValue, Task task, OperationResult result)
+            throws CommonException {
+        provisioningService.modifyObject(
+                ShadowType.class,
+                getShadow(uid, result).getOid(),
+                deltaFor(ShadowType.class)
+                        .item(
+                                ItemPath.create(ShadowType.F_ATTRIBUTES, attrName),
+                                createStringDefinition(attrName))
+                        .replace(newValue)
+                        .asItemDeltas(),
+                null,
+                null,
+                task,
+                result);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private PrismPropertyDefinition<String> createStringDefinition(String itemName) {
+        return prismContext.definitionFactory()
+                .createPropertyDefinition(new QName(itemName), DOMUtil.XSD_STRING);
+    }
+
+    /**
+     * To verify that #4 has been updated, let us correlate another account with the same data.
+     * It should got linked to "smith2".
+     */
+    @Test
+    public void test210CorrelateAccountWithID111111() throws CommonException, IOException {
+        OperationResult result = getTestOperationResult();
+
+        given("new account (#210) with same data as updated #4");
+        RESOURCE_SIS.appendLine("210,John,S,2004-02-06,111111,mat-eng");
+
+        when("import task is run");
+        TASK_IMPORT_SIS.rerun(result);
+
+        PrismObject<ShadowType> newShadow = getShadow("210", result);
+
+        then("the account should have EXISTING_OWNER / LINKED");
+        assertShadowAfter(newShadow)
+                .assertCorrelationSituation(CorrelationSituationType.EXISTING_OWNER)
+                .assertSynchronizationSituation(LINKED);
+
+        and("smith2 should have account #210 linked");
+        // @formatter:off
+        TASK_IMPORT_SIS.assertAfter()
+                .assertClosed()
+                .assertSuccess();
+
+        assertUser(findUserByUsername("smith2"), "John after")
+                .display()
+                .assertFullName("John Smith") // unchanged
+                .assignments()
+                    .assertAssignments(4)
+                    .assertOrg(ORG_PROGRAM_SW_ENG.oid)
+                    .assertOrg(ORG_PROGRAM_MATH.oid)
+                    .assertOrg(ORG_PROGRAM_E_ENG.oid)
+                    .assertOrg(ORG_PROGRAM_MAT_ENG.oid)
+                .end()
+                .assertLinks(4, 0);
+        // @formatter:on
+    }
+
+    private PrismObject<ShadowType> getShadow(String name, OperationResult result) throws SchemaException {
+        return findShadowByPrismName(name, RESOURCE_SIS.getObject(), result);
     }
 }

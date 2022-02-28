@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page;
 
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -13,11 +15,8 @@ import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
         urls = {
@@ -51,18 +50,4 @@ public class PageRoleManagement extends PageBaseSystemConfiguration {
         return RoleManagementConfigurationType.class;
     }
 
-//    @Override
-//    protected List<ITab> createTabs() {
-//        List<ITab> tabs = new ArrayList<>();
-//        tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.roleManagement.title")) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public WebMarkupContainer getPanel(String panelId) {
-//                return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.COMPLEX_TYPE);
-//            }
-//        });
-//        return tabs;
-//    }
 }

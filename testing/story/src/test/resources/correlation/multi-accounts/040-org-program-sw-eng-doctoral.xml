@@ -1,0 +1,19 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     oid="474c95ce-59f0-4104-8a64-f3d0406234f0">
+    <name>temp</name>
+    <assignment>
+        <targetRef oid="cc5626d8-1347-46b9-971d-f03dc129991e" type="ArchetypeType"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="d62065fb-651a-453f-9884-67d271e1fc2b" type="OrgType"/>
+    </assignment>
+    <displayName>Software Engineering (doctoral study)</displayName>
+    <identifier>sw-eng-doctoral</identifier>
+</org>

@@ -6,9 +6,10 @@
  */
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RECIPIENT;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -164,7 +165,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         //  But this will also mean rewriting existing tests from legacy to new transport style.
         // String transportName = transport.getName();
 
-        String address = getRecipientAddress(transport, recipient);
+        String address = getRecipientAddress(event, transport, recipient, task, result);
         if (address == null) {
             getLogger().debug("Skipping notification as no recipient address was provided for transport={}", transportName);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No recipient address provided be notifier or transport");
@@ -204,8 +205,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             String subjectPrefix = notifierConfig.getSubjectPrefix();
             String defaultSubject = getSubject(event, notifierConfig, transportName, task, result);
             subject = Strings.isNullOrEmpty(subjectPrefix)
-                    ? subjectPrefix + Strings.nullToEmpty(defaultSubject) // here we don't want nulls, but ""
-                    : defaultSubject; // can be null
+                    ? defaultSubject // can be null
+                    : subjectPrefix + Strings.nullToEmpty(defaultSubject); // here we don't want nulls, but ""
         }
 
         List<NotificationMessageAttachmentType> attachments = new ArrayList<>();
@@ -250,18 +251,31 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     }
 
     @Nullable
-    private String getRecipientAddress(Transport<?> transport, RecipientExpressionResultType recipient) {
+    private String getRecipientAddress(E event, Transport<?> transport,
+            RecipientExpressionResultType recipient, Task task, OperationResult result) {
         String address = recipient.getAddress();
         if (address == null) {
             ObjectReferenceType recipientRef = recipient.getRecipientRef();
             if (recipientRef != null) {
                 Objectable object = recipientRef.asReferenceValue().getOriginObject();
                 if (object instanceof FocusType) {
-                    address = transport.getDefaultRecipientAddress((FocusType) object);
+                    return getRecipientAddressFromFocus(event, transport, (FocusType) object, task, result);
                 }
             }
         }
         return address;
+    }
+
+    private String getRecipientAddressFromFocus(E event,
+            Transport<?> transport, FocusType focus, Task task, OperationResult result) {
+        ExpressionType recipientAddressExpression = transport.getConfiguration().getRecipientAddressExpression();
+        if (recipientAddressExpression != null) {
+            VariablesMap variables = new VariablesMap();
+            variables.put(VAR_RECIPIENT, focus, FocusType.class);
+            return getStringFromExpression(event, variables, task, result,
+                    recipientAddressExpression, "recipient address expression", true);
+        }
+        return transport.getDefaultRecipientAddress(focus);
     }
 
     @Nullable
@@ -294,6 +308,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                 if (recipientRef != null) {
                     MessageTemplateContentType localizedContent = findLocalizedContent(messageTemplate, recipientRef);
                     if (localizedContent != null) {
+                        inheritAttachmentSetupFromDefaultContent(localizedContent, content);
                         content = localizedContent; // otherwise it's default content
                     }
                 }
@@ -303,16 +318,34 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         return null;
     }
 
+    private void inheritAttachmentSetupFromDefaultContent(
+            MessageTemplateContentType localizedContent, MessageTemplateContentType defaultContent) {
+        List<NotificationMessageAttachmentType> localizedAttachments = localizedContent.getAttachment();
+        List<NotificationMessageAttachmentType> defaultAttachments = defaultContent.getAttachment();
+        if (localizedAttachments.isEmpty() && !defaultAttachments.isEmpty()) {
+            localizedAttachments.addAll(defaultAttachments);
+        }
+
+        ExpressionType defaultAttachmentExpression = defaultContent.getAttachmentExpression();
+        if (localizedContent.getAttachmentExpression() == null && defaultAttachmentExpression != null) {
+            localizedContent.setAttachmentExpression(defaultAttachmentExpression);
+        }
+    }
+
     private MessageTemplateContentType findLocalizedContent(
             @NotNull MessageTemplateType messageTemplate, @NotNull ObjectReferenceType recipientRef) {
-        FocusType recipientFocus = (FocusType) recipientRef.getObjectable();
+        FocusType recipientFocus = (FocusType) recipientRef.asReferenceValue().getOriginObject();
         if (recipientFocus == null) {
             // TODO can focus be possibly null here? shouldn't it be resolved already if ref is not null?
             return null;
         }
 //        Locale recipientLocale = LocaleUtils.toLocale(
-        String recipientLocale = Objects.requireNonNullElse(
-                recipientFocus.getPreferredLanguage(), recipientFocus.getLocale());
+        // TODO: This order or locale first? This is how it's used in GUI.
+        //  Also, utility method to get Locale from focus should probably be extracted, but where to?
+        String recipientLocale = recipientFocus.getPreferredLanguage();
+        if (recipientLocale == null) {
+            recipientLocale = recipientFocus.getLocale();
+        }
         if (recipientLocale == null) {
             return null;
         }
@@ -431,16 +464,16 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     private String getStringFromExpression(E event, VariablesMap variables,
             Task task, OperationResult result, ExpressionType expression, String expressionTypeName, boolean canBeNull) {
         if (expression != null) {
-            List<String> contentTypeList = evaluateExpressionChecked(expression, variables,
-                    expressionTypeName + " expression", task, result);
-            if (contentTypeList == null || contentTypeList.isEmpty()) {
+            List<String> resultValues = evaluateExpressionChecked(
+                    expression, variables, expressionTypeName + " expression", task, result);
+            if (resultValues == null || resultValues.isEmpty()) {
                 getLogger().debug(expressionTypeName + " expression for event " + event.getId() + " returned nothing.");
                 return canBeNull ? null : "";
             }
-            if (contentTypeList.size() > 1) {
+            if (resultValues.size() > 1) {
                 getLogger().warn(expressionTypeName + " expression for event " + event.getId() + " returned more than 1 item.");
             }
-            return contentTypeList.get(0);
+            return resultValues.get(0);
         } else {
             return null;
         }
@@ -448,8 +481,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
     private String getBodyFromExpression(E event, @NotNull ExpressionType bodyExpression, VariablesMap variables,
             Task task, OperationResult result) {
-        List<String> bodyList = evaluateExpressionChecked(bodyExpression, variables,
-                "body expression", task, result);
+        List<String> bodyList = evaluateExpressionChecked(
+                bodyExpression, variables, "body expression", task, result);
         if (bodyList == null || bodyList.isEmpty()) {
             getLogger().warn("Body expression for event {} returned nothing.", event.getId());
             return null;

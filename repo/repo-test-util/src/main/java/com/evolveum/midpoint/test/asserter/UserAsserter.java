@@ -294,6 +294,16 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
         return this;
     }
 
+    public UserAsserter<RA> assertEmailAddress(String expected) {
+        assertEquals("Wrong emailAddress in "+desc(), expected, getObject().asObjectable().getEmailAddress());
+        return this;
+    }
+
+    public UserAsserter<RA> assertTelephoneNumber(String expected) {
+        assertEquals("Wrong telephoneNumber in "+desc(), expected, getObject().asObjectable().getTelephoneNumber());
+        return this;
+    }
+
     public UserAsserter<RA> assertJpegPhoto() {
         PrismProperty<Object> photoProperty = getObject().findProperty(UserType.F_JPEG_PHOTO);
         assertTrue("Missing jpegPhoto in "+desc(), photoProperty != null &&

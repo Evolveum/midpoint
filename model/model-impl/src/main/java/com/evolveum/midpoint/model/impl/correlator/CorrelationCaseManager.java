@@ -18,6 +18,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.cases.api.CaseEngine;
 import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.cases.api.util.PerformerCommentsFormatter;
+import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -166,10 +167,6 @@ public class CorrelationCaseManager {
         }
     }
 
-    private String getWorkItemName(ShadowType resourceObject) {
-        return "Correlate " + getKindLabel(resourceObject) + " '" + resourceObject.getName() + "'";
-    }
-
     private ObjectReferenceType createArchetypeRef() {
         return new ObjectReferenceType()
                 .oid(SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value())
@@ -283,15 +280,14 @@ public class CorrelationCaseManager {
             return;
         }
 
+        Correlator correlator = correlationService
+                .instantiateCorrelator(aCase.asPrismObject(), task, result);
+
         recordCaseCompletionInShadow(aCase, task, result);
 
-        OperationResult subResult = performCompletionInCorrelator(aCase, outcomeUri, task, result);
-        if (!subResult.isSuccess()) {
-            LOGGER.warn("Not closing the case {} because completion in correlator was not successful", aCase);
-            return;
-        }
-
         caseCloser.closeCaseInRepository(result);
+
+        performCompletionInCorrelator(aCase, outcomeUri, correlator, task, result);
 
         // As a convenience, we try to re-import the object. Technically this is not a part of the correlation case processing.
         // Whether we do this should be made configurable (in the future).
@@ -307,18 +303,34 @@ public class CorrelationCaseManager {
 
     private void recordCaseCompletionInShadow(CaseType aCase, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
+
         String shadowOid = CorrelationCaseUtil.getShadowOidRequired(aCase);
+        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
+        ObjectReferenceType resultingOwnerRef =
+                CloneUtil.clone(
+                        CorrelationCaseUtil.getResultingOwnerRef(aCase));
+        CorrelationSituationType situation = resultingOwnerRef != null ?
+                CorrelationSituationType.EXISTING_OWNER : CorrelationSituationType.NO_OWNER;
+
         try {
             repositoryService.modifyObject(
                     ShadowType.class,
                     shadowOid,
                     prismContext.deltaFor(ShadowType.class)
                             .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_CLOSE_TIMESTAMP)
-                            .replace(XmlTypeConverter.createXMLGregorianCalendar())
+                            .replace(now)
+                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP)
+                            .replace(now)
                             .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_PERFORMER_REF)
                             .replaceRealValues(getPerformerRefs(aCase))
                             .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_PERFORMER_COMMENT)
                             .replaceRealValues(getPerformerComments(aCase, task, result))
+                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_OWNER_OPTIONS)
+                            .replace() // This might be reconsidered
+                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_RESULTING_OWNER)
+                            .replace(resultingOwnerRef)
+                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION)
+                            .replace(situation)
                             .asItemDeltas(),
                     result);
         } catch (SchemaException | ObjectAlreadyExistsException e) {
@@ -369,23 +381,24 @@ public class CorrelationCaseManager {
                 && outcomeUri.equals(workItem.getOutput().getOutcome());
     }
 
-    private OperationResult performCompletionInCorrelator(
-            @NotNull CaseType aCase, @NotNull String outcomeUri, Task task, OperationResult parentResult)
+    private void performCompletionInCorrelator(
+            @NotNull CaseType aCase,
+            @NotNull String outcomeUri,
+            @NotNull Correlator correlator,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OP_PERFORM_COMPLETION_IN_CORRELATOR);
         try {
             applyShadowDefinition(aCase, task, result);
-            correlationService
-                    .instantiateCorrelator(aCase.asPrismObject(), task, result)
-                    .resolve(aCase, outcomeUri, task, result);
+            correlator.resolve(aCase, outcomeUri, task, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
         } finally {
             result.close();
         }
-        return result;
     }
 
     /**

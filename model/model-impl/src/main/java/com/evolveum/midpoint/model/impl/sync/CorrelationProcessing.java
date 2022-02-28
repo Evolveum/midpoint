@@ -20,15 +20,12 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowCorrelationStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,6 +47,8 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 class CorrelationProcessing<F extends FocusType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationProcessing.class);
+
+    private static final String OP_CORRELATE = CorrelationProcessing.class.getName() + ".correlate";
 
     @NotNull private final SynchronizationContext<F> syncCtx;
 
@@ -91,37 +90,99 @@ class CorrelationProcessing<F extends FocusType> {
                 syncCtx.getObjectTypeDefinition(),
                 asObjectable(syncCtx.getSystemConfiguration()),
                 syncCtx.getTask());
+        syncCtx.setCorrelationContext(correlationContext);
         this.rootCorrelatorContext =
                 CorrelatorContext.create(syncCtx.getCorrelators().clone(), syncCtx.getObjectSynchronizationBean());
         this.thisCorrelationStart = XmlTypeConverter.createXMLGregorianCalendar();
     }
 
-    public CorrelationResult process(OperationResult result) throws CommonException {
+    @NotNull public CorrelationResult correlate(OperationResult parentResult) throws CommonException {
 
-        CorrelationResult correlationResult = executeRootCorrelator(result);
+        assert syncCtx.getLinkedOwner() == null;
 
-        applyResultToShadow(correlationResult);
-
-        if (correlationResult.isUncertain()) {
-            processUncertainResult(result);
-        } else if (correlationResult.isError()) {
-            // Nothing to do here
-        } else {
-            processFinalResult(result);
+        CorrelationResult existing = getResultFromExistingState(parentResult);
+        if (existing != null) {
+            LOGGER.debug("Result determined from existing correlation state in shadow: {}", existing.getSituation());
+            return existing;
         }
-        return correlationResult;
+
+        OperationResult result = parentResult.subresult(OP_CORRELATE)
+                .build();
+        try {
+            CorrelationResult correlationResult = correlateInRootCorrelator(result);
+            applyResultToShadow(correlationResult);
+
+            if (correlationResult.isUncertain()) {
+                processUncertainResult(result);
+            } else if (correlationResult.isError()) {
+                // Nothing to do here
+            } else {
+                processFinalResult(result);
+            }
+            result.addArbitraryObjectAsReturn("correlationResult", correlationResult);
+            return correlationResult;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
+        }
     }
 
-    private @NotNull CorrelationResult executeRootCorrelator(OperationResult result) {
+    private CorrelationResult getResultFromExistingState(OperationResult result) throws SchemaException {
+        ShadowType shadow = syncCtx.getShadowedResourceObject().asObjectable();
+        if (shadow.getCorrelation() == null) {
+            return null;
+        }
+        CorrelationSituationType situation = shadow.getCorrelation().getSituation();
+        if (situation == CorrelationSituationType.EXISTING_OWNER && shadow.getCorrelation().getResultingOwner() != null) {
+            ObjectType owner = resolveExistingOwner(shadow.getCorrelation().getResultingOwner(), result);
+            if (owner != null) {
+                return CorrelationResult.existingOwner(owner);
+            } else {
+                // Something is wrong. Let us try the correlation (again).
+                // TODO perhaps we should clear the correlation state from the shadow
+                return null;
+            }
+        } else if (situation == CorrelationSituationType.NO_OWNER) {
+            return CorrelationResult.noOwner();
+        } else {
+            // We need to do the correlation
+            return null;
+        }
+    }
 
-        syncCtx.setCorrelationContext(correlationContext);
+    private @Nullable ObjectType resolveExistingOwner(@NotNull ObjectReferenceType ownerRef, OperationResult result)
+            throws SchemaException {
+        try {
+            return beans.cacheRepositoryService.getObject(
+                            ObjectTypeUtil.getTargetClassFromReference(ownerRef),
+                            ownerRef.getOid(),
+                            null,
+                            result)
+                    .asObjectable();
+        } catch (ObjectNotFoundException e) {
+            LOGGER.error("Owner reference {} cannot be resolved", ownerRef, e);
+            return null;
+        }
+    }
+
+    @Experimental
+    void update(OperationResult result)
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        // We throw all exceptions from the correlator. We have no structure to return the exception in.
+        instantiateRootCorrelator(result)
+                .update(correlationContext, result);
+    }
+
+    private @NotNull CorrelationResult correlateInRootCorrelator(OperationResult result) {
 
         CorrelationResult correlationResult;
 
         try {
-            correlationResult =
-                    beans.correlatorFactoryRegistry.instantiateCorrelator(rootCorrelatorContext, task, result)
-                            .correlate(correlationContext, result);
+            correlationResult = instantiateRootCorrelator(result)
+                    .correlate(correlationContext, result);
         } catch (Exception e) { // Other kinds of Throwable are intentionally passed upwards
             // The exception will be (probably) rethrown, so the stack trace is not strictly necessary here.
             LoggingUtils.logException(LOGGER, "Correlation ended with an exception", e);
@@ -137,6 +198,11 @@ class CorrelationProcessing<F extends FocusType> {
         }
 
         return correlationResult;
+    }
+
+    @NotNull
+    private Correlator instantiateRootCorrelator(OperationResult result) throws ConfigurationException {
+        return beans.correlatorFactoryRegistry.instantiateCorrelator(rootCorrelatorContext, task, result);
     }
 
     private void processUncertainResult(OperationResult result) throws SchemaException {

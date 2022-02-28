@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType.*;
 
@@ -88,8 +89,16 @@ public class CorrelationResult implements Serializable, DebugDumpable {
         return owner;
     }
 
+    public @NotNull ObjectType getOwnerRequired() {
+        return Objects.requireNonNull(owner, "No existing owner");
+    }
+
     public @Nullable ResourceObjectOwnerOptionsType getOwnerOptions() {
         return ownerOptions;
+    }
+
+    public @NotNull ResourceObjectOwnerOptionsType getOwnerOptionsRequired() {
+        return Objects.requireNonNull(ownerOptions, "No owner options");
     }
 
     public boolean isUncertain() {
@@ -100,8 +109,16 @@ public class CorrelationResult implements Serializable, DebugDumpable {
         return situation == ERROR;
     }
 
+    public boolean isExistingOwner() {
+        return situation == EXISTING_OWNER;
+    }
+
+    public boolean isNoOwner() {
+        return situation == NO_OWNER;
+    }
+
     public boolean isDone() {
-        return situation == NO_OWNER || situation == EXISTING_OWNER;
+        return isExistingOwner() || isNoOwner();
     }
 
     @Override
@@ -123,6 +140,16 @@ public class CorrelationResult implements Serializable, DebugDumpable {
         return sb.toString();
     }
 
+    @Override
+    public String toString() {
+        return "CorrelationResult{" +
+                "situation=" + situation +
+                ", owner=" + owner +
+                ", ownerOptions=" + ownerOptions +
+                ", errorDetails=" + errorDetails +
+                '}';
+    }
+
     /**
      * Throws a {@link CommonException} or a {@link RuntimeException}, if the state is "error".
      * Normally returns otherwise.
@@ -131,6 +158,10 @@ public class CorrelationResult implements Serializable, DebugDumpable {
         if (errorDetails != null) {
             errorDetails.throwCommonOrRuntimeExceptionIfPresent();
         }
+    }
+
+    public @Nullable String getErrorMessage() {
+        return errorDetails != null ? errorDetails.message : null;
     }
 
     public enum Status {

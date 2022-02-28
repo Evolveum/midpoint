@@ -11,6 +11,9 @@ import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
@@ -35,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * A correlator based on an external service providing ID Match API.
  * (https://spaces.at.internet2.edu/display/cifer/SOR-Registry+Strawman+ID+Match+API)
  */
-class IdMatchCorrelator implements Correlator {
+class IdMatchCorrelator extends BaseCorrelator {
 
     private static final Trace LOGGER = TraceManager.getTrace(IdMatchCorrelator.class);
 
@@ -98,26 +101,38 @@ class IdMatchCorrelator implements Correlator {
     }
 
     @Override
-    public CorrelationResult correlate(
+    public @NotNull CorrelationResult correlateInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result) throws ConfigurationException, SchemaException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
 
-        LOGGER.trace("Correlating:\n{}", correlationContext.debugDumpLazily(1));
-
-        return new Correlation(correlationContext)
+        return new CorrelationOperation(correlationContext)
                 .execute(result);
     }
 
-    private class Correlation {
-        @NotNull private final ShadowType resourceObject;
-        @NotNull private final CorrelationContext correlationContext;
-        @NotNull private final Task task;
+    private class Operation {
 
-        Correlation(@NotNull CorrelationContext correlationContext) {
+        @NotNull final ShadowType resourceObject;
+        @NotNull final CorrelationContext correlationContext;
+        @NotNull final Task task;
+
+        Operation(@NotNull CorrelationContext correlationContext) {
             this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
             this.task = correlationContext.getTask();
+        }
+
+        IdMatchObject prepareIdMatchObjectFromContext() throws SchemaException {
+            return prepareIdMatchObject(
+                    correlationContext.getPreFocus(),
+                    correlationContext.getResourceObject());
+        }
+    }
+
+    private class CorrelationOperation extends Operation {
+
+        CorrelationOperation(@NotNull CorrelationContext correlationContext) {
+            super(correlationContext);
         }
 
         public CorrelationResult execute(OperationResult result)
@@ -126,9 +141,7 @@ class IdMatchCorrelator implements Correlator {
 
             MatchingRequest mRequest =
                     new MatchingRequest(
-                            prepareIdMatchObject(
-                                    correlationContext.getPreFocus(),
-                                    correlationContext.getResourceObject()));
+                            prepareIdMatchObjectFromContext());
             MatchingResult mResult = service.executeMatch(mRequest, result);
             LOGGER.trace("Matching result:\n{}", mResult.debugDumpLazily(1));
 
@@ -244,11 +257,41 @@ class IdMatchCorrelator implements Correlator {
     }
 
     @Override
+    public void update(@NotNull CorrelationContext correlationContext, @NotNull OperationResult result)
+            throws SchemaException, CommunicationException, SecurityViolationException {
+
+        LOGGER.trace("Updating:\n{}", correlationContext.debugDumpLazily(1));
+        new UpdateOperation(correlationContext)
+                .execute(result);
+    }
+
+    private class UpdateOperation extends Operation {
+
+        UpdateOperation(@NotNull CorrelationContext correlationContext) {
+            super(correlationContext);
+        }
+
+        public void execute(OperationResult result)
+                throws SchemaException, CommunicationException, SecurityViolationException {
+
+            IdMatchCorrelatorStateType correlatorState =
+                    ShadowUtil.getCorrelatorStateRequired(
+                            correlationContext.getResourceObject(), IdMatchCorrelatorStateType.class);
+
+            service.update(
+                    prepareIdMatchObjectFromContext(),
+                    correlatorState.getReferenceId(),
+                    result);
+        }
+    }
+
+    @Override
     public void resolve(
             @NotNull CaseType aCase,
             @NotNull String outcomeUri,
             @NotNull Task task,
-            @NotNull OperationResult result) throws SchemaException, CommunicationException, SecurityViolationException {
+            @NotNull OperationResult result)
+            throws SchemaException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
         ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(aCase);
         FocusType preFocus = CorrelatorUtil.getPreFocusFromCorrelationCase(aCase);
         IdMatchObject idMatchObject = prepareIdMatchObject(preFocus, shadow);
@@ -256,11 +299,41 @@ class IdMatchCorrelator implements Correlator {
         String matchRequestId = state.getMatchRequestId();
         String correlatedReferenceId = OwnerOptionIdentifier.fromStringValue(outcomeUri).getExistingOwnerId();
 
-        service.resolve(idMatchObject, matchRequestId, correlatedReferenceId, result);
+        @NotNull String assignedReferenceId = service.resolve(idMatchObject, matchRequestId, correlatedReferenceId, result);
+
+        setReferenceIdInShadow(shadow, assignedReferenceId, result);
+    }
+
+    private void setReferenceIdInShadow(ShadowType shadow, String referenceId, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        ItemPath referenceIdPath = ItemPath.create(
+                ShadowType.F_CORRELATION,
+                ShadowCorrelationStateType.F_CORRELATOR_STATE,
+                IdMatchCorrelatorStateType.F_REFERENCE_ID);
+        PrismPropertyDefinition<String> referenceIdDefinition = PrismContext.get().getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(IdMatchCorrelatorStateType.class)
+                .findPropertyDefinition(IdMatchCorrelatorStateType.F_REFERENCE_ID);
+
+        try {
+            beans.cacheRepositoryService.modifyObject(
+                    ShadowType.class,
+                    shadow.getOid(),
+                    PrismContext.get().deltaFor(ShadowType.class)
+                            .item(referenceIdPath, referenceIdDefinition).replace(referenceId)
+                            .asItemDeltas(),
+                    result);
+        } catch (ObjectAlreadyExistsException e) {
+            throw SystemException.unexpected(e, "while setting ID Match Reference ID");
+        }
     }
 
     private IdMatchObject prepareIdMatchObject(@NotNull FocusType preFocus, @NotNull ShadowType shadow) throws SchemaException {
         return new IdMatchObjectCreator(correlatorContext, preFocus, shadow)
                 .create();
+    }
+
+    @Override
+    protected Trace getLogger() {
+        return LOGGER;
     }
 }

@@ -28,6 +28,8 @@ class PreMappingsEvaluation<F extends FocusType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PreMappingsEvaluation.class);
 
+    private static final String OP_EVALUATE = PreMappingsEvaluation.class.getName() + ".evaluate";
+
     @NotNull private final SynchronizationContext<F> syncCtx;
     @NotNull private final F preFocus;
     @NotNull private final ModelBeans beans;
@@ -41,16 +43,26 @@ class PreMappingsEvaluation<F extends FocusType> {
     /**
      * We simply copy matching attributes from the resource object to the focus.
      */
-    public void evaluate(OperationResult result)
+    public void evaluate(OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
 
-        MappingEvaluationEnvironment env =
-                new MappingEvaluationEnvironment(
-                        "pre-inbounds", beans.clock.currentTimeXMLGregorianCalendar(), syncCtx.getTask());
-        new PreInboundsProcessing<>(syncCtx, beans, env, result)
-                .collectAndEvaluateMappings();
+        OperationResult result = parentResult.subresult(OP_EVALUATE)
+                .addParam("shadow", syncCtx.getShadowedResourceObject())
+                .build();
+        try {
+            MappingEvaluationEnvironment env =
+                    new MappingEvaluationEnvironment(
+                            "pre-inbounds", beans.clock.currentTimeXMLGregorianCalendar(), syncCtx.getTask());
+            new PreInboundsProcessing<>(syncCtx, beans, env, result)
+                    .collectAndEvaluateMappings();
 
-        LOGGER.debug("Pre-focus:\n{}", preFocus.debugDumpLazily(1));
+            LOGGER.debug("Pre-focus:\n{}", preFocus.debugDumpLazily(1));
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
+        }
     }
 }

@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -31,14 +32,14 @@ public class FullCorrelationContext {
     @NotNull public final ResourceType resource;
     @NotNull public final ResourceObjectTypeDefinition typeDefinition;
     @NotNull public final ObjectSynchronizationType synchronizationBean;
-    @NotNull public final CorrelatorsType correlators;
+    @NotNull public final CompositeCorrelatorType correlators;
 
     public FullCorrelationContext(
             @NotNull ShadowType shadow,
             @NotNull ResourceType resource,
             @NotNull ResourceObjectTypeDefinition typeDefinition,
             @NotNull ObjectSynchronizationType synchronizationBean,
-            @NotNull CorrelatorsType correlators) {
+            @NotNull CompositeCorrelatorType correlators) {
         this.shadow = shadow;
         this.resource = resource;
         this.typeDefinition = typeDefinition;
