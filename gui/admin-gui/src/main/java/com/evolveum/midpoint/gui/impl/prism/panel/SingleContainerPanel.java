@@ -99,9 +99,7 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
         } catch (SchemaException e) {
             LOGGER.error("Cannot create panel for {}, {}", getTypeName(), e.getMessage(), e);
             getSession().error("Cannot create panel for " + getTypeName()); // TODO opertion result? localization?
-
         }
-
     }
 
     //just temporary protected.

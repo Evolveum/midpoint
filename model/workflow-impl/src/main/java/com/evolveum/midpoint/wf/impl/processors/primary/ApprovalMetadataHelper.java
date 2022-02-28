@@ -9,6 +9,7 @@ package com.evolveum.midpoint.wf.impl.processors.primary;
 
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -60,12 +61,11 @@ public class ApprovalMetadataHelper {
     }
 
     /**
-     * See also {@link com.evolveum.midpoint.model.impl.lens.OperationalDataManager#applyAssignmentMetadataDelta(LensContext, ObjectDelta, XMLGregorianCalendar, Task)}.
+     * See also {@link OperationalDataManager#applyAssignmentMetadataDelta(LensContext, ObjectDelta, XMLGregorianCalendar, Task)}.
      */
-    @SuppressWarnings("JavadocReference")
     private void addAssignmentApprovalMetadataOnObjectModify(ObjectDelta<?> objectDelta, CaseType aCase,
             Task task, OperationResult result) throws SchemaException {
-        Collection<ObjectReferenceType> approvedBy = getApprovedBy(aCase, result);
+        Collection<ObjectReferenceType> approvedBy = getApprovedBy(aCase);
         Collection<String> comments = getApproverComments(aCase, task, result);
         Set<Long> processedIds = new HashSet<>();
         List<ItemDelta<?,?>> assignmentMetadataDeltas = new ArrayList<>();
@@ -74,6 +74,7 @@ public class ApprovalMetadataHelper {
             ItemPath.CompareResult comparison = deltaPath.compareComplex(SchemaConstants.PATH_ASSIGNMENT);
             if (comparison == EQUIVALENT) {
                 // whole assignment is being added/replaced (or deleted but we are not interested in that)
+                //noinspection unchecked
                 ContainerDelta<AssignmentType> assignmentDelta = (ContainerDelta<AssignmentType>)itemDelta;
                 for (PrismContainerValue<AssignmentType> assignmentContainerValue : emptyIfNull(assignmentDelta.getValuesToAdd())) {
                     addAssignmentCreationApprovalMetadata(assignmentContainerValue.asContainerable(), approvedBy, comments);
@@ -107,7 +108,7 @@ public class ApprovalMetadataHelper {
         }
         FocusType focus = (FocusType) objectable;
 
-        Collection<ObjectReferenceType> approvedBy = getApprovedBy(aCase, result);
+        Collection<ObjectReferenceType> approvedBy = getApprovedBy(aCase);
         Collection<String> comments = getApproverComments(aCase, task, result);
 
         for (AssignmentType assignment : focus.getAssignment()) {
@@ -137,7 +138,7 @@ public class ApprovalMetadataHelper {
                 .asItemDeltas();
     }
 
-    public Collection<String> getApproverComments(CaseType aCase, Task task, OperationResult result) throws SchemaException {
+    private Collection<String> getApproverComments(CaseType aCase, Task task, OperationResult result) throws SchemaException {
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
         PerformerCommentsFormattingType formatting = systemConfiguration != null &&
                 systemConfiguration.asObjectable().getWorkflowConfiguration() != null ?
@@ -154,7 +155,7 @@ public class ApprovalMetadataHelper {
         return rv;
     }
 
-    public Collection<ObjectReferenceType> getApprovedBy(CaseType aCase, OperationResult result) {
+    private Collection<ObjectReferenceType> getApprovedBy(CaseType aCase) {
         List<ObjectReferenceType> rv = new ArrayList<>();
         for (CaseWorkItemType workItem : aCase.getWorkItem()) {
             if (ApprovalUtils.isApproved(workItem.getOutput()) && workItem.getPerformerRef() != null) {
@@ -170,11 +171,11 @@ public class ApprovalMetadataHelper {
         if (aCase.getParentRef() == null) {
             List<ObjectReferenceType> rv = new ArrayList<>();
             for (CaseType subcase : miscHelper.getSubcases(aCase, result)) {
-                rv.addAll(getApprovedBy(subcase, result));
+                rv.addAll(getApprovedBy(subcase));
             }
             return ObjectTypeUtil.keepDistinctReferences(rv);
         } else {
-            return getApprovedBy(aCase, result);
+            return getApprovedBy(aCase);
         }
     }
 
@@ -190,6 +191,4 @@ public class ApprovalMetadataHelper {
             return getApproverComments(aCase, task, result);
         }
     }
-
-
 }

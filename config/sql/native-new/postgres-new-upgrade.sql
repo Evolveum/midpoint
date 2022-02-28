@@ -77,6 +77,25 @@ CREATE INDEX m_message_template_createTimestamp_idx ON m_message_template (creat
 CREATE INDEX m_message_template_modifyTimestamp_idx ON m_message_template (modifyTimestamp);
 $aa$);
 
+-- MID-7487 Identity matching
+call apply_change(4, $aa$
+CREATE TYPE CorrelationSituationType AS ENUM ('UNCERTAIN', 'EXISTING_OWNER', 'NO_OWNER', 'ERROR');
+$aa$);
+
+call apply_change(5, $aa$
+ALTER TABLE m_shadow
+ADD COLUMN correlationStartTimestamp TIMESTAMPTZ,
+ADD COLUMN correlationEndTimestamp TIMESTAMPTZ,
+ADD COLUMN correlationCaseOpenTimestamp TIMESTAMPTZ,
+ADD COLUMN correlationCaseCloseTimestamp TIMESTAMPTZ,
+ADD COLUMN correlationSituation CorrelationSituationType;
+
+CREATE INDEX m_shadow_correlationStartTimestamp_idx ON m_shadow (correlationStartTimestamp);
+CREATE INDEX m_shadow_correlationEndTimestamp_idx ON m_shadow (correlationEndTimestamp);
+CREATE INDEX m_shadow_correlationCaseOpenTimestamp_idx ON m_shadow (correlationCaseOpenTimestamp);
+CREATE INDEX m_shadow_correlationCaseCloseTimestamp_idx ON m_shadow (correlationCaseCloseTimestamp);
+$aa$);
+
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql
 -- to match the number used in the last change here!

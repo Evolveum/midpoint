@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api.correlator;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
@@ -27,24 +28,43 @@ public interface Correlator {
      * We assume that the correlator is already configured. See {@link CorrelatorFactory}.
      *
      * @param correlationContext Additional information about the overall context for correlation (e.g. type of focal objects)
-     * @param task Task in context of which the correlation takes place
      * @param result Operation result where the method should record its operation
      */
-    CorrelationResult correlate(
+    @NotNull CorrelationResult correlate(
             @NotNull CorrelationContext correlationContext,
-            @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
 
     /**
+     * Updates the internal state of the correlator with the "fresh" data from the resource.
+     */
+    @Experimental
+    default void update(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        // Nothing to do by default. This method is needed only in very specific cases, e.g. when
+        // there is an external state that needs to be updated.
+    }
+
+    /**
      * Resolves a correlation case using provided work item output.
      *
-     * TODO shouldn't we take outcome URI directly from the case?
+     * This includes the processing that needs to be done in the correlator.
+     * For the majority of correlators, there's nothing to be done here.
+     *
+     * Correlators with external and/or internal state (like ID Match) can update that state here.
+     *
+     * @param outcomeUri It is the same value as in the case. It is mentioned explicitly just to show it's not null.
      */
-    void resolve(
+    default void resolve(
             @NotNull CaseType aCase,
             @NotNull String outcomeUri,
             @NotNull Task task,
-            @NotNull OperationResult result) throws SchemaException, CommunicationException;
+            @NotNull OperationResult result)
+            throws SchemaException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+        // Nothing to do by default.
+    }
 }

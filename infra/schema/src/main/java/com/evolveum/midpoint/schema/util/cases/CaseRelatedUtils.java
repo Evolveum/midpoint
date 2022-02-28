@@ -10,11 +10,12 @@ package com.evolveum.midpoint.schema.util.cases;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Utility methods related to case management. (Not directly tied to any of the particular prism objects or containers.)
@@ -48,5 +49,11 @@ public class CaseRelatedUtils {
                 delegatedTo.add(delegate.clone());
             }
         }
+    }
+
+    public static @NotNull List<CaseWorkItemType> getOpenWorkItems(@NotNull CaseType aCase) {
+        return aCase.getWorkItem().stream()
+                .filter(wi -> wi.getCloseTimestamp() == null)
+                .collect(Collectors.toList());
     }
 }

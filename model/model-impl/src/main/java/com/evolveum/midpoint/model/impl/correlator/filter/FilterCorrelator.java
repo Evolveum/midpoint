@@ -14,14 +14,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -53,49 +55,23 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  * (This is the most usual approach to correlation; and the only one - besides so-called synchronization sorter -
  * before midPoint 4.5.)
  */
-class FilterCorrelator implements Correlator {
+class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(FilterCorrelator.class);
 
-    /**
-     * Configuration of the correlator.
-     */
-    @NotNull private final FilterCorrelatorType configuration;
-
-    /** Useful beans. */
-    @NotNull private final ModelBeans beans;
-
-    FilterCorrelator(@NotNull FilterCorrelatorType configuration, @NotNull ModelBeans beans) {
-        this.configuration = configuration;
-        this.beans = beans;
-        LOGGER.trace("Instantiated the correlator with the configuration:\n{}", configuration.debugDumpLazily(1));
+    FilterCorrelator(@NotNull CorrelatorContext<FilterCorrelatorType> correlatorContext, @NotNull ModelBeans beans) {
+        super(LOGGER, "filter", correlatorContext, beans);
     }
 
     @Override
-    public CorrelationResult correlate(
+    public @NotNull CorrelationResult correlateInternal(
             @NotNull CorrelationContext correlationContext,
-            @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        correlationContext.setManualCorrelationConfiguration(
-                configuration.getManual());
-
-        LOGGER.trace("Correlating:\n{}", correlationContext.debugDumpLazily(1));
-
-        return new Correlation<>(correlationContext, task)
+        return new Correlation<>(correlationContext)
                 .execute(result);
-    }
-
-    @Override
-    public void resolve(
-            @NotNull CaseType aCase,
-            @NotNull String outcomeUri,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        // This correlator should never create any correlation cases.
-        throw new IllegalStateException("The resolve() method should not be called for this correlator");
     }
 
     private class Correlation<F extends FocusType> {
@@ -107,17 +83,11 @@ class FilterCorrelator implements Correlator {
         /** TODO: determine from the resource */
         @Nullable private final ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
-        Correlation(
-                @NotNull CorrelationContext correlationContext,
-                @NotNull Task task) {
+        Correlation(@NotNull CorrelationContext correlationContext) {
             this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
-            this.task = task;
-            this.contextDescription =
-                    ("filter correlator" +
-                            (configuration.getName() != null ? " '" + configuration.getName() + "'" : ""))
-                            + " for " + correlationContext.getObjectTypeDefinition().getHumanReadableName()
-                            + " in " + correlationContext.getResource();
+            this.task = correlationContext.getTask();
+            this.contextDescription = getDefaultContextDescription(correlationContext);
         }
 
         public CorrelationResult execute(OperationResult result)
@@ -127,20 +97,14 @@ class FilterCorrelator implements Correlator {
             List<F> confirmedCandidates = confirmCandidates(candidates, result);
             // TODO selection expression
 
-            return beans.builtInCaseManager.createCorrelationResultOrCase(
-                    resourceObject,
-                    correlationContext.getPreFocus(),
-                    confirmedCandidates,
-                    correlationContext,
-                    task,
-                    result);
+            return beans.builtInResultCreator.createCorrelationResult(confirmedCandidates, correlationContext);
         }
 
         private @NotNull List<F> findCandidatesUsingConditionalFilters(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
-            List<ConditionalSearchFilterType> conditionalFilters = configuration.getFilter();
+            List<ConditionalSearchFilterType> conditionalFilters = configurationBean.getOwnerFilter();
 
             LOGGER.trace("Going to find candidates using {} conditional filter(s) in {}",
                     conditionalFilters.size(), contextDescription);
@@ -175,8 +139,13 @@ class FilterCorrelator implements Correlator {
                 return true;
             } else {
                 boolean value = ExpressionUtil.evaluateConditionDefaultFalse(
-                        getVariablesMap(null), condition, expressionProfile, beans.expressionFactory,
-                        "filter condition in " + contextDescription, task, result);
+                        getVariablesMap(correlationContext.getPreFocus()),
+                        condition,
+                        expressionProfile,
+                        beans.expressionFactory,
+                        "filter condition in " + contextDescription,
+                        task,
+                        result);
                 LOGGER.trace("Condition {} in correlation filter evaluated to {}", condition, value);
                 return value;
             }
@@ -222,19 +191,26 @@ class FilterCorrelator implements Correlator {
                 return origQuery;
             } else {
                 LOGGER.trace("Evaluating query expression(s)");
-                return ExpressionUtil.evaluateQueryExpressions(origQuery, getVariablesMap(null), expressionProfile,
-                        beans.expressionFactory, PrismContext.get(), contextDescription, task, result);
+                return ExpressionUtil.evaluateQueryExpressions(
+                        origQuery,
+                        getVariablesMap(correlationContext.getPreFocus()),
+                        expressionProfile,
+                        beans.expressionFactory,
+                        PrismContext.get(),
+                        contextDescription,
+                        task,
+                        result);
             }
         }
 
         private List<F> confirmCandidates(List<F> candidates, OperationResult result)
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
-            if (configuration.getConfirmation() == null) {
+            if (configurationBean.getConfirmation() == null) {
                 LOGGER.trace("No confirmation expression");
                 return candidates;
             }
-            if (candidates.size() == 1 && Boolean.FALSE.equals(configuration.isUseConfirmationForSingleCandidate())) {
+            if (candidates.size() == 1 && Boolean.FALSE.equals(configurationBean.isUseConfirmationForSingleCandidate())) {
                 LOGGER.trace("Single candidate and useConfirmationForSingleCandidate is FALSE -> skipping confirmation");
                 return candidates;
             }
@@ -272,8 +248,9 @@ class FilterCorrelator implements Correlator {
                             ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
             Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
                     beans.expressionFactory.makeExpression(
-                            configuration.getConfirmation(), outputDefinition, expressionProfile, shortDesc, task, result);
+                            configurationBean.getConfirmation(), outputDefinition, expressionProfile, shortDesc, task, result);
 
+            // TODO contention for "focus" variable (candidate, pre-focus)
             VariablesMap variables = getVariablesMap(candidate);
             ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
             PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder

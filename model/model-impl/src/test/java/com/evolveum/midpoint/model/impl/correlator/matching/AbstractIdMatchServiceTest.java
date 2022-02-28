@@ -24,12 +24,14 @@ import com.evolveum.midpoint.model.api.correlator.idmatch.*;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -110,23 +112,17 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
      * Sequentially processes all accounts, pushing them to matcher and checking its response.
      */
     @Test
-    public void test100ProcessAccounts() throws SchemaException, CommunicationException {
+    public void test100ProcessAccounts() throws SchemaException, CommunicationException, SecurityViolationException {
         for (int i = 0; i < accounts.size(); i++) {
             processAccount(i);
         }
     }
 
-    private void processAccount(int i) throws SchemaException, CommunicationException {
-        //Here we can set account from csv
-
-
-        given();
+    private void processAccount(int i) throws SchemaException, CommunicationException, SecurityViolationException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        when("account #" + (i+1));
-
-        // 1. Push the account to the matcher
+        when("calling ID Match service with the account #" + (i+1));
 
         MatchingTestingAccount account = accounts.get(i);
         MatchingRequest request = new MatchingRequest(
@@ -135,14 +131,13 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
 
         MatchingResult matchingResult = service.executeMatch(request, result);
 
-        then("account #" + (i+1));
-
-        // 2. Assert that the result is correct (including operator response when needed)
+        then("checking that account #" + (i+1) + " was matched as expected");
 
         processMatchingResult(i, matchingResult);
     }
 
-    private void processMatchingResult(int i, MatchingResult matchingResult) throws SchemaException, CommunicationException {
+    private void processMatchingResult(int i, MatchingResult matchingResult)
+            throws SchemaException, CommunicationException, SecurityViolationException {
         MatchingTestingAccount account = accounts.get(i);
         ExpectedMatchingResult expectedResult = account.getExpectedMatchingResult();
         displayDumpable("Matching result obtained", matchingResult);
@@ -189,7 +184,8 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
      * @param matchingResult Result containing the uncertainty (and potential matches)
      * @param uncertainWithResolution Expected uncertain result plus resolution that should be provided (from accounts file)
      */
-    private void processUncertainAnswer(int i, MatchingResult matchingResult, UncertainWithResolution uncertainWithResolution) throws CommunicationException, SchemaException {
+    private void processUncertainAnswer(int i, MatchingResult matchingResult, UncertainWithResolution uncertainWithResolution)
+            throws CommunicationException, SchemaException, SecurityViolationException {
         OperationResult result = getTestOperationResult();
 
         checkUncertainAnswer(matchingResult, uncertainWithResolution);
@@ -221,7 +217,7 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
 
     @Nullable
     private Integer sendOperatorResponse(int i, MatchingResult matchingResult, UncertainWithResolution uncertainWithResolution,
-            OperationResult result) throws CommunicationException, SchemaException {
+            OperationResult result) throws CommunicationException, SchemaException, SecurityViolationException {
         String resolvedId;
         Integer operatorResponse = uncertainWithResolution.getOperatorResponse();
         if (operatorResponse == null) {
@@ -246,7 +242,7 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
      */
     @NotNull
     private String checkResponseApplied(int i, Integer operatorResponse, OperationResult result)
-            throws SchemaException, CommunicationException {
+            throws SchemaException, CommunicationException, SecurityViolationException {
         MatchingTestingAccount account = accounts.get(i);
         MatchingRequest request = new MatchingRequest(
                 createMatchObject(account.getShadow()));
@@ -269,5 +265,45 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
                 ShadowUtil.getAttributeValue(shadow, SchemaConstants.ICFS_UID),
                 () -> "no UID attribute in " + shadow);
         return IdMatchObject.create(uid, shadow.getAttributes());
+    }
+
+    @Test
+    public void test200UpdateAccount() throws CommonException {
+        OperationResult result = getTestOperationResult();
+
+        given("last account on the test resource");
+
+        MatchingTestingAccount lastAccount = accounts.get(accounts.size() - 1);
+        displayDumpable("using last account", lastAccount);
+
+        ShadowType updatedShadow = lastAccount.getShadow().clone();
+
+        when("modifying the account and updating in ID Match service");
+
+        // Updating national ID
+        updatedShadow.asPrismObject()
+                .findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, "nationalId"))
+                .setRealValue("XXXXXX");
+
+        service.update(
+                createMatchObject(updatedShadow),
+                lastAccount.referenceId,
+                result);
+
+        then("correlation of changed data yields expected reference ID");
+
+        // Changing icfs:uid to make it look like a different record
+        updatedShadow.asPrismObject()
+                .findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID))
+                .setRealValue("999999");
+
+        MatchingResult reMatchingResult = service.executeMatch(
+                new MatchingRequest(
+                        createMatchObject(updatedShadow)),
+                result);
+
+        assertThat(reMatchingResult.getReferenceId())
+                .as("reference ID obtained for updated shadow")
+                .isEqualTo(lastAccount.referenceId);
     }
 }

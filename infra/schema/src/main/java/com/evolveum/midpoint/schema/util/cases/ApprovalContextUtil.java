@@ -235,7 +235,7 @@ public class ApprovalContextUtil {
         if (aCase == null || aCase.getStageNumber() == null) {
             return null;
         }
-        return getStageDefinition(getApprovalContextRequired(aCase), aCase.getStageNumber());
+        return getStageDefinition(aCase.getApprovalContext(), aCase.getStageNumber());
     }
 
     public static int getStageNumberRequired(@NotNull CaseType aCase) {
@@ -338,7 +338,7 @@ public class ApprovalContextUtil {
     @NotNull
     private static List<ApprovalStageDefinitionType> getSortedStages(ApprovalSchemaType schema) {
         List<ApprovalStageDefinitionType> stages = new ArrayList<>(schema.getStage());
-        stages.sort(Comparator.comparing(stage -> getNumber(stage), Comparator.nullsLast(Comparator.naturalOrder())));
+        stages.sort(Comparator.comparing(ApprovalContextUtil::getNumber, Comparator.nullsLast(Comparator.naturalOrder())));
         return stages;
     }
 

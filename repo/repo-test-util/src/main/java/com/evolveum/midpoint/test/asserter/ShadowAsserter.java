@@ -23,6 +23,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Objects;
 
 @SuppressWarnings("UnusedReturnValue")
@@ -327,33 +328,74 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
     }
 
     public ShadowAsserter<RA> assertMatchReferenceId(String id) throws SchemaException {
-        assertThat(getIdMatchCorrelationStateRequired().getReferenceId())
+        assertThat(getIdMatchCorrelatorStateRequired().getReferenceId())
                 .as("referenceId")
                 .isEqualTo(id);
         return this;
     }
 
+    public ShadowAsserter<RA> assertHasMatchReferenceId() throws SchemaException {
+        assertThat(getIdMatchCorrelatorStateRequired().getReferenceId())
+                .as("referenceId")
+                .isNotNull();
+        return this;
+    }
+
     public ShadowAsserter<RA> assertMatchRequestId(String id) throws SchemaException {
-        assertThat(getIdMatchCorrelationStateRequired().getMatchRequestId())
+        assertThat(getIdMatchCorrelatorStateRequired().getMatchRequestId())
                 .as("matchRequestId")
                 .isEqualTo(id);
         return this;
     }
 
     public ShadowAsserter<RA> assertHasMatchRequestId() throws SchemaException {
-        assertThat(getIdMatchCorrelationStateRequired().getMatchRequestId())
+        assertThat(getIdMatchCorrelatorStateRequired().getMatchRequestId())
                 .as("matchRequestId")
                 .isNotNull();
         return this;
     }
 
-    private @NotNull AbstractCorrelationStateType getCorrelationStateRequired() {
+    private @NotNull ShadowCorrelationStateType getCorrelationStateRequired() {
         return Objects.requireNonNull(
-                getObjectable().getCorrelationState(), () -> "No correlation state in " + desc());
+                getObjectable().getCorrelation(), () -> "No correlation state in " + desc());
     }
 
-    private @NotNull IdMatchCorrelationStateType getIdMatchCorrelationStateRequired() throws SchemaException {
+    private @NotNull AbstractCorrelatorStateType getCorrelatorStateRequired() {
+        return Objects.requireNonNull(
+                getCorrelationStateRequired().getCorrelatorState(), () -> "No correlator state in " + desc());
+    }
+
+    private @NotNull IdMatchCorrelatorStateType getIdMatchCorrelatorStateRequired() throws SchemaException {
         return MiscUtil.castSafely(
-                getCorrelationStateRequired(), IdMatchCorrelationStateType.class);
+                getCorrelatorStateRequired(), IdMatchCorrelatorStateType.class);
+    }
+
+    /**
+     * Temporary: until correlation state asserter is implemented.
+     */
+    public ShadowAsserter<RA> assertCorrelationSituation(CorrelationSituationType expected) {
+        assertThat(getCorrelationSituation()).as("correlation situation").isEqualTo(expected);
+        return this;
+    }
+
+    private CorrelationSituationType getCorrelationSituation() {
+        ShadowCorrelationStateType correlation = getObjectable().getCorrelation();
+        return correlation != null ? correlation.getSituation() : null;
+    }
+
+    public ShadowAsserter<RA> assertPotentialOwnerOptions(int expected) {
+        assertThat(getPotentialOwnerOptions())
+                .as("potential owner options")
+                .hasSize(expected);
+        return this;
+    }
+
+    private List<ResourceObjectOwnerOptionType> getPotentialOwnerOptions() {
+        ShadowCorrelationStateType state = getObjectable().getCorrelation();
+        if (state == null || state.getOwnerOptions() == null) {
+            return List.of();
+        } else {
+            return state.getOwnerOptions().getOption();
+        }
     }
 }

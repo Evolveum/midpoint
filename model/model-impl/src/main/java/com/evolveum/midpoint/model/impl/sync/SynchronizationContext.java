@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -80,8 +83,11 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
      */
     @NotNull private PrismObject<ResourceType> resource;
 
+    /** Current system configuration */
     private PrismObject<SystemConfigurationType> systemConfiguration;
-    private String channel;
+
+    private final String channel;
+
     private ExpressionProfile expressionProfile;
 
     private final Task task;
@@ -133,6 +139,13 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     /** TODO maybe will be removed */
     @Experimental
     private final String itemProcessingIdentifier;
+
+    /**
+     * Deltas that should be written to the shadow along with other sync metadata.
+     *
+     * They are already applied to the shadow - immediately as they are added to the list.
+     */
+    @NotNull private final List<ItemDelta<?, ?>> pendingShadowDeltas = new ArrayList<>();
 
     public SynchronizationContext(
             @NotNull PrismObject<ShadowType> shadowedResourceObject,
@@ -223,20 +236,20 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     }
 
     // TODO reconsider cloning here
-    public @NotNull CorrelatorsType getCorrelators() {
-        if (objectSynchronization.getCorrelators() != null) {
-            return objectSynchronization.getCorrelators().clone();
+    public @NotNull CompositeCorrelatorType getCorrelators() {
+        if (objectSynchronization.getCorrelationDefinition() != null && objectSynchronization.getCorrelationDefinition().getCorrelators() != null) {
+            return objectSynchronization.getCorrelationDefinition().getCorrelators().clone();
         } else if (objectSynchronization.getCorrelation().isEmpty()) {
             LOGGER.debug("No correlation information present. Will always find no owner. In: {}", this);
-            return new CorrelatorsType(PrismContext.get())
+            return new CompositeCorrelatorType(PrismContext.get())
                     .beginNone().end();
         } else {
-            CorrelatorsType correlators =
-                    new CorrelatorsType(PrismContext.get())
+            CompositeCorrelatorType correlators =
+                    new CompositeCorrelatorType(PrismContext.get())
                             .beginFilter()
                             .confirmation(CloneUtil.clone(objectSynchronization.getConfirmation()))
                             .end();
-            correlators.getFilter().get(0).getFilter().addAll(
+            correlators.getFilter().get(0).getOwnerFilter().addAll(
                     CloneUtil.cloneCollectionMembers(objectSynchronization.getCorrelation()));
             return correlators;
         }
@@ -477,10 +490,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         this.systemConfiguration = systemConfiguration;
     }
 
-    public void setChannel(String channel) {
-        this.channel = channel;
-    }
-
     public ExpressionProfile getExpressionProfile() {
         return expressionProfile;
     }
@@ -517,7 +526,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return itemProcessingIdentifier;
     }
 
-    ResourceObjectTypeDefinition findRefinedObjectClassDefinition() throws SchemaException {
+    ResourceObjectTypeDefinition findObjectTypeDefinition() throws SchemaException {
         ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         ShadowKindType kind = getKind();
 
@@ -568,6 +577,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         DebugUtil.debugDumpWithLabelToStringLn(sb, "tag", tag, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "reaction", reaction, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowExistsInRepo", shadowExistsInRepo, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "pendingShadowDeltas", pendingShadowDeltas, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "forceIntentChange", forceIntentChange, indent + 1);
         return sb.toString();
     }
@@ -592,7 +602,42 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         SynchronizationContext.skipMaintenanceCheck = skipMaintenanceCheck;
     }
 
-    public @Nullable ObjectSynchronizationType getObjectSynchronizationBean() {
+    @Nullable ObjectSynchronizationType getObjectSynchronizationBean() {
         return objectSynchronization;
+    }
+
+    @NotNull List<ItemDelta<?, ?>> getPendingShadowDeltas() {
+        return pendingShadowDeltas;
+    }
+
+    void clearPendingShadowDeltas() {
+        pendingShadowDeltas.clear();
+    }
+
+    void addShadowDeltas(@NotNull Collection<ItemDelta<?, ?>> deltas) throws SchemaException {
+        for (ItemDelta<?, ?> delta : deltas) {
+            pendingShadowDeltas.add(delta);
+            delta.applyTo(shadowedResourceObject);
+        }
+    }
+
+    /**
+     * Should we update correlators' state? (With or without re-correlation, at least for the time being.)
+     *
+     * Currently a temporary implementation based on checking id-match related flag in task extension.
+     */
+    public boolean isCorrelatorsUpdateRequested() {
+        return Boolean.TRUE.equals(
+                task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_UPDATE_ID_MATCH));
+    }
+
+    /**
+     * Are we updating the correlators' state and ignoring the (potentially updated) correlation result?
+     *
+     * This is a temporary response to the question of what we have to do if the correlator comes
+     * to a conclusion different from the original one: we ignore it.
+     */
+    boolean isUpdatingCorrelatorsOnly() {
+        return isCorrelatorsUpdateRequested() && getLinkedOwner() != null;
     }
 }

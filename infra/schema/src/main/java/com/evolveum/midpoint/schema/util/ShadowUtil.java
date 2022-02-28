@@ -186,7 +186,7 @@ public class ShadowUtil {
         try {
             shadow.add(emptyContainer);
         } catch (SchemaException e) {
-            throw new SystemException("Unexpected schema error: "+e.getMessage(), e);
+            throw SystemException.unexpected(e);
         }
         return emptyContainer;
     }
@@ -926,5 +926,31 @@ public class ShadowUtil {
         ShadowLifecycleStateType state = shadow.getShadowLifecycleState();
         stateCheck(state != null, "Unknown lifecycle state of %s", shadow);
         return state == ShadowLifecycleStateType.CORPSE || state == ShadowLifecycleStateType.TOMBSTONE;
+    }
+
+    public static ShadowCorrelationStateType getCorrelationStateRequired(@NotNull ShadowType shadow) {
+        return MiscUtil.requireNonNull(
+                shadow.getCorrelation(),
+                () -> new IllegalStateException("No correlation state in shadow " + shadow));
+
+    }
+    public static <T extends AbstractCorrelatorStateType> T getCorrelatorStateRequired(@NotNull ShadowType shadow, Class<T> clazz)
+            throws SchemaException {
+        return MiscUtil.requireNonNull(
+                MiscUtil.castSafely(getCorrelationStateRequired(shadow).getCorrelatorState(), clazz),
+                () -> new IllegalStateException("No correlation state in shadow " + shadow));
+    }
+
+    public static void setCorrelatorState(@NotNull ShadowType shadow, @Nullable AbstractCorrelatorStateType state) {
+        if (shadow.getCorrelation() == null) {
+            if (state == null) {
+                return;
+            } else {
+                shadow.setCorrelation(
+                        new ShadowCorrelationStateType(PrismContext.get()));
+            }
+        }
+
+        shadow.getCorrelation().setCorrelatorState(state);
     }
 }

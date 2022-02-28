@@ -7,14 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.model.IModel;
-
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -22,19 +14,38 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.Counter;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import javax.xml.namespace.QName;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -51,6 +62,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 )
 @Counter(provider = AppendersMenuLinkCounter.class)
 public class AppendersContentPanel extends MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> {
+
+    private DropDownChoicePanel<QName> newAppenderChoice;
 
     private IModel<PrismContainerWrapper<AppenderConfigurationType>> model;
 
@@ -80,7 +93,7 @@ public class AppendersContentPanel extends MultivalueContainerListPanelWithDetai
                     }
                 },
                 new PrismPropertyWrapperColumn<>(getContainerModel(), AppenderConfigurationType.F_PATTERN,
-                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
+                        AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()) {
 
                     @Override
                     protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AppenderConfigurationType>> model) {
@@ -110,5 +123,74 @@ public class AppendersContentPanel extends MultivalueContainerListPanelWithDetai
     @Override
     protected UserProfileStorage.TableId getTableId() {
         return UserProfileStorage.TableId.PAGE_MESSAGE_TEMPLATE_LOCALIZED_CONTENT_PANEL;    // todo fix
+    }
+
+    @Override
+    protected List<InlineMenuItem> createInlineMenu() {
+        return getDefaultMenuActions();
+    }
+
+    @Override
+    protected List<Component> createToolbarButtonsList(String idButton) {
+        Component choice = createNewAppenderChoice(idButton);
+
+        AjaxIconButton newObjectIcon = new AjaxIconButton(idButton, Model.of("fa fa-plus"), Model.of("")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                newItemPerformed(target, null);
+            }
+        };
+
+        newObjectIcon.add(new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return isCreateNewObjectVisible();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return isNewObjectButtonEnabled();
+            }
+        });
+
+        newObjectIcon.add(AttributeModifier.append("class", createStyleClassModelForNewObjectIcon()));
+
+        return Arrays.asList(choice, newObjectIcon);
+    }
+
+    private Component createNewAppenderChoice(String id) {
+        List<QName> choices = Arrays.asList(FileAppenderConfigurationType.COMPLEX_TYPE, SyslogAppenderConfigurationType.COMPLEX_TYPE);
+
+        DropDownChoicePanel<QName> choice = new DropDownChoicePanel<>(
+                id,
+                Model.of(FileAppenderConfigurationType.COMPLEX_TYPE),
+                Model.ofList(choices),
+                new QNameIChoiceRenderer("AppendersContentPanel.appendersChoice"));
+        choice.setOutputMarkupId(true);
+
+        this.newAppenderChoice = choice;
+
+        return choice;
+    }
+
+    @Override
+    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+        PrismContainerValue<AppenderConfigurationType> container;
+        if (QNameUtil.match(newAppenderChoice.getModel().getObject(), FileAppenderConfigurationType.COMPLEX_TYPE)) {
+            container = new FileAppenderConfigurationType().asPrismContainerValue();
+        } else {
+            container = new SyslogAppenderConfigurationType().asPrismContainerValue();
+        }
+        container.setParent(model.getObject().getItem());
+        container.setPrismContext(getPageBase().getPrismContext());
+
+        PrismContainerValueWrapper<AppenderConfigurationType> newAppenderContainerWrapper = createNewItemContainerValueWrapper(container, model.getObject(), target);
+        itemDetailsPerformed(target, Collections.singletonList(newAppenderContainerWrapper));
     }
 }

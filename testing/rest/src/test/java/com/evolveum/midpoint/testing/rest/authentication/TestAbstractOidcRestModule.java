@@ -37,10 +37,7 @@ import java.io.IOException;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
-public abstract class TestAbstractOidcRestModule extends RestServiceInitializer {
-
-    protected static final File BASE_AUTHENTICATION_DIR = new File("src/test/resources/authentication/");
-    protected static final File BASE_REPO_DIR = new File(BASE_AUTHENTICATION_DIR,"repo/");
+public abstract class TestAbstractOidcRestModule extends TestAbstractAuthentication {
 
     public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
     public static final String USER_ADMINISTRATOR_PASSWORD = "secret";
@@ -53,36 +50,10 @@ public abstract class TestAbstractOidcRestModule extends RestServiceInitializer 
     public static final File SECURITY_POLICY_SYMMETRIC_KEY = new File(BASE_REPO_DIR, "security-policy-symmetric-key.xml");
     public static final File SECURITY_POLICY_SYMMETRIC_KEY_WRONG_KEY = new File(BASE_REPO_DIR, "security-policy-symmetric-key-wrong-alg.xml");
 
-    @Autowired
-    protected MidpointJsonProvider jsonProvider;
-
-    @Autowired
-    private SystemObjectCache systemObjectCache;
-
-    @Override
-    protected String getAcceptHeader() {
-        return MediaType.APPLICATION_JSON;
-    }
-
-    @Override
-    protected String getContentType() {
-        return MediaType.APPLICATION_JSON;
-    }
-
-    @Override
-    protected MidpointAbstractProvider getProvider() {
-        return jsonProvider;
-    }
-
     public abstract AuthzClient getAuthzClient();
 
-    @AfterMethod
-    public void clearCache(){
-        systemObjectCache.invalidateCaches();
-    }
-
     @Test
-    public void oidcAuthByIssuerUriTest() throws Exception {
+    public void test001OidcAuthByIssuerUri() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_ISSUER_URI);
 
         WebClient client = prepareClient();
@@ -95,7 +66,7 @@ public abstract class TestAbstractOidcRestModule extends RestServiceInitializer 
     }
 
     @Test
-    public void oidcAuthByJWSUriTest() throws Exception {
+    public void test002OidcAuthByJWSUri() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_JWS_URI);
 
         WebClient client = prepareClient();
@@ -108,7 +79,7 @@ public abstract class TestAbstractOidcRestModule extends RestServiceInitializer 
     }
 
     @Test
-    public void oidcAuthByJWSUriWithWrongAlgTest() throws Exception {
+    public void test003OidcAuthByJWSUriWithWrongAlg() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_JWS_URI_WRONG_ALG);
 
         WebClient client = prepareClient();
@@ -121,7 +92,7 @@ public abstract class TestAbstractOidcRestModule extends RestServiceInitializer 
     }
 
     @Test
-    public void oidcAuthByPublicKeyTest() throws Exception {
+    public void test004OidcAuthByPublicKey() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_PUBLIC_KEY);
 
         WebClient client = prepareClient();
@@ -134,7 +105,7 @@ public abstract class TestAbstractOidcRestModule extends RestServiceInitializer 
     }
 
     @Test
-    public void oidcAuthByPublicKeyWithWrongAlgTest() throws Exception {
+    public void test005oidcAuthByPublicKeyWithWrongAlg() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_PUBLIC_KEY_WRONG_ALG);
 
         WebClient client = prepareClient();
@@ -147,7 +118,7 @@ public abstract class TestAbstractOidcRestModule extends RestServiceInitializer 
     }
 
     @Test
-    public void oidcAuthBySymmetricKey() throws Exception {
+    public void test006OidcAuthBySymmetricKey() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_SYMMETRIC_KEY);
 
         WebClient client = prepareClient();
@@ -160,7 +131,7 @@ public abstract class TestAbstractOidcRestModule extends RestServiceInitializer 
     }
 
     @Test
-    public void oidcAuthBySymmetricKeyWithWrongAlgTest() throws Exception {
+    public void test007OidcAuthBySymmetricKeyWithWrongAlg() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_SYMMETRIC_KEY_WRONG_KEY);
 
         WebClient client = prepareClient();
@@ -170,14 +141,6 @@ public abstract class TestAbstractOidcRestModule extends RestServiceInitializer 
 
         then();
         assertUnsuccess(response);
-    }
-
-    private void replaceSecurityPolicy(File securityPolicy) throws CommonException, IOException {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        PrismObject<SecurityPolicyType> secPolicy = parseObject(securityPolicy);
-        addObject(secPolicy, executeOptions().overwrite(), task, result);
-        getDummyAuditService().clear();
     }
 
     protected abstract void assertForAuthByPublicKey(Response response);

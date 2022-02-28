@@ -1498,7 +1498,13 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .pendingOperation(new PendingOperationType().attemptNumber(2))
                 .primaryIdentifierValue("PID")
                 .synchronizationSituation(SynchronizationSituationType.DISPUTED)
-                .synchronizationTimestamp(MiscUtil.asXMLGregorianCalendar(2L));
+                .synchronizationTimestamp(MiscUtil.asXMLGregorianCalendar(2L))
+                .correlation(new ShadowCorrelationStateType(prismContext)
+                        .correlationStartTimestamp(MiscUtil.asXMLGregorianCalendar(10L))
+                        .correlationEndTimestamp(MiscUtil.asXMLGregorianCalendar(11L))
+                        .correlationCaseOpenTimestamp(MiscUtil.asXMLGregorianCalendar(12L))
+                        .correlationCaseCloseTimestamp(MiscUtil.asXMLGregorianCalendar(13L))
+                        .situation(CorrelationSituationType.EXISTING_OWNER));
 
         when("adding it to the repository");
         repositoryService.addObject(shadow.asPrismObject(), null, result);
@@ -1521,6 +1527,11 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.primaryIdentifierValue).isEqualTo("PID");
         assertThat(row.synchronizationSituation).isEqualTo(SynchronizationSituationType.DISPUTED);
         assertThat(row.synchronizationTimestamp).isEqualTo(Instant.ofEpochMilli(2));
+        assertThat(row.correlationStartTimestamp).isEqualTo(Instant.ofEpochMilli(10));
+        assertThat(row.correlationEndTimestamp).isEqualTo(Instant.ofEpochMilli(11));
+        assertThat(row.correlationCaseOpenTimestamp).isEqualTo(Instant.ofEpochMilli(12));
+        assertThat(row.correlationCaseCloseTimestamp).isEqualTo(Instant.ofEpochMilli(13));
+        assertThat(row.correlationSituation).isEqualTo(CorrelationSituationType.EXISTING_OWNER);
     }
 
     // This covers mapping of attributes in QFocusMapping + GenericObject.

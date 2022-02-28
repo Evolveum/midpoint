@@ -345,6 +345,9 @@ public abstract class SchemaConstants {
     public static final ItemName MODEL_EXTENSION_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "dryRun");
     public static final ItemPath PATH_MODEL_EXTENSION_DRY_RUN = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 
+    // Temporary
+    public static final ItemName MODEL_EXTENSION_UPDATE_ID_MATCH = new ItemName(NS_MODEL_EXTENSION, "updateIdMatch");
+
     public static final ItemName MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS = new ItemName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
     public static final ItemName MODEL_EXTENSION_LIVE_SYNC_ERROR_HANDLING_STRATEGY = new ItemName(NS_MODEL_EXTENSION, "liveSyncErrorHandlingStrategy");
     public static final ItemName MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "updateLiveSyncTokenInDryRun");
@@ -631,9 +634,6 @@ public abstract class SchemaConstants {
     public static final ActivityPath PATH_CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP =
             ActivityPath.fromId(ID_CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP);
 
-    public static final String CORRELATION_NS = NS_C; // at least for now
     public static final String CORRELATION_NONE = "none";
-    public static final QName CORRELATION_NONE_QNAME = new QName(CORRELATION_NS, CORRELATION_NONE);
-    public static final String CORRELATION_NONE_URI = qNameToUri(CORRELATION_NONE_QNAME);
-    public static final String CORRELATION_OPTION_PREFIX = "existing-";
+    public static final String CORRELATION_EXISTING_PREFIX = "existing-";
 }

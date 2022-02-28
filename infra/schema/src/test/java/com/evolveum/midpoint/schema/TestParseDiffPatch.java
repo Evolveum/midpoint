@@ -451,7 +451,19 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         PrismAsserts.assertPropertyDelete(resourceDelta,
                 ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, new ItemName(SchemaTestConstants.NS_ICFC, "producerBufferSize")),
                 100);
-        PrismAsserts.assertPropertyReplaceSimple(resourceDelta, ResourceType.F_SYNCHRONIZATION);
+        ItemPath correlationPath = ItemPath.create(
+                ResourceType.F_SYNCHRONIZATION,
+                SynchronizationType.F_OBJECT_SYNCHRONIZATION,
+                1L,
+                ObjectSynchronizationType.F_CORRELATION);
+        ItemDelta<?, ?> correlationDelta = resourceDelta.findItemDelta(correlationPath);
+        assertThat(correlationDelta).as("correlation delta").isNotNull();
+        assertThat(correlationDelta.getValuesToAdd()).as("values to add in correlation delta").hasSize(1);
+        assertThat(correlationDelta.getValuesToDelete()).as("values to delete in correlation delta").hasSize(1);
+        // The following does not work:
+        //PrismAsserts.assertPropertyDelete(resourceDelta, correlationPath, resourceBefore.findProperty(correlationPath).getValue());
+        //PrismAsserts.assertPropertyAdd(resourceDelta, correlationPath, resourceAfter.findProperty(correlationPath).getValue());
+
         // Configuration properties changes
         assertConfigurationPropertyChange(resourceDelta, "principal");
         assertConfigurationPropertyChange(resourceDelta, "credentials");

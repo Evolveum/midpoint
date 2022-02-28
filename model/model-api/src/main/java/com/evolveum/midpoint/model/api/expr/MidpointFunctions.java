@@ -151,7 +151,7 @@ public interface MidpointFunctions {
      * processing any policies, caching mechanisms, etc. This can be influenced by using options.
      * </p>
      * <p>
-     * Fails if object with the OID does not exists.
+     * Fails if object with the OID does not exist.
      * </p>
      *
      * @param type
@@ -191,7 +191,7 @@ public interface MidpointFunctions {
      * processing any policies, caching mechanisms, etc.
      * </p>
      * <p>
-     * Fails if object with the OID does not exists.
+     * Fails if object with the OID does not exist.
      * </p>
      *
      * @param type

@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.model.api.correlator;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -19,11 +21,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * The context of the correlation operation(s).
+ * The context of the correlation and correlator state update operations.
+ * (Both work on an object being synchronized. The use in the latter case is experimental, though.)
  *
- * TODO decide on the exact use of this class -- will it be only at API level? Or will the correlator write its own notes here?
+ * Created by _the caller_ of {@link Correlator#correlate(CorrelationContext, OperationResult)} method, but then updated
+ * by the method implementation(s) themselves.
  *
- * TODO resolve naming conflict with CorrelationContextType
+ * Not to be confused with {@link CorrelatorContext} which describes the context of the whole {@link Correlator} lifespan.
  */
 public class CorrelationContext implements DebugDumpable, Cloneable {
 
@@ -34,9 +38,7 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
 
     /**
      * Focus that was created using pre-mappings.
-     * May be empty (but not null) if there are no such mappings.
-     *
-     * TODO better name
+     * May be empty (but not null) e.g. if there are no such mappings.
      */
     @NotNull private final FocusType preFocus;
 
@@ -56,10 +58,15 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
     @Nullable private final SystemConfigurationType systemConfiguration;
 
     /**
-     * Information about the current state of the correlation process.
+     * Task in which the correlation takes place.
+     */
+    @NotNull private final Task task;
+
+    /**
+     * Information about the current state of the correlator used.
      * Usually provided by upstream (parent) correlator.
      */
-    private AbstractCorrelationStateType correlationState;
+    private AbstractCorrelatorStateType correlatorState;
 
     /**
      * User scripts can request manual correlation here.
@@ -72,12 +79,14 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
             @NotNull FocusType preFocus,
             @NotNull ResourceType resource,
             @NotNull ResourceObjectTypeDefinition objectTypeDefinition,
-            @Nullable SystemConfigurationType systemConfiguration) {
+            @Nullable SystemConfigurationType systemConfiguration,
+            @NotNull Task task) {
         this.resourceObject = resourceObject;
         this.preFocus = preFocus;
         this.resource = resource;
         this.objectTypeDefinition = objectTypeDefinition;
         this.systemConfiguration = systemConfiguration;
+        this.task = task;
     }
 
     public @NotNull ShadowType getResourceObject() {
@@ -104,20 +113,16 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
         return systemConfiguration;
     }
 
-    public AbstractCorrelationStateType getCorrelationState() {
-        return correlationState;
+    public AbstractCorrelatorStateType getCorrelatorState() {
+        return correlatorState;
     }
 
-    public void setCorrelationState(AbstractCorrelationStateType correlationState) {
-        this.correlationState = correlationState;
+    public void setCorrelatorState(AbstractCorrelatorStateType correlatorState) {
+        this.correlatorState = correlatorState;
     }
 
     public @NotNull ManualCorrelationContext getManualCorrelationContext() {
         return manualCorrelationContext;
-    }
-
-    public void setManualCorrelationConfiguration(ManualCorrelationConfigurationType configuration) {
-        manualCorrelationContext.setConfiguration(configuration);
     }
 
     /**
@@ -136,9 +141,13 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
      * If there's only one option, an error should be signalled.
      */
     @SuppressWarnings("unused") // called from scripts
-    public void requestManualCorrelation(List<PotentialOwnerType> potentialMatches) {
+    public void requestManualCorrelation(List<ResourceObjectOwnerOptionType> potentialMatches) {
         manualCorrelationContext.setRequested(true);
         manualCorrelationContext.setPotentialMatches(potentialMatches);
+    }
+
+    public @NotNull Task getTask() {
+        return task;
     }
 
     @Override
@@ -158,7 +167,7 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
         DebugUtil.debugDumpWithLabelLn(sb, "resource", String.valueOf(resource), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectTypeDefinition", String.valueOf(objectTypeDefinition), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "systemConfiguration", String.valueOf(systemConfiguration), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "correlationState", correlationState, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "correlatorState", correlatorState, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "manualCorrelationContext", manualCorrelationContext, indent + 1);
         return sb.toString();
     }
@@ -172,6 +181,17 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
             return (CorrelationContext) super.clone();
         } catch (CloneNotSupportedException e) {
             throw new SystemException(e);
+        }
+    }
+
+    public @NotNull ObjectType getSourceObject(@NotNull SourceObjectType type) {
+        switch (type) {
+            case FOCUS:
+                return preFocus;
+            case PROJECTION:
+                return resourceObject;
+            default:
+                throw new AssertionError(type);
         }
     }
 }

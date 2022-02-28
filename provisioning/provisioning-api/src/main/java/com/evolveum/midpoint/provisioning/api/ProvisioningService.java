@@ -71,7 +71,7 @@ public interface ProvisioningService {
     /**
      * Returns object for provided OID.
      *
-     * Must fail if object with the OID does not exists.
+     * Must fail if object with the OID does not exist.
      *
      * Resource Object Shadows: The resource object shadow attributes may be
      * retrieved from the local database, directly form the resource or a
@@ -298,7 +298,7 @@ public interface ProvisioningService {
 
     /**
      * Modifies object using relative change description. Must fail if user with
-     * provided OID does not exists. Must fail if any of the described changes
+     * provided OID does not exist. Must fail if any of the described changes
      * cannot be applied. Should be atomic.
      *
      * If two or more modify operations are executed in parallel, the operations

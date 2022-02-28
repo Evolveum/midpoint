@@ -8,10 +8,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
         urls = {
@@ -27,19 +31,16 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
         })
 public class PageSystemBasic extends PageBaseSystemConfiguration {
 
+    private static final long serialVersionUID = 1L;
 
-//    @Override
-//    protected List<ITab> createTabs() {
-//        List<ITab> tabs = new ArrayList<>();
-//        tabs.add(new PanelTab(createStringResource("pageSystemConfiguration.system.title")) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public WebMarkupContainer createPanel(String panelId) {
-//                return new SystemConfigPanel(panelId, getObjectModel());
-//            }
-//        });
-//        return tabs;
-//    }
+    public PageSystemBasic() {
+    }
+
+    public PageSystemBasic(PageParameters parameters) {
+        super(parameters);
+    }
+
+    public PageSystemBasic(PrismObject<SystemConfigurationType> object) {
+        super(object);
+    }
 }

@@ -50,18 +50,4 @@ public class PageSystemWorkflow extends PageBaseSystemConfiguration {
         return WfConfigurationType.class;
     }
 
-//    @Override
-//    protected List<ITab> createTabs() {
-//        List<ITab> tabs = new ArrayList<>();
-//        tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.workflow.title")) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public WebMarkupContainer getPanel(String panelId) {
-//                return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_WORKFLOW_CONFIGURATION, WfConfigurationType.COMPLEX_TYPE);
-//            }
-//        });
-//        return tabs;
-//    }
 }

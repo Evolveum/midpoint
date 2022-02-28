@@ -7,11 +7,22 @@
 
 package com.evolveum.midpoint.model.impl.correlator.expression;
 
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -32,62 +43,27 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.util.DebugUtil.lazy;
-
 /**
  * A correlator based on expressions that directly provide focal object(s) (or their references) for given resource object.
  * Similar to synchronization sorter, but simpler - it treats only correlation, not the classification part.
  */
-class ExpressionCorrelator implements Correlator {
+class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionCorrelator.class);
 
-    /**
-     * Configuration of the correlator.
-     */
-    @NotNull private final ExpressionCorrelatorType configuration;
-
-    /** Useful beans. */
-    @NotNull private final ModelBeans beans;
-
-    ExpressionCorrelator(@NotNull ExpressionCorrelatorType configuration, @NotNull ModelBeans beans) {
-        this.configuration = configuration;
-        this.beans = beans;
-        LOGGER.trace("Instantiated the correlator with the configuration:\n{}", configuration.debugDumpLazily(1));
+    ExpressionCorrelator(@NotNull CorrelatorContext<ExpressionCorrelatorType> correlatorContext, @NotNull ModelBeans beans) {
+        super(LOGGER, "expression", correlatorContext, beans);
     }
 
     @Override
-    public CorrelationResult correlate(
+    public @NotNull CorrelationResult correlateInternal(
             @NotNull CorrelationContext correlationContext,
-            @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        correlationContext.setManualCorrelationConfiguration(
-                configuration.getManual());
-
-        LOGGER.trace("Correlating:\n{}", correlationContext.debugDumpLazily(1));
-
-        return new Correlation<>(correlationContext, task)
+        return new Correlation<>(correlationContext)
                 .execute(result);
-    }
-
-    @Override
-    public void resolve(
-            @NotNull CaseType aCase,
-            @NotNull String outcomeUri,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        // This correlator should never create any correlation cases.
-        throw new IllegalStateException("The resolve() method should not be called for this correlator");
     }
 
     private class Correlation<F extends FocusType> {
@@ -99,30 +75,18 @@ class ExpressionCorrelator implements Correlator {
         /** TODO: determine from the resource */
         @Nullable private final ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
-        Correlation(
-                @NotNull CorrelationContext correlationContext,
-                @NotNull Task task) {
+        Correlation(@NotNull CorrelationContext correlationContext) {
             this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
-            this.task = task;
-            this.contextDescription =
-                    ("expression correlator" +
-                            (configuration.getName() != null ? " '" + configuration.getName() + "'" : ""))
-                            + " for " + correlationContext.getObjectTypeDefinition().getHumanReadableName()
-                            + " in " + correlationContext.getResource();
+            this.task = correlationContext.getTask();
+            this.contextDescription = getDefaultContextDescription(correlationContext);
         }
 
         public CorrelationResult execute(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             List<F> candidateOwners = findCandidatesUsingExpressions(result);
-            return beans.builtInCaseManager.createCorrelationResultOrCase(
-                    resourceObject,
-                    correlationContext.getPreFocus(),
-                    candidateOwners,
-                    correlationContext,
-                    task,
-                    result);
+            return beans.builtInResultCreator.createCorrelationResult(candidateOwners, correlationContext);
         }
 
         private @NotNull List<F> findCandidatesUsingExpressions(OperationResult result)
@@ -131,21 +95,21 @@ class ExpressionCorrelator implements Correlator {
 
             ExpressionType expressionBean;
             ItemDefinition<?> outputDefinition;
-            if (configuration.getOwner() != null) {
-                if (configuration.getOwnerRef() != null) {
+            if (configurationBean.getOwner() != null) {
+                if (configurationBean.getOwnerRef() != null) {
                     throw new ConfigurationException("Both owner and ownerRef expressions found in " + contextDescription);
                 }
-                expressionBean = configuration.getOwner();
+                expressionBean = configurationBean.getOwner();
                 outputDefinition =
                         Objects.requireNonNull(
                                 PrismContext.get().getSchemaRegistry()
                                         .findObjectDefinitionByCompileTimeClass(correlationContext.getFocusType()),
                                 () -> "No definition for focus type " + correlationContext.getFocusType());
             } else {
-                if (configuration.getOwnerRef() == null) {
+                if (configurationBean.getOwnerRef() == null) {
                     throw new ConfigurationException("Neither owner nor ownerRef expression found in " + contextDescription);
                 }
-                expressionBean = configuration.getOwnerRef();
+                expressionBean = configurationBean.getOwnerRef();
                 outputDefinition =
                         PrismContext.get().definitionFactory().createReferenceDefinition(
                                 ExpressionConstants.OUTPUT_ELEMENT_NAME, ObjectReferenceType.COMPLEX_TYPE);

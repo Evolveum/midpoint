@@ -10,11 +10,23 @@ package com.evolveum.midpoint.model.impl.correlator;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRefWithFullObject;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.cases.api.CaseEngine;
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.cases.api.util.PerformerCommentsFormatter;
+import com.evolveum.midpoint.model.api.correlator.Correlator;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +58,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Manages correlation cases.
+ *
+ * TODO difference to {@link CaseManager} / {@link CaseEngine} ?
  */
 @Component
 public class CorrelationCaseManager {
@@ -62,25 +76,28 @@ public class CorrelationCaseManager {
     @Autowired private CorrelationService correlationService;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private CaseEventDispatcher caseEventDispatcher;
+    @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired(required = false) private CaseManager caseManager;
 
     /**
      * Creates or updates a correlation case for given correlation operation that finished in "uncertain" state.
      *
-     * @param resourceObject Shadowed resource object we correlate. Must have an OID.
+     * @param resourceObject Shadowed resource object we are correlating. Must have an OID.
+     * @param preFocus The result of pre-inbounds application on the resource object.
      */
     public void createOrUpdateCase(
             @NotNull ShadowType resourceObject,
+            @NotNull ResourceType resource,
             @NotNull FocusType preFocus,
-            @NotNull PotentialOwnersType correlatorSpecificContext,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException {
         checkOid(resourceObject);
         CaseType aCase = findCorrelationCase(resourceObject, true, result);
         if (aCase == null) {
-            createCase(resourceObject, preFocus, correlatorSpecificContext, task, result);
+            createCase(resourceObject, resource, preFocus, task, result);
         } else {
-            updateCase(aCase, preFocus, correlatorSpecificContext, result);
+            updateCase(aCase, preFocus, result);
         }
     }
 
@@ -90,25 +107,25 @@ public class CorrelationCaseManager {
 
     private void createCase(
             ShadowType resourceObject,
+            ResourceType resource,
             FocusType preFocus,
-            PotentialOwnersType potentialOwners,
             Task task,
             OperationResult result)
             throws SchemaException {
-        String assigneeOid = SystemObjectsType.USER_ADMINISTRATOR.value(); // temporary
         CaseType newCase = new CaseType(prismContext)
                 .name(getCaseName(resourceObject))
                 .objectRef(createObjectRefWithFullObject(resourceObject))
+                .targetRef(resourceObject.getResourceRef().clone())
+                .requestorRef(task != null ? task.getOwnerRef() : null)
                 .archetypeRef(createArchetypeRef())
                 .assignment(new AssignmentType(prismContext)
                         .targetRef(createArchetypeRef()))
-                .correlationContext(new CorrelationContextType(prismContext)
+                .correlationContext(new CaseCorrelationContextType(prismContext)
                         .preFocusRef(ObjectTypeUtil.createObjectRefWithFullObject(preFocus))
-                        .potentialOwners(potentialOwners))
+                        .schema(createCaseSchema(resource.getBusiness())))
                 .state(SchemaConstants.CASE_STATE_CREATED)
-                .workItem(new CaseWorkItemType(PrismContext.get())
-                        .name(getWorkItemName(resourceObject))
-                        .assigneeRef(assigneeOid, UserType.COMPLEX_TYPE));
+                .metadata(new MetadataType(PrismContext.get())
+                    .createTimestamp(clock.currentTimeXMLGregorianCalendar()));
         try {
             repositoryService.addObject(newCase.asPrismObject(), null, result);
         } catch (ObjectAlreadyExistsException e) {
@@ -116,6 +133,17 @@ public class CorrelationCaseManager {
         }
 
         caseEventDispatcher.dispatchCaseCreationEvent(newCase, task, result);
+    }
+
+    private SimpleCaseSchemaType createCaseSchema(@Nullable ResourceBusinessConfigurationType business) {
+        if (business == null) {
+            return null;
+        }
+        SimpleCaseSchemaType schema = new SimpleCaseSchemaType(PrismContext.get());
+        schema.getAssigneeRef().addAll(
+                CloneUtil.cloneCollectionMembers(business.getCorrelatorRef()));
+        schema.setDuration(business.getCorrelatorActionMaxDuration());
+        return schema;
     }
 
     // Temporary implementation
@@ -139,10 +167,6 @@ public class CorrelationCaseManager {
         }
     }
 
-    private String getWorkItemName(ShadowType resourceObject) {
-        return "Correlate " + getKindLabel(resourceObject) + " '" + resourceObject.getName() + "'";
-    }
-
     private ObjectReferenceType createArchetypeRef() {
         return new ObjectReferenceType()
                 .oid(SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value())
@@ -150,20 +174,20 @@ public class CorrelationCaseManager {
     }
 
     private void updateCase(
-            CaseType aCase, FocusType preFocus, PotentialOwnersType correlatorSpecificContext, OperationResult result)
+            CaseType aCase, FocusType preFocus, OperationResult result)
             throws SchemaException {
-        CorrelationContextType ctx = aCase.getCorrelationContext();
+        CaseCorrelationContextType ctx = aCase.getCorrelationContext();
         ObjectReferenceType preFocusRef = createObjectRefWithFullObject(preFocus);
         if (ctx != null
-                && java.util.Objects.equals(ctx.getPotentialOwners(), correlatorSpecificContext)
+//                && java.util.Objects.equals(ctx.getPotentialOwners(), correlatorSpecificContext)
                 && java.util.Objects.equals(ctx.getPreFocusRef(), preFocusRef)) { // TODO is this comparison correct?
             LOGGER.trace("No need to update the case {}", aCase);
             return;
         }
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(CaseType.class)
-                .item(CaseType.F_CORRELATION_CONTEXT, CorrelationContextType.F_POTENTIAL_OWNERS)
-                .replace(correlatorSpecificContext)
-                .item(CaseType.F_CORRELATION_CONTEXT, CorrelationContextType.F_PRE_FOCUS_REF)
+//                .item(CaseType.F_CORRELATION_CONTEXT, CaseCorrelationContextType.F_POTENTIAL_OWNERS)
+//                .replace(correlatorSpecificContext)
+                .item(CaseType.F_CORRELATION_CONTEXT, CaseCorrelationContextType.F_PRE_FOCUS_REF)
                 .replace(preFocusRef)
                 .asItemDeltas();
         modifyCase(aCase, itemDeltas, result);
@@ -209,8 +233,10 @@ public class CorrelationCaseManager {
      * Closes a correlation case - if there's any - if it's no longer needed (e.g. because the uncertainty is gone).
      *
      * @param resourceObject Shadowed resource object we correlate. Must have an OID.
+     *
+     * TODO don't look for cases if not necessary (timestamps?)
      */
-    public void closeCaseIfExists(
+    public void closeCaseIfStillOpen(
             @NotNull ShadowType resourceObject,
             @NotNull OperationResult result) throws SchemaException {
         checkOid(resourceObject);
@@ -240,8 +266,9 @@ public class CorrelationCaseManager {
      *
      * Returns true if the case can be closed.
      */
-    public boolean completeCorrelationCase(
+    public void completeCorrelationCase(
             @NotNull CaseType aCase,
+            @NotNull CorrelationService.CaseCloser caseCloser,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
@@ -250,44 +277,128 @@ public class CorrelationCaseManager {
         String outcomeUri = aCase.getOutcome();
         if (outcomeUri == null) {
             LOGGER.warn("Correlation case {} has no outcome", aCase);
-            return false;
+            return;
         }
 
-        OperationResult subResult = performCompletionInCorrelator(aCase, outcomeUri, task, result);
-        if (!subResult.isSuccess()) {
-            LOGGER.warn("Not closing the case {} because completion in correlator was not successful", aCase);
-            return false;
-        }
+        Correlator correlator = correlationService
+                .instantiateCorrelator(aCase.asPrismObject(), task, result);
 
-        String shadowOid = aCase.getObjectRef().getOid();
+        recordCaseCompletionInShadow(aCase, task, result);
+
+        caseCloser.closeCaseInRepository(result);
+
+        performCompletionInCorrelator(aCase, outcomeUri, correlator, task, result);
+
+        // As a convenience, we try to re-import the object. Technically this is not a part of the correlation case processing.
+        // Whether we do this should be made configurable (in the future).
+
+        String shadowOid = CorrelationCaseUtil.getShadowOidRequired(aCase);
         try {
-            // We try to re-import the object. This should be made configurable.
             modelService.importFromResource(shadowOid, task, result);
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import shadow {} from resource", e, shadowOid);
             // Not throwing the exception higher (import itself is not prerequisite for completing the correlation case
         }
-
-        return true;
     }
 
-    private OperationResult performCompletionInCorrelator(
-            @NotNull CaseType aCase, @NotNull String outcomeUri, Task task, OperationResult parentResult)
+    private void recordCaseCompletionInShadow(CaseType aCase, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+
+        String shadowOid = CorrelationCaseUtil.getShadowOidRequired(aCase);
+        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
+        ObjectReferenceType resultingOwnerRef =
+                CloneUtil.clone(
+                        CorrelationCaseUtil.getResultingOwnerRef(aCase));
+        CorrelationSituationType situation = resultingOwnerRef != null ?
+                CorrelationSituationType.EXISTING_OWNER : CorrelationSituationType.NO_OWNER;
+
+        try {
+            repositoryService.modifyObject(
+                    ShadowType.class,
+                    shadowOid,
+                    prismContext.deltaFor(ShadowType.class)
+                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_CLOSE_TIMESTAMP)
+                            .replace(now)
+                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP)
+                            .replace(now)
+                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_PERFORMER_REF)
+                            .replaceRealValues(getPerformerRefs(aCase))
+                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_PERFORMER_COMMENT)
+                            .replaceRealValues(getPerformerComments(aCase, task, result))
+                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_OWNER_OPTIONS)
+                            .replace() // This might be reconsidered
+                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_RESULTING_OWNER)
+                            .replace(resultingOwnerRef)
+                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION)
+                            .replace(situation)
+                            .asItemDeltas(),
+                    result);
+        } catch (SchemaException | ObjectAlreadyExistsException e) {
+            throw SystemException.unexpected(e, "while recording case completion in shadow");
+        }
+    }
+
+    /** We select only those performers that provided the same answer as the final one. */
+    private Collection<ObjectReferenceType> getPerformerRefs(CaseType aCase) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        for (CaseWorkItemType workItem : aCase.getWorkItem()) {
+            if (isRelevant(workItem, aCase)) {
+                rv.add(workItem.getPerformerRef().clone());
+            }
+        }
+        LOGGER.trace("Performers: {}", rv);
+        return rv;
+    }
+
+    /** We select only those performers that provided the same answer as the final one. */
+    private Collection<String> getPerformerComments(CaseType aCase, Task task, OperationResult result) throws SchemaException {
+        // Currently we take comments formatting from workflow configuration.
+        PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+        PerformerCommentsFormattingType formatting = systemConfiguration != null &&
+                systemConfiguration.asObjectable().getWorkflowConfiguration() != null ?
+                systemConfiguration.asObjectable().getWorkflowConfiguration().getApproverCommentsFormatting() : null;
+
+        PerformerCommentsFormatter formatter =
+                caseManager != null ?
+                        caseManager.createPerformerCommentsFormatter(formatting) : PerformerCommentsFormatter.EMPTY;
+
+        List<String> rv = new ArrayList<>();
+        for (CaseWorkItemType workItem : aCase.getWorkItem()) {
+            if (isRelevant(workItem, aCase) && StringUtils.isNotBlank(workItem.getOutput().getComment())) {
+                CollectionUtils.addIgnoreNull(rv, formatter.formatComment(workItem, task, result));
+            }
+        }
+        LOGGER.trace("Performer comments: {}", rv);
+        return rv;
+    }
+
+    private boolean isRelevant(CaseWorkItemType workItem, CaseType aCase) {
+        return hasOutcomeUri(workItem, aCase.getOutcome()) && workItem.getPerformerRef() != null;
+    }
+
+    private boolean hasOutcomeUri(@NotNull CaseWorkItemType workItem, @NotNull String outcomeUri) {
+        return workItem.getOutput() != null
+                && outcomeUri.equals(workItem.getOutput().getOutcome());
+    }
+
+    private void performCompletionInCorrelator(
+            @NotNull CaseType aCase,
+            @NotNull String outcomeUri,
+            @NotNull Correlator correlator,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OP_PERFORM_COMPLETION_IN_CORRELATOR);
         try {
             applyShadowDefinition(aCase, task, result);
-            correlationService
-                    .instantiateCorrelator(aCase.asPrismObject(), task, result)
-                    .resolve(aCase, outcomeUri, task, result);
+            correlator.resolve(aCase, outcomeUri, task, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
         } finally {
             result.close();
         }
-        return result;
     }
 
     /**

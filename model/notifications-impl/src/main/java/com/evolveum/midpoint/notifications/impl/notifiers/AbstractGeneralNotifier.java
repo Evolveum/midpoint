@@ -6,10 +6,12 @@
  */
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RECIPIENT;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.cxf.common.util.StringUtils;
+import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.formatters.ValueFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
 import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -87,8 +90,9 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                         reportNotificationStart(event);
                         try {
                             VariablesMap variables = getDefaultVariables(event, result);
+                            // TODO unify with transportConfig
                             for (String transportName : notifierConfiguration.getTransport()) {
-                                messagesSent += prepareAndSend(event, notifierConfiguration, variables, transportName, task, result);
+                                messagesSent += prepareAndSendMessages(event, notifierConfiguration, variables, transportName, task, result);
                             }
                         } finally {
                             reportNotificationEnd(event, result);
@@ -107,7 +111,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
     }
 
-    private int prepareAndSend(E event, N notifierConfig, VariablesMap variables, String transportName,
+    /** Creates recipient list and sends a message for each recipient. */
+    private int prepareAndSendMessages(E event, N notifierConfig, VariablesMap variables, String transportName,
             Task task, OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.subresult(OP_PREPARE_AND_SEND)
                 .setMinor()
@@ -118,85 +123,32 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             variables.put(ExpressionConstants.VAR_TRANSPORT_NAME, transportName, String.class);
             Transport<?> transport = transportService.getTransport(transportName);
 
-            List<String> recipientsAddresses = getRecipientsAddresses(
-                    event, notifierConfig, variables,
-                    getDefaultRecipient(event, notifierConfig, result),
-                    transportName, transport, task, result);
-            result.addArbitraryObjectCollectionAsContext("recipientAddress", recipientsAddresses);
+            List<RecipientExpressionResultType> recipients =
+                    getRecipients(event, notifierConfig, variables, task, result);
+            result.addArbitraryObjectCollectionAsContext("recipients", recipients);
 
-            if (recipientsAddresses.isEmpty()) {
-                getLogger().info("No recipients addresses for transport {}, message corresponding"
+            if (recipients.isEmpty()) {
+                getLogger().debug("No recipients for transport {}, message corresponding"
                         + " to event {} will not be send.", transportName, event.getId());
                 result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No recipients");
                 return 0;
             }
 
-            MessageTemplateContentType messageContent = findMessageContent(notifierConfig, result);
+            // TODO: Here we have string addresses already, this does not allow transport to have
+            //  its own strategy (e.g. a default one) to obtain the address from the focus type.
+            //  We should work here with recipient structure that can be either focus (for later
+            //  address resolution) or address (string, as is now).
+            //  Before this "recipientAddressExpression" in GeneralTransportConfigurationType makes
+            //  no sense (also see related TODO for that type in common-notifications-3.xsd).
+            //  Technically, recipientExpression could return either String (current state) or Focus,
+            //  code can handle either of that with focus being resolved later by the transport.
 
-            String body;
-            ExpressionType bodyExpression = messageContent != null ? messageContent.getBodyExpression() : null;
-            if (bodyExpression == null) {
-                bodyExpression = notifierConfig.getBodyExpression();
+            int sentMessages = 0;
+            for (RecipientExpressionResultType recipient : recipients) {
+                sentMessages += prepareAndSendMessage(event,
+                        notifierConfig, variables, transport, transportName, recipient, task, result);
             }
-            if (bodyExpression != null) {
-                body = getBodyFromExpression(event, bodyExpression, variables, task, result);
-            } else {
-                body = getBody(event, notifierConfig, transportName, task, result);
-            }
-            if (body == null) {
-                getLogger().debug("Skipping notification as null body was provided for transport={}", transportName);
-                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No message body");
-                return 0;
-            }
-
-            // TODO use messageContent for other content components
-            String from = getFromFromExpression(event, notifierConfig, variables, task, result);
-            String contentType = getContentTypeFromExpression(event, notifierConfig, variables, task, result);
-            List<NotificationMessageAttachmentType> attachments =
-                    getAttachmentsFromExpression(event, notifierConfig, variables, task, result);
-
-            String subject = getSubjectFromExpression(event, notifierConfig, variables, task, result);
-            if (subject == null) {
-                subject = notifierConfig.getSubjectPrefix() != null ? notifierConfig.getSubjectPrefix() : "";
-                subject += getSubject(event, notifierConfig, transportName, task, result);
-            }
-
-            if (attachments == null) {
-                attachments = notifierConfig.getAttachment();
-                if (attachments == null || attachments.isEmpty()) {
-                    attachments = getAttachment(event, notifierConfig, transportName, task, result);
-                }
-            } else if (notifierConfig.getAttachment() != null) {
-                attachments.addAll(notifierConfig.getAttachment());
-            }
-
-            Message message = new Message();
-            message.setBody(body);
-            if (contentType != null) {
-                message.setContentType(contentType);
-            } else if (notifierConfig.getContentType() != null) {
-                message.setContentType(notifierConfig.getContentType());
-            } else if (getContentType() != null) {
-                message.setContentType(getContentType());
-            }
-            message.setSubject(subject);
-
-            if (from != null) {
-                message.setFrom(from);
-            }
-            message.setTo(recipientsAddresses);
-            message.setCc(getCcBccAddresses(notifierConfig.getCcExpression(),
-                    variables, "notification cc-expression", task, result));
-            message.setBcc(getCcBccAddresses(notifierConfig.getBccExpression(),
-                    variables, "notification bcc-expression", task, result));
-
-            if (attachments != null) {
-                message.setAttachments(attachments);
-            }
-
-            getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
-            transport.send(message, transportName, event, task, result);
-            return 1; // TODO only if really sent
+            return sentMessages;
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -205,8 +157,145 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
     }
 
+    private int prepareAndSendMessage(E event, N notifierConfig, VariablesMap variables,
+            Transport<?> transport, @Deprecated String transportName,
+            RecipientExpressionResultType recipient, Task task, OperationResult result)
+            throws SchemaException {
+        // TODO this is what we want in 4.6, parameter must go
+        //  But this will also mean rewriting existing tests from legacy to new transport style.
+        // String transportName = transport.getName();
+
+        String address = getRecipientAddress(event, transport, recipient, task, result);
+        if (address == null) {
+            getLogger().debug("Skipping notification as no recipient address was provided for transport={}", transportName);
+            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No recipient address provided be notifier or transport");
+            return 0;
+        }
+
+        MessageTemplateContentType messageTemplateContent = findMessageContent(notifierConfig, recipient, result);
+
+        String body = getBody(event, notifierConfig, messageTemplateContent, variables, transportName, task, result);
+        if (body == null) {
+            getLogger().debug("Skipping notification as null body was provided for transport={}", transportName);
+            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No message body");
+            return 0;
+        }
+
+        String contentType = notifierConfig.getContentType();
+        if (contentType == null && messageTemplateContent != null) {
+            contentType = messageTemplateContent.getContentType();
+        }
+        if (contentType == null) {
+            // Message template does not have contentTypeExpression, no need to check.
+            contentType = getContentTypeFromExpression(event, notifierConfig, variables, task, result);
+        }
+        if (contentType == null) {
+            // default hardcoded in notifier classes
+            contentType = getContentType();
+        }
+
+        ExpressionType subjectExpression = notifierConfig.getSubjectExpression();
+        if (subjectExpression == null && messageTemplateContent != null) {
+            subjectExpression = messageTemplateContent.getSubjectExpression();
+        }
+        String subject;
+        if (subjectExpression != null) {
+            subject = getStringFromExpression(event, variables, task, result, subjectExpression, "subject", false);
+        } else {
+            String subjectPrefix = notifierConfig.getSubjectPrefix();
+            String defaultSubject = getSubject(event, notifierConfig, transportName, task, result);
+            subject = Strings.isNullOrEmpty(subjectPrefix)
+                    ? defaultSubject // can be null
+                    : subjectPrefix + Strings.nullToEmpty(defaultSubject); // here we don't want nulls, but ""
+        }
+
+        List<NotificationMessageAttachmentType> attachments = new ArrayList<>();
+        ExpressionType attachmentExpression = notifierConfig.getAttachmentExpression();
+        if (attachmentExpression == null && messageTemplateContent != null) {
+            attachmentExpression = messageTemplateContent.getAttachmentExpression();
+        }
+
+        if (attachmentExpression != null) {
+            attachments.addAll(getAttachmentsFromExpression(event, attachmentExpression, variables, task, result));
+        }
+        if (messageTemplateContent != null) {
+            attachments.addAll(messageTemplateContent.getAttachment());
+        }
+        attachments.addAll(notifierConfig.getAttachment());
+        if (attachments.isEmpty() && attachmentExpression == null) {
+            List<NotificationMessageAttachmentType> defaultAttachments =
+                    getAttachment(event, notifierConfig, transportName, task, result);
+            if (defaultAttachments != null) {
+                attachments.addAll(defaultAttachments);
+            }
+        }
+
+        // setting prepared message content
+        Message message = new Message();
+        message.setBody(body);
+        message.setSubject(subject);
+        message.setContentType(contentType);
+        message.setAttachments(attachments);
+
+        // setting addressing information
+        message.setFrom(getFromFromExpression(event, notifierConfig, variables, task, result));
+        message.setTo(List.of(address));
+        message.setCc(getCcBccAddresses(notifierConfig.getCcExpression(),
+                variables, "notification cc-expression", task, result));
+        message.setBcc(getCcBccAddresses(notifierConfig.getBccExpression(),
+                variables, "notification bcc-expression", task, result));
+
+        getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
+        transport.send(message, transportName, event, task, result);
+        return 1;
+    }
+
     @Nullable
-    private MessageTemplateContentType findMessageContent(N notifierConfig, OperationResult result) {
+    private String getRecipientAddress(E event, Transport<?> transport,
+            RecipientExpressionResultType recipient, Task task, OperationResult result) {
+        String address = recipient.getAddress();
+        if (address == null) {
+            ObjectReferenceType recipientRef = recipient.getRecipientRef();
+            if (recipientRef != null) {
+                Objectable object = recipientRef.asReferenceValue().getOriginObject();
+                if (object instanceof FocusType) {
+                    return getRecipientAddressFromFocus(event, transport, (FocusType) object, task, result);
+                }
+            }
+        }
+        return address;
+    }
+
+    private String getRecipientAddressFromFocus(E event,
+            Transport<?> transport, FocusType focus, Task task, OperationResult result) {
+        ExpressionType recipientAddressExpression = transport.getConfiguration().getRecipientAddressExpression();
+        if (recipientAddressExpression != null) {
+            VariablesMap variables = new VariablesMap();
+            variables.put(VAR_RECIPIENT, focus, FocusType.class);
+            return getStringFromExpression(event, variables, task, result,
+                    recipientAddressExpression, "recipient address expression", true);
+        }
+        return transport.getDefaultRecipientAddress(focus);
+    }
+
+    @Nullable
+    private String getBody(E event, N notifierConfig, MessageTemplateContentType messageContent, VariablesMap variables, String transportName,
+            Task task, OperationResult result) throws SchemaException {
+        ExpressionType bodyExpression = notifierConfig.getBodyExpression();
+        if (bodyExpression == null && messageContent != null) {
+            bodyExpression = messageContent.getBodyExpression();
+        }
+        if (bodyExpression != null) {
+            return getBodyFromExpression(event, bodyExpression, variables, task, result);
+        } else {
+            // default hardcoded in notifier classes
+            return getBody(event, notifierConfig, transportName, task, result);
+        }
+    }
+
+    @Nullable
+    private MessageTemplateContentType findMessageContent(
+            N notifierConfig, RecipientExpressionResultType recipient, OperationResult result) {
         ObjectReferenceType messageTemplateRef = notifierConfig.getMessageTemplateRef();
         if (messageTemplateRef != null) {
             MessageTemplateType messageTemplate = (MessageTemplateType) functions.getObject(messageTemplateRef, true, result);
@@ -214,8 +303,56 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                 getLogger().warn("Message template with OID {} not found, content will be constructed"
                         + " from the notifier: {}", messageTemplateRef.getOid(), notifierConfig);
             } else {
-                // TODO localized version... based on the recipient
-                return messageTemplate.getDefaultContent();
+                MessageTemplateContentType content = messageTemplate.getDefaultContent();
+                ObjectReferenceType recipientRef = recipient.getRecipientRef();
+                if (recipientRef != null) {
+                    MessageTemplateContentType localizedContent = findLocalizedContent(messageTemplate, recipientRef);
+                    if (localizedContent != null) {
+                        inheritAttachmentSetupFromDefaultContent(localizedContent, content);
+                        content = localizedContent; // otherwise it's default content
+                    }
+                }
+                return content;
+            }
+        }
+        return null;
+    }
+
+    private void inheritAttachmentSetupFromDefaultContent(
+            MessageTemplateContentType localizedContent, MessageTemplateContentType defaultContent) {
+        List<NotificationMessageAttachmentType> localizedAttachments = localizedContent.getAttachment();
+        List<NotificationMessageAttachmentType> defaultAttachments = defaultContent.getAttachment();
+        if (localizedAttachments.isEmpty() && !defaultAttachments.isEmpty()) {
+            localizedAttachments.addAll(defaultAttachments);
+        }
+
+        ExpressionType defaultAttachmentExpression = defaultContent.getAttachmentExpression();
+        if (localizedContent.getAttachmentExpression() == null && defaultAttachmentExpression != null) {
+            localizedContent.setAttachmentExpression(defaultAttachmentExpression);
+        }
+    }
+
+    private MessageTemplateContentType findLocalizedContent(
+            @NotNull MessageTemplateType messageTemplate, @NotNull ObjectReferenceType recipientRef) {
+        FocusType recipientFocus = (FocusType) recipientRef.asReferenceValue().getOriginObject();
+        if (recipientFocus == null) {
+            // TODO can focus be possibly null here? shouldn't it be resolved already if ref is not null?
+            return null;
+        }
+//        Locale recipientLocale = LocaleUtils.toLocale(
+        // TODO: This order or locale first? This is how it's used in GUI.
+        //  Also, utility method to get Locale from focus should probably be extracted, but where to?
+        String recipientLocale = recipientFocus.getPreferredLanguage();
+        if (recipientLocale == null) {
+            recipientLocale = recipientFocus.getLocale();
+        }
+        if (recipientLocale == null) {
+            return null;
+        }
+        // TODO: Currently supports only equal strings - add matching of en-US to en if en-US is not available, etc.
+        for (LocalizedMessageTemplateContentType localizedContent : messageTemplate.getLocalizedContent()) {
+            if (recipientLocale.equals(localizedContent.getLanguage())) {
+                return localizedContent;
             }
         }
         return null;
@@ -250,14 +387,17 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         return null;
     }
 
-    // for future extension
-    @SuppressWarnings("unused")
-    protected List<NotificationMessageAttachmentType> getAttachment(E event, N generalNotifierType,
-            String transportName, Task task, OperationResult result) {
+    /**
+     * Returns default attachments, only used if no attachment is specified in notifier or message template.
+     * This is not called even if some attachment expression is specified and returns null because that
+     * explicitly means "no attachments".
+     */
+    protected List<NotificationMessageAttachmentType> getAttachment(
+            E event, N generalNotifierType, String transportName, Task task, OperationResult result) {
         return null;
     }
 
-    protected UserType getDefaultRecipient(E event, N generalNotifierType, OperationResult result) {
+    protected UserType getDefaultRecipient(E event, OperationResult result) {
         ObjectType objectType = functions.getObject(event.getRequestee(), true, result);
         if (objectType instanceof UserType) {
             return (UserType) objectType;
@@ -267,35 +407,33 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     }
 
     protected Trace getLogger() {
-        return DEFAULT_LOGGER;              // in case a subclass does not provide its own logger
+        return DEFAULT_LOGGER; // in case a subclass does not provide its own logger
     }
 
-    // TODO: This should change some "context" object (or Message?) and not use transport (it will happen in later phases).
-    private List<String> getRecipientsAddresses(E event, N generalNotifierType, VariablesMap variables,
-            UserType defaultRecipient, String transportName, Transport<?> transport, Task task, OperationResult result) {
-        List<String> addresses = new ArrayList<>();
-        if (!generalNotifierType.getRecipientExpression().isEmpty()) {
-            for (ExpressionType expressionType : generalNotifierType.getRecipientExpression()) {
-                List<String> r = evaluateExpressionChecked(expressionType, variables, "notification recipient", task, result);
-                if (r != null) {
-                    addresses.addAll(r);
-                }
-            }
-            if (addresses.isEmpty()) {
-                getLogger().info("Notification for {} will not be sent, because there are no known recipients.", event);
-            }
-        } else if (defaultRecipient == null) {
-            getLogger().info("Unknown default recipient, notification will not be sent.");
-        } else {
-            String address = transport.getDefaultRecipientAddress(defaultRecipient);
-            if (StringUtils.isEmpty(address)) {
-                getLogger().info("Notification to {} will not be sent, because the user has no address"
-                        + " (mail, phone number, etc) for transport '{}' set.", defaultRecipient.getName(), transportName);
-            } else {
-                addresses.add(address);
+    private List<RecipientExpressionResultType> getRecipients(E event,
+            N generalNotifierType, VariablesMap variables, Task task, OperationResult result) {
+        List<RecipientExpressionResultType> recipients = new ArrayList<>();
+        for (ExpressionType expressionType : generalNotifierType.getRecipientExpression()) {
+            List<RecipientExpressionResultType> r = expressionHelper.evaluateRecipientExpressionChecked(
+                    expressionType, variables, "notification recipient", task, result);
+            if (r != null) {
+                recipients.addAll(r);
             }
         }
-        return addresses;
+
+        if (recipients.isEmpty()) {
+            getLogger().trace("No recipients from expression, trying default recipient from notifier; event: {}", event);
+            UserType defaultRecipient = getDefaultRecipient(event, result);
+            if (defaultRecipient != null) {
+                RecipientExpressionResultType recipient = new RecipientExpressionResultType();
+                ObjectReferenceType ref = new ObjectReferenceType();
+                ref.asReferenceValue().setOriginObject(defaultRecipient);
+                recipient.setRecipientRef(ref);
+                recipients.add(recipient);
+            }
+        }
+
+        return recipients;
     }
 
     @NotNull
@@ -309,12 +447,6 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             }
         }
         return addresses;
-    }
-
-    private String getSubjectFromExpression(E event, N generalNotifierType, VariablesMap variables,
-            Task task, OperationResult result) {
-        return getStringFromExpression(event, variables,
-                task, result, generalNotifierType.getSubjectExpression(), "subject", false);
     }
 
     private String getFromFromExpression(E event, N generalNotifierType, VariablesMap variables,
@@ -332,16 +464,16 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     private String getStringFromExpression(E event, VariablesMap variables,
             Task task, OperationResult result, ExpressionType expression, String expressionTypeName, boolean canBeNull) {
         if (expression != null) {
-            List<String> contentTypeList = evaluateExpressionChecked(expression, variables,
-                    expressionTypeName + " expression", task, result);
-            if (contentTypeList == null || contentTypeList.isEmpty()) {
-                getLogger().info(expressionTypeName + " expression for event " + event.getId() + " returned nothing.");
+            List<String> resultValues = evaluateExpressionChecked(
+                    expression, variables, expressionTypeName + " expression", task, result);
+            if (resultValues == null || resultValues.isEmpty()) {
+                getLogger().debug(expressionTypeName + " expression for event " + event.getId() + " returned nothing.");
                 return canBeNull ? null : "";
             }
-            if (contentTypeList.size() > 1) {
+            if (resultValues.size() > 1) {
                 getLogger().warn(expressionTypeName + " expression for event " + event.getId() + " returned more than 1 item.");
             }
-            return contentTypeList.get(0);
+            return resultValues.get(0);
         } else {
             return null;
         }
@@ -349,8 +481,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
     private String getBodyFromExpression(E event, @NotNull ExpressionType bodyExpression, VariablesMap variables,
             Task task, OperationResult result) {
-        List<String> bodyList = evaluateExpressionChecked(bodyExpression, variables,
-                "body expression", task, result);
+        List<String> bodyList = evaluateExpressionChecked(
+                bodyExpression, variables, "body expression", task, result);
         if (bodyList == null || bodyList.isEmpty()) {
             getLogger().warn("Body expression for event {} returned nothing.", event.getId());
             return null;
@@ -363,19 +495,15 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
     }
 
-    private List<NotificationMessageAttachmentType> getAttachmentsFromExpression(E event, N generalNotifierType, VariablesMap variables,
-            Task task, OperationResult result) {
-        if (generalNotifierType.getAttachmentExpression() != null) {
-            List<NotificationMessageAttachmentType> attachment = evaluateNotificationMessageAttachmentTypeExpressionChecked(generalNotifierType.getAttachmentExpression(), variables, "contentType expression",
-                    task, result);
-            if (attachment == null) {
-                getLogger().info("attachment expression for event {} returned nothing.", event.getId());
-                return null;
-            }
-            return attachment;
-        } else {
-            return null;
+    private @NotNull List<NotificationMessageAttachmentType> getAttachmentsFromExpression(E event,
+            @NotNull ExpressionType attachmentExpression, VariablesMap variables, Task task, OperationResult result) {
+        List<NotificationMessageAttachmentType> attachment = expressionHelper.evaluateAttachmentExpressionChecked(
+                attachmentExpression, variables, "attachment expression", task, result);
+        if (attachment == null) {
+            getLogger().debug("attachment expression for event {} returned nothing.", event.getId());
+            return List.of();
         }
+        return attachment;
     }
 
     boolean isWatchAuxiliaryAttributes(N configuration) {

@@ -37,9 +37,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
 public class NotificationExpressionHelper {
@@ -94,21 +92,19 @@ public class NotificationExpressionHelper {
     public List<String> evaluateExpressionChecked(ExpressionType expressionType, VariablesMap variablesMap,
             String shortDesc, Task task, OperationResult result) {
 
-        Throwable failReason;
         try {
             return evaluateExpression(expressionType, variablesMap, shortDesc, task, result);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-            failReason = e;
+            LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
+            result.recordFatalError("Couldn't evaluate " + shortDesc, e);
+            throw new SystemException(e);
         }
-
-        LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", failReason, shortDesc, expressionType);
-        result.recordFatalError("Couldn't evaluate " + shortDesc, failReason);
-        throw new SystemException(failReason);
     }
 
-    private List<String> evaluateExpression(ExpressionType expressionType, VariablesMap variablesMap,
-            String shortDesc, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private List<String> evaluateExpression(ExpressionType expressionType,
+            VariablesMap variablesMap, String shortDesc, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         MutablePrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
@@ -127,7 +123,68 @@ public class NotificationExpressionHelper {
         return retval;
     }
 
-    public List<NotificationMessageAttachmentType> evaluateNotificationMessageAttachmentTypeExpressionChecked(
+    public List<RecipientExpressionResultType> evaluateRecipientExpressionChecked(ExpressionType expressionType,
+            VariablesMap variablesMap, String shortDesc, Task task, OperationResult result) {
+        try {
+            return evaluateRecipientExpression(expressionType, variablesMap, shortDesc, task, result);
+        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
+            result.recordFatalError("Couldn't evaluate " + shortDesc, e);
+            throw new SystemException(e);
+        }
+    }
+
+    private List<RecipientExpressionResultType> evaluateRecipientExpression(ExpressionType expressionType,
+            VariablesMap variablesMap, String shortDesc, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+
+        MutablePrismPropertyDefinition<RecipientExpressionResultType> resultDef =
+                prismContext.definitionFactory().createPropertyDefinition(
+                        new QName(SchemaConstants.NS_C, "result"),
+                        RecipientExpressionResultType.COMPLEX_TYPE);
+        resultDef.setMaxOccurs(-1);
+
+        Expression<PrismPropertyValue<RecipientExpressionResultType>, PrismPropertyDefinition<RecipientExpressionResultType>> expression =
+                expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+        ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
+        context.setAdditionalConvertor(this::recipientConverter);
+        PrismValueDeltaSetTriple<PrismPropertyValue<RecipientExpressionResultType>> exprResult =
+                ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, context, task, result);
+
+        List<RecipientExpressionResultType> retval = new ArrayList<>();
+        for (PrismPropertyValue<RecipientExpressionResultType> item : exprResult.getZeroSet()) {
+            retval.add(item.getValue());
+        }
+        return retval;
+    }
+
+
+    private Object recipientConverter(Object resultValue) {
+        if (resultValue == null) {
+            return null;
+        }
+
+        RecipientExpressionResultType result = new RecipientExpressionResultType();
+        if (resultValue instanceof PrismObject) {
+            ObjectReferenceType ref = new ObjectReferenceType();
+            ref.asReferenceValue().setObject((PrismObject<?>) resultValue); // it better be focus
+            result.setRecipientRef(ref);
+        } else if (resultValue instanceof FocusType) {
+            ObjectReferenceType ref = new ObjectReferenceType();
+            ref.asReferenceValue().setOriginObject((FocusType) resultValue);
+            result.setRecipientRef(ref);
+        } else if (resultValue instanceof String) {
+            // TODO OID check, if it's OID, just change it to ref
+            result.setAddress((String) resultValue);
+        } else {
+            return resultValue; // we don't know what to do with it, let it fail with original value
+        }
+
+        return result;
+    }
+
+    public List<NotificationMessageAttachmentType> evaluateAttachmentExpressionChecked(
             ExpressionType expressionType, VariablesMap variablesMap,
             String shortDesc, Task task, OperationResult result) {
 

@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+
     <name>SystemConfiguration</name>
     <logging>
         <rootLoggerAppender>File Appender</rootLoggerAppender>
@@ -16,7 +17,7 @@
         <classLogger>
             <level>TRACE</level>
             <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
-          </classLogger>
+        </classLogger>
         <appender xsi:type="c:FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
             <fileName>target/test.log</fileName>
@@ -28,7 +29,10 @@
             <simpleWorkflowNotifier>
                 <category>workflowProcessEvent</category>
                 <recipientExpression>
-                    <value>recipient@evolveum.com</value>
+                    <!-- Demonstration of parsed raw type of type Focus which is also acceptable here -->
+                    <value xsi:type="UserType" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                        <emailAddress>recipient@evolveum.com</emailAddress>
+                    </value>
                 </recipientExpression>
                 <transport>dummy:simpleWorkflowNotifier-Processes</transport>
             </simpleWorkflowNotifier>
@@ -46,16 +50,18 @@
             <simpleTaskNotifier>
                 <expressionFilter>
                     <script>
-                        <!-- MID-4121 -->
-                        <code>import com.evolveum.midpoint.wf.impl.assignments.TestAssignmentsAdvanced
+                        <!-- MID-4121 @formatter:off -->
+                        <code>
+                            import com.evolveum.midpoint.wf.impl.assignments.TestAssignmentsAdvanced
 
-                        try {
-                            return event.isSuccess()
-                        } catch (Exception e) {
-                            TestAssignmentsAdvanced.exception = e
-                            throw e
-                        }
+                            try {
+                                return event.isSuccess()
+                            } catch (Exception e) {
+                                TestAssignmentsAdvanced.exception = e
+                                throw e
+                            }
                         </code>
+                        <!-- @formatter:on -->
                     </script>
                 </expressionFilter>
             </simpleTaskNotifier>

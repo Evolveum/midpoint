@@ -11,6 +11,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.cases.CaseDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.cases.component.CorrelationContextPanel;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -49,6 +51,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
@@ -91,6 +94,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
 
 
     private IModel<SceneDto> sceneModel;
+    private LoadableDetachableModel<PrismObject<CaseType>> caseModel;
     public WorkItemDetailsPanel(String id, IModel<CaseWorkItemType> caseWorkItemTypeIModel) {
         super(id, caseWorkItemTypeIModel);
     }
@@ -113,6 +117,14 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
                 } else {
                     return WebComponentUtil.createSceneDto(WorkItemDetailsPanel.this.getModelObject(), pageBase, OPERATION_PREPARE_DELTA_VISUALIZATION);
                 }
+            }
+        };
+
+        caseModel = new LoadableDetachableModel<>() {
+            @Override
+            protected PrismObject<CaseType> load() {
+                CaseType parentCase = CaseTypeUtil.getCase(WorkItemDetailsPanel.this.getModelObject());
+                return parentCase == null ? null : parentCase.asPrismObject();
             }
         };
     }
@@ -204,6 +216,8 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             ScenePanel scenePanel = new ScenePanel(ID_DELTAS_TO_APPROVE, sceneModel);
             scenePanel.setOutputMarkupId(true);
             add(scenePanel);
+        } else if (CaseTypeUtil.isCorrelationCase(parentCase)) {
+            add(new CorrelationContextPanel(ID_DELTAS_TO_APPROVE, new CaseDetailsModels(caseModel, getPageBase()), new ContainerPanelConfigurationType()));
         } else {
             add(new WebMarkupContainer(ID_DELTAS_TO_APPROVE));
         }

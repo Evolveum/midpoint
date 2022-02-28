@@ -1,0 +1,13 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     oid="8d537583-d475-48c4-b23d-5e71e1ef4e2a">
+    <name>correlation-operators</name>
+    <displayName>Correlation operators</displayName>
+    <!-- assigned to administrator by the code -->
+</org>

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.cases.impl.engine;
 
+import com.evolveum.midpoint.cases.impl.engine.helpers.SimpleStageOpeningHelper;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -46,4 +48,5 @@ public class CaseBeans {
     @Autowired public ActionFactory actionFactory;
     @Autowired public CaseEventDispatcher caseEventDispatcher;
     @Autowired public TaskManager taskManager;
+    @Autowired public SimpleStageOpeningHelper simpleStageOpeningHelper;
 }

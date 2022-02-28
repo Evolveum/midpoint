@@ -11,8 +11,8 @@ import com.evolveum.midpoint.notifications.api.OperationStatus;
 import com.evolveum.midpoint.notifications.api.events.CaseManagementEvent;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
 import com.evolveum.midpoint.schema.util.cases.ManualCaseUtils;
+import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
@@ -64,10 +64,13 @@ abstract public class CaseManagementEventImpl extends BaseEventImpl implements C
             String outcome = getCaseOrItemOutcome();
             if (outcome == null) {
                 return "";
-            } else if (CorrelationCaseUtil.isNewOwner(outcome)) {
-                return "No existing owner";
             } else {
-                return CorrelationCaseUtil.getExistingOwnerId(outcome);
+                OwnerOptionIdentifier identifier = OwnerOptionIdentifier.fromStringValueForgiving(outcome);
+                if (identifier.isNewOwner()) {
+                    return "No existing owner";
+                } else {
+                    return identifier.getExistingOwnerId();
+                }
             }
         } else if (isManualProvisioning()) {
             return String.valueOf(

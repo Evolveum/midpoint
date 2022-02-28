@@ -7,12 +7,14 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 
 /**
@@ -21,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizatio
  * Differs from {@link CorrelationContext} in that the latter covers only a single correlation operation.
  * The former covers the whole life of a correlator, and operations other than correlation.
  */
-public class CorrelatorContext<C extends AbstractCorrelatorType> {
+public class CorrelatorContext<C extends AbstractCorrelatorType> implements DebugDumpable {
 
     @NotNull private final C configurationBean;
 
@@ -48,7 +50,7 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> {
     }
 
     public static CorrelatorContext<?> create(
-            @NotNull CorrelatorsType correlators,
+            @NotNull CompositeCorrelatorType correlators,
             @Nullable ObjectSynchronizationType objectSynchronizationBean) {
         return new CorrelatorContext<>(
                 CorrelatorConfiguration.getConfiguration(correlators),
@@ -75,5 +77,19 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> {
 
     public CorrelatorContext<?> spawn(@NotNull CorrelatorConfiguration configuration) {
         return new CorrelatorContext<>(configuration, synchronizationBean);
+    }
+
+    public boolean shouldCreateCases() {
+        return synchronizationBean != null
+                && synchronizationBean.getCorrelationDefinition() != null
+                && synchronizationBean.getCorrelationDefinition().getCases() != null
+                && !Boolean.FALSE.equals(synchronizationBean.getCorrelationDefinition().getCases().isEnabled());
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        // Temporary: this config bean is the core of the context; other things need not be so urgently dumped
+        // (maybe they might be - in some shortened form).
+        return configurationBean.debugDump(indent);
     }
 }

@@ -7,7 +7,7 @@
 
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="95ebbf1e-9c71-4870-a1fb-dc47ce6856c9">
-    <name>import-ais</name>
+    <name>import-sis</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionState>closed</executionState>
     <activity>

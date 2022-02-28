@@ -388,8 +388,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {
         if (panelConfig == null) {
-//            form.addOrReplace(new Label(ID_MAIN_PANEL, Model.of("No panels defined"))); // todo - create nicer panel
-            WebMarkupContainer panel = new MessagePanel(ID_MAIN_PANEL, MessagePanel.MessagePanelType.WARN, createStringResource("AbstractPageObjectDetails.noPanels"), false);
+            WebMarkupContainer panel = new MessagePanel(ID_MAIN_PANEL, MessagePanel.MessagePanelType.WARN,
+                    createStringResource("AbstractPageObjectDetails.noPanels"), false);
             panel.add(AttributeAppender.append("style", "margin-top: 20px;"));
 
             form.addOrReplace(panel);
@@ -413,13 +413,16 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private DetailsNavigationPanel<O> createNavigationPanel(IModel<List<ContainerPanelConfigurationType>> panels) {
-        return new DetailsNavigationPanel<>(AbstractPageObjectDetails.ID_NAVIGATION, objectDetailsModels, panels) {
+        DetailsNavigationPanel panel = new DetailsNavigationPanel<>(AbstractPageObjectDetails.ID_NAVIGATION, objectDetailsModels, panels) {
 
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
                 replacePanel(config, target);
             }
         };
+        panel.add(new VisibleBehaviour(() -> panels.getObject() != null && panels.getObject().size() > 1));
+
+        return panel;
     }
 
     public void replacePanel(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
@@ -429,6 +432,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             target.add(form);
             target.add(getFeedbackPanel());
         } catch (Throwable e) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Can't instantiate panel based on config\n {}", config.debugDump(), e);
+            }
+
             error("Cannot instantiate panel, " + e.getMessage());
             target.add(getFeedbackPanel());
         }

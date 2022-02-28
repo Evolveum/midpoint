@@ -392,7 +392,7 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
     }
 
     @Override
-    public String getDefaultRecipientAddress(UserType recipient) {
+    public String getDefaultRecipientAddress(FocusType recipient) {
         return recipient.getTelephoneNumber();
     }
 

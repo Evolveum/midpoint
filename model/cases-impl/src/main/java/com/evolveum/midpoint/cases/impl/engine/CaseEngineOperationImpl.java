@@ -190,8 +190,7 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
     }
 
     @Override
-    public void closeCaseInRepository(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void closeCaseInRepository(OperationResult result) throws ObjectNotFoundException {
         beans.miscHelper.closeCaseInRepository(currentCase, result);
     }
 

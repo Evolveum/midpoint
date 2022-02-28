@@ -2850,6 +2850,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="loggingOverride" type="tns:LoggingOverrideType" />
 
@@ -2880,6 +2881,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="classLoggerLevelOverride" type="tns:ClassLoggerLevelOverrideType" />
 

@@ -297,7 +297,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-     * Create the group directly on resource. Therefore the shadow does NOT exists.
+     * Create the group directly on resource. Therefore the shadow does NOT exist.
      */
     @Test
     public void test222AssignRoleMapmakerToWally() throws Exception {
@@ -1397,9 +1397,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     /**
      * Guybrush is assigned to a group that induces an association to a dummy group that
-     * does not exists yet.
+     * does not exist yet.
      * All the associations to groups that exist should be provisioned. The non-existed group
-     * cannot be provisionined yet. But there should be no error.
+     * cannot be provisioned yet. But there should be no error.
      */
     @Test
     public void test750PrepareGuybrushFuturePerfect() throws Exception {

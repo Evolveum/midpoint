@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -1915,6 +1915,27 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .endBlock(),
                 user3Oid);
         */
+    }
+
+    // MID-7487, nothing found, just a query test
+    @Test
+    public void test702SearchShadowsByCorrelationAttributes() throws SchemaException {
+        searchObjectTest("using all correlation attributes", ShadowType.class,
+                f -> f.item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_START_TIMESTAMP)
+                        .gt(asXMLGregorianCalendar(1L))
+                        .and()
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP)
+                        .gt(asXMLGregorianCalendar(2L))
+                        .and()
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_OPEN_TIMESTAMP)
+                        .gt(asXMLGregorianCalendar(3L))
+                        .and()
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_CLOSE_TIMESTAMP)
+                        .gt(asXMLGregorianCalendar(4L))
+                        .and()
+                        .not()
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION)
+                        .eq(CorrelationSituationType.ERROR));
     }
     // endregion
 

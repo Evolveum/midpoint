@@ -68,7 +68,7 @@ public class TestStaticValues extends AbstractUnitTest {
 
     private void doRoundtrip(PrismProperty<?> origProperty, ItemDefinition propDef) throws SchemaException {
         // WHEN
-        List<JAXBElement<RawType>> valueElements = StaticExpressionUtil.serializeValueElements(origProperty, "here somewhere");
+        List<JAXBElement<RawType>> valueElements = StaticExpressionUtil.serializeValueElements(origProperty);
 
         for (Object element : valueElements) {
             if (element instanceof JAXBElement) {

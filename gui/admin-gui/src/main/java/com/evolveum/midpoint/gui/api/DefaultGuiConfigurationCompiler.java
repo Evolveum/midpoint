@@ -7,18 +7,6 @@
 
 package com.evolveum.midpoint.gui.api;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
@@ -40,6 +28,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 
 @Component
 public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
@@ -264,7 +264,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         for (Class<?> clazz : panelInstanceClasses) {
             PanelInstances pis = clazz.getAnnotation(PanelInstances.class);
             if (pis != null) {
-                Arrays.asList(pis.instances()).forEach(pi -> addSupportedContainerable(containerables, pi));
+                Arrays.asList(pis.value()).forEach(pi -> addSupportedContainerable(containerables, pi));
             }
 
             PanelInstance pi = clazz.getAnnotation(PanelInstance.class);
@@ -322,7 +322,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         for (Class<?> clazz : panelInstanceClasses) {
             PanelInstances pis = clazz.getAnnotation(PanelInstances.class);
             if (pis != null) {
-                Arrays.asList(pis.instances()).forEach(pi -> addPanelsFor(panels, containerable, clazz, pi));
+                Arrays.asList(pis.value()).forEach(pi -> addPanelsFor(panels, containerable, clazz, pi));
             }
 
             PanelInstance pi = clazz.getAnnotation(PanelInstance.class);
@@ -417,14 +417,30 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             config.setApplicableForOperation(panelInstance.applicableForOperation()[0]);
         }
 
-        if (StringUtils.isNotEmpty(panelInstance.containerPath())) {
-            config.setPath(prismContext.itemPathParser().asItemPathType(panelInstance.containerPath()));
-        }
+        createDefaultVirtualContainer(config, panelInstance.containerPath(), panelInstance.expanded());
+
         if (StringUtils.isNotEmpty(panelInstance.type())) {
             config.setType(QNameUtil.uriToQName(panelInstance.type(), SchemaConstantsGenerated.NS_COMMON));
         }
 
         return config;
+    }
+
+    private void createDefaultVirtualContainer(ContainerPanelConfigurationType config, String path, Boolean expanded) {
+        if (StringUtils.isEmpty(path)) {
+            return;
+        }
+
+        VirtualContainersSpecificationType container = new VirtualContainersSpecificationType();
+        if ("empty".equals(path)) {
+            container.setPath(new ItemPathType(ItemPath.EMPTY_PATH));
+        } else {
+            ItemPathType itemPath = prismContext.itemPathParser().asItemPathType(path);
+            container.setPath(itemPath);
+        }
+        container.setDisplayOrder(10);
+        container.setExpanded(expanded);
+        config.getContainer().add(container);
     }
 
     private void addPanelTypeConfiguration(Class<?> clazz, ContainerPanelConfigurationType config) {
@@ -439,26 +455,11 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                 config.setType(def.getTypeName());
             }
         }
-        compileDefaultContainerSpecification(panelType, config);
+        createDefaultVirtualContainer(config, panelType.defaultContainerPath(), null);
 
         if (panelType.experimental() && BooleanUtils.isNotTrue(experimentalFeaturesEnabled)) {
             config.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
         }
-    }
-
-    private void compileDefaultContainerSpecification(PanelType panelType, ContainerPanelConfigurationType config) {
-        if (panelType.defaultContainerPath().isBlank()) {
-            return;
-        }
-        VirtualContainersSpecificationType defaultContainer = new VirtualContainersSpecificationType();
-        if ("empty".equals(panelType.defaultContainerPath())) {
-            defaultContainer.setPath(new ItemPathType(ItemPath.EMPTY_PATH));
-        } else {
-            ItemPathType path = prismContext.itemPathParser().asItemPathType(panelType.defaultContainerPath());
-            defaultContainer.setPath(path);
-        }
-        defaultContainer.setDisplayOrder(10);
-        config.getContainer().add(defaultContainer);
     }
 
     private void compileDisplay(PanelInstance panelInstance, ContainerPanelConfigurationType config) {

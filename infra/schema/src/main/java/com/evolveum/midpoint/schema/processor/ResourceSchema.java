@@ -78,7 +78,7 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
     /**
      * Returns object definition (type or class) matching given kind and intent, and object class.
      *
-     * The object class is used to:
+     * The object class parameter is used to:
      *
      * 1. verify that object type that matches given kind and intent is compatible with (currently: equal to) the object class;
      * 2. provide a complementary means to select a type when intent is not specified.

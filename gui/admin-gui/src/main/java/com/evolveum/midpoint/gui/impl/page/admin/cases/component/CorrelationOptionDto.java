@@ -10,16 +10,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 import java.io.Serializable;
 import java.util.Set;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerOptionType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.MatchingUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PotentialOwnerType;
 
 /**
  * Represents a correlation option: a candidate owner or a "new owner".
@@ -39,30 +39,30 @@ public class CorrelationOptionDto implements Serializable {
     private final boolean newOwner;
 
     /**
-     * URI corresponding to this choice. It should be sent to the case management engine when completing this request.
+     * Identifier corresponding to this choice. It should be sent to the case management engine when completing this request.
      */
-    @NotNull private final String uri;
+    @NotNull private final String identifier;
 
     /**
      * Creates a DTO in the case of existing owner.
      */
-    CorrelationOptionDto(@NotNull PotentialOwnerType potentialOwner) {
+    CorrelationOptionDto(@NotNull ResourceObjectOwnerOptionType potentialOwner) {
         this.object = MiscUtil.requireNonNull(
                 ObjectTypeUtil.getPrismObjectFromReference(potentialOwner.getCandidateOwnerRef()),
                 () -> new IllegalStateException("No focus object"));
         this.newOwner = false;
-        this.uri = potentialOwner.getUri();
+        this.identifier = potentialOwner.getIdentifier();
     }
 
     /**
-     * Creates a DTO in the case of new owner.
+     * Creates a DTO in the case of new owner (pre-focus).
      */
-    CorrelationOptionDto(@NotNull ObjectReferenceType reference) {
+    CorrelationOptionDto(@NotNull ResourceObjectOwnerOptionType potentialOwner, @NotNull ObjectReferenceType preFocus) {
         this.object = MiscUtil.requireNonNull(
-                ObjectTypeUtil.getPrismObjectFromReference(reference),
+                ObjectTypeUtil.getPrismObjectFromReference(preFocus),
                 () -> new IllegalStateException("No focus object"));
         this.newOwner = true;
-        this.uri = SchemaConstants.CORRELATION_NONE_URI;
+        this.identifier = potentialOwner.getIdentifier();
     }
 
     /**
@@ -98,7 +98,7 @@ public class CorrelationOptionDto implements Serializable {
         return object.getOid();
     }
 
-    public @NotNull String getUri() {
-        return uri;
+    public @NotNull String getIdentifier() {
+        return identifier;
     }
 }

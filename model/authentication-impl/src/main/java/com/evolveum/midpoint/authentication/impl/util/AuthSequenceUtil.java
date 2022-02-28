@@ -586,4 +586,19 @@ public class AuthSequenceUtil {
             throw new AuthenticationServiceException("Unsupported type of Authentication");
         }
     }
+
+    public static boolean isAllowUpdatingAuthBehavior(boolean isUpdatingDuringUnsuccessfulLogin){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof MidpointAuthentication && ((MidpointAuthentication)authentication).getSequence() != null) {
+            FocusBehaviorUpdateType actualOption = ((MidpointAuthentication) authentication).getSequence().getFocusBehaviorUpdate();
+            if (actualOption == null && FocusBehaviorUpdateType.ENABLED.equals(actualOption)) {
+                return true;
+            } else if (FocusBehaviorUpdateType.DISABLED.equals(actualOption)) {
+                return false;
+            } else if (FocusBehaviorUpdateType.FAILURE_ONLY.equals(actualOption)) {
+                return isUpdatingDuringUnsuccessfulLogin;
+            }
+        }
+        return true;
+    }
 }

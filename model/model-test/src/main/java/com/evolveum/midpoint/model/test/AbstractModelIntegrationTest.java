@@ -151,7 +151,7 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
  *
  * @author Radovan Semancik
  */
-public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest {
+public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest implements ResourceTester {
 
     protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
     protected static final String CONNECTOR_DUMMY_VERSION = "2.0";
@@ -297,6 +297,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 resource.controllerInitLambda, task, result);
         resource.reload(result); // To have schema, etc
         return resource.controller;
+    }
+
+    protected void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result)
+            throws Exception {
+        resource.controller = dummyResourceCollection.initDummyResource(
+                resource.name, resource.file, resource.oid, resource.controllerInitLambda, task, result);
+        assertSuccess(
+                modelService.testResource(resource.controller.getResource().getOid(), task));
+        resource.reload(result); // To have schema, etc
     }
 
     protected DummyResourceContoller initDummyResource(String name, File resourceFile, String resourceOid,
@@ -5992,6 +6001,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .display();
     }
 
+    protected CaseAsserter<Void> assertCaseAfter(CaseType aCase) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return assertCase(aCase, "after")
+                .display();
+    }
+
     protected ShadowAsserter<Void> assertModelShadow(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<ShadowType> repoShadow = getShadowModel(oid);
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "model");
@@ -6718,5 +6732,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     public ProvisioningService getProvisioningService() {
         return provisioningService;
+    }
+
+    @Override
+    public OperationResult testResource(@NotNull String oid, @NotNull Task task) throws ObjectNotFoundException {
+        return modelService.testResource(oid, task);
     }
 }

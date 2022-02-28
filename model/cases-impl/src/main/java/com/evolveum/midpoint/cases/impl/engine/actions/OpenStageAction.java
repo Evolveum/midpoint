@@ -27,9 +27,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.*;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Opens a default unnumbered stage (if stages are not used), or a regular - i.e. numbered - one.
@@ -78,22 +79,17 @@ class OpenStageAction extends InternalAction {
             return new CloseStageAction(operation, openingInformation.getAutoClosingInformation());
         }
 
-        if (openingInformation.areWorkItemsPreExisting()) {
-            LOGGER.trace("Pre-existing work items, going to prepare audit+notifications");
-            // Probably temporary code. Maybe the extension should always provide new work items.
-            // E.g. to allow escalation and other timed actions.
-            stateCheck(!engineExtension.doesUseStages(),
-                    "Pre-existing items are supported only when stages are not used: %s", currentCase);
-            for (CaseWorkItemType workItem : currentCase.getWorkItem()) {
-                prepareAuditAndNotifications(workItem, result);
+        AtomicLong idCounter = new AtomicLong(
+                Objects.requireNonNullElse(currentCase.asPrismObject().getHighestId(), 0L) + 1);
+
+        LOGGER.trace("Got {} work items to create", openingInformation.getNewWorkItems().size());
+        for (CaseWorkItemType newWorkItem : openingInformation.getNewWorkItems()) {
+            if (newWorkItem.getId() == null) {
+                newWorkItem.setId(idCounter.getAndIncrement());
             }
-        } else {
-            LOGGER.trace("Got {} work items to create", openingInformation.getNewWorkItems().size());
-            for (CaseWorkItemType newWorkItem : openingInformation.getNewWorkItems()) {
-                currentCase.getWorkItem().add(newWorkItem);
-                prepareAuditAndNotifications(newWorkItem, result);
-                createCaseTriggers(newWorkItem, openingInformation.getTimedActionsCollection());
-            }
+            currentCase.getWorkItem().add(newWorkItem);
+            prepareAuditAndNotifications(newWorkItem, result);
+            createCaseTriggers(newWorkItem, openingInformation.getTimedActionsCollection());
         }
 
         // Now we are waiting for the work items to be completed (typically)
