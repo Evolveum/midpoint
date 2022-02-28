@@ -590,12 +590,12 @@ public class AuthSequenceUtil {
     public static boolean isAllowUpdatingAuthBehavior(boolean isUpdatingDuringUnsuccessfulLogin){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof MidpointAuthentication && ((MidpointAuthentication)authentication).getSequence() != null) {
-            UpdatingFocusBehaviorType actualOption = ((MidpointAuthentication) authentication).getSequence().getUpdatingFocusBehavior();
-            if (actualOption == null && UpdatingFocusBehaviorType.ENABLED.equals(actualOption)) {
+            FocusBehaviorUpdateType actualOption = ((MidpointAuthentication) authentication).getSequence().getFocusBehaviorUpdate();
+            if (actualOption == null && FocusBehaviorUpdateType.ENABLED.equals(actualOption)) {
                 return true;
-            } else if (UpdatingFocusBehaviorType.DISABLED.equals(actualOption)) {
+            } else if (FocusBehaviorUpdateType.DISABLED.equals(actualOption)) {
                 return false;
-            } else if (UpdatingFocusBehaviorType.ONLY_UNSUCCESSFUL_LOGIN.equals(actualOption)) {
+            } else if (FocusBehaviorUpdateType.FAILURE_ONLY.equals(actualOption)) {
                 return isUpdatingDuringUnsuccessfulLogin;
             }
         }
