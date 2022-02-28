@@ -1492,6 +1492,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="transport" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <!-- TODO Hopefully in 4.6, implementation support wasn't finished in 4.5
                     <xsd:element name="transportConfig" type="tns:NotifierTransportConfigType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1499,10 +1500,11 @@
                                 template per transport.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:since>4.5</a:since>
+                                <a:since>4.6</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

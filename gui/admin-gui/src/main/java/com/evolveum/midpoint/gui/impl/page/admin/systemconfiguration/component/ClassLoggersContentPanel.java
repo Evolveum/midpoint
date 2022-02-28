@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
@@ -104,5 +105,10 @@ public class ClassLoggersContentPanel extends MultivalueContainerListPanelWithDe
     @Override
     protected UserProfileStorage.TableId getTableId() {
         return UserProfileStorage.TableId.PAGE_MESSAGE_TEMPLATE_LOCALIZED_CONTENT_PANEL;    // todo fix
+    }
+
+    @Override
+    protected List<InlineMenuItem> createInlineMenu() {
+        return getDefaultMenuActions();
     }
 }
