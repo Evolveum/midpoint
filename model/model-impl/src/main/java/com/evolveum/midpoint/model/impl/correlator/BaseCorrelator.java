@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.correlator;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
@@ -16,9 +21,42 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 
-public abstract class BaseCorrelator implements Correlator {
+/**
+ * Abstract superclass for non-trivial built-in correlators.
+ *
+ * @param <CCB> correlator configuration bean
+ */
+public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> implements Correlator {
 
     private static final String OP_CORRELATE_SUFFIX = ".correlate";
+
+    /** Correlator-specific logger. */
+    @NotNull private final Trace logger;
+
+    /** Correlator type name (like "filter", "expression", etc) - for diagnostics purposes. */
+    @NotNull protected final String typeName;
+
+    /** Correlator [instantiation] context. */
+    @NotNull protected final CorrelatorContext<CCB> correlatorContext;
+
+    /** Configuration of the correlator. */
+    @NotNull protected final CCB configurationBean;
+
+    /** Useful beans. */
+    @NotNull protected final ModelBeans beans;
+
+    protected BaseCorrelator(
+            @NotNull Trace logger,
+            @NotNull String typeName,
+            @NotNull CorrelatorContext<CCB> correlatorContext,
+            @NotNull ModelBeans beans) {
+        this.logger = logger;
+        this.typeName = typeName;
+        this.correlatorContext = correlatorContext;
+        this.configurationBean = correlatorContext.getConfigurationBean();
+        this.beans = beans;
+        logger.trace("Instantiating the correlator with the context:\n{}", correlatorContext.debugDumpLazily(1));
+    }
 
     @Override
     public @NotNull CorrelationResult correlate(
@@ -29,11 +67,11 @@ public abstract class BaseCorrelator implements Correlator {
         OperationResult result = parentResult.subresult(getClass().getName() + OP_CORRELATE_SUFFIX)
                 .build();
         try {
-            getLogger().trace("Correlating:\n{}", correlationContext.debugDumpLazily(1));
+            logger.trace("Correlating:\n{}", correlationContext.debugDumpLazily(1));
 
             CorrelationResult correlationResult = correlateInternal(correlationContext, result);
 
-            getLogger().trace("Result:\n{}", correlationResult.debugDumpLazily(1));
+            logger.trace("Result:\n{}", correlationResult.debugDumpLazily(1));
 
             result.addArbitraryObjectAsReturn("correlationResult", correlationResult);
 
@@ -51,5 +89,10 @@ public abstract class BaseCorrelator implements Correlator {
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException;
 
-    protected abstract Trace getLogger();
+    protected @NotNull String getDefaultContextDescription(@NotNull CorrelationContext correlationContext) {
+        return (typeName + " correlator" +
+                (configurationBean.getName() != null ? " '" + configurationBean.getName() + "'" : ""))
+                + " for " + correlationContext.getObjectTypeDefinition().getHumanReadableName()
+                + " in " + correlationContext.getResource();
+    }
 }

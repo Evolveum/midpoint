@@ -27,26 +27,19 @@ import java.util.*;
 import java.util.Objects;
 
 /**
- * TODO
+ * Composite correlator that evaluates its components (child correlators) and builds up the result
+ * according to their results.
  *
  * PRELIMINARY IMPLEMENTATION!
+ *
+ * TODO ignore identifiers in owner options
  */
-class CompositeCorrelator extends BaseCorrelator {
+class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CompositeCorrelator.class);
 
-    /**
-     * Configuration of the this correlator.
-     */
-    @NotNull private final CorrelatorContext<CompositeCorrelatorType> correlatorContext;
-
-    /** Useful beans. */
-    @NotNull private final ModelBeans beans;
-
     CompositeCorrelator(@NotNull CorrelatorContext<CompositeCorrelatorType> correlatorContext, @NotNull ModelBeans beans) {
-        this.correlatorContext = correlatorContext;
-        this.beans = beans;
-        LOGGER.trace("Instantiated the correlator with the configuration:\n{}", getConfiguration().debugDumpLazily(1));
+        super(LOGGER, "composite", correlatorContext, beans);
     }
 
     @Override
@@ -55,18 +48,12 @@ class CompositeCorrelator extends BaseCorrelator {
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-
         return new Correlation(correlationContext)
                 .execute(result);
     }
 
     @NotNull private CompositeCorrelatorType getConfiguration() {
         return correlatorContext.getConfigurationBean();
-    }
-
-    @Override
-    protected Trace getLogger() {
-        return LOGGER;
     }
 
     private class Correlation {
@@ -81,11 +68,7 @@ class CompositeCorrelator extends BaseCorrelator {
         Correlation(@NotNull CorrelationContext correlationContext) {
             this.correlationContext = correlationContext;
             this.task = correlationContext.getTask();
-            this.contextDescription =
-                    ("composite correlator" +
-                            (getConfiguration().getName() != null ? " '" + getConfiguration().getName() + "'" : ""))
-                            + " for " + correlationContext.getObjectTypeDefinition().getHumanReadableName()
-                            + " in " + correlationContext.getResource();
+            this.contextDescription = getDefaultContextDescription(correlationContext);
         }
 
         public CorrelationResult execute(OperationResult result)

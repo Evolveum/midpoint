@@ -5,33 +5,32 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.correlator.noop;
+package com.evolveum.midpoint.model.impl.correlator.items;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
-
-import com.evolveum.midpoint.model.impl.ModelBeans;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorFactory;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NoOpCorrelatorType;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
 
 /**
- * Factory for {@link NoOpCorrelator} instances.
+ * Factory for {@link ItemsCorrelator} instances.
  */
 @Component
-public class NoOpCorrelatorFactory implements CorrelatorFactory<NoOpCorrelator, NoOpCorrelatorType> {
+public class ItemsCorrelatorFactory implements CorrelatorFactory<ItemsCorrelator, ItemsCorrelatorType> {
 
-    private static final QName CONFIGURATION_ITEM_NAME = SchemaConstantsGenerated.C_NO_OP_CORRELATOR;
+    private static final QName CONFIGURATION_ITEM_NAME = SchemaConstantsGenerated.C_ITEMS_CORRELATOR;
 
     @Autowired CorrelatorFactoryRegistry registry;
     @Autowired ModelBeans beans;
@@ -42,15 +41,15 @@ public class NoOpCorrelatorFactory implements CorrelatorFactory<NoOpCorrelator, 
     }
 
     @Override
-    public @NotNull Class<NoOpCorrelatorType> getConfigurationBeanType() {
-        return NoOpCorrelatorType.class;
+    public @NotNull Class<ItemsCorrelatorType> getConfigurationBeanType() {
+        return ItemsCorrelatorType.class;
     }
 
     @Override
-    public @NotNull NoOpCorrelator instantiate(
-            @NotNull CorrelatorContext<NoOpCorrelatorType> context,
+    public @NotNull ItemsCorrelator instantiate(
+            @NotNull CorrelatorContext<ItemsCorrelatorType> context,
             @NotNull Task task,
-            @NotNull OperationResult result) {
-        return new NoOpCorrelator(context, beans);
+            @NotNull OperationResult result) throws ConfigurationException {
+        return new ItemsCorrelator(context, beans);
     }
 }

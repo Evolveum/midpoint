@@ -82,8 +82,9 @@ public class CaseStageClosing extends AbstractCaseStageProcessing {
                         ApprovalContextUtil.getBriefDiagInfo(operation.getCurrentCase()),
                         answeredWorkItems.size(), differentOutcomes);
                 answeredWorkItems.sort(
-                        Comparator.nullsLast(
-                                Comparator.comparing(item -> XmlTypeConverter.toMillis(item.getCloseTimestamp()))));
+                        Comparator.comparing(
+                                item -> XmlTypeConverter.toMillis(item.getCloseTimestamp()),
+                                Comparator.nullsLast(Comparator.naturalOrder())));
                 CaseWorkItemType first = answeredWorkItems.get(0);
                 boolean shouldContinue = ApprovalUtils.isApproved(first.getOutput());
                 LOGGER.warn("Possible race condition, so taking the first one: {} ({})", shouldContinue, first);

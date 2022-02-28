@@ -62,15 +62,23 @@ public class MatchingUtil {
         return getValuesForPath(object.asPrismObject(), ItemPath.create(pathComponents));
     }
 
-    public static Set<String> getValuesForPath(ObjectType object, ItemPath path) {
-        return getValuesForPath(object.asPrismObject(), path);
-    }
-
     public static Set<String> getValuesForPath(PrismObject<?> object, ItemPath path) {
         return object.getAllValues(path).stream()
                 .filter(Objects::nonNull)
                 .map(PrismValue::getRealValue)
                 .map(String::valueOf)
+                .collect(Collectors.toSet());
+    }
+
+    public static Set<?> getRealValuesForPath(ObjectType object, ItemPath path) {
+        return getRealValuesForPath(object.asPrismObject(), path);
+    }
+
+    private static Set<?> getRealValuesForPath(PrismObject<?> object, ItemPath path) {
+        return object.getAllValues(path).stream()
+                .filter(Objects::nonNull)
+                .map(PrismValue::getRealValue)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
 
