@@ -7,12 +7,16 @@
 
 package com.evolveum.midpoint.model.impl.correlator.items;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.route.ItemRoute;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
@@ -22,41 +26,75 @@ import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 public class CorrelationItemTarget {
 
     /**
-     * The complete path related to the target object.
+     * The path to the target place. (May be empty.)
      */
-    @NotNull private final ItemPath path;
+    @NotNull private final ItemRoute placeRoute;
 
-    private CorrelationItemTarget(@NotNull ItemPath path) {
-        this.path = path;
+    /**
+     * Path to the target item, relative to the place.
+     */
+    @NotNull private final ItemRoute relativeItemRoute;
+
+    private CorrelationItemTarget(@NotNull ItemRoute placeRoute, @NotNull ItemRoute relativeItemRoute) {
+        this.placeRoute = placeRoute;
+        this.relativeItemRoute = relativeItemRoute;
     }
 
-    static CorrelationItemTarget createPrimary(
+    static @NotNull CorrelationItemTarget createPrimary(
             @NotNull ItemCorrelationType itemBean,
-            @NotNull CorrelationContext correlationContext) throws ConfigurationException {
-        ItemPath path = getPrimaryTargetPath(itemBean);
-        configCheck(!path.startsWithVariable(), "Variables are not supported in target paths: %s", path);
-        return new CorrelationItemTarget(path);
+            @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext) throws ConfigurationException {
+
+        ItemRoute placeRoute = correlatorContext.getPrimaryTargetsPlaceRoute();
+        checkNoVariable(placeRoute);
+
+        ItemRoute relativeRoute = CorrelationItemRouteFinder.findForPrimaryTargetRelative(itemBean, correlatorContext);
+        checkNoVariable(relativeRoute);
+
+        return new CorrelationItemTarget(placeRoute, relativeRoute);
     }
 
-    private static ItemPath getPrimaryTargetPath(ItemCorrelationType itemBean) {
-        if (itemBean.getPrimaryTargetPath() != null) {
-            return itemBean.getPrimaryTargetPath().getItemPath();
-        } else if (itemBean.getPath() != null) {
-            return itemBean.getPath().getItemPath();
+    private static void checkNoVariable(ItemRoute route) throws ConfigurationException {
+        configCheck(!route.startsWithVariable(), "Variables are not supported in target paths: %s", route);
+    }
+
+    static @Nullable CorrelationItemTarget createSecondary(
+            @NotNull ItemCorrelationType itemBean,
+            @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext) throws ConfigurationException {
+
+        ItemRoute placeRoute = correlatorContext.getSecondaryTargetsPlaceRoute();
+        checkNoVariable(placeRoute);
+
+        ItemRoute relativeRoute = CorrelationItemRouteFinder.findForSecondaryTargetRelative(itemBean, correlatorContext);
+
+        if (relativeRoute != null) {
+            checkNoVariable(relativeRoute);
+            return new CorrelationItemTarget(placeRoute, relativeRoute);
         } else {
-            // TODO implement "ref" processing
-            throw new UnsupportedOperationException("'ref' is not yet supported");
+            return null;
         }
     }
 
-    public @NotNull ItemPath getPath() {
-        return path;
+    public @NotNull ItemRoute getRoute() {
+        return placeRoute;
     }
 
     @Override
     public String toString() {
         return "CorrelationItemTarget{" +
-                "path=" + path +
+                "route=" + placeRoute +
                 '}';
+    }
+
+    /**
+     * Search path from the place to the item.
+     * Assumes that the path is directly repo-searchable.
+     *
+     * Assumes single segment. Ignores any filtering conditions.
+     */
+    ItemPath getRelativePath() {
+        if (relativeItemRoute.size() != 1) {
+            throw new UnsupportedOperationException("Only single-segment routes are supported: " + relativeItemRoute);
+        }
+        return relativeItemRoute.get(0).getPath();
     }
 }

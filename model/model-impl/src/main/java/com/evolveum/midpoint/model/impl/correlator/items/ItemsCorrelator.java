@@ -14,6 +14,10 @@ import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -85,7 +89,7 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
         private @NotNull List<F> findCandidates(OperationResult result)
                 throws SchemaException, ConfigurationException {
 
-            List<CorrelationItem> correlationItems = createCorrelationItems();
+            CorrelationItems correlationItems = createCorrelationItems();
             configCheck(!correlationItems.isEmpty(), "No items specified in %s", contextDescription);
 
             LOGGER.trace("Going to find candidates using {} conditional items(s) in {}",
@@ -100,40 +104,24 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             return allCandidates;
         }
 
-        private @NotNull List<CorrelationItem> createCorrelationItems() throws ConfigurationException {
-            List<CorrelationItem> items = new ArrayList<>();
-            for (ItemCorrelationType itemBean : configurationBean.getItem()) {
-                items.add(
-                        CorrelationItem.create(itemBean, correlationContext));
-            }
-            return items;
+        private @NotNull CorrelationItems createCorrelationItems() throws ConfigurationException {
+            return CorrelationItems.create(correlatorContext, correlationContext);
         }
 
         @NotNull private List<F> findCandidates(
-                List<CorrelationItem> correlationItems, OperationResult result)
-                throws SchemaException {
+                CorrelationItems correlationItems, OperationResult result)
+                throws SchemaException, ConfigurationException {
 
             assert !correlationItems.isEmpty();
 
-            S_FilterEntry nextStart = PrismContext.get().queryFor(correlationContext.getFocusType());
-            S_AtomicFilterExit currentEnd = null;
-            for (int i = 0; i < correlationItems.size(); i++) {
-                CorrelationItem correlationItem = correlationItems.get(i);
-
-                if (!correlationItem.isApplicable()) {
-                    LOGGER.trace("Correlation item {} forbids us to use this correlator", correlationItem);
+            for (CorrelationItem item : correlationItems.getItems()) {
+                if (!item.isApplicable()) {
+                    LOGGER.trace("Correlation item {} forbids us to use this correlator", item);
                     return List.of();
                 }
-
-                currentEnd = correlationItem.addToQueryBuilder(nextStart);
-                if (i < correlationItems.size() - 1) {
-                    nextStart = currentEnd.and();
-                } else {
-                    // We shouldn't modify the builder if we are at the end.
-                    // (The builder API does not mention it, but the state of the objects are modified on each operation.)
-                }
             }
-            ObjectQuery query = Objects.requireNonNull(currentEnd).build();
+
+            ObjectQuery query = correlationItems.createQuery(correlationContext.getFocusType());
 
             LOGGER.trace("Using the following query to find owner candidates:\n{}", query.debugDumpLazily(1));
             // TODO use read-only option in the future (but is it OK to start a clockwork with immutable object?)

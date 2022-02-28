@@ -55,13 +55,7 @@ public class CorrelatorFactoryRegistryImpl implements CorrelatorFactoryRegistry 
     private <CB extends AbstractCorrelatorType> CorrelatorFactory<?, CB> getCorrelatorFactory(
             @NotNull CorrelatorContext<CB> correlatorContext) {
         CorrelatorConfiguration configuration = correlatorContext.getConfiguration();
-        CB configurationBean = correlatorContext.getConfigurationBean();
-
-        if (configuration == null) {
-            //noinspection unchecked
-            return (CorrelatorFactory<?, CB>)
-                    getFactoryByConfigurationBeanType(configurationBean.getClass());
-        } else if (configuration instanceof TypedCorrelationConfiguration) {
+        if (configuration instanceof TypedCorrelationConfiguration) {
             // Actually, configurationBean == configuration.configurationBean!
             //noinspection unchecked
             return (CorrelatorFactory<?, CB>)

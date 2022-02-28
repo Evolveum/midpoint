@@ -131,8 +131,8 @@ public class CorrelationServiceImpl implements CorrelationService {
     }
 
     private CorrelatorContext<?> createCorrelatorContext(FullCorrelationContext fullContext) {
-        return new CorrelatorContext<>(
-                fullContext.getCorrelatorConfiguration(),
+        return CorrelatorContext.createRoot(
+                fullContext.correlators,
                 fullContext.synchronizationBean);
     }
 

@@ -70,12 +70,12 @@ public class MatchingUtil {
                 .collect(Collectors.toSet());
     }
 
-    public static Set<?> getRealValuesForPath(ObjectType object, ItemPath path) {
-        return getRealValuesForPath(object.asPrismObject(), path);
+    public static Set<?> getRealValuesForPath(Containerable containerable, ItemPath path) {
+        return getRealValuesForPath(containerable.asPrismContainerValue(), path);
     }
 
-    private static Set<?> getRealValuesForPath(PrismObject<?> object, ItemPath path) {
-        return object.getAllValues(path).stream()
+    private static Set<?> getRealValuesForPath(PrismContainerValue<?> pcv, ItemPath path) {
+        return pcv.getAllValues(path).stream()
                 .filter(Objects::nonNull)
                 .map(PrismValue::getRealValue)
                 .filter(Objects::nonNull)

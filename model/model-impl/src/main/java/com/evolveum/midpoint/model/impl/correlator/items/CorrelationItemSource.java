@@ -7,83 +7,74 @@
 
 package com.evolveum.midpoint.model.impl.correlator.items;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlator.SourceObjectType;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import java.util.List;
 
-import com.evolveum.midpoint.schema.util.MatchingUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.prism.PrismValue;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+import com.evolveum.midpoint.model.api.correlator.SourceObjectType;
+import com.evolveum.midpoint.schema.route.ItemRoute;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * "Source side" of a {@link CorrelationItem}.
  *
  * TODO finish!
+ *
+ * TODO better name
  */
 public class CorrelationItemSource {
 
     /**
-     * The complete path related to {@link #sourceObject}.
+     * The complete route related to {@link #sourceObject}.
      * Does _not_ contain the variable reference ($focus, $projection, etc).
      */
-    @NotNull private final ItemPath path;
+    @NotNull private final ItemRoute route;
 
-    /** The source object from which the item(s) are selected by the {@link #path}. */
+    /** The source object from which the item(s) are selected by the {@link #route}. */
     @NotNull private final ObjectType sourceObject;
 
     /** Do we reference the focus or the projection? */
     @NotNull private final SourceObjectType sourceObjectType;
 
     private CorrelationItemSource(
-            @NotNull ItemPath path,
+            @NotNull ItemRoute route,
             @NotNull ObjectType sourceObject,
             @NotNull SourceObjectType sourceObjectType) {
-        this.path = path;
+        this.route = route;
         this.sourceObject = sourceObject;
         this.sourceObjectType = sourceObjectType;
     }
 
+    /**
+     * Creates the source part of {@link CorrelationItem} from the definition (item bean) and the whole context.
+     */
     public static CorrelationItemSource create(
             @NotNull ItemCorrelationType itemBean,
+            @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext,
             @NotNull CorrelationContext correlationContext) throws ConfigurationException {
-        return forItem(
-                getSourcePath(itemBean),
-                correlationContext);
-    }
+        ItemRoute localRoute = CorrelationItemRouteFinder.findForSource(itemBean, correlatorContext);
+        ItemRoute fullRoute = correlatorContext.getSourcePlaceRoute().append(localRoute);
 
-    private static ItemPath getSourcePath(ItemCorrelationType itemBean) {
-        if (itemBean.getSourcePath() != null) {
-            return itemBean.getSourcePath().getItemPath();
-        } else if (itemBean.getPath() != null) {
-            return itemBean.getPath().getItemPath();
-        } else {
-            // TODO implement "ref" processing
-            throw new UnsupportedOperationException("'ref' is not yet supported");
-        }
-    }
-
-    private static CorrelationItemSource forItem(
-            @NotNull ItemPath path,
-            @NotNull CorrelationContext correlationContext) throws ConfigurationException {
         SourceObjectType sourceObjectType;
-        ItemPath pathInObject;
-        if (path.startsWithVariable()) {
-            sourceObjectType = SourceObjectType.fromVariable(
-                    Objects.requireNonNull(
-                            path.firstToVariableNameOrNull()));
-            pathInObject = path.rest();
+        ItemRoute route;
+        if (fullRoute.startsWithVariable()) {
+            sourceObjectType = SourceObjectType.fromVariable(fullRoute.variableName());
+            route = fullRoute.rest();
         } else {
             sourceObjectType = SourceObjectType.FOCUS;
-            pathInObject = path;
+            route = fullRoute;
         }
         return new CorrelationItemSource(
-                pathInObject,
+                route,
                 correlationContext.getSourceObject(sourceObjectType),
                 sourceObjectType);
     }
@@ -92,16 +83,18 @@ public class CorrelationItemSource {
      * Returns the source value that should be used for the correlation.
      * We assume there is a single one.
      */
-    public Object getRealValue() {
-        return MiscUtil.extractSingleton(
-                MatchingUtil.getRealValuesForPath(sourceObject, path),
-                () -> new UnsupportedOperationException("Multiple values in " + path + " are not supported"));
+    public Object getRealValue() throws SchemaException {
+        List<PrismValue> resolved = route.resolveFor(sourceObject);
+        PrismValue single = MiscUtil.extractSingleton(
+                resolved,
+                () -> new UnsupportedOperationException("Multiple values of " + route + " are not supported: " + resolved));
+        return single != null ? single.getRealValue() : null;
     }
 
     @Override
     public String toString() {
         return "CorrelationItemSource{" +
-                "path=" + path +
+                "route=" + route +
                 ", sourceObject=" + sourceObject +
                 ", sourceObjectType=" + sourceObjectType +
                 '}';

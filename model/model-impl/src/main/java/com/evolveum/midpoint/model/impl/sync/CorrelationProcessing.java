@@ -92,7 +92,9 @@ class CorrelationProcessing<F extends FocusType> {
                 syncCtx.getTask());
         syncCtx.setCorrelationContext(correlationContext);
         this.rootCorrelatorContext =
-                CorrelatorContext.create(syncCtx.getCorrelators().clone(), syncCtx.getObjectSynchronizationBean());
+                CorrelatorContext.createRoot(
+                        syncCtx.getCorrelators().clone(),
+                        syncCtx.getObjectSynchronizationBean());
         this.thisCorrelationStart = XmlTypeConverter.createXMLGregorianCalendar();
     }
 

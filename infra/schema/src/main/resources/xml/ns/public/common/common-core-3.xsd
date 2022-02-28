@@ -10261,7 +10261,7 @@
             <xsd:enumeration value="corpse">
                 <xsd:annotation>
                     <xsd:documentation>
-                        A.k.a. Schrodinger’s shadow. This is a "quantum" state: shadow is dead, but is also alive
+                        A.k.a. Schrodinger's shadow. This is a "quantum" state: shadow is dead, but is also alive
                         at the same time. It is probably already deleted in the resource (hence exists=false). But it
                         still exists in the snapshot. Corpse shadows will appear in resource searches - even though
                         is it marked as dead=true.
@@ -23792,7 +23792,8 @@
     <xsd:complexType name="CorrelationPlacesDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Where to find correlation items - i.e. items that are used for correlation.
+                See the definition of correlation item for a description of source, and primary and secondary targets.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
@@ -23801,127 +23802,28 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="source" type="tns:CorrelationSourcePlaceType" minOccurs="0">
+            <xsd:element name="source" type="tns:ItemRouteType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Where the source items reside (in pre-focus or shadow object).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="primaryTarget" type="tns:CorrelationPrimaryTargetPlaceType" minOccurs="0">
+            <xsd:element name="primaryTarget" type="tns:ItemRouteType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Where the primary targets are (in focus objects).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="secondaryTarget" type="tns:CorrelationSecondaryTargetPlaceType" minOccurs="0">
+            <xsd:element name="secondaryTarget" type="tns:ItemRouteType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Where the secondary targets are. Currently only the focus object placement is supported.
+                        Secondary targets - if ever used - can be stored e.g. in assignments.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="CorrelationSourcePlaceType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="CorrelationPrimaryTargetPlaceType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="CorrelationSecondaryTargetPlaceType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="selector" type="tns:CorrelationPlaceSelectorType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="CorrelationPlaceSelectorType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <!-- TODO e.g. expression, subtype -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -23929,7 +23831,7 @@
     <xsd:complexType name="CorrelationItemsDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Shared (referencable) definitions of correlation items.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
@@ -23941,7 +23843,7 @@
             <xsd:element name="item" type="tns:CorrelationItemDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Collection of definitions of individual correlation items.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -23952,7 +23854,7 @@
     <xsd:complexType name="CorrelationItemDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Shared definition of a correlation item.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
@@ -23964,7 +23866,8 @@
             <xsd:element name="name" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Name by which this definition is referenced. If not present, the last segment of the source
+                        is used to derive the name.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -23993,29 +23896,6 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="CorrelationItemSourceTargetDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Relative path.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
     <xsd:complexType name="CorrelationItemSourceDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -24023,12 +23903,11 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
-                <a:container>true</a:container>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:CorrelationItemSourceTargetDefinitionType"/>
+            <xsd:extension base="tns:ItemRouteType"/>
         </xsd:complexContent>
     </xsd:complexType>
 
@@ -24039,12 +23918,11 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
-                <a:container>true</a:container>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:CorrelationItemSourceTargetDefinitionType">
+            <xsd:extension base="tns:ItemRouteType">
                 <xsd:sequence>
                     <!-- restriction for presentation / search use -->
                 </xsd:sequence>
@@ -24191,7 +24069,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="secondaryTargetPath" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="secondaryTargetPath" type="t:ItemPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -24750,6 +24628,43 @@
             <xsd:element name="fileName" type="xsd:string"/>
             <xsd:element name="namespace" type="xsd:string"/>
             <xsd:element name="usualPrefix" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ItemRouteType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Generalized item path. It allows pointing to a specific item value, while allowing to select
+                from multivalued items not only by ID, but by arbitrary filter.
+
+                HIGHLY EXPERIMENTAL. It will be replaced by something more serious in Axiom.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+
+        <xsd:sequence>
+            <xsd:element name="segment" type="tns:ItemRouteSegmentType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ItemRouteSegmentType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A segment of ItemRouteType.
+
+                HIGHLY EXPERIMENTAL.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" />
+            <xsd:element name="selector" type="q:SearchFilterType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
 </xsd:schema>
