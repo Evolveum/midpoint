@@ -1,5 +1,5 @@
-MidPoint 4.5 Development Branch
--------------------------------
+MidPoint 4.5 Milestone 2
+------------------------
 
 General information:
 
