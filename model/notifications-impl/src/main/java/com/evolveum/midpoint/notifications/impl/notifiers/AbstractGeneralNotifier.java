@@ -268,11 +268,12 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
     private String getRecipientAddressFromFocus(E event,
             Transport<?> transport, FocusType focus, Task task, OperationResult result) {
-        if (transport == null || transport.getConfiguration() == null) {
-            // FIXME temporary hack, just to make tests pass
-            return null;
+        if (transport == null) {
+            return null; // shouldn't occur
         }
-        ExpressionType recipientAddressExpression = transport.getConfiguration().getRecipientAddressExpression();
+        ExpressionType recipientAddressExpression =
+                transport.getConfiguration() != null ?
+                        transport.getConfiguration().getRecipientAddressExpression() : null;
         if (recipientAddressExpression != null) {
             VariablesMap variables = new VariablesMap();
             variables.put(VAR_RECIPIENT, focus, FocusType.class);
