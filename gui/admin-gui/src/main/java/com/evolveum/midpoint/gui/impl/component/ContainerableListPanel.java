@@ -984,7 +984,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         Task task = getPageBase().createSimpleTask("Compile collection");
         OperationResult result = task.getResult();
         try {
-            compiledCollectionViewFromPanelConfiguration = new CompiledObjectCollectionView();
+            compiledCollectionViewFromPanelConfiguration = new CompiledObjectCollectionView(listViewType.getType(), listViewType.getIdentifier());
             getPageBase().getModelInteractionService().compileView(compiledCollectionViewFromPanelConfiguration, listViewType, task, result);
         } catch (Throwable e) {
             LOGGER.error("Cannot compile object collection view for panel configuration {}. Reason: {}", config, e.getMessage(), e);

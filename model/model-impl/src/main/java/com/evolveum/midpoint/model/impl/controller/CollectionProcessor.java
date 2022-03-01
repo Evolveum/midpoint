@@ -322,6 +322,17 @@ public class CollectionProcessor {
         }
     }
 
+    private Class<? extends Containerable> getContainerTypeClass(QName targetTypeQName, ObjectCollectionType objectCollectionType) throws SchemaException {
+        if (targetTypeQName == null) {
+            throw new SchemaException("Target container type not specified in " + objectCollectionType);
+        }
+        PrismContainerDefinition<Containerable> def = prismContext.getSchemaRegistry().findContainerDefinitionByType(targetTypeQName);
+        if (def == null) {
+            throw new IllegalArgumentException("Unsupported container type " + targetTypeQName);
+        }
+        return def.getTypeClass();
+    }
+
     private void compileObjectCollectionView(CompiledObjectCollectionView existingView, CollectionRefSpecificationType baseCollectionSpec,
             @NotNull ObjectCollectionType objectCollectionType, Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
@@ -330,21 +341,23 @@ public class CollectionProcessor {
         if (targetTypeClass == null) {
             if (existingView.getContainerType() == null) {
                 QName targetTypeQName = objectCollectionType.getType();
-                if (targetTypeQName == null) {
-                    throw new SchemaException("Target container type not specified in " + objectCollectionType);
-                }
-                targetTypeClass = ObjectTypes.getObjectTypeClassIfKnown(targetTypeQName);
-                if (targetTypeClass == null) {
-                    PrismContainerDefinition<Containerable> def = prismContext.getSchemaRegistry().findContainerDefinitionByType(targetTypeQName);
-                    if (def == null) {
-                        throw new IllegalArgumentException("Unsupported container type " + targetTypeQName);
-                    }
-                    targetTypeClass = def.getTypeClass();
-                }
+                targetTypeClass = getContainerTypeClass(targetTypeQName, objectCollectionType);
+//                if (targetTypeQName == null) {
+//                    throw new SchemaException("Target container type not specified in " + objectCollectionType);
+//                }
+////                targetTypeClass = ObjectTypes.getObjectTypeClassIfKnown(targetTypeQName);
+//                if (targetTypeClass == null) {
+//                    PrismContainerDefinition<Containerable> def = prismContext.getSchemaRegistry().findContainerDefinitionByType(targetTypeQName);
+//                    if (def == null) {
+//                        throw new IllegalArgumentException("Unsupported container type " + targetTypeQName);
+//                    }
+//                    targetTypeClass = def.getTypeClass();
+//                }
                 existingView.setContainerType(targetTypeQName);
             } else {
                 QName targetTypeQName = existingView.getContainerType();
-                targetTypeClass = ObjectTypes.getObjectTypeClass(targetTypeQName);
+                targetTypeClass = getContainerTypeClass(targetTypeQName, objectCollectionType);
+//                targetTypeClass = ObjectTypes.getObjectTypeClass(targetTypeQName);
             }
         }
 
@@ -472,9 +485,13 @@ public class CollectionProcessor {
             ExpressionEvaluationException, ObjectNotFoundException {
 
         QName targetObjectType = existingView.getContainerType();
-        Class<? extends ObjectType> targetTypeClass = ObjectType.class;
+        Class<? extends Containerable> targetTypeClass = ObjectType.class;
         if (targetObjectType != null) {
-            targetTypeClass = ObjectTypes.getObjectTypeFromTypeQName(targetObjectType).getClassDefinition();
+            PrismContainerDefinition<? extends Containerable> containerDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByType(targetObjectType);
+            if (containerDefinition != null) {
+                targetTypeClass = containerDefinition.getTypeClass();
+            }
+//            targetTypeClass = ObjectTypes.getObjectTypeFromTypeQName(targetObjectType).getClassDefinition();
         }
         compileObjectCollectionView(existingView, collectionSpec, targetTypeClass, task, result);
     }
