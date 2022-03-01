@@ -42,7 +42,7 @@ public abstract class CorrelatorConfiguration {
         return configurationBean.getOrder();
     }
 
-    public @NotNull String getDebugName() {
+    private @NotNull String getDebugName() {
         return configurationBean.getName() != null ?
                 configurationBean.getName() : getDefaultDebugName();
     }
@@ -120,7 +120,7 @@ public abstract class CorrelatorConfiguration {
     public static List<CorrelatorConfiguration> getConfigurationsSorted(CompositeCorrelatorType correlatorsBean) {
         List<CorrelatorConfiguration> configurations = new ArrayList<>(getConfigurations(correlatorsBean));
         configurations.sort(
-                Comparator.nullsLast(Comparator.comparing(CorrelatorConfiguration::getOrder))
+                Comparator.comparing(CorrelatorConfiguration::getOrder, Comparator.nullsLast(Comparator.naturalOrder()))
                         .thenComparing(CorrelatorConfiguration::getAuthority));
         return configurations;
     }

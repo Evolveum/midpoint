@@ -80,7 +80,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityHostType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -311,9 +311,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList, ScriptCapabilityType.class);
         assertNotNull("No script capability", capScript);
-        List<Host> scriptHosts = capScript.getHost();
+        List<ScriptCapabilityHostType> scriptHosts = capScript.getHost();
         assertEquals("Wrong number of script hosts", 1, scriptHosts.size());
-        Host scriptHost = scriptHosts.get(0);
+        ScriptCapabilityHostType scriptHost = scriptHosts.get(0);
         assertEquals("Wrong script host type", ProvisioningScriptHostType.CONNECTOR, scriptHost.getType());
 //        assertEquals("Wrong script host language", ....., scriptHost.getLanguage());
 
@@ -1352,6 +1352,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertApproxNumberOfAllResults(searchMetadata, null);
     }
 
+    @Override
     protected void assertShadows(int expectedCount) throws SchemaException {
         OperationResult result = new OperationResult(TestOpenDj.class.getName() + ".assertShadows");
         int actualCount = repositoryService.countObjects(ShadowType.class, null, null, result);

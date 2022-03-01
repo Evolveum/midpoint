@@ -12,6 +12,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,6 +34,7 @@ public class NoOpCorrelatorFactory implements CorrelatorFactory<NoOpCorrelator, 
     private static final QName CONFIGURATION_ITEM_NAME = SchemaConstantsGenerated.C_NO_OP_CORRELATOR;
 
     @Autowired CorrelatorFactoryRegistry registry;
+    @Autowired ModelBeans beans;
 
     @PostConstruct
     public void register() {
@@ -48,6 +51,6 @@ public class NoOpCorrelatorFactory implements CorrelatorFactory<NoOpCorrelator, 
             @NotNull CorrelatorContext<NoOpCorrelatorType> context,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        return new NoOpCorrelator();
+        return new NoOpCorrelator(context, beans);
     }
 }

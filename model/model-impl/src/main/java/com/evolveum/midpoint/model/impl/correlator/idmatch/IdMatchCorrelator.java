@@ -38,14 +38,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * A correlator based on an external service providing ID Match API.
  * (https://spaces.at.internet2.edu/display/cifer/SOR-Registry+Strawman+ID+Match+API)
  */
-class IdMatchCorrelator extends BaseCorrelator {
+class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(IdMatchCorrelator.class);
-
-    /**
-     * Configuration of the this correlator.
-     */
-    @NotNull private final CorrelatorContext<IdMatchCorrelatorType> correlatorContext;
 
     /**
      * Configuration of a follow-on correlator (used to find real account owner based on matched identity).
@@ -57,8 +52,6 @@ class IdMatchCorrelator extends BaseCorrelator {
      */
     @NotNull private final IdMatchService service;
 
-    private final ModelBeans beans;
-
     /**
      * @param serviceOverride An instance of {@link IdMatchService} that should be used instead of the default one.
      *                        Used for unit testing.
@@ -67,34 +60,27 @@ class IdMatchCorrelator extends BaseCorrelator {
             @NotNull CorrelatorContext<IdMatchCorrelatorType> correlatorContext,
             @Nullable IdMatchService serviceOverride,
             ModelBeans beans) throws ConfigurationException {
-        IdMatchCorrelatorType configuration = correlatorContext.getConfigurationBean();
-
-        this.correlatorContext = correlatorContext;
-        this.service = instantiateService(configuration, serviceOverride);
-        this.beans = beans;
-
-        this.followOnCorrelatorConfiguration = getFollowOnConfiguration(configuration);
-
-        LOGGER.trace("Instantiated the correlator with the configuration:\n{}", configuration.debugDumpLazily(1));
+        super(LOGGER, "idmatch", correlatorContext, beans);
+        this.service = instantiateService(serviceOverride);
+        this.followOnCorrelatorConfiguration = getFollowOnConfiguration();
+        LOGGER.trace("ID Match service (i.e. client) instantiated: {}", service);
     }
 
     @NotNull
-    private IdMatchService instantiateService(
-            @NotNull IdMatchCorrelatorType configuration, @Nullable IdMatchService serviceOverride)
+    private IdMatchService instantiateService(@Nullable IdMatchService serviceOverride)
             throws ConfigurationException {
         if (serviceOverride != null) {
             return serviceOverride;
         } else {
-            return IdMatchServiceImpl.instantiate(configuration);
+            return IdMatchServiceImpl.instantiate(configurationBean);
         }
     }
 
-    private CorrelatorConfiguration getFollowOnConfiguration(@NotNull IdMatchCorrelatorType configuration)
-            throws ConfigurationException {
-        configCheck(configuration.getFollowOn() != null,
-                "No 'follow on' correlator configured in %s", configuration);
+    private CorrelatorConfiguration getFollowOnConfiguration() throws ConfigurationException {
+        configCheck(configurationBean.getFollowOn() != null,
+                "No 'follow on' correlator configured in %s", configurationBean);
         Collection<CorrelatorConfiguration> followOnConfigs =
-                CorrelatorConfiguration.getConfigurations(configuration.getFollowOn());
+                CorrelatorConfiguration.getConfigurations(configurationBean.getFollowOn());
         configCheck(followOnConfigs.size() == 1, "Not a single 'follow on' correlator configured: %s",
                 followOnConfigs);
         return followOnConfigs.iterator().next();
@@ -332,8 +318,4 @@ class IdMatchCorrelator extends BaseCorrelator {
                 .create();
     }
 
-    @Override
-    protected Trace getLogger() {
-        return LOGGER;
-    }
 }

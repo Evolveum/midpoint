@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.correlator.noop;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NoOpCorrelatorType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
@@ -20,19 +24,18 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * A correlator that does nothing: returns "no owner" in all cases.
  * Used as a replacement for not providing any filter before 4.5.
  */
-class NoOpCorrelator extends BaseCorrelator {
+class NoOpCorrelator extends BaseCorrelator<NoOpCorrelatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(NoOpCorrelator.class);
+
+    NoOpCorrelator(@NotNull CorrelatorContext<NoOpCorrelatorType> correlatorContext, ModelBeans beans) {
+        super(LOGGER, "no-op", correlatorContext, beans);
+    }
 
     @Override
     public @NotNull CorrelationResult correlateInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result) {
         return CorrelationResult.noOwner();
-    }
-
-    @Override
-    protected Trace getLogger() {
-        return LOGGER;
     }
 }

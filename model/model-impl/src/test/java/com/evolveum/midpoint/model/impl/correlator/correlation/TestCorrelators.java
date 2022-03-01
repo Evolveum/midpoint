@@ -129,7 +129,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             AbstractCorrelatorType configBean = prismContext.parserFor(correlatorFile)
                     .parseRealValue(AbstractCorrelatorType.class);
             Correlator correlator = correlatorFactoryRegistry.instantiateCorrelator(
-                    CorrelatorContext.create(configBean), task, result);
+                    CorrelatorContext.createRoot(configBean), task, result);
             correlatorMap.put(configBean.getName(), correlator);
         }
     }

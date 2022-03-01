@@ -417,7 +417,16 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             config.setApplicableForOperation(panelInstance.applicableForOperation()[0]);
         }
 
-        createDefaultVirtualContainer(config, panelInstance.containerPath(), panelInstance.expanded());
+         createDefaultVirtualContainer(config, panelInstance.containerPath(), panelInstance.expanded());
+        if (panelInstance.hiddenContainers().length > 0) {
+            for (String path : panelInstance.hiddenContainers()) {
+                VirtualContainersSpecificationType c = new VirtualContainersSpecificationType();
+                c.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                ItemPathType itemPath = prismContext.itemPathParser().asItemPathType(path);
+                c.setPath(itemPath);
+                config.getContainer().add(c);
+            }
+        }
 
         if (StringUtils.isNotEmpty(panelInstance.type())) {
             config.setType(QNameUtil.uriToQName(panelInstance.type(), SchemaConstantsGenerated.NS_COMMON));

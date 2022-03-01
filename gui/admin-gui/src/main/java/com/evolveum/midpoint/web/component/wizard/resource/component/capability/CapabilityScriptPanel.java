@@ -14,6 +14,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityHostType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -77,10 +78,10 @@ public class CapabilityScriptPanel extends BasePanel<CapabilityDto<ScriptCapabil
     }
 
     private IModel prepareOnConnectorModel(){
-        CapabilityDto dto = (CapabilityDto)getModel().getObject();
+        CapabilityDto dto = getModel().getObject();
         ScriptCapabilityType script = (ScriptCapabilityType)dto.getCapability();
 
-        for(ScriptCapabilityType.Host host: script.getHost()){
+        for(ScriptCapabilityHostType host: script.getHost()){
             if(ProvisioningScriptHostType.CONNECTOR.equals(host.getType())){
                 return new PropertyModel<List<String>>(host, "language");
             }
@@ -91,10 +92,10 @@ public class CapabilityScriptPanel extends BasePanel<CapabilityDto<ScriptCapabil
     }
 
     private IModel prepareOnResourceModel(){
-        CapabilityDto dto = (CapabilityDto)getModel().getObject();
+        CapabilityDto dto = getModel().getObject();
         ScriptCapabilityType script = (ScriptCapabilityType)dto.getCapability();
 
-        for(ScriptCapabilityType.Host host: script.getHost()){
+        for(ScriptCapabilityHostType host: script.getHost()){
             if(ProvisioningScriptHostType.RESOURCE.equals(host.getType())){
                 return new PropertyModel<List<String>>(host, "language");
             }

@@ -121,71 +121,96 @@
                     <definitions>
                         <places>
                             <source>
-                                <path>$focus/assignment</path>
+                                <segment>
+                                    <path>$focus/assignment</path>
+                                </segment>
                             </source>
                             <primaryTarget/>
                             <secondaryTarget>
-                                <path>assignment</path>
-                                <selector>
-                                    <filter>
+                                <segment>
+                                    <path>assignment</path>
+                                    <selector>
                                         <q:equal>
                                             <q:path>extension/correlation</q:path>
                                             <q:value>true</q:value>
                                         </q:equal>
-                                    </filter>
-                                    <!-- todo whether to apply also for filtering -->
-                                </selector>
+                                        <!-- todo whether to apply also for filtering -->
+                                    </selector>
+                                </segment>
                             </secondaryTarget>
                         </places>
                         <items>
                             <item>
                                 <source>
-                                    <path>extension/givenName</path>
+                                    <segment>
+                                        <path>extension/givenName</path>
+                                    </segment>
                                 </source>
                                 <primaryTarget>
-                                    <path>givenName</path>
+                                    <segment>
+                                        <path>givenName</path>
+                                    </segment>
                                 </primaryTarget>
                                 <secondaryTarget>
-                                    <path>extension/givenName</path>
+                                    <segment>
+                                        <path>extension/givenName</path>
+                                    </segment>
                                 </secondaryTarget>
                             </item>
                             <item>
                                 <source>
-                                    <path>extension/familyName</path>
+                                    <segment>
+                                        <path>extension/familyName</path>
+                                    </segment>
                                 </source>
                                 <primaryTarget>
-                                    <path>familyName</path>
+                                    <segment>
+                                        <path>familyName</path>
+                                    </segment>
                                 </primaryTarget>
                                 <secondaryTarget>
-                                    <path>extension/familyName</path>
+                                    <segment>
+                                        <path>extension/familyName</path>
+                                    </segment>
                                 </secondaryTarget>
                             </item>
                             <item>
                                 <source>
-                                    <path>extension/dateOfBirth</path>
+                                    <segment>
+                                        <path>extension/dateOfBirth</path>
+                                    </segment>
                                 </source>
                                 <primaryTarget>
-                                    <path>extension/dateOfBirth</path>
+                                    <segment>
+                                        <path>extension/dateOfBirth</path>
+                                    </segment>
                                 </primaryTarget>
                                 <secondaryTarget>
-                                    <path>extension/dateOfBirth</path>
+                                    <segment>
+                                        <path>extension/dateOfBirth</path>
+                                    </segment>
                                 </secondaryTarget>
                             </item>
                             <item>
                                 <source>
-                                    <path>extension/nationalId</path>
+                                    <segment>
+                                        <path>extension/nationalId</path>
+                                    </segment>
                                 </source>
                                 <primaryTarget>
-                                    <path>extension/nationalId</path>
+                                    <segment>
+                                        <path>extension/nationalId</path>
+                                    </segment>
                                 </primaryTarget>
                                 <secondaryTarget>
-                                    <path>extension/nationalId</path>
+                                    <segment>
+                                        <path>extension/nationalId</path>
+                                    </segment>
                                 </secondaryTarget>
                             </item>
                         </items>
                     </definitions>
                     <items>
-                        <order>10</order>
                         <authority>principal</authority>
                         <name>name-date-id</name>
                         <documentation>
@@ -203,7 +228,6 @@
                         </item>
                     </items>
                     <items>
-                        <order>20</order>
                         <authority>nonAuthoritative</authority>
                         <name>names-date</name>
                         <documentation>
@@ -220,7 +244,6 @@
                         </item>
                     </items>
                     <items>
-                        <order>30</order>
                         <authority>nonAuthoritative</authority>
                         <name>id</name>
                         <documentation>

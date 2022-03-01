@@ -569,6 +569,19 @@
 
     <xsd:element name="testConnection" type="tns:TestConnectionCapabilityType"/>
 
+    <xsd:complexType name="ScriptCapabilityHostType">
+        <xsd:sequence>
+            <xsd:element name="type" type="c:ProvisioningScriptHostType"/>
+            <xsd:element name="language" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies the script language(s) supported on this host.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="ScriptCapabilityType">
         <xsd:annotation>
             <xsd:documentation>
@@ -578,20 +591,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
                 <xsd:sequence>
-                    <xsd:element name="host" maxOccurs="unbounded">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="type" type="c:ProvisioningScriptHostType"/>
-                                <xsd:element name="language" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
-                                    <xsd:annotation>
-                                        <xsd:documentation>
-                                            Specifies the script language(s) supported on this host.
-                                        </xsd:documentation>
-                                    </xsd:annotation>
-                                </xsd:element>
-                            </xsd:sequence>
-                        </xsd:complexType>
-                    </xsd:element>
+                    <xsd:element name="host" maxOccurs="unbounded" type="tns:ScriptCapabilityHostType" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

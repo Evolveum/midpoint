@@ -39,8 +39,8 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityHostType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
 
 /**
  * The test of Provisioning service on the API level. The test is using CSV resource.
@@ -250,7 +250,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
         ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList, ScriptCapabilityType.class);
         assertNotNull("No script capability", capScript);
-        List<Host> scriptHosts = capScript.getHost();
+        List<ScriptCapabilityHostType> scriptHosts = capScript.getHost();
         assertEquals("Wrong number of script hosts", 2, scriptHosts.size());
         assertScriptHost(capScript, ProvisioningScriptHostType.CONNECTOR);
         assertScriptHost(capScript, ProvisioningScriptHostType.RESOURCE);
@@ -263,7 +263,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
     }
 
     private void assertScriptHost(ScriptCapabilityType capScript, ProvisioningScriptHostType expectedHostType) {
-        for (Host host : capScript.getHost()) {
+        for (ScriptCapabilityHostType host : capScript.getHost()) {
             if (host.getType() == expectedHostType) {
                 return;
             }

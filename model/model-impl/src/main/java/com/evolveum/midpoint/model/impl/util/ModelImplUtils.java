@@ -701,10 +701,11 @@ public class ModelImplUtils {
         }
 
         // Legacy. And convenience/understandability.
-        if (focus == null || focus.canRepresent(UserType.class) || (discr != null && discr.getKind() == ShadowKindType.ACCOUNT)) {
-            variables.put(ExpressionConstants.VAR_USER, focus, focusDef);
-            variables.put(ExpressionConstants.VAR_ACCOUNT, shadow, shadowDef);
-        }
+        // Let us use these variables even for non-account/non-user scenarios. This have been working for ages.
+        // During development of 4.5 it was "fixed" (so it no longer works for non-users), but actually this broke
+        // many tests. So re-enabling it back, although now it's not 100% logical. But convenient.
+        variables.put(ExpressionConstants.VAR_USER, focus, focusDef);
+        variables.put(ExpressionConstants.VAR_ACCOUNT, shadow, shadowDef);
 
         variables.put(ExpressionConstants.VAR_FOCUS, focus, focusDef);
         variables.put(ExpressionConstants.VAR_SHADOW, shadow, shadowDef);

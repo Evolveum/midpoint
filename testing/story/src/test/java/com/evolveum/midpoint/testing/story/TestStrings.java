@@ -247,6 +247,8 @@ public class TestStrings extends AbstractStoryTest {
         assertStage(aCase, 1, 3, "Line managers", null);
         assertAssignee(workItem, USER_LECHUCK.oid, USER_LECHUCK.oid);
 
+        displayDumpable("dummy transport", dummyTransport);
+
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
         List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
         List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
