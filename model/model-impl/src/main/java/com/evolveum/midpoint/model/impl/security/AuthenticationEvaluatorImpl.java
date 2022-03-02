@@ -11,10 +11,13 @@ import java.util.Collection;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
-import com.evolveum.midpoint.security.api.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -99,11 +102,13 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         if (checkCredentials(principal, authnCtx, connEnv)) {
             recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials));
-            return new UsernamePasswordAuthenticationToken(principal, authnCtx.getEnteredCredential(), principal.getAuthorities());
         } else {
             recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch");
             throw new BadCredentialsException("web.security.provider.invalid");
         }
+
+        checkAuthorizations(principal, connEnv, authnCtx);
+        return new UsernamePasswordAuthenticationToken(principal, authnCtx.getEnteredCredential(), principal.getAuthorities());
     }
 
     @Override
@@ -120,12 +125,22 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         CredentialsType credentials = userType.getCredentials();
         CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
 
-        if (checkCredentials(principal, authnCtx, connEnv)) {
-            return userType;
-        } else {
+        if (!checkCredentials(principal, authnCtx, connEnv)) {
             recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch");
-
             throw new BadCredentialsException("web.security.provider.invalid");
+        }
+
+        checkAuthorizations(principal, connEnv, authnCtx);
+        return userType;
+    }
+
+    private void checkAuthorizations(MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv, AbstractAuthenticationContext authnCtx) {
+        if (suportsAuthzCheck()) {
+            // Authorizations
+            if (!hasAnyAuthorization(principal)) {
+                recordAuthenticationFailure(principal, connEnv, "no authorizations");
+                throw new DisabledException("web.security.provider.access.denied");
+            }
         }
     }
 
@@ -144,14 +159,6 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         if (isLockedOut(getCredential(credentials), credentialsPolicy)) {
             recordAuthenticationFailure(principal, connEnv, "password locked-out");
             throw new LockedException("web.security.provider.locked");
-        }
-
-        if (suportsAuthzCheck()) {
-            // Authorizations
-            if (!hasAnyAuthorization(principal)) {
-                recordAuthenticationFailure(principal, connEnv, "no authorizations");
-                throw new DisabledException("web.security.provider.access.denied");
-            }
         }
 
         // Password age
@@ -202,16 +209,18 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             throw new LockedException("web.security.provider.locked");
         }
 
+        // Password age
+        checkPasswordValidityAndAge(connEnv, principal, passwordType.getValue(), passwordType.getMetadata(), passwordCredentialsPolicy);
+
+        String password = getPassword(connEnv, principal, passwordType.getValue());
+
         // Authorizations
         if (!hasAnyAuthorization(principal)) {
             recordAuthenticationFailure(principal, connEnv, "no authorizations");
             throw new InternalAuthenticationServiceException("web.security.provider.access.denied");
         }
 
-        // Password age
-        checkPasswordValidityAndAge(connEnv, principal, passwordType.getValue(), passwordType.getMetadata(), passwordCredentialsPolicy);
-
-        return getPassword(connEnv, principal, passwordType.getValue());
+        return password;
     }
 
     @Override
