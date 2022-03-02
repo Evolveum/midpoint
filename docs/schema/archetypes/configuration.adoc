@@ -341,7 +341,7 @@ Business roles are usually composed from smaller roles.
 
 | Manual Provisioning Case
 | Case
-| _none, assigned dynamically +
+| _none, assigned dynamically_
 _
 | Archetype for cases that describe xref:/midpoint/reference/resources/manual/[manual provisioning operations].
 
