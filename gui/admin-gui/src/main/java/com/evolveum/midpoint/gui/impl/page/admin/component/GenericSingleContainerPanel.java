@@ -44,18 +44,6 @@ import org.apache.wicket.model.IModel;
         type = "FullTextSearchConfigurationType",
         expanded = true
 )
-//@PanelInstance(
-//        identifier = "profilingPanel",
-//        applicableForType = ProfilingConfigurationType.class,
-//        display = @PanelDisplay(
-//                label = "ProfilingConfiguration.label",
-//                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-//                order = 10
-//        ),
-//        containerPath = "profilingConfiguration",
-//        type = "ProfilingConfigurationType",
-//        expanded = true
-//)
 @PanelInstance(
         identifier = "adminGuiPanel",
         applicableForType = AdminGuiConfigurationType.class,
