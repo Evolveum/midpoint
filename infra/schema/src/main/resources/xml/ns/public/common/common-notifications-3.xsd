@@ -802,9 +802,10 @@
             <xsd:element name="file" type="tns:FileConfigurationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.5</a:deprecatedSince>
-                        <a:plannedRemoval>4.6</a:plannedRemoval>
+                        <!-- TODO: not deprecated yet because it breaks old GUI, see comments in NotificationConfigTabPanel -->
+                        <!--<a:deprecated>true</a:deprecated>-->
+                        <!--<a:deprecatedSince>4.5</a:deprecatedSince>-->
+                        <!--<a:plannedRemoval>4.6</a:plannedRemoval>-->
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
