@@ -14,6 +14,9 @@ import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -27,6 +30,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public interface RemoteAuthenticationFilter extends Filter {
+
+    Trace LOGGER = TraceManager.getTrace(RemoteAuthenticationFilter.class);
 
     boolean requiresAuth(HttpServletRequest request, HttpServletResponse response);
 
@@ -79,6 +84,16 @@ public interface RemoteAuthenticationFilter extends Filter {
 
         rememberMeService.loginFail(request, response);
 
+        failureHandler.onAuthenticationFailure(request, response, failed);
+    }
+
+    default void remoteUnsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+            AuthenticationException failed, RememberMeServices rememberMeService,
+            AuthenticationFailureHandler failureHandler) throws ServletException, IOException {
+        LOGGER.trace("Failed to process authentication request", failed);
+        LOGGER.trace("Cleared SecurityContextHolder");
+        LOGGER.trace("Handling authentication failure");
+        rememberMeService.loginFail(request, response);
         failureHandler.onAuthenticationFailure(request, response, failed);
     }
 }
