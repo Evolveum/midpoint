@@ -775,10 +775,6 @@ Identifier of algorithm for digitally sign or create a MAC of the content. (RFC7
 | false
 | _String_
 
-| `scope`
-| OpenID Connect Clients use scope values as defined in 3.3 of OAuth 2.0 [RFC6749] to specify what access privileges are being requested for Access Tokens.
-| false
-| _String_
 
 | `clientName`
 | Human friendly name of client.
