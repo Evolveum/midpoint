@@ -58,10 +58,7 @@ public class CustomTransportContentPanel extends MultivalueContainerListPanelWit
     public CustomTransportContentPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
         super(id, CustomTransportConfigurationType.class, configurationType);
 
-        this.model = PrismContainerWrapperModel.fromContainerWrapper(model.getObjectWrapperModel(), ItemPath.create(
-                SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION,
-                MessageTransportConfigurationType.F_MAIL
-        ));
+        this.model = new MessageTransportContainerModel<>(this, model.getObjectWrapperModel(), MessageTransportConfigurationType.F_CUSTOM_TRANSPORT);
     }
 
     @Override

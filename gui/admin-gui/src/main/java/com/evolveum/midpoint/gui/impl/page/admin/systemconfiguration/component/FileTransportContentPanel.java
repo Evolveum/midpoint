@@ -58,10 +58,7 @@ public class FileTransportContentPanel extends MultivalueContainerListPanelWithD
     public FileTransportContentPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
         super(id, FileTransportConfigurationType.class, configurationType);
 
-        this.model = PrismContainerWrapperModel.fromContainerWrapper(model.getObjectWrapperModel(), ItemPath.create(
-                SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION,
-                MessageTransportConfigurationType.F_FILE
-        ));
+        this.model = new MessageTransportContainerModel<>(this, model.getObjectWrapperModel(), MessageTransportConfigurationType.F_FILE);
     }
 
     @Override

@@ -55,10 +55,7 @@ public class MailTransportContentPanel extends MultivalueContainerListPanelWithD
     public MailTransportContentPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
         super(id, MailTransportConfigurationType.class, configurationType);
 
-        this.model = PrismContainerWrapperModel.fromContainerWrapper(model.getObjectWrapperModel(), ItemPath.create(
-                SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION,
-                MessageTransportConfigurationType.F_MAIL
-        ));
+        this.model = new MessageTransportContainerModel<>(this, model.getObjectWrapperModel(), MessageTransportConfigurationType.F_MAIL);
     }
 
     @Override
