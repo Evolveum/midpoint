@@ -135,6 +135,20 @@ import org.apache.wicket.model.IModel;
         type = "InternalsConfigurationType",
         expanded = true
 )
+@PanelInstance(
+        identifier = "roleManagementPanel",
+        applicableForType = RoleManagementConfigurationType.class,
+        display = @PanelDisplay(
+                label = "RoleManagementContentPanel.label",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 10
+        ),
+        containerPath = "roleManagement",
+        type="RoleManagementConfigurationType",
+        hiddenContainers = {
+                "roleManagement/relations"
+        }
+)
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";

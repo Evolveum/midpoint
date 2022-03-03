@@ -133,13 +133,13 @@ public class AppendersContentPanel extends MultivalueContainerListPanelWithDetai
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         Component choice = createNewAppenderChoice(idButton);
-
-        AjaxIconButton newObjectIcon = new AjaxIconButton(idButton, Model.of("fa fa-plus"), Model.of("")) {
+        // todo push html through title? not very nice
+        AjaxSubmitButton newObjectIcon = new AjaxSubmitButton(idButton, new Model<>("<i class=\"fa fa-plus\"></i>")) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 newItemPerformed(target, null);
             }
         };
