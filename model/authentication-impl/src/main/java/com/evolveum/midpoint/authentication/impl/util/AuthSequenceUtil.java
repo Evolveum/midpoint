@@ -561,32 +561,6 @@ public class AuthSequenceUtil {
                 request.getContextPath();
     }
 
-    public static void doRemoteFilter(ServletRequest req, ServletResponse res, FilterChain chain, RemoteAuthenticationFilter remoteFilter)
-            throws IOException, ServletException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean sendedRequest = false;
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            RemoteModuleAuthenticationImpl moduleAuthentication = (RemoteModuleAuthenticationImpl) mpAuthentication.getProcessingModuleAuthentication();
-            if (moduleAuthentication != null && RequestState.SENDED.equals(moduleAuthentication.getRequestState())) {
-                sendedRequest = true;
-            }
-            boolean requiresAuthentication = remoteFilter.requiresAuth((HttpServletRequest) req, (HttpServletResponse) res);
-
-            if (!requiresAuthentication && sendedRequest) {
-                AuthenticationServiceException exception = new AuthenticationServiceException("web.security.flexAuth.oidc.not.response");
-                remoteFilter.unsuccessfulAuth((HttpServletRequest) req, (HttpServletResponse) res, exception);
-            } else {
-                if (moduleAuthentication != null && requiresAuthentication && sendedRequest) {
-                    moduleAuthentication.setRequestState(RequestState.RECEIVED);
-                }
-                remoteFilter.doAuth(req, res, chain);
-            }
-        } else {
-            throw new AuthenticationServiceException("Unsupported type of Authentication");
-        }
-    }
-
     public static boolean isAllowUpdatingAuthBehavior(boolean isUpdatingDuringUnsuccessfulLogin){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof MidpointAuthentication && ((MidpointAuthentication)authentication).getSequence() != null) {
