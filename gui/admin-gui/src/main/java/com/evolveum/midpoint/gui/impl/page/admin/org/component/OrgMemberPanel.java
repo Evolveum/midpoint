@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 @PanelType(name = "orgMembers")
-@PanelInstances(instances = {
+@PanelInstances(value = {
         @PanelInstance(identifier = "orgMembers", applicableForType = OrgType.class,
                 applicableForOperation = OperationTypeType.MODIFY,
                 display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 60)),

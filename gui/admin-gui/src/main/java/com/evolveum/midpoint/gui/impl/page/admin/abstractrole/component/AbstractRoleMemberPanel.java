@@ -95,7 +95,7 @@ import javax.xml.namespace.QName;
 import java.util.*;
 
 @PanelType(name = "members")
-@PanelInstances(instances = {
+@PanelInstances(value = {
         @PanelInstance(identifier = "roleMembers",
                 applicableForType = RoleType.class,
                 applicableForOperation = OperationTypeType.MODIFY,

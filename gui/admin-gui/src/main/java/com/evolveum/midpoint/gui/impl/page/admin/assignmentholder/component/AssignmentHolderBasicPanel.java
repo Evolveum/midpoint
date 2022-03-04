@@ -19,7 +19,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "basic", defaultContainerPath = "empty")
-@PanelInstances(instances = {
+@PanelInstances(value = {
         @PanelInstance(identifier = "basic",
                 applicableForType = AssignmentHolderType.class,
                 excludeTypes = { TaskType.class, ResourceType.class },
