@@ -173,52 +173,54 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                     }
                 });
         Saml2X509Credential activeCredential = null;
-        ModuleSaml2SimpleKeyType simpleKeyType = keysType.getActiveSimpleKey();
-        if (simpleKeyType != null) {
-            activeCredential = getSaml2Credential(simpleKeyType, true);
-        }
-        ModuleSaml2KeyStoreKeyType storeKeyType = keysType.getActiveKeyStoreKey();
-        if (storeKeyType != null) {
-            activeCredential = getSaml2Credential(storeKeyType, true);
-        }
+        if (keysType != null) {
+            ModuleSaml2SimpleKeyType simpleKeyType = keysType.getActiveSimpleKey();
+            if (simpleKeyType != null) {
+                activeCredential = getSaml2Credential(simpleKeyType, true);
+            }
+            ModuleSaml2KeyStoreKeyType storeKeyType = keysType.getActiveKeyStoreKey();
+            if (storeKeyType != null) {
+                activeCredential = getSaml2Credential(storeKeyType, true);
+            }
 
-        List<Saml2X509Credential> credentials = new ArrayList<>();
-        if (activeCredential != null) {
-            credentials.add(activeCredential);
-        }
+            List<Saml2X509Credential> credentials = new ArrayList<>();
+            if (activeCredential != null) {
+                credentials.add(activeCredential);
+            }
 
-        if (keysType.getStandBySimpleKey() != null && !keysType.getStandBySimpleKey().isEmpty()) {
-            for (ModuleSaml2SimpleKeyType standByKey : keysType.getStandBySimpleKey()) {
-                Saml2X509Credential credential = getSaml2Credential(standByKey, false);
-                if (credential != null) {
-                    credentials.add(credential);
+            if (keysType.getStandBySimpleKey() != null && !keysType.getStandBySimpleKey().isEmpty()) {
+                for (ModuleSaml2SimpleKeyType standByKey : keysType.getStandBySimpleKey()) {
+                    Saml2X509Credential credential = getSaml2Credential(standByKey, false);
+                    if (credential != null) {
+                        credentials.add(credential);
+                    }
                 }
             }
-        }
-        if (keysType.getStandByKeyStoreKey() != null && !keysType.getStandByKeyStoreKey().isEmpty()) {
-            for (ModuleSaml2KeyStoreKeyType standByKey : keysType.getStandByKeyStoreKey()) {
-                Saml2X509Credential credential = getSaml2Credential(standByKey, false);
-                if (credential != null) {
-                    credentials.add(credential);
+            if (keysType.getStandByKeyStoreKey() != null && !keysType.getStandByKeyStoreKey().isEmpty()) {
+                for (ModuleSaml2KeyStoreKeyType standByKey : keysType.getStandByKeyStoreKey()) {
+                    Saml2X509Credential credential = getSaml2Credential(standByKey, false);
+                    if (credential != null) {
+                        credentials.add(credential);
+                    }
                 }
             }
-        }
 
-        if (!credentials.isEmpty()) {
-            registrationBuilder.decryptionX509Credentials(c -> {
-                credentials.forEach(cred -> {
-                    if (cred.getCredentialTypes().contains(Saml2X509Credential.Saml2X509CredentialType.DECRYPTION)) {
-                        c.add(cred);
-                    }
+            if (!credentials.isEmpty()) {
+                registrationBuilder.decryptionX509Credentials(c -> {
+                    credentials.forEach(cred -> {
+                        if (cred.getCredentialTypes().contains(Saml2X509Credential.Saml2X509CredentialType.DECRYPTION)) {
+                            c.add(cred);
+                        }
+                    });
                 });
-            });
-            registrationBuilder.signingX509Credentials(c -> {
-                credentials.forEach(cred -> {
-                    if (cred.getCredentialTypes().contains(Saml2X509Credential.Saml2X509CredentialType.SIGNING)) {
-                        c.add(cred);
-                    }
+                registrationBuilder.signingX509Credentials(c -> {
+                    credentials.forEach(cred -> {
+                        if (cred.getCredentialTypes().contains(Saml2X509Credential.Saml2X509CredentialType.SIGNING)) {
+                            c.add(cred);
+                        }
+                    });
                 });
-            });
+            }
         }
     }
 

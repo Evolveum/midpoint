@@ -9,6 +9,11 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -21,16 +26,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Created by honchar.
  */
-public class ApplicablePolicyConfigPanel extends BasePanel<PrismContainerWrapper<AssignmentType>>{
+public class ApplicablePolicyConfigPanel<F extends FocusType> extends BasePanel<PrismContainerWrapper<AssignmentType>>{
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ApplicablePolicyConfigPanel.class);
@@ -41,9 +41,12 @@ public class ApplicablePolicyConfigPanel extends BasePanel<PrismContainerWrapper
     private static final String ID_POLICY_GROUP_PANEL = "policyGroupPanel";
 
     private LoadableModel<List<ObjectReferenceType>> policyGroupsListModel;
+    private LoadableModel<PrismObjectWrapper<F>> abstractRoleModel;
 
-    public ApplicablePolicyConfigPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model){
+    public ApplicablePolicyConfigPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model,
+            LoadableModel<PrismObjectWrapper<F>> abstractRoleModel){
         super(id, model);
+        this.abstractRoleModel = abstractRoleModel;
     }
 
     @Override
@@ -62,7 +65,7 @@ public class ApplicablePolicyConfigPanel extends BasePanel<PrismContainerWrapper
                 List<ObjectReferenceType> policyGroupsList = new ArrayList<>();
                 OperationResult result = new OperationResult(OPERATION_LOAD_SYS_CONFIG);
                 try {
-                    ArchetypePolicyType archetypePolicy = getPageBase().getModelInteractionService().determineArchetypePolicy(getMainPanelFocusObject(), result);
+                    ArchetypePolicyType archetypePolicy = getPageBase().getModelInteractionService().determineArchetypePolicy(getAbstractRoleModelObject(), result);
                     if (archetypePolicy == null){
                         return policyGroupsList;
                     } else {
@@ -71,7 +74,7 @@ public class ApplicablePolicyConfigPanel extends BasePanel<PrismContainerWrapper
                         }
                     }
                 } catch (Exception ex){
-                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve archetype policy for " + getMainPanelFocusObject(), ex);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve archetype policy for " + getAbstractRoleModelObject(), ex);
                 }
                 return policyGroupsList;
             }
@@ -92,10 +95,9 @@ public class ApplicablePolicyConfigPanel extends BasePanel<PrismContainerWrapper
         add(policyGroupsPanel);
     }
 
-    private PrismObject<FocusType> getMainPanelFocusObject(){
-        AbstractObjectMainPanel mainPanel = ApplicablePolicyConfigPanel.this.findParent(AbstractObjectMainPanel.class);
-        if (mainPanel != null){
-            return mainPanel.getObject();
+    private PrismObject<F> getAbstractRoleModelObject(){
+        if (abstractRoleModel != null && abstractRoleModel.getObject() != null){
+            return abstractRoleModel.getObject().getObject();
         }
         return null;
     }
