@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
@@ -144,11 +143,31 @@ import org.apache.wicket.model.IModel;
                 order = 10
         ),
         containerPath = "roleManagement",
-        type="RoleManagementConfigurationType",
+        type = "RoleManagementConfigurationType",
         hiddenContainers = {
                 "roleManagement/relations"
-        }
+        },
+        expanded = true
 )
+// todo custom panel needs to be created for logging, since profilingClassLogger property wrapper is created automagically and
+//  can't be hidden using virtual container because it's using non-existing path (item name).
+//@PanelInstance(
+//        identifier = "loggingPanel",
+//        applicableForType = LoggingConfigurationType.class,
+//        display = @PanelDisplay(
+//                label = "LoggingPanelContent.label",
+//                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+//                order = 100
+//        ),
+//        expanded = true,
+//        containerPath = "logging",
+//        hiddenContainers = {
+//                "logging/classLogger",
+//                "logging/subSystemLogger",
+//                "logging/appender",
+//                "logging/profilingClassLogger"
+//        }
+//)
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";
@@ -159,13 +178,6 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
 
     @Override
     protected void initLayout() {
-        IModel model = () -> {
-            PrismObjectWrapper wrapper = getObjectWrapperModel().getObject();
-            wrapper.setShowEmpty(true, true);
-
-            return wrapper;
-        };
-
-        add(new SingleContainerPanel<C>(ID_DETAILS, model, getPanelConfiguration()));
+        add(new SingleContainerPanel<C>(ID_DETAILS, (IModel) getObjectWrapperModel(), getPanelConfiguration()));
     }
 }
