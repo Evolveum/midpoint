@@ -63,18 +63,18 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
  * @author lazyman
  * @author skublik
  */
-@PageDescriptor(
-        urls = {
-                @Url(mountUrl = "/admin/config/system", matchUrlForSecurity = "/admin/config/system"),
-        },
-        action = {
-                @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
-                        label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL,
-                        description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL,
-                        label = "PageSystemConfiguration.auth.configSystemConfiguration.label",
-                        description = "PageSystemConfiguration.auth.configSystemConfiguration.description")
-        })
+//@PageDescriptor(
+//        urls = {
+//                @Url(mountUrl = "/admin/config/systemOld"),
+//        },
+//        action = {
+//                @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
+//                        label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL,
+//                        description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+//                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL,
+//                        label = "PageSystemConfiguration.auth.configSystemConfiguration.label",
+//                        description = "PageSystemConfiguration.auth.configSystemConfiguration.description")
+//        })
 public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfigurationType> {
 
     private static final long serialVersionUID = 1L;

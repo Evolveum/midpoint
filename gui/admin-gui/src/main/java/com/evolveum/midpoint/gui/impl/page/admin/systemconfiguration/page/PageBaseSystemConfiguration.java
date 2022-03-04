@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -78,7 +80,7 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
     }
 
     protected String getSummaryIconCssClass() {
-        return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON;
+        return PageSystemConfiguration.SubPage.getIcon(getClass());
     }
 
     protected IModel<String> getSummaryDisplayNameModel() {
