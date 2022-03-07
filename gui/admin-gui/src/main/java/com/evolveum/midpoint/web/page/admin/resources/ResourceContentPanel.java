@@ -172,7 +172,13 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
             warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
             return null;
         }
-        return refinedSchema.findObjectDefinition(getKind(), getIntent());
+        String intent = getIntent();
+        if (ShadowUtil.isKnown(intent)) {
+            return refinedSchema.findObjectDefinition(getKind(), intent);
+        } else {
+            // TODO: Can be intent unknown or null here? If so, what should we do with that?
+            return refinedSchema.findObjectDefinition(getKind(), null);
+        }
     }
 
     public ResourceObjectDefinition getDefinitionByObjectClass() throws SchemaException {

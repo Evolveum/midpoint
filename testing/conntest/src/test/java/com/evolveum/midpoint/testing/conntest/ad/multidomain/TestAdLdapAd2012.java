@@ -74,6 +74,11 @@ public class TestAdLdapAd2012 extends AbstractAdLdapMultidomainTest {
     }
 
     @Override
+    protected File getShadowGhostFile() {
+        return new File(TEST_DIR, "shadow-ghost-2012.xml");
+    }
+
+    @Override
     protected void assertAccountDisabled(PrismObject<ShadowType> shadow) {
         assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
     }

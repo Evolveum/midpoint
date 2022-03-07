@@ -3656,6 +3656,10 @@ public final class WebComponentUtil {
                 return associationDefinitions;
             }
             ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource.asPrismObject());
+            if (ShadowUtil.isNotKnown(kind) || ShadowUtil.isNotKnown(intent)) {
+                // TODO Is this OK? Please review this.
+                return associationDefinitions;
+            }
             ResourceObjectDefinition oc = refinedResourceSchema.findObjectDefinition(kind, intent);
             if (oc == null) {
                 LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);

@@ -914,7 +914,7 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
                 <!-- Do not forget to update provisioning/ucf-impl-connid/src/test/resources/connector-ldap.xml when changing connector version. -->
-                <version>3.3.1</version>
+                <version>3.4-M1</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>
@@ -1765,7 +1765,7 @@
 
                                 <!--dependency contains bug when dependency is used only in annotation, we use it in authentication-impl -->
                                 <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-autoconfigure</ignoredUnusedDeclaredDependency>
-                                
+
                                 <!--  Since generated code depends on prism-impl, it needs sometime to be runtime/ compile
                                       but report can not detect this uses (and if you change scope, it can not compile target project -->
                                 <ignoredUsedUndeclaredDependency>com.evolveum.prism:prism-impl</ignoredUsedUndeclaredDependency>
