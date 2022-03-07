@@ -36,7 +36,7 @@
             <icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
             <icfcldap:languageTagAttributes>description</icfcldap:languageTagAttributes> <!-- MID-5210 -->
             <icfcldap:useTreeDelete>auto</icfcldap:useTreeDelete>
-            <icfcldap:enableExtraTests>false</icfcldap:enableExtraTests> <!-- MID-3477 -->
+            <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests> <!-- MID-3477 -->
         </icfc:configurationProperties>
 
         <icfc:connectorPoolConfiguration>

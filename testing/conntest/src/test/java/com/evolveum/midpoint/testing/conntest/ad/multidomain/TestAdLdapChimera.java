@@ -83,6 +83,11 @@ public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
     }
 
     @Override
+    protected File getShadowGhostFile() {
+        return null;
+    }
+
+    @Override
     protected boolean hasExchange() {
         return true;
     }
