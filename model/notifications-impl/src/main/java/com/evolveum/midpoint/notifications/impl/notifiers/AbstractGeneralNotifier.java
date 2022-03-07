@@ -158,7 +158,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     }
 
     private int prepareAndSendMessage(E event, N notifierConfig, VariablesMap variables,
-            Transport<?> transport, @Deprecated String transportName,
+            @NotNull Transport<?> transport, @Deprecated String transportName,
             RecipientExpressionResultType recipient, Task task, OperationResult result)
             throws SchemaException {
         // TODO this is what we want in 4.6, parameter must go
@@ -251,7 +251,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     }
 
     @Nullable
-    private String getRecipientAddress(E event, Transport<?> transport,
+    private String getRecipientAddress(E event, @NotNull Transport<?> transport,
             RecipientExpressionResultType recipient, Task task, OperationResult result) {
         String address = recipient.getAddress();
         if (address == null) {
@@ -268,17 +268,16 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
     private String getRecipientAddressFromFocus(E event,
             Transport<?> transport, FocusType focus, Task task, OperationResult result) {
-        if (transport == null) {
-            return null; // shouldn't occur
-        }
-        ExpressionType recipientAddressExpression =
-                transport.getConfiguration() != null ?
-                        transport.getConfiguration().getRecipientAddressExpression() : null;
-        if (recipientAddressExpression != null) {
-            VariablesMap variables = new VariablesMap();
-            variables.put(VAR_RECIPIENT, focus, FocusType.class);
-            return getStringFromExpression(event, variables, task, result,
-                    recipientAddressExpression, "recipient address expression", true);
+        GeneralTransportConfigurationType transportConfiguration = transport.getConfiguration();
+        if (transportConfiguration != null) {
+            // Null can happen for legacy and Dummy transport, but these don't support address from focus anyway.
+            ExpressionType recipientAddressExpression = transportConfiguration.getRecipientAddressExpression();
+            if (recipientAddressExpression != null) {
+                VariablesMap variables = new VariablesMap();
+                variables.put(VAR_RECIPIENT, focus, FocusType.class);
+                return getStringFromExpression(event, variables, task, result,
+                        recipientAddressExpression, "recipient address expression", true);
+            }
         }
         return transport.getDefaultRecipientAddress(focus);
     }
