@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="5e156e0f-5844-44d3-a7f7-78df11e3c98a">
+    <name>template-user</name>
+    <item>
+        <ref>name</ref>
+        <mapping>
+            <strength>weak</strength>
+            <expression>
+                <sequentialValue>
+                    <sequenceRef oid="84f9d763-bfd9-4edb-9f5b-a49158580e16"/>
+                </sequentialValue>
+            </expression>
+        </mapping>
+    </item>
+</objectTemplate>
