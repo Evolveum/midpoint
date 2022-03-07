@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -26,7 +26,7 @@ public class SequenceFunctionalTest extends SqaleRepoBaseTest {
     public void test010ReturningValues() throws Exception {
         OperationResult result = createOperationResult();
         String oid = repositoryService.addObject(
-                new SequenceType(prismContext)
+                new SequenceType()
                         .name("Sequence 0-9, 5 unused values, wrap around")
                         .counter(0L)
                         .maxCounter(9L)
@@ -68,7 +68,7 @@ public class SequenceFunctionalTest extends SqaleRepoBaseTest {
     public void test020ReachingLimit() throws Exception {
         OperationResult result = createOperationResult();
         String oid = repositoryService.addObject(
-                new SequenceType(prismContext)
+                new SequenceType()
                         .name("Sequence 0-9")
                         .counter(0L)
                         .maxCounter(9L)

@@ -192,7 +192,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
 
     private PrismObject<UserType> createUser(String userName)
             throws ObjectAlreadyExistsException, SchemaException {
-        PrismObject<UserType> user = new UserType(prismContext)
+        PrismObject<UserType> user = new UserType()
                 .name(userName)
                 .asPrismObject();
         repositoryService.addObject(user, null, createOperationResult());
@@ -1004,7 +1004,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         and("record 3 has expected properties");
         AuditEventRecordType record3 = result.get(2);
         assertThat(record3.getProperty()).as("two different property keys").hasSize(2);
-        // currently props are sorted by name during transformation to AERType
+        // Currently, props are sorted by name during transformation to AERType.
         prop1 = record3.getProperty().get(0);
         assertThat(prop1.getName()).isEqualTo("prop1");
         assertThat(prop1.getValue()).containsExactlyInAnyOrder("val3-1", "val3-2", "val3-3");
