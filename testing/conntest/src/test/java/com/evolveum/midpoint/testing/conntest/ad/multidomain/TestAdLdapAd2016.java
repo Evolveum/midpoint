@@ -90,6 +90,11 @@ public class TestAdLdapAd2016 extends AbstractAdLdapMultidomainTest {
     }
 
     @Override
+    protected File getShadowGhostFile() {
+        return new File(TEST_DIR, "shadow-ghost-2016.xml");
+    }
+
+    @Override
     protected int getNumberOfAllAccounts() {
         return 11;
     }

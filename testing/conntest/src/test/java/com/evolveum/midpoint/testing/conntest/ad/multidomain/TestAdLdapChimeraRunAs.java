@@ -80,6 +80,11 @@ public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
     }
 
     @Override
+    protected File getShadowGhostFile() {
+        return null;
+    }
+
+    @Override
     protected int getNumberOfAllAccounts() {
         return 0;
     }
