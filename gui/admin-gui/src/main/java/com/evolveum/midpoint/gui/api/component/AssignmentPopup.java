@@ -21,6 +21,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -73,6 +74,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
     private static final String ID_FORM = "form";
 
     private final List<OrgType> selectedOrgsList = new ArrayList<>();
+    private IModel<QName> orgTabsRelationModel;
 
     private static final String DOT_CLASS = AssignmentPopup.class.getName() + ".";
     protected static final String OPERATION_LOAD_ASSIGNMENT_HOLDER_SPECIFICATION = DOT_CLASS + "loadAssignmentHolderSpecification";
@@ -332,6 +334,11 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                                 }
 
                                 @Override
+                                protected IModel<QName> createQNameModel(QName defaultRelation) {
+                                    return getOrgRelationModel(defaultRelation);
+                                }
+
+                                @Override
                                 protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
                                     return AssignmentPopup.this.getAssignmentWrapperModel();
                                 }
@@ -370,6 +377,11 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                         @Override
                         protected List<OrgType> getPreselectedObjects() {
                             return selectedOrgsList;
+                        }
+
+                        @Override
+                        protected IModel<QName> createQNameModel(QName defaultRelation) {
+                            return getOrgRelationModel(defaultRelation);
                         }
 
                         @Override
@@ -456,6 +468,13 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
         }
 
         return tabs;
+    }
+
+    private IModel<QName> getOrgRelationModel(QName defaultRelation) {
+        if (orgTabsRelationModel == null) {
+            orgTabsRelationModel = Model.of(defaultRelation);
+        }
+        return orgTabsRelationModel;
     }
 
     protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {

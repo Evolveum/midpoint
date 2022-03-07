@@ -38,6 +38,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 /**
  * Created by honchar
  */
@@ -66,7 +69,16 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
                 ? Collections.singletonList(getPredefinedRelation())
                 : getSupportedRelations();
         relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, getDefaultRelationIfInList(relationsList),
-                relationsList, false));
+                relationsList, false) {
+            @Override
+            protected IModel<QName> createValueModel(QName defaultRelation) {
+                return createQNameModel(defaultRelation);
+            }
+        });
+    }
+
+    protected IModel<QName> createQNameModel(QName defaultRelation) {
+        return Model.of(defaultRelation);
     }
 
     protected List<QName> getSupportedRelations() {
