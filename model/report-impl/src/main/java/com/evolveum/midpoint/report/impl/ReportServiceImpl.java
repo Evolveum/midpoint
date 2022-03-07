@@ -72,9 +72,6 @@ public class ReportServiceImpl implements ReportService {
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private AuditService auditService;
     @Autowired private ModelAuditService modelAuditService;
-    @Autowired private FunctionLibrary logFunctionLibrary;
-    @Autowired private FunctionLibrary basicFunctionLibrary;
-    @Autowired private FunctionLibrary midpointFunctionLibrary;
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private ScriptExpressionFactory scriptExpressionFactory;
     @Autowired private ArchetypeManager archetypeManager;
@@ -106,12 +103,13 @@ public class ReportServiceImpl implements ReportService {
                 expressionType.setObjectVariableMode(defaultScriptConfiguration == null ? ObjectVariableModeType.OBJECT : defaultScriptConfiguration.getObjectVariableMode());
             }
             context.setExpressionType(expressionType);
-            context.setFunctions(createFunctionLibraries());
             context.setObjectResolver(objectResolver);
 
             ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
                     expressionType, context.getOutputDefinition(), context.getExpressionProfile(), expressionFactory, context.getContextDescription(),
                     context.getResult());
+
+            scriptExpression.setFunctions(createFunctionLibraries(scriptExpression.getFunctions()));
 
             ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context.getTask(), context.getResult()));
             try {
@@ -125,7 +123,7 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-    private Collection<FunctionLibrary> createFunctionLibraries() {
+    private Collection<FunctionLibrary> createFunctionLibraries(Collection<FunctionLibrary> originalFunctions) {
         FunctionLibrary midPointLib = new FunctionLibrary();
         midPointLib.setVariableName("report");
         midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
@@ -133,9 +131,7 @@ public class ReportServiceImpl implements ReportService {
         midPointLib.setGenericFunctions(reportFunctions);
 
         Collection<FunctionLibrary> functions = new ArrayList<>();
-        functions.add(basicFunctionLibrary);
-        functions.add(logFunctionLibrary);
-        functions.add(midpointFunctionLibrary);
+        functions.addAll(originalFunctions);
         functions.add(midPointLib);
         return functions;
     }
