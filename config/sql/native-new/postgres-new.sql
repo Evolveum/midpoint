@@ -43,6 +43,7 @@ CREATE TYPE ContainerType AS ENUM (
     'OPERATION_EXECUTION',
     'TRIGGER');
 
+-- NOTE: Keep in sync with the same enum in postgres-new-audit.sql!
 CREATE TYPE ObjectType AS ENUM (
     'ABSTRACT_ROLE',
     'ACCESS_CERTIFICATION_CAMPAIGN',
@@ -119,6 +120,7 @@ CREATE TYPE NodeOperationalStateType AS ENUM ('UP', 'DOWN', 'STARTING');
 
 CREATE TYPE OperationExecutionRecordTypeType AS ENUM ('SIMPLE', 'COMPLEX');
 
+-- NOTE: Keep in sync with the same enum in postgres-new-audit.sql!
 CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
     'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
 
