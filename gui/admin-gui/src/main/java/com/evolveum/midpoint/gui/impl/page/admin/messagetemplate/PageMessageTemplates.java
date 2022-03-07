@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.CollectionInstance;
 import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -80,7 +81,7 @@ public class PageMessageTemplates extends PageAdmin {
 
             @Override
             protected IColumn<SelectableBean<MessageTemplateType>, String> createCheckboxColumn() {
-                return null;
+                return new CheckBoxHeaderColumn<>();
             }
 
             @Override

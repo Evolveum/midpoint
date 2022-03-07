@@ -98,6 +98,9 @@ public class DefaultColumnUtils {
                 .put(AccessCertificationDefinitionType.class, Arrays.asList(
                         new ColumnWrapper(AccessCertificationDefinitionType.F_NAME),
                         new ColumnWrapper(AccessCertificationDefinitionType.F_DESCRIPTION)))
+                .put(MessageTemplateType.class, Arrays.asList(
+                        new ColumnWrapper(MessageTemplateType.F_NAME),
+                        new ColumnWrapper(MessageTemplateType.F_DESCRIPTION)))
                 .build();
     }
 
@@ -119,6 +122,7 @@ public class DefaultColumnUtils {
             return getDefaultObjectView();
         }
 
+        // todo wtf is this???
         if (UserType.class.equals(type)) {
             return getDefaultUserView();
         } else if (RoleType.class.equals(type)) {
@@ -139,6 +143,8 @@ public class DefaultColumnUtils {
             return getDefaultAccessCertificationDefinitionView();
         } else if (AuditEventRecordType.class.equals(type)) {
             return getDefaultAuditEventsView();
+        } else if (MessageTemplateType.class.equals(type)) {
+            return getDefaultMessageTemplateView();
         } else if (ObjectType.class.isAssignableFrom(type)){
             return getDefaultObjectView();
         }
@@ -171,6 +177,10 @@ public class DefaultColumnUtils {
 
     public static GuiObjectListViewType getDefaultArchetypeView() {
         return getDefaultView(ArchetypeType.COMPLEX_TYPE, "default-archetype", ArchetypeType.class);
+    }
+
+    public static GuiObjectListViewType getDefaultMessageTemplateView() {
+        return getDefaultView(MessageTemplateType.COMPLEX_TYPE, "default-messageTemplate", MessageTemplateType.class);
     }
 
     public static GuiObjectListViewType getDefaultOrgView() {

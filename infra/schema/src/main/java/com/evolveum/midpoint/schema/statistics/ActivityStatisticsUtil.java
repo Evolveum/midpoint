@@ -100,9 +100,13 @@ public class ActivityStatisticsUtil {
     @NotNull
     private static Stream<SynchronizationSituationTransitionType> getSynchronizationTransitionsStream(
             @NotNull ActivityStateType state) {
-        return state.getStatistics() != null &&
-                state.getStatistics().getSynchronization() != null ?
-                state.getStatistics().getSynchronization().getTransition().stream() : Stream.empty();
+        if (state == null || state.getStatistics() == null) {
+            return Stream.empty();
+        }
+
+        ActivityStatisticsType statistics = state.getStatistics();
+
+        return statistics.getSynchronization() != null ? statistics.getSynchronization().getTransition().stream() : Stream.empty();
     }
 
     public static List<ObjectActionsExecutedEntryType> getResultingActionsExecuted(
