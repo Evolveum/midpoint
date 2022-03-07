@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 
 import java.io.File;
 
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -18,7 +20,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
-import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
@@ -79,11 +80,6 @@ public class TestSequence extends AbstractWfTestPolicy {
         CaseType rootCase = assertCase(result, "after")
                 .display()
                 .displayXml()
-                .subcases()
-                    .single()
-                        .display()
-                    .end()
-                .end()
                 .getObjectable();
         // @formatter:on
 
@@ -91,7 +87,7 @@ public class TestSequence extends AbstractWfTestPolicy {
 
         and("the user to be created should have a name of 100000 (start of sequence)");
         UserType userToCreate = (UserType) ObjectTypeUtil.getObjectFromReference(rootCase.getObjectRef());
-        assertUser(userToCreate, "user to create")
+        assertUser(userToCreate.asPrismObject(), "user to create")
                 .display()
                 .assertName("100000")
                 .assertFullName("Joe Black");
@@ -110,7 +106,7 @@ public class TestSequence extends AbstractWfTestPolicy {
 
         when("creation is approved");
         CaseWorkItemType workItem = getWorkItem(task, result);
-        caseService.completeWorkItem(
+        workflowService.completeWorkItem(
                 WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(),
                 task,

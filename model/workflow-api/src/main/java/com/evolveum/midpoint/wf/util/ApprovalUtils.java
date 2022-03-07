@@ -148,7 +148,7 @@ public class ApprovalUtils {
     }
 
     public static AbstractWorkItemOutputType createApproveOutput() {
-        return new AbstractWorkItemOutputType()
+        return new AbstractWorkItemOutputType(PrismContext.get())
                 .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
     }
 }
