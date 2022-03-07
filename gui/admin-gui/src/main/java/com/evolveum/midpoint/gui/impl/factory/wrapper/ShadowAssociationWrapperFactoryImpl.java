@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -154,13 +155,20 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
         }
         ShadowKindType kind = shadow.getKind();
         String shadowIntent = shadow.getIntent();
-        ResourceObjectDefinition oc = refinedResourceSchema.findObjectDefinition(kind, shadowIntent);
-        if (oc == null) {
+        ResourceObjectDefinition objectDefinition;
+        if (ShadowUtil.isKnown(kind) && ShadowUtil.isKnown(shadowIntent)) {
+            objectDefinition = refinedResourceSchema.findObjectDefinition(kind, shadowIntent);
+            // Note that object definition may be null here (if there's no definition for given kind+intent present)
+        } else {
+            // TODO what should we do in this case?
+            objectDefinition = null;
+        }
+        if (objectDefinition == null) {
             LOGGER.debug("Association for {}/{} not supported by resource {}", kind, shadowIntent, resource);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Association for " + kind + "/" + shadowIntent + " not supported by resource " + resource);
             return null;
         }
-        Collection<ResourceAssociationDefinition> resourceAssociationDefinitions = oc.getAssociationDefinitions();
+        Collection<ResourceAssociationDefinition> resourceAssociationDefinitions = objectDefinition.getAssociationDefinitions();
 
         if (CollectionUtils.isEmpty(resourceAssociationDefinitions)) {
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Association for " + kind + "/" + shadowIntent + " not supported by resource " + resource);

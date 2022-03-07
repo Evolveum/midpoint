@@ -88,7 +88,7 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
      * - intent being null: see {@link #findObjectDefinitionForKind(ShadowKindType, QName)};
      * - (a hack) for ACCOUNT/default: see {@link #findDefaultAccountObjectClass()} [this may be removed later]
      *
-     * The "unknown" values for kind/intent are not supported. The client must known if these
+     * The "unknown" values for kind/intent are not supported. The client must know if these
      * are even applicable, or (if they are) how they should be interpreted.
      *
      * @throws IllegalStateException if there are more matching definitions for known kind/intent
