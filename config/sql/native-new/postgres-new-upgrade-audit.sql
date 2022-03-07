@@ -76,6 +76,15 @@ BEGIN
 END $$;
 $aac$);
 
+-- SCHEMA-COMMIT 4.4.1: commit de18c14f
+
+-- changes for 4.5
+
+-- MID-7484
+call apply_audit_change(2, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MESSAGE_TEMPLATE' AFTER 'LOOKUP_TABLE';
+$aa$);
+
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_audit_change number at the end of postgres-new-audit.sql
 -- to match the number used in the last change here!
