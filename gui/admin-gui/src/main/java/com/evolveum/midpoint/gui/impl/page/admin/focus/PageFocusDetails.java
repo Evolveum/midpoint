@@ -16,6 +16,9 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.Session;
@@ -302,5 +305,12 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         DetailsFragment detailsFragment = createDetailsFragment();
         replace(detailsFragment);
         target.add(detailsFragment);
+    }
+
+    @Override
+    protected Collection<SelectorOptions<GetOperationOptions>> getOperationOptions() {
+        return getOperationOptionsBuilder()
+                .item(FocusType.F_JPEG_PHOTO).retrieve()
+                .build();
     }
 }
