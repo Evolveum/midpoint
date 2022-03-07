@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.execution.*;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
@@ -207,16 +208,14 @@ public class UpAndDown implements BeanFactoryAware {
         }
     }
 
-    public void shutdownInternal(OperationResult result) {
+    private void shutdownInternal(OperationResult result) {
         LOGGER.info("Task Manager shutdown starting");
 
         if (localScheduler.getQuartzScheduler() != null) {
 
-            try {
-                localExecutionManager.stopSchedulerAndTasks(0L, result);
-            } catch (Throwable t) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop local scheduler and tasks, continuing with the shutdown", t);
-            }
+            // This method has been called already. But better twice than not at all.
+            // (We may remove this call if really not needed - some day.)
+            stopLocalSchedulerAndTasks(result);
 
             if (configuration.isTestMode()) {
                 LOGGER.info("Quartz scheduler will NOT be shutdown. It stays in paused mode.");
@@ -237,5 +236,14 @@ public class UpAndDown implements BeanFactoryAware {
             }
         }
         LOGGER.info("Task Manager shutdown finished");
+    }
+
+    void stopLocalSchedulerAndTasks(OperationResult result) {
+        try {
+            localExecutionManager.stopSchedulerAndTasks(TaskManager.WAIT_INDEFINITELY, result);
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop local scheduler and tasks, continuing with the shutdown",
+                    t);
+        }
     }
 }

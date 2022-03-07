@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -194,6 +195,19 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     public void onSystemStarted() {
         OperationResult result = new OperationResult(DOT_IMPL_CLASS + "onSystemStarted");
         upAndDown.onSystemStarted(result);
+    }
+
+    /**
+     * Stops the local tasks as soon as we know we are going down - without waiting for {@link PreDestroy} method on Spring
+     * beans in this module is called. The latter is too late for us. We need all background tasks to stop before midPoint
+     * is torn down to pieces.
+     *
+     * Otherwise, incorrect processing is experienced, like live sync events being emitted to nowhere - see e.g. MID-7648.
+     */
+    @EventListener(ContextClosedEvent.class)
+    public void onSystemShutdown() {
+        OperationResult result = new OperationResult(DOT_IMPL_CLASS + "onSystemShutdown");
+        upAndDown.stopLocalSchedulerAndTasks(result);
     }
     //endregion
 
