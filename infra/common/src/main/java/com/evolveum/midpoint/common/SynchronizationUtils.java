@@ -148,7 +148,9 @@ public class SynchronizationUtils {
         }
 
         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
-        Objects.requireNonNull(schema, "No schema defined in resource. Possible configuration problem?");
+        if (schema == null) {
+            throw new SchemaException("No schema defined in resource. Possible configuration problem?");
+        }
 
         ShadowKindType policyKind = requireNonNullElse(synchronizationPolicy.getKind(), ACCOUNT);
 

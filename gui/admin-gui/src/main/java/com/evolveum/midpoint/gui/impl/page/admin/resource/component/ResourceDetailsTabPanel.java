@@ -193,6 +193,13 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 return configs;
             }
 
+            if (resource.getSchema() == null) {
+                // Current implementation of SynchronizationUtils.isPolicyApplicable (that is called from the code below)
+                // fails if there is no resource schema. So let's just pretend there are no configurations there.
+                // TODO Remove this temporary code after handling of synchronization section is cleaned up in 4.6.
+                return configs;
+            }
+
             List<ResourceObjectTypeDefinitionType> objectTypes = resource.getSchemaHandling().getObjectType();
 
             if (objectTypes == null) {
