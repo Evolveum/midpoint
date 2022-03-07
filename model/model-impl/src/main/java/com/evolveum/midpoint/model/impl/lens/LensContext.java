@@ -1302,8 +1302,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
             lensContext.rottenExecutedDeltas.add(objectDeltaOperation);
         }
 
-        if (bean.getSequences() != null) {
-            for (LensContextSequenceValueType seqValueBean : bean.getSequences().getSequenceValue()) {
+        if (lensContextType.getSequences() != null) {
+            for (LensContextSequenceValueType seqValueBean : lensContextType.getSequences().getSequenceValue()) {
                 String oid = seqValueBean.getSequenceRef() != null ? seqValueBean.getSequenceRef().getOid() : null;
                 if (oid != null) {
                     lensContext.setSequenceCounter(oid, seqValueBean.getValue());

@@ -6,22 +6,14 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
-import static org.testng.AssertJUnit.assertEquals;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.bouncycastle.util.Arrays;
-import org.testng.AssertJUnit;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import org.testng.AssertJUnit;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  *
