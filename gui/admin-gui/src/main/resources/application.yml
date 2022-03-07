@@ -13,6 +13,7 @@ spring:
     cache: false
 
 server:
+  port: ${midpoint.port}
   tomcat:
     basedir: ${midpoint.home}
     max-http-form-post-size: 100MB

@@ -366,6 +366,9 @@ if [[ -r "${MIDPOINT_HOME}/setenv.sh" ]]; then
   . "${MIDPOINT_HOME}/setenv.sh"
 fi
 
+: "${MIDPOINT_PORT:=8080}"
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Dmidpoint.port=") ; then JAVA_OPTS="${JAVA_OPTS:-} -Dmidpoint.port=\"${MIDPOINT_PORT}\"" ; fi
+
 : "${BOOT_OUT:="${MIDPOINT_HOME}/log/midpoint.out"}"
 : "${PID_FILE:="${MIDPOINT_HOME}/log/midpoint.pid"}"
 
