@@ -1057,6 +1057,7 @@ public class LensUtil {
                 // ... but otherwise ignore it and go on
             }
         }
+        context.getSequences().clear();
     }
 
     public static <AH extends AssignmentHolderType> void applyObjectPolicyConstraints(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy, PrismContext prismContext) throws SchemaException, ConfigurationException {

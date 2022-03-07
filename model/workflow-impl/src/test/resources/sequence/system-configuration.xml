@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>SystemConfiguration</name>
+    <defaultObjectPolicyConfiguration>
+        <objectTemplateRef oid="5e156e0f-5844-44d3-a7f7-78df11e3c98a" />
+        <type>UserType</type>
+    </defaultObjectPolicyConfiguration>
+    <workflowConfiguration>
+        <useLegacyApproversSpecification>never</useLegacyApproversSpecification>
+        <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
+    </workflowConfiguration>
+    <globalPolicyRule>
+        <name>User creation approval</name>
+        <policyConstraints>
+            <modification>
+                <operation>add</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <approval>
+                <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+            </approval>
+        </policyActions>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+    </globalPolicyRule>
+</systemConfiguration>
