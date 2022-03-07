@@ -28,7 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @PanelType(name = "archetypeMembers")
-@PanelInstances(instances = {
+@PanelInstances(value = {
         @PanelInstance(identifier = "archetypeMembers",
                 applicableForType = ArchetypeType.class,
                 applicableForOperation = OperationTypeType.MODIFY,
