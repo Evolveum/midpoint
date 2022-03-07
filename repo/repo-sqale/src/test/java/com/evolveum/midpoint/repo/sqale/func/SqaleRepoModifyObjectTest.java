@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -88,20 +88,20 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         user1Oid = repositoryService.addObject(
-                new UserType(prismContext).name("user-1").asPrismObject(),
+                new UserType().name("user-1").asPrismObject(),
                 null, result);
         task1Oid = repositoryService.addObject(
-                new TaskType(prismContext).name("task-1").asPrismObject(),
+                new TaskType().name("task-1").asPrismObject(),
                 null, result);
         shadow1Oid = repositoryService.addObject(
-                new ShadowType(prismContext).name("shadow-1").asPrismObject(),
+                new ShadowType().name("shadow-1").asPrismObject(),
                 null, result);
         service1Oid = repositoryService.addObject(
-                new ServiceType(prismContext).name("service-1").asPrismObject(),
+                new ServiceType().name("service-1").asPrismObject(),
                 null, result);
         // This also indirectly tests ability to create a minimal object (mandatory fields only).
         accessCertificationCampaign1Oid = repositoryService.addObject(
-                new AccessCertificationCampaignType(prismContext)
+                new AccessCertificationCampaignType()
                         .name("campaign-1")
                         .ownerRef(user1Oid, UserType.COMPLEX_TYPE)
                         // TODO: campaignIteration
@@ -941,7 +941,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta adding a pending operation for shadow 1");
         ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
-                .item(ShadowType.F_PENDING_OPERATION).add(new PendingOperationType(prismContext)
+                .item(ShadowType.F_PENDING_OPERATION).add(new PendingOperationType()
                         .requestTimestamp(MiscUtil.asXMLGregorianCalendar(1L)))
                 .asObjectDelta(shadow1Oid);
 
@@ -1490,7 +1490,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         // Container tests are in 3xx category, but let's focus on policy situations.
         given("delta adding assignment with policy situations");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT).add(new AssignmentType(prismContext)
+                .item(UserType.F_ASSIGNMENT).add(new AssignmentType()
                         .policySituation("policy-situation-1")
                         .policySituation("policy-situation-2"))
                 .asObjectDelta(user1Oid);
@@ -1717,7 +1717,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("connector with non-null connector host");
         String oid = repositoryService.addObject(
-                new ConnectorType(prismContext)
+                new ConnectorType()
                         .name("conn-1")
                         .connectorBundle("com.connector.package")
                         .connectorType("ConnectorTypeClass")
@@ -2168,8 +2168,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta adding whole credential/password container user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD)
-                .replace(new PasswordType(prismContext)
-                        .metadata(new MetadataType(prismContext)
+                .replace(new PasswordType()
+                        .metadata(new MetadataType()
                                 .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(1L))))
                 .asObjectDelta(user1Oid);
 
@@ -2202,9 +2202,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta adding whole credential/password container user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(FocusType.F_CREDENTIALS)
-                .replace(new CredentialsType(prismContext)
-                        .password(new PasswordType(prismContext)
-                                .metadata(new MetadataType(prismContext)
+                .replace(new CredentialsType()
+                        .password(new PasswordType()
+                                .metadata(new MetadataType()
                                         .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L)))))
                 .asObjectDelta(user1Oid);
 
@@ -2242,7 +2242,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID roleOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .replace(new AssignmentType(prismContext)
+                .replace(new AssignmentType()
                         .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)) // default relation
                 .asObjectDelta(user1Oid);
 
@@ -2324,7 +2324,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID resourceOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .add(new AssignmentType()
                                 .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)
                                 .metadata(new MetadataType()
                                         .createChannel("create-channel")
@@ -2333,7 +2333,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                                         .createApproverRef(UUID.randomUUID().toString(),
                                                 UserType.COMPLEX_TYPE))
                                 .order(48),
-                        new AssignmentType(prismContext)
+                        new AssignmentType()
                                 .construction(new ConstructionType()
                                         .resourceRef(resourceOid.toString(),
                                                 ResourceType.COMPLEX_TYPE))
@@ -2493,7 +2493,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta deleting assignments without CID by equality for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .delete(new AssignmentType(prismContext).order(50))
+                .delete(new AssignmentType().order(50))
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -2534,7 +2534,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID roleOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .add(new AssignmentType()
                         .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE))
                 .asObjectDelta(user1Oid);
         repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
@@ -2569,9 +2569,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID roleOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .add(new AssignmentType()
                         .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)
-                        .metadata(new MetadataType(prismContext)
+                        .metadata(new MetadataType()
                                 .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L))))
                 .asObjectDelta(user1Oid);
         repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
@@ -2582,9 +2582,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         when("add delta with similar container with only operational attributes different");
         delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .add(new AssignmentType()
                         .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)
-                        .metadata(new MetadataType(prismContext)
+                        .metadata(new MetadataType()
                                 .createTimestamp(MiscUtil.asXMLGregorianCalendar(2L))))
                 .asObjectDelta(user1Oid);
         repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
@@ -2614,7 +2614,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta adding assignments with free CID for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .add(new AssignmentType()
                         .id(originalRow.containerIdSeq)
                         .order(1))
                 .asObjectDelta(user1Oid);
@@ -2655,7 +2655,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta deleting assignments using CID for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .delete(new AssignmentType(prismContext)
+                .delete(new AssignmentType()
                         .id(originalRow.containerIdSeq - 1)) // last added assignment
                 .asObjectDelta(user1Oid);
 
@@ -2695,7 +2695,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta adding assignments with used but now free CID for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .add(new AssignmentType()
                         .id(originalRow.containerIdSeq - 1)
                         .order(1))
                 .asObjectDelta(user1Oid);
@@ -2779,7 +2779,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThatThrownBy(
                 () -> prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT, 5).add(
-                                new AssignmentType(prismContext).order(5))
+                                new AssignmentType().order(5))
                         .asObjectDelta(user1Oid))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid delta path assignment/5."
@@ -2792,7 +2792,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThatThrownBy(
                 () -> prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT, 5).replace(
-                                new AssignmentType(prismContext).order(5))
+                                new AssignmentType().order(5))
                         .asObjectDelta(user1Oid))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid delta path assignment/5."
@@ -2824,7 +2824,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta adding case for campaign 1");
         UUID targetOid = UUID.randomUUID();
-        AccessCertificationCaseType caseBefore = new AccessCertificationCaseType(prismContext)
+        AccessCertificationCaseType caseBefore = new AccessCertificationCaseType()
                 .stageNumber(3)
                 .iteration(4)
                 .targetRef(targetOid.toString(), RoleType.COMPLEX_TYPE);
@@ -2881,7 +2881,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta adding case for campaign 1");
         accCertCampaign1Case2ObjectOid = UUID.randomUUID();
-        AccessCertificationCaseType caseBefore = new AccessCertificationCaseType(prismContext)
+        AccessCertificationCaseType caseBefore = new AccessCertificationCaseType()
                 .id(CAMPAIGN_1_CASE_2_ID)
                 .stageNumber(5)
                 .iteration(7)
@@ -3264,7 +3264,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta adding extension container value");
-        ExtensionType extension = new ExtensionType(prismContext);
+        ExtensionType extension = new ExtensionType();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(FocusType.F_EXTENSION).add(extension)
                 .asObjectDelta(user1Oid);
@@ -3549,7 +3549,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();
 
-        UserType user = new UserType(prismContext).name("corrupted")
+        UserType user = new UserType().name("corrupted")
                 .beginAssignment()
                 .policySituation("kept")
                 .<UserType>end()
@@ -3606,11 +3606,11 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("user existing in the repository");
         String name = "user" + getTestNumber();
-        UserType user = new UserType(prismContext).name(name)
+        UserType user = new UserType().name(name)
                 .emailAddress(name + "@goodmail.com")
                 .subtype("subtype-1")
                 .subtype("subtype-2")
-                .assignment(new AssignmentType(prismContext)
+                .assignment(new AssignmentType()
                         .order(1));
         String oid = repositoryService.addObject(user.asPrismObject(), null, result);
 

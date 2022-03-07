@@ -129,7 +129,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
     private void createRoles(OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
         for (int i = 0; i < ROLES; i++) {
-            RoleType role = new RoleType(prismContext)
+            RoleType role = new RoleType()
                     .name(String.format(ROLE_NAME_PATTERN, i));
             repositoryService.addObject(role.asPrismObject(), null, result);
         }

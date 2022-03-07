@@ -6,14 +6,14 @@
  */
 package com.evolveum.midpoint.repo.common.tasks;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType.COMPLETE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType.READY;
-
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.sortBucketsBySequentialNumber;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType.COMPLETE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType.READY;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -21,17 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
-
-import com.evolveum.midpoint.repo.common.AbstractRepoCommonTest;
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
-import com.evolveum.midpoint.repo.common.activity.run.buckets.GetBucketOperationOptions.GetBucketOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
-
-import com.evolveum.midpoint.schema.util.task.BucketingUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,15 +32,23 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.repo.common.AbstractRepoCommonTest;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingManager;
-import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.BucketFactory;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.GetBucketOperationOptions.GetBucketOperationOptionsBuilder;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.BucketContentFactory;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.BucketContentFactoryGenerator;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.BucketFactory;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.StringBucketContentFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -117,7 +114,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         taskAdd(TASK_010, result);
 
         Task task = taskManager.getTaskPlain(TASK_010.oid, result);
-        ActivityStateType workState = new ActivityStateType(prismContext);
+        ActivityStateType workState = new ActivityStateType();
 
         when();
 
@@ -133,8 +130,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         assertNarrowedQuery(task, bucket,
                 prismContext.queryFor(UserType.class)
                         .item(UserType.F_NAME).startsWith("a00").matchingNorm()
-                        .build()
-        );
+                        .build());
 
         assumeNextPrefix(allocator, workState, "a01", 2);
         assumeNextPrefix(allocator, workState, "a0a", 3);
@@ -172,7 +168,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         taskAdd(TASK_020, result);
 
         Task task = taskManager.getTaskPlain(TASK_020.oid, result);
-        ActivityStateType workState = new ActivityStateType(prismContext);
+        ActivityStateType workState = new ActivityStateType();
 
         when();
 
@@ -227,7 +223,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         taskAdd(TASK_030, result);
 
         Task task = taskManager.getTaskPlain(TASK_030.oid, result);
-        ActivityStateType workState = new ActivityStateType(prismContext);
+        ActivityStateType workState = new ActivityStateType();
 
         when();
 
@@ -919,7 +915,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
     private List<WorkBucketType> getOrCreateBuckets(ActivityStateType workState) {
         if (workState.getBucketing() == null) {
-            workState.setBucketing(new ActivityBucketingStateType(prismContext));
+            workState.setBucketing(new ActivityBucketingStateType());
         }
         return workState.getBucketing().getBucket();
     }

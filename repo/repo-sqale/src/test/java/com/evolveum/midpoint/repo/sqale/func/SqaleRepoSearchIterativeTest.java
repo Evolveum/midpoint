@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -57,7 +57,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
         // we will create two full "pages" of data
         for (int i = 1; i <= ITERATION_PAGE_SIZE * 2; i++) {
-            UserType user = new UserType(prismContext)
+            UserType user = new UserType()
                     .name(String.format("user-%05d", i))
                     .costCenter(String.valueOf(i / 10)); // 10 per cost center
             repositoryService.addObject(user.asPrismObject(), null, result);

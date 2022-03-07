@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -53,14 +53,14 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         repositoryService.applyFullTextSearchConfiguration(
-                new FullTextSearchConfigurationType(prismContext)
-                        .indexed(new FullTextSearchIndexedItemsConfigurationType(prismContext)
+                new FullTextSearchConfigurationType()
+                        .indexed(new FullTextSearchIndexedItemsConfigurationType()
                                 .item(new ItemPathType(ObjectType.F_NAME))
                                 .item(new ItemPathType(ObjectType.F_DESCRIPTION))));
 
-        UserType user1 = new UserType(prismContext).name("user-1")
+        UserType user1 = new UserType().name("user-1")
                 .fullName("User Name 1")
-                .metadata(new MetadataType(prismContext)
+                .metadata(new MetadataType()
                         .createChannel("create-channel")
                         .createTimestamp(asXMLGregorianCalendar(1L))
                         .modifyChannel("modify-channel")
@@ -69,14 +69,14 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
                 .subtype("workerC")
                 .policySituation("situationA")
                 .policySituation("situationC")
-                .assignment(new AssignmentType(prismContext)
+                .assignment(new AssignmentType()
                         .description("assignment one description")
                         .lifecycleState("assignment1-1")
                         .subtype("ass-subtype-2"))
-                .assignment(new AssignmentType(prismContext)
+                .assignment(new AssignmentType()
                         .description("assignment two description")
                         .lifecycleState("assignment1-2"))
-                .extension(new ExtensionType(prismContext));
+                .extension(new ExtensionType());
         // extension can be full-text indexed too, but not for index-only stuff
         ExtensionType user1Extension = user1.getExtension();
         addExtensionValue(user1Extension, "string", "indexable string extension");
@@ -84,35 +84,35 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
         addExtensionValue(user1Extension, "string-mv", "multi-value string", "another multi-value string");
         user1Oid = repositoryService.addObject(user1.asPrismObject(), null, result);
 
-        UserType user2 = new UserType(prismContext).name("user-2")
+        UserType user2 = new UserType().name("user-2")
                 .description("user description with many repetitions of word user and user again")
                 .subtype("workerA")
-                .activation(new ActivationType(prismContext)
+                .activation(new ActivationType()
                         .validFrom("2021-03-01T00:00:00Z")
                         .validTo("2022-07-04T00:00:00Z"))
-                .metadata(new MetadataType(prismContext)
+                .metadata(new MetadataType()
                         .createTimestamp(asXMLGregorianCalendar(2L)));
         user2Oid = repositoryService.addObject(user2.asPrismObject(), null, result);
 
-        UserType user3 = new UserType(prismContext).name("user-3")
+        UserType user3 = new UserType().name("user-3")
                 .description("Slovenský opis ľahkovážnej osoby číslo TŘI")
                 .costCenter("50")
                 .policySituation("situationA")
-                .assignment(new AssignmentType(prismContext)
+                .assignment(new AssignmentType()
                         .lifecycleState("ls-user3-ass1")
-                        .metadata(new MetadataType(prismContext)
+                        .metadata(new MetadataType()
                                 .createApproverRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
-                        .activation(new ActivationType(prismContext)
+                        .activation(new ActivationType()
                                 .validFrom("2021-01-01T00:00:00Z"))
                         .subtype("ass-subtype-1")
                         .subtype("ass-subtype-2"))
-                .assignment(new AssignmentType(prismContext)
-                        .activation(new ActivationType(prismContext)
+                .assignment(new AssignmentType()
+                        .activation(new ActivationType()
                                 .validTo("2022-01-01T00:00:00Z")));
         user3Oid = repositoryService.addObject(user3.asPrismObject(), null, result);
 
         user4Oid = repositoryService.addObject(
-                new UserType(prismContext).name("user-4")
+                new UserType().name("user-4")
                         .description("I like tasks task1 and especiallytask2") // intentionally glued
                         .givenName("John")
                         .fullName("John")
@@ -128,12 +128,12 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
 
         // other objects
         task1Oid = repositoryService.addObject(
-                new TaskType(prismContext).name("task-1")
+                new TaskType().name("task-1")
                         .executionState(TaskExecutionStateType.RUNNABLE)
                         .asPrismObject(),
                 null, result);
         task2Oid = repositoryService.addObject(
-                new TaskType(prismContext).name("task-2")
+                new TaskType().name("task-2")
                         .executionState(TaskExecutionStateType.CLOSED)
                         .asPrismObject(),
                 null, result);
@@ -201,8 +201,8 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
     public void test300FullTextConfigurationWithoutReindexDoesNotAffectResults()
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         repositoryService.applyFullTextSearchConfiguration(
-                new FullTextSearchConfigurationType(prismContext)
-                        .indexed(new FullTextSearchIndexedItemsConfigurationType(prismContext)
+                new FullTextSearchConfigurationType()
+                        .indexed(new FullTextSearchIndexedItemsConfigurationType()
                                 .item(new ItemPathType(ObjectType.F_NAME))));
 
         searchObjectTest("with full-text search against description before reindex",
@@ -222,8 +222,8 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
     @Test
     public void test400FullTextOfMultiValueContainerItemsIsNotSupported() {
         repositoryService.applyFullTextSearchConfiguration(
-                new FullTextSearchConfigurationType(prismContext)
-                        .indexed(new FullTextSearchIndexedItemsConfigurationType(prismContext)
+                new FullTextSearchConfigurationType()
+                        .indexed(new FullTextSearchIndexedItemsConfigurationType()
                                 .item(new ItemPathType(ItemPath.create(
                                         AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION)))));
 
