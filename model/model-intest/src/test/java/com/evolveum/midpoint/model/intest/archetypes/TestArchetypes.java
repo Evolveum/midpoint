@@ -12,14 +12,15 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 
-import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
-import com.evolveum.midpoint.test.asserter.GuiObjectDetailsPageAsserter;
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -43,63 +44,77 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     public static final File TEST_DIR = new File("src/test/resources/archetypes");
 
-    public static final File SYSTEM_CONFIGURATION_ARCHETYPES_FILE = new File(TEST_DIR, "system-configuration-archetypes.xml");
+    private static final File SYSTEM_CONFIGURATION_ARCHETYPES_FILE = new File(TEST_DIR, "system-configuration-archetypes.xml");
 
-    public static final String VIEW_ALL_EMPLOYEES_NAME = "all-employees";
-    public static final String VIEW_ACTIVE_EMPLOYEES_IDENTIFIER = "active-employees";
-    public static final String VIEW_BUSINESS_ROLES_IDENTIFIER = "business-roles-view";
-    public static final String VIEW_BUSINESS_ROLES_LABEL = "Business";
+    private static final String VIEW_ALL_EMPLOYEES_NAME = "all-employees";
+    private static final String VIEW_ACTIVE_EMPLOYEES_IDENTIFIER = "active-employees";
+    private static final String VIEW_BUSINESS_ROLES_IDENTIFIER = "business-roles-view";
+    private static final String VIEW_BUSINESS_ROLES_LABEL = "Business";
 
-    public static final File ARCHETYPE_CONTRACTOR_FILE = new File(TEST_DIR, "archetype-contractor.xml");
-    protected static final String ARCHETYPE_CONTRACTOR_OID = "3911cac2-78a6-11e9-8b5e-4b5bdb0c81d5";
+    private static final File ARCHETYPE_CONTRACTOR_FILE = new File(TEST_DIR, "archetype-contractor.xml");
+    private static final String ARCHETYPE_CONTRACTOR_OID = "3911cac2-78a6-11e9-8b5e-4b5bdb0c81d5";
 
-    public static final File ARCHETYPE_TEST_FILE = new File(TEST_DIR, "archetype-test.xml");
-    protected static final String ARCHETYPE_TEST_OID = "a8df34a8-f6f0-11e8-b98e-eb03652d943f";
+    private static final File ARCHETYPE_TEST_FILE = new File(TEST_DIR, "archetype-test.xml");
+    private static final String ARCHETYPE_TEST_OID = "a8df34a8-f6f0-11e8-b98e-eb03652d943f";
 
-    public static final File ARCHETYPE_BUSINESS_ROLE_FILE = new File(TEST_DIR, "archetype-business-role.xml");
-    protected static final String ARCHETYPE_BUSINESS_ROLE_OID = "018e7340-199a-11e9-ad93-2b136d1c7ecf";
+    private static final File ARCHETYPE_BUSINESS_ROLE_FILE = new File(TEST_DIR, "archetype-business-role.xml");
+    private static final String ARCHETYPE_BUSINESS_ROLE_OID = "018e7340-199a-11e9-ad93-2b136d1c7ecf";
     private static final String ARCHETYPE_BUSINESS_ROLE_ICON_CSS_CLASS = "fe fe-business";
     private static final String ARCHETYPE_BUSINESS_ROLE_ICON_COLOR = "green";
 
-    public static final File USER_MEATHOOK_FILE = new File(TEST_DIR, "user-meathook.xml");
-    protected static final String USER_MEATHOOK_OID = "f79fc10e-78a8-11e9-92ec-cf427cb6e7a0";
+    private static final File USER_MEATHOOK_FILE = new File(TEST_DIR, "user-meathook.xml");
+    private static final String USER_MEATHOOK_OID = "f79fc10e-78a8-11e9-92ec-cf427cb6e7a0";
 
-    public static final File USER_WANNABE_FILE = new File(TEST_DIR, "user-wannabe.xml");
-    protected static final String USER_WANNABE_OID = "28038d88-d3eb-11e9-87fb-cff5e050b6f9";
+    private static final File USER_WANNABE_FILE = new File(TEST_DIR, "user-wannabe.xml");
+    private static final String USER_WANNABE_OID = "28038d88-d3eb-11e9-87fb-cff5e050b6f9";
 
-    public static final File USER_SELF_MADE_MAN_FILE = new File(TEST_DIR, "user-self-made-man.xml");
-    protected static final String USER_SELF_MADE_MAN_OID = "065c4592-0787-11ea-af06-f7eae18b6b4a";
+    private static final File USER_SELF_MADE_MAN_FILE = new File(TEST_DIR, "user-self-made-man.xml");
+    private static final String USER_SELF_MADE_MAN_OID = "065c4592-0787-11ea-af06-f7eae18b6b4a";
 
-    public static final File USER_FRAUDSTER_FILE = new File(TEST_DIR, "user-fraudster.xml");
-    protected static final String USER_FRAUDSTER_OID = "99b36382-078e-11ea-b9a9-b393552ec165";
+    private static final File USER_FRAUDSTER_FILE = new File(TEST_DIR, "user-fraudster.xml");
+    private static final String USER_FRAUDSTER_OID = "99b36382-078e-11ea-b9a9-b393552ec165";
 
-    public static final File ROLE_EMPLOYEE_BASE_FILE = new File(TEST_DIR, "role-employee-base.xml");
-    protected static final String ROLE_EMPLOYEE_BASE_OID = "e869d6c4-f6ef-11e8-b51f-df3e51bba129";
+    private static final File ROLE_EMPLOYEE_BASE_FILE = new File(TEST_DIR, "role-employee-base.xml");
+    private static final String ROLE_EMPLOYEE_BASE_OID = "e869d6c4-f6ef-11e8-b51f-df3e51bba129";
 
     public static final File ROLE_USER_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-user-administrator.xml");
     protected static final String ROLE_USER_ADMINISTRATOR_OID = "6ae02e34-f8b0-11e8-9c40-87e142b606fe";
 
-    public static final File ROLE_BUSINESS_CAPTAIN_FILE = new File(TEST_DIR, "role-business-captain.xml");
-    protected static final String ROLE_BUSINESS_CAPTAIN_OID = "9f65f4b6-199b-11e9-a4c1-2f6b7eb1ebae";
+    private static final File ROLE_BUSINESS_CAPTAIN_FILE = new File(TEST_DIR, "role-business-captain.xml");
+    private static final String ROLE_BUSINESS_CAPTAIN_OID = "9f65f4b6-199b-11e9-a4c1-2f6b7eb1ebae";
 
-    public static final File ROLE_BUSINESS_BOSUN_FILE = new File(TEST_DIR, "role-business-bosun.xml");
+    private static final File ROLE_BUSINESS_BOSUN_FILE = new File(TEST_DIR, "role-business-bosun.xml");
     protected static final String ROLE_BUSINESS_BOSUN_OID = "186b29c6-199c-11e9-9acc-3f8cc307573b";
 
-    public static final File COLLECTION_ACTIVE_EMPLOYEES_FILE = new File(TEST_DIR, "collection-active-employees.xml");
+    private static final File COLLECTION_ACTIVE_EMPLOYEES_FILE = new File(TEST_DIR, "collection-active-employees.xml");
     protected static final String COLLECTION_ACTIVE_EMPLOYEES_OID = "f61bcb4a-f8ae-11e8-9f5c-c3e7f27ee878";
 
-    protected static final File USER_TEMPLATE_ARCHETYPES_GLOBAL_FILE = new File(TEST_DIR, "user-template-archetypes-global.xml");
-    protected static final String USER_TEMPLATE_ARCHETYPES_GLOBAL_OID = "dab200ae-65dc-11e9-a8d3-27e5b1538f19";
+    private static final File USER_TEMPLATE_ARCHETYPES_GLOBAL_FILE = new File(TEST_DIR, "user-template-archetypes-global.xml");
+    private static final String USER_TEMPLATE_ARCHETYPES_GLOBAL_OID = "dab200ae-65dc-11e9-a8d3-27e5b1538f19";
 
-    protected static final File USER_TEMPLATE_CONTRACTOR_FILE = new File(TEST_DIR, "user-template-contractor.xml");
+    private static final File USER_TEMPLATE_CONTRACTOR_FILE = new File(TEST_DIR, "user-template-contractor.xml");
     protected static final String USER_TEMPLATE_CONTRACTOR_OID = "f72193e4-78a6-11e9-a0b6-6f5ad4cfbb37";
 
-    public static final File ARCHETYPE_AUXILIARY_MANAGER_FILE = new File(TEST_DIR, "archetype-auxiliary-manager.xml");
-    protected static final String ARCHETYPE_AUXILIARY_MANAGER_OID = "ab061953-44e0-496b-aca4-23c6caf0eb60";
+    private static final File ARCHETYPE_AUXILIARY_MANAGER_FILE = new File(TEST_DIR, "archetype-auxiliary-manager.xml");
+    private static final String ARCHETYPE_AUXILIARY_MANAGER_OID = "ab061953-44e0-496b-aca4-23c6caf0eb60";
 
     private static final String CONTRACTOR_EMPLOYEE_NUMBER = "CONTRACTOR";
 
-    @Autowired private AdminGuiConfigurationMergeManager mergeManager;
+    private static final String ATTR_STUDENT = "student";
+
+    private static final DummyTestResource RESOURCE_SOURCE = new DummyTestResource(
+            TEST_DIR, "resource-dummy-source.xml", "3d87a26a-9a95-4c43-be3c-207b5ffe9474", "source",
+            controller -> controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                    ATTR_STUDENT, String.class, false, false));
+
+    private static final DummyTestResource RESOURCE_LAB = new DummyTestResource(
+            TEST_DIR, "resource-dummy-lab.xml", "a353d845-64dd-439e-b0ce-3f9fe095c060", "lab");
+
+    private static final TestResource<ArchetypeType> ARCHETYPE_STUDENT =
+            new TestResource<>(TEST_DIR, "archetype-student.xml", "ca7bd614-9b1b-402c-a73c-0f571cb8b1c9");
+
+    private static final TestResource<RoleType> ROLE_LAB_ACCESS =
+            new TestResource<>(TEST_DIR, "role-lab-access.xml", "0d69d2c9-d1f4-4cfc-acb3-af8a71db81d1");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -115,6 +130,11 @@ public class TestArchetypes extends AbstractArchetypesTest {
         repoAddObjectFromFile(ARCHETYPE_AUXILIARY_MANAGER_FILE, initResult);
 
         addObject(SHADOW_GROUP_DUMMY_TESTERS_FILE, initTask, initResult);
+
+        addObject(ARCHETYPE_STUDENT, initTask, initResult);
+        addObject(ROLE_LAB_ACCESS, initTask, initResult);
+        initAndTestDummyResource(RESOURCE_SOURCE, initTask, initResult);
+        initAndTestDummyResource(RESOURCE_LAB, initTask, initResult);
 
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_ARCHETYPES_GLOBAL_OID, initResult);
     }
@@ -136,36 +156,38 @@ public class TestArchetypes extends AbstractArchetypesTest {
         assertEditSchema(user);
     }
 
+    /**
+     * Archetype "test" object is added to repo. It's not assigned yet.
+     */
     @Test
     public void test050AddArchetypeTest() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
-        when();
+        when("'test' archetype is added to repo");
         addObject(ARCHETYPE_TEST_FILE, task, result);
 
-        // THEN
-        then();
+        then("'test' archetype is in repo");
         assertSuccess(result);
 
         PrismObject<ArchetypeType> archetypeTest = modelService.getObject(ArchetypeType.class, ARCHETYPE_TEST_OID, null, task, result);
         display("Archetype test", archetypeTest);
     }
 
+    /**
+     * More archetypes and roles are added to repo. No assignments to users yet.
+     */
     @Test
     public void test060AddArchetypesAndRoles() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
-        when();
+        when("'business role' archetype plus some business roles are added to repo");
         addObject(ARCHETYPE_BUSINESS_ROLE_FILE, task, result);
         addObject(ROLE_BUSINESS_CAPTAIN_FILE, task, result);
         addObject(ROLE_BUSINESS_BOSUN_FILE, task, result);
 
-        // THEN
-        then();
+        then("business role(s) should be there with the correct archetype");
         assertSuccess(result);
 
         PrismObject<RoleType> roleBusinessCaptainAfter = assertRoleAfter(ROLE_BUSINESS_CAPTAIN_OID)
@@ -187,7 +209,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .find()
                     .assertObjectType(UserType.COMPLEX_TYPE)
                     .assertNoArchetype();
-
     }
 
     @Test
@@ -195,30 +216,43 @@ public class TestArchetypes extends AbstractArchetypesTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
-        when();
+        when("administrator is assigned to guybrush");
         assignRole(USER_GUYBRUSH_OID, ROLE_USER_ADMINISTRATOR_OID, task, result);
 
-        // THEN
-        then();
+        then("he should have 1 role and 0 archetypes");
         assertSuccess(result);
 
-        // TODO: assert guybrush
+        assertUserAfter(USER_GUYBRUSH_OID)
+                .assertNoArchetypeRef()
+                .assertRoleMemberhipRefs(1)
+                .assertCostCenter("Archetype null: null isEmployee: false");
     }
 
-
+    /**
+     * Jack is assigned the `employee` archetype.
+     *
+     * Note that the `costCenter` should be set appropriately in the first projector run.
+     *
+     * Currently it is set in two steps:
+     *
+     * 1. the first run sets the archetype OID, because {@link MidpointFunctions#getArchetypeOids(ObjectType)} looks on
+     * both assignments and effective `archetypeRef` values;
+     *
+     * 2. only the second run sets `isEmployee` part correctly, because {@link MidpointFunctions#hasArchetype(ObjectType, String)}
+     * looks only at `archetypeRef` values.
+     *
+     * There are no asserts to see this, yet.
+     */
     @Test
     public void test100AssignJackArchetypeEmployee() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
-        when();
+        when("jack is assigned employee archetype");
 
         assignArchetype(USER_JACK_OID, ARCHETYPE_EMPLOYEE_OID, task, result);
 
-        // THEN
-        then();
+        then("archetype is assigned and costCenter is correctly set");
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
@@ -235,17 +269,19 @@ public class TestArchetypes extends AbstractArchetypesTest {
             .assertCostCenter(costCenterEmployee())
             .getObject();
 
+        and("archetype policy is recognized for jack");
         assertArchetypePolicy(userAfter)
             .displayType()
                 .assertLabel(ARCHETYPE_EMPLOYEE_DISPLAY_LABEL)
                 .assertPluralLabel(ARCHETYPE_EMPLOYEE_DISPLAY_PLURAL_LABEL);
 
         // MID-5277
+        and("schema from template is applied");
         assertEditSchema(userAfter);
     }
 
     private String costCenterEmployee() {
-        return "Archetype " + ARCHETYPE_EMPLOYEE_OID +": archetype:"+ ARCHETYPE_EMPLOYEE_OID + "(Employee) isEmployee: true";
+        return "Archetype " + ARCHETYPE_EMPLOYEE_OID + ": archetype:" + ARCHETYPE_EMPLOYEE_OID + "(Employee) isEmployee: true";
     }
 
     @Test
@@ -257,13 +293,11 @@ public class TestArchetypes extends AbstractArchetypesTest {
             .item(UserType.F_ARCHETYPE_REF).ref(ARCHETYPE_EMPLOYEE_OID)
             .build();
 
-        // WHEN
-        when();
+        when("searching by archetypeRef = employee");
 
         SearchResultList<PrismObject<UserType>> searchResults = modelService.searchObjects(UserType.class, query, null, task, result);
 
-        // THEN
-        then();
+        then("user jack is found");
         assertSuccess(result);
         display("Search results", searchResults);
         assertEquals("Wrong number of search results", 1, searchResults.size());
@@ -279,12 +313,11 @@ public class TestArchetypes extends AbstractArchetypesTest {
             .roleMembershipRefs()
                 .assertRoleMemberhipRefs(1)
                 .assertArchetype(ARCHETYPE_EMPLOYEE_OID)
-                .end()
-            .getObject();
+                .end();
     }
 
     @Test
-    public void test104GetGuybryshCompiledGuiProfile() throws Exception {
+    public void test104GetGuybrushCompiledGuiProfile() throws Exception {
         // GIVEN
         login(USER_GUYBRUSH_USERNAME);
 
@@ -333,7 +366,8 @@ public class TestArchetypes extends AbstractArchetypesTest {
                     .getFilter();
 
         ObjectQuery viewQuery = prismContext.queryFactory().createQuery(allEmployeesViewFilter, null);
-        SearchResultList<PrismObject<UserType>> searchResults = modelService.searchObjects(UserType.class, viewQuery, null, task, result);
+        SearchResultList<PrismObject<UserType>> searchResults =
+                modelService.searchObjects(UserType.class, viewQuery, null, task, result);
 
         display("Search results", searchResults);
         assertEquals("Wrong number of search results", 1, searchResults.size());
@@ -341,10 +375,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         assertUser(foundUser, "found user")
             .assertName(USER_JACK_USERNAME)
             .assertOid(USER_JACK_OID);
-
     }
-
-
 
     @Test
     public void test109UnassignJackArchetypeEmployee() throws Exception {
@@ -370,6 +401,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
             .roleMembershipRefs()
                 .assertRoleMemberhipRefs(0)
                 .end()
+            .assertCostCenter("Archetype null: null isEmployee: false")
             .getObject();
 
         // Archetype policy derived from system config (global)
@@ -378,6 +410,12 @@ public class TestArchetypes extends AbstractArchetypesTest {
             .assertObjectTemplate(USER_TEMPLATE_ARCHETYPES_GLOBAL_OID);
     }
 
+    /**
+     * Jack is assigned 'employee base' role. That role induces 'employee' archetype!
+     *
+     * Here, the `costCenter` is computed only on the second projector run. The first run does not see
+     * the archetype, because it is computed after the template is evaluated.
+     */
     @Test
     public void test110AssignJackRoleEmployeeBase() throws Exception {
         Task task = getTestTask();
@@ -403,6 +441,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .assertArchetype(ARCHETYPE_EMPLOYEE_OID)
                 .assertRole(ROLE_EMPLOYEE_BASE_OID)
                 .end()
+            .assertCostCenter(costCenterEmployee())
             .getObject();
 
         assertArchetypePolicy(userAfter).display()
@@ -428,7 +467,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
                     .assertDescription("Only employees may be owners/approvers for business role.")
                     .assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID)
                     .assertObjectType(RoleType.COMPLEX_TYPE);
-
     }
 
     @Test
@@ -506,11 +544,10 @@ public class TestArchetypes extends AbstractArchetypesTest {
     }
 
     /**
-     * should fail becasue we try to assign two structural archetypes which is not supported
-     * @throws Exception
+     * should fail because we try to assign two structural archetypes which is not supported
      */
     @Test
-    public void test121AssignJackArchetypeEmpoloyee() throws Exception {
+    public void test121AssignJackArchetypeEmployee() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -915,7 +952,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     }
 
     @Test
-    public void test202GetGuybryshCompiledGuiProfileActiveEmployeesView() throws Exception {
+    public void test202GetGuybrushCompiledGuiProfileActiveEmployeesView() throws Exception {
         // GIVEN
         login(USER_GUYBRUSH_USERNAME);
 
@@ -971,7 +1008,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     }
 
     @Test
-    public void test205GetGuybryshCompiledGuiProfileActiveEmployeesView() throws Exception {
+    public void test205GetGuybrushCompiledGuiProfileActiveEmployeesView() throws Exception {
         // GIVEN
         login(USER_GUYBRUSH_USERNAME);
 
@@ -1004,25 +1041,102 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     }
 
+    /**
+     * Jack is an `Employee`. When we try to assign `Contractor` archetype, it should fail.
+     */
     @Test
-    public void test300jackAssignArchetypeRaw() throws Exception {
+    public void test300AssignJackContractorArchetypeFail() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
-        when();
+        when("assigning Contractor archetype");
 
         try {
             assignArchetype(USER_JACK_OID, ARCHETYPE_CONTRACTOR_OID, task, result);
+            assertNotReached();
         } catch (SchemaException e) {
-            // expected
+            displayExpectedException(e);
         }
 
+        then("it failed, and the Contractor archetype is not assigned");
         assertUserAfter(USER_JACK_OID).assignments()
                 .by()
                     .targetOid(ARCHETYPE_CONTRACTOR_OID)
                     .targetType(ArchetypeType.COMPLEX_TYPE)
                     .assertNone();
+    }
+
+    /**
+     * Student John Smith is created manually.
+     *
+     * The {@link MidpointFunctions#hasArchetype(ObjectType, String)} should return true even in the first
+     * projector run, so the lab account should be created.
+     *
+     * MID-7694
+     */
+    @Test
+    public void test400CreateJohnManually() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("creating John Smith");
+        UserType user = new UserType()
+                .name("john")
+                .fullName("John Smith")
+                .beginAssignment()
+                    .targetRef(ARCHETYPE_STUDENT.oid, ArchetypeType.COMPLEX_TYPE)
+                .end();
+        addObject(user.asPrismObject(), task, result);
+
+        then("John has a lab account");
+        assertSuccess(result);
+        assertUserAfter(user.getOid())
+                .assertLinks(1, 0);
+
+        assertDummyAccountById(RESOURCE_LAB.name, "john")
+                .display();
+    }
+
+    /**
+     * Student Mary Smith is created via import from the source.
+     *
+     * The {@link MidpointFunctions#hasArchetype(ObjectType, String)} should return true even in the first
+     * projector run, so the lab account should be created.
+     *
+     * MID-7694
+     */
+    @Test
+    public void test410ImportMary() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("Mary has an account on source");
+        DummyAccount account = RESOURCE_SOURCE.controller.addAccount("mary");
+        account.addAttributeValue(ATTR_STUDENT, "true");
+
+        when("importing from the source");
+        modelService.importFromResource(RESOURCE_SOURCE.oid, RESOURCE_SOURCE.controller.getAccountObjectClass(), task, result);
+        waitForTaskFinish(task, true, 10000);
+
+        then("Mary has a lab account");
+        assertTask(task.getOid(), "after")
+                .display()
+                .assertClosed()
+                .assertSuccess();
+
+        assertUserAfterByUsername("mary")
+                .assignments()
+                    .assertArchetype(ARCHETYPE_STUDENT.oid)
+                    .assertRole(ROLE_LAB_ACCESS.oid)
+                .end()
+                .roleMembershipRefs()
+                    .assertArchetype(ARCHETYPE_STUDENT.oid)
+                    .assertRole(ROLE_LAB_ACCESS.oid)
+                .end()
+                .assertLinks(2, 0);
+
+        assertDummyAccountById(RESOURCE_LAB.name, "mary")
+                .display();
     }
 
     // TODO: object template in archetype
@@ -1032,7 +1146,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     // TODO: assignmentRelation (assertArchetypeSpec)
 
-    protected void assertEditSchema(PrismObject<UserType> user) throws CommonException {
+    private void assertEditSchema(PrismObject<UserType> user) throws CommonException {
         PrismObjectDefinition<UserType> editDef = getEditObjectDefinition(user);
 
         // This has overridden lookup def in object template

@@ -3519,11 +3519,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         waitForTaskFinish(task, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
-    protected void waitForTaskFinish(Task task, boolean checkSubresult, final int timeout) throws Exception {
+    protected void waitForTaskFinish(Task task, boolean checkSubresult, final int timeout) throws CommonException {
         waitForTaskFinish(task, checkSubresult, timeout, DEFAULT_TASK_SLEEP_TIME);
     }
 
-    protected void waitForTaskFinish(final Task task, final boolean checkSubresult, final int timeout, long sleepTime) throws Exception {
+    protected void waitForTaskFinish(final Task task, final boolean checkSubresult, final int timeout, long sleepTime)
+            throws CommonException {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskFinish");
         Checker checker = new Checker() {
             @Override
