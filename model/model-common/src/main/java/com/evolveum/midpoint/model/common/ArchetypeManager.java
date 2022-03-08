@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -86,7 +87,8 @@ public class ArchetypeManager implements Cache {
         return systemObjectCache.getArchetype(oid, result);
     }
 
-    public <O extends AssignmentHolderType> ObjectReferenceType determineArchetypeRef(PrismObject<O> assignmentHolder) throws SchemaException {
+    public <O extends AssignmentHolderType> @Nullable ObjectReferenceType determineArchetypeRef(PrismObject<O> assignmentHolder)
+            throws SchemaException {
         if (assignmentHolder == null) {
             return null;
         }
@@ -118,16 +120,16 @@ public class ArchetypeManager implements Cache {
         return archetypeRefs.get(0);
     }
 
-    public <O extends AssignmentHolderType> List<ObjectReferenceType> determineArchetypeRefs(PrismObject<O> assignmentHolder) throws SchemaException {
+    public <O extends AssignmentHolderType> @NotNull List<ObjectReferenceType> determineArchetypeRefs(PrismObject<O> assignmentHolder) {
         return determineArchetypeRefs(assignmentHolder, null);
     }
 
-    public <O extends AssignmentHolderType> List<ObjectReferenceType> determineArchetypeRefs(PrismObject<O> assignmentHolder, ObjectDelta<O> delta) throws SchemaException {
+    private <O extends AssignmentHolderType> @NotNull List<ObjectReferenceType> determineArchetypeRefs(PrismObject<O> assignmentHolder, ObjectDelta<O> delta) {
         if (assignmentHolder == null) {
-            return null;
+            return List.of();
         }
         if (!assignmentHolder.canRepresent(AssignmentHolderType.class)) {
-            return null;
+            return List.of();
         }
 
         List<ObjectReferenceType> archetypeAssignmentsRefs = determineArchetypesFromAssignments(assignmentHolder.asObjectable());
@@ -183,16 +185,15 @@ public class ArchetypeManager implements Cache {
                 .collect(Collectors.toList());
     }
 
-    public <O extends AssignmentHolderType> List<PrismObject<ArchetypeType>> determineArchetypes(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
+    public <O extends AssignmentHolderType> @NotNull List<PrismObject<ArchetypeType>> determineArchetypes(
+            PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
         return determineArchetypes(assignmentHolder, null, result);
     }
 
-    public <AH extends AssignmentHolderType> List<PrismObject<ArchetypeType>> determineArchetypes(PrismObject<AH> assignmentHolder, ObjectDelta<AH> delta, OperationResult result) throws SchemaException {
+    public <AH extends AssignmentHolderType> @NotNull List<PrismObject<ArchetypeType>> determineArchetypes(
+            PrismObject<AH> assignmentHolder, ObjectDelta<AH> delta, OperationResult result) throws SchemaException {
         List<PrismObject<ArchetypeType>> archetypes = new ArrayList<>();
         List<ObjectReferenceType> archetypeRefs = determineArchetypeRefs(assignmentHolder, delta);
-        if (archetypeRefs == null) {
-            return null;
-        }
         for (ObjectReferenceType archetypeRef : archetypeRefs) {
             try {
                 PrismObject<ArchetypeType> archetype = systemObjectCache.getArchetype(archetypeRef.getOid(), result);
@@ -231,19 +232,18 @@ public class ArchetypeManager implements Cache {
         return merge(archetypePolicy, objectPolicy);
     }
 
-//    private <O extends ObjectType> ArchetypePolicyType computeArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException {
-//        return computeArchetypePolicy(object, null, result);
-//    }
-
     private <O extends AssignmentHolderType> ArchetypePolicyType computeArchetypePolicy(PrismObject<O> object, ObjectDelta<O> delta, OperationResult result) throws SchemaException {
         List<PrismObject<ArchetypeType>> archetypes = determineArchetypes(object, delta, result);
-        if (archetypes == null) {
+        if (archetypes.isEmpty()) {
             return null;
         }
 
         PrismObject<ArchetypeType> structuralArchetype = ArchetypeTypeUtil.getStructuralArchetype(archetypes);
 
-        List<PrismObject<ArchetypeType>> auxiliaryArchetypes = archetypes.stream().filter(a -> a.asObjectable().getArchetypeType() != null && a.asObjectable().getArchetypeType() == ArchetypeTypeType.AUXILIARY).collect(Collectors.toList());
+        List<PrismObject<ArchetypeType>> auxiliaryArchetypes = archetypes.stream()
+                .filter(a -> a.asObjectable().getArchetypeType() != null
+                        && a.asObjectable().getArchetypeType() == ArchetypeTypeType.AUXILIARY)
+                .collect(Collectors.toList());
         if (structuralArchetype == null && !auxiliaryArchetypes.isEmpty()) {
             throw new SchemaException("Auxiliary archetype cannot be assigned without structural archetype");
         }
