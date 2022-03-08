@@ -6,11 +6,19 @@
  */
 package com.evolveum.midpoint.notifications.impl.events;
 
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.notifications.api.OperationStatus;
 import com.evolveum.midpoint.notifications.api.events.CaseManagementEvent;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
@@ -22,6 +30,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 abstract public class CaseManagementEventImpl extends BaseEventImpl implements CaseManagementEvent {
 
@@ -151,6 +160,61 @@ abstract public class CaseManagementEventImpl extends BaseEventImpl implements C
     @Nullable
     public ApprovalContextType getApprovalContext() {
         return approvalContext;
+    }
+
+    @Override
+    public @Nullable ObjectType getObject() {
+        return resolveReferenceIfExists(aCase.getObjectRef());
+    }
+
+    @Override
+    public @Nullable PolyStringType getObjectName() {
+        return getNameFromReference(aCase.getObjectRef());
+    }
+
+    @Override
+    public @Nullable ObjectType getTarget() {
+        return resolveReferenceIfExists(aCase.getTargetRef());
+    }
+
+    @Override
+    public @Nullable PolyStringType getTargetName() {
+        return getNameFromReference(aCase.getTargetRef());
+    }
+
+    @Override
+    public @Nullable Object getFocusValue(@NotNull String pathString) {
+        Set<?> realValues = getFocusValues(pathString);
+        if (realValues.isEmpty()) {
+            return null;
+        } else if (realValues.size() == 1) {
+            return realValues.iterator().next();
+        } else {
+            return realValues;
+        }
+    }
+
+    @Override
+    public @NotNull Set<?> getFocusValues(@NotNull String pathString) {
+        CaseCorrelationContextType correlationContext = getCorrelationContext();
+        if (correlationContext == null) {
+            return Set.of();
+        }
+        ObjectReferenceType preFocusRef = correlationContext.getPreFocusRef();
+        if (preFocusRef == null) {
+            return Set.of();
+        }
+        PrismObject<?> preFocus = preFocusRef.getObject();
+        if (preFocus == null) {
+            return Set.of();
+        }
+        ItemPath path = PrismContext.get().itemPathParser().asItemPath(pathString);
+        Collection<PrismValue> allValues = preFocus.getValue().getAllValues(path);
+        return allValues.stream()
+                .filter(Objects::nonNull)
+                .map(PrismValue::getRealValue)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     @Override

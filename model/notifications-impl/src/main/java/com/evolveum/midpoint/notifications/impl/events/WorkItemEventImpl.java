@@ -8,6 +8,8 @@ package com.evolveum.midpoint.notifications.impl.events;
 
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.schema.util.WorkItemId;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,6 +68,11 @@ public class WorkItemEventImpl extends CaseManagementEventImpl implements WorkIt
         return workItem;
     }
 
+    @NotNull
+    public WorkItemId getWorkItemId() {
+        return WorkItemId.create(aCase.getOid(), workItem.getId());
+    }
+
     @Override
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.WORK_ITEM_EVENT
@@ -74,6 +81,11 @@ public class WorkItemEventImpl extends CaseManagementEventImpl implements WorkIt
 
     public SimpleObjectRef getAssignee() {
         return assignee;
+    }
+
+    @Override
+    public @Nullable String getWorkItemUrl() {
+        return getMidpointFunctions().createWorkItemCompletionLink(getWorkItemId());
     }
 
     public SimpleObjectRef getInitiator() {

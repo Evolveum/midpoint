@@ -7,18 +7,18 @@
 
 package com.evolveum.midpoint.notifications.api.events;
 
-import com.evolveum.midpoint.notifications.api.OperationStatus;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseCorrelationContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ManualProvisioningContextType;
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+
+import java.util.Collection;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import com.evolveum.midpoint.notifications.api.OperationStatus;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Event related to case management: either case-level or work-item-level.
@@ -84,4 +84,38 @@ public interface CaseManagementEvent extends Event {
     default boolean isCorrelation() {
         return CaseTypeUtil.isCorrelationCase(getCase());
     }
+
+    /**
+     * @return The object attached to the case, whatever that means for the particular case.
+     * Null if the object cannot be retrieved.
+     */
+    @Nullable ObjectType getObject();
+
+    /**
+     * @return The name of the {@link #getObject()}. Falls back to OID if the object cannot be retrieved.
+     */
+    @Nullable PolyStringType getObjectName();
+
+    /**
+     * @return The target object attached to the case, whatever that means for the particular case.
+     * Null if the object cannot be retrieved.
+     */
+    @Nullable ObjectType getTarget();
+
+    /**
+     * @return The name of the {@link #getTarget()}. Falls back to OID if the object cannot be retrieved.
+     */
+    @Nullable PolyStringType getTargetName();
+
+    /**
+     * @return The (real) value of given path in the pre-focus in a correlation case.
+     * Returns the collection if there are more matching values.
+     */
+    @Nullable Object getFocusValue(@NotNull String pathString);
+
+    /**
+     * @return The (real) values of given path in the pre-focus in a correlation case.
+     * Returns the collection if there are more matching values.
+     */
+    @NotNull Collection<?> getFocusValues(@NotNull String pathString);
 }

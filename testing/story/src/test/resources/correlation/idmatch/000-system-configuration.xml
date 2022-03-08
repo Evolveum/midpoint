@@ -67,75 +67,10 @@
             <details>false</details>
         </auditing>
     </logging>
-    <cleanupPolicy>
-        <auditRecords>
-            <maxAge>P3M</maxAge>
-        </auditRecords>
-        <closedTasks>
-            <maxAge>P1M</maxAge>
-        </closedTasks>
-    </cleanupPolicy>
-    <internals>
-        <tracing>
-            <profile id="13">
-                <name>performance</name>
-                <displayName>Performance tracing</displayName>
-                <visible>true</visible>
-                <default>true</default>
-                <fileNamePattern>performance-trace %{timestamp} %{focusName} %{milliseconds}</fileNamePattern>
-                <createRepoObject>true</createRepoObject>
-                <compressOutput>true</compressOutput>
-            </profile>
-            <profile id="14">
-                <name>functional</name>
-                <displayName>Functional tracing</displayName>
-                <visible>true</visible>
-                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
-                <createRepoObject>true</createRepoObject>
-                <compressOutput>true</compressOutput>
-                <collectLogEntries>true</collectLogEntries>
-                <tracingTypeProfile id="17">
-                    <level>normal</level>
-                </tracingTypeProfile>
-            </profile>
-            <profile id="15">
-                <name>functional-model-logging</name>
-                <displayName>Functional tracing (with model logging)</displayName>
-                <visible>true</visible>
-                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
-                <createRepoObject>true</createRepoObject>
-                <compressOutput>true</compressOutput>
-                <collectLogEntries>true</collectLogEntries>
-                <loggingOverride>
-                    <levelOverride id="18">
-                        <logger>com.evolveum.midpoint.model</logger>
-                        <level>TRACE</level>
-                    </levelOverride>
-                </loggingOverride>
-                <tracingTypeProfile id="19">
-                    <level>normal</level>
-                </tracingTypeProfile>
-            </profile>
-            <profile id="16">
-                <name>functional-sql-logging</name>
-                <displayName>Functional tracing (with SQL logging)</displayName>
-                <visible>true</visible>
-                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
-                <createRepoObject>true</createRepoObject>
-                <compressOutput>true</compressOutput>
-                <collectLogEntries>true</collectLogEntries>
-                <loggingOverride>
-                    <levelOverride id="20">
-                        <logger>org.hibernate.SQL</logger>
-                        <level>TRACE</level>
-                    </levelOverride>
-                </loggingOverride>
-                <tracingTypeProfile id="21">
-                    <level>normal</level>
-                </tracingTypeProfile>
-            </profile>
-        </tracing>
-    </internals>
+    <defaultObjectPolicyConfiguration>
+        <objectTemplateRef oid="17f11c7f-3692-4f80-9fec-63f89ee6763e" />
+        <type>UserType</type>
+    </defaultObjectPolicyConfiguration>
     <notificationConfiguration>
         <handler>
             <simpleWorkflowNotifier>
@@ -148,6 +83,22 @@
         </handler>
         <handler>
             <simpleWorkflowNotifier>
+                <category>workItemAllocationEvent</category>
+                <operation>add</operation>
+                <expressionFilter>
+                    <script>
+                        <code>event.isCorrelation()</code>
+                    </script>
+                </expressionFilter>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <messageTemplateRef oid="f5d79bd9-6903-42d9-9562-2e6a38096a26"/>
+                <transport>dummy:work-items-allocated</transport>
+            </simpleWorkflowNotifier>
+        </handler>
+        <handler>
+            <simpleWorkflowNotifier>
                 <category>workItemEvent</category>
                 <recipientExpression>
                     <value>recipient@evolveum.com</value>
@@ -156,8 +107,38 @@
             </simpleWorkflowNotifier>
         </handler>
     </notificationConfiguration>
-    <defaultObjectPolicyConfiguration>
-        <type>UserType</type>
-        <objectTemplateRef oid="17f11c7f-3692-4f80-9fec-63f89ee6763e" />
-    </defaultObjectPolicyConfiguration>
+    <cleanupPolicy>
+        <auditRecords>
+            <maxAge>P3M</maxAge>
+        </auditRecords>
+        <closedTasks>
+            <maxAge>P1M</maxAge>
+        </closedTasks>
+    </cleanupPolicy>
+    <internals>
+        <tracing>
+            <profile>
+                <name>functional-model-logging</name>
+                <displayName>Functional tracing (with model logging)</displayName>
+                <visible>true</visible>
+                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
+                <createRepoObject>true</createRepoObject>
+                <compressOutput>true</compressOutput>
+                <collectLogEntries>true</collectLogEntries>
+                <loggingOverride>
+                    <levelOverride>
+                        <logger>com.evolveum.midpoint.model</logger>
+                        <level>TRACE</level>
+                    </levelOverride>
+                </loggingOverride>
+                <tracingTypeProfile>
+                    <level>normal</level>
+                </tracingTypeProfile>
+            </profile>
+        </tracing>
+    </internals>
+    <infrastructure>
+        <defaultHostname>localhost</defaultHostname>
+        <publicHttpUrlPattern>http://$host:8080/midpoint</publicHttpUrlPattern>
+    </infrastructure>
 </systemConfiguration>

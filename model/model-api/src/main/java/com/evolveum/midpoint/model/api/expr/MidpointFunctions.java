@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -53,6 +54,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -1078,6 +1081,13 @@ public interface MidpointFunctions {
     String createRegistrationConfirmationLink(UserType userType);
 
     String createPasswordResetLink(UserType userType);
+
+    /**
+     * Returns a link where given work item can be completed.
+     *
+     * @return null if such a link cannot be created
+     */
+    @Nullable String createWorkItemCompletionLink(@NotNull WorkItemId workItemId);
 
     String createAccountActivationLink(UserType userType);
 

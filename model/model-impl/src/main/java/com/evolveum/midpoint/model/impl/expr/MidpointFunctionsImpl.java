@@ -44,6 +44,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -1515,6 +1516,16 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    public @Nullable String createWorkItemCompletionLink(@NotNull WorkItemId workItemId) {
+        String publicHttpUrlPattern = getPublicHttpUrlPattern();
+        if (publicHttpUrlPattern == null || publicHttpUrlPattern.isBlank()) {
+            return null;
+        } else {
+            return publicHttpUrlPattern + SchemaConstants.WORK_ITEM_PREFIX + workItemId.caseOid; // TODO
+        }
+    }
+
+    @Override
     public String createAccountActivationLink(UserType userType) {
         return createBaseConfirmationLink(SchemaConstants.ACCOUNT_ACTIVATION_PREFIX, userType.getOid());
     }
@@ -1597,11 +1608,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         String publicHttpUrlPattern = SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfiguration, host);
         if (StringUtils.isBlank(publicHttpUrlPattern)) {
-            LOGGER.error("No patern defined. It can break link generation.");
+            LOGGER.error("No pattern defined. It can break link generation.");
         }
 
         return publicHttpUrlPattern;
-
     }
 
     private String getNonce(UserType user) {
