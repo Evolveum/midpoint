@@ -378,6 +378,9 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         return true;
     }
 
+    /**
+     * Checks the event/notifier applicability _after_ nested filters are applied.
+     */
     protected boolean checkApplicability(E event, N generalNotifierType, OperationResult result) {
         return true;
     }
