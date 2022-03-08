@@ -232,7 +232,8 @@ public class CaseAsserter<RA> extends PrismObjectAsserter<CaseType,RA> {
         } catch (SchemaException e) {
             throw new AssertionError(e);
         }
-        SubcasesAsserter<RA> asserter = new SubcasesAsserter<>(this, asObjectableList(subcases), getDetails());
+        SubcasesAsserter<RA> asserter =
+                new SubcasesAsserter<>(this, asObjectableList(subcases), getDetails());
         copySetupTo(asserter);
         return asserter;
     }

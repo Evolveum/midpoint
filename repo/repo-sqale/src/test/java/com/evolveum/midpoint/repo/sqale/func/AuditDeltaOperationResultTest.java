@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -86,8 +86,8 @@ public class AuditDeltaOperationResultTest extends SqaleRepoBaseTest {
 
         given("clear audit and audit configuration set to FULL");
         clearAudit();
-        auditService.applyAuditConfiguration(new SystemConfigurationAuditType(prismContext)
-                .eventRecording(new SystemConfigurationAuditEventRecordingType(prismContext)
+        auditService.applyAuditConfiguration(new SystemConfigurationAuditType()
+                .eventRecording(new SystemConfigurationAuditEventRecordingType()
                         .deltaSuccessExecutionResult(OperationResultDetailLevel.FULL)));
 
         when("audit event with delta operation executions is stored");
@@ -110,8 +110,8 @@ public class AuditDeltaOperationResultTest extends SqaleRepoBaseTest {
 
         given("clear audit and audit configuration set to NONE");
         clearAudit();
-        auditService.applyAuditConfiguration(new SystemConfigurationAuditType(prismContext)
-                .eventRecording(new SystemConfigurationAuditEventRecordingType(prismContext)
+        auditService.applyAuditConfiguration(new SystemConfigurationAuditType()
+                .eventRecording(new SystemConfigurationAuditEventRecordingType()
                         .deltaSuccessExecutionResult(OperationResultDetailLevel.NONE)));
 
         when("audit event with delta operation executions is stored");
@@ -138,8 +138,8 @@ public class AuditDeltaOperationResultTest extends SqaleRepoBaseTest {
 
         given("clear audit and audit configuration set to TOP");
         clearAudit();
-        auditService.applyAuditConfiguration(new SystemConfigurationAuditType(prismContext)
-                .eventRecording(new SystemConfigurationAuditEventRecordingType(prismContext)
+        auditService.applyAuditConfiguration(new SystemConfigurationAuditType()
+                .eventRecording(new SystemConfigurationAuditEventRecordingType()
                         .deltaSuccessExecutionResult(OperationResultDetailLevel.TOP)));
 
         when("audit event with delta operation executions is stored");
@@ -166,8 +166,8 @@ public class AuditDeltaOperationResultTest extends SqaleRepoBaseTest {
 
         given("clear audit and audit configuration set to TOP");
         clearAudit();
-        auditService.applyAuditConfiguration(new SystemConfigurationAuditType(prismContext)
-                .eventRecording(new SystemConfigurationAuditEventRecordingType(prismContext)
+        auditService.applyAuditConfiguration(new SystemConfigurationAuditType()
+                .eventRecording(new SystemConfigurationAuditEventRecordingType()
                         .deltaSuccessExecutionResult(OperationResultDetailLevel.CLEANED_UP)));
 
         when("audit event with delta operation executions is stored");

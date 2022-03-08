@@ -161,8 +161,14 @@ public class ApprovalUtils {
         return isApproved(fromUri(uri));
     }
 
+    @Deprecated
     public static AbstractWorkItemOutputType createApproveOutput(PrismContext prismContext) {
         return new AbstractWorkItemOutputType(prismContext)
+                .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
+    }
+
+    public static AbstractWorkItemOutputType createApproveOutput() {
+        return new AbstractWorkItemOutputType()
                 .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
     }
 }

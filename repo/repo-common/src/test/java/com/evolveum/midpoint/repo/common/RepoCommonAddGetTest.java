@@ -37,11 +37,11 @@ public class RepoCommonAddGetTest extends AbstractRepoCommonTest {
 
         given("message template");
         String objectName = "messageTemplate" + getTestNumber();
-        var messageTemplate = new MessageTemplateType(prismContext)
+        var messageTemplate = new MessageTemplateType()
                 .name(objectName)
-                .defaultContent(new MessageTemplateContentType(prismContext)
+                .defaultContent(new MessageTemplateContentType()
                         .subjectExpression(velocityExpression("subject-prefix")))
-                .localizedContent(new LocalizedMessageTemplateContentType(prismContext)
+                .localizedContent(new LocalizedMessageTemplateContentType()
                         .language("sk_SK")
                         .subjectExpression(velocityExpression("Oné")));
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -109,12 +109,12 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         long baseCount = count(new QOrgClosure());
 
         and("user belonging to org hierarchy");
-        OrgType orgRoot = new OrgType(prismContext).name("orgRoot" + getTestNumber());
+        OrgType orgRoot = new OrgType().name("orgRoot" + getTestNumber());
         String rootOid = repositoryService.addObject(orgRoot.asPrismObject(), null, result);
-        OrgType org = new OrgType(prismContext).name("org" + getTestNumber())
+        OrgType org = new OrgType().name("org" + getTestNumber())
                 .parentOrgRef(rootOid, OrgType.COMPLEX_TYPE);
         String orgOid = repositoryService.addObject(org.asPrismObject(), null, result);
-        UserType user = new UserType(prismContext).name("user" + getTestNumber())
+        UserType user = new UserType().name("user" + getTestNumber())
                 .parentOrgRef(orgOid, OrgType.COMPLEX_TYPE);
         repositoryService.addObject(user.asPrismObject(), null, result);
 
@@ -143,12 +143,12 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         long baseCount = count(new QOrgClosure());
 
         given("user belonging to org hierarchy");
-        OrgType orgRoot = new OrgType(prismContext).name("orgRoot" + getTestNumber());
+        OrgType orgRoot = new OrgType().name("orgRoot" + getTestNumber());
         String rootOid = repositoryService.addObject(orgRoot.asPrismObject(), null, result);
-        OrgType org = new OrgType(prismContext).name("org" + getTestNumber())
+        OrgType org = new OrgType().name("org" + getTestNumber())
                 .parentOrgRef(rootOid, OrgType.COMPLEX_TYPE);
         String orgOid = repositoryService.addObject(org.asPrismObject(), null, result);
-        UserType user = new UserType(prismContext).name("user" + getTestNumber())
+        UserType user = new UserType().name("user" + getTestNumber())
                 .parentOrgRef(orgOid, OrgType.COMPLEX_TYPE);
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
         assertThat(count(new QOrgClosure())).isEqualTo(baseCount); // not refreshed yet
@@ -176,7 +176,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         clearPerformanceMonitor();
 
         when("correct object is added to the repository");
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("user" + getTestNumber());
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
 
@@ -193,7 +193,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("existing user");
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("user" + getTestNumber());
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
 
@@ -217,7 +217,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("existing user and cleared performance information");
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("user" + getTestNumber());
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
         SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
@@ -266,7 +266,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("existing user");
-        UserType user = new UserType(prismContext).name("user" + getTestNumber());
+        UserType user = new UserType().name("user" + getTestNumber());
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
 
         expect("getObject called with right OID with wrong object type throws");
@@ -283,7 +283,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("existing user and cleared performance information");
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("user" + getTestNumber());
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
         SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
@@ -317,7 +317,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         when("user with photo is persisted");
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("user" + getTestNumber())
                 .jpegPhoto(new byte[] { 0, 1, 2 });
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
@@ -351,7 +351,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("user without photo");
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("user" + getTestNumber());
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
 
@@ -376,7 +376,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("a task (or any object actually) without diag info");
-        TaskType task = new TaskType(prismContext)
+        TaskType task = new TaskType()
                 .name("task" + getTestNumber());
         String taskOid = repositoryService.addObject(task.asPrismObject(), null, result);
         PrismObject<TaskType> taskFromDb =
@@ -412,7 +412,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         // INSERT + UPDATE
         queryRecorder.clearBufferAndStartRecording();
         String oid = repositoryService.addObject(
-                new UserType(prismContext).name("user" + getTestNumber()).asPrismObject(),
+                new UserType().name("user" + getTestNumber()).asPrismObject(),
                 null, result);
 
         // These assertions are quite implementation dependent, obviously.
@@ -455,8 +455,8 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         given("some objects are in the repository");
         String name = "user" + getTestNumber();
         repositoryService.addObject(
-                new UserType(prismContext).name(name)
-                        .activation(new ActivationType(prismContext).administrativeStatus(ActivationStatusType.ENABLED))
+                new UserType().name(name)
+                        .activation(new ActivationType().administrativeStatus(ActivationStatusType.ENABLED))
                         .asPrismObject(),
                 null, result);
         queryRecorder.clearBufferAndStartRecording();
@@ -549,7 +549,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         given("audit event record with ID");
         clearAudit();
         // NOTE: AERType is used here, not AER for which the repoId is ignored by the service
-        AuditEventRecordType record = new AuditEventRecordType(prismContext)
+        AuditEventRecordType record = new AuditEventRecordType()
                 .eventType(AuditEventTypeType.ADD_OBJECT)
                 .eventStage(AuditEventStageType.EXECUTION)
                 .repoId(-47L)
@@ -568,7 +568,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
     public void test611AuditForImportRespectsProvidedIdEvenDuplicateForDifferentTimestamp() {
         given("audit event record with assigned already taken ID");
         clearAudit();
-        AuditEventRecordType record = new AuditEventRecordType(prismContext)
+        AuditEventRecordType record = new AuditEventRecordType()
                 .eventType(AuditEventTypeType.ADD_OBJECT)
                 .eventStage(AuditEventStageType.EXECUTION)
                 .repoId(-1L)
@@ -577,7 +577,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         auditService.audit(record, result);
         assertThat(record.getRepoId()).isEqualTo(-1L);
 
-        record = new AuditEventRecordType(prismContext)
+        record = new AuditEventRecordType()
                 .eventType(AuditEventTypeType.MODIFY_OBJECT)
                 .eventStage(AuditEventStageType.EXECUTION)
                 .repoId(-1L)
@@ -595,7 +595,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
     public void test612AuditForImportWithNonUniqueIdAndTimestampFails() {
         given("audit event record with assigned already taken ID");
         clearAudit();
-        AuditEventRecordType record = new AuditEventRecordType(prismContext)
+        AuditEventRecordType record = new AuditEventRecordType()
                 .eventType(AuditEventTypeType.ADD_OBJECT)
                 .eventStage(AuditEventStageType.EXECUTION)
                 .repoId(-1L)
@@ -604,7 +604,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         auditService.audit(record, result);
         assertThat(record.getRepoId()).isEqualTo(-1L);
 
-        AuditEventRecordType record2 = new AuditEventRecordType(prismContext)
+        AuditEventRecordType record2 = new AuditEventRecordType()
                 .eventType(AuditEventTypeType.MODIFY_OBJECT)
                 .eventStage(AuditEventStageType.EXECUTION)
                 .repoId(-1L)

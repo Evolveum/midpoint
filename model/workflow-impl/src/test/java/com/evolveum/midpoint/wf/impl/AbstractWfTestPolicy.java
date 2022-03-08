@@ -288,10 +288,6 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
             CaseType rootCase, List<CaseType> subcases, List<CaseWorkItemType> workItems,
             String objectOid, List<ExpectedTask> expectedTasks, List<ExpectedWorkItem> expectedWorkItems) {
 
-        // TODO: dead code, remove 2021
-//        final Collection<SelectorOptions<GetOperationOptions>> options =
-//                SelectorOptions.createCollection(prismContext.path(F_APPROVAL_CONTEXT, F_WORK_ITEM), createRetrieve());
-
         display("rootCase", rootCase);
         assertEquals("Wrong # of wf subcases (" + expectedTasks + ")", expectedTasks.size(), subcases.size());
         int i = 0;
