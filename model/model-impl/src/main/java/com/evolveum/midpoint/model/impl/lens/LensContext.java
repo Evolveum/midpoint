@@ -224,6 +224,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     private transient Collection<ProgressListener> progressListeners;
 
+    /**
+     * Current values of sequences used during the clockwork.
+     */
     private final Map<String, Long> sequences = new HashMap<>();
 
     /**
@@ -1030,6 +1033,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         for (LensProjectionContext thisProjectionContext : this.projectionContexts) {
             clone.projectionContexts.add(thisProjectionContext.clone(this));
         }
+        clone.sequences.putAll(this.sequences);
     }
 
     private Map<String, ResourceType> cloneResourceCache() {
@@ -1141,7 +1145,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                     historicResourceObjects.toString(), indent + 1); // temporary
             // impl
         }
-
+        if (!sequences.isEmpty()) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "Sequence values", sequences, indent + 1);
+        }
         return sb.toString();
     }
 
@@ -1345,6 +1352,16 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                         .add(simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
             }
         }
+        if (!getSequences().isEmpty()) {
+            LensContextSequencesType sBean = new LensContextSequencesType();
+            for (Entry<String, Long> entry : getSequences().entrySet()) {
+                sBean.getSequenceValue().add(
+                        new LensContextSequenceValueType()
+                                .sequenceRef(entry.getKey(), SequenceType.COMPLEX_TYPE)
+                                .value(entry.getValue()));
+            }
+            lensContextType.setSequences(sBean);
+        }
 
         return lensContextType;
     }
@@ -1420,6 +1437,15 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 lensContext.fixProvisioningTypeInDelta(objectDeltaOperation.getObjectDelta(), task, result);
             }
             lensContext.rottenExecutedDeltas.add(objectDeltaOperation);
+        }
+
+        if (bean.getSequences() != null) {
+            for (LensContextSequenceValueType seqValueBean : bean.getSequences().getSequenceValue()) {
+                String oid = seqValueBean.getSequenceRef() != null ? seqValueBean.getSequenceRef().getOid() : null;
+                if (oid != null) {
+                    lensContext.setSequenceCounter(oid, seqValueBean.getValue());
+                }
+            }
         }
 
         if (result.isUnknown()) {
