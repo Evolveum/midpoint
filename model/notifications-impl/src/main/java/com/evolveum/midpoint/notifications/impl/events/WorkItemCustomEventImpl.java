@@ -1,20 +1,20 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.events;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.cases.api.events.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.api.events.WorkItemCustomEvent;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.cases.api.events.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class WorkItemCustomEventImpl extends WorkItemEventImpl implements WorkItemCustomEvent {
 
@@ -39,10 +39,4 @@ public class WorkItemCustomEventImpl extends WorkItemEventImpl implements WorkIt
     public WorkItemNotificationActionType getNotificationAction() {
         return (WorkItemNotificationActionType) getSource();
     }
-
-    @Override
-    public String toString() {
-        return "WorkItemCustomEvent:" + super.toString();
-    }
-
 }
