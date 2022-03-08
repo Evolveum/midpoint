@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +31,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * @author skublik
+ * Notifier for reports, which is a task notifier.
+ * This also supports old legacy tasks with handler URI - at least for now.
  */
 @Component
 public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, SimpleReportNotifierType> {
@@ -53,31 +55,25 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
     }
 
     @Override
-    protected boolean checkApplicability(TaskEvent event, SimpleReportNotifierType generalNotifierType, OperationResult result) {
-        if (!event.isSuccess()) {
-            LOGGER.trace("Operation was not successful, exiting.");
+    protected boolean quickCheckApplicability(
+            TaskEvent event, SimpleReportNotifierType configuration, OperationResult result) {
+        @NotNull Task task = event.getTask();
+        String legacyHandlerUri = task.getHandlerUri();
+        if (!(legacyHandlerUri != null && task.getHandlerUri().equals(REPORT_TASK_URI)
+                || hasReportTaskActivityDefinition(task))) {
+            LOGGER.trace("{} is not applicable for this event: {}", getClass().getSimpleName(), event);
             return false;
-        } else if (!event.isFinished()) {
-            LOGGER.trace("No report output oid present in task. Skip sending notifications.");
+        }
+
+        if (!event.isSuccess() || !event.isFinished()) {
+            LOGGER.trace("Report task event not successful or not finished: {}", event);
             return false;
         }
 
         return true;
     }
 
-    @Override
-    protected boolean quickCheckApplicability(TaskEvent event, SimpleReportNotifierType configuration, OperationResult result) {
-        @NotNull Task task = event.getTask();
-        if (task.getHandlerUri() != null && !task.getHandlerUri().equals(REPORT_TASK_URI) && !isReportTask(task)) {
-            LOGGER.trace("{} is not applicable for this kind of event, continuing in the handler chain; event class = {}",
-                    getClass().getSimpleName(), event.getClass());
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    private boolean isReportTask(Task task) {
+    private boolean hasReportTaskActivityDefinition(Task task) {
         ActivityDefinitionType activity = task.getRootActivityDefinitionOrClone();
         if (activity == null) {
             return false;
@@ -90,7 +86,8 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
     }
 
     @Override
-    protected String getSubject(TaskEvent event, SimpleReportNotifierType configuration, String transport, Task task, OperationResult result) {
+    protected String getSubject(TaskEvent event, SimpleReportNotifierType configuration,
+            String transport, Task task, OperationResult result) {
         final String taskName = PolyString.getOrig(event.getTask().getName());
 
         if (event.isAdd()) {
@@ -103,8 +100,8 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
     }
 
     @Override
-    protected List<NotificationMessageAttachmentType> getAttachment(TaskEvent event, SimpleReportNotifierType generalNotifierType,
-            String transportName, Task task, OperationResult result) {
+    protected List<NotificationMessageAttachmentType> getAttachment(TaskEvent event,
+            SimpleReportNotifierType generalNotifierType, String transportName, Task task, OperationResult result) {
 
         String outputOid = getReportDataOid(event.getTask());
 
@@ -140,8 +137,8 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
     }
 
     @Override
-    protected String getBody(TaskEvent event, SimpleReportNotifierType configuration, String transport, Task opTask, OperationResult opResult) throws SchemaException {
-
+    protected String getBody(TaskEvent event, SimpleReportNotifierType configuration,
+            String transport, Task opTask, OperationResult opResult) throws SchemaException {
         Task task = event.getTask();
         PrismObject<ReportType> report = getReportFromTask(task, opTask, opResult);
 
@@ -152,37 +149,34 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
 
     private PrismObject<ReportType> getReportFromTask(Task task, Task opTask, OperationResult opResult) {
         try {
-            if (isReportTask(task)) {
+            if (hasReportTaskActivityDefinition(task)) {
                 ObjectReferenceType ref;
-                if (task.getRootActivityDefinitionOrClone().getWork().getReportExport() != null) {
-                    ref = task.getRootActivityDefinitionOrClone().getWork().getReportExport().getReportRef();
+                WorkDefinitionsType workDef = task.getRootActivityDefinitionOrClone().getWork();
+                if (workDef.getReportExport() != null) {
+                    ref = workDef.getReportExport().getReportRef();
                 } else {
-                    ref = task.getRootActivityDefinitionOrClone().getWork().getDistributedReportExport().getReportRef();
+                    ref = workDef.getDistributedReportExport().getReportRef();
                 }
-                return resolver.resolve(
+                ReportType report = resolver.resolve(
                         ref,
                         ReportType.class,
                         null,
                         "resolving report",
                         opTask,
-                        opResult
-                ).asPrismContainer();
+                        opResult);
+                return report.asPrismObject();
             }
             return task.getObject(ReportType.class, opResult);
         } catch (CommonException e) {
             getLogger().error("Couldn't get Report from task " + task.debugDump(), e);
-            throw new SystemException("Could't get Report from task " + task.debugDump(), e);
+            throw new SystemException("Couldn't get Report from task " + task.debugDump(), e);
         }
     }
 
-    private String getReportDataOid(Task task) {
+    private @Nullable String getReportDataOid(Task task) {
         PrismReference reportData = task.getExtensionReferenceOrClone(ReportConstants.REPORT_DATA_PROPERTY_NAME);
         if (reportData == null || reportData.getRealValue() == null) {
-            String reportOutputOid = task.getExtensionPropertyRealValue(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME);
-            if (reportOutputOid == null) {
-                return null;
-            }
-            return reportOutputOid;
+            return task.getExtensionPropertyRealValue(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME);
         }
 
         return reportData.getRealValue().getOid();

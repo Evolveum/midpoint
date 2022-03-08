@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.events;
 
 import java.util.Collection;
@@ -113,15 +112,6 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
     @Override
     public boolean isRelatedToItem(ItemPath itemPath) {
         return containsItem(getShadowDelta(), itemPath);
-    }
-
-    @Override
-    public String toString() {
-        return "ResourceObjectEvent{" +
-                "base=" + super.toString() +
-                ", changeType=" + changeType +
-                ", operationStatus=" + operationStatus +
-                '}';
     }
 
     @Override
@@ -244,5 +234,13 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
         DebugUtil.debugDumpWithLabelLn(sb, "accountOperationDescription", operationDescription, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "changeType", changeType, indent + 1);
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return toStringPrefix() +
+                ", changeType=" + changeType +
+                ", operationStatus=" + operationStatus +
+                '}';
     }
 }

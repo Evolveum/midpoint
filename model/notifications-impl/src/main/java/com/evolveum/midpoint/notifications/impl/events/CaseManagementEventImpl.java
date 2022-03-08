@@ -1,27 +1,27 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.events;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.notifications.api.OperationStatus;
 import com.evolveum.midpoint.notifications.api.events.CaseManagementEvent;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.ManualCaseUtils;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 abstract public class CaseManagementEventImpl extends BaseEventImpl implements CaseManagementEvent {
 
@@ -155,8 +155,7 @@ abstract public class CaseManagementEventImpl extends BaseEventImpl implements C
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{" +
-                "event=" + super.toString() +
+        return toStringPrefix() +
                 ", processInstanceName='" + getCaseName() + '\'' +
                 ", changeType=" + changeType +
                 ", outcome=" + getCaseOrItemOutcome() +

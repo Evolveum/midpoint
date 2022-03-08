@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.events;
 
 import com.evolveum.midpoint.notifications.api.events.CaseEvent;
@@ -35,17 +34,9 @@ public class CaseEventImpl extends CaseManagementEventImpl implements CaseEvent 
     }
 
     @Override
-    public String toString() {
-        return getClass().getSimpleName() + "{" +
-                "workflowEvent=" + super.toString() +
-                '}';
-    }
-
-    @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
         debugDumpCommon(sb, indent);
         return sb.toString();
     }
-
 }
