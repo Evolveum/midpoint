@@ -3389,11 +3389,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     // We assume the task is runnable/running.
+    // Uses heartbeat method to determine the progress; so the progress may not be reflected in the repo after returning
+    // from this method.
     @Experimental
     protected Task waitForTaskProgress(String taskOid, long progressToReach, int timeout, OperationResult waitResult) throws Exception {
         return waitForTaskProgress(taskOid, progressToReach, null, timeout, (int) DEFAULT_TASK_SLEEP_TIME, waitResult);
     }
 
+    // Uses heartbeat method to determine the progress; so the progress may not be reflected in the repo after returning
+    // from this method.
     @Experimental
     protected Task waitForTaskProgress(String taskOid, long progressToReach, CheckedProducer<Boolean> extraTest,
             int timeout, int sleepTime, OperationResult waitResult) throws Exception {

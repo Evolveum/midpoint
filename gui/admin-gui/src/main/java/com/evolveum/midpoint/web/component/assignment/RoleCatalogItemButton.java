@@ -229,7 +229,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
                     for (QName relation : assignedRelations) {
                         RelationDefinitionType def = ObjectTypeUtil.findRelationDefinition(defs, relation);
                         String relationLabel;
-                        if (def == null || def.getCategory() == null || def.getDisplay().getLabel() == null){
+                        if (def == null || def.getDisplay() == null || def.getDisplay().getLabel() == null){
                             relationLabel = relation.getLocalPart();
                         } else {
                             relationLabel = createStringResource(def.getDisplay().getLabel()).getString();

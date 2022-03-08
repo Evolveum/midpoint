@@ -1,33 +1,31 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
 public class AccountActivationNotifier extends ConfirmationNotifier<AccountActivationNotifierType> {
@@ -104,7 +102,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
                     resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
                 } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException
                         | ExpressionEvaluationException | SchemaException e) {
-                    getLogger().error("Could't get Resource with oid " + resourceOid, e);
+                    getLogger().error("Couldn't get Resource with oid " + resourceOid, e);
                     throw new SystemException("Couldn't get resource " + resourceOid, e);
                 }
                 body.append(StringUtils.isNotBlank(resource.getDisplayName()) ? resource.getDisplayName() : resource.getName());
@@ -115,7 +113,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
             }
             for (Object att : shadow.getAttributes().asPrismContainerValue().getItems()) {
                 if (att instanceof ResourceAttribute) {
-                    ResourceAttribute attribute = (ResourceAttribute) att;
+                    ResourceAttribute<?> attribute = (ResourceAttribute<?>) att;
                     body.append(" - ").append(attribute.getDisplayName()).append(": ");
                     if (attribute.isSingleValue()) {
                         body.append(attribute.getRealValue()).append("\n");
@@ -142,7 +140,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
         if (requester.asPrismObject().getDisplayName() != null) {
             name = requester.asPrismObject().getDisplayName();
         }
-        if (requester instanceof UserType){
+        if (requester instanceof UserType) {
             if (((UserType) requester).getFullName() != null) {
                 name = ((UserType) requester).getFullName().getOrig();
             }
@@ -151,7 +149,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
     }
 
     private List<ShadowType> getShadowsToActivate(ModelEvent modelEvent) {
-        Collection<? extends ModelElementContext> projectionContexts = modelEvent.getProjectionContexts();
+        Collection<? extends ModelElementContext<?>> projectionContexts = modelEvent.getProjectionContexts();
         return getMidpointFunctions().getShadowsToActivate(projectionContexts);
     }
 
