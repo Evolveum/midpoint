@@ -101,7 +101,7 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
 
         waitForTaskProgress(TASK_ASYNC_UPDATE.oid, 1, 30000, result);
 
-        then("task should be ready with progress of 1");
+        then("task should be (still) ready");
         assertTask(TASK_ASYNC_UPDATE.oid, "update task after")
                 .display()
                 // Checking for MID-7721 (though test connection is now done before starting the task, so this shouldn't fail)
