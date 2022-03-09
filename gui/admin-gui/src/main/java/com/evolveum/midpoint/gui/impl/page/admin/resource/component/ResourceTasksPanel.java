@@ -197,6 +197,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resource.getOid());
         resourceRef.setType(ResourceType.COMPLEX_TYPE);
+        resourceRef.setTargetName(new PolyStringType(resource.getName()));
         newTask.setObjectRef(resourceRef);
 
         String name = createNewTaskName(taskNamePrefix, resource);

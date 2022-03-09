@@ -83,7 +83,11 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
         if (task.getOwnerRef() == null) {
             try {
                 FocusType focus = getSecurityContextManager().getPrincipal().getFocus();
-                task.ownerRef(getSecurityContextManager().getPrincipalOid(), focus.asPrismObject().getDefinition().getTypeName());
+                ObjectReferenceType ownerRef = new ObjectReferenceType();
+                ownerRef.setOid(getSecurityContextManager().getPrincipalOid());
+                ownerRef.setType(focus.asPrismObject().getDefinition().getTypeName());
+                ownerRef.setTargetName(focus.getName());
+                task.ownerRef(ownerRef);
             } catch (SecurityViolationException e) {
                 // we can ignore it here probably
             }
