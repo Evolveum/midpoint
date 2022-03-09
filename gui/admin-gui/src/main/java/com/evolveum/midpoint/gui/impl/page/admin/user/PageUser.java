@@ -15,9 +15,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
 import com.evolveum.midpoint.gui.impl.page.admin.component.UserOperationalButtonsPanel;
 
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -272,12 +269,5 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
 
             focusDelta.addModification(delta);
         }
-    }
-
-    @Override
-    protected Collection<SelectorOptions<GetOperationOptions>> getOperationOptions() {
-        return getOperationOptionsBuilder()
-                .item(FocusType.F_JPEG_PHOTO).retrieve()
-                .build();
     }
 }
