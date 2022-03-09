@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.events;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.notifications.api.events.TaskEvent;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -14,9 +16,9 @@ import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
 
 public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
 
@@ -93,7 +95,7 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
                 return false;
             case FAILURE:
                 return status == OperationResultStatus.FATAL_ERROR ||
-                    status == OperationResultStatus.PARTIAL_ERROR;
+                        status == OperationResultStatus.PARTIAL_ERROR;
             case ONLY_FAILURE:
                 return status == OperationResultStatus.FATAL_ERROR;
             default:
@@ -151,5 +153,13 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "taskRunResult", taskRunResult, indent + 1);
         DebugUtil.debugDumpWithLabelToString(sb, "operationType", operationType, indent + 1);
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return toStringPrefix() +
+                ", task=" + getTask() +
+                ", operationResultStatus=" + getOperationResultStatus() +
+                '}';
     }
 }

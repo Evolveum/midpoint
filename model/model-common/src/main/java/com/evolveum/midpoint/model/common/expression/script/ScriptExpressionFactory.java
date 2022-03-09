@@ -9,8 +9,12 @@ package com.evolveum.midpoint.model.common.expression.script;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -57,7 +61,7 @@ public class ScriptExpressionFactory implements Cache {
     private ObjectResolver objectResolver;
     private final PrismContext prismContext;
     private Collection<FunctionLibrary> functions;
-    private final RepositoryService repositoryService;          // might be null during low-level testing
+    private final RepositoryService repositoryService; // might be null during low-level testing
 
     @NotNull private final Map<String, FunctionLibrary> customFunctionLibraryCache = new ConcurrentHashMap<>();
     private final AtomicBoolean initialized = new AtomicBoolean(false);
@@ -94,7 +98,7 @@ public class ScriptExpressionFactory implements Cache {
     }
 
     public Collection<FunctionLibrary> getFunctions() {
-        return Collections.unmodifiableCollection(functions);       // MID-4396
+        return Collections.unmodifiableCollection(functions); // MID-4396
     }
 
     public void setFunctions(Collection<FunctionLibrary> functions) {
@@ -208,12 +212,24 @@ public class ScriptExpressionFactory implements Cache {
         evaluatorMap.put(language, evaluator);
     }
 
-    private ScriptEvaluator getEvaluator(String language, String shortDesc) throws ExpressionSyntaxException {
-        ScriptEvaluator evaluator = evaluatorMap.get(language);
-        if (evaluator == null) {
-            throw new ExpressionSyntaxException("Unsupported language " + language + " used in script in " + shortDesc);
+    private @NotNull ScriptEvaluator getEvaluator(String languageUri, String shortDesc) throws ExpressionSyntaxException {
+        ScriptEvaluator evaluator = evaluatorMap.get(languageUri);
+        if (evaluator != null) {
+            return evaluator;
         }
-        return evaluator;
+
+        if (QNameUtil.isUnqualified(languageUri)) {
+            List<Map.Entry<String, ScriptEvaluator>> matching = evaluatorMap.entrySet().stream()
+                    .filter(entry -> QNameUtil.matchUri(entry.getKey(), languageUri))
+                    .collect(Collectors.toList());
+            if (!matching.isEmpty()) {
+                return MiscUtil.extractSingleton(matching,
+                                () -> new ExpressionSyntaxException(
+                                        "Language " + languageUri + " matches multiple entries: " + matching))
+                        .getValue();
+            }
+        }
+        throw new ExpressionSyntaxException("Unsupported language " + languageUri + " used in script in " + shortDesc);
     }
 
     private String getLanguage(ScriptExpressionEvaluatorType expressionType) {

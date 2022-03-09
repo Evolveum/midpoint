@@ -47,6 +47,8 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "000-system-configuration.xml");
 
+    private static final TestResource<MessageTemplateType> MESSAGE_TEMPLATE_CORRELATION =
+            new TestResource<>(TEST_DIR, "002-message-template-correlation.xml", "f5d79bd9-6903-42d9-9562-2e6a38096a26");
     private static final TestResource<FunctionLibraryType> FUNCTION_LIBRARY_IDMATCH =
             new TestResource<>(TEST_DIR, "005-function-library-idmatch.xml", "44e7f86c-604e-4127-8b0f-33bd7310ecb8");
     private static final TestResource<ArchetypeType> ARCHETYPE_PROGRAM =
@@ -97,6 +99,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        addObject(MESSAGE_TEMPLATE_CORRELATION, initTask, initResult);
         addObject(FUNCTION_LIBRARY_IDMATCH, initTask, initResult);
         addObject(ARCHETYPE_PROGRAM, initTask, initResult);
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);

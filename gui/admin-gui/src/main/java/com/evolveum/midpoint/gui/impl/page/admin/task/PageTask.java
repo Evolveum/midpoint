@@ -7,31 +7,32 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.task;
 
-import java.util.Collection;
-
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.TaskOperationalButtonsPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.page.admin.server.TaskSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import java.util.Collection;
 
 @PageDescriptor(
         urls = {
@@ -67,7 +68,24 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
 
     @Override
     protected TaskDetailsModel createObjectDetailsModels(PrismObject<TaskType> object) {
+        if (object != null && object.getOid() == null) {
+            // we're adding  task, let's see what we can prepare for use beforehand (not very nice in here, but so far there's no other place)
+            prepopulateTask(object);
+        }
         return new TaskDetailsModel(createPrismObjectModel(object), PageTask.this);
+    }
+
+    @Deprecated
+    private void prepopulateTask(PrismObject<TaskType> object) {
+        TaskType task = object.asObjectable();
+        if (task.getOwnerRef() == null) {
+            try {
+                FocusType focus = getSecurityContextManager().getPrincipal().getFocus();
+                task.ownerRef(getSecurityContextManager().getPrincipalOid(), focus.asPrismObject().getDefinition().getTypeName());
+            } catch (SecurityViolationException e) {
+                // we can ignore it here probably
+            }
+        }
     }
 
     @Override
@@ -122,7 +140,7 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
         if (isEditObject()) {
             ((TaskSummaryPanel) getSummaryPanel()).getTaskInfoModel().reset();
         }
-        super.refresh(target, soft) ;
+        super.refresh(target, soft);
     }
 
 }

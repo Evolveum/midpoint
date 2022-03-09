@@ -1,12 +1,21 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.events;
 
+import javax.xml.datatype.Duration;
+
+import com.evolveum.midpoint.schema.util.WorkItemId;
+
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.cases.api.events.WorkItemOperationInfo;
+import com.evolveum.midpoint.cases.api.events.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.api.events.WorkItemEvent;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -16,14 +25,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.cases.api.events.WorkItemOperationInfo;
-import com.evolveum.midpoint.cases.api.events.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.Duration;
 
 public class WorkItemEventImpl extends CaseManagementEventImpl implements WorkItemEvent {
 
@@ -66,6 +68,11 @@ public class WorkItemEventImpl extends CaseManagementEventImpl implements WorkIt
         return workItem;
     }
 
+    @NotNull
+    public WorkItemId getWorkItemId() {
+        return WorkItemId.create(aCase.getOid(), workItem.getId());
+    }
+
     @Override
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.WORK_ITEM_EVENT
@@ -74,6 +81,11 @@ public class WorkItemEventImpl extends CaseManagementEventImpl implements WorkIt
 
     public SimpleObjectRef getAssignee() {
         return assignee;
+    }
+
+    @Override
+    public @Nullable String getWorkItemUrl() {
+        return getMidpointFunctions().createWorkItemCompletionLink(getWorkItemId());
     }
 
     public SimpleObjectRef getInitiator() {
@@ -123,12 +135,10 @@ public class WorkItemEventImpl extends CaseManagementEventImpl implements WorkIt
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{" +
-                "workflowEvent=" + super.toString() +
+        return toStringPrefix() +
                 ", workItemName=" + getWorkItemName() +
                 ", assignee=" + assignee +
                 '}';
-
     }
 
     @Override

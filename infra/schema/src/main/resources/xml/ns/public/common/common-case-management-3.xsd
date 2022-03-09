@@ -65,22 +65,37 @@
                     <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Object that the case is associated with. It might be e.g. resource, if the case
-                                deals with creation of an account on that resource.
+                                Object that the case is associated with.
+
+                                For approval cases this is usually the object whose modification (or addition, or deletion)
+                                is being approved.
+
+                                For manual provisioning cases this might be the resource on which an account is to be created.
+
+                                For correlation cases this is the (full) shadow that is being correlated.
+
                                 EXPERIMENTAL. May change in future.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.7</a:since>
                                 <a:displayName>CaseType.objectRef</a:displayName>
-                                <a:composite>true</a:composite>     <!-- useful when object creation is being approved -->
+                                <a:composite>true</a:composite> <!-- useful when object creation is being approved -->
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Target that the case is associated with. It might be e.g. shadow, if the case
-                                deals with creation of an account on that resource.
+                                Target that the case is associated with.
+
+                                For approval cases related to assignments this may be the assignment target. For approval cases
+                                related to associations this may be the associated shadow (e.g. the entitlement).
+
+                                For manual provisioning cases this might be the shadow, if the case deals with the creation
+                                of an account on the resource.
+
+                                For correlation cases this is the resource from which the shadow to be correlated originates.
+
                                 EXPERIMENTAL. May change in future.
                             </xsd:documentation>
                             <xsd:appinfo>

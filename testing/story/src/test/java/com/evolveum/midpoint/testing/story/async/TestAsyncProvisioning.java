@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentW
 import java.io.File;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -26,10 +28,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Complex testing of asynchronous provisioning and updating.
@@ -49,10 +47,9 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
     private static final TestResource<TaskType> TASK_ASYNC_UPDATE_MULTI = new TestResource<>(TEST_DIR, "task-async-update-multi.xml", "c1f5a293-9fc9-4ab4-b497-de8605ee7dc6");
     private static final TestResource<TaskType> TASK_RECOMPUTE_MULTI = new TestResource<>(TEST_DIR, "task-recompute-multi.xml", "8b21b493-c85e-4a77-800f-a9063d1cfe8c");
 
-    protected EmbeddedActiveMQ embeddedBroker;
+    private EmbeddedActiveMQ embeddedBroker;
 
     private PrismObject<ResourceType> resourceOutbound;
-    private PrismObject<ResourceType> resourceInbound;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -61,7 +58,11 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
         startEmbeddedBroker();
 
         resourceOutbound = importAndGetObjectFromFile(ResourceType.class, RESOURCE_ASYNC_OUTBOUND.file, RESOURCE_ASYNC_OUTBOUND.oid, initTask, initResult);
-        resourceInbound = importAndGetObjectFromFile(ResourceType.class, RESOURCE_ASYNC_INBOUND.file, RESOURCE_ASYNC_INBOUND.oid, initTask, initResult);
+        importAndGetObjectFromFile(ResourceType.class, RESOURCE_ASYNC_INBOUND.file, RESOURCE_ASYNC_INBOUND.oid, initTask, initResult);
+
+        // We have to test the resource before async update task is started. See MID-7721.
+        assertSuccess(modelService.testResource(RESOURCE_ASYNC_OUTBOUND.oid, initTask));
+        assertSuccess(modelService.testResource(RESOURCE_ASYNC_INBOUND.oid, initTask));
 
         addObject(TASK_ASYNC_UPDATE, initTask, initResult);
     }
@@ -83,36 +84,36 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
     }
 
     @Test
-    public void test000Sanity() throws Exception {
-        Task task = getTestTask();
-
-        assertSuccess(modelService.testResource(RESOURCE_ASYNC_OUTBOUND.oid, task));
-        assertSuccess(modelService.testResource(RESOURCE_ASYNC_INBOUND.oid, task));
-    }
-
-    @Test
     public void test100AddJim() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        UserType jim = new UserType(prismContext)
+        UserType jim = new UserType()
                 .name("jim")
                 .fullName("Jim Beam")
                 .assignment(
                         createAssignmentWithConstruction(
                                 resourceOutbound, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext));
 
-        when();
+        when("object is added and the addition is processed by the async update task");
         addObject(jim.asPrismObject(), task, result);
 
         waitForTaskProgress(TASK_ASYNC_UPDATE.oid, 1, 30000, result);
 
-        then();
+        then("task should be (still) ready");
+        assertTask(TASK_ASYNC_UPDATE.oid, "update task after")
+                .display()
+                // Checking for MID-7721 (though test connection is now done before starting the task, so this shouldn't fail)
+                .assertSchedulingState(TaskSchedulingStateType.READY);
+
+        and("'original' user should have the 'outbound' link");
         assertSuccess(result);
         assertUserAfter(jim.getOid())
                 .assertAssignments(1)
                 .assertLiveLinks(1);
+
+        and("'mirrored' user should be created");
         assertUserAfterByUsername("_jim")
                 .assertAssignments(0)
                 .assertLiveLinks(1)
@@ -178,7 +179,7 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
 
         int users = 30;
         for (int i = 0; i < users; i++) {
-            UserType user = new UserType(prismContext)
+            UserType user = new UserType()
                     .name(String.format("user-%06d", i))
                     .fullName(String.format("User %06d", i))
                     .assignment(

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -53,6 +54,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -1079,6 +1082,13 @@ public interface MidpointFunctions {
 
     String createPasswordResetLink(UserType userType);
 
+    /**
+     * Returns a link where given work item can be completed.
+     *
+     * @return null if such a link cannot be created
+     */
+    @Nullable String createWorkItemCompletionLink(@NotNull WorkItemId workItemId);
+
     String createAccountActivationLink(UserType userType);
 
     String getConst(String name);
@@ -1192,21 +1202,24 @@ public interface MidpointFunctions {
 
     <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException;
 
-    <O extends ObjectType> boolean hasArchetype(O object, String archetypeOid);
+    default <O extends ObjectType> boolean hasArchetype(O object, String archetypeOid) {
+        return getArchetypeOids(object).contains(archetypeOid);
+    }
 
     /**
      * Assumes single archetype. May throw error if used on object that has more than one archetype.
      */
     @Deprecated
     <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException, ConfigurationException;
-    <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException, ConfigurationException;
+    @NotNull <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException, ConfigurationException;
 
     /**
      * Assumes single archetype. May throw error if used on object that has more than one archetype.
      */
     @Deprecated
     <O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException;
-    <O extends ObjectType> List<String> getArchetypeOids(O object) throws SchemaException, ConfigurationException;
+
+    @NotNull <O extends ObjectType> List<String> getArchetypeOids(O object);
 
     default <O extends ObjectType> void addRecomputeTrigger(O object, Long timestamp)
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {

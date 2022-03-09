@@ -31,6 +31,7 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -43,6 +44,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -1514,6 +1516,16 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    public @Nullable String createWorkItemCompletionLink(@NotNull WorkItemId workItemId) {
+        String publicHttpUrlPattern = getPublicHttpUrlPattern();
+        if (publicHttpUrlPattern == null || publicHttpUrlPattern.isBlank()) {
+            return null;
+        } else {
+            return publicHttpUrlPattern + SchemaConstants.WORK_ITEM_PREFIX + workItemId.caseOid; // TODO
+        }
+    }
+
+    @Override
     public String createAccountActivationLink(UserType userType) {
         return createBaseConfirmationLink(SchemaConstants.ACCOUNT_ACTIVATION_PREFIX, userType.getOid());
     }
@@ -1596,11 +1608,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         String publicHttpUrlPattern = SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfiguration, host);
         if (StringUtils.isBlank(publicHttpUrlPattern)) {
-            LOGGER.error("No patern defined. It can break link generation.");
+            LOGGER.error("No pattern defined. It can break link generation.");
         }
 
         return publicHttpUrlPattern;
-
     }
 
     private String getNonce(UserType user) {
@@ -1905,32 +1916,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     // MID-5243
-    @Override
-    public <O extends ObjectType> boolean hasArchetype(O object, String archetypeOid) {
-        if (object == null) {
-            return false;
-        }
-        if (!(object instanceof AssignmentHolderType)) {
-            return archetypeOid == null;
-        }
-        List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType) object).getArchetypeRef();
-        if (archetypeOid == null) {
-            return archetypeRefs.isEmpty();
-        }
-        for (ObjectReferenceType archetypeRef : archetypeRefs) {
-            if (archetypeOid.equals(archetypeRef.getOid())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // MID-5243
-    @Override
-    @Deprecated
     /**
      * DEPRECATED use getArchetypes(object)
      */
+    @Override
+    @Deprecated
     public <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException, ConfigurationException {
         List<PrismObject<ArchetypeType>> archetypes = archetypeManager.determineArchetypes((PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
         PrismObject<ArchetypeType> archetypeType = ArchetypeTypeUtil.getStructuralArchetype(archetypes);
@@ -1940,23 +1930,25 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return archetypeType.asObjectable();
     }
 
-    public <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException, ConfigurationException {
+    @NotNull public <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException, ConfigurationException {
         if (!(object instanceof AssignmentHolderType)) {
-            return null;
+            return List.of();
         }
         //noinspection unchecked
-        List<PrismObject<ArchetypeType>> archetype = archetypeManager.determineArchetypes((PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
+        List<PrismObject<ArchetypeType>> archetype =
+                archetypeManager.determineArchetypes(
+                        (PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
         return archetype.stream()
                 .map(arch -> arch.asObjectable())
                 .collect(Collectors.toList());
     }
 
     // MID-5243
-    @Override
-    @Deprecated
     /**
      * DEPRECATED use getArchetypeOids(object)
      */
+    @Override
+    @Deprecated
     public <O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException {
         if (!(object instanceof AssignmentHolderType)) {
             return null;
@@ -1970,14 +1962,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @NotNull
-    public <O extends ObjectType> List<String> getArchetypeOids(O object) throws SchemaException, ConfigurationException {
+    public <O extends ObjectType> List<String> getArchetypeOids(O object) {
         if (!(object instanceof AssignmentHolderType)) {
-            return null;
+            return List.of();
         }
         //noinspection unchecked
         List<ObjectReferenceType> archetypeRef = archetypeManager.determineArchetypeRefs((PrismObject<? extends AssignmentHolderType>) object.asPrismObject());
         return archetypeRef.stream()
-                .map(ref -> ref.getOid())
+                .map(AbstractReferencable::getOid)
                 .collect(Collectors.toList());
     }
 
