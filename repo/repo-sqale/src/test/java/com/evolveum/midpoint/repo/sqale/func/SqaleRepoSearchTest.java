@@ -195,7 +195,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .policySituation("situationC")
                 .activation(new ActivationType()
                         .validFrom("2021-07-04T00:00:00Z")
-                        .validTo("2022-07-04T00:00:00Z"))
+                        .validTo("2022-07-04T00:00:00Z")
+                        .disableTimestamp("2020-01-01T00:00:00Z"))
                 .assignment(new AssignmentType()
                         .lifecycleState("assignment1-1")
                         .orgRef(org1Oid, OrgType.COMPLEX_TYPE, relation1)
@@ -1936,6 +1937,15 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .not()
                         .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION)
                         .eq(CorrelationSituationType.ERROR));
+    }
+
+    // MID-7683 'disableTimestamp' in mapping SqaleNestedMapping
+    @Test
+    public void test703SearchFocusByDisableTimestamp() throws SchemaException {
+        searchUsersTest("using disableTimestamp attribute",
+                f -> f.item(F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)
+                        .lt(createXMLGregorianCalendar("2022-01-01T00:00:00Z")),
+                user1Oid);
     }
     // endregion
 
