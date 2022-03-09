@@ -6,14 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.Objects;
 import java.util.*;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -41,6 +35,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTasksPanel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
@@ -53,9 +48,11 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -381,7 +378,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(archetypeOid);
+                        newTaskPerformed(target, archetypeOid);
                     }
                 };
             }
@@ -399,68 +396,27 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     }
 
-    private void newTaskPerformed(String archetypeOid) {
-        TaskType taskType = new TaskType(getPageBase().getPrismContext());
+    private String createTaskNamePrefix(String archetypeOid) {
+        Task task = getPageBase().createSimpleTask("Load archetype");
+        PrismObject<ArchetypeType> archetype = WebModelServiceUtils.loadObject(ArchetypeType.class, archetypeOid, getPageBase(), task, task.getResult());
 
-        if (SystemObjectsType.ARCHETYPE_IMPORT_TASK.value().equals(archetypeOid)) {
-            createImportTask(taskType);
-        } else if (SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value().equals(archetypeOid)) {
-            createReconciliationTask(taskType);
-        } else if (SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value().equals(archetypeOid)) {
-            createLiveSyncTask(taskType);
+        return archetype != null ? archetype.getName().getOrig() : null;
+    }
+
+    private void newTaskPerformed(AjaxRequestTarget target, String archetypeOid) {
+        List<ObjectReferenceType> archetypeRef = Arrays.asList(
+                new ObjectReferenceType()
+                        .oid(archetypeOid)
+                        .type(ArchetypeType.COMPLEX_TYPE));
+        try {
+            TaskType newTask = ResourceTasksPanel.createResourceTask(getPrismContext(),
+                    createTaskNamePrefix(archetypeOid), getResourceModel().getObject(), archetypeRef);
+
+            WebComponentUtil.initNewObjectWithReference(getPageBase(), newTask, archetypeRef);
+        } catch (SchemaException ex) {
+            getPageBase().getFeedbackMessages().error(ResourceContentPanel.this, ex.getUserFriendlyMessage());
+            target.add(getPageBase().getFeedbackPanel());
         }
-
-
-        if (StringUtils.isNotEmpty(archetypeOid)) {
-            taskType.getAssignment().add(ObjectTypeUtil.createAssignmentTo(archetypeOid, ObjectTypes.ARCHETYPE, getPrismContext()));
-        }
-        taskType.setOwnerRef(ObjectTypeUtil.createObjectRef(AuthUtil.getPrincipalUser().getOid(), ObjectTypes.USER));
-        taskType.setObjectRef(
-                ObjectTypeUtil.createObjectRef(
-                        getResourceType()));
-
-        WebComponentUtil.dispatchToObjectDetailsPage(taskType.asPrismObject(), this);
-    }
-
-    private ResourceType getResourceType() {
-        return getResourceModel().getObject().asObjectable();
-    }
-
-    private void createImportTask(TaskType task) {
-        ImportWorkDefinitionType importWorkDefinitionType = new ImportWorkDefinitionType(getPrismContext());
-        importWorkDefinitionType.setResourceObjects(createResourceSet());
-
-        prepareActivityDefinition(task).setImport(importWorkDefinitionType);
-    }
-
-    private void createReconciliationTask(TaskType task) {
-        ReconciliationWorkDefinitionType reconciliationWorkDefinitionType = new ReconciliationWorkDefinitionType(getPrismContext());
-        reconciliationWorkDefinitionType.setResourceObjects(createResourceSet());
-
-        prepareActivityDefinition(task).setReconciliation(reconciliationWorkDefinitionType);
-    }
-
-    private void createLiveSyncTask(TaskType task) {
-        LiveSyncWorkDefinitionType liveSyncWorkDefinitionType = new LiveSyncWorkDefinitionType(getPrismContext());
-        liveSyncWorkDefinitionType.setResourceObjects(createResourceSet());
-
-        prepareActivityDefinition(task).setLiveSynchronization(liveSyncWorkDefinitionType);
-    }
-
-    private WorkDefinitionsType prepareActivityDefinition(TaskType taskType) {
-        ActivityDefinitionType activityDefinitionType = new ActivityDefinitionType(getPrismContext());
-        taskType.setActivity(activityDefinitionType);
-        WorkDefinitionsType workDefinitionsType = new WorkDefinitionsType();
-        activityDefinitionType.setWork(workDefinitionsType);
-        return workDefinitionsType;
-    }
-
-    private ResourceObjectSetType createResourceSet() {
-        ResourceObjectSetType resourceSet = new ResourceObjectSetType(getPrismContext());
-        resourceSet.setResourceRef(ObjectTypeUtil.createObjectRef(getResourceType(), getPrismContext()));
-        resourceSet.setIntent(getIntent());
-        resourceSet.setKind(getKind());
-        return resourceSet;
     }
 
     private ObjectQuery createInTaskOidQuery(List<TaskType> tasksList) {
@@ -538,8 +494,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                         tasksForKind.add(task.asObjectable());
                     }
 
-                }
-                else {
+                } else {
                     String taskIntentValue = resourceSet.getIntent();
                     if (StringUtils.isNotEmpty(getIntent())) {
                         if (getKind() == taskKindValue && getIntent().equals(taskIntentValue)) {
@@ -1020,7 +975,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                     | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError(
                         getPageBase().createStringResource(
-                                "ResourceContentPanel.message.updateResourceObjectStatusPerformed.partialError", status, shadow)
+                                        "ResourceContentPanel.message.updateResourceObjectStatusPerformed.partialError", status, shadow)
                                 .getString(),
                         e);
                 LOGGER.error("Could not update status (to {}) for {}, using option {}",
