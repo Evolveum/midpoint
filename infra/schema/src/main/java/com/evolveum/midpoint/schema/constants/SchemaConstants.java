@@ -437,7 +437,8 @@ public abstract class SchemaConstants {
     public static final String CHANNEL_USER_URI = qNameToUri(CHANNEL_USER_QNAME);
 
     //GUI constants which are also used in the notifiers
-    public static final String WORK_ITEM_PREFIX = "/admin/caseNew/"; // FIXME temporary!
+    public static final String WORK_ITEM_URL_PREFIX = "/admin/workItem?pathParameter=";
+    public static final String CASE_URL_PREFIX = "/admin/caseNew/";
     public static final String REGISTRATION_CONFIRMATION_PREFIX = "/confirm/registration";
     public static final String PASSWORD_RESET_CONFIRMATION_PREFIX = "/confirm/reset";
     public static final String ACCOUNT_ACTIVATION_PREFIX = "/activate/accounts";

@@ -1521,7 +1521,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (publicHttpUrlPattern == null || publicHttpUrlPattern.isBlank()) {
             return null;
         } else {
-            return publicHttpUrlPattern + SchemaConstants.WORK_ITEM_PREFIX + workItemId.caseOid; // TODO
+            return publicHttpUrlPattern + SchemaConstants.WORK_ITEM_URL_PREFIX + workItemId.caseOid + ":" + workItemId.id;
         }
     }
 
@@ -1534,6 +1534,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return getPublicHttpUrlPattern() + prefix + "?" + SchemaConstants.USER_ID + "=" + userType.getName().getOrig();
     }
 
+    @SuppressWarnings("SameParameterValue")
     private String createBaseConfirmationLink(String prefix, String oid) {
         return getPublicHttpUrlPattern() + prefix + "?" + SchemaConstants.USER_ID + "=" + oid;
     }

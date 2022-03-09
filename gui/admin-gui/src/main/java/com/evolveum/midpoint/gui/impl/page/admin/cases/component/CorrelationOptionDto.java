@@ -101,4 +101,9 @@ public class CorrelationOptionDto implements Serializable {
     public @NotNull String getIdentifier() {
         return identifier;
     }
+
+    /** Returns true if the option matches given case/work item outcome URI. */
+    public boolean matches(@NotNull String outcome) {
+        return identifier.equals(outcome);
+    }
 }
