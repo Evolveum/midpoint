@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import java.util.*;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
