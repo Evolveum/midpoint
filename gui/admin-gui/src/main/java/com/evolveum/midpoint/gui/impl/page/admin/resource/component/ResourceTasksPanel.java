@@ -6,21 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.model.StringResourceModel;
-
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -47,6 +35,18 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.StringResourceModel;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 @PanelType(name = "resourceTasks")
 @PanelInstance(identifier = "resourceTasks", applicableForType = ResourceType.class, applicableForOperation = OperationTypeType.MODIFY,
@@ -102,17 +102,8 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
 
                         List<ObjectReferenceType> archetypeRef = ObjectCollectionViewUtil.getArchetypeReferencesList(collectionView);
                         try {
-                            PrismContext prismContext = getPrismContext();
-                            PrismObjectDefinition<TaskType> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(TaskType.COMPLEX_TYPE);
-                            PrismObject<TaskType> obj = def.instantiate();
-                            TaskType newTask = obj.asObjectable();
-
-                            ObjectReferenceType resourceRef = new ObjectReferenceType();
-                            resourceRef.setOid(ResourceTasksPanel.this.getObjectWrapper().getOid());
-                            resourceRef.setType(ResourceType.COMPLEX_TYPE);
-                            newTask.setObjectRef(resourceRef);
-
-                            prepopulateTask(newTask, collectionView, archetypeRef);
+                            String taskNamePrefix = createTaskPrefix(collectionView);
+                            TaskType newTask = createResourceTask(getPrismContext(), taskNamePrefix, ResourceTasksPanel.this.getObjectWrapper().getObject(), archetypeRef);
 
                             WebComponentUtil.initNewObjectWithReference(getPageBase(), newTask, archetypeRef);
                         } catch (SchemaException ex) {
@@ -196,11 +187,28 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
         add(suspend);
     }
 
-    private void prepopulateTask(TaskType task, CompiledObjectCollectionView view, List<ObjectReferenceType> archetypeRefs) {
-        String name = createNewTaskName(getObjectWrapper(), view);
-        task.setName(new PolyStringType(name));
+    public static TaskType createResourceTask(PrismContext prismContext, String taskNamePrefix, PrismObject<ResourceType> resource,
+            List<ObjectReferenceType> archetypeRefs) throws SchemaException {
 
-        SchemaHandlingType schemaHandling = getObjectWrapper().getObject().asObjectable().getSchemaHandling();
+        PrismObjectDefinition<TaskType> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(TaskType.COMPLEX_TYPE);
+        PrismObject<TaskType> obj = def.instantiate();
+        TaskType newTask = obj.asObjectable();
+
+        ObjectReferenceType resourceRef = new ObjectReferenceType();
+        resourceRef.setOid(resource.getOid());
+        resourceRef.setType(ResourceType.COMPLEX_TYPE);
+        newTask.setObjectRef(resourceRef);
+
+        String name = createNewTaskName(taskNamePrefix, resource);
+        newTask.setName(new PolyStringType(name));
+
+        prepopulateTask(newTask, resource, archetypeRefs);
+
+        return newTask;
+    }
+
+    private static void prepopulateTask(TaskType task, PrismObject<ResourceType> resource, List<ObjectReferenceType> archetypeRefs) {
+        SchemaHandlingType schemaHandling = resource.asObjectable().getSchemaHandling();
         List<ResourceObjectTypeDefinitionType> objectTypes = Collections.emptyList();
         if (schemaHandling != null) {
             objectTypes = schemaHandling.getObjectType();
@@ -255,7 +263,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
         }
     }
 
-    private WorkDefinitionsType findWork(TaskType task) {
+    private static WorkDefinitionsType findWork(TaskType task) {
         ActivityDefinitionType activity = task.getActivity();
         if (activity == null) {
             activity = new ActivityDefinitionType();
@@ -269,7 +277,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
         return work;
     }
 
-    private ResourceObjectSetType updateResourceObjectsSet(ResourceObjectSetType set, ObjectReferenceType objectRef, List<ResourceObjectTypeDefinitionType> objectTypes) {
+    private static ResourceObjectSetType updateResourceObjectsSet(ResourceObjectSetType set, ObjectReferenceType objectRef, List<ResourceObjectTypeDefinitionType> objectTypes) {
         if (set == null) {
             set = new ResourceObjectSetType();
         }
@@ -288,7 +296,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
         return set;
     }
 
-    private boolean hasArchetype(List<ObjectReferenceType> archetypeRefs, String oid) {
+    private static boolean hasArchetype(List<ObjectReferenceType> archetypeRefs, String oid) {
         if (oid == null) {
             return false;
         }
@@ -302,17 +310,25 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
         return false;
     }
 
-    private String createNewTaskName(PrismObjectWrapper<ResourceType> wrapper, CompiledObjectCollectionView view) {
-        StringBuilder sb = new StringBuilder();
+    private String createTaskPrefix(CompiledObjectCollectionView view) {
         DisplayType display = view.getDisplay();
         if (display != null && display.getLabel() != null) {
-            sb.append(display.getLabel().getOrig());
+            return display.getLabel().getOrig();
+        }
+
+        return null;
+    }
+
+    private static String createNewTaskName(String taskNamePrefix, PrismObject<ResourceType> resource) {
+        StringBuilder sb = new StringBuilder();
+        if (StringUtils.isNotEmpty(taskNamePrefix)) {
+            sb.append(taskNamePrefix);
             sb.append(": ");
         } else {
             sb.append("Task: ");
         }
 
-        PolyString name = ResourceTasksPanel.this.getObjectWrapper().getObject().getName();
+        PolyString name = resource.getName();
         if (name != null) {
             sb.append(name.getOrig());
         }
