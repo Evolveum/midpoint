@@ -45,6 +45,7 @@ public class ImportProducerWorker<T extends Containerable>
     private boolean continueOnInputError;
 
     private String currentOid = null;
+    private boolean convertMissingType = false;
 
     public ImportProducerWorker(
             NinjaContext context, BasicImportOptions options, BlockingQueue<T> queue,
@@ -180,6 +181,7 @@ public class ImportProducerWorker<T extends Containerable>
         // FIXME: MID-5151: If validateSchema is false we are not validating unknown attributes on import
         LegacyValidator<?> validator = new LegacyValidator<>(prismContext, handler);
         validator.setValidateSchema(false);
+        validator.setConvertMissingType(isConvertMissingType());
         OperationResult result = operation.getResult();
 
         Charset charset = context.getCharset();
@@ -207,5 +209,13 @@ public class ImportProducerWorker<T extends Containerable>
         } else {
             return "Couldn't import object";
         }
+    }
+
+    public boolean isConvertMissingType() {
+        return convertMissingType;
+    }
+
+    public void setConvertMissingType(boolean convertMissingType) {
+        this.convertMissingType = convertMissingType;
     }
 }
