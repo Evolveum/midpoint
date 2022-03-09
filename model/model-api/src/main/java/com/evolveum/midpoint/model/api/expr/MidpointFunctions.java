@@ -1260,6 +1260,12 @@ public interface MidpointFunctions {
     @Experimental
     void createRecomputeTrigger(Class<? extends ObjectType> type, String oid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 
+    /**
+     * Returns a correlation case for given shadow. (Need not be full.)
+     */
+    @Experimental
+    @Nullable CaseType getCorrelationCaseForShadow(@Nullable ShadowType shadow) throws SchemaException;
+
     @FunctionalInterface
     interface TriggerCustomizer {
         void customize(TriggerType trigger) throws SchemaException;

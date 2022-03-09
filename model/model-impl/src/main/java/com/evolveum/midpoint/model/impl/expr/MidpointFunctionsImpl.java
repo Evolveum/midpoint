@@ -31,6 +31,7 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -136,6 +137,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private TriggerCreatorGlobalState triggerCreatorGlobalState;
     @Autowired private TaskManager taskManager;
     @Autowired private SchemaService schemaService;
+    @Autowired private CorrelationCaseManager correlationCaseManager;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -2171,5 +2173,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     public <T> T getExtensionOptionRealValue(String localName, Class<T> type) {
         return ModelExecuteOptions.getExtensionItemRealValue(getModelContext().getOptions(), new ItemName(localName), type);
+    }
+
+    @Override
+    public @Nullable CaseType getCorrelationCaseForShadow(@Nullable ShadowType shadow) throws SchemaException {
+        if (shadow == null) {
+            return null;
+        } else {
+            return correlationCaseManager.findCorrelationCase(shadow, false, getCurrentResult());
+        }
     }
 }

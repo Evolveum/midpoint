@@ -12,6 +12,7 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.TaskOperationalButtonsPanel;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -20,12 +21,13 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.page.admin.server.TaskSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -86,6 +88,35 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
                 // we can ignore it here probably
             }
         }
+
+        if (task.getName() == null) {
+            task.setName(createDefaultTaskName(task));
+        }
+    }
+
+    private PolyStringType createDefaultTaskName(TaskType task) {
+        String archetypeOid = null;
+        for (AssignmentType a : task.getAssignment()) {
+            ObjectReferenceType targetRef = a.getTargetRef();
+            if (targetRef == null || !ArchetypeType.COMPLEX_TYPE.equals(targetRef.getType())) {
+                continue;
+            }
+
+            archetypeOid = targetRef.getOid();
+            break;
+        }
+
+        if (archetypeOid == null) {
+            return new PolyStringType(getString("PageTask.newTaskDefaultName"));
+        }
+
+        Task t = createSimpleTask("Load archetype");
+        PrismObject<ArchetypeType> archetype = WebModelServiceUtils.loadObject(ArchetypeType.class, archetypeOid, this, t, t.getResult());
+        if (archetype != null) {
+            return new PolyStringType(archetype.getName().getOrig());
+        }
+
+        return new PolyStringType(getString("PageTask.newTaskDefaultName"));
     }
 
     @Override
