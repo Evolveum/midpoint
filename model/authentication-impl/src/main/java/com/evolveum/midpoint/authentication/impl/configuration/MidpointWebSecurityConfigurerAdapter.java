@@ -64,9 +64,6 @@ public class MidpointWebSecurityConfigurerAdapter extends WebSecurityConfigurerA
     @Autowired
     private SessionRegistry sessionRegistry;
 
-    @Autowired
-    private RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher;
-
     private ObjectPostProcessor<Object> objectObjectPostProcessor;
 
     public MidpointWebSecurityConfigurerAdapter() {
@@ -171,7 +168,7 @@ public class MidpointWebSecurityConfigurerAdapter extends WebSecurityConfigurerA
 
             @Override
             protected SecurityContext generateNewContext() {
-                return new MidpointSecurityContext(super.generateNewContext(), removeUnusedSecurityFilterPublisher);
+                return new MidpointSecurityContext(super.generateNewContext());
             }
         };
         httpSecurityRepository.setDisableUrlRewriting(true);

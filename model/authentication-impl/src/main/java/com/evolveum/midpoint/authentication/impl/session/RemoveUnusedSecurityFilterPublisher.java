@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import javax.annotation.PostConstruct;
+
 /**
  * @author skublik
  */
@@ -27,9 +29,20 @@ public class RemoveUnusedSecurityFilterPublisher {
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
+    private static RemoveUnusedSecurityFilterPublisher instance;
+
     public void publishCustomEvent(final MidpointAuthentication mpAuthentication) {
         LOGGER.trace("Publishing RemoveUnusedSecurityFilterEvent event. With authentication: " + mpAuthentication);
         RemoveUnusedSecurityFilterEvent customSpringEvent = new RemoveUnusedSecurityFilterEvent(this, mpAuthentication);
         applicationEventPublisher.publishEvent(customSpringEvent);
+    }
+
+    @PostConstruct
+    public void afterConstruct(){
+        instance = this;
+    }
+
+    public static RemoveUnusedSecurityFilterPublisher get() {
+        return instance;
     }
 }
