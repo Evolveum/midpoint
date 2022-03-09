@@ -19,8 +19,11 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 
 import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -46,6 +49,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
 
     private static final String ID_ACTIONS = "actions";
     private static final String ID_ACTION = "action";
+    private static final String ID_OUTCOME_ICON = "outcomeIcon";
     private static final String ID_NAMES = "names";
     private static final String ID_NAME = "name";
     private static final String ID_COLUMNS = "columns";
@@ -85,11 +89,11 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
 
             @Override
             protected void populateItem(ListItem<CorrelationOptionDto> item) {
+                CaseType correlationCase = getObjectDetailsModels().getObjectType();
                 AjaxButton actionButton = new AjaxButton(ID_ACTION) {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        CaseType correlationCase = getObjectDetailsModels().getObjectType();
                         WorkItemId workItemId = WorkItemId.of(correlationCase.getWorkItem().get(0));
                         AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
                                 .outcome(item.getModelObject().getIdentifier());
@@ -110,14 +114,15 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                 actionButton.add(
                         new Label(ID_ACTION_LABEL,
                                 item.getModelObject().isNewOwner() ? TEXT_CREATE_NEW : TEXT_CORRELATE));
-                /*
-                 * TODO: if case outcome is null, show the decision button
-                 *  - if outcome is not null, then
-                 *     - if item.getModelObject.matches(outcome) then show some nice "OK" icon
-                 *     - otherwise show nothing
-                 */
 
+                String outcome = correlationCase.getOutcome();
+                actionButton.add(new VisibleBehaviour(() -> outcome == null));
                 item.add(actionButton);
+
+                WebMarkupContainer iconType = new WebMarkupContainer(ID_OUTCOME_ICON);
+                iconType.setOutputMarkupId(true);
+                iconType.add(new VisibleBehaviour(() -> outcome != null && item.getModelObject().matches(outcome)));
+                item.add(iconType);
             }
         };
         add(actions);
