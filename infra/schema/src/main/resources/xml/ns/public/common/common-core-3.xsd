@@ -8983,13 +8983,7 @@
 
                         <p>The filter in this case is conditional, i.e. there can be specified an expression
                         that denotes a necessary condition for the filter to be applied.</p>
-
-                        <p>Deprecated. Please use "correlationDefinition" instead.</p>
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.5</a:deprecatedSince>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="confirmation" type="c:ExpressionType" minOccurs="0">
@@ -9005,13 +8999,7 @@
                         The expression variables should be set as follows:
                         $user - the candidate user object (one of the results of correlation expression)
                         $account - the changed account object
-
-                        <p>Deprecated. Please use "correlationDefinition" instead.</p>
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.5</a:deprecatedSince>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="correlationDefinition" type="tns:CorrelationDefinitionType" minOccurs="0">
@@ -9024,6 +9012,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.5</a:since>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
