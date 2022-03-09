@@ -110,6 +110,12 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                 actionButton.add(
                         new Label(ID_ACTION_LABEL,
                                 item.getModelObject().isNewOwner() ? TEXT_CREATE_NEW : TEXT_CORRELATE));
+                /*
+                 * TODO: if case outcome is null, show the decision button
+                 *  - if outcome is not null, then
+                 *     - if item.getModelObject.matches(outcome) then show some nice "OK" icon
+                 *     - otherwise show nothing
+                 */
 
                 item.add(actionButton);
             }

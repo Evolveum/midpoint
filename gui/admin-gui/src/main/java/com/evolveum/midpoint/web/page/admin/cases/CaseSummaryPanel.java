@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -69,13 +70,20 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
         SummaryTag<CaseType> tagOutcome = new SummaryTag<CaseType>(ID_SUMMARY_TAG, getModel()) {
             @Override
             protected void initialize(CaseType taskType) {
-                String icon, name;
-                if (getModelObject().getOutcome() == null) {
+
+                CaseType aCase = getModelObject();
+                if (!CaseTypeUtil.isApprovalCase(aCase) && !CaseTypeUtil.isManualProvisioningCase(aCase)) {
+                    // TEMPORARY: avoiding problems with parsing of the outcome for correlation cases
+                    return;
+                }
+
+                if (aCase.getOutcome() == null) {
                     // shouldn't occur!
                     return;
                 }
 
-                if (ApprovalUtils.approvalBooleanValueFromUri(getModelObject().getOutcome())) {
+                String icon, name;
+                if (ApprovalUtils.approvalBooleanValueFromUri(aCase.getOutcome())) {
                     icon = ApprovalOutcomeIcon.APPROVED.getIcon();
                     name = "approved";
                 } else {
