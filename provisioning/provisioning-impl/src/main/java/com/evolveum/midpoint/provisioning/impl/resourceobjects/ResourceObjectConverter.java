@@ -1066,8 +1066,7 @@ public class ResourceObjectConverter {
                     }
                 }
                 if (!found) {
-                    // MID-7535: Decreased to debug, warn was too verbose in case of large groups
-                    LOGGER.debug("Attempting to remove a value of {} that is not in {}: {}",
+                    LOGGER.warn("Attempting to remove a value of {} that is not in {}: {}",
                             valueToDelete, propertyDelta.getElementName(), currentValues);
                 }
             }
