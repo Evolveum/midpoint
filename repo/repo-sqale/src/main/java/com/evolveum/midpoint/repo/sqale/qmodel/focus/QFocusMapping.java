@@ -90,7 +90,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                         enumMapper(q -> q.effectiveStatus))
                 .addItemMapping(ActivationType.F_ENABLE_TIMESTAMP,
                         timestampMapper(q -> q.enableTimestamp))
-                .addItemMapping(ActivationType.F_DISABLE_REASON,
+                .addItemMapping(ActivationType.F_DISABLE_TIMESTAMP,
                         timestampMapper(q -> q.disableTimestamp))
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
                         stringMapper(q -> q.disableReason))
