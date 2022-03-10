@@ -33,6 +33,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -47,6 +48,10 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     @Autowired private GuiProfileCompilerRegistry registry;
     @Autowired private PrismContext prismContext;
     @Autowired private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
+
+    @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
+
+    private static final String COLLECTION_PACKAGES_KEY = "collectionPackages";
 
     private static final String[] COLLECTION_PACKAGES_TO_SCAN = {
             "com.evolveum.midpoint.web.page.admin.archetype",
@@ -66,9 +71,51 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     private final Map<String, SimpleCounter> countersMap = new HashMap<>();
 
     private Boolean experimentalFeaturesEnabled = false;
-    private Collection<Class<?>> panelInstanceClasses;
-    private Collection<Class<?>> panelTypeClasses;
-    private Collection<Class<?>> collectionClasses;
+
+    private static final Map<Object, Collection<Class<?>>> SCANNED_CLASSES_MAP = new HashMap<>();
+
+    private static synchronized Collection<Class<?>> getClassesForAnnotation(Class<? extends Annotation> annotation, String additionalPackagesToScan) {
+        Collection<Class<?>> result = SCANNED_CLASSES_MAP.get(annotation);
+        if (result != null) {
+            return result;
+        }
+
+        result = ClassPathUtil.scanClasses(annotation,
+                StringUtils.joinWith(",", ClassPathUtil.DEFAULT_PACKAGE_TO_SCAN, additionalPackagesToScan));
+
+        result = Collections.unmodifiableCollection(result);
+
+        SCANNED_CLASSES_MAP.put(annotation, result);
+
+        return result;
+    }
+
+    private static synchronized Collection<Class<?>> getCollectionClasses() {
+        Collection<Class<?>> result = SCANNED_CLASSES_MAP.get(COLLECTION_PACKAGES_KEY);
+        if (result != null) {
+            return result;
+        }
+
+        result = ClassPathUtil.listClasses(COLLECTION_PACKAGES_TO_SCAN);
+
+        result = Collections.unmodifiableCollection(result);
+
+        SCANNED_CLASSES_MAP.put(COLLECTION_PACKAGES_KEY, result);
+
+        return result;
+    }
+
+    private Collection<Class<?>> getPanelInstanceClasses() {
+        Collection<Class<?>> result = new ArrayList<>();
+        result.addAll(getClassesForAnnotation(PanelInstance.class, additionalPackagesToScan));
+        result.addAll(getClassesForAnnotation(PanelInstances.class, additionalPackagesToScan));
+
+        return Collections.unmodifiableCollection(result);
+    }
+
+    private Collection<Class<?>> getPanelTypeClasses() {
+        return getClassesForAnnotation(PanelType.class, additionalPackagesToScan);
+    }
 
     @Override
     @PostConstruct
@@ -87,9 +134,6 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     @Override
     public void postProcess(CompiledGuiProfile compiledGuiProfile) {
         experimentalFeaturesEnabled = compiledGuiProfile.isEnableExperimentalFeatures();
-
-        collectPanelInstanceClasses();
-        collectPanelTypeClasses();
 
         fillInPanelsMap();
         fillInCountersMap();
@@ -118,7 +162,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     }
 
     private void mergeCollectionViewsWithDefault(CompiledGuiProfile compiledGuiProfile) {
-        Collection<Class<?>> classes = collectCollectionClasses();
+        Collection<Class<?>> classes = getCollectionClasses();
         List<CompiledObjectCollectionView> defaultCollectionViews = compileDefaultCollectionViews(classes);
 
         for (CompiledObjectCollectionView defaultCollectionView : defaultCollectionViews) {
@@ -163,7 +207,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
     private void processShadowPanels(CompiledGuiProfile compiledGuiProfile) {
         List<ContainerPanelConfigurationType> shadowPanels = new ArrayList<>();
-        for (Class<?> clazz : panelInstanceClasses) {
+        for (Class<?> clazz : getPanelInstanceClasses()) {
             PanelInstance instance = clazz.getAnnotation(PanelInstance.class);
             if (instance == null) {
                 continue;
@@ -198,7 +242,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         if (!panelsMap.isEmpty()) {
             return;
         }
-        for (Class<?> clazz : panelTypeClasses) {
+        for (Class<?> clazz : getPanelTypeClasses()) {
             PanelType panelType = clazz.getAnnotation(PanelType.class);
             if (isNotPanelTypeDefinition(clazz, panelType)) {
                 continue;
@@ -225,7 +269,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         if (!countersMap.isEmpty()) {
             return;
         }
-        for (Class<?> clazz : panelInstanceClasses) {
+        for (Class<?> clazz : getPanelInstanceClasses()) {
             Counter counterDefinition = clazz.getAnnotation(Counter.class);
             if (counterDefinition != null) {
                 Class<? extends SimpleCounter> counterProvider = counterDefinition.provider();
@@ -261,7 +305,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     private Set<Class<? extends Containerable>> findSupportedContainerables() {
         Set<Class<? extends Containerable>> containerables = new HashSet<>();
 
-        for (Class<?> clazz : panelInstanceClasses) {
+        for (Class<?> clazz : getPanelInstanceClasses()) {
             PanelInstances pis = clazz.getAnnotation(PanelInstances.class);
             if (pis != null) {
                 Arrays.asList(pis.value()).forEach(pi -> addSupportedContainerable(containerables, pi));
@@ -319,7 +363,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     private List<ContainerPanelConfigurationType> getPanelsFor(Class<? extends Containerable> containerable) {
         List<ContainerPanelConfigurationType> panels = new ArrayList<>();
 
-        for (Class<?> clazz : panelInstanceClasses) {
+        for (Class<?> clazz : getPanelInstanceClasses()) {
             PanelInstances pis = clazz.getAnnotation(PanelInstances.class);
             if (pis != null) {
                 Arrays.asList(pis.value()).forEach(pi -> addPanelsFor(panels, containerable, clazz, pi));
@@ -346,39 +390,6 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, c, pi);
 
         panels.add(config);
-    }
-
-    private void collectPanelInstanceClasses() {
-        if (panelInstanceClasses == null) {
-            panelInstanceClasses = collectClasses(PanelInstance.class);
-            panelInstanceClasses.addAll(collectClasses(PanelInstances.class));
-        }
-    }
-
-    private void collectPanelTypeClasses() {
-        if (panelTypeClasses == null) {
-            panelTypeClasses = collectClasses(PanelType.class);
-        }
-    }
-
-    private Collection<Class<?>> collectClasses(Class<? extends Annotation> annotationClass) {
-        return ClassPathUtil.scanClasses(annotationClass);
-    }
-
-    private Collection<Class<?>> collectCollectionClasses() {
-        if (collectionClasses == null) {
-            collectionClasses = collectClasses(COLLECTION_PACKAGES_TO_SCAN);
-        }
-        return collectionClasses;
-    }
-
-    private Set<Class<?>> collectClasses(String[] packagesToScan) {
-        Set<Class<?>> allClasses = new HashSet<>();
-        for (String packageToScan : packagesToScan) {
-            Set<Class<?>> classes = ClassPathUtil.listClasses(packageToScan);
-            allClasses.addAll(classes);
-        }
-        return allClasses;
     }
 
     private boolean isNotApplicableFor(Class<? extends Containerable> containerable, PanelInstance pi) {
@@ -481,7 +492,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
     private List<ContainerPanelConfigurationType> processChildren(Class<? extends Containerable> containerable, Class<?> parentClass) {
         List<ContainerPanelConfigurationType> configs = new ArrayList<>();
-        for (Class<?> clazz : panelInstanceClasses) {
+        for (Class<?> clazz : getPanelInstanceClasses()) {
             PanelInstance panelInstance = clazz.getAnnotation(PanelInstance.class);
             if (isNotApplicableFor(containerable, panelInstance)) {
                 continue;

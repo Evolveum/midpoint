@@ -52,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.Environment;
@@ -187,6 +188,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private Clock clock;
     @Autowired private AccessCertificationService certificationService;
 
+    @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
+
     private WebApplicationConfiguration webApplicationConfiguration;
 
     private DeploymentInformationType deploymentInfo;
@@ -298,7 +301,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         getSessionListeners().add((ISessionListener) asyncWebProcessManager);
 
         //descriptor loader, used for customization
-        new DescriptorLoader().loadData(this);
+        new DescriptorLoader(additionalPackagesToScan).loadData(this);
 
         if (applicationContext != null) {
 
