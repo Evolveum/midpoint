@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -26,6 +26,8 @@ import com.google.common.base.Strings;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.StringTemplate;
+import com.querydsl.sql.SQLQuery;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -209,17 +211,28 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
                         booleanTemplate("{0} @> {1}", path, jsonbValue(extItem, values.singleValue())));
             }
         } else {
+            // other non-EQ operations
             if (extItem.cardinality == SCALAR) {
                 // {1s} means "as string", this is replaced before JDBC driver, just as path is,
                 // but for path types it's automagic, integer would turn to param and ?.
                 // IMPORTANT: To get string from JSONB we want to use ->> or #>>'{}' operators,
                 // that properly escape the value. Using ::TEXT cast would return the string with
                 // double-quotes. For more: https://dba.stackexchange.com/a/234047/157622
-                return singleValuePredicate(stringTemplate("{0}->>'{1s}'", path, extItem.id),
+                return singleValuePredicateWithNotTreated(stringTemplate("{0}->>'{1s}'", path, extItem.id),
                         operation, values.singleValue());
+            } else if (!values.isMultiValue()) {
+                // e.g. for substring: WHERE ... ext ? '421'
+                //   AND exists (select val from jsonb_array_elements_text(ext->'421') as val where val ilike '%2%')
+                // This can't use index, but it functions. Sparse keys are helped a lot by indexed ext ? key condition.
+                StringTemplate valPath = stringTemplate("val");
+                SQLQuery<String> subselect = new SQLQuery<>().select(valPath)
+                        .from(stringTemplate("jsonb_array_elements_text({0}->'{1s}') as val", path, extItem.id))
+                        .where(singleValuePredicate(valPath, operation, values.singleValue()));
+                return booleanTemplate("{0} ?? '{1s}'", path, extItem.id)
+                        .and(subselect.exists());
             } else {
-                throw new QueryException("Only equals is supported for"
-                        + " multi-value extensions; used filter: " + filter);
+                throw new QueryException("Non-equal operation not supported for multi-value extensions"
+                        + " and multiple values on the right-hand; used filter: " + filter);
             }
         }
     }
@@ -246,7 +259,7 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
             if (extItem.cardinality == SCALAR) {
                 // {1s} means "as string", this is replaced before JDBC driver, just as path is,
                 // but for path types it's automagic, integer would turn to param and ?.
-                return singleValuePredicate(
+                return singleValuePredicateWithNotTreated(
                         stringTemplate("({0}->'{1s}')::numeric", path, extItem.id),
                         operation,
                         values.singleValue());
@@ -313,11 +326,11 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
                                     JSONB_POLY_NORM_KEY, poly.getNorm()))));
         } else if (extItem.cardinality == SCALAR) {
             return ExpressionUtils.and(
-                    singleValuePredicate(
+                    singleValuePredicateWithNotTreated(
                             stringTemplate("{0}->'{1s}'->>'{2s}'",
                                     path, extItem.id, JSONB_POLY_ORIG_KEY),
                             operation, poly.getOrig()),
-                    singleValuePredicate(
+                    singleValuePredicateWithNotTreated(
                             stringTemplate("{0}->'{1s}'->>'{2s}'",
                                     path, extItem.id, JSONB_POLY_NORM_KEY),
                             operation, poly.getNorm()));
@@ -334,7 +347,7 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
             return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}", path,
                     jsonbValue(extItem, Map.of(subKey, Objects.requireNonNull(values.singleValue())))));
         } else if (extItem.cardinality == SCALAR) {
-            return singleValuePredicate(
+            return singleValuePredicateWithNotTreated(
                     stringTemplate("{0}->'{1s}'->>'{2s}'", path, extItem.id, subKey),
                     operation, values.singleValue());
         } else {
@@ -360,9 +373,9 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
     private BooleanExpression extItemIsNull(MExtItem extItem) {
         // ?? is "escaped" ? operator, PG JDBC driver understands it. Alternative is to use
         // function jsonb_exists but that does NOT use GIN index, only operators do!
-        // We have to use parenthesis with AND shovelled into the template like this.
-        return booleanTemplate("({0} ?? {1} AND {0} is not null)",
-                path, extItem.id.toString()).not();
+        // We have to use parenthesis with AND shovelled into the template like this to apply NOT to it all.
+        return booleanTemplate("({0} ?? '{1s}' AND {0} is not null)",
+                path, extItem.id).not();
     }
 
     private String extractNorm(Object value) {

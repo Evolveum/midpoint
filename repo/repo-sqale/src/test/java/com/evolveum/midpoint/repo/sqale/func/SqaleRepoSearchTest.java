@@ -1275,25 +1275,32 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test515SearchObjectWithMultivalueExtensionUsingNonEqualFilterFails() {
-        given("query for multi-value extension string item with non-equal operation");
-        OperationResult operationResult = createOperationResult();
-        ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(UserType.F_EXTENSION, new QName("string-mv")).gt("string-value2")
-                .build();
-
-        expect("searchObjects throws exception because of unsupported filter");
-        assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
-                .isInstanceOf(SystemException.class)
-                .hasMessageContaining("supported");
-    }
-
-    @Test
-    public void test516SearchObjectHavingAnyOfSpecifiedMultivalueStringExtension() throws SchemaException {
+    public void test513SearchObjectHavingAnyOfSpecifiedMultivalueStringExtension() throws SchemaException {
         searchUsersTest("with multi-value extension string matching any of provided values",
                 f -> f.item(UserType.F_EXTENSION, new QName("string-mv"))
                         .eq("string-value2", "string-valueX"), // second value does not match, but that's OK
                 user1Oid, user2Oid); // both users have "string-value2" in "string-mv"
+    }
+
+    @Test
+    public void test515SearchObjectWithMultivalueExtensionUsingSubstring() throws SchemaException {
+        searchUsersTest("with multi-value extension string item with substring operation",
+                f -> f.item(UserType.F_EXTENSION, new QName("string-mv")).contains("1"), // matches string-value1
+                user1Oid);
+    }
+
+    @Test
+    public void test516SearchObjectWithMultivalueExtensionUsingComparison() throws SchemaException {
+        searchUsersTest("with multi-value extension string item with comparison operation",
+                f -> f.item(UserType.F_EXTENSION, new QName("string-mv")).gt("string-value2"),
+                user2Oid);
+    }
+
+    @Test
+    public void test517SearchObjectWithMultivalueExtensionUsingComparisonNegated() throws SchemaException {
+        searchUsersTest("with multi-value extension string item with NOT comparison operation",
+                f -> f.not().item(UserType.F_EXTENSION, new QName("string-mv")).gt("string-value2"),
+                creatorOid, modifierOid, user1Oid, user3Oid, user4Oid);
     }
 
     // integer tests
