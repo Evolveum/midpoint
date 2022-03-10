@@ -527,17 +527,28 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test125SearchObjectsBySubtypeContainsIsNotSupported() {
-        given("query for subtype containing (=substring) value");
-        OperationResult operationResult = createOperationResult();
-        ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(ObjectType.F_SUBTYPE).contains("worker")
-                .build();
+    public void test125SearchObjectsBySubtypeContains() throws SchemaException {
+        searchUsersTest("with subtype (PG array column) containing (=substring) value",
+                f -> f.item(ObjectType.F_SUBTYPE).contains("A"),
+                user1Oid, user2Oid);
+    }
 
-        expect("repository throws exception because it is not supported");
-        assertThatThrownBy(() -> searchObjects(ObjectType.class, query, operationResult))
-                .isInstanceOf(SystemException.class)
-                .hasMessageStartingWith("Can't translate filter");
+    @Test
+    public void test126SearchObjectsBySubtypeUsingComparison() throws SchemaException {
+        searchUsersTest("with subtype using comparison, case-ignore even (possible for text)",
+                f -> f.item(ObjectType.F_SUBTYPE).gt("workera").matchingCaseIgnore(),
+                user1Oid, user4Oid);
+    }
+
+    @Test
+    public void test127SearchObjectsBySubtypeUsingComparisonNegated() throws SchemaException {
+        // NOTE: This is actually a bit tricky, because depending on the DB collation the comparison
+        // is likely case-insensitive already! E.g.:
+        // select 'workerA' COLLATE "en_US.utf8" > 'WORKERC' -- false, this is expected default for MP!
+        // select 'workerA' COLLATE "C.UTF-8" > 'WORKERC' -- true, as expected in binary
+        searchUsersTest("with subtype using NOT and comparison",
+                f -> f.not().item(ObjectType.F_SUBTYPE).gt("WORKERA").matchingCaseIgnore(),
+                creatorOid, modifierOid, user2Oid, user3Oid);
     }
 
     @Test
@@ -566,13 +577,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         given("query for policy situation containing (=substring) value");
         OperationResult operationResult = createOperationResult();
         ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(ObjectType.F_POLICY_SITUATION).contains("worker")
+                .item(ObjectType.F_POLICY_SITUATION).contains("anything")
                 .build();
 
-        expect("repository throws exception because it is not supported");
+        expect("repository throws exception because it is not supported for URI-like values");
         assertThatThrownBy(() -> searchObjects(ObjectType.class, query, operationResult))
                 .isInstanceOf(SystemException.class)
-                .hasMessageStartingWith("Can't translate filter");
+                .hasMessageStartingWith("Unsupported operation for multi-value non-textual item");
     }
 
     @Test
