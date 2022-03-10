@@ -79,6 +79,17 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
     }
 
     @Test
+    public void test110EvaluateExpressionEmployeeTypeNoneAqlFilter() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+
+        ObjectFilter filter = evaluateExpressionAssertFilter("expression-aql-employeeType-none-filter.xml",
+                null, NoneFilter.class, task, task.getResult());
+
+        executeFilter(filter, 0, task, task.getResult());
+    }
+
+    @Test
     public void test120EvaluateExpressionEmployeeTypeAllFilter() throws Exception {
         // GIVEN
         Task task = getTestTask();
