@@ -1366,6 +1366,21 @@ To see changes made in this part of configuration, user needs to do logout/login
 </adminGuiConfiguration>
 ----
 
+== Notes
+
+=== Classpath scanning
+
+Different panels and pages are searched via annotations on classes, e.g. `@PageDescriptor`, `@PanelInstance`, and others.
+In versions prior 4.5 (4.4.2) whole classpath was used to search for such annotated classes.
+In midPoint version 4.5 (4.4.2) and newer default search scope is package `com.evolveum.midpoint`.
+It is possible to extend search scope, for example when using maven overlay with custom code.
+Extension can be done via setting property `midpoint.additionalPackagesToScan` with comma separated package names in `${midpoint.home}/application.yml` like so:
+
+[source, yaml]
+----
+midpoint:
+  additionalPackagesToScan: org.example.acme,com.acme
+----
 
 == Security
 
