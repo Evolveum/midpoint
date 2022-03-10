@@ -32,15 +32,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Here we test the correlation that uses the internal correlator.
  *
- * Contrary to {@link AbstractSimpleCorrelationTest} here we allow a user to have multiple accounts on the source resource (`SIS`).
+ * Contrary to {@link AbstractSimpleInternalCorrelationTest} here we allow a user to have multiple accounts on the source resource (`SIS`).
  * They are mapped into assignments; personal data are kept in those assignments. There is an algorithm to find
  * the "authoritative" assignment that provides the authoritative personal data for the user.
  *
  * The correlation is, however, done against all the assignments; not only to the selected authoritative data.
  */
-public abstract class AbstractMultiAccountsCorrelationTest extends AbstractCorrelationTest {
+public abstract class AbstractMultiAccountsInternalCorrelationTest extends AbstractCorrelationTest {
 
-    public static final File TEST_DIR = new File(AbstractCorrelationTest.TEST_DIR, "multi-accounts");
+    public static final File TEST_DIR = new File(AbstractCorrelationTest.TEST_DIR, "internal/multi-accounts");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "000-system-configuration.xml");
 

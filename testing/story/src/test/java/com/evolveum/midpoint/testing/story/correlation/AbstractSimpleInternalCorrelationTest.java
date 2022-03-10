@@ -44,9 +44,9 @@ import java.util.Objects;
  * - E-mail addresses are kept in HR for the simplicity. We assume that _some_ of the accounts
  * on target may have e-mail addresses or employee numbers present.
  */
-public abstract class AbstractSimpleCorrelationTest extends AbstractCorrelationTest {
+public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorrelationTest {
 
-    public static final File TEST_DIR = new File(AbstractCorrelationTest.TEST_DIR, "simple");
+    public static final File TEST_DIR = new File(AbstractCorrelationTest.TEST_DIR, "internal/simple");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 

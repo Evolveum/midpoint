@@ -9,10 +9,10 @@ package com.evolveum.midpoint.testing.story.correlation;
 
 import com.evolveum.midpoint.test.CsvResource;
 
-public class TestMultiAccountsCorrelation extends AbstractMultiAccountsCorrelationTest {
+public class TestInternalCorrelationMultiAccountsSimplified extends AbstractMultiAccountsInternalCorrelationTest {
 
     @Override
     CsvResource getSisResource() {
-        return RESOURCE_SIS;
+        return RESOURCE_SIS_SIMPLIFIED;
     }
 }
