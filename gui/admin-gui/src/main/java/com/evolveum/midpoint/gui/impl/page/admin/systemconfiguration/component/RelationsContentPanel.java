@@ -102,7 +102,7 @@ public class RelationsContentPanel extends MultivalueContainerListPanelWithDetai
 
     @Override
     protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.PAGE_MESSAGE_TEMPLATE_LOCALIZED_CONTENT_PANEL;    // todo fix
+        return UserProfileStorage.TableId.PANEL_RELATIONS_CONTENT;
     }
 
     @Override
