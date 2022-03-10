@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
@@ -23,7 +25,6 @@ import com.evolveum.midpoint.schema.route.ItemRoute;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemTargetDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
@@ -61,9 +62,9 @@ public class CorrelationItemTarget {
     }
 
     static @NotNull Map<String, CorrelationItemTarget> createMap(
-            @NotNull ItemCorrelationType itemBean,
-            @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext) throws ConfigurationException {
-        String ref = itemBean.getRef();
+            @NotNull CorrelationItemDefinitionType itemBean,
+            @NotNull CorrelatorContext<?> correlatorContext) throws ConfigurationException {
+        String ref = itemBean instanceof ItemCorrelationType ? ((ItemCorrelationType) itemBean).getRef() : null;
         if (ref != null) {
             return createMapFromTargetBeans(
                     correlatorContext.getNamedItemDefinition(ref).getTarget(),
@@ -71,7 +72,7 @@ public class CorrelationItemTarget {
         } else if (!itemBean.getTarget().isEmpty()) {
             return createMapFromTargetBeans(itemBean.getTarget(), correlatorContext);
         } else {
-            ItemPathType pathBean = itemBean.getPath();
+            ItemPathType pathBean = itemBean instanceof ItemCorrelationType ? ((ItemCorrelationType) itemBean).getPath() : null;
             if (pathBean != null) {
                 Map<String, CorrelationItemTarget> map = new HashMap<>();
                 map.put(PRIMARY_CORRELATION_ITEM_TARGET, new CorrelationItemTarget(pathBean.getItemPath()));
@@ -85,7 +86,7 @@ public class CorrelationItemTarget {
     @NotNull
     private static Map<String, CorrelationItemTarget> createMapFromTargetBeans(
             @NotNull List<CorrelationItemTargetDefinitionType> targetBeans,
-            @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext) throws ConfigurationException {
+            @NotNull CorrelatorContext<?> correlatorContext) throws ConfigurationException {
         Map<String, CorrelationItemTarget> map = new HashMap<>();
         for (CorrelationItemTargetDefinitionType targetBean : targetBeans) {
             map.put(
@@ -102,7 +103,7 @@ public class CorrelationItemTarget {
 
     private static @NotNull CorrelationItemTarget createTarget(
             @NotNull CorrelationItemTargetDefinitionType targetBean,
-            @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext) throws ConfigurationException {
+            @NotNull CorrelatorContext<?> correlatorContext) throws ConfigurationException {
 
         String qualifier = getQualifier(targetBean);
 

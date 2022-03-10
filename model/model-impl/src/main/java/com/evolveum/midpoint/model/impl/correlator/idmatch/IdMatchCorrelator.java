@@ -96,6 +96,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                 .execute(result);
     }
 
+    /** Correlation or update operation. */
     private class Operation {
 
         @NotNull final ShadowType resourceObject;
@@ -108,7 +109,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             this.task = correlationContext.getTask();
         }
 
-        IdMatchObject prepareIdMatchObjectFromContext() throws SchemaException {
+        IdMatchObject prepareIdMatchObjectFromContext() throws SchemaException, ConfigurationException {
             return prepareIdMatchObject(
                     correlationContext.getPreFocus(),
                     correlationContext.getResourceObject());
@@ -146,7 +147,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
         }
 
         private @NotNull IdMatchCorrelatorStateType createCorrelatorState(MatchingResult mResult) {
-            IdMatchCorrelatorStateType state = new IdMatchCorrelatorStateType(PrismContext.get());
+            IdMatchCorrelatorStateType state = new IdMatchCorrelatorStateType();
             state.setReferenceId(mResult.getReferenceId());
             state.setMatchRequestId(mResult.getMatchRequestId());
             return state;
@@ -174,7 +175,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                 @NotNull OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
-            ResourceObjectOwnerOptionsType options = new ResourceObjectOwnerOptionsType(PrismContext.get());
+            ResourceObjectOwnerOptionsType options = new ResourceObjectOwnerOptionsType();
             boolean newIdentityOptionPresent = false;
             for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
                 if (potentialMatch.isNewIdentity()) {
@@ -198,7 +199,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             @Nullable String id = potentialMatch.getReferenceId();
-            ResourceObjectOwnerOptionType potentialOwnerBean = new ResourceObjectOwnerOptionType(PrismContext.get())
+            ResourceObjectOwnerOptionType potentialOwnerBean = new ResourceObjectOwnerOptionType()
                     .identifier(OwnerOptionIdentifier.forExistingOrNoOwner(id).getStringValue())
                     .confidence(potentialMatch.getConfidenceScaledToOne());
             if (id != null) {
@@ -221,7 +222,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             // We create a context with a fake state having the referenceId we want to resolve
             CorrelationContext clonedContext = correlationContext.clone();
             clonedContext.setCorrelatorState(
-                    new IdMatchCorrelatorStateType(PrismContext.get())
+                    new IdMatchCorrelatorStateType()
                             .referenceId(referenceId));
 
             CorrelationResult correlationResult = beans.correlatorFactoryRegistry
@@ -233,18 +234,22 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                     "Unexpected uncertain correlation result for candidate reference ID %s: %s",
                     referenceId, correlationResult);
 
+            if (correlationResult.getOwner() == null) {
+                LOGGER.debug("Couldn't find a candidate owner for reference ID {}", referenceId);
+            }
+
             return ObjectTypeUtil.createObjectRef(correlationResult.getOwner());
         }
 
         private ResourceObjectOwnerOptionType createPotentialMatchBeanForNewIdentity() {
-            return new ResourceObjectOwnerOptionType(PrismContext.get())
+            return new ResourceObjectOwnerOptionType()
                     .identifier(OwnerOptionIdentifier.forNoOwner().getStringValue());
         }
     }
 
     @Override
     public void update(@NotNull CorrelationContext correlationContext, @NotNull OperationResult result)
-            throws SchemaException, CommunicationException, SecurityViolationException {
+            throws SchemaException, CommunicationException, SecurityViolationException, ConfigurationException {
 
         LOGGER.trace("Updating:\n{}", correlationContext.debugDumpLazily(1));
         new UpdateOperation(correlationContext)
@@ -258,7 +263,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
         }
 
         public void execute(OperationResult result)
-                throws SchemaException, CommunicationException, SecurityViolationException {
+                throws SchemaException, CommunicationException, SecurityViolationException, ConfigurationException {
 
             IdMatchCorrelatorStateType correlatorState =
                     ShadowUtil.getCorrelatorStateRequired(
@@ -277,8 +282,10 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             @NotNull String outcomeUri,
             @NotNull Task task,
             @NotNull OperationResult result)
-            throws SchemaException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            throws SchemaException, CommunicationException, SecurityViolationException, ObjectNotFoundException,
+            ExpressionEvaluationException, ConfigurationException {
         ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(aCase);
+        beans.provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
         FocusType preFocus = CorrelatorUtil.getPreFocusFromCorrelationCase(aCase);
         IdMatchObject idMatchObject = prepareIdMatchObject(preFocus, shadow);
         IdMatchCorrelatorStateType state = ShadowUtil.getCorrelatorStateRequired(shadow, IdMatchCorrelatorStateType.class);
@@ -313,9 +320,12 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
         }
     }
 
-    private IdMatchObject prepareIdMatchObject(@NotNull FocusType preFocus, @NotNull ShadowType shadow) throws SchemaException {
+    /**
+     * Shadow must have resource definitions applied.
+     */
+    private IdMatchObject prepareIdMatchObject(@NotNull FocusType preFocus, @NotNull ShadowType shadow)
+            throws SchemaException, ConfigurationException {
         return new IdMatchObjectCreator(correlatorContext, preFocus, shadow)
                 .create();
     }
-
 }

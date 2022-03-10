@@ -97,7 +97,7 @@ class CorrelationItems {
 
             Set<String> unsupported = items.stream()
                     .filter(item -> !item.supportsTarget(targetQualifier))
-                    .map(CorrelationItem::getDebugName)
+                    .map(CorrelationItem::getName)
                     .collect(Collectors.toSet());
             if (!unsupported.isEmpty()) {
                 LOGGER.debug("Correlation item(s) {} does not support target '{}', skipping querying for this target",

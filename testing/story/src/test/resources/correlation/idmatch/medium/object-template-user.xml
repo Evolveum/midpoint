@@ -1,0 +1,185 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                oid="bf275746-f2ce-4ae3-9e91-0c40e26422b7">
+    <name>object-template-user</name>
+    <iterationSpecification>
+        <maxIterations>9999</maxIterations>
+    </iterationSpecification>
+    <mapping>
+        <name>selecting givenName</name>
+        <strength>strong</strength>
+        <source>
+            <path>extension/sisId</path>
+        </source>
+        <source>
+            <path>extension/hrId</path>
+        </source>
+        <source>
+            <path>extension/sisGivenName</path>
+        </source>
+        <source>
+            <path>extension/hrGivenName</path>
+        </source>
+        <source>
+            <path>extension/externalGivenName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    mylib.execute('selectPersonalDataItem', [
+                            sisId: sisId,
+                            hrId: hrId,
+                            sisValue: sisGivenName,
+                            hrValue: hrGivenName,
+                            externalValue: externalGivenName])
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>givenName</path>
+        </target>
+    </mapping>
+    <mapping>
+        <name>selecting familyName</name>
+        <strength>strong</strength>
+        <source>
+            <path>extension/sisId</path>
+        </source>
+        <source>
+            <path>extension/hrId</path>
+        </source>
+        <source>
+            <path>extension/sisFamilyName</path>
+        </source>
+        <source>
+            <path>extension/hrFamilyName</path>
+        </source>
+        <source>
+            <path>extension/externalFamilyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    mylib.execute('selectPersonalDataItem', [
+                            sisId: sisId,
+                            hrId: hrId,
+                            sisValue: sisFamilyName,
+                            hrValue: hrFamilyName,
+                            externalValue: externalFamilyName])
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>familyName</path>
+        </target>
+    </mapping>
+    <mapping>
+        <name>selecting dateOfBirth</name>
+        <strength>strong</strength>
+        <source>
+            <path>extension/sisId</path>
+        </source>
+        <source>
+            <path>extension/hrId</path>
+        </source>
+        <source>
+            <path>extension/sisDateOfBirth</path>
+        </source>
+        <source>
+            <path>extension/hrDateOfBirth</path>
+        </source>
+        <source>
+            <path>extension/externalDateOfBirth</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    mylib.execute('selectPersonalDataItem', [
+                            sisId: sisId,
+                            hrId: hrId,
+                            sisValue: sisDateOfBirth,
+                            hrValue: hrDateOfBirth,
+                            externalValue: externalDateOfBirth])
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>extension/dateOfBirth</path>
+        </target>
+    </mapping>
+    <mapping>
+        <name>selecting nationalId</name>
+        <strength>strong</strength>
+        <source>
+            <path>extension/sisId</path>
+        </source>
+        <source>
+            <path>extension/hrId</path>
+        </source>
+        <source>
+            <path>extension/sisNationalId</path>
+        </source>
+        <source>
+            <path>extension/hrNationalId</path>
+        </source>
+        <source>
+            <path>extension/externalNationalId</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    mylib.execute('selectPersonalDataItem', [
+                            sisId: sisId,
+                            hrId: hrId,
+                            sisValue: sisNationalId,
+                            hrValue: hrNationalId,
+                            externalValue: externalNationalId])
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>extension/nationalId</path>
+        </target>
+    </mapping>
+    <mapping>
+        <strength>strong</strength>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    basic.stringify(givenName) + ' ' + basic.stringify(familyName)
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>fullName</path>
+        </target>
+    </mapping>
+    <mapping>
+        <strength>weak</strength>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    basic.stringify(familyName).toLowerCase() + (iteration + 1)
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>name</path>
+        </target>
+    </mapping>
+</objectTemplate>

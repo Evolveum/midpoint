@@ -47,9 +47,9 @@ public class MatchingUtil {
             if (visitable instanceof PrismProperty<?>) {
                 PrismProperty<?> property = (PrismProperty<?>) visitable;
                 if (property.size() > 1) {
-                    LOGGER.info("Ignoring property because of multiple values: {}", property);
+                    LOGGER.trace("getSingleValuedProperties: Ignoring property because of multiple values: {}", property);
                 } else {
-                    LOGGER.info("Using property {}", property);
+                    LOGGER.trace("getSingleValuedProperties: Using property {}", property);
                     properties.add(property);
                 }
             }

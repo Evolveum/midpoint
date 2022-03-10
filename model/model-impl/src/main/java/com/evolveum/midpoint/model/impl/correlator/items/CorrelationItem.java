@@ -11,6 +11,13 @@ import java.util.*;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.route.ItemRoute;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
@@ -20,10 +27,10 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
 
 import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
 
 /**
  * Instance of a correlation item: covering both source and target side.
@@ -33,7 +40,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * TODO finish!
  */
-class CorrelationItem {
+public class CorrelationItem {
+
+    @NotNull private final String name;
 
     /**
      * The source item definition + content (in pre-focus or in shadow). Provides the right-hand side of correlation queries.
@@ -51,8 +60,10 @@ class CorrelationItem {
     @NotNull private final Map<String, CorrelationItemTarget> targetMap;
 
     private CorrelationItem(
+            @NotNull String name,
             @NotNull CorrelationItemSource source,
             @NotNull Map<String, CorrelationItemTarget> targetMap) {
+        this.name = name;
         this.source = source;
         this.targetMap = targetMap;
     }
@@ -64,8 +75,59 @@ class CorrelationItem {
             throws ConfigurationException {
 
         return new CorrelationItem(
-                CorrelationItemSource.create(itemBean, correlatorContext, correlationContext),
+                getName(itemBean),
+                CorrelationItemSource.create(
+                        itemBean,
+                        correlatorContext,
+                        correlationContext.getResourceObject(),
+                        correlationContext.getPreFocus()),
                 CorrelationItemTarget.createMap(itemBean, correlatorContext));
+    }
+
+    public static CorrelationItem create(
+            @NotNull CorrelationItemDefinitionType itemBean,
+            @NotNull CorrelatorContext<?> correlatorContext,
+            @NotNull ShadowType resourceObject,
+            @NotNull ObjectType preFocus)
+            throws ConfigurationException {
+
+        return new CorrelationItem(
+                getName(itemBean),
+                CorrelationItemSource.create(itemBean, correlatorContext, resourceObject, preFocus),
+                CorrelationItemTarget.createMap(itemBean, correlatorContext));
+    }
+
+    // Temporary code
+    private static String getName(CorrelationItemDefinitionType itemBean) {
+        String explicitName = itemBean.getName();
+        if (explicitName != null) {
+            return explicitName;
+        }
+        if (itemBean instanceof ItemCorrelationType) {
+            String ref = ((ItemCorrelationType) itemBean).getRef();
+            if (ref != null) {
+                return ref;
+            }
+            ItemPathType pathBean = ((ItemCorrelationType) itemBean).getPath();
+            if (pathBean != null) {
+                ItemName lastName = pathBean.getItemPath().lastName();
+                if (lastName != null) {
+                    return lastName.getLocalPart();
+                }
+            }
+        }
+        CorrelationItemSourceDefinitionType sourceBean = itemBean.getSource();
+        if (sourceBean != null) {
+            ItemRoute route = ItemRoute.fromBeans(
+                    sourceBean.getPath(),
+                    sourceBean.getRoute());
+            ItemName lastName = route.lastName();
+            if (lastName != null) {
+                return lastName.getLocalPart();
+            }
+        }
+        throw new IllegalStateException(
+                "Couldn't determine name for correlation item: no name, ref, nor source path in " + itemBean);
     }
 
     /**
@@ -90,14 +152,6 @@ class CorrelationItem {
         return source.getRealValue() != null;
     }
 
-    @Override
-    public String toString() {
-        return "CorrelationItem{" +
-                "source=" + source +
-                ", targets=" + targetMap +
-                '}';
-    }
-
     @NotNull Set<String> getTargetQualifiers() {
         return targetMap.keySet();
     }
@@ -106,7 +160,32 @@ class CorrelationItem {
         return targetMap.containsKey(targetQualifier);
     }
 
-    @Nullable String getDebugName() {
-        return source.getDebugName();
+    /**
+     * Returns the source value wrapped in a property.
+     * The property will be named after correlation item, not after the source property.
+     *
+     * It may be empty. But must not be multi-valued.
+     */
+    public @Nullable PrismProperty<?> getRenamedSourceProperty() throws SchemaException {
+        var property = source.getProperty();
+        if (property == null || name.equals(property.getElementName().getLocalPart())) {
+            return property;
+        }
+        PrismProperty<?> clone = property.clone();
+        clone.setElementName(new QName(name));
+        return clone;
+    }
+
+    public @NotNull String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return "CorrelationItem{" +
+                "name=" + name +
+                ", source=" + source +
+                ", targets=" + targetMap +
+                '}';
     }
 }

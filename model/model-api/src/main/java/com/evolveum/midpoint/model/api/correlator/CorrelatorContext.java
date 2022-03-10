@@ -179,7 +179,7 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
     /**
      * Returns all relevant named item definitions - from this context and all its parents.
      */
-    private @NotNull Map<String, CorrelationItemDefinitionType> getItemDefinitionsMap() throws ConfigurationException {
+    public @NotNull Map<String, CorrelationItemDefinitionType> getItemDefinitionsMap() throws ConfigurationException {
         try {
             Map<String, CorrelationItemDefinitionType> defMap = new HashMap<>();
             addAllItemsDefinitions(defMap);

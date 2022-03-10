@@ -24039,36 +24039,26 @@
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="ref" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Points to a shared item definition in "items" part of "definitions".
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="source" type="c:CorrelationItemSourceDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="target" type="tns:CorrelationItemTargetDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
+        <xsd:complexContent>
+            <xsd:extension base="c:CorrelationItemDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="ref" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Points to a shared item definition in "items" part of "definitions".
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="itemCorrelation" type="tns:ItemCorrelationType"/>
 
@@ -24215,8 +24205,8 @@
                     <xsd:element name="sorIdentifierProperty" type="t:ItemPathType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Attribute whose value provides the base of the SOR identifier. Default is "$shadow/icfs:uid".
-                                (TODO revise the default. Is it possible for it to be the current primary identifier?)
+                                Attribute whose value provides the base of the SOR identifier. Default is the primary
+                                identifier in the shadow.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

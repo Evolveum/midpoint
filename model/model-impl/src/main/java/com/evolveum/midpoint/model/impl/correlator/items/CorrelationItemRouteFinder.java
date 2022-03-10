@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.schema.route.ItemRoute;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemSourceDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
 
@@ -35,9 +36,9 @@ public class CorrelationItemRouteFinder {
      * The route is taken either from the local item definition bean, or from referenced named item definition.
      */
     static ItemRoute findForSource(
-            @NotNull ItemCorrelationType itemBean,
-            @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext) throws ConfigurationException {
-        String ref = itemBean.getRef();
+            @NotNull CorrelationItemDefinitionType itemBean,
+            @NotNull CorrelatorContext<?> correlatorContext) throws ConfigurationException {
+        String ref = itemBean instanceof ItemCorrelationType ? ((ItemCorrelationType) itemBean).getRef() : null;
         if (ref != null) {
             CorrelationItemSourceDefinitionType sharedDefinition = correlatorContext.getNamedItemSourceDefinition(ref);
             return ItemRoute.fromBeans(
@@ -51,7 +52,7 @@ public class CorrelationItemRouteFinder {
                     sourceBean.getRoute());
         }
 
-        ItemPathType pathBean = itemBean.getPath();
+        ItemPathType pathBean = itemBean instanceof ItemCorrelationType ? ((ItemCorrelationType) itemBean).getPath() : null;
         if (pathBean != null) {
             return ItemRoute.fromPath(pathBean.getItemPath());
         }

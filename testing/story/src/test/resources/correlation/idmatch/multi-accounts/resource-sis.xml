@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -135,12 +135,61 @@
             <correlationDefinition>
                 <correlators>
                     <idMatch>
-                        <!-- <sorLabel>midpoint</sorLabel>--> <!-- this is the default -->
+                        <definitions>
+                            <items>
+                                <item>
+                                    <source>
+                                        <path>assignment/extension/givenName</path>
+                                    </source>
+                                    <target>
+                                        <path>givenName</path>
+                                    </target>
+                                    <target>
+                                        <qualifier>systems</qualifier>
+                                        <path>assignment/extension/givenName</path>
+                                    </target>
+                                </item>
+                                <item>
+                                    <source>
+                                        <path>assignment/extension/familyName</path>
+                                    </source>
+                                    <target>
+                                        <path>familyName</path>
+                                    </target>
+                                    <target>
+                                        <qualifier>systems</qualifier>
+                                        <path>assignment/extension/familyName</path>
+                                    </target>
+                                </item>
+                                <item>
+                                    <source>
+                                        <path>assignment/extension/dateOfBirth</path>
+                                    </source>
+                                    <target>
+                                        <path>extension/dateOfBirth</path>
+                                    </target>
+                                    <target>
+                                        <qualifier>systems</qualifier>
+                                        <path>assignment/extension/dateOfBirth</path>
+                                    </target>
+                                </item>
+                                <item>
+                                    <source>
+                                        <path>assignment/extension/nationalId</path>
+                                    </source>
+                                    <target>
+                                        <path>extension/nationalId</path>
+                                    </target>
+                                    <target>
+                                        <qualifier>systems</qualifier>
+                                        <path>assignment/extension/nationalId</path>
+                                    </target>
+                                </item>
+                            </items>
+                        </definitions>
                         <sorIdentifierPrefix>sis-</sorIdentifierPrefix>
-                        <sorIdentifierProperty>assignment/extension/sourceId</sorIdentifierProperty>
-
                         <!-- URL and credentials are ignored when dummy ID Match Service implementation is used.
-                             They are used only when running TestIdMatchReal (not part of the test suite). -->
+                             They are used only when running TestIdMatchCorrelationMultiAccountsReal (not part of the test suite). -->
                         <url>http://localhost:9090/match/api/1</url>
                         <username>administrator</username>
                         <password><t:clearValue>5ecr3t</t:clearValue></password>
@@ -160,24 +209,6 @@
                     </idMatch>
                 </correlators>
                 <cases/>
-                <correlationProperties>
-                    <property>
-                        <source>assignment/extension/givenName</source>
-                        <primaryTarget>givenName</primaryTarget>
-                    </property>
-                    <property>
-                        <source>assignment/extension/familyName</source>
-                        <primaryTarget>familyName</primaryTarget>
-                    </property>
-                    <property>
-                        <source>assignment/extension/dateOfBirth</source>
-                        <primaryTarget>extension/dateOfBirth</primaryTarget>
-                    </property>
-                    <property>
-                        <source>assignment/extension/nationalId</source>
-                        <primaryTarget>extension/nationalId</primaryTarget>
-                    </property>
-                </correlationProperties>
             </correlationDefinition>
             <reaction>
                 <situation>linked</situation>

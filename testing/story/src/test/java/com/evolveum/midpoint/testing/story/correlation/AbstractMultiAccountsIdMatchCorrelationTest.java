@@ -20,7 +20,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,9 +40,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * There are two source systems: `SIS` (Student Information System) and `HR` (Human Resources).
  * But only `SIS` is currently implemented here.
  */
-public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
+public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends AbstractIdMatchCorrelationTest {
 
-    public static final File TEST_DIR = new File(AbstractCorrelationTest.TEST_DIR, "idmatch");
+    public static final File TEST_DIR = new File(AbstractCorrelationTest.TEST_DIR, "idmatch/multi-accounts");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "000-system-configuration.xml");
 
@@ -89,9 +88,6 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
 
     private static final TestTask TASK_UPDATE_SIS = new TestTask(TEST_DIR, "task-update-sis.xml",
             "3fd6d6a8-4cd3-4d46-bdca-bec123dbd507", 30000);
-
-    private static final String NS_EXT = "http://example.com/idmatch";
-    private static final ItemName EXT_REFERENCE_ID = new ItemName(NS_EXT, "referenceId");
 
     private UserType john;
 
@@ -358,7 +354,7 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
         WorkItemId workItemId = WorkItemId.of(correlationCase.getWorkItem().get(0));
 
         // TODO adapt when URIs are changed to use OIDs
-        AbstractWorkItemOutputType output = new AbstractWorkItemOutputType(prismContext)
+        AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
                 .outcome(SchemaConstants.CORRELATION_EXISTING_PREFIX + getReferenceId(john)); // unqualified should be OK here
 
         dummyAuditService.clear();
