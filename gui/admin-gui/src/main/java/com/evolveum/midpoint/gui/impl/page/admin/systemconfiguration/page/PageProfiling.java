@@ -49,6 +49,4 @@ public class PageProfiling extends PageBaseSystemConfiguration {
     public Class<? extends Containerable> getDetailsType() {
         return ProfilingConfigurationType.class;
     }
-
-    // todo entry/exit profiling fields are missing, see ProfilingConfigurationTabPanel.ID_PROFILING_LOGGER component
 }
