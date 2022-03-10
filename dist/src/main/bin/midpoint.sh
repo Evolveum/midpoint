@@ -171,8 +171,20 @@ fi
 
 mkdir -p "${MIDPOINT_HOME}/log"
 
-# shellcheck disable=SC2034  # ORIG_JAVA_OPTS can be used used in setenv.sh lower
-ORIG_JAVA_OPTS="${JAVA_OPTS:-}"
+# Apply bin/setenv.sh if it exists. This setenv.sh does not depend on MIDPOINT_HOME.
+# The script can either append or overwrite JAVA_OPTS, e.g. to set -Dmidpoint.nodeId.
+if [[ -r "${SCRIPT_DIR}/setenv.sh" ]]; then
+  echo "Applying setenv.sh from ${SCRIPT_DIR} directory."
+  # shellcheck disable=SC1091
+  . "${SCRIPT_DIR}/setenv.sh"
+fi
+
+# Apply $MIDPOINT_HOME/setenv.sh if it exists. This is flexible and related to chosen MIDPOINT_HOME.
+if [[ -r "${MIDPOINT_HOME}/setenv.sh" ]]; then
+  echo "Applying setenv.sh from ${MIDPOINT_HOME} directory."
+  # shellcheck disable=SC1091
+  . "${MIDPOINT_HOME}/setenv.sh"
+fi
 
 #############################
 # Originally Docker related #
@@ -339,22 +351,6 @@ if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Djava.util.logging.manager=") ; then 
 
 #clean up white spaces in case of key/value removal from the original JAVA_OPTS parameter set
 JAVA_OPTS="$(echo "${JAVA_OPTS:-}" | tr -s [[:space:]] " " | sed "s/^[[:space:]]//;s/[[:space:]]$//" )"
-
-# Apply bin/setenv.sh if it exists. This setenv.sh does not depend on MIDPOINT_HOME.
-# The script can either append or overwrite JAVA_OPTS, e.g. to set -Dmidpoint.nodeId.
-# It can also utilize ORIG_JAVA_OPTS that is original JAVA_OPTS before running midpoint.sh.
-if [[ -r "${SCRIPT_DIR}/setenv.sh" ]]; then
-  echo "Applying setenv.sh from ${SCRIPT_DIR} directory."
-  # shellcheck disable=SC1091
-  . "${SCRIPT_DIR}/setenv.sh"
-fi
-
-# Apply $MIDPOINT_HOME/setenv.sh if it exists. This is flexible and related to chosen MIDPOINT_HOME.
-if [[ -r "${MIDPOINT_HOME}/setenv.sh" ]]; then
-  echo "Applying setenv.sh from ${MIDPOINT_HOME} directory."
-  # shellcheck disable=SC1091
-  . "${MIDPOINT_HOME}/setenv.sh"
-fi
 
 : "${BOOT_OUT:="${MIDPOINT_HOME}/log/midpoint.out"}"
 : "${PID_FILE:="${MIDPOINT_HOME}/log/midpoint.pid"}"
