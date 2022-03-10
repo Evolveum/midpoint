@@ -171,6 +171,9 @@ fi
 
 mkdir -p "${MIDPOINT_HOME}/log"
 
+#To prevent error for netenv.sh processing (set -u).
+JAVA_OPTS="${JAVA_OPTS:- }"
+
 # Apply bin/setenv.sh if it exists. This setenv.sh does not depend on MIDPOINT_HOME.
 # The script can either append or overwrite JAVA_OPTS, e.g. to set -Dmidpoint.nodeId.
 if [[ -r "${SCRIPT_DIR}/setenv.sh" ]]; then
