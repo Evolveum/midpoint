@@ -76,7 +76,9 @@ public class ImportAuditRepositoryAction extends RepositoryAction<ImportAuditOpt
     private ImportProducerWorker<AuditEventRecordType> importByFilter(
             ObjectFilter filter, boolean stopAfterFound,
             BlockingQueue<AuditEventRecordType> queue, OperationStatus status) {
-        return new ImportProducerWorker<>(context, options, queue, status, filter, stopAfterFound, false);
+        ImportProducerWorker ret = new ImportProducerWorker<>(context, options, queue, status, filter, stopAfterFound, false);
+        ret.setConvertMissingType(true);
+        return ret;
     }
 
     private List<ImportAuditConsumerWorker> createConsumers(

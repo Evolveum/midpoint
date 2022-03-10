@@ -7,10 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 
-import javax.xml.namespace.QName;
-
-import org.apache.wicket.model.IModel;
-
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -23,13 +19,16 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
+import org.apache.wicket.model.IModel;
+
+import javax.xml.namespace.QName;
+
 /**
- * @deprecated
- *
- * This helper model was created because currently there's no simple way of creating PrismContainerWrapper automatically if ItemPath
+ * @deprecated This helper model was created because currently there's no simple way of creating PrismContainerWrapper automatically if ItemPath
  * has more than one item. PrismObjectWrapper creates containers only up to first level. In our case for SystemConfigurationType it creates
  * PrismContainerWrapper for messageTransportConfiguration container but if there's no existing configuration, this container contains zero items.
  *
@@ -82,10 +81,7 @@ public class MessageTransportContainerModel<T extends Containerable> implements 
 
             return child;
         } catch (SchemaException ex) {
-            // todo handle
-            ex.printStackTrace();
+            throw new SystemException("Couldn't create message transport configuration container item for " + containerName, ex);
         }
-
-        return null;
     }
 }

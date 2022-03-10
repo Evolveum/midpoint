@@ -12,14 +12,8 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.PolyStringUtils;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -157,6 +151,8 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         executeFilter(filter, 1, task, result);
     }
 
+
+
     //@Test //TODO uncomment when eq filter will support multivalue values
     public void test160EvaluateExpressionNameMultivalueFilter() throws Exception {
         // GIVEN
@@ -231,6 +227,51 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         assertEquals("Wrong number of values in filter: " + refFilter.getValues(), 1, refFilter.getValues().size());
 
         executeFilter(filter, 1, task, result);
+    }
+
+    @Test
+    public void test310EvaluateExpressionEmployeeTypeDefaultsNull() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ObjectFilter filter = evaluateExpressionAssertFilter("expression-aql-employeeType-filter-defaults.xml",
+                null, EqualFilter.class, task, result);
+
+        EqualFilter equalFilter = (EqualFilter) filter;
+        AssertJUnit.assertNull("Expected NO values in filter, but found " + equalFilter.getValues(), equalFilter.getValues());
+
+        executeFilter(filter, 4, task, result);
+    }
+
+    @Test
+    public void test320AqlEvaluateExpressionNameFilter() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ObjectFilter filter = evaluateExpressionAssertFilter("expression-aql-name-value-filter.xml",
+                null, EqualFilter.class, task, result);
+
+        EqualFilter equalFilter = (EqualFilter) filter;
+        PrismAsserts.assertValues("Wrong values in filter", equalFilter.getValues(), new PolyString("barbossa", "barbossa"));
+
+        executeFilter(filter, 1, task, result);
+    }
+
+    @Test
+    public void test330EvaluateExpressionLinkRefObjectReferenceTypeDefaultsNull() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ObjectFilter filter = evaluateExpressionAssertFilter("expression-aql-linkref-object-reference-type-filter-defaults.xml",
+                null, RefFilter.class, task, result);
+
+        RefFilter refFilter = (RefFilter) filter;
+        AssertJUnit.assertNull("Expected NO values in filter, but found " + refFilter.getValues(), refFilter.getValues());
+
+        executeFilter(filter, 2, task, result);
     }
 
     private ObjectFilter evaluateExpressionAssertFilter(String filename,

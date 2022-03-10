@@ -107,7 +107,7 @@ public class ConfigurableUserDashboardContentPanel extends MultivalueContainerLi
 
     @Override
     protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.PAGE_MESSAGE_TEMPLATE_LOCALIZED_CONTENT_PANEL;    // todo fix
+        return UserProfileStorage.TableId.PANEL_CONFIGURABLE_USER_DASHBOARD_CONTENT;
     }
 
     @Override
