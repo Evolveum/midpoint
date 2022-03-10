@@ -26,7 +26,6 @@ import com.google.common.base.Strings;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.sql.SQLQuery;
 
 import com.evolveum.midpoint.prism.*;
@@ -52,6 +51,7 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.FilterOperation;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -109,8 +109,7 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
         ValueFilterValues<?, ?> values = ValueFilterValues.from(propertyValueFilter);
         FilterOperation operation = operation(filter);
 
-        List<?> filterValues = filter.getValues();
-        if (filterValues == null || filterValues.isEmpty()) {
+        if (values.isEmpty()) {
             if (operation.isAnyEqualOperation()) {
                 return extItemIsNull(extItem);
             } else {
@@ -120,23 +119,6 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
 
         if (extItem.valueType.equals(STRING_TYPE)) {
             return processString(extItem, values, operation, filter);
-        }
-
-        // TODO for anything lower we don't support multi-value filter yet, but the solution from string can be adapted.
-        if (filterValues.size() > 1) {
-            throw new QueryException(
-                    "Multiple values in filter are not supported for extension items: " + filter);
-        }
-
-        if (ExtUtils.isEnumDefinition((PrismPropertyDefinition<?>) definition)) {
-            return processEnum(extItem, values, operation, filter);
-        } else if (extItem.valueType.equals(INT_TYPE) || extItem.valueType.equals(INTEGER_TYPE)
-                || extItem.valueType.equals(LONG_TYPE) || extItem.valueType.equals(SHORT_TYPE)
-                || extItem.valueType.equals(DOUBLE_TYPE) || extItem.valueType.equals(FLOAT_TYPE)
-                || extItem.valueType.equals(DECIMAL_TYPE)) {
-            return processNumeric(extItem, values, operation, filter);
-        } else if (extItem.valueType.equals(BOOLEAN_TYPE)) {
-            return processBoolean(extItem, values, operation, filter);
         } else if (extItem.valueType.equals(DATETIME_TYPE)) {
             //noinspection unchecked
             PropertyValueFilter<XMLGregorianCalendar> dateTimeFilter =
@@ -144,6 +126,23 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
             return processString(extItem,
                     ValueFilterValues.from(dateTimeFilter, ExtUtils::extensionDateTime),
                     operation, filter);
+        } else if (ExtUtils.isEnumDefinition((PrismPropertyDefinition<?>) definition)) {
+            return processEnum(extItem, values, operation, filter);
+        } else if (extItem.valueType.equals(INT_TYPE) || extItem.valueType.equals(INTEGER_TYPE)
+                || extItem.valueType.equals(LONG_TYPE) || extItem.valueType.equals(SHORT_TYPE)
+                || extItem.valueType.equals(DOUBLE_TYPE) || extItem.valueType.equals(FLOAT_TYPE)
+                || extItem.valueType.equals(DECIMAL_TYPE)) {
+            return processNumeric(extItem, values, operation, filter);
+        }
+
+        // TODO for anything lower we don't support multi-value filter yet, but the solution from string can be adapted.
+        if (values.isMultiValue()) {
+            throw new QueryException(
+                    "Multiple values in filter are not supported for extension items: " + filter);
+        }
+
+        if (extItem.valueType.equals(BOOLEAN_TYPE)) {
+            return processBoolean(extItem, values, operation, filter);
         } else if (extItem.valueType.equals(POLY_STRING_TYPE)) {
             return processPolyString(extItem, values, operation, propertyValueFilter);
         }
@@ -199,41 +198,30 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
             MExtItem extItem, ValueFilterValues<?, ?> values, FilterOperation operation, ObjectFilter filter)
             throws QueryException {
         if (operation.isEqualOperation()) {
-            if (values.isMultiValue()) {
-                // This works with GIN index: https://dba.stackexchange.com/a/130863/157622
-                return predicateWithNotTreated(path,
-                        booleanTemplate("{0} @> ANY ({1})", path,
-                                values.allValues().stream()
-                                        .map(v -> jsonbValue(extItem, v))
-                                        .toArray(Jsonb[]::new)));
-            } else {
-                return predicateWithNotTreated(path,
-                        booleanTemplate("{0} @> {1}", path, jsonbValue(extItem, values.singleValue())));
-            }
+            return equalPredicate(extItem, values);
+        }
+
+        // other non-EQ operations
+        if (extItem.cardinality == SCALAR) {
+            // {1s} means "as string", this is replaced before JDBC driver, just as path is,
+            // but for path types it's automagic, integer would turn to param and ?.
+            // IMPORTANT: To get string from JSONB we want to use ->> or #>>'{}' operators,
+            // that properly escape the value. Using ::TEXT cast would return the string with
+            // double-quotes. For more: https://dba.stackexchange.com/a/234047/157622
+            return singleValuePredicateWithNotTreated(stringTemplate("{0}->>'{1s}'", path, extItem.id),
+                    operation, values.singleValue());
+        } else if (!values.isMultiValue()) {
+            // e.g. for substring: WHERE ... ext ? '421'
+            //   AND exists (select 1 from jsonb_array_elements_text(ext->'421') as val where val like '%2%')
+            // This can't use index, but it works. Sparse keys are helped a lot by indexed ext ? key condition.
+            SQLQuery<?> subselect = new SQLQuery<>().select(QuerydslUtils.EXPRESSION_ONE)
+                    .from(stringTemplate("jsonb_array_elements_text({0}->'{1s}') as val", path, extItem.id))
+                    .where(singleValuePredicate(stringTemplate("val"), operation, values.singleValue()));
+            return booleanTemplate("{0} ?? '{1s}'", path, extItem.id)
+                    .and(subselect.exists());
         } else {
-            // other non-EQ operations
-            if (extItem.cardinality == SCALAR) {
-                // {1s} means "as string", this is replaced before JDBC driver, just as path is,
-                // but for path types it's automagic, integer would turn to param and ?.
-                // IMPORTANT: To get string from JSONB we want to use ->> or #>>'{}' operators,
-                // that properly escape the value. Using ::TEXT cast would return the string with
-                // double-quotes. For more: https://dba.stackexchange.com/a/234047/157622
-                return singleValuePredicateWithNotTreated(stringTemplate("{0}->>'{1s}'", path, extItem.id),
-                        operation, values.singleValue());
-            } else if (!values.isMultiValue()) {
-                // e.g. for substring: WHERE ... ext ? '421'
-                //   AND exists (select val from jsonb_array_elements_text(ext->'421') as val where val ilike '%2%')
-                // This can't use index, but it functions. Sparse keys are helped a lot by indexed ext ? key condition.
-                StringTemplate valPath = stringTemplate("val");
-                SQLQuery<String> subselect = new SQLQuery<>().select(valPath)
-                        .from(stringTemplate("jsonb_array_elements_text({0}->'{1s}') as val", path, extItem.id))
-                        .where(singleValuePredicate(valPath, operation, values.singleValue()));
-                return booleanTemplate("{0} ?? '{1s}'", path, extItem.id)
-                        .and(subselect.exists());
-            } else {
-                throw new QueryException("Non-equal operation not supported for multi-value extensions"
-                        + " and multiple values on the right-hand; used filter: " + filter);
-            }
+            throw new QueryException("Non-equal operation not supported for multi-value extensions"
+                    + " and multiple values on the right-hand; used filter: " + filter);
         }
     }
 
@@ -245,28 +233,49 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
                     "Only equals is supported for enum extensions; used filter: " + filter);
         }
 
-        return predicateWithNotTreated(path,
-                booleanTemplate("{0} @> {1}", path, jsonbValue(extItem, values.singleValue())));
+        return equalPredicate(extItem, values);
     }
 
     private Predicate processNumeric(
             MExtItem extItem, ValueFilterValues<?, ?> values, FilterOperation operation, ObjectFilter filter)
             throws QueryException {
         if (operation.isEqualOperation()) {
+            return equalPredicate(extItem, values);
+        }
+
+        // other non-EQ operations
+        if (extItem.cardinality == SCALAR) {
+            // {1s} means "as string", this is replaced before JDBC driver, just as path is,
+            // but for path types it's automagic, integer would turn to param and ?.
+            return singleValuePredicateWithNotTreated(
+                    stringTemplate("({0}->'{1s}')::numeric", path, extItem.id),
+                    operation,
+                    values.singleValue());
+        } else if (!values.isMultiValue()) {
+            // e.g. for substring: WHERE ... ext ? '421'
+            //   AND exists (select 1 from jsonb_array_elements(ext->'421') as val where val::numeric > 40)
+            // This can't use index, but it works. Sparse keys are helped a lot by indexed ext ? key condition.
+            SQLQuery<?> subselect = new SQLQuery<>().select(QuerydslUtils.EXPRESSION_ONE)
+                    .from(stringTemplate("jsonb_array_elements({0}->'{1s}') as val", path, extItem.id))
+                    .where(singleValuePredicate(stringTemplate("val::numeric"), operation, values.singleValue()));
+            return booleanTemplate("{0} ?? '{1s}'", path, extItem.id)
+                    .and(subselect.exists());
+        } else {
+            throw new QueryException("Non-equal operation not supported for multi-value extensions"
+                    + " and multiple values on the right-hand; used filter: " + filter);
+        }
+    }
+
+    private Predicate equalPredicate(MExtItem extItem, ValueFilterValues<?, ?> values) throws QueryException {
+        if (values.isMultiValue()) {
+            return predicateWithNotTreated(path,
+                    booleanTemplate("{0} @> ANY ({1})", path,
+                            values.allValues().stream()
+                                    .map(v -> jsonbValue(extItem, v))
+                                    .toArray(Jsonb[]::new)));
+        } else {
             return predicateWithNotTreated(path,
                     booleanTemplate("{0} @> {1}", path, jsonbValue(extItem, values.singleValue())));
-        } else {
-            if (extItem.cardinality == SCALAR) {
-                // {1s} means "as string", this is replaced before JDBC driver, just as path is,
-                // but for path types it's automagic, integer would turn to param and ?.
-                return singleValuePredicateWithNotTreated(
-                        stringTemplate("({0}->'{1s}')::numeric", path, extItem.id),
-                        operation,
-                        values.singleValue());
-            } else {
-                throw new QueryException("Only equals is supported for"
-                        + " multi-value numeric extensions; used filter: " + filter);
-            }
         }
     }
 
@@ -278,9 +287,8 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
                     "Only equals is supported for boolean extensions; used filter: " + filter);
         }
 
-        // array for booleans doesn't make any sense, but whatever...
-        return predicateWithNotTreated(path,
-                booleanTemplate("{0} @> {1}", path, jsonbValue(extItem, values.singleValue())));
+        // We don't really expect array for booleans here.
+        return equalPredicate(extItem, values);
     }
 
     // filter should be PropertyValueFilter<PolyString>, but pure Strings are handled fine
@@ -293,7 +301,7 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
 
         if (extItem.cardinality == ARRAY && !operation.isEqualOperation()) {
             throw new QueryException("Only equals is supported for"
-                    + " multi-value extensions; used filter: " + filter);
+                    + " multi-value poly-string extensions; used filter: " + filter);
         }
 
         if (Strings.isNullOrEmpty(matchingRule) || DEFAULT.equals(matchingRule)
@@ -384,7 +392,7 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
 
     /**
      * Creates JSONB value for `@>` (contains) operation.
-     * Only one value should be provided, it is wrapped in collection (JSONB array in the end)
+     * Only one value should be provided, it is wrapped in collection for non-SCALAR items
      * only to match the structure of stored multi-value extension property.
      */
     private Jsonb jsonbValue(MExtItem extItem, Object value) {
