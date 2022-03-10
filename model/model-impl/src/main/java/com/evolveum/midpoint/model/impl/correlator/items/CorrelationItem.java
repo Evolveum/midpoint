@@ -7,10 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.correlator.items;
 
-import java.util.Objects;
+import java.util.*;
+
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
@@ -21,6 +22,8 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Instance of a correlation item: covering both source and target side.
@@ -38,24 +41,20 @@ class CorrelationItem {
     @NotNull private final CorrelationItemSource source;
 
     /**
-     * The primary target item definition. Provides the left-hand side of correlation queries.
-     */
-    @NotNull private final CorrelationItemTarget primaryTarget;
-
-    /**
-     * The secondary target item definition. Provides the left-hand side of additional correlation queries.
+     * The target item definition(s), indexed by the qualifier.
      *
-     * May or may not be present. Usually present in "multi-accounts" scenarios.
+     * Provides the left-hand side of correlation queries.
+     *
+     * All keys (qualifiers) must be non-null! The primary qualifier is
+     * {@link ModelPublicConstants#PRIMARY_CORRELATION_ITEM_TARGET}.
      */
-    @Nullable private final CorrelationItemTarget secondaryTarget;
+    @NotNull private final Map<String, CorrelationItemTarget> targetMap;
 
     private CorrelationItem(
             @NotNull CorrelationItemSource source,
-            @NotNull CorrelationItemTarget primaryTarget,
-            @Nullable CorrelationItemTarget secondaryTarget) {
+            @NotNull Map<String, CorrelationItemTarget> targetMap) {
         this.source = source;
-        this.primaryTarget = primaryTarget;
-        this.secondaryTarget = secondaryTarget;
+        this.targetMap = targetMap;
     }
 
     public static CorrelationItem create(
@@ -64,24 +63,21 @@ class CorrelationItem {
             @NotNull CorrelationContext correlationContext)
             throws ConfigurationException {
 
-        CorrelationItemSource source = CorrelationItemSource.create(itemBean, correlatorContext, correlationContext);
-        CorrelationItemTarget primaryTarget = CorrelationItemTarget.createPrimary(itemBean, correlatorContext);
-        CorrelationItemTarget secondaryTarget = CorrelationItemTarget.createSecondary(itemBean, correlatorContext);
-
-        return new CorrelationItem(source, primaryTarget, secondaryTarget);
+        return new CorrelationItem(
+                CorrelationItemSource.create(itemBean, correlatorContext, correlationContext),
+                CorrelationItemTarget.createMap(itemBean, correlatorContext));
     }
 
     /**
      * Adds a EQ clause to the current query builder.
      */
-    S_AtomicFilterExit addClauseToQueryBuilder(S_FilterEntry builder, boolean primary) throws SchemaException {
+    S_AtomicFilterExit addClauseToQueryBuilder(S_FilterEntry builder, String targetQualifier) throws SchemaException {
         Object valueToFind = MiscUtil.requireNonNull(
                 source.getRealValue(),
                 () -> new UnsupportedOperationException("Correlation on null item values is not yet supported"));
-        CorrelationItemTarget target = primary ? primaryTarget : secondaryTarget;
-        return builder.item(
-                        Objects.requireNonNull(target).getRelativePath())
-                .eq(valueToFind);
+        CorrelationItemTarget target = Objects.requireNonNull(targetMap.get(targetQualifier));
+        return builder
+                .item(target.getRelativePath()).eq(valueToFind);
         // TODO matching rule
     }
 
@@ -94,16 +90,23 @@ class CorrelationItem {
         return source.getRealValue() != null;
     }
 
-    boolean hasSecondaryTarget() {
-        return secondaryTarget != null;
-    }
-
     @Override
     public String toString() {
         return "CorrelationItem{" +
                 "source=" + source +
-                ", primaryTarget=" + primaryTarget +
-                ", secondaryTargets=" + secondaryTarget +
+                ", targets=" + targetMap +
                 '}';
+    }
+
+    @NotNull Set<String> getTargetQualifiers() {
+        return targetMap.keySet();
+    }
+
+    boolean supportsTarget(@NotNull String targetQualifier) {
+        return targetMap.containsKey(targetQualifier);
+    }
+
+    @Nullable String getDebugName() {
+        return source.getDebugName();
     }
 }

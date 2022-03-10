@@ -7,17 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.correlator.items;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -26,18 +20,13 @@ import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -68,13 +57,11 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
 
         @NotNull private final ShadowType resourceObject;
         @NotNull private final CorrelationContext correlationContext;
-        @NotNull private final Task task;
         @NotNull private final String contextDescription;
 
         Correlation(@NotNull CorrelationContext correlationContext) {
             this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
-            this.task = correlationContext.getTask();
             this.contextDescription = getDefaultContextDescription(correlationContext);
         }
 
@@ -121,14 +108,39 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                 }
             }
 
-            ObjectQuery query = correlationItems.createQuery(correlationContext.getFocusType());
+            List<ObjectQuery> queries = correlationItems.createQueries(correlationContext.getFocusType());
+            LOGGER.debug("Correlation items specification resulted in {} queries", queries.size());
 
+            List<F> candidates = new ArrayList<>();
+            for (ObjectQuery query : queries) {
+                executeQuery(query, candidates, result);
+            }
+            return candidates;
+        }
+
+        private void executeQuery(ObjectQuery query, List<F> candidates, OperationResult gResult) throws SchemaException {
             LOGGER.trace("Using the following query to find owner candidates:\n{}", query.debugDumpLazily(1));
             // TODO use read-only option in the future (but is it OK to start a clockwork with immutable object?)
             //noinspection unchecked
-            return asObjectables(
-                    beans.cacheRepositoryService
-                            .searchObjects((Class<F>) correlationContext.getFocusType(), query, null, result));
+            beans.cacheRepositoryService.searchObjectsIterative(
+                    (Class<F>) correlationContext.getFocusType(),
+                    query,
+                    (object, lResult) -> addToCandidates(object.asObjectable(), candidates),
+                    null,
+                    true,
+                    gResult);
+        }
+
+        private boolean addToCandidates(F object, List<F> candidates) {
+            if (candidates.stream()
+                    .noneMatch(candidate -> candidate.getOid().equals(object.getOid()))) {
+                candidates.add(object);
+                if (candidates.size() > MAX_CANDIDATES) {
+                    // TEMPORARY
+                    throw new SystemException("Maximum number of candidate focus objects was exceeded: " + MAX_CANDIDATES);
+                }
+            }
+            return true;
         }
     }
 }

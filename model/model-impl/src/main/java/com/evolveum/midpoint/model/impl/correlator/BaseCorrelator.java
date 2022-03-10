@@ -45,6 +45,9 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
     /** Useful beans. */
     @NotNull protected final ModelBeans beans;
 
+    // Temporary. This should be configurable.
+    protected static final int MAX_CANDIDATES = 100;
+
     protected BaseCorrelator(
             @NotNull Trace logger,
             @NotNull String typeName,

@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismValue;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
@@ -23,6 +25,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * "Source side" of a {@link CorrelationItem}.
@@ -98,5 +102,10 @@ public class CorrelationItemSource {
                 ", sourceObject=" + sourceObject +
                 ", sourceObjectType=" + sourceObjectType +
                 '}';
+    }
+
+    @Nullable String getDebugName() {
+        ItemName last = route.lastName();
+        return last != null ? last.getLocalPart() : null;
     }
 }

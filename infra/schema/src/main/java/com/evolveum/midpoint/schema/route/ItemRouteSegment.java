@@ -104,4 +104,12 @@ public class ItemRouteSegment {
     public ObjectFilter getParsedSelector() {
         return parsedSelector;
     }
+
+    @Override
+    public String toString() {
+        return path +
+                (parsedSelector != null ?
+                        "[" + parsedSelector + "]" :
+                        selectorBean != null ? "[" + selectorBean + "]" : "");
+    }
 }

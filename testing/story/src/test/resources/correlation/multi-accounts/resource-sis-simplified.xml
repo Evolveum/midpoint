@@ -121,92 +121,74 @@
                     <definitions>
                         <places>
                             <source>
-                                <segment>
-                                    <path>$focus/assignment</path>
-                                </segment>
+                                <path>$focus/assignment</path>
                             </source>
-                            <primaryTarget/>
-                            <secondaryTarget>
-                                <segment>
-                                    <path>assignment</path>
-                                    <selector>
-                                        <q:equal>
-                                            <q:path>extension/correlation</q:path>
-                                            <q:value>true</q:value>
-                                        </q:equal>
-                                        <!-- todo whether to apply also for filtering -->
-                                    </selector>
-                                </segment>
-                            </secondaryTarget>
+                            <target>
+                                <qualifier>systems</qualifier>
+                                <route>
+                                    <!-- Not used for filtering yet -->
+                                    <segment>
+                                        <path>assignment</path>
+                                        <selector>
+                                            <q:equal>
+                                                <q:path>extension/correlation</q:path>
+                                                <q:value>true</q:value>
+                                            </q:equal>
+                                        </selector>
+                                    </segment>
+                                </route>
+                            </target>
                         </places>
                         <items>
                             <item>
                                 <source>
-                                    <segment>
-                                        <path>extension/givenName</path>
-                                    </segment>
+                                    <path>extension/givenName</path>
                                 </source>
-                                <primaryTarget>
-                                    <segment>
-                                        <path>givenName</path>
-                                    </segment>
-                                </primaryTarget>
-                                <secondaryTarget>
-                                    <segment>
-                                        <path>extension/givenName</path>
-                                    </segment>
-                                </secondaryTarget>
+                                <target>
+                                    <path>givenName</path>
+                                </target>
+                                <target>
+                                    <qualifier>systems</qualifier>
+                                    <!-- relative to "place" (assignment[correlation='true']) -->
+                                    <path>extension/givenName</path>
+                                </target>
                             </item>
                             <item>
                                 <source>
-                                    <segment>
-                                        <path>extension/familyName</path>
-                                    </segment>
+                                    <path>extension/familyName</path>
                                 </source>
-                                <primaryTarget>
-                                    <segment>
-                                        <path>familyName</path>
-                                    </segment>
-                                </primaryTarget>
-                                <secondaryTarget>
-                                    <segment>
-                                        <path>extension/familyName</path>
-                                    </segment>
-                                </secondaryTarget>
+                                <target>
+                                    <path>familyName</path>
+                                </target>
+                                <target>
+                                    <qualifier>systems</qualifier>
+                                    <!-- relative to "place" (assignment[correlation='true']) -->
+                                    <path>extension/familyName</path>
+                                </target>
                             </item>
                             <item>
                                 <source>
-                                    <segment>
-                                        <path>extension/dateOfBirth</path>
-                                    </segment>
+                                    <path>extension/dateOfBirth</path>
                                 </source>
-                                <primaryTarget>
-                                    <segment>
-                                        <path>extension/dateOfBirth</path>
-                                    </segment>
-                                </primaryTarget>
-                                <secondaryTarget>
-                                    <segment>
-                                        <path>extension/dateOfBirth</path>
-                                    </segment>
-                                </secondaryTarget>
+                                <target>
+                                    <path>extension/dateOfBirth</path>
+                                </target>
+                                <target>
+                                    <qualifier>systems</qualifier>
+                                    <path>extension/dateOfBirth</path>
+                                </target>
                             </item>
                             <item>
                                 <source>
-                                    <segment>
-                                        <path>extension/nationalId</path>
-                                    </segment>
+                                    <path>extension/nationalId</path>
                                 </source>
-                                <primaryTarget>
-                                    <segment>
-                                        <path>extension/nationalId</path>
-                                    </segment>
-                                </primaryTarget>
-                                <secondaryTarget>
-                                    <segment>
-                                        <path>extension/nationalId</path>
-                                    </segment>
-                                </secondaryTarget>
+                                <target>
+                                    <path>extension/nationalId</path>
+                                </target>
+                                <target>
+                                    <qualifier>systems</qualifier>
+                                    <path>extension/nationalId</path>
+                                </target>
                             </item>
                         </items>
                     </definitions>
