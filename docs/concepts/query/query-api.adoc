@@ -117,8 +117,8 @@ This is caused by `LEFT JOIN` used even when traversing to multi-value container
 E.g., filter on `assignment/targetRef` causes each object with multiple assignments to be returned multiple times.
 Using Exists filter (see later) does not fix this in the Generic repository either, as it also uses `LEFT JOIN` internally.
 
-The new Native repository does not suffer by these problems as it always uses SQL `EXISTS` when traversing
-to multi-value containers and also for Exists filter.
+The new xref:/midpoint/reference/repository/native-postgresql/[Native repository] does not suffer
+by these problems as it always uses SQL `EXISTS` when traversing to multi-value containers and also for Exists filter.
 Native repository actually *ignores distinct* if there is no `JOIN` in the final query, as the returned raws must be distinct.
 Native repository uses `LEFT JOIN` only to traverse across single-valued containers and references and their targets,
 so even then the distinct option is useless and, when honoured, can potetinally hurt SQL performance.
@@ -158,11 +158,15 @@ These filters decide on value(s) of a given property, reference or container.
 
 Generally, they are characterized by:
 
-* a (left-side) *item path*, pointing to a property or a reference,
+* A left-side *item path*, pointing to a property or a reference.
+The item can be single-value or multi-value.
+There are generally no surprises for single-value items.
+Multi-value items can have various limitations for some operations depending on the query engine (provisioning, repository...).
 
-* a (right-side) *constant value(s)* or *item path*, pointing to value(s) to be used in the comparison,
+* A right-side *constant value(s)* or *item path*, used as the other operand for the filter operation.
+Item path on the right side has a limited support only for repository engine.
 
-* optionally a *matching rule*.
+* Optionally, a xref:/midpoint/reference/concepts/matching-rules/[matching rule].
 
 [%autowidth]
 |===
@@ -190,31 +194,34 @@ For multiple filter values: Accepts if one of the left-hand property values is t
 * If left-hand item is a multi-value property, it means _any in_ semantics when repository and in-memory query engine is used.
 *For the resource query, the filter accepts if the attribute contains _all_ the filter values.*
 
-[IMPORTANT]
 Combinations with multiple filter values have *limited support* with the new Native repository.
 There is no official support for this when using the old Generic repository.
+See the section after this table.
 
-Resource and in-memory queries do not support items on the right side of an operator.
+Resource and in-memory queries *do not support items on the right side* of an operator.
 Only constant values may be present there.
 
 | Greater, Less filter
-| property
+| property, limited multi-value support
 | property
 | single, non-null
 | singleton
 | Accepts if one of property values is greater/greater-or-equal/less/less-or-equal in comparison to the filter value.
 For null-valued singleton items always returns false.
 
-Repository supports only single-valued properties on the left-hand side.
+Repository has *limited support* for multi-value properties on the left-hand side.
+See the section after this table.
 
 | Substring filter
-| property
+| property, limited multi-value support
 | property
 | single, non-null
 | -
-| Accepts if the filter value is a substring of one of the property values (optionally specifying if the property value should start or end with the filter value).
+| Accepts if the filter value is a substring of one of the property values (optionally specifying
+if the property value should start or end with the filter value).
 
-Repository supports only single-valued properties on the left-hand side.
+Repository has *limited support* for multi-value properties on the left-hand side.
+See the section after this table.
 
 | Ref filter
 | reference
@@ -223,7 +230,8 @@ Repository supports only single-valued properties on the left-hand side.
 | -
 a| For null filter values: Accepts if the reference is empty.
 
-For non-null filter values: Accepts if one of the reference values match the filter value (or one of filter values, if there are more than one), which means:
+For non-null filter values: Accepts if one of the reference values match the filter value
+(or one of filter values, if there are more than one), which means:
 
 . OID matches,
 
@@ -280,6 +288,35 @@ If you need to check for any relation, you have to provide a value of q:any ther
 * For Org filter, null relation means any relation.
 Of course, q:any can be used as well, and is recommended for clarity.
 ====
+
+==== Notes about value filters in repository queries
+
+The following notes are based on the xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL repository] implementation.
+
+Repository engine is probably used most for the queries in midPoint, repository also provides the richest filtering support.
+But there are some inherent limitations:
+
+* Queries in midPoint can be totally arbitrary and some queries work faster and some may be slow.
+It is virtually impossible to optimize for all cases, given the filtering flexibility.
+
+* Queries are translated to the repository natural language - which is SQL.
+Things like collation can affect some operations, especially ordering and comparison of strings.
+Results can be different from expected, e.g. collation may be case-insesitive (default collation actually is).
+
+* Support for possible filter types (operations) for multi-value items depends on how they are stored in the DB.
+There is a full support for _equals_ operation without any matching rule, regardless of the implementation.
+Support for substring and comparison operations is more tricky, depending on the storage mechanism for the item.
+
+* Multi-value items stored as text array columns (e.g. `subtype`) support all available operations.
+Collation can affect the expected results, as mentioned above.
+
+* Multi-value extension or attribute items stored in JSONB columns support most of the operations,
+depending on the type of the stored item.
+Text, numeric and date-time properties support all the operations.
+Enumerations do not support comparison operations, because the meaning is unclear, but EQ works as expected.
+Multi-value poly-strings currently (4.4+) support only EQ operation.
+Check also xref:/midpoint/reference/schema/custom-schema-extension/#data-types-supported[supported data types for extensions]
+for more information.
 
 == Complex filters
 
@@ -1183,7 +1220,9 @@ Following table shows paging options:
 | property path (e.g. `name`)
 | arbitrary search
 | Property by which the results should be sorted.
-Only one property supported for now
+Only one property is supported by the query language at this moment.
+// TODO this is query schema limitation only, repo can do more: SqlQueryContext#processObjectPaging
+The item to order by should be a single-value item, logically, ordering by multi-value item is ambiguous.
 
 | `ascending`
 | ascending/descending
@@ -1203,11 +1242,6 @@ If 1 specified, resulting list will start with second entry.
 | 2147483647
 | The maximum number of entries returned.
 The operation may return specified number of entries or less.
-
-| `groupBy`
-|
-|
-| Deprecated, will be removed in 4.5.
 
 |===
 
