@@ -85,6 +85,8 @@ public class RestService {
                 throw new NinjaException("Couldn't load prism context", ex);
             }
         });
+
+
     }
 
     public PrismContext getPrismContext() {
