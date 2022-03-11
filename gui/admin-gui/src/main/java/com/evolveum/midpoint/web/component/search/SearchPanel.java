@@ -485,8 +485,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
             @Override
             public IModel<Boolean> getVisible() {
-                return Model.of(WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())
-                        && getModelObject().isAllowedSearchMode(SearchBoxModeType.AXIOM_QUERY));
+                return Model.of(getModelObject().isAllowedSearchMode(SearchBoxModeType.AXIOM_QUERY));
             }
         };
         searchItems.add(searchItem);
