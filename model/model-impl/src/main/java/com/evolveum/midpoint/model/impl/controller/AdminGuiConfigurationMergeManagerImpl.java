@@ -108,35 +108,35 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         return mergedDetailsPage;
     }
 
-    private SummaryPanelSpecificationType mergeSummaryPanels(SummaryPanelSpecificationType defaultSummaryPanelConfiguration, SummaryPanelSpecificationType compiledSummaryPanelConfiguration) {
-        if (compiledSummaryPanelConfiguration == null) {
-            return defaultSummaryPanelConfiguration;
+    private SummaryPanelSpecificationType mergeSummaryPanels(SummaryPanelSpecificationType defaultSummary, SummaryPanelSpecificationType compiledSummary) {
+        if (compiledSummary == null) {
+            return defaultSummary;
         }
 
-        if (defaultSummaryPanelConfiguration == null) {
-            return compiledSummaryPanelConfiguration;
+        if (defaultSummary == null) {
+            return compiledSummary;
         }
 
-        SummaryPanelSpecificationType mergedSummaryPanel = defaultSummaryPanelConfiguration.cloneWithoutId();
-        GuiFlexibleLabelType mergedIdentifier = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getIdentifier(), compiledSummaryPanelConfiguration.getIdentifier());
-        mergedSummaryPanel.setIdentifier(mergedIdentifier);
+        SummaryPanelSpecificationType mergedSummary = defaultSummary.cloneWithoutId();
+        GuiFlexibleLabelType mergedIdentifier = mergeSummaryPanelFlexibleLabel(defaultSummary.getIdentifier(), compiledSummary.getIdentifier());
+        mergedSummary.setIdentifier(mergedIdentifier);
 
-        GuiFlexibleLabelType mergedDisplayName = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getDisplayName(), compiledSummaryPanelConfiguration.getDisplayName());
-        mergedSummaryPanel.setIdentifier(mergedDisplayName);
+        GuiFlexibleLabelType mergedDisplayName = mergeSummaryPanelFlexibleLabel(defaultSummary.getDisplayName(), compiledSummary.getDisplayName());
+        mergedSummary.setDisplayName(mergedDisplayName);
 
-        GuiFlexibleLabelType mergedOrganization = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getOrganization(), compiledSummaryPanelConfiguration.getOrganization());
-        mergedSummaryPanel.setIdentifier(mergedOrganization);
+        GuiFlexibleLabelType mergedOrganization = mergeSummaryPanelFlexibleLabel(defaultSummary.getOrganization(), compiledSummary.getOrganization());
+        mergedSummary.setOrganization(mergedOrganization);
 
-        GuiFlexibleLabelType mergedTitle1 = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getTitle1(), compiledSummaryPanelConfiguration.getTitle1());
-        mergedSummaryPanel.setIdentifier(mergedTitle1);
+        GuiFlexibleLabelType mergedTitle1 = mergeSummaryPanelFlexibleLabel(defaultSummary.getTitle1(), compiledSummary.getTitle1());
+        mergedSummary.setTitle1(mergedTitle1);
 
-        GuiFlexibleLabelType mergedTitle2 = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getTitle2(), compiledSummaryPanelConfiguration.getTitle2());
-        mergedSummaryPanel.setIdentifier(mergedTitle2);
+        GuiFlexibleLabelType mergedTitle2 = mergeSummaryPanelFlexibleLabel(defaultSummary.getTitle2(), compiledSummary.getTitle2());
+        mergedSummary.setTitle2(mergedTitle2);
 
-        GuiFlexibleLabelType mergedTitle3 = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getTitle3(), compiledSummaryPanelConfiguration.getTitle3());
-        mergedSummaryPanel.setIdentifier(mergedTitle3);
+        GuiFlexibleLabelType mergedTitle3 = mergeSummaryPanelFlexibleLabel(defaultSummary.getTitle3(), compiledSummary.getTitle3());
+        mergedSummary.setTitle3(mergedTitle3);
 
-        return mergedSummaryPanel;
+        return mergedSummary;
     }
 
     private GuiFlexibleLabelType mergeSummaryPanelFlexibleLabel(GuiFlexibleLabelType defaultSummaryPanelIdentifier, GuiFlexibleLabelType compiledSummaryPanelIdentifier) {
@@ -413,5 +413,4 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
     private boolean pathsMatch(ItemPathType supperPath, ItemPathType currentPath) {
         return supperPath != null && currentPath != null && supperPath.equivalent(currentPath);
     }
-
 }
