@@ -1,10 +1,12 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sqale.filtering;
+
+import static com.querydsl.core.types.dsl.Expressions.stringTemplate;
 
 import java.lang.reflect.Array;
 import java.util.function.Function;
@@ -12,14 +14,16 @@ import java.util.function.Function;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.StringTemplate;
+import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.FilterOperation;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SinglePathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -59,20 +63,34 @@ public class ArrayPathItemFilterProcessor<T, E>
 
     @Override
     public Predicate process(PropertyValueFilter<T> filter) throws RepositoryException {
-        if (!(filter instanceof EqualFilter) || filter.getMatchingRule() != null) {
-            throw new QueryException("Can't translate filter '" + filter + "' to operation."
-                    + " Array stored value supports only equals with no matching rule.");
-        }
-
         ValueFilterValues<T, E> values = ValueFilterValues.from(filter, conversionFunction);
+        FilterOperation operation = operation(filter);
         if (values.isEmpty()) {
             return Expressions.booleanTemplate("({0} = '{}' OR {0} is null)", path);
         }
 
-        // valueArray can't be just Object[], it must be concrete type, e.g. String[],
-        // otherwise PG JDBC driver will complain.
-        //noinspection unchecked
-        E[] valueArray = values.allValues().toArray(i -> (E[]) Array.newInstance(elementType, i));
-        return Expressions.booleanTemplate("{0} && {1}::" + dbType + "[]", path, valueArray);
+        if (operation.isEqualOperation()) {
+            // valueArray can't be just Object[], it must be concrete type, e.g. String[],
+            // otherwise PG JDBC driver will complain.
+            //noinspection unchecked
+            E[] valueArray = values.allValues().toArray(i -> (E[]) Array.newInstance(elementType, i));
+            return Expressions.booleanTemplate("{0} && {1}::" + dbType + "[]", path, valueArray);
+        } else if (!values.isMultiValue()) {
+            if (operation.isTextOnlyOperation() && elementType != String.class) {
+                throw new QueryException(
+                        "Unsupported operation for multi-value non-textual item; used filter: " + filter);
+            }
+
+            // e.g. for substring: WHERE exists (select val from unnest(subtypes) as val where val like '%A%')
+            // This can't use index, but it works.
+            StringTemplate valPath = stringTemplate("val");
+            SQLQuery<String> subselect = new SQLQuery<>().select(valPath)
+                    .from(stringTemplate("unnest({0}) as val", path))
+                    .where(singleValuePredicate(valPath, operation, values.singleValue()));
+            return subselect.exists();
+        } else {
+            throw new QueryException("Non-equal operation not supported for multi-value items"
+                    + " and multiple values on the right-hand; used filter: " + filter);
+        }
     }
 }
