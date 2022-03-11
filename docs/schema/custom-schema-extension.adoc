@@ -20,7 +20,6 @@ The custom schema extension is specified in the XML Schema Description (XSD) for
 It is using XSD annotations to specify details that XSD cannot specify.
 E.g. it is using an `a:extension` annotation to bind the complex type definition to the midPoint object type.
 
-
 == Example
 
 Following example provides a custom schema extension.
@@ -152,10 +151,12 @@ A more complex schema examples are provided in the git link:https://github.com/E
 
 == Installing Custom Schema Extension
 
-Currently the custom schema extension has to be available to midPoint at the startup time.
-Therefore it is not stored in the identity repository (database) and cannot be dynamically changed when the system is running.
+Currently, the custom schema extension has to be available to midPoint at the startup time.
+It is not stored in the xref:/midpoint/reference/repository/[repository (database)]
+and cannot be dynamically changed when the system is running.
 
-The schema files have to be placed in the `schema` subdirectory of xref:/midpoint/reference/deployment/midpoint-home-directory/[midpoint.home directory]. The name of the file does not matter as long as it ends with `.xsd` extension.
+The schema files have to be placed in the `schema` subdirectory of xref:/midpoint/reference/deployment/midpoint-home-directory/[midpoint.home directory].
+The name of the file does not matter as long as it ends with `.xsd` extension.
 There also may be subdirectories.
 When MidPoint starts it scans the directory and all subdirectories and loads all the schemas that it finds there.
 
@@ -170,34 +171,44 @@ Extension items fall into two categories depending on how they are stored in mid
 
 . Not indexed items are stored in object's XML representation only.
 So they are preserved by the repository, but it is not possible to select objects by their values.
-E.g. in the example above, it is possible to formulate a query "give me all users with extension/officeNumber = '111'" but not "give me all users with extension/favoriteColor = 'green'".
+E.g. in the example above, it is possible to formulate a query "give me all users with extension/officeNumber = '111'"
+but not "give me all users with extension/favoriteColor = 'green'".
 
-. Indexed items are stored in object's XML representation, as well as in extra columns that are used for querying objects based on their properties' values.
+. Indexed items are stored in object's XML representation, as well as in extra columns that
+are used for querying objects based on their properties' values.
 So they can be used in object queries.
 
 For non-indexed extension items, all data types are supported.
 
 For indexed items, the following types might be used:
 
-[%autowidth]
+[%autowidth,cols=3]
 |===
-| Type | In which database table the values are stored
+| Type
+| How is it stored in xref:/midpoint/reference/repository/native-postgresql/[Native repository]?
+| How is it stored in xref:/midpoint/reference/repository/generic/[Generic repository]?
 
 | xsd:string
-| m_object_ext_string
+a| stored in `ext` JSONB column as string value
+a| table `m_object_ext_string`
 
 | xsd:int
-.3+| m_object_ext_long
+.7+a| stored in `ext` JSONB as numeric
+
+This is not JSON/EcmaScript limited number, but virtually limitless PostgreSQL numeric value.
+.3+a| table `m_object_ext_long`
 
 | xsd:short
 
 | xsd:long
 
 | xsd:integer
-.4+| m_object_ext_string - note that these types are really stored as strings, because they don't fit into "long" type range.
+.4+a| table `m_object_ext_string`: Note that these types are really stored as strings, because they don't fit into "long" type range.
 (E.g. xsd:integer is java BigInteger, xsd:decimal is java BigDecimal).
-This means the support for these types is quite limited: inequality comparators "less than", "more than" don't work at all, and the equality test is to be used with a great care, as it can provide false negative results (e.g. 0.4999999999 vs.
-0.5 vs 0.5000000001).
+This means the support for these types is *very limited*:
+
+* comparisons like "less than", "more than" don't work at all (or provide wrong results),
+* equality test is to be used with a great care, as it can provide false negative results (e.g. 0.4999999999 vs. 0.5 vs 0.5000000001).
 
 | xsd:decimal
 
@@ -206,36 +217,40 @@ This means the support for these types is quite limited: inequality comparators 
 | xsd:float
 
 | xsd:boolean
-| m_object_ext_boolean
+a| stored in `ext` JSONB as boolean
+a| table `m_object_ext_boolean`
 
 | xsd:dateTime
-| m_object_ext_date
+a| stored in `ext` JSONB as string, formatted as https://en.wikipedia.org/wiki/ISO_8601[ISO 8601]
+long date and time with `Z` timezone
+a| table `m_object_ext_date`
 
 | t:PolyStringType
-| m_object_ext_poly
+a| stored in `ext` JSONB as object `{"o":"orig value","n":"normvalue"}`
+a| table `m_object_ext_poly`
 
 | c:ObjectReferenceType
-| m_object_ext_reference
+a| stored in `ext` JSONB as object `{"o":"oid","t":"type","r":relationUrlId}`,
+type uses ObjectType DB enum values, relation is URL ID from `m_uri` table
+a| table `m_object_ext_reference`
 
 | enumerations
-| m_object_ext_string
+a| stored in `ext` JSONB as string
+a| table `m_object_ext_string`
 
 |===
 
 The default value for `indexed` flag (i.e. the XSD annotation) is `true` for the above supported types, and `false` otherwise.
 
-[WARNING]
-====
-In midPoint versions before 3.6, the `indexed=false` setting was ignored for all non-string types, i.e. they were always stored in the repository.
-For midPoint 3.6, all types except for references obey the `indexed` setting.
-References are still always stored as indexed.
-====
-
-[WARNING]
-====
-Until midPoint 3.6, querying references in schema extension was in fact not implemented.
-Starting from 3.6, references in extensions can be queried just any other statically-defined references.
-====
+[NOTE]
+Word "indexed" here means that the information is externalized in the repository in such a way
+that the query against that item is possible.
+It does not necessarily mean, that it is well indexed for all supported oprations.
+Indexing everything on the DB level for every possible filter type is simply not reasonable,
+there are always compromises and specific index can be added for critical queries as needed.
+But this always depends on the specific deployment and you should consult your DB admin about it.
+Basic cases should be reasonably well indexed out-of-the-box.
+See xref:/midpoint/reference/repository/configuration/#index-tuning[Index tuning] for more information.
 
 === Using midPoint types
 
