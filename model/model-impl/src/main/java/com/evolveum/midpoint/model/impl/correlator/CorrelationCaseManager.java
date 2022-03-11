@@ -280,8 +280,7 @@ public class CorrelationCaseManager {
             return;
         }
 
-        Correlator correlator = correlationService
-                .instantiateCorrelator(aCase.asPrismObject(), task, result);
+        Correlator correlator = correlationService.instantiateCorrelator(aCase, task, result);
 
         recordCaseCompletionInShadow(aCase, task, result);
 

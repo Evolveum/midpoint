@@ -5,8 +5,11 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.api.correlator;
+package com.evolveum.midpoint.model.impl.correlator;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
 
 import org.jetbrains.annotations.NotNull;

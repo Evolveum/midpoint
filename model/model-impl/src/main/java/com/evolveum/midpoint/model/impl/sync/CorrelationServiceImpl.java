@@ -9,9 +9,12 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
+import java.util.Collection;
 import java.util.Objects;
 
+import com.evolveum.midpoint.model.api.CorrelationProperty;
 import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
+import com.evolveum.midpoint.model.impl.correlator.FullCorrelationContext;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 
@@ -29,7 +32,6 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -62,15 +64,14 @@ public class CorrelationServiceImpl implements CorrelationService {
                 .correlate(correlationContext, result);
     }
 
-    @Override
-    public @NotNull FullCorrelationContext getFullCorrelationContext(
-            @NotNull PrismObject<CaseType> aCase,
+    private @NotNull FullCorrelationContext getFullCorrelationContext(
+            @NotNull CaseType aCase,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
         return getFullCorrelationContext(
-                CorrelatorUtil.getShadowFromCorrelationCase(aCase.asObjectable()),
+                CorrelatorUtil.getShadowFromCorrelationCase(aCase),
                 task, result);
     }
 
@@ -108,7 +109,7 @@ public class CorrelationServiceImpl implements CorrelationService {
 
     @Override
     public Correlator instantiateCorrelator(
-            @NotNull PrismObject<CaseType> aCase,
+            @NotNull CaseType aCase,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
@@ -156,5 +157,16 @@ public class CorrelationServiceImpl implements CorrelationService {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         correlationCaseManager.completeCorrelationCase(currentCase, caseCloser, task, result);
+    }
+
+    @Override
+    public Collection<CorrelationProperty> getCorrelationProperties(
+            @NotNull CaseType aCase, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        FullCorrelationContext fullCorrelationContext = getFullCorrelationContext(aCase, task, result);
+        CorrelatorContext<?> correlatorContext = createCorrelatorContext(fullCorrelationContext);
+        return new CorrelationPropertiesCreator(correlatorContext, fullCorrelationContext, aCase)
+                .createProperties();
     }
 }

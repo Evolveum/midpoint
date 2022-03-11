@@ -117,7 +117,7 @@ public class CorrelationItemTarget {
     }
 
     public @NotNull ItemRoute getRoute() {
-        return placeRoute;
+        return placeRoute.append(relativeItemRoute);
     }
 
     @Override

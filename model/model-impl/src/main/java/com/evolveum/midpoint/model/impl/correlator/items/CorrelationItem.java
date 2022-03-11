@@ -8,7 +8,9 @@
 package com.evolveum.midpoint.model.impl.correlator.items;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.api.CorrelationProperty;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -74,8 +76,9 @@ public class CorrelationItem {
             @NotNull CorrelationContext correlationContext)
             throws ConfigurationException {
 
+        String name = getName(itemBean);
         return new CorrelationItem(
-                getName(itemBean),
+                name,
                 CorrelationItemSource.create(
                         itemBean,
                         correlatorContext,
@@ -91,14 +94,15 @@ public class CorrelationItem {
             @NotNull ObjectType preFocus)
             throws ConfigurationException {
 
+        String name = getName(itemBean);
         return new CorrelationItem(
-                getName(itemBean),
+                name,
                 CorrelationItemSource.create(itemBean, correlatorContext, resourceObject, preFocus),
                 CorrelationItemTarget.createMap(itemBean, correlatorContext));
     }
 
     // Temporary code
-    private static String getName(CorrelationItemDefinitionType itemBean) {
+    private static @NotNull String getName(CorrelationItemDefinitionType itemBean) {
         String explicitName = itemBean.getName();
         if (explicitName != null) {
             return explicitName;
@@ -187,5 +191,22 @@ public class CorrelationItem {
                 ", source=" + source +
                 ", targets=" + targetMap +
                 '}';
+    }
+
+    // Temporary
+    public @NotNull CorrelationProperty getSourceCorrelationPropertyDefinition() throws SchemaException {
+        return CorrelationProperty.create(
+                name,
+                source.getRealValues(),
+                getTargetRouteMap(),
+                source.getDefinition());
+    }
+
+    private @NotNull Map<String, ItemRoute> getTargetRouteMap() {
+        return targetMap.entrySet().stream()
+                .collect(
+                        Collectors.toMap(
+                                Map.Entry::getKey,
+                                e -> e.getValue().getRoute()));
     }
 }

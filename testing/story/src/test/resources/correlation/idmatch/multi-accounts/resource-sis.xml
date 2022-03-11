@@ -5,25 +5,24 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<c:resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             oid="21d4788c-15eb-40cc-8ac5-3cd379362ffe">
 
-    <c:name>Student Information System</c:name>
+    <name>Student Information System</name>
     <connectorRef type="ConnectorType">
         <filter>
             <q:equal>
-                <q:path>c:connectorType</q:path>
+                <q:path>connectorType</q:path>
                 <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
             </q:equal>
         </filter>
     </connectorRef>
 
-    <c:connectorConfiguration>
+    <connectorConfiguration>
         <icfc:configurationProperties
                 xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
             <icfccsvfile:filePath>will-be-replaced-by-test-code</icfccsvfile:filePath> <!-- resource-sis.csv -->
@@ -32,7 +31,7 @@
             <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
             <icfccsvfile:uniqueAttribute>sisId</icfccsvfile:uniqueAttribute>
         </icfc:configurationProperties>
-    </c:connectorConfiguration>
+    </connectorConfiguration>
 
     <schemaHandling>
         <objectType>
@@ -52,7 +51,7 @@
                 </tag>
             </multiplicity>
             <attribute>
-                <c:ref>ri:sisId</c:ref>
+                <ref>ri:sisId</ref>
                 <inbound>
                     <strength>strong</strength>
                     <expression> <!-- cannot use "source" because there's no definition for that piece of data -->
@@ -239,4 +238,4 @@
         <correlatorRef oid="8d537583-d475-48c4-b23d-5e71e1ef4e2a" type="OrgType"/>
         <correlatorActionMaxDuration>P5D</correlatorActionMaxDuration>
     </business>
-</c:resource>
+</resource>

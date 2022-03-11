@@ -13,7 +13,15 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.api.CorrelationProperty;
+
+import com.evolveum.midpoint.util.DebugUtil;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.Test;
@@ -252,7 +260,8 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
      */
     @Test
     public void test120ImportJohnSingleAmbiguity() throws CommonException, IOException {
-        given();
+        given("an account having national ID without the last four digits");
+        Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
         // National ID without the last four digits. The algorithm should stop and ask the operator.
@@ -261,10 +270,10 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        when();
+        when("import is run");
         TASK_IMPORT_SIS.rerun(result);
 
-        then();
+        then("task should complete successfully, with 1 transition to disputed");
         // @formatter:off
         TASK_IMPORT_SIS.assertAfter()
                 .assertClosed()
@@ -283,6 +292,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
                         .assertTransitions(2)
                     .end();
 
+        and("Mary should be unchanged");
         assertUser(findUserByUsername("smith1"), "Mary after")
                 .display()
                 .assertFullName("Mary Smith")
@@ -293,6 +303,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
                 .end()
                 .assertLinks(1, 0);
 
+        and("John should be unchanged");
         assertUser(findUserByUsername("smith2"), "John after")
                 .display()
                 .assertFullName("John Smith") // unchanged
@@ -304,6 +315,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
                 .assertLinks(2, 0);
         // @formatter:on
 
+        and("there should be a new shadow with DISPUTED state");
         PrismObject<ShadowType> newShadow = getShadow("4", result);
 
         assertShadow(newShadow, "after")
@@ -312,12 +324,14 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
                 .assertMatchReferenceId(null) // not matched yet
                 .assertHasMatchRequestId();
 
+        and("there should be a correlation case for the account");
         CaseType correlationCase = correlationCaseManager.findCorrelationCase(newShadow.asObjectable(), false, result);
         assertThat(correlationCase).as("case").isNotNull();
 
         // @formatter:off
         assertCase(correlationCase, "correlation case")
                 .display()
+                .displayXml()
                 .assertOpen()
                 .workItems()
                     .assertWorkItems(2)
@@ -329,12 +343,33 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
                     .end();
         // @formatter:on
 
-        displayValue("correlation case", prismContext.xmlSerializer().serializeRealValue(correlationCase));
-
+        and("some audit records and notification events");
         displayDumpable("audit", dummyAuditService);
         displayDumpable("dummy transport", dummyTransport);
 
         // TODO check audit and notification event content
+
+        and("correlation properties should be correct");
+        Collection<CorrelationProperty> properties = correlationService.getCorrelationProperties(correlationCase, task, result);
+        displayValue("properties", DebugUtil.debugDump(properties));
+
+        CorrelationProperty property = findProperty(properties, "givenName");
+        assertThat(property.getSourceRealStringValues()).as("real string values").containsExactly("John");
+        assertThat(property.getDefinition()).as("definition").isNotNull();
+        assertThat(property.getPrimaryTargetRoute()).as("primary target route").hasToString("givenName");
+        assertThat(property.getSecondaryTargetRoutes().get(0))
+                .as("secondary target route")
+                .hasToString("assignment/extension/givenName");
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private @NotNull CorrelationProperty findProperty(Collection<CorrelationProperty> properties, String name) {
+        return MiscUtil.extractSingletonRequired(
+                properties.stream()
+                        .filter(p -> name.equals(p.getName()))
+                        .collect(Collectors.toList()),
+                () -> new IllegalStateException("Multiple " + name + " properties"),
+                () -> new IllegalStateException("No " + name + " property"));
     }
 
     /**

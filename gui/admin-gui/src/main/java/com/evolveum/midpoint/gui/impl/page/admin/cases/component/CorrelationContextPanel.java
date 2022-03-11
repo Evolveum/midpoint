@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
+import com.evolveum.midpoint.model.api.CorrelationProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
@@ -151,16 +152,16 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
         };
         add(referenceIds);
 
-        ListView<CorrelationPropertyDefinition> rows = new ListView<>(ID_ROWS,
+        ListView<CorrelationProperty> rows = new ListView<>(ID_ROWS,
                 new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_PROPERTIES)) {
 
             @Override
-            protected void populateItem(ListItem<CorrelationPropertyDefinition> item) {
+            protected void populateItem(ListItem<CorrelationProperty> item) {
                 // First column contains the property name
                 item.add(
                         new Label(ID_ATTR_NAME,
                                 new PropertyModel<>(
-                                        item.getModel(), CorrelationPropertyDefinition.F_DISPLAY_NAME)));
+                                        item.getModel(), CorrelationProperty.F_DISPLAY_NAME)));
 
                 // Here are columns for values for individual options
                 item.add(
@@ -193,21 +194,21 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     }
 
     private ListView<CorrelationOptionDto> createColumnsForPropertyRow(
-            IModel<CorrelationContextDto> contextModel, ListItem<CorrelationPropertyDefinition> rowItem) {
+            IModel<CorrelationContextDto> contextModel, ListItem<CorrelationProperty> rowItem) {
 
         return new ListView<>(ID_COLUMNS, new PropertyModel<>(contextModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
             @Override
             protected void populateItem(ListItem<CorrelationOptionDto> columnItem) {
                 CorrelationContextDto contextDto = contextModel.getObject();
                 CorrelationOptionDto optionDto = columnItem.getModelObject();
-                CorrelationPropertyDefinition propertyDefinition = rowItem.getModelObject();
+                CorrelationProperty correlationProperty = rowItem.getModelObject();
 
-                CorrelationPropertyValues valuesForOption = optionDto.getPropertyValues(propertyDefinition);
+                CorrelationPropertyValues valuesForOption = optionDto.getPropertyValues(correlationProperty);
                 Label label = new Label(ID_COLUMN, valuesForOption.format());
 
                 CorrelationOptionDto referenceOption = contextDto.getNewOwnerOption();
                 if (referenceOption != null && !optionDto.isNewOwner()) {
-                    CorrelationPropertyValues referenceValues = referenceOption.getPropertyValues(propertyDefinition);
+                    CorrelationPropertyValues referenceValues = referenceOption.getPropertyValues(correlationProperty);
                     Match match = referenceValues.match(valuesForOption);
                     label.add(
                             AttributeAppender.append("class", match.getCss()));

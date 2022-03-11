@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -51,6 +52,7 @@ public abstract class AbstractCorrelationTest extends AbstractStoryTest {
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
+    @Autowired CorrelationService correlationService;
     @Autowired CorrelationCaseManager correlationCaseManager;
     @Autowired CaseService caseService;
 
