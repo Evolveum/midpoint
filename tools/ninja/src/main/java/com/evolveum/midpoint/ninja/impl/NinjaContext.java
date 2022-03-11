@@ -6,19 +6,13 @@
  */
 package com.evolveum.midpoint.ninja.impl;
 
-import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.REPOSITORY_CONFIGURATION;
-
-import java.nio.charset.Charset;
-
 import com.beust.jcommander.JCommander;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.GenericXmlApplicationContext;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
+import com.evolveum.midpoint.ninja.opts.PolyStringNormalizerOptions;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -26,6 +20,16 @@ import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
+
+import java.nio.charset.Charset;
+
+import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.REPOSITORY_CONFIGURATION;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -117,6 +121,8 @@ public class NinjaContext {
 
         context = ctx;
 
+        updatePolyStringNormalizationConfiguration(ctx.getBean(PrismContext.class));
+
         repository = connectRepo ? context.getBean(REPOSITORY_SERVICE_BEAN, RepositoryService.class) : null;
         auditService = connectRepo ? context.getBean(AUDIT_SERVICE_BEAN, AuditService.class) : null;
     }
@@ -183,7 +189,10 @@ public class NinjaContext {
             throw new IllegalStateException("Url is not defined");
         }
 
-        return new RestService(url, username, password);
+        RestService restService = new RestService(url, username, password);
+        updatePolyStringNormalizationConfiguration(restService.getPrismContext());
+
+        return restService;
     }
 
     public JCommander getJc() {
@@ -228,6 +237,44 @@ public class NinjaContext {
         }
 
         return prismContext;
+    }
+
+    private void updatePolyStringNormalizationConfiguration(PrismContext ctx) {
+        if (!shouldUseCustomPolyStringNormalizer()) {
+            return;
+        }
+
+        try {
+            PolyStringNormalizerConfigurationType psnConfiguration = createPolyStringNormalizerConfiguration();
+            ctx.configurePolyStringNormalizer(psnConfiguration);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Couldn't setup custom PolyString normalizer configuration", ex);
+        }
+    }
+
+    private PolyStringNormalizerConfigurationType createPolyStringNormalizerConfiguration() {
+        BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
+        PolyStringNormalizerOptions opts = base.getPolyStringNormalizerOptions();
+
+        PolyStringNormalizerConfigurationType config = new PolyStringNormalizerConfigurationType();
+        config.setClassName(opts.getPsnClassName());
+        config.setTrim(opts.isPsnTrim());
+        config.setNfkd(opts.isPsnNfkd());
+        config.setTrimWhitespace(opts.isPsnTrimWhitespace());
+        config.setLowercase(opts.isPsnLowercase());
+
+        return config;
+    }
+
+    private boolean shouldUseCustomPolyStringNormalizer() {
+        BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
+        PolyStringNormalizerOptions opts = base.getPolyStringNormalizerOptions();
+
+        return StringUtils.isNotEmpty(opts.getPsnClassName()) ||
+                opts.isPsnTrim() != null ||
+                opts.isPsnNfkd() != null ||
+                opts.isPsnTrimWhitespace() != null ||
+                opts.isPsnLowercase() != null;
     }
 
     public SchemaService getSchemaService() {
