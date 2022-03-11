@@ -11,13 +11,15 @@ import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.schema.route.ItemRoute;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemTargetDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemSourceDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Resolves routes in correlation item definitions, trying to find referenced definitions
@@ -34,68 +36,26 @@ public class CorrelationItemRouteFinder {
      * The route is taken either from the local item definition bean, or from referenced named item definition.
      */
     static ItemRoute findForSource(
-            @NotNull ItemCorrelationType itemBean,
-            @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext) throws ConfigurationException {
-        if (itemBean.getRef() != null) {
-            return ItemRoute.fromBean(
-                    correlatorContext.getNamedItemSourceDefinition(itemBean.getRef()));
-        } else if (itemBean.getSourcePath() != null) {
-            return ItemRoute.fromPath(
-                    itemBean.getSourcePath().getItemPath());
-        } else if (itemBean.getPath() != null) {
-            return ItemRoute.fromPath(
-                    itemBean.getPath().getItemPath());
-        } else {
-            throw new ConfigurationException("Neither ref, nor path, nor sourcePath present in " + itemBean);
+            @NotNull CorrelationItemDefinitionType itemBean,
+            @NotNull CorrelatorContext<?> correlatorContext) throws ConfigurationException {
+        String ref = itemBean instanceof ItemCorrelationType ? ((ItemCorrelationType) itemBean).getRef() : null;
+        if (ref != null) {
+            CorrelationItemSourceDefinitionType sharedDefinition = correlatorContext.getNamedItemSourceDefinition(ref);
+            return ItemRoute.fromBeans(
+                    sharedDefinition.getPath(),
+                    sharedDefinition.getRoute());
         }
-    }
+        CorrelationItemSourceDefinitionType sourceBean = itemBean.getSource();
+        if (sourceBean != null) {
+            return ItemRoute.fromBeans(
+                    sourceBean.getPath(),
+                    sourceBean.getRoute());
+        }
 
-    /**
-     * Resolves a relative route (relative to the place for primary target items) to given primary target item.
-     *
-     * The route is taken either from the local item definition bean, or from referenced named item definition.
-     */
-    static @NotNull ItemRoute findForPrimaryTargetRelative(
-            @NotNull ItemCorrelationType itemBean,
-            @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext) throws ConfigurationException {
-        if (itemBean.getRef() != null) {
-            return ItemRoute.fromBean(
-                    correlatorContext.getNamedItemPrimaryTargetDefinition(itemBean.getRef()));
-        } else if (itemBean.getPrimaryTargetPath() != null) {
-            return ItemRoute.fromPath(
-                    itemBean.getPrimaryTargetPath().getItemPath());
-        } else if (itemBean.getPath() != null) {
-            return ItemRoute.fromPath(
-                    itemBean.getPath().getItemPath());
-        } else {
-            throw new ConfigurationException("Neither ref, nor path, nor primaryTargetPath present in " + itemBean);
+        ItemPathType pathBean = itemBean instanceof ItemCorrelationType ? ((ItemCorrelationType) itemBean).getPath() : null;
+        if (pathBean != null) {
+            return ItemRoute.fromPath(pathBean.getItemPath());
         }
-    }
-
-    /**
-     * Resolves a relative route (relative to the place for secondary target items) to given secondary target item.
-     *
-     * The route is taken either from the local item definition bean, or from referenced named item definition.
-     *
-     * Returns null if the item has no secondary target. (Either all items in given correlation should have one,
-     * or none of them!)
-     */
-    static @Nullable ItemRoute findForSecondaryTargetRelative(
-            @NotNull ItemCorrelationType itemBean,
-            @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext) throws ConfigurationException {
-        if (itemBean.getRef() != null) {
-            CorrelationItemTargetDefinitionType definition =
-                    correlatorContext.getNamedItemSecondaryTargetDefinition(itemBean.getRef());
-            if (definition == null) {
-                return null;
-            } else {
-                return ItemRoute.fromBean(definition);
-            }
-        } else if (itemBean.getSecondaryTargetPath() != null) {
-            return ItemRoute.fromPath(
-                    itemBean.getSecondaryTargetPath().getItemPath());
-        } else {
-            return null;
-        }
+        throw new ConfigurationException("Neither ref, nor path, nor source present in " + itemBean);
     }
 }

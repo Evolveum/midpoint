@@ -13,6 +13,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerOptionType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +47,8 @@ public abstract class AbstractCorrelationTest extends AbstractStoryTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "correlation");
 
+    static final String NS_EXT = "http://example.com/idmatch";
+
     public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
     @Autowired CorrelationCaseManager correlationCaseManager;
@@ -56,15 +64,31 @@ public abstract class AbstractCorrelationTest extends AbstractStoryTest {
         // We don't need these now.
     }
 
-    // Works for OID-based identifiers
+    // Owner OID may be different from the identifier in URI.
     void resolveCase(@NotNull CaseType aCase, @Nullable String ownerOid, Task task, OperationResult result)
             throws CommonException {
         List<CaseWorkItemType> workItems = CaseRelatedUtils.getOpenWorkItems(aCase);
         assertThat(workItems).as("work items in " + aCase).isNotEmpty();
+
         caseService.completeWorkItem(
                 WorkItemId.of(workItems.get(0)),
-                CorrelationCaseUtil.createDefaultOutput(ownerOid),
+                CorrelationCaseUtil.createDefaultOutput(
+                        determineOwnerOptionIdentifier(aCase, ownerOid)),
                 task,
                 result);
+    }
+
+    private @NotNull OwnerOptionIdentifier determineOwnerOptionIdentifier(@NotNull CaseType aCase, @Nullable String ownerOid)
+            throws SchemaException {
+        if (ownerOid == null) {
+            return OwnerOptionIdentifier.forNoOwner();
+        }
+        for (ResourceObjectOwnerOptionType optionBean : CorrelationCaseUtil.getOwnerOptionsList(aCase)) {
+            ObjectReferenceType ownerRef = optionBean.getCandidateOwnerRef();
+            if (ownerRef != null && ownerOid.equals(ownerRef.getOid())) {
+                return OwnerOptionIdentifier.fromStringValue(optionBean.getIdentifier());
+            }
+        }
+        throw new IllegalStateException("Unknown owner OID (not in the options list): " + ownerOid);
     }
 }

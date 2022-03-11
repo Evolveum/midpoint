@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -137,12 +137,12 @@ public class PolyStringItemFilterProcessor<T>
     public Predicate process(PropertyValueFilter<T> filter, RightHandProcessor rightPath) throws RepositoryException {
         FilterOperation operation = operation(filter);
         if (rightPath instanceof PolyStringItemFilterProcessor) {
-            return processPoly(filter, (PolyStringItemFilterProcessor) rightPath);
+            return processPoly(filter, (PolyStringItemFilterProcessor<?>) rightPath);
         }
-        return singleValuePredicate(this.normPath, operation, rightPath.rightHand(filter));
+        return singleValuePredicateWithNotTreated(this.normPath, operation, rightPath.rightHand(filter));
     }
 
-    private Predicate processPoly(PropertyValueFilter<T> filter, PolyStringItemFilterProcessor rightPath) throws QueryException {
+    private Predicate processPoly(PropertyValueFilter<T> filter, PolyStringItemFilterProcessor<?> rightPath) throws QueryException {
         String matchingRule = filter.getMatchingRule() != null
                 ? filter.getMatchingRule().getLocalPart() : null;
 

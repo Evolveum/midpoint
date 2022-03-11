@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="70afdfcc-7dce-44fe-af31-bd504ae8d0e1">
+    <name>import-sis</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="83de4034-775a-4ead-829b-a4041620d4c2"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+            </import>
+        </work>
+        <!--<reporting>-->
+        <!--    <tracing>-->
+        <!--        <tracingProfile>-->
+        <!--            <ref>functional-model-logging</ref>-->
+        <!--        </tracingProfile>-->
+        <!--    </tracing>-->
+        <!--</reporting>-->
+    </activity>
+</task>

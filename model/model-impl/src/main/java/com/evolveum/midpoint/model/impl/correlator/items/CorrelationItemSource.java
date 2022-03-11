@@ -9,20 +9,23 @@ package com.evolveum.midpoint.model.impl.correlator.items;
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.Itemable;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.api.correlator.SourceObjectType;
 import com.evolveum.midpoint.schema.route.ItemRoute;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * "Source side" of a {@link CorrelationItem}.
@@ -56,12 +59,15 @@ public class CorrelationItemSource {
 
     /**
      * Creates the source part of {@link CorrelationItem} from the definition (item bean) and the whole context.
+     *
+     * @param resourceObject Must be full resource object.
      */
     public static CorrelationItemSource create(
-            @NotNull ItemCorrelationType itemBean,
-            @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext,
-            @NotNull CorrelationContext correlationContext) throws ConfigurationException {
-        ItemRoute localRoute = CorrelationItemRouteFinder.findForSource(itemBean, correlatorContext);
+            @NotNull CorrelationItemDefinitionType itemDefinitionBean,
+            @NotNull CorrelatorContext<?> correlatorContext,
+            @NotNull ShadowType resourceObject,
+            @NotNull ObjectType preFocus) throws ConfigurationException {
+        ItemRoute localRoute = CorrelationItemRouteFinder.findForSource(itemDefinitionBean, correlatorContext);
         ItemRoute fullRoute = correlatorContext.getSourcePlaceRoute().append(localRoute);
 
         SourceObjectType sourceObjectType;
@@ -75,8 +81,23 @@ public class CorrelationItemSource {
         }
         return new CorrelationItemSource(
                 route,
-                correlationContext.getSourceObject(sourceObjectType),
+                getSourceObject(sourceObjectType, resourceObject, preFocus),
                 sourceObjectType);
+    }
+
+    @Experimental
+    private static @NotNull ObjectType getSourceObject(
+            @NotNull SourceObjectType type,
+            @NotNull ShadowType resourceObject,
+            @NotNull ObjectType preFocus) {
+        switch (type) {
+            case FOCUS:
+                return preFocus;
+            case PROJECTION:
+                return resourceObject;
+            default:
+                throw new AssertionError(type);
+        }
     }
 
     /**
@@ -84,11 +105,30 @@ public class CorrelationItemSource {
      * We assume there is a single one.
      */
     public Object getRealValue() throws SchemaException {
+        PrismValue single = getSinglePrismValue();
+        return single != null ? single.getRealValue() : null;
+    }
+
+    private PrismValue getSinglePrismValue() throws SchemaException {
         List<PrismValue> resolved = route.resolveFor(sourceObject);
-        PrismValue single = MiscUtil.extractSingleton(
+        return MiscUtil.extractSingleton(
                 resolved,
                 () -> new UnsupportedOperationException("Multiple values of " + route + " are not supported: " + resolved));
-        return single != null ? single.getRealValue() : null;
+    }
+
+    public @Nullable PrismProperty<?> getProperty() throws SchemaException {
+        PrismValue single = getSinglePrismValue();
+        if (single == null) {
+            return null;
+        }
+        Itemable parent = single.getParent();
+        if (parent == null) {
+            throw new IllegalStateException("Parent-less source value: " + single + " in " + this);
+        } else if (parent instanceof PrismProperty) {
+            return (PrismProperty<?>) parent;
+        } else {
+            throw new UnsupportedOperationException("Non-property sources are not supported: " + single + " in " + this);
+        }
     }
 
     @Override

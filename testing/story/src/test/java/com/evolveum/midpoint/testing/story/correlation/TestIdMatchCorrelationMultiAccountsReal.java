@@ -33,7 +33,7 @@ import java.io.IOException;
  *
  * This test runs manually.
  */
-public class TestIdMatchReal extends AbstractIdMatchTest {
+public class TestIdMatchCorrelationMultiAccountsReal extends AbstractMultiAccountsIdMatchCorrelationTest {
 
     // No ID Match Service override here, so the URL configured in the resource will be used.
 

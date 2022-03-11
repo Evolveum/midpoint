@@ -57,10 +57,10 @@ import javax.servlet.http.HttpSession;
 @PageDescriptor(urls = {
         @Url(mountUrl = "/emailNonce", matchUrlForSecurity = "/emailNonce")
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.MAIL_NONCE)
-public class PageEmailNonse extends PageAuthenticationBase {
+public class PageEmailNonce extends PageAuthenticationBase {
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageEmailNonse.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageEmailNonce.class);
 
     private static final String DOT_CLASS = com.evolveum.midpoint.web.page.forgetpassword.PageSecurityQuestions.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loaduser";
@@ -75,7 +75,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
 
     private boolean submited;
 
-    public PageEmailNonse() {
+    public PageEmailNonce() {
     }
 
     protected void initCustomLayer() {
@@ -94,7 +94,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
 
         initStaticLayout(form);
 
-        initDynamicLayout(form, PageEmailNonse.this);
+        initDynamicLayout(form, PageEmailNonce.this);
 
         initButtons(form);
 
@@ -146,24 +146,24 @@ public class PageEmailNonse extends PageAuthenticationBase {
 
         if (user == null) {
             getSession().error(getString("pageForgetPassword.message.user.not.found"));
-            throw new RestartResponseException(PageEmailNonse.class);
+            throw new RestartResponseException(PageEmailNonce.class);
         }
         LOGGER.trace("Reset Password user: {}", user);
 
         if (getResetPasswordPolicy() == null) {
             LOGGER.debug("No policies for reset password defined");
             getSession().error(getString("pageForgetPassword.message.policy.not.found"));
-            throw new RestartResponseException(PageEmailNonse.class);
+            throw new RestartResponseException(PageEmailNonce.class);
         }
 
         OperationResult result = saveUserNonce(user, getMailNoncePolicy(user.asPrismObject()));
         if (result.getStatus() == OperationResultStatus.SUCCESS) {
             submited = true;
-            target.add(PageEmailNonse.this);
+            target.add(PageEmailNonce.this);
         } else {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
             LOGGER.error("Failed to send nonce to user: {} ", result.getMessage());
-            throw new RestartResponseException(PageEmailNonse.this);
+            throw new RestartResponseException(PageEmailNonce.this);
         }
     }
 
@@ -176,21 +176,21 @@ public class PageEmailNonse extends PageAuthenticationBase {
             LOGGER.error("No security policy, cannot process nonce credential");
             // Just log the error, but do not display it. We are still in unprivileged part of the web
             // we do not want to provide any information to the attacker.
-            throw new RestartResponseException(PageEmailNonse.class);
+            throw new RestartResponseException(PageEmailNonce.class);
         }
         if (securityPolicy.getCredentials() == null) {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
             LOGGER.error("No credential for security policy, cannot process nonce credential");
             // Just log the error, but do not display it. We are still in unprivileged part of the web
             // we do not want to provide any information to the attacker.
-            throw new RestartResponseException(PageEmailNonse.class);
+            throw new RestartResponseException(PageEmailNonce.class);
         }
         if (securityPolicy.getCredentials().getNonce() == null) {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
             LOGGER.error("No nonce credential for security policy, cannot process nonce credential");
             // Just log the error, but do not display it. We are still in unprivileged part of the web
             // we do not want to provide any information to the attacker.
-            throw new RestartResponseException(PageEmailNonse.class);
+            throw new RestartResponseException(PageEmailNonce.class);
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -198,7 +198,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
             LOGGER.error("Bad type of authentication, support only MidpointAuthentication, but is "
                     + authentication != null ? authentication.getClass().getName() : null);
-            throw new RestartResponseException(PageEmailNonse.class);
+            throw new RestartResponseException(PageEmailNonce.class);
         }
 
         ModuleAuthentication moduleAuthentication = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
@@ -207,7 +207,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
             LOGGER.error("Bad type of module authentication, support only EmailNonceModuleAuthentication, but is "
                     + moduleAuthentication != null ? moduleAuthentication.getClass().getName() : null);
-            throw new RestartResponseException(PageEmailNonse.class);
+            throw new RestartResponseException(PageEmailNonce.class);
         }
         CredentialModuleAuthentication nonceAuth = (CredentialModuleAuthentication) moduleAuthentication;
         String credentialName = nonceAuth.getCredentialName();
@@ -215,7 +215,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
         if (credentialName == null) {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
             LOGGER.error("EmailNonceModuleAuthentication " + nonceAuth.getNameOfModule() + " haven't define name of credential");
-            throw new RestartResponseException(PageEmailNonse.class);
+            throw new RestartResponseException(PageEmailNonce.class);
         }
 
         NonceCredentialsPolicyType credentialByName = null;
@@ -228,7 +228,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
         if (credentialByName == null) {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
             LOGGER.error("Couldn't find nonce credentials by name " + credentialName);
-            throw new RestartResponseException(PageEmailNonse.class);
+            throw new RestartResponseException(PageEmailNonce.class);
         }
 
         return credentialByName;
@@ -348,7 +348,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
                             .createModificationReplaceProperty(UserType.class, user.getOid(),
                                     SchemaConstants.PATH_NONCE_VALUE, nonceCredentials);
 
-                    WebModelServiceUtils.save(nonceDelta, result, task, PageEmailNonse.this);
+                    WebModelServiceUtils.save(nonceDelta, result, task, PageEmailNonce.this);
                 } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
                     result.recordFatalError(getString("PageForgotPassword.message.saveUserNonce.fatalError"));
                     LoggingUtils.logException(LOGGER, "Failed to generate nonce for user: " + e.getMessage(),
@@ -369,7 +369,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
 
         if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {
             PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.loadObject(ValuePolicyType.class,
-                    noncePolicy.getValuePolicyRef().getOid(), PageEmailNonse.this, task, result);
+                    noncePolicy.getValuePolicyRef().getOid(), PageEmailNonce.this, task, result);
             policy = valuePolicy.asObjectable();
         }
 

@@ -10,10 +10,9 @@
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            oid="21d4788c-15eb-40cc-8ac5-3cd379362ffe">
+            oid="afb142f9-2218-491a-8b99-ce5713ca424d">
 
-    <c:name>Student Information System</c:name>
+    <c:name>Student Information System (simplified)</c:name>
     <connectorRef type="ConnectorType">
         <filter>
             <q:equal>
@@ -55,21 +54,6 @@
                 <c:ref>ri:sisId</c:ref>
                 <inbound>
                     <strength>strong</strength>
-                    <expression> <!-- cannot use "source" because there's no definition for that piece of data -->
-                        <!-- Hack. This mapping should be invokable directly. -->
-                        <!-- We assume the reference ID is present. -->
-                        <path>$shadow/correlation/correlatorState/referenceId</path>
-                    </expression>
-                    <target>
-                        <path>extension/referenceId</path>
-                    </target>
-                    <evaluationPhases>
-                        <!-- Before correlation, this ID may not be known. -->
-                        <exclude>beforeCorrelation</exclude>
-                    </evaluationPhases>
-                </inbound>
-                <inbound>
-                    <strength>strong</strength>
                     <source>
                         <path>$shadow/attributes/ri:firstName</path>
                     </source>
@@ -96,7 +80,7 @@
                                 params.put('dateOfBirth', born)
                                 params.put('nationalId', nationalId)
                                 params.put('targetName', 'program-' + studyProgram)
-                                idmatch.execute('createAssignment', params)
+                                mylib.execute('createAssignment', params)
                             </code>
                         </script>
                     </expression>
@@ -134,50 +118,125 @@
             <intent>default</intent>
             <correlationDefinition>
                 <correlators>
-                    <idMatch>
-                        <!-- <sorLabel>midpoint</sorLabel>--> <!-- this is the default -->
-                        <sorIdentifierPrefix>sis-</sorIdentifierPrefix>
-                        <sorIdentifierProperty>assignment/extension/sourceId</sorIdentifierProperty>
-
-                        <!-- URL and credentials are ignored when dummy ID Match Service implementation is used.
-                             They are used only when running TestIdMatchReal (not part of the test suite). -->
-                        <url>http://localhost:9090/match/api/1</url>
-                        <username>administrator</username>
-                        <password><t:clearValue>5ecr3t</t:clearValue></password>
-                        <followOn>
-                            <filter>
-                                <ownerFilter>
-                                    <q:equal>
-                                        <q:path>extension/referenceId</q:path>
-                                        <expression>
-                                            <!-- TODO here will be $focus/extension/referenceId, or even extension/referenceId -->
-                                            <path>$correlatorState/referenceId</path>
-                                        </expression>
-                                    </q:equal>
-                                </ownerFilter>
-                            </filter>
-                        </followOn>
-                    </idMatch>
+                    <definitions>
+                        <places>
+                            <source>
+                                <path>$focus/assignment</path>
+                            </source>
+                            <target>
+                                <qualifier>systems</qualifier>
+                                <route>
+                                    <!-- Not used for filtering yet -->
+                                    <segment>
+                                        <path>assignment</path>
+                                        <selector>
+                                            <q:equal>
+                                                <q:path>extension/correlation</q:path>
+                                                <q:value>true</q:value>
+                                            </q:equal>
+                                        </selector>
+                                    </segment>
+                                </route>
+                            </target>
+                        </places>
+                        <items>
+                            <item>
+                                <source>
+                                    <path>extension/givenName</path>
+                                </source>
+                                <target>
+                                    <path>givenName</path>
+                                </target>
+                                <target>
+                                    <qualifier>systems</qualifier>
+                                    <!-- relative to "place" (assignment[correlation='true']) -->
+                                    <path>extension/givenName</path>
+                                </target>
+                            </item>
+                            <item>
+                                <source>
+                                    <path>extension/familyName</path>
+                                </source>
+                                <target>
+                                    <path>familyName</path>
+                                </target>
+                                <target>
+                                    <qualifier>systems</qualifier>
+                                    <!-- relative to "place" (assignment[correlation='true']) -->
+                                    <path>extension/familyName</path>
+                                </target>
+                            </item>
+                            <item>
+                                <source>
+                                    <path>extension/dateOfBirth</path>
+                                </source>
+                                <target>
+                                    <path>extension/dateOfBirth</path>
+                                </target>
+                                <target>
+                                    <qualifier>systems</qualifier>
+                                    <path>extension/dateOfBirth</path>
+                                </target>
+                            </item>
+                            <item>
+                                <source>
+                                    <path>extension/nationalId</path>
+                                </source>
+                                <target>
+                                    <path>extension/nationalId</path>
+                                </target>
+                                <target>
+                                    <qualifier>systems</qualifier>
+                                    <path>extension/nationalId</path>
+                                </target>
+                            </item>
+                        </items>
+                    </definitions>
+                    <items>
+                        <authority>principal</authority>
+                        <name>name-date-id</name>
+                        <documentation>
+                            If key attributes (family name, date of birth, national ID) exactly match,
+                            we are immediately done. We ignore given name here.
+                        </documentation>
+                        <item>
+                            <ref>familyName</ref>
+                        </item>
+                        <item>
+                            <ref>dateOfBirth</ref>
+                        </item>
+                        <item>
+                            <ref>nationalId</ref>
+                        </item>
+                    </items>
+                    <items>
+                        <authority>nonAuthoritative</authority>
+                        <name>names-date</name>
+                        <documentation>
+                            If given and family name and the date of birth match, we present an option to the operator.
+                        </documentation>
+                        <item>
+                            <ref>givenName</ref>
+                        </item>
+                        <item>
+                            <ref>familyName</ref>
+                        </item>
+                        <item>
+                            <ref>dateOfBirth</ref>
+                        </item>
+                    </items>
+                    <items>
+                        <authority>nonAuthoritative</authority>
+                        <name>id</name>
+                        <documentation>
+                            If national ID matches, we present an option to the operator.
+                        </documentation>
+                        <item>
+                            <ref>nationalId</ref>
+                        </item>
+                    </items>
                 </correlators>
                 <cases/>
-                <correlationProperties>
-                    <property>
-                        <source>assignment/extension/givenName</source>
-                        <primaryTarget>givenName</primaryTarget>
-                    </property>
-                    <property>
-                        <source>assignment/extension/familyName</source>
-                        <primaryTarget>familyName</primaryTarget>
-                    </property>
-                    <property>
-                        <source>assignment/extension/dateOfBirth</source>
-                        <primaryTarget>extension/dateOfBirth</primaryTarget>
-                    </property>
-                    <property>
-                        <source>assignment/extension/nationalId</source>
-                        <primaryTarget>extension/nationalId</primaryTarget>
-                    </property>
-                </correlationProperties>
             </correlationDefinition>
             <reaction>
                 <situation>linked</situation>
@@ -203,9 +262,4 @@
             </reaction>
         </objectSynchronization>
     </synchronization>
-
-    <business>
-        <correlatorRef oid="8d537583-d475-48c4-b23d-5e71e1ef4e2a" type="OrgType"/>
-        <correlatorActionMaxDuration>P5D</correlatorActionMaxDuration>
-    </business>
 </c:resource>

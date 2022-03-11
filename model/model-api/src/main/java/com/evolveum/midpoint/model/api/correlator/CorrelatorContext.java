@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
+import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.schema.route.ItemRoute;
 import com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -22,6 +23,9 @@ import org.jetbrains.annotations.VisibleForTesting;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
+import static com.evolveum.midpoint.model.api.ModelPublicConstants.PRIMARY_CORRELATION_ITEM_TARGET;
 
 /**
  * Overall context in which the correlator works.
@@ -39,6 +43,8 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
 
     /** Context for the containing (parent) correlator. */
     @Nullable private final CorrelatorContext<?> parentContext;
+
+    @NotNull private final Lazy<Map<String, ItemRoute>> targetPlacesLazy = Lazy.from(this::computeTargetPlaces);
 
     private CorrelatorContext(
             @NotNull CorrelatorConfiguration configuration,
@@ -98,32 +104,40 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
      */
     public @NotNull ItemRoute getSourcePlaceRoute() {
         CorrelationPlacesDefinitionType placesDefinition = getPlacesDefinition();
-        if (placesDefinition == null || placesDefinition.getSource() == null) {
+        CorrelationItemSourceDefinitionType source = placesDefinition != null ? placesDefinition.getSource() : null;
+        if (source == null) {
             return ItemRoute.EMPTY;
         } else {
-            return ItemRoute.fromBean(
-                    placesDefinition.getSource());
+            return ItemRoute.fromBeans(
+                    source.getPath(),
+                    source.getRoute());
         }
     }
 
-    public @NotNull ItemRoute getPrimaryTargetsPlaceRoute() {
-        CorrelationPlacesDefinitionType placesDefinition = getPlacesDefinition();
-        if (placesDefinition == null || placesDefinition.getPrimaryTarget() == null) {
-            return ItemRoute.EMPTY;
-        } else {
-            return ItemRoute.fromBean(
-                    placesDefinition.getPrimaryTarget());
-        }
+    public @NotNull Map<String, ItemRoute> getTargetPlaces() {
+        return targetPlacesLazy.get();
     }
 
-    public @NotNull ItemRoute getSecondaryTargetsPlaceRoute() {
+    public @NotNull ItemRoute getTargetPlaceRoute(@Nullable String qualifier) {
+        return Objects.requireNonNullElse(
+                getTargetPlaces().get(qualifier),
+                ItemRoute.EMPTY);
+    }
+
+    private @NotNull Map<String, ItemRoute> computeTargetPlaces() {
         CorrelationPlacesDefinitionType placesDefinition = getPlacesDefinition();
-        if (placesDefinition == null || placesDefinition.getSecondaryTarget() == null) {
-            return ItemRoute.EMPTY;
-        } else {
-            return ItemRoute.fromBean(
-                    placesDefinition.getSecondaryTarget());
+        if (placesDefinition == null) {
+            return Map.of();
         }
+        Map<String, ItemRoute> map = new HashMap<>();
+        for (CorrelationItemTargetDefinitionType targetBean : placesDefinition.getTarget()) {
+            map.put(
+                    Objects.requireNonNullElse(targetBean.getQualifier(), PRIMARY_CORRELATION_ITEM_TARGET),
+                    ItemRoute.fromBeans(
+                            targetBean.getPath(),
+                            targetBean.getRoute()));
+        }
+        return map;
     }
 
     private @Nullable CorrelationPlacesDefinitionType getPlacesDefinition() {
@@ -152,30 +166,11 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
     }
 
     /**
-     * Returns the "primary target" part of a named item definition.
-     */
-    public @NotNull CorrelationItemTargetDefinitionType getNamedItemPrimaryTargetDefinition(String ref)
-            throws ConfigurationException {
-        return MiscUtil.requireNonNull(
-                getNamedItemDefinition(ref).getPrimaryTarget(),
-                () -> new ConfigurationException("No primary target definition of item named '" + ref + "' exists"));
-    }
-
-    /**
-     * Returns the "secondary target" part of a named item definition.
-     * (Returns null if the definition exists but has no secondary target defined.)
-     */
-    public @Nullable CorrelationItemTargetDefinitionType getNamedItemSecondaryTargetDefinition(String ref)
-            throws ConfigurationException {
-        return getNamedItemDefinition(ref).getSecondaryTarget();
-    }
-
-    /**
      * Returns the named item definition.
      *
      * TODO cache the map of global item definitions.
      */
-    private @NotNull CorrelationItemDefinitionType getNamedItemDefinition(String ref) throws ConfigurationException {
+    public @NotNull CorrelationItemDefinitionType getNamedItemDefinition(String ref) throws ConfigurationException {
         return MiscUtil.requireNonNull(
                 getItemDefinitionsMap().get(ref),
                 () -> new ConfigurationException("No item named '" + ref + "' exists"));
@@ -184,7 +179,7 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
     /**
      * Returns all relevant named item definitions - from this context and all its parents.
      */
-    private @NotNull Map<String, CorrelationItemDefinitionType> getItemDefinitionsMap() throws ConfigurationException {
+    public @NotNull Map<String, CorrelationItemDefinitionType> getItemDefinitionsMap() throws ConfigurationException {
         try {
             Map<String, CorrelationItemDefinitionType> defMap = new HashMap<>();
             addAllItemsDefinitions(defMap);

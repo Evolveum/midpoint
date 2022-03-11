@@ -64,7 +64,8 @@ public interface Correlator {
             @NotNull String outcomeUri,
             @NotNull Task task,
             @NotNull OperationResult result)
-            throws SchemaException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            throws SchemaException, CommunicationException, SecurityViolationException, ObjectNotFoundException,
+            ExpressionEvaluationException, ConfigurationException {
         // Nothing to do by default.
     }
 }

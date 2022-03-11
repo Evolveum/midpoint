@@ -45,10 +45,15 @@ public class CorrelationCaseUtil {
 
     }
 
-    public static AbstractWorkItemOutputType createDefaultOutput(String ownerOid) {
-        return new AbstractWorkItemOutputType(PrismContext.get())
-                .outcome(ownerOid != null ?
-                        OwnerOptionIdentifier.forExistingOwner(ownerOid).getStringValue() :
+    public static AbstractWorkItemOutputType createDefaultOutput(@NotNull OwnerOptionIdentifier identifier) {
+        return new AbstractWorkItemOutputType()
+                .outcome(identifier.getStringValue());
+    }
+
+    public static AbstractWorkItemOutputType createDefaultOutput(String identifier) {
+        return new AbstractWorkItemOutputType()
+                .outcome(identifier != null ?
+                        OwnerOptionIdentifier.forExistingOwner(identifier).getStringValue() :
                         OwnerOptionIdentifier.forNoOwner().getStringValue());
     }
 

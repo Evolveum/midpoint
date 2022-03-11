@@ -76,6 +76,7 @@ public class LegacyValidator<T extends Containerable> {
     private long errors = 0;
     private long stopAfterErrors = 0;
     private boolean compatMode = false;
+    private boolean convertMissingType = false;
 
     public LegacyValidator(PrismContext prismContext) {
         this.prismContext = prismContext;
@@ -383,6 +384,9 @@ public class LegacyValidator<T extends Containerable> {
             if (compatMode) {
                 parser = parser.compat();
             }
+            if (convertMissingType) {
+                parser = parser.convertMissingTypes();
+            }
             T containerable = parser.parseRealValue();
 
             objectResult.addContext(OperationResult.CONTEXT_OBJECT, containerable.toString());
@@ -532,5 +536,13 @@ public class LegacyValidator<T extends Containerable> {
         subResult.addContext(OperationResult.CONTEXT_OBJECT, object.toString());
         subResult.addContext(OperationResult.CONTEXT_ITEM, propertyName);
         subResult.recordFatalError("<" + propertyName + ">: " + message);
+    }
+
+    public boolean isConvertMissingType() {
+        return convertMissingType;
+    }
+
+    public void setConvertMissingType(boolean convertMissingType) {
+        this.convertMissingType = convertMissingType;
     }
 }

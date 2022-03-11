@@ -14,7 +14,7 @@ import com.evolveum.midpoint.task.api.Task;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class TestIdMatchDummy extends AbstractIdMatchTest {
+public class TestIdMatchCorrelationMediumDummy extends AbstractMediumIdMatchCorrelationTest {
 
     private final DummyIdMatchServiceImpl dummyIdMatchService = new DummyIdMatchServiceImpl();
 

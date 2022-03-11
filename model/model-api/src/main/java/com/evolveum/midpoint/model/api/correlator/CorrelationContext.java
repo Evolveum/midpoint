@@ -183,15 +183,4 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
             throw new SystemException(e);
         }
     }
-
-    public @NotNull ObjectType getSourceObject(@NotNull SourceObjectType type) {
-        switch (type) {
-            case FOCUS:
-                return preFocus;
-            case PROJECTION:
-                return resourceObject;
-            default:
-                throw new AssertionError(type);
-        }
-    }
 }

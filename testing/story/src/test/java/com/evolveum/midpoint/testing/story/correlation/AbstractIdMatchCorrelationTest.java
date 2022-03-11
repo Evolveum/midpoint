@@ -7,12 +7,10 @@
 
 package com.evolveum.midpoint.testing.story.correlation;
 
-import com.evolveum.midpoint.test.CsvResource;
+import com.evolveum.midpoint.prism.path.ItemName;
 
-public class TestSimpleCorrelation extends AbstractSimpleCorrelationTest {
+public class AbstractIdMatchCorrelationTest extends AbstractCorrelationTest {
 
-    @Override
-    CsvResource getTargetResource() {
-        return RESOURCE_TARGET;
-    }
+    static final ItemName EXT_REFERENCE_ID = new ItemName(NS_EXT, "referenceId");
+
 }

@@ -73,6 +73,12 @@
             <class name="com.evolveum.midpoint.testing.story.TestResourceInMaintenance"/>
             <class name="com.evolveum.midpoint.testing.story.TestOrphanedTasks"/>
             <class name="com.evolveum.midpoint.testing.story.async.TestAsyncProvisioning"/>
+            <class name="com.evolveum.midpoint.testing.story.correlation.TestIdMatchCorrelationMultiAccountsDummy"/>
+            <class name="com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationSimple"/>
+            <class name="com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationSimpleSimplified"/>
+            <class name="com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium"/>
+            <class name="com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMultiAccounts"/>
+            <class name="com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMultiAccountsSimplified"/>
         </classes>
     </test>
 </suite>

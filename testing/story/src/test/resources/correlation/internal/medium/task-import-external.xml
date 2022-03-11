@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="27fb5306-48fc-452b-8300-b041326a1f1f">
+    <name>import-external</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="284faaa3-5959-4825-b779-7b9b957230d3"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+            </import>
+        </work>
+        <!--<reporting>-->
+        <!--    <tracing>-->
+        <!--        <tracingProfile>-->
+        <!--            <ref>functional-model-logging</ref>-->
+        <!--        </tracingProfile>-->
+        <!--    </tracing>-->
+        <!--</reporting>-->
+    </activity>
+</task>

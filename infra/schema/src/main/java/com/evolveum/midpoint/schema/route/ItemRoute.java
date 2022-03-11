@@ -10,12 +10,16 @@ package com.evolveum.midpoint.schema.route;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRouteSegmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRouteType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -39,6 +43,23 @@ public class ItemRoute {
 
     private ItemRoute(@NotNull List<ItemRouteSegment> segments) {
         this.segments = segments;
+    }
+
+    /**
+     * Creates a route from either path or route bean. Returns empty route if both are null.
+     */
+    public static @NotNull ItemRoute fromBeans(
+            @Nullable ItemPathType pathBean,
+            @Nullable ItemRouteType routeBean) {
+        if (pathBean != null && routeBean != null) {
+            throw new IllegalArgumentException("Both path and route are present: " + pathBean + ", " + routeBean);
+        } else if (pathBean != null) {
+            return fromPath(pathBean.getItemPath());
+        } else if (routeBean != null) {
+            return fromBean(routeBean);
+        } else {
+            return EMPTY;
+        }
     }
 
     public static @NotNull ItemRoute fromBean(@NotNull ItemRouteType bean) {
@@ -98,12 +119,24 @@ public class ItemRoute {
         return new ItemRoute(allSegments);
     }
 
-//    // Temporary code - document, optimize, etc
-//    public @NotNull ItemPath getTotalPathNaive() {
-//        ItemPath total = ItemPath.EMPTY_PATH;
-//        for (ItemRouteSegment segment : segments) {
-//            total = total.append(segment.path);
-//        }
-//        return total;
-//    }
+    /**
+     * Returns the last name path segment value; or null if there's no name path segment.
+     */
+    public @Nullable ItemName lastName() {
+        for (int i = segments.size() - 1; i >= 0; i--) {
+            ItemRouteSegment segment = segments.get(i);
+            ItemName lastName = segment.getPath().lastName();
+            if (lastName != null) {
+                return lastName;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return segments.stream()
+                .map(ItemRouteSegment::toString)
+                .collect(Collectors.joining("/"));
+    }
 }

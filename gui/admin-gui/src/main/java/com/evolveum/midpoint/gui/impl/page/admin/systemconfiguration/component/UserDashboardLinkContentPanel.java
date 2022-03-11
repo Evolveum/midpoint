@@ -46,7 +46,7 @@ public class UserDashboardLinkContentPanel extends RichHyperlinkListContentPanel
 
     @Override
     protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.PAGE_MESSAGE_TEMPLATE_LOCALIZED_CONTENT_PANEL;    // todo fix
+        return UserProfileStorage.TableId.PANEL_USER_DASHBOARD_LINK_CONTENT;
     }
 
     @Override
