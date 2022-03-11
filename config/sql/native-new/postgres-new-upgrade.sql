@@ -7,7 +7,7 @@
 
 -- @formatter:off because of terribly unreliable IDEA reformat for SQL
 -- This is the update script for the MAIN REPOSITORY, it will not work for a separate audit database.
--- It is safe to run this script repeatedly, so if you're not sure you're up to date.
+-- It is safe to run this script repeatedly, so if you're not sure, just run it to be up to date.
 -- DO NOT use explicit COMMIT commands inside the apply_change blocks - leave that to the procedure.
 -- If necessary, split your changes into multiple apply_changes calls to enforce the commit
 -- before another change - for example when adding values to the custom enum types.
