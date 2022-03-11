@@ -184,9 +184,9 @@ For indexed items, the following types might be used:
 
 [%autowidth,cols=3]
 |===
-| Type
-| How is it stored in xref:/midpoint/reference/repository/native-postgresql/[Native repository]?
-| How is it stored in xref:/midpoint/reference/repository/generic/[Generic repository]?
+h| Type
+h| How is it stored in xref:/midpoint/reference/repository/native-postgresql/[Native repository]?
+h| How is it stored in xref:/midpoint/reference/repository/generic/[Generic repository]?
 
 | xsd:string
 a| stored in `ext` JSONB column as string value
