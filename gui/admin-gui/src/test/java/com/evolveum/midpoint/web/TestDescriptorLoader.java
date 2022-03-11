@@ -341,7 +341,7 @@ public class TestDescriptorLoader extends AbstractGuiUnitTest {
         };
         midPointApplication.setServletContext(mockServletContext);
 
-        DescriptorLoader descriptorLoader = new DescriptorLoader();
+        DescriptorLoader descriptorLoader = new DescriptorLoader(null);
 
         // TODO: this test does not really work. This needs to be cleaned up
         // to make it testable

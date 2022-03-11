@@ -31,53 +31,17 @@ public final class DescriptorLoader implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(DescriptorLoader.class);
 
-    private static final String[] PACKAGES_TO_SCAN = {
-            "com.evolveum.midpoint.web.page",
-            "com.evolveum.midpoint.web.page.admin",
-            "com.evolveum.midpoint.web.page.admin.home",
-            "com.evolveum.midpoint.web.page.admin.users",
-            "com.evolveum.midpoint.web.page.admin.orgs",
-            "com.evolveum.midpoint.web.page.admin.services",
-            "com.evolveum.midpoint.web.page.admin.roles",
-            "com.evolveum.midpoint.web.page.admin.resources",
-            "com.evolveum.midpoint.web.page.admin.resources.content",
-            "com.evolveum.midpoint.web.page.admin.workflow",
-            "com.evolveum.midpoint.web.page.admin.server",
-            "com.evolveum.midpoint.web.page.admin.reports",
-            "com.evolveum.midpoint.web.page.admin.configuration",
-            "com.evolveum.midpoint.web.page.admin.configuration.system",
-            "com.evolveum.midpoint.web.page.admin.certification",
-            "com.evolveum.midpoint.web.page.admin.valuePolicy",
-            "com.evolveum.midpoint.web.page.admin.cases",
-            "com.evolveum.midpoint.web.page.admin.archetype",
-            "com.evolveum.midpoint.web.page.admin.objectCollection",
-            "com.evolveum.midpoint.web.page.admin.objectTemplate",
-            "com.evolveum.midpoint.web.page.login",
-            "com.evolveum.midpoint.web.page.error",
-            "com.evolveum.midpoint.web.page.forgetpassword",
-            "com.evolveum.midpoint.web.page.self",
-            "com.evolveum.midpoint.gui.impl.page.self",
-            "com.evolveum.midpoint.web.component.prism.show",
-            "com.evolveum.midpoint.gui.impl.page.admin",
-            "com.evolveum.midpoint.gui.impl.page.admin.cases",
-            "com.evolveum.midpoint.gui.impl.page.admin.org",
-            "com.evolveum.midpoint.gui.impl.page.admin.resource",
-            "com.evolveum.midpoint.gui.impl.page.admin.role",
-            "com.evolveum.midpoint.gui.impl.page.admin.service",
-            "com.evolveum.midpoint.gui.impl.page.admin.task",
-            "com.evolveum.midpoint.gui.impl.page.admin.user",
-            "com.evolveum.midpoint.gui.impl.page.admin.focus",
-            "com.evolveum.midpoint.gui.impl.page.admin.objectcollection",
-            "com.evolveum.midpoint.gui.impl.page.admin.objecttemplate",
-            "com.evolveum.midpoint.gui.impl.page.admin.archetype",
-            "com.evolveum.midpoint.gui.impl.page.admin.report"
-    };
+    private String additionalPackagesToScan;
 
     // All could be final, but then Checkstyle complains about lower-case, although these are not constants.
     private static Map<String, DisplayableValue<String>[]> actions = new HashMap<>();
     private static List<String> permitAllUrls = new ArrayList<>();
     private static List<String> loginPages = new ArrayList<>();
     private static Map<String, Class> urlClassMap = new HashMap<>();
+
+    public DescriptorLoader(String additionalPackagesToScan) {
+        this.additionalPackagesToScan = additionalPackagesToScan;
+    }
 
     public static Map<String, DisplayableValue<String>[]> getActions() {
         return actions;
@@ -113,24 +77,21 @@ public final class DescriptorLoader implements DebugDumpable {
 
     private void scanPackagesForPages(MidPointApplication application)
             throws InstantiationException, IllegalAccessException {
+        Collection<Class<?>> classes = ClassPathUtil.scanClasses(PageDescriptor.class,
+                StringUtils.joinWith(",", ClassPathUtil.DEFAULT_PACKAGE_TO_SCAN, additionalPackagesToScan));
 
-        for (String pac : PACKAGES_TO_SCAN) {
-            LOGGER.debug("Scanning package {} for page annotations", pac);
-
-            Set<Class<?>> classes = ClassPathUtil.listClasses(pac);
-            for (Class<?> clazz : classes) {
-                if (!WebPage.class.isAssignableFrom(clazz)) {
-                    continue;
-                }
-
-                PageDescriptor descriptor = clazz.getAnnotation(PageDescriptor.class);
-                if (descriptor == null) {
-                    continue;
-                }
-
-                mountPage(descriptor, clazz, application);
-                loadActions(descriptor);
+        for (Class<?> clazz : classes) {
+            if (!WebPage.class.isAssignableFrom(clazz)) {
+                continue;
             }
+
+            PageDescriptor descriptor = clazz.getAnnotation(PageDescriptor.class);
+            if (descriptor == null) {
+                continue;
+            }
+
+            mountPage(descriptor, clazz, application);
+            loadActions(descriptor);
         }
     }
 

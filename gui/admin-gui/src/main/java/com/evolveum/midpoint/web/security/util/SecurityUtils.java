@@ -112,7 +112,7 @@ public class SecurityUtils {
                         Arrays.stream(PageSecurityQuestions.class.getAnnotation(PageDescriptor.class).urls())
                                 .map(Url::matchUrlForSecurity).collect(Collectors.toSet()))
                 .put(AuthenticationModuleNameConstants.MAIL_NONCE,
-                        Arrays.stream(PageEmailNonse.class.getAnnotation(PageDescriptor.class).urls())
+                        Arrays.stream(PageEmailNonce.class.getAnnotation(PageDescriptor.class).urls())
                                 .map(Url::matchUrlForSecurity).collect(Collectors.toSet()))
                 .put(AuthenticationModuleNameConstants.HTTP_HEADER,
                         Arrays.stream(PageError401.class.getAnnotation(PageDescriptor.class).urls())

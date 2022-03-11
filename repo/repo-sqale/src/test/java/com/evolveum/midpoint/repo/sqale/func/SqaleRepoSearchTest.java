@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -195,7 +195,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .policySituation("situationC")
                 .activation(new ActivationType(prismContext)
                         .validFrom("2021-07-04T00:00:00Z")
-                        .validTo("2022-07-04T00:00:00Z"))
+                        .validTo("2022-07-04T00:00:00Z")
+                        .disableTimestamp("2020-01-01T00:00:00Z"))
                 .assignment(new AssignmentType(prismContext)
                         .lifecycleState("assignment1-1")
                         .orgRef(org1Oid, OrgType.COMPLEX_TYPE, relation1)
@@ -1915,6 +1916,15 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .endBlock(),
                 user3Oid);
         */
+    }
+
+    // MID-7683 'disableTimestamp' in mapping SqaleNestedMapping
+    @Test
+    public void test703SearchFocusByDisableTimestamp() throws SchemaException {
+        searchUsersTest("using disableTimestamp attribute",
+                f -> f.item(F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)
+                        .lt(createXMLGregorianCalendar("2022-01-01T00:00:00Z")),
+                user1Oid);
     }
     // endregion
 
