@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,6 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.querydsl.core.types.Expression;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.querydsl.core.types.Expression;
 
 /**
  * Object wraps zero, one or multiple values and makes their processing easier.
@@ -32,9 +32,6 @@ import com.querydsl.core.types.Expression;
  * from {@link PrismPropertyValue} to "real value" and then to convert it.
  * Both {@link #singleValue()} and {@link #allValues()} are handled the same way.
  *
- * If {@link #conversionFunction} is used any {@link IllegalArgumentException} will be re-wrapped
- * as {@link QueryException}, other runtime exceptions are not intercepted.
- *
  * @param <T> type of filter value
  * @param <V> type of value after conversion (can be the same as T)
  */
@@ -43,17 +40,18 @@ public abstract class ValueFilterValues<T, V> {
     @NotNull protected final PropertyValueFilter<T> filter;
 
     public static <T> ValueFilterValues<T, T> from(@NotNull PropertyValueFilter<T> filter) {
-        return new Constant<T,T>(filter, null);
+        return new Constant<>(filter, null);
     }
 
-    public static <T, V> ValueFilterValues<T, V>from(@NotNull PropertyValueFilter<T> filter, Expression<?> expression) {
-        return new Expr<T,V>(filter, expression);
+    public static <T, V> ValueFilterValues<T, V> from(
+            @NotNull PropertyValueFilter<T> filter, Expression<?> expression) {
+        return new Expr<>(filter, expression);
     }
 
     public static <T, V> ValueFilterValues<T, V> from(
             @NotNull PropertyValueFilter<T> filter,
             @Nullable Function<T, V> conversionFunction) {
-        return new Constant<T,V>(filter, conversionFunction);
+        return new Constant<>(filter, conversionFunction);
     }
 
     private ValueFilterValues(
@@ -63,6 +61,9 @@ public abstract class ValueFilterValues<T, V> {
 
     /**
      * Returns single value or null or fails if there are multiple values, all converted.
+     * If conversion function was provided any {@link IllegalArgumentException}
+     * or {@link ClassCastException} will be re-wrapped as {@link QueryException},
+     * other runtime exceptions are not intercepted.
      */
     public abstract @Nullable V singleValue() throws QueryException;
 
@@ -77,7 +78,7 @@ public abstract class ValueFilterValues<T, V> {
      * Returns multiple values, all converted, or empty list - never null.
      */
     public @NotNull List<V> allValues() {
-            return Collections.emptyList();
+        return Collections.emptyList();
     }
 
     /**
@@ -95,7 +96,7 @@ public abstract class ValueFilterValues<T, V> {
         return false;
     }
 
-    private static class Constant<T,V> extends ValueFilterValues<T, V> {
+    private static class Constant<T, V> extends ValueFilterValues<T, V> {
 
         @Nullable private final Function<T, V> conversionFunction;
 
@@ -167,23 +168,25 @@ public abstract class ValueFilterValues<T, V> {
         }
     }
 
-    private static class Expr<T,V> extends ValueFilterValues<T, V> {
+    private static class Expr<T, V> extends ValueFilterValues<T, V> {
 
-        private @Nullable Expression<?> expression;
+        private final @Nullable Expression<?> expression;
 
-        public Expr(@NotNull PropertyValueFilter<T> filter, Expression<?> expression) {
+        public Expr(@NotNull PropertyValueFilter<T> filter, @Nullable Expression<?> expression) {
             super(filter);
             this.expression = expression;
         }
 
         @Override
         public @Nullable V singleValue() throws QueryException {
-            return (V) this.expression;
+            //noinspection unchecked
+            return (V) expression;
         }
 
         @Override
         public @Nullable T singleValueRaw() {
-            return (T) this.expression;
+            //noinspection unchecked
+            return (T) expression;
         }
     }
 }

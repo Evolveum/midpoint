@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -50,6 +50,21 @@ public class FilterOperation {
     /** True if {@link #operator} is EQ or EQ_IGNORE_CASE. */
     public boolean isAnyEqualOperation() {
         return operator == Ops.EQ || operator == Ops.EQ_IGNORE_CASE;
+    }
+
+    /**
+     * True if {@link #operator} can be used only on TEXT/VARCHAR.
+     * Operators that ignore cases or contains/starts/endsWith operators are not supported for numbers, etc.
+     */
+    public boolean isTextOnlyOperation() {
+        return handleIgnoreCase
+                || operator == Ops.EQ_IGNORE_CASE
+                || operator == Ops.STRING_CONTAINS
+                || operator == Ops.STRING_CONTAINS_IC
+                || operator == Ops.STARTS_WITH
+                || operator == Ops.STARTS_WITH_IC
+                || operator == Ops.ENDS_WITH
+                || operator == Ops.ENDS_WITH_IC;
     }
 
     public Expression<?> treatPath(Expression<?> expression) {
