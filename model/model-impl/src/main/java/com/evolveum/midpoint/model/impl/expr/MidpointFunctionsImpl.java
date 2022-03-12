@@ -31,8 +31,6 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.path.ItemName;
 
@@ -1946,9 +1944,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return List.of();
         }
         //noinspection unchecked
-        List<ObjectReferenceType> archetypeRef = archetypeManager.determineArchetypeRefs((PrismObject<? extends AssignmentHolderType>) object.asPrismObject());
+        List<ObjectReferenceType> archetypeRef =
+                archetypeManager.determineArchetypeRefs((PrismObject<? extends AssignmentHolderType>) object.asPrismObject());
         return archetypeRef.stream()
-                .map(AbstractReferencable::getOid)
+                .map(ObjectReferenceType::getOid)
                 .collect(Collectors.toList());
     }
 

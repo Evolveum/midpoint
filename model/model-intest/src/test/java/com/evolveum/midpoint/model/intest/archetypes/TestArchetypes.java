@@ -133,8 +133,12 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
         addObject(ARCHETYPE_STUDENT, initTask, initResult);
         addObject(ROLE_LAB_ACCESS, initTask, initResult);
-        initAndTestDummyResource(RESOURCE_SOURCE, initTask, initResult);
-        initAndTestDummyResource(RESOURCE_LAB, initTask, initResult);
+        initDummyResource(RESOURCE_SOURCE, initTask, initResult);
+        initDummyResource(RESOURCE_LAB, initTask, initResult);
+        assertSuccess(
+                modelService.testResource(RESOURCE_SOURCE.oid, initTask));
+        assertSuccess(
+                modelService.testResource(RESOURCE_LAB.oid, initTask));
 
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_ARCHETYPES_GLOBAL_OID, initResult);
     }
@@ -1116,7 +1120,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
         when("importing from the source");
         modelService.importFromResource(RESOURCE_SOURCE.oid, RESOURCE_SOURCE.controller.getAccountObjectClass(), task, result);
-        waitForTaskFinish(task, true, 10000);
+        waitForTaskCloseOrSuspend(task.getOid(), 10000);
 
         then("Mary has a lab account");
         assertTask(task.getOid(), "after")

@@ -55,14 +55,6 @@
                         <path>name</path>
                     </source>
                 </outbound>
-                <inbound>
-                    <target>
-                        <path>name</path>
-                    </target>
-                    <evaluationPhases>
-                        <include>beforeCorrelation</include>
-                    </evaluationPhases>
-                </inbound>
             </attribute>
         </objectType>
     </schemaHandling>
@@ -73,15 +65,14 @@
             <kind>account</kind>
             <intent>default</intent>
             <enabled>true</enabled>
-            <correlationDefinition>
-                <correlators>
-                    <items>
-                        <item>
-                            <path>name</path>
-                        </item>
-                    </items>
-                </correlators>
-            </correlationDefinition>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>$projection/attributes/icfs:name</path>
+                    </expression>
+                </q:equal>
+            </correlation>
             <reaction>
                 <situation>deleted</situation>
                 <action>
