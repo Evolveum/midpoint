@@ -6,12 +6,25 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
+
+import java.io.File;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
+import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -19,20 +32,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.util.List;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Tests various aspects of consistency mechanism. Unlike the complex story test,
@@ -44,6 +49,11 @@ import static org.testng.AssertJUnit.assertNotNull;
 public class TestConsistencySimple extends AbstractInitializedModelIntegrationTest {
 
     private static final boolean ASSERT_SUCCESS = true;
+
+    private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "consistency-simple");
+
+    private static final TestResource<UserType> USER_JIM = new TestResource<>(
+            TEST_DIR, "user-jim.xml", "99576c2e-4edf-40d1-a7ea-47add9362c3a");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -299,4 +309,38 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
                 .build();
         return repositoryService.searchObjects(ShadowType.class, shadowQuery, null, result);
     }
+
+    /**
+     * A sequence of events leading to manifestation of MID-7292:
+     *
+     * Let's have an unreachable resource.
+     *
+     * 1. User `jim` is created, with an account on the resource assigned to him. Operation is "in progress".
+     * 2. User `jim` is deleted. But the shadow remains.
+     * 3. User `jim` is re-created with the same configuration. Boom.
+     */
+    @Test(enabled = false)
+    public void test300CreateDeleteCreateJim() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("resource is unreachable");
+        getDummyResource().setBreakMode(BreakMode.NETWORK);
+
+        when("jim is created with account on unreachable resource assigned");
+        addObject(USER_JIM, task, result);
+
+        and("jim is deleted");
+        deleteObject(UserType.class, USER_JIM.oid, task, result);
+
+        and("jim is re-created");
+
+        OperationResult newResult = new OperationResult("recreation");
+        //setGlobalTracingOverride(createModelLoggingTracingProfile());
+        addObject(USER_JIM, task, newResult);
+
+        then("operation should be in progress (no error there)");
+        assertInProgress(newResult);
+    }
 }
+

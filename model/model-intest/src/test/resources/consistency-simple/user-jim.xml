@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="99576c2e-4edf-40d1-a7ea-47add9362c3a">
+    <name>jim</name>
+    <assignment>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" />
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+    </assignment>
+</user>

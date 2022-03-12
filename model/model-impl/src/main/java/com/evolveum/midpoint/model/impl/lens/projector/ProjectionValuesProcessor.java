@@ -230,6 +230,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                             PrismObject<ShadowType> conflictingShadow = checker.getConflictingShadow();
                             if (conflictingShadow != null) {
                                 LOGGER.debug("Current shadow does not satisfy constraints. It conflicts with {}. Now going to find out what's wrong.", conflictingShadow);
+                                LOGGER.trace("Conflicting shadow details:\n{}", conflictingShadow.debugDumpLazily(1));
                                 PrismObject<ShadowType> fullConflictingShadow = null;
                                 try {
                                     var options = SchemaService.get().getOperationOptionsBuilder()
