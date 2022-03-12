@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -352,12 +352,6 @@ public class QueryInterpreter {
                 addOrdering(context, ordering);
             }
         }
-
-        if (paging.hasGrouping()) {
-            for (ObjectGrouping grouping : paging.getGroupingInstructions()) {
-                addGrouping(context, grouping);
-            }
-        }
     }
 
     private void addOrdering(InterpretationContext context, ObjectOrdering ordering) throws QueryException {
@@ -408,45 +402,6 @@ public class QueryInterpreter {
             hibernateQuery.addOrdering(hqlPropertyPath, OrderDirection.ASCENDING);
         }
 
-    }
-
-    private void addGrouping(InterpretationContext context, ObjectGrouping grouping) throws QueryException {
-
-        ItemPath groupByPath = grouping.getGroupBy();
-
-        // TODO if we'd like to have group-by extension properties, we'd need to provide itemDefinition for them
-        ProperDataSearchResult<?> result = context.getItemPathResolver().findProperDataDefinition(
-                context.getRootEntityDefinition(), groupByPath, null, JpaDataNodeDefinition.class, context.getPrismContext());
-        if (result == null) {
-            LOGGER.error("Unknown path '" + groupByPath + "', couldn't find definition for it, "
-                    + "list will not be grouped by it.");
-            return;
-        }
-        JpaDataNodeDefinition targetDefinition = result.getLinkDefinition().getTargetDefinition();
-        if (targetDefinition instanceof JpaAnyContainerDefinition) {
-            throw new QueryException("Grouping based on extension item or attribute is not supported yet: " + groupByPath);
-        } else if (targetDefinition instanceof JpaReferenceDefinition) {
-            throw new QueryException("Grouping based on reference is not supported: " + groupByPath);
-        } else if (result.getLinkDefinition().isMultivalued()) {
-            throw new QueryException("Grouping based on multi-valued item is not supported: " + groupByPath);
-        } else if (targetDefinition instanceof JpaEntityDefinition) {
-            throw new QueryException("Grouping based on entity is not supported: " + groupByPath);
-        } else if (!(targetDefinition instanceof JpaPropertyDefinition)) {
-            throw new IllegalStateException("Unknown item definition type: " + result.getClass());
-        }
-
-        JpaEntityDefinition baseEntityDefinition = result.getEntityDefinition();
-        JpaPropertyDefinition groupByDefinition = (JpaPropertyDefinition) targetDefinition;
-        String hqlPropertyPath = context.getItemPathResolver()
-                .resolveItemPath(groupByPath, null, context.getPrimaryEntityAlias(), baseEntityDefinition, true)
-                .getHqlPath();
-        if (RPolyString.class.equals(groupByDefinition.getJpaClass())) {
-            hqlPropertyPath += ".orig";
-        }
-
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
-
-        hibernateQuery.addGrouping(hqlPropertyPath);
     }
 
     public <T> Matcher<T> findMatcher(T value) {
