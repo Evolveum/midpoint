@@ -62,9 +62,11 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         login(USER_ADMINISTRATOR_USERNAME);
     }
 
-    private enum FocusOperation { RECONCILE, RECOMPUTE }
-    private enum ShadowOperation { KEEP, DELETE, UNLINK, UNLINK_AND_TOMBSTONE }
-    private enum ResourceObjectOperation { KEEP, DELETE }
+    private enum FocusOperation {RECONCILE, RECOMPUTE}
+
+    private enum ShadowOperation {KEEP, DELETE, UNLINK, UNLINK_AND_TOMBSTONE}
+
+    private enum ResourceObjectOperation {KEEP, DELETE}
 
     private ResourceObjectDefinition getAccountObjectClassDefinition() throws SchemaException {
         ResourceSchema schema = ResourceSchemaFactory.getRawSchema(getDummyResourceObject());
@@ -152,6 +154,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         executeTest(FocusOperation.RECOMPUTE, ShadowOperation.DELETE, ResourceObjectOperation.KEEP);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void executeTest(FocusOperation focusOperation, ShadowOperation shadowOperation,
             ResourceObjectOperation resourceObjectOperation) throws Exception {
 
@@ -252,12 +255,12 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
                 if (liveShadowAfter == null) {
                     liveShadowAfter = shadowAfter;
                 } else {
-                    fail("More than one live shadow "+liveShadowAfter + ", " + shadowAfter);
+                    fail("More than one live shadow " + liveShadowAfter + ", " + shadowAfter);
                 }
             }
         }
         if (expected == 0 && liveShadowAfter != null) {
-            fail("Unexpected live shadow: "+liveShadowAfter);
+            fail("Unexpected live shadow: " + liveShadowAfter);
         }
         if (expected == 1 && liveShadowAfter == null) {
             fail("No live shadow");
@@ -317,10 +320,11 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
      *
      * 1. User `jim` is created, with an account on the resource assigned to him. Operation is "in progress".
      * 2. User `jim` is deleted. But the shadow remains.
-     * 3. User `jim` is re-created with the same configuration. Boom.
+     * 3. User `jim` is re-created with the same configuration.
+     * 4. User `jim` is reconciled.
      */
-    @Test(enabled = false)
-    public void test300CreateDeleteCreateJim() throws Exception {
+    @Test
+    public void test300CreateDeleteCreateReconcileJim() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -330,17 +334,58 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         when("jim is created with account on unreachable resource assigned");
         addObject(USER_JIM, task, result);
 
-        and("jim is deleted");
+        then("jim should exist, with a single account");
+        assertUser(USER_JIM.oid, "after first creation")
+                .display()
+                .assertLinks(1, 0);
+
+        when("jim is deleted");
         deleteObject(UserType.class, USER_JIM.oid, task, result);
 
-        and("jim is re-created");
+        then("no user should be there, but an account should");
+        assertNoObject(UserType.class, USER_JIM.oid);
+        // @formatter:off
+        assertShadow(findShadowByPrismName("jim", getDummyResourceObject(), result), "after deletion")
+                .display()
+                .pendingOperations()
+                    .assertUnfinishedOperation()
+                        .deleteOperation()
+                            .display();
+        // @formatter:on
 
-        OperationResult newResult = new OperationResult("recreation");
-        //setGlobalTracingOverride(createModelLoggingTracingProfile());
-        addObject(USER_JIM, task, newResult);
+        when("jim is re-created");
+        OperationResult recreationResult = new OperationResult("recreation");
+        addObject(USER_JIM, task, recreationResult);
 
         then("operation should be in progress (no error there)");
-        assertInProgress(newResult);
+        assertInProgress(recreationResult);
+
+        // @formatter:off
+        assertUser(USER_JIM.oid, "after re-creation")
+                .display()
+                .singleLink()
+                    .resolveTarget()
+                        .display();
+        // @formatter:on
+
+        // TODO Maybe there should be a new account with pending ADD operation. But it's currently not so.
+
+        when("jim is reconciled"); // Just another account to break it
+        OperationResult reconciliationResult = new OperationResult("reconciliation");
+        reconcileUser(USER_JIM.oid, task, reconciliationResult);
+
+        then("operation should be in progress (no error there)");
+        assertInProgress(reconciliationResult);
+
+        // @formatter:off
+        assertUser(USER_JIM.oid, "after reconciliation")
+                .display()
+                    .singleLink()
+                        .resolveTarget()
+                            .display();
+        // @formatter:on
+
+        // TODO It is questionable if we should check "bring resource up and reconcile the user" scenario here,
+        //  or if it's in the scope of more advanced consistency tests (like TestConsistencyMechanism in story tests).
     }
 }
-
