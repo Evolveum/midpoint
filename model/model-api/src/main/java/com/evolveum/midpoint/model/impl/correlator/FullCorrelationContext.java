@@ -8,17 +8,15 @@
 package com.evolveum.midpoint.model.impl.correlator;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Full context needed to carry out correlation-related operations on a shadow.
@@ -36,21 +34,24 @@ public class FullCorrelationContext {
     @NotNull public final ResourceObjectTypeDefinition typeDefinition;
     @NotNull public final ObjectSynchronizationType synchronizationBean;
     @NotNull public final CompositeCorrelatorType correlators;
+    @Nullable public final SystemConfigurationType systemConfiguration;
 
     public FullCorrelationContext(
             @NotNull ShadowType shadow,
             @NotNull ResourceType resource,
             @NotNull ResourceObjectTypeDefinition typeDefinition,
             @NotNull ObjectSynchronizationType synchronizationBean,
-            @NotNull CompositeCorrelatorType correlators) {
+            @NotNull CompositeCorrelatorType correlators,
+            @Nullable SystemConfigurationType systemConfiguration) {
         this.shadow = shadow;
         this.resource = resource;
         this.typeDefinition = typeDefinition;
         this.synchronizationBean = synchronizationBean;
         this.correlators = correlators;
+        this.systemConfiguration = systemConfiguration;
     }
 
-    public @NotNull CorrelatorConfiguration getCorrelatorConfiguration() {
-        return CorrelatorConfiguration.getConfiguration(correlators);
+    public @Nullable CorrelationDefinitionType getCorrelationDefinitionBean() {
+        return synchronizationBean.getCorrelationDefinition();
     }
 }

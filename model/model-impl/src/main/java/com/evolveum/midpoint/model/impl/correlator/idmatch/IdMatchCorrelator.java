@@ -157,9 +157,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException {
 
-            return beans.correlatorFactoryRegistry
-                    .instantiateCorrelator(
-                            correlatorContext.spawn(followOnCorrelatorConfiguration), task, result)
+            return instantiateChild(followOnCorrelatorConfiguration, task, result)
                     .correlate(correlationContext, result);
         }
 
@@ -225,10 +223,9 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                     new IdMatchCorrelatorStateType()
                             .referenceId(referenceId));
 
-            CorrelationResult correlationResult = beans.correlatorFactoryRegistry
-                    .instantiateCorrelator(
-                            correlatorContext.spawn(followOnCorrelatorConfiguration), task, result)
-                    .correlate(clonedContext, result);
+            CorrelationResult correlationResult =
+                    instantiateChild(followOnCorrelatorConfiguration, task, result)
+                            .correlate(clonedContext, result);
 
             stateCheck(!correlationResult.isUncertain(),
                     "Unexpected uncertain correlation result for candidate reference ID %s: %s",

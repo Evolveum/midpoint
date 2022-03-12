@@ -12,7 +12,7 @@ import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -92,9 +92,10 @@ class CorrelationProcessing<F extends FocusType> {
                 syncCtx.getTask());
         syncCtx.setCorrelationContext(correlationContext);
         this.rootCorrelatorContext =
-                CorrelatorContext.createRoot(
-                        syncCtx.getCorrelators().clone(),
-                        syncCtx.getObjectSynchronizationBean());
+                beans.correlationService.createRootCorrelatorContext(
+                        syncCtx.getCorrelators(),
+                        syncCtx.getCorrelationDefinitionBean(),
+                        syncCtx.getSystemConfigurationBean());
         this.thisCorrelationStart = XmlTypeConverter.createXMLGregorianCalendar();
     }
 

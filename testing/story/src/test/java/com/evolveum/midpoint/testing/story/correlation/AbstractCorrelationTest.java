@@ -27,7 +27,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.model.api.CaseService;
-import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.CaseRelatedUtils;

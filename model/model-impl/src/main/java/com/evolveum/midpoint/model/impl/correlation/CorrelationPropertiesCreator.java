@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.sync;
+package com.evolveum.midpoint.model.impl.correlation;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -7,16 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.correlator;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+import com.evolveum.midpoint.model.api.correlator.*;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.correlation.CorrelatorContextCreator;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -58,7 +57,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
         this.correlatorContext = correlatorContext;
         this.configurationBean = correlatorContext.getConfigurationBean();
         this.beans = beans;
-        logger.trace("Instantiating the correlator with the context:\n{}", correlatorContext.debugDumpLazily(1));
+        logger.trace("Instantiating the correlator with the context:\n{}", correlatorContext.dumpXmlLazily());
     }
 
     @Override
@@ -97,5 +96,18 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
                 (configurationBean.getName() != null ? " '" + configurationBean.getName() + "'" : ""))
                 + " for " + correlationContext.getObjectTypeDefinition().getHumanReadableName()
                 + " in " + correlationContext.getResource();
+    }
+
+    protected @NotNull Correlator instantiateChild(
+            @NotNull CorrelatorConfiguration childConfiguration,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ConfigurationException {
+        CorrelatorContext<?> childContext = CorrelatorContextCreator.createChildContext(
+                childConfiguration,
+                correlatorContext.getOriginalConfigurationBean(),
+                correlatorContext.getCorrelationDefinitionBean(),
+                correlatorContext.getSystemConfiguration());
+        return beans.correlatorFactoryRegistry
+                .instantiateCorrelator(childContext, task, result);
     }
 }

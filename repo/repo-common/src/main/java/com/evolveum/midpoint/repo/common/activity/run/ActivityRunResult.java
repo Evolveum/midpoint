@@ -44,6 +44,9 @@ public class ActivityRunResult implements ShortDumpable {
     /** The original exception (if any). */
     private Throwable throwable;
 
+    /** Optional message. Overrides the message in {@link #throwable}. */
+    @Nullable private String message;
+
     public ActivityRunResult() {
     }
 
@@ -51,7 +54,9 @@ public class ActivityRunResult implements ShortDumpable {
         this(operationResultStatus, runResultStatus, null);
     }
 
-    public ActivityRunResult(OperationResultStatus operationResultStatus, TaskRunResultStatus runResultStatus,
+    public ActivityRunResult(
+            OperationResultStatus operationResultStatus,
+            TaskRunResultStatus runResultStatus,
             Throwable throwable) {
         this.operationResultStatus = operationResultStatus;
         this.runResultStatus = runResultStatus;
@@ -89,7 +94,11 @@ public class ActivityRunResult implements ShortDumpable {
                 MoreObjects.firstNonNull(runResultStatus, FINISHED));
         runResult.setOperationResultStatus(operationResultStatus);
         runResult.setThrowable(throwable);
-        runResult.setMessage(throwable != null ? throwable.getMessage() : null);
+        if (message != null) {
+            runResult.setMessage(message);
+        } else if (throwable != null) {
+            runResult.setMessage(throwable.getMessage());
+        }
         // progress is intentionally kept null (meaning "do not update it in the task")
         return runResult;
     }
@@ -148,6 +157,8 @@ public class ActivityRunResult implements ShortDumpable {
         return "ActivityRunResult{" +
                 "opStatus=" + operationResultStatus +
                 ", runStatus=" + runResultStatus +
+                (throwable != null ? ", throwable=" + throwable : "") +
+                (message != null ? ", message=" + message : "") +
                 '}';
     }
 
@@ -155,6 +166,17 @@ public class ActivityRunResult implements ShortDumpable {
     public void shortDump(StringBuilder sb) {
         sb.append("opStatus: ").append(operationResultStatus);
         sb.append(", runStatus: ").append(runResultStatus);
+        if (throwable != null) {
+            sb.append(", throwable: ").append(throwable);
+        }
+        if (message != null) {
+            sb.append(", message: ").append(message);
+        }
+    }
+
+    public ActivityRunResult message(String message) {
+        this.message = message;
+        return this;
     }
 
     public boolean isError() {

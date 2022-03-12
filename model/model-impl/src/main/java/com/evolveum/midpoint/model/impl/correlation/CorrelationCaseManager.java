@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.correlator;
+package com.evolveum.midpoint.model.impl.correlation;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRefWithFullObject;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;

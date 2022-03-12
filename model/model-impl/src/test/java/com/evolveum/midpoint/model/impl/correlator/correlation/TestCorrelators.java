@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.correlator.correlation;
 
 import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
 import com.evolveum.midpoint.model.test.idmatch.DummyIdMatchServiceImpl;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchCorrelatorFactory;
@@ -128,8 +128,15 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         for (File correlatorFile : CORRELATOR_FILES) {
             AbstractCorrelatorType configBean = prismContext.parserFor(correlatorFile)
                     .parseRealValue(AbstractCorrelatorType.class);
+            CorrelatorContext<?> correlatorContext =
+                    new CorrelatorContext<>(
+                            CorrelatorConfiguration.typed(configBean),
+                            configBean,
+                            null,
+                            systemConfiguration
+                    );
             Correlator correlator = correlatorFactoryRegistry.instantiateCorrelator(
-                    CorrelatorContext.createRoot(configBean), task, result);
+                    correlatorContext, task, result);
             correlatorMap.put(configBean.getName(), correlator);
         }
     }

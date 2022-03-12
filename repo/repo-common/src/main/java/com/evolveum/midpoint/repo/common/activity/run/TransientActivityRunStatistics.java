@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.activity.run;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityItemProcessingStatistics;
 
 import com.google.common.util.concurrent.AtomicDouble;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,14 +41,18 @@ public class TransientActivityRunStatistics {
 
     // Note that we currently do not need the end timestamp.
 
+    /** Last error message seen. */
+    private volatile String lastErrorMessage;
+
     void recordRunStart(long startTimeMillis) {
         this.startTimeMillis = startTimeMillis;
     }
 
-    public void update(boolean isError, double duration) {
+    public void update(boolean isError, double duration, String message) {
         itemsProcessed.incrementAndGet();
         if (isError) {
             errors.incrementAndGet();
+            lastErrorMessage = message;
         }
         totalTimeProcessing.addAndGet(duration);
     }
@@ -98,5 +103,9 @@ public class TransientActivityRunStatistics {
 
     public int getItemsProcessed() {
         return itemsProcessed.get();
+    }
+
+    public @Nullable String getLastErrorMessage() {
+        return lastErrorMessage;
     }
 }

@@ -14898,6 +14898,19 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+
+                    <xsd:element name="correlators" type="tns:CompositeCorrelatorType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Globally-defined correlators.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SystemConfigurationType.correlators</a:displayName>
+                                <a:since>4.5</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -23646,18 +23659,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="definitions" type="tns:CorrelatorDefinitionsType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.definitions</a:displayName>
-                        <a:displayOrder>5</a:displayOrder>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
             <xsd:element name="order" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -23683,7 +23684,20 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="ref" type="xsd:string" minOccurs="0">
+            <xsd:element name="using" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the correlator to be used at this place.
+                        TODO refine this specification
+                        TODO implement
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractCorrelatorType.ref</a:displayName>
+                        <a:displayOrder>20</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="extending" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to an upstream definition of correlator. It is used as a template for this correlator.
@@ -23733,6 +23747,18 @@
                     <xsd:appinfo>
                         <a:displayName>AbstractCorrelatorType.documentation</a:displayName>
                         <a:displayOrder>130</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="definitions" type="tns:CorrelatorDefinitionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractCorrelatorType.definitions</a:displayName>
+                        <a:displayOrder>5</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

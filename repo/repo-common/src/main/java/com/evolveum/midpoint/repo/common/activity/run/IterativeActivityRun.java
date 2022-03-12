@@ -454,7 +454,9 @@ public abstract class IterativeActivityRun<
             // TODO In the future we should distinguish between permanent and temporary errors here.
             return ActivityRunResult.exception(FATAL_ERROR, PERMANENT_ERROR, stoppingException);
         } else if (transientRunStatistics.getErrors() > 0) {
-            return ActivityRunResult.finished(PARTIAL_ERROR);
+            return ActivityRunResult
+                    .finished(PARTIAL_ERROR)
+                    .message(transientRunStatistics.getLastErrorMessage());
         } else {
             return ActivityRunResult.success();
         }

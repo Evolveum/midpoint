@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api.correlator;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorAuthorityLevelType;
@@ -24,8 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
  * Wrapper for both typed (bean-only) and untyped (bean + item name) correlator configuration.
@@ -52,34 +51,6 @@ public abstract class CorrelatorConfiguration {
     @Override
     public String toString() {
         return String.format("%s (order %d; %s)", getDebugName(), getOrder(), getAuthority());
-    }
-
-    /**
-     * Returns exactly one {@link CorrelatorConfiguration} from given "correlators" structure.
-     *
-     * @throws IllegalArgumentException If there's not exactly one configuration there.
-     */
-    public static @NotNull CorrelatorConfiguration getConfiguration(CompositeCorrelatorType correlators) {
-        Collection<CorrelatorConfiguration> configurations = getConfigurations(correlators);
-        argCheck(!configurations.isEmpty(), "No correlator configurations in %s", correlators);
-
-        if (configurations.size() == 1) {
-            CorrelatorConfiguration configuration = configurations.iterator().next();
-            if (canBeStandalone(configuration)) {
-                return configuration;
-            }
-        }
-
-        // This is the default composite correlator.
-        return new TypedCorrelationConfiguration(correlators);
-    }
-
-    /**
-     * Currently, a configuration that is not non-authoritative can be run as standalone - without wrapping
-     * in composite correlator.
-     */
-    private static boolean canBeStandalone(CorrelatorConfiguration configuration) {
-        return configuration.getAuthority() != CorrelatorAuthorityLevelType.NON_AUTHORITATIVE;
     }
 
     /**
@@ -125,6 +96,36 @@ public abstract class CorrelatorConfiguration {
         return configurations;
     }
 
+    public static @NotNull List<CorrelatorConfiguration> getConfigurationsDeeply(CompositeCorrelatorType composite) {
+        List<CorrelatorConfiguration> allConfigurations = new ArrayList<>();
+        addConfigurationsDeeplyInternal(allConfigurations, composite);
+        return allConfigurations;
+    }
+
+    private static void addConfigurationsDeeplyInternal(
+            @NotNull List<CorrelatorConfiguration> allConfigurations,
+            @NotNull CompositeCorrelatorType composite) {
+        Collection<CorrelatorConfiguration> directChildren = getConfigurations(composite);
+        for (CorrelatorConfiguration directChild : directChildren) {
+            allConfigurations.add(directChild);
+            AbstractCorrelatorType directChildBean = directChild.getConfigurationBean();
+            if (directChildBean instanceof CompositeCorrelatorType) {
+                addConfigurationsDeeplyInternal(allConfigurations, (CompositeCorrelatorType) directChildBean);
+            }
+        }
+    }
+
+    public static String identify(@NotNull Collection<CorrelatorConfiguration> configurations) {
+        return configurations.stream()
+                .map(config -> config.identify())
+                .collect(Collectors.joining(", "));
+    }
+
+    private @NotNull String identify() {
+        return CorrelationItemDefinitionUtil.identify(
+                getConfigurationBean());
+    }
+
     public static @NotNull CorrelatorConfiguration typed(@NotNull AbstractCorrelatorType configBean) {
         return new TypedCorrelationConfiguration(configBean);
     }
@@ -140,14 +141,21 @@ public abstract class CorrelatorConfiguration {
                 CorrelatorAuthorityLevelType.AUTHORITATIVE);
     }
 
+    public abstract boolean isUntyped();
+
     public static class TypedCorrelationConfiguration extends CorrelatorConfiguration {
-        TypedCorrelationConfiguration(@NotNull AbstractCorrelatorType configurationBean) {
+        public TypedCorrelationConfiguration(@NotNull AbstractCorrelatorType configurationBean) {
             super(configurationBean);
         }
 
         @Override
         @NotNull String getDefaultDebugName() {
             return configurationBean.getClass().getSimpleName();
+        }
+
+        @Override
+        public boolean isUntyped() {
+            return false;
         }
     }
 
@@ -168,6 +176,11 @@ public abstract class CorrelatorConfiguration {
         @Override
         @NotNull String getDefaultDebugName() {
             return configurationItemName.getLocalPart();
+        }
+
+        @Override
+        public boolean isUntyped() {
+            return true;
         }
     }
 }
