@@ -400,17 +400,17 @@ class LinkUpdater<F extends FocusType> {
                 return;
             }
 
-            // Note there can be some discrepancies between computed situation and the one that will be really present
-            // in the repository after the task finishes. It can occur if the modify operation does not succeed.
-            task.onSynchronizationSituationChange(context.getItemProcessingIdentifier(), projectionOid, newSituation);
-            projCtx.setSynchronizationSituationResolved(newSituation);
-
             SynchronizationSituationType currentSynchronizationSituation = currentShadow.asObjectable().getSynchronizationSituation();
             if (currentSynchronizationSituation == SynchronizationSituationType.DELETED && ShadowUtil.isDead(currentShadow.asObjectable())) {
                 LOGGER.trace("Skipping update of synchronization situation for deleted dead shadow");
                 result.recordSuccess();
                 return;
             }
+
+            // Note there can be some discrepancies between computed situation and the one that will be really present
+            // in the repository after the task finishes. It can occur if the modify operation does not succeed.
+            task.onSynchronizationSituationChange(context.getItemProcessingIdentifier(), projectionOid, newSituation);
+            projCtx.setSynchronizationSituationResolved(newSituation);
 
             if (isSkipWhenNoChange()) {
                 if (newSituation == currentSynchronizationSituation) {

@@ -9136,7 +9136,7 @@
             <xsd:enumeration value="noSynchronizationPolicy">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Resource object was excluded from synchronization because because no synchronization policy was found.
+                        Resource object was excluded from synchronization because no synchronization policy was found.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NO_SYNCHRONIZATION_POLICY"/>
@@ -9146,10 +9146,21 @@
             <xsd:enumeration value="synchronizationDisabled">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Resource object was excluded from synchronization because because synchronization is disabled for it.
+                        Resource object was excluded from synchronization because synchronization is disabled for it.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SYNCHRONIZATION_DISABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="synchronizationNotNeeded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Synchronization was not expected for the shadow in the particular situation.
+                        (E.g. a shadow exists in "remaining shadows" reconciliation activity.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SYNCHRONIZATION_NOT_NEEDED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
