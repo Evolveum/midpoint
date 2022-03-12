@@ -1116,7 +1116,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
         when("importing from the source");
         modelService.importFromResource(RESOURCE_SOURCE.oid, RESOURCE_SOURCE.controller.getAccountObjectClass(), task, result);
-        waitForTaskFinish(task, true, 10000);
+        waitForTaskCloseOrSuspend(task.getOid(), 10000);
 
         then("Mary has a lab account");
         assertTask(task.getOid(), "after")
