@@ -14,7 +14,6 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.projector.Components;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -132,7 +131,7 @@ public class ClockworkClick<F extends ObjectType> {
 
     private void createTraceIfNeeded(OperationResult result) throws SchemaException {
         if (result.isTracingAny(ClockworkClickTraceType.class)) {
-            trace = new ClockworkClickTraceType(PrismContext.get());
+            trace = new ClockworkClickTraceType();
             if (result.isTracingNormal(ClockworkClickTraceType.class)) {
                 trace.setInputLensContextText(context.debugDump());
             }
@@ -317,7 +316,7 @@ public class ClockworkClick<F extends ObjectType> {
     /**
      * Logs the entire operation in a human-readable fashion.
      */
-    private <F extends ObjectType> void logFinalReadable(LensContext<F> context) {
+    private void logFinalReadable(LensContext<F> context) {
         if (!LOGGER.isDebugEnabled()) {
             return;
         }
@@ -378,7 +377,7 @@ public class ClockworkClick<F extends ObjectType> {
             if (focusPrimaryDelta != null) {
                 sb.append("Triggered by focus primary delta\n");
                 DebugUtil.indentDebugDump(sb, 1);
-                sb.append(focusPrimaryDelta.toString());
+                sb.append(focusPrimaryDelta);
                 sb.append("\n");
             }
         }
@@ -427,7 +426,7 @@ public class ClockworkClick<F extends ObjectType> {
                 DebugUtil.indentDebugDump(sb, 1);
                 sb.append(delta.toString());
                 sb.append(": ");
-                sb.append(deltaResult.getStatus());
+                sb.append(deltaResult != null ? deltaResult.getStatus() : null);
                 sb.append("\n");
             }
         }
@@ -436,9 +435,8 @@ public class ClockworkClick<F extends ObjectType> {
                 "##############################################################", sb);
     }
 
-    private <F extends ObjectType> void switchState(ModelState newState) {
+    private void switchState(ModelState newState) {
         beans.medic.clockworkStateSwitch(context, newState);
         context.setState(newState);
     }
-
 }
