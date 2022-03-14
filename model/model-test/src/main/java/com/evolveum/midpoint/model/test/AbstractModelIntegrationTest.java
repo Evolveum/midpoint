@@ -33,6 +33,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -3438,134 +3439,92 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return freshTask;
     }
 
-    // BEWARE of race conditions: if the task starts "by itself", lastRunFinishTimestamp can be updated before waiting starts
-    protected OperationResult waitForTaskTreeNextFinishedRun(String rootTaskOid, int timeout) throws Exception {
-        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskTreeNextFinishedRun");
-        Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult, true);
+    protected void runTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
+        OperationResult result = getTestOperationResult();
+        Task origRootTask = taskManager.getTask(rootTaskOid, null, result);
+        restartTask(rootTaskOid, result);
+        waitForRootActivityCompletion(
+                rootTaskOid,
+                origRootTask.getRootActivityCompletionTimestamp(),
+                timeout);
     }
 
-    protected OperationResult runTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
-        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".runTaskTreeAndWaitForFinish");
-        Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
-        restartTask(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult, true);
-    }
-
-    protected OperationResult resumeTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
+    protected void resumeTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".runTaskTreeAndWaitForFinish");
         Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
         taskManager.resumeTaskTree(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult, false);
+        waitForRootActivityCompletion(
+                rootTaskOid,
+                origRootTask.getRootActivityCompletionTimestamp(),
+                timeout);
     }
 
-    // a bit experimental
-    protected OperationResult waitForTaskTreeNextFinishedRun(TaskType origRootTask, int timeout, OperationResult waitResult,
-            boolean checkRootTaskLastStartTimestamp) throws Exception {
-        long origLastRunStartTimestamp = XmlTypeConverter.toMillis(origRootTask.getLastRunStartTimestamp());
-        long origLastRunFinishTimestamp = XmlTypeConverter.toMillis(origRootTask.getLastRunFinishTimestamp());
+    /**
+     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, int)}.
+     *
+     * To be used on tasks that are scheduled to be run in regular intervals. (So it needs not be absolutely precise:
+     * if the task realization completes between the method is started and the current completion timestamp is determined,
+     * it's no problem: the task will be started again in the near future.)
+     *
+     * @return root task in the moment of completion
+     */
+    protected Task waitForNextRootActivityCompletion(@NotNull String rootTaskOid, int timeout) throws CommonException {
+        OperationResult result = getTestOperationResult();
+        XMLGregorianCalendar currentCompletionTimestamp = taskManager.getTaskWithResult(rootTaskOid, result)
+                        .getRootActivityCompletionTimestamp();
+        return waitForRootActivityCompletion(rootTaskOid, currentCompletionTimestamp, timeout);
+    }
 
-        long start = System.currentTimeMillis();
-        AtomicBoolean triggered = new AtomicBoolean(false);
-        OperationResult aggregateResult = new OperationResult("aggregate");
+    /**
+     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, int)}.
+     *
+     * To be used on tasks that were _not_ executed before. I.e. we are happy with any task completion.
+     */
+    protected void waitForRootActivityCompletion(@NotNull String rootTaskOid, int timeout) throws CommonException {
+        waitForRootActivityCompletion(rootTaskOid, null, timeout);
+    }
+
+    /**
+     * Waits for the completion of the root activity realization. Useful for task trees.
+     *
+     * TODO reconcile with {@link #waitForTaskActivityCompleted(String, long, OperationResult, long)}
+     *
+     * @param lastKnownCompletionTimestamp The completion we know about - and are _not_ interested in. If null,
+     * we are interested in any completion.
+     */
+    protected Task waitForRootActivityCompletion(
+            @NotNull String rootTaskOid,
+            @Nullable XMLGregorianCalendar lastKnownCompletionTimestamp,
+            int timeout) throws CommonException {
+        OperationResult waitResult = getTestOperationResult();
+        Task freshRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
+        argCheck(freshRootTask.getParent() == null, "Non-root task: %s", freshRootTask);
         Checker checker = () -> {
-            Task freshRootTask = taskManager.getTaskWithResult(origRootTask.getOid(), waitResult);
 
-            displayValue("task tree", TaskDebugUtil.dumpTaskTree(freshRootTask, waitResult));
+            // This is just to display the progress (we don't have the completion timestamp there)
+            assertProgress(rootTaskOid, "waiting for activity completion")
+                    .display();
 
-            long waiting = (System.currentTimeMillis() - start) / 1000;
-            String description =
-                    freshRootTask.getName().getOrig() + " [es:" + freshRootTask.getExecutionState() + ", rs:" +
-                            freshRootTask.getResultStatus() + ", p:" + freshRootTask.getLegacyProgress() + ", n:" +
-                            freshRootTask.getNode() + "] (waiting for: " + waiting + " seconds)";
-            // was the whole task tree refreshed at least once after we were called?
-            long lastRunStartTimestamp = or0(freshRootTask.getLastRunStartTimestamp());
-            long lastRunFinishTimestamp = or0(freshRootTask.getLastRunFinishTimestamp());
-
-            if (!triggered.get() &&
-                    checkRootTaskLastStartTimestamp &&
-                    (lastRunStartTimestamp == origLastRunStartTimestamp
-                            || lastRunFinishTimestamp == origLastRunFinishTimestamp
-                            || lastRunStartTimestamp >= lastRunFinishTimestamp)) {
-                display("Current root task run has not been completed yet: " + description
-                        + "\n  lastRunStartTimestamp=" + lastRunStartTimestamp
-                        + ", origLastRunStartTimestamp=" + origLastRunStartTimestamp
-                        + ", lastRunFinishTimestamp=" + lastRunFinishTimestamp
-                        + ", origLastRunFinishTimestamp=" + origLastRunFinishTimestamp);
-                return false;
-            }
-            triggered.set(true);
-
-            aggregateResult.getSubresults().clear();
-            // TODO: Could Subtasks be from previous runs?
-            // TODO: Could we miss runs where all subtasks are completed?
-            List<? extends Task> allSubtasks = freshRootTask.listSubtasksDeeply(waitResult);
-            for (Task subtask : allSubtasks) {
-                try {
-                    subtask.refresh(waitResult); // quick hack to get operation results
-                } catch (ObjectNotFoundException e) {
-                    logger.warn("Task {} does not exist any more", subtask);
-                }
-            }
-            if (!checkRootTaskLastStartTimestamp && allSubtasks.isEmpty()) {
-                display("No subtasks yet (?) => continuing waiting: " + description);
-                return false;
-            }
-
-            List<? extends Task> subtasks = TaskUtil.getLeafTasks(allSubtasks);
-            Task failedTask = null;
-            for (Task subtask : subtasks) {
-                /*
-                var subtaskStartTime = or0(subtask.getLastRunStartTimestamp());
-                if (subtaskStartTime < lastRunStartTimestamp) {
-                    display("Subtask was started before we started waiting: " + description, subtask);
-                    return false;
-                }
-                */
-
-                if (subtask.getSchedulingState() == TaskSchedulingStateType.READY) {
-                    display("Found ready subtasks during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                if (subtask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
-                    display("Found waiting subtasks during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                OperationResult subtaskResult = subtask.getResult();
-                if (subtaskResult == null) {
-                    display("No subtask operation result during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                if (subtaskResult.getStatus() == OperationResultStatus.IN_PROGRESS) {
-                    display("Found 'in_progress' subtask operation result during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                if (subtaskResult.getStatus() == OperationResultStatus.UNKNOWN) {
-                    display("Found 'unknown' subtask operation result during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                aggregateResult.addSubresult(subtaskResult);
-                if (subtaskResult.isError()) {
-                    failedTask = subtask;
-                }
-            }
-            if (failedTask != null) {
-                display("Found 'error' subtask operation result during waiting => done waiting: " + description, failedTask);
-                return true;
-            }
-            if (freshRootTask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
-                display("Found WAITING root task during wait for next finished run => continuing waiting: " + description);
-                return false;
-            }
-            return true; // all executive subtasks are closed
+            // Now do the real check now
+            freshRootTask.refresh(waitResult);
+            var rootState = freshRootTask.getActivityStateOrClone(ActivityPath.empty());
+            return rootState != null
+                    && rootState.getRealizationState() == ActivityRealizationStateType.COMPLETE
+                    && isDifferent(lastKnownCompletionTimestamp, rootState.getRealizationEndTimestamp());
         };
 
-        IntegrationTestTools.waitFor("Waiting for task tree " + origRootTask + " next finished run", checker, timeout, DEFAULT_TASK_TREE_SLEEP_TIME);
-        Task freshTask = taskManager.getTaskWithResult(origRootTask.getOid(), waitResult);
-        logger.debug("Final root task:\n{}", freshTask.debugDump());
-        aggregateResult.computeStatusIfUnknown();
+        IntegrationTestTools.waitFor("Waiting for task tree " + freshRootTask + " next finished run",
+                checker, timeout, DEFAULT_TASK_TREE_SLEEP_TIME);
+        // We must NOT update the task. It should be in the "completed" state. (Because the task may be recurring,
+        // so updating could get the state from a subsequent run.)
+        logger.debug("Final root task:\n{}", freshRootTask.debugDump());
         stabilize(); // TODO needed?
-        return aggregateResult;
+        return freshRootTask;
+    }
+
+    private boolean isDifferent(@Nullable XMLGregorianCalendar lastKnownTimestamp, XMLGregorianCalendar realTimestamp) {
+        return lastKnownTimestamp == null
+                || !lastKnownTimestamp.equals(realTimestamp);
     }
 
     public void waitForCaseClose(CaseType aCase) throws Exception {
