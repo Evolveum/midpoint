@@ -128,6 +128,7 @@ Except for that no other assignments are allowed.
 This is also supported in the user interface.
 The user interface will render appropriate buttons for the archetype and limit assignment selection dialogs.
 
+
 == Configuration
 
 See xref:configuration.adoc[] page for configuration details.
