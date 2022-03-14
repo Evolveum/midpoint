@@ -216,7 +216,7 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
         if (DISTRIBUTION == Distribution.MULTITHREADED) {
             waitForTaskFinish(getSyncTaskOid(), true, 600000);
         } else {
-            waitForTaskTreeNextFinishedRun(getSyncTaskOid(), 600000);
+            waitForRootActivityCompletion(getSyncTaskOid(), 600000);
         }
 
         // THEN

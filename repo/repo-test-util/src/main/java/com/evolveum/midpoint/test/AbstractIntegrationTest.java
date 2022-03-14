@@ -3252,8 +3252,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      * Waits a little before asserting task status. This is to enable task manager to write e.g. operationStatus
      * after task operation result status indicates that the handler has finished.
      */
-    protected void stabilize() throws InterruptedException {
-        Thread.sleep(500);
+    protected void stabilize() {
+        MiscUtil.sleepCatchingInterruptedException(500);
     }
 
     protected ShadowAsserter<Void> assertSelectedAccountByName(Collection<PrismObject<ShadowType>> accounts, String name) {

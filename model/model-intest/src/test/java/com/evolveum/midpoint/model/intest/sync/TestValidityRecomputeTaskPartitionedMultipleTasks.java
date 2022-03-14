@@ -7,15 +7,15 @@
 
 package com.evolveum.midpoint.model.intest.sync;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.*;
-
-import javax.xml.datatype.XMLGregorianCalendar;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * TODO
@@ -31,13 +31,18 @@ public class TestValidityRecomputeTaskPartitionedMultipleTasks extends TestValid
 
     @Override
     protected void waitForValidityTaskFinish() throws Exception {
-        waitForTaskTreeNextFinishedRun(TASK_VALIDITY_SCANNER_OID, DEFAULT_TASK_WAIT_TIMEOUT);
+        waitForNextRootActivityCompletion(TASK_VALIDITY_SCANNER_OID, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
     @Override
     protected void waitForValidityNextRunAssertSuccess() throws Exception {
-        OperationResult result = waitForTaskTreeNextFinishedRun(TASK_VALIDITY_SCANNER_OID, DEFAULT_TASK_WAIT_TIMEOUT);
-        TestUtil.assertSuccess(result);
+        Task completed = waitForNextRootActivityCompletion(TASK_VALIDITY_SCANNER_OID, DEFAULT_TASK_WAIT_TIMEOUT);
+        // Because of implementation reasons, we won't check the operation result of the task and all its subtasks.
+        // We simply check the number of errors here.
+        assertTask(completed, "after")
+                .rootActivityStateOverview()
+                    .assertSuccess()
+                    .assertNoErrors();
         displayValidityScannerState();
     }
 
