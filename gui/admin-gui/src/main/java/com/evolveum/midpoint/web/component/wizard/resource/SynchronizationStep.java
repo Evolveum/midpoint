@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -298,7 +300,19 @@ public class SynchronizationStep extends WizardStep {
 
             @Override
             protected IModel<String> createTextModel(final IModel<QName> model) {
-                return new PropertyModel<>(model, "localPart");
+                return new IModel<>() {
+                    @Override
+                    public String getObject() {
+                        return model.getObject() != null ? model.getObject().getLocalPart() : "";
+                    }
+
+                    @Override
+                    public void setObject(String object) {
+                        if (model.getObject() != null) {
+                            model.setObject(new QName(object));
+                        }
+                    }
+                };
             }
 
             @Override
