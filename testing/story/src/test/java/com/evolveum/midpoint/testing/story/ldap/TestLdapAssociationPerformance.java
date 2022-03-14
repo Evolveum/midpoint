@@ -7,15 +7,12 @@
 
 package com.evolveum.midpoint.testing.story.ldap;
 
-import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -30,7 +27,6 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -55,7 +51,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     private static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     private static final String RESOURCE_OPENDJ_OID = "aeff994e-381a-4fb3-af3b-f0f5dcdc9653";
-    private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 
     private static final File ROLE_LDAP_FILE = new File(TEST_DIR, "role-ldap.xml");
     private static final File ROLE_META_FILE = new File(TEST_DIR, "role-meta.xml");
@@ -80,23 +75,22 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     private static final File TASK_RECOMPUTE_MULTINODE_MULTITHREADED_FILE = new File(TEST_DIR, "task-recompute-multinode-multithreaded.xml");
     private static final String TASK_RECOMPUTE_MULTINODE_MULTITHREADED_OID = "1952f893-ac76-49c5-a2b1-e65af4d28c63";
 
-    protected static final int NUMBER_OF_GENERATED_USERS = 20;
-    protected static final String GENERATED_USER_NAME_FORMAT = "user%06d";
-    protected static final String GENERATED_USER_FULL_NAME_FORMAT = "Random J. U%06d";
-    protected static final String GENERATED_USER_GIVEN_NAME_FORMAT = "Random";
-    protected static final String GENERATED_USER_FAMILY_NAME_FORMAT = "U%06d";
-    //protected static final String GENERATED_USER_OID_FORMAT = "11111111-0000-ffff-1000-000000%06d";
+    private static final int NUMBER_OF_GENERATED_USERS = 20;
+    private static final String GENERATED_USER_NAME_FORMAT = "user%06d";
+    private static final String GENERATED_USER_FULL_NAME_FORMAT = "Random J. U%06d";
+    private static final String GENERATED_USER_GIVEN_NAME = "Random";
+    private static final String GENERATED_USER_FAMILY_NAME_FORMAT = "U%06d";
 
-    protected static final int NUMBER_OF_GENERATED_ROLES = 100;
-    protected static final String GENERATED_ROLE_NAME_FORMAT = "role-%06d";
-    protected static final String GENERATED_ROLE_OID_FORMAT = "22222222-0000-ffff-1000-000000%06d";
+    private static final int NUMBER_OF_GENERATED_ROLES = 100;
+    private static final String GENERATED_ROLE_NAME_FORMAT = "role-%06d";
+    private static final String GENERATED_ROLE_OID_FORMAT = "22222222-0000-ffff-1000-000000%06d";
 
     private static final int RECOMPUTE_TASK_WAIT_TIMEOUT = 120000;
 
     private static final String SUMMARY_LINE_FORMAT = "%50s: %5d ms (%4d ms/user, %7.2f ms/user/role)\n";
     private static final String REPO_LINE_FORMAT = "%6d (%8.1f/%s)\n";
 
-    private Map<String, Long> durations = new LinkedHashMap<>();
+    private final Map<String, Long> durations = new LinkedHashMap<>();
 
     @Override
     protected File getSystemConfigurationFile() {
@@ -246,7 +240,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
                 (user, i) -> {
                     user
                             .fullName(String.format(GENERATED_USER_FULL_NAME_FORMAT, i))
-                            .givenName(String.format(GENERATED_USER_GIVEN_NAME_FORMAT, i))
+                            .givenName(GENERATED_USER_GIVEN_NAME)
                             .familyName(String.format(GENERATED_USER_FAMILY_NAME_FORMAT, i));
                     PrismProperty<Object> memberOf;
                     try {
@@ -394,7 +388,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         addTask(TASK_RECOMPUTE_MULTINODE_FILE);
 
         IntegrationTestTools.setSilentConsole(true);
-        waitForTaskTreeNextFinishedRun(TASK_RECOMPUTE_MULTINODE_OID, RECOMPUTE_TASK_WAIT_TIMEOUT);
+        waitForNextRootActivityCompletion(TASK_RECOMPUTE_MULTINODE_OID, RECOMPUTE_TASK_WAIT_TIMEOUT);
         IntegrationTestTools.setSilentConsole(false);
 
         // THEN
@@ -438,7 +432,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         addTask(TASK_RECOMPUTE_MULTINODE_MULTITHREADED_FILE);
 
         IntegrationTestTools.setSilentConsole(true);
-        waitForTaskTreeNextFinishedRun(TASK_RECOMPUTE_MULTINODE_MULTITHREADED_OID, RECOMPUTE_TASK_WAIT_TIMEOUT);
+        waitForNextRootActivityCompletion(TASK_RECOMPUTE_MULTINODE_MULTITHREADED_OID, RECOMPUTE_TASK_WAIT_TIMEOUT);
         IntegrationTestTools.setSilentConsole(false);
 
         // THEN
@@ -553,6 +547,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT, 0);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private long recordDuration(long duration) {
         durations.put(getTestNameShort(), duration);
         return duration;

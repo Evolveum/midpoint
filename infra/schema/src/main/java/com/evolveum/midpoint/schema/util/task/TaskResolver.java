@@ -20,14 +20,17 @@ import org.jetbrains.annotations.NotNull;
 @Experimental
 public interface TaskResolver {
 
-    @NotNull TaskType resolve(String oid) throws SchemaException, ObjectNotFoundException;
+    /**
+     * @throws UnsupportedOperationException if this resolver does not support resolution of tasks
+     */
+    @NotNull TaskType resolve(String oid) throws SchemaException, ObjectNotFoundException, UnsupportedOperationException;
 
     /**
      * Does nothing: in its typical use it assumes that all children are pre-resolved.
      */
     static TaskResolver empty() {
         return oid -> {
-            throw new IllegalStateException("Found unresolved subtask " + oid);
+            throw new UnsupportedOperationException("Found unresolved subtask " + oid);
         };
     }
 }
