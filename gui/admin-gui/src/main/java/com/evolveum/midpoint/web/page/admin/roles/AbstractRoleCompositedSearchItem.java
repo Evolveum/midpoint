@@ -170,4 +170,7 @@ public class AbstractRoleCompositedSearchItem<R extends AbstractRoleType> extend
                 .findReferenceDefinition(refName);
     }
 
+    public List<SearchItem> getSearchItems() {
+        return searchItems;
+    }
 }

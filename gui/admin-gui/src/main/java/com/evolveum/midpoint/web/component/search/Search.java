@@ -139,6 +139,10 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return specialItems;
     }
 
+    public SearchItem getCompositedSpecialItem() {
+        return compositedSpecialItems;
+    }
+
     public void setSpecialItems(List<SearchItem> specialItems) {
         this.specialItems = specialItems;
     }
