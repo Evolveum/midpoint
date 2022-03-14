@@ -99,4 +99,8 @@ public class IndirectSearchItem extends SpecialSearchItem {
         return !searchBoxConfiguration.isSearchScopeVisible()
                 || !searchBoxConfiguration.isSearchScope(SearchBoxScopeType.SUBTREE);
     }
+
+    public boolean isIndirect(){
+        return searchBoxConfiguration.isIndirect();
+    }
 }

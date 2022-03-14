@@ -1189,7 +1189,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         this.manualRefreshEnabled = manualRefreshEnabled;
     }
 
-    protected LoadableDetachableModel<Search<C>> getSearchModel() {
+    public LoadableDetachableModel<Search<C>> getSearchModel() {
         return searchModel;
     }
 

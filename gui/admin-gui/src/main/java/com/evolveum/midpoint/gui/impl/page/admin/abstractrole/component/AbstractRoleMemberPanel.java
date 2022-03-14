@@ -24,8 +24,6 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -56,13 +54,12 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
+import com.evolveum.midpoint.web.page.admin.roles.IndirectSearchItem;
+import com.evolveum.midpoint.web.page.admin.roles.ScopeSearchItem;
 import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
@@ -409,21 +406,6 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     private AbstractRoleCompositedSearchItem createMemberSearchPanel(Search search, SearchBoxConfigurationHelper searchBoxConfig) {
         return new AbstractRoleCompositedSearchItem(search, searchBoxConfig, !isNotRole(), isOrg());
-//        {
-
-//            @Override
-//            protected PrismReferenceDefinition getReferenceDefinition(ItemName refName) {
-////                return PrismContext.get().getSchemaRegistry()
-////                        .findContainerDefinitionByCompileTimeClass(AssignmentType.class)
-////                        .findReferenceDefinition(refName);
-//            }
-
-//            @Override
-//            protected R getAbstractRoleObject() {
-//                return AbstractRoleMemberPanel.this.getModelObject();
-//            }
-
-//        };
     }
 
     private <AH extends AssignmentHolderType> ObjectQuery getCustomizedQuery(Search<AH> search) {
@@ -1121,6 +1103,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return (MainObjectListPanel<FocusType>) get(getPageBase().createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
     }
 
+    private Search<FocusType> getSearch() {
+        return getMemberTable().getSearchModel().getObject();
+    }
+
     protected QueryScope getQueryScope() {
         // TODO if all selected objects have OIDs we can eliminate getOids call
         if (CollectionUtils.isNotEmpty(
@@ -1128,12 +1114,39 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             return QueryScope.SELECTED;
         }
 
-        if (getSearchBoxConfiguration().isIndirect()
-                || getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)) {
+        if (isIndirect() || isSubtreeScope()) {
             return QueryScope.ALL;
         }
 
         return QueryScope.ALL_DIRECT;
+    }
+
+    private boolean isSubtreeScope() {
+        Search<FocusType> search = getSearch();
+        SearchItem compositedItem = search.getCompositedSpecialItem();
+        if (compositedItem instanceof AbstractRoleCompositedSearchItem ) {
+            List<SearchItem> items = ((AbstractRoleCompositedSearchItem) compositedItem).getSearchItems();
+            for (SearchItem item : items) {
+                if (item instanceof ScopeSearchItem) {
+                    return SearchBoxScopeType.SUBTREE.equals(((ScopeSearchItem) item).getScopeType());
+                }
+            }
+        }
+        return getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE);
+    }
+
+    private boolean isIndirect() {
+        Search<FocusType> search = getSearch();
+        SearchItem compositedItem = search.getCompositedSpecialItem();
+        if (compositedItem instanceof AbstractRoleCompositedSearchItem ) {
+            List<SearchItem> items = ((AbstractRoleCompositedSearchItem)compositedItem).getSearchItems();
+            for (SearchItem item : items) {
+                if (item instanceof IndirectSearchItem) {
+                    return ((IndirectSearchItem) item).isIndirect();
+                }
+            }
+        }
+        return getSearchBoxConfiguration().isIndirect();
     }
 
     protected void recomputeMembersPerformed(AjaxRequestTarget target) {
