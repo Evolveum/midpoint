@@ -161,7 +161,7 @@ public class ActivityProgressInformationBuilder {
     }
 
     private @NotNull ChildrenContinuation continuationFromDelegatedActivityState(ObjectReferenceType delegateTaskRef) {
-        TaskType delegateTask = getSubtask(delegateTaskRef);
+        TaskType delegateTask = getSubtaskIfResolvable(delegateTaskRef);
         if (delegateTask == null) {
             return continuation(
                     currentUnknown());
@@ -188,7 +188,7 @@ public class ActivityProgressInformationBuilder {
         return unknown(activityIdentifier, activityPath);
     }
 
-    private TaskType getSubtask(ObjectReferenceType subtaskRef) {
+    private TaskType getSubtaskIfResolvable(ObjectReferenceType subtaskRef) {
         String subTaskOid = subtaskRef != null ? subtaskRef.getOid() : null;
         if (subTaskOid == null) {
             return null;
@@ -199,6 +199,9 @@ public class ActivityProgressInformationBuilder {
         }
         try {
             return resolver.resolve(subTaskOid);
+        } catch (UnsupportedOperationException e) {
+            LOGGER.debug("The resolver does not support resolution of subtasks. Subtask OID: {}", subTaskOid);
+            return null;
         } catch (ObjectNotFoundException | SchemaException e) {
             LoggingUtils.logException(LOGGER, "Couldn't retrieve subtask {} of {}", e, subTaskOid, task);
             return null;
