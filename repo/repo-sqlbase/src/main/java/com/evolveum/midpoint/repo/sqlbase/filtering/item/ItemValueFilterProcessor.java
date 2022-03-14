@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -103,7 +103,7 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
             }
         }
 
-        return singleValuePredicate(path, operation, values.singleValue());
+        return singleValuePredicateWithNotTreated(path, operation, values.singleValue());
     }
 
     /**
@@ -112,6 +112,13 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
      * otherwise the expression is passed as-is.
      * Technically, any expression can be used on path side as well.
      */
+    protected Predicate singleValuePredicateWithNotTreated(
+            Expression<?> path, FilterOperation operation, Object value) {
+        Predicate predicate = singleValuePredicate(path, operation, value);
+        return predicateWithNotTreated(path, predicate);
+    }
+
+    /** Like {@link #singleValuePredicateWithNotTreated} but skips NOT treatment. */
     protected Predicate singleValuePredicate(
             Expression<?> path, FilterOperation operation, Object value) {
         path = operation.treatPath(path);
@@ -120,9 +127,8 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
         } else {
             value = operation.treatValue(value);
         }
-        Predicate predicate = ExpressionUtils.predicate(operation.operator, path,
+        return ExpressionUtils.predicate(operation.operator, path,
                 value instanceof Expression ? (Expression<?>) value : ConstantImpl.create(value));
-        return predicateWithNotTreated(path, predicate);
     }
 
     /**
@@ -139,5 +145,4 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
     public Expression<?> rightHand(ValueFilter<?, ?> filter) throws RepositoryException {
         throw new RepositoryException("Path " + filter.getRightHandSidePath() + "is not supported as right hand side.");
     }
-
 }

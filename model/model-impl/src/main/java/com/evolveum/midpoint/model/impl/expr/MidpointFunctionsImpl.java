@@ -1893,32 +1893,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     // MID-5243
-    @Override
-    public <O extends ObjectType> boolean hasArchetype(O object, String archetypeOid) {
-        if (object == null) {
-            return false;
-        }
-        if (!(object instanceof AssignmentHolderType)) {
-            return archetypeOid == null;
-        }
-        List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType) object).getArchetypeRef();
-        if (archetypeOid == null) {
-            return archetypeRefs.isEmpty();
-        }
-        for (ObjectReferenceType archetypeRef : archetypeRefs) {
-            if (archetypeOid.equals(archetypeRef.getOid())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // MID-5243
-    @Override
-    @Deprecated
     /**
      * DEPRECATED use getArchetypes(object)
      */
+    @Override
+    @Deprecated
     public <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException, ConfigurationException {
         List<PrismObject<ArchetypeType>> archetypes = archetypeManager.determineArchetypes((PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
         PrismObject<ArchetypeType> archetypeType = ArchetypeTypeUtil.getStructuralArchetype(archetypes);
@@ -1928,23 +1907,25 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return archetypeType.asObjectable();
     }
 
-    public <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException, ConfigurationException {
+    @NotNull public <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException, ConfigurationException {
         if (!(object instanceof AssignmentHolderType)) {
-            return null;
+            return List.of();
         }
         //noinspection unchecked
-        List<PrismObject<ArchetypeType>> archetype = archetypeManager.determineArchetypes((PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
+        List<PrismObject<ArchetypeType>> archetype =
+                archetypeManager.determineArchetypes(
+                        (PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
         return archetype.stream()
                 .map(arch -> arch.asObjectable())
                 .collect(Collectors.toList());
     }
 
     // MID-5243
-    @Override
-    @Deprecated
     /**
      * DEPRECATED use getArchetypeOids(object)
      */
+    @Override
+    @Deprecated
     public <O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException {
         if (!(object instanceof AssignmentHolderType)) {
             return null;
@@ -1958,14 +1939,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @NotNull
-    public <O extends ObjectType> List<String> getArchetypeOids(O object) throws SchemaException, ConfigurationException {
+    public <O extends ObjectType> List<String> getArchetypeOids(O object) {
         if (!(object instanceof AssignmentHolderType)) {
-            return null;
+            return List.of();
         }
         //noinspection unchecked
-        List<ObjectReferenceType> archetypeRef = archetypeManager.determineArchetypeRefs((PrismObject<? extends AssignmentHolderType>) object.asPrismObject());
+        List<ObjectReferenceType> archetypeRef =
+                archetypeManager.determineArchetypeRefs((PrismObject<? extends AssignmentHolderType>) object.asPrismObject());
         return archetypeRef.stream()
-                .map(ref -> ref.getOid())
+                .map(ObjectReferenceType::getOid)
                 .collect(Collectors.toList());
     }
 

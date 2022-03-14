@@ -266,6 +266,7 @@ public class TaskQuartzImpl implements Task {
         //  on prismAccess should be done by callers (where applicable)
         synchronized (prismAccess) {
             if (taskResult != null) {
+                clearPrismResultIncompleteFlag();
                 taskPrism.asObjectable().setResult(taskResult.createOperationResultType());
                 taskPrism.findProperty(TaskType.F_RESULT).setIncomplete(false); // prism will do this automatically some day
                 taskPrism.asObjectable().setResultStatus(taskResult.getStatus().createStatusType());
@@ -788,12 +789,18 @@ public class TaskQuartzImpl implements Task {
             taskResult = result;
             taskResultIncomplete = false;
             if (result != null) {
-                taskPrism.asObjectable().setResult(result.createOperationResultType());
-                taskPrism.findProperty(TaskType.F_RESULT).setIncomplete(false); // prism will do this automatically some day
-            } else {
-                taskPrism.asObjectable().setResult(null);
+                clearPrismResultIncompleteFlag();
             }
+            taskPrism.asObjectable().setResult(result != null ? result.createOperationResultType() : null);
             taskPrism.asObjectable().setResultStatus(result != null ? result.getStatus().createStatusType() : null);
+        }
+    }
+
+    /** Must be guarded by {@link #prismAccess}! */
+    private void clearPrismResultIncompleteFlag() {
+        PrismProperty<Object> existingResult = taskPrism.findProperty(TaskType.F_RESULT);
+        if (existingResult != null) {
+            existingResult.setIncomplete(false);
         }
     }
 

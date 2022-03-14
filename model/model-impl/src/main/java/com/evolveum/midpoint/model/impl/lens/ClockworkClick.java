@@ -317,7 +317,7 @@ public class ClockworkClick<F extends ObjectType> {
     /**
      * Logs the entire operation in a human-readable fashion.
      */
-    private <F extends ObjectType> void logFinalReadable(LensContext<F> context) {
+    private void logFinalReadable(LensContext<F> context) {
         if (!LOGGER.isDebugEnabled()) {
             return;
         }
@@ -378,7 +378,7 @@ public class ClockworkClick<F extends ObjectType> {
             if (focusPrimaryDelta != null) {
                 sb.append("Triggered by focus primary delta\n");
                 DebugUtil.indentDebugDump(sb, 1);
-                sb.append(focusPrimaryDelta.toString());
+                sb.append(focusPrimaryDelta);
                 sb.append("\n");
             }
         }
@@ -427,7 +427,7 @@ public class ClockworkClick<F extends ObjectType> {
                 DebugUtil.indentDebugDump(sb, 1);
                 sb.append(delta.toString());
                 sb.append(": ");
-                sb.append(deltaResult.getStatus());
+                sb.append(deltaResult != null ? deltaResult.getStatus() : null);
                 sb.append("\n");
             }
         }
@@ -436,9 +436,8 @@ public class ClockworkClick<F extends ObjectType> {
                 "##############################################################", sb);
     }
 
-    private <F extends ObjectType> void switchState(ModelState newState) {
+    private void switchState(ModelState newState) {
         beans.medic.clockworkStateSwitch(context, newState);
         context.setState(newState);
     }
-
 }

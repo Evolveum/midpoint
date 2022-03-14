@@ -21,7 +21,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_A
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -228,7 +227,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         addExtensionValue(user1Extension, "boolean", true);
         addExtensionValue(user1Extension, "enum", BeforeAfterType.AFTER);
         addExtensionValue(user1Extension, "dateTime", // 2021-09-30 before noon
-                asXMLGregorianCalendar(Instant.ofEpochMilli(1633_000_000_000L)));
+                asXMLGregorianCalendar(1633_000_000_000L));
         addExtensionValue(user1Extension, "poly", PolyString.fromOrig("poly-value"));
         addExtensionValue(user1Extension, "ref", ref(org21Oid, OrgType.COMPLEX_TYPE, relation1));
         addExtensionValue(user1Extension, "string-mv", "string-value1", "string-value2");
@@ -239,6 +238,9 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 ref(org1Oid, null, relation2), // type is nullable if provided in schema
                 ref(org2Oid, OrgType.COMPLEX_TYPE)); // default relation
         addExtensionValue(user1Extension, "string-ni", "not-indexed-item");
+        addExtensionValue(user1Extension, "dateTime-mv",
+                createXMLGregorianCalendar("2022-03-10T23:00:00Z"),
+                createXMLGregorianCalendar("2021-01-01T00:00:00Z"));
 
         ExtensionType user1AssignmentExtension = new ExtensionType(prismContext);
         user1.assignment(new AssignmentType(prismContext)
@@ -272,7 +274,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         ExtensionType user2Extension = user2.getExtension();
         addExtensionValue(user2Extension, "string", "other-value...");
         addExtensionValue(user2Extension, "dateTime", // 2021-10-01 ~15PM
-                asXMLGregorianCalendar(Instant.ofEpochMilli(1633_100_000_000L)));
+                asXMLGregorianCalendar(1633_100_000_000L));
         addExtensionValue(user2Extension, "int", 2);
         addExtensionValue(user2Extension, "double", Double.MIN_VALUE); // positive, close to zero
         addExtensionValue(user2Extension, "float", 0f);
@@ -310,7 +312,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         ExtensionType user3Extension = user3.getExtension();
         addExtensionValue(user3Extension, "int", 10);
         addExtensionValue(user3Extension, "dateTime", // 2021-10-02 ~19PM
-                asXMLGregorianCalendar(Instant.ofEpochMilli(1633_200_000_000L)));
+                asXMLGregorianCalendar(1633_200_000_000L));
         user3Oid = repositoryService.addObject(user3.asPrismObject(), null, result);
 
         user4Oid = repositoryService.addObject(
@@ -527,17 +529,28 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test125SearchObjectsBySubtypeContainsIsNotSupported() {
-        given("query for subtype containing (=substring) value");
-        OperationResult operationResult = createOperationResult();
-        ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(ObjectType.F_SUBTYPE).contains("worker")
-                .build();
+    public void test125SearchObjectsBySubtypeContains() throws SchemaException {
+        searchUsersTest("with subtype (PG array column) containing (=substring) value",
+                f -> f.item(ObjectType.F_SUBTYPE).contains("A"),
+                user1Oid, user2Oid);
+    }
 
-        expect("repository throws exception because it is not supported");
-        assertThatThrownBy(() -> searchObjects(ObjectType.class, query, operationResult))
-                .isInstanceOf(SystemException.class)
-                .hasMessageStartingWith("Can't translate filter");
+    @Test
+    public void test126SearchObjectsBySubtypeUsingComparison() throws SchemaException {
+        searchUsersTest("with subtype using comparison, case-ignore even (possible for text)",
+                f -> f.item(ObjectType.F_SUBTYPE).gt("workera").matchingCaseIgnore(),
+                user1Oid, user4Oid);
+    }
+
+    @Test
+    public void test127SearchObjectsBySubtypeUsingComparisonNegated() throws SchemaException {
+        // NOTE: This is actually a bit tricky, because depending on the DB collation the comparison
+        // is likely case-insensitive already! E.g.:
+        // select 'workerA' COLLATE "en_US.utf8" > 'WORKERC' -- false, this is expected default for MP!
+        // select 'workerA' COLLATE "C.UTF-8" > 'WORKERC' -- true, as expected in binary
+        searchUsersTest("with subtype using NOT and comparison",
+                f -> f.not().item(ObjectType.F_SUBTYPE).gt("WORKERA").matchingCaseIgnore(),
+                creatorOid, modifierOid, user2Oid, user3Oid);
     }
 
     @Test
@@ -566,13 +579,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         given("query for policy situation containing (=substring) value");
         OperationResult operationResult = createOperationResult();
         ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(ObjectType.F_POLICY_SITUATION).contains("worker")
+                .item(ObjectType.F_POLICY_SITUATION).contains("anything")
                 .build();
 
-        expect("repository throws exception because it is not supported");
+        expect("repository throws exception because it is not supported for URI-like values");
         assertThatThrownBy(() -> searchObjects(ObjectType.class, query, operationResult))
                 .isInstanceOf(SystemException.class)
-                .hasMessageStartingWith("Can't translate filter");
+                .hasMessageStartingWith("Unsupported operation for multi-value non-textual item");
     }
 
     @Test
@@ -1275,25 +1288,32 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test515SearchObjectWithMultivalueExtensionUsingNonEqualFilterFails() {
-        given("query for multi-value extension string item with non-equal operation");
-        OperationResult operationResult = createOperationResult();
-        ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(UserType.F_EXTENSION, new QName("string-mv")).gt("string-value2")
-                .build();
-
-        expect("searchObjects throws exception because of unsupported filter");
-        assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
-                .isInstanceOf(SystemException.class)
-                .hasMessageContaining("supported");
-    }
-
-    @Test
-    public void test516SearchObjectHavingAnyOfSpecifiedMultivalueStringExtension() throws SchemaException {
+    public void test513SearchObjectHavingAnyOfSpecifiedMultivalueStringExtension() throws SchemaException {
         searchUsersTest("with multi-value extension string matching any of provided values",
                 f -> f.item(UserType.F_EXTENSION, new QName("string-mv"))
                         .eq("string-value2", "string-valueX"), // second value does not match, but that's OK
                 user1Oid, user2Oid); // both users have "string-value2" in "string-mv"
+    }
+
+    @Test
+    public void test515SearchObjectWithMultivalueExtensionUsingSubstring() throws SchemaException {
+        searchUsersTest("with multi-value extension string item with substring operation",
+                f -> f.item(UserType.F_EXTENSION, new QName("string-mv")).contains("1"), // matches string-value1
+                user1Oid);
+    }
+
+    @Test
+    public void test516SearchObjectWithMultivalueExtensionUsingComparison() throws SchemaException {
+        searchUsersTest("with multi-value extension string item with comparison operation",
+                f -> f.item(UserType.F_EXTENSION, new QName("string-mv")).gt("string-value2"),
+                user2Oid);
+    }
+
+    @Test
+    public void test517SearchObjectWithMultivalueExtensionUsingComparisonNegated() throws SchemaException {
+        searchUsersTest("with multi-value extension string item with NOT comparison operation",
+                f -> f.not().item(UserType.F_EXTENSION, new QName("string-mv")).gt("string-value2"),
+                creatorOid, modifierOid, user1Oid, user3Oid, user4Oid);
     }
 
     // integer tests
@@ -1338,24 +1358,24 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test528SearchObjectHavingSpecifiedMultivalueIntegerExtension() throws SchemaException {
+    public void test525SearchObjectHavingSpecifiedMultivalueIntegerExtension() throws SchemaException {
         searchUsersTest("having extension multi-integer item equal to value",
                 f -> f.item(UserType.F_EXTENSION, new QName("int-mv")).eq(47),
                 user1Oid);
     }
 
     @Test
-    public void test529SearchObjectHavingSpecifiedMultivalueIntegerExtension() {
-        given("query for multi-value extension integer item with non-equal operation");
-        OperationResult operationResult = createOperationResult();
-        ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(UserType.F_EXTENSION, new QName("int-mv")).gt(40)
-                .build();
+    public void test526SearchObjectHavingAnyOfSpecifiedMultivalueIntegerExtension() throws SchemaException {
+        searchUsersTest("having extension multi-integer item equal to any of provided values",
+                f -> f.item(UserType.F_EXTENSION, new QName("int-mv")).eq(40, 31),
+                user1Oid);
+    }
 
-        expect("searchObjects throws exception because of unsupported filter");
-        assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
-                .isInstanceOf(SystemException.class)
-                .hasMessageContaining("supported");
+    @Test
+    public void test527SearchObjectHavingSpecifiedMultivalueIntegerExtension() throws SchemaException {
+        searchUsersTest("having extension multi-integer item greater than some value",
+                f -> f.item(UserType.F_EXTENSION, new QName("int-mv")).gt(40),
+                user1Oid);
     }
 
     // other numeric types tests + wilder conditions
@@ -1493,6 +1513,15 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 user1Oid, user2Oid);
     }
 
+    @Test
+    public void test546SearchObjectHavingAnyOfSpecifiedMultiValueEnumExtension() throws SchemaException {
+        searchUsersTest("having extension multi-value enum item equal to any of specified values",
+                f -> f.item(UserType.F_EXTENSION, new QName("enum-mv"))
+                        .eq(OperationResultStatusType.UNKNOWN, // this one is used by user2
+                                OperationResultStatusType.FATAL_ERROR), // not used
+                user2Oid);
+    }
+
     // boolean tests
     @Test
     public void test548SearchObjectByBooleanExtension() throws SchemaException {
@@ -1507,7 +1536,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test550SearchObjectByDateTimeExtension() throws SchemaException {
         searchUsersTest("having extension date-time item with specified value",
                 f -> f.item(UserType.F_EXTENSION, new QName("dateTime"))
-                        .eq(asXMLGregorianCalendar(Instant.ofEpochMilli(1633_100_000_000L))),
+                        .eq(asXMLGregorianCalendar(1633_100_000_000L)),
                 user2Oid);
     }
 
@@ -1515,9 +1544,9 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test551SearchObjectByDateTimeExtensionBetween() throws SchemaException {
         searchUsersTest("having extension date-time item between specified values",
                 f -> f.item(UserType.F_EXTENSION, new QName("dateTime"))
-                        .gt(asXMLGregorianCalendar(Instant.ofEpochMilli(1633_000_000_000L)))
+                        .gt(asXMLGregorianCalendar(1633_000_000_000L))
                         .and().item(UserType.F_EXTENSION, new QName("dateTime"))
-                        .lt(asXMLGregorianCalendar(Instant.ofEpochMilli(1634_000_000_000L))),
+                        .lt(asXMLGregorianCalendar(1634_000_000_000L)),
                 user2Oid, user3Oid);
     }
 
@@ -1525,9 +1554,9 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test552SearchObjectByDateTimeExtensionOrCondition() throws SchemaException {
         searchUsersTest("having extension date-time item matching either condition (OR)",
                 f -> f.item(UserType.F_EXTENSION, new QName("dateTime"))
-                        .le(asXMLGregorianCalendar(Instant.ofEpochMilli(1633_000_000_000L)))
+                        .le(asXMLGregorianCalendar(1633_000_000_000L))
                         .or().item(UserType.F_EXTENSION, new QName("dateTime"))
-                        .ge(asXMLGregorianCalendar(Instant.ofEpochMilli(1633_200_000_000L))),
+                        .ge(asXMLGregorianCalendar(1633_200_000_000L)),
                 user1Oid, user3Oid);
     }
 
@@ -1542,6 +1571,41 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         // reverse ordering, user 3 first
         assertThat(result).extracting(u -> u.getOid())
                 .containsExactly(user3Oid, user2Oid, user1Oid);
+    }
+
+    @Test
+    public void test555SearchObjectByDateTimeMultiValueExtension() throws SchemaException {
+        searchUsersTest("having multi-value date-time extension item eq to specified value (any of semantics)",
+                f -> f.item(UserType.F_EXTENSION, new QName("dateTime-mv"))
+                        .eq(createXMLGregorianCalendar("2022-03-10T23:00:00Z")),
+                user1Oid);
+    }
+
+    @Test
+    public void test556SearchObjectByDateTimeMultiValueExtensionNot() throws SchemaException {
+        searchUsersTest("having multi-value date-time extension item NOT eq to specified value (none of the item values)",
+                f -> f.not().item(UserType.F_EXTENSION, new QName("dateTime-mv"))
+                        .eq(createXMLGregorianCalendar("2022-03-10T23:00:00Z")),
+                creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
+        // This can't match user1 just because it has also another value that is not equal.
+        // The result is true complement to the previous test without NOT.
+    }
+
+    @Test
+    public void test557SearchObjectByDateTimeMultiValueExtensionComparison() throws SchemaException {
+        searchUsersTest("having multi-value date-time extension item GOE (any of semantics)",
+                f -> f.item(UserType.F_EXTENSION, new QName("dateTime-mv"))
+                        .ge(createXMLGregorianCalendar("2022-03-10T23:00:00Z")),
+                user1Oid);
+    }
+
+    @Test
+    public void test558SearchObjectByDateTimeMultiValueExtensionEqualToAnyOfValue() throws SchemaException {
+        searchUsersTest("having multi-value date-time extension item eq to any of specified values",
+                f -> f.item(UserType.F_EXTENSION, new QName("dateTime-mv"))
+                        .eq(createXMLGregorianCalendar("2021-01-01T00:00:00Z"), // this one should match
+                                createXMLGregorianCalendar("2022-01-01T00:00:00Z")),
+                user1Oid);
     }
 
     // date-time uses the same code as string, no need for more tests, only EQ works for multi-value

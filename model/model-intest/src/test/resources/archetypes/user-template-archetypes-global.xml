@@ -21,9 +21,11 @@
             <expression>
                 <script>
                     <code>
+                        import com.evolveum.midpoint.util.MiscUtil
+
                         // MID-5243
-                        def archetypeOid = midpoint.getArchetypeOid(focus)
-                        def archetype = midpoint.getArchetype(focus)
+                        def archetypeOid = MiscUtil.extractSingleton(midpoint.getArchetypeOids(focus))
+                        def archetype = MiscUtil.extractSingleton(midpoint.getArchetypes(focus))
                         def isEmployee = midpoint.hasArchetype(focus, '7135e68c-ee53-11e8-8025-170b77da3fd6')
                         return "Archetype ${archetypeOid}: ${archetype} isEmployee: ${isEmployee}"
                     </code>
@@ -38,4 +40,43 @@
         <valueEnumerationRef oid="70000000-0000-0000-1111-000000000001" type="LookupTableType"/>
     </item>
 
+    <mapping>
+        <documentation>
+            Assigning role 'lab-access' based on the presence of the archetype 'student'.
+
+            This is a kind of 'old-style' approach to archetypes (directly replacing subtype property),
+            but definitely a valid one.
+
+            See MID-7694.
+        </documentation>
+        <strength>strong</strength>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>RoleType</targetType>
+                <oid>0d69d2c9-d1f4-4cfc-acb3-af8a71db81d1</oid> <!-- lab-access -->
+                <assignmentProperties>
+                    <subtype>autoassigned-lab-access-role</subtype>
+                </assignmentProperties>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+            <set>
+                <condition>
+                    <script>
+                        <code>
+                            input?.subtype?.contains('autoassigned-lab-access-role')
+                        </code>
+                    </script>
+                </condition>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code>
+                    midpoint.hasArchetype(focus, 'ca7bd614-9b1b-402c-a73c-0f571cb8b1c9') // student
+                </code>
+            </script>
+        </condition>
+    </mapping>
 </objectTemplate>

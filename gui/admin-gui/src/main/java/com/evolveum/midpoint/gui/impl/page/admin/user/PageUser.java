@@ -53,7 +53,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/userNew")
+                @Url(mountUrl = "/admin/userNew", matchUrlForSecurity = "/admin/userNew")
         },
         encoder = OnePageParameterEncoder.class,
         action = {
