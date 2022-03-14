@@ -62,7 +62,7 @@ public class InducedEntitlementsValidator implements MidpointFormValidator, Seri
                 PrismContainer<MappingType> outbound = associationValue.findContainer(ResourceObjectAssociationType.F_OUTBOUND);
                 if (outbound == null || outbound.getValues().isEmpty()) {
                     SimpleValidationError error = new SimpleValidationError();
-                    error.setMessage(PageBase.createStringResourceStatic(null, "InducedEntitlementsPanel.validator.message").getString());
+                    error.setMessage(PageBase.createStringResourceStatic("InducedEntitlementsPanel.validator.message").getString());
                     ItemPathType path = new ItemPathType();
                     path.setItemPath(ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION, ResourceObjectAssociationType.F_OUTBOUND));
                     error.setAttribute(path);

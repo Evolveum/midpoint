@@ -16,13 +16,10 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
-
-import javax.xml.namespace.QName;
 
 public class SearchItemDefinition implements Serializable, Comparable<SearchItemDefinition>, DebugDumpable {
 
@@ -98,7 +95,7 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
         }
 
         if (getDef() != null && StringUtils.isNotEmpty(getDef().getDisplayName())) {
-            return PageBase.createStringResourceStatic(null, getDef().getDisplayName()).getString();
+            return PageBase.createStringResourceStatic(getDef().getDisplayName()).getString();
         }
         return WebComponentUtil.getItemDefinitionDisplayNameOrName(getDef(), null);
     }

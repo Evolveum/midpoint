@@ -201,7 +201,7 @@ public class DeleteAllPanel extends Panel  implements Popupable{
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return PageBase.createStringResourceStatic(this, resourceKey, objects);
+        return PageBase.createStringResourceStatic(resourceKey, objects);
 //        return new StringResourceModel(resourceKey, this, new Model<String>(), resourceKey, objects);
     }
 

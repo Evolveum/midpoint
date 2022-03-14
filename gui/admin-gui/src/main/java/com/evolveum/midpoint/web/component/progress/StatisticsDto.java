@@ -84,7 +84,7 @@ public class StatisticsDto implements Serializable {
     }
 
     public String getLastMessage() {
-        return lastMessage != null ? lastMessage : "(" + PageBase.createStringResourceStatic(null, "StatisticsDto.getLastMessage.none").getString() + ")";
+        return lastMessage != null ? lastMessage : "(" + PageBase.createStringResourceStatic("StatisticsDto.getLastMessage.none").getString() + ")";
     }
 
     public void setLastMessage(String lastMessage) {
