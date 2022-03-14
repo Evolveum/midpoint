@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.component.util;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
+import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
 
@@ -25,7 +26,7 @@ public class TreeSelectableBean<T extends Serializable> extends SelectableBeanIm
     }
 
     public TreeSelectableBean(T value) {
-        super(value);
+        super(Model.of(value));
     }
 
 
