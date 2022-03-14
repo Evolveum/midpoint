@@ -30,7 +30,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
@@ -203,8 +202,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         if (mainMenuItem.containsSubMenu() && mainMenuItem.isInsertDefaultBackBreadcrumb()) {
             MenuItem first = mainMenuItem.getFirstMenuItem();
 
-            BreadcrumbPageClass invisibleBc = new BreadcrumbPageClass(createStringResource(first.getNameModel()), first.getPageClass(),
-                    first.getParams());
+            Breadcrumb invisibleBc = new Breadcrumb(createStringResource(first.getNameModel()), first.getPageClass(), first.getParams());
             invisibleBc.setVisible(false);
             pageBase.addBreadcrumb(invisibleBc);
         }

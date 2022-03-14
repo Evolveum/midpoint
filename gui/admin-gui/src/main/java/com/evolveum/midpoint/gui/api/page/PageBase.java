@@ -127,8 +127,6 @@ import com.evolveum.midpoint.web.application.SimpleCounter;
 import com.evolveum.midpoint.web.boot.Wro4jConfig;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.BaseMenuItem;
@@ -342,29 +340,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected void createBreadcrumb() {
-        BreadcrumbPageClass bc = new BreadcrumbPageClass(new IModel<>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return getPageTitleModel().getObject();
-            }
-        }, this.getClass(), getPageParameters());
-
-        addBreadcrumb(bc);
-    }
-
-    protected void createInstanceBreadcrumb() {
-        BreadcrumbPageInstance bc = new BreadcrumbPageInstance(new IModel<>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return getPageTitleModel().getObject();
-            }
-        }, this);
-
-        addBreadcrumb(bc);
+        addBreadcrumb(new Breadcrumb(getPageTitleModel(), this.getClass(), getPageParameters()));
     }
 
     public void updateBreadcrumbParameters(String key, Object value) {
@@ -1534,7 +1510,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
         if (breadcrumbs.size() == backStep && (breadcrumbs.get(breadcrumbs.size() - backStep)) != null) {
             Breadcrumb br = breadcrumbs.get(breadcrumbs.size() - backStep);
-            if (br instanceof BreadcrumbPageInstance || br instanceof BreadcrumbPageClass) {
+            if (br != null) {
                 return true;
             }
         }

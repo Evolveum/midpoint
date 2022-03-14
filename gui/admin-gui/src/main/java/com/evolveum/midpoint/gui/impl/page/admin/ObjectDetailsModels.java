@@ -35,9 +35,10 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.LoadableDetachableModel;
 
-public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
+public class ObjectDetailsModels<O extends ObjectType> implements Serializable, IDetachable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDetailsModels.class);
 
@@ -336,5 +337,13 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
         }
 
         return detailsPageConfig.getSummaryPanel();
+    }
+
+    @Override
+    public void detach() {
+        prismObjectModel.detach();
+        objectWrapperModel.detach();
+        detailsPageConfigurationModel.detach();
+        summaryModel.detach();
     }
 }
