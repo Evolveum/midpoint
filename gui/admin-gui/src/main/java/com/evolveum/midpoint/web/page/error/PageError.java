@@ -13,6 +13,8 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -136,6 +138,7 @@ public class PageError extends PageBase {
                 backPerformed(target);
             }
         };
+        back.add(new VisibleBehaviour(() -> PageError.this.getBreadcrumbs().size() > 1));
         add(back);
 
         AjaxButton home = new AjaxButton(ID_HOME, createStringResource("PageError.button.home")) {

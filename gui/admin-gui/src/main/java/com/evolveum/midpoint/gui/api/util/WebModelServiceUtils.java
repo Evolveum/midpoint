@@ -13,7 +13,8 @@ import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.web.page.error.PageError;
+
+import com.evolveum.midpoint.web.page.error.PageError404;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -292,7 +293,10 @@ public class WebModelServiceUtils {
             page.showResult(subResult);
         }
         if (object == null && !allowNotFound) {
-            throw new RestartResponseException(PageError.class);
+            PageError404 notFound = new PageError404();
+            notFound.setBreadcrumbs(page.getBreadcrumbs());
+
+            throw new RestartResponseException(notFound);
         }
         LOGGER.debug("Loaded {} with result {}", object, subResult);
 

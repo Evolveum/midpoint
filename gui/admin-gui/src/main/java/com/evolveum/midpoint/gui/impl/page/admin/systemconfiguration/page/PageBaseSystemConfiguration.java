@@ -6,19 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page;
 
-import java.util.Arrays;
-import java.util.List;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration;
-
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.Containerable;
@@ -29,6 +22,15 @@ import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import javax.xml.namespace.QName;
+import java.util.Arrays;
+import java.util.List;
 
 public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDetails<SystemConfigurationType, AssignmentHolderDetailsModel<SystemConfigurationType>> {
 
@@ -127,5 +129,26 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
 
     public Class<? extends Containerable> getDetailsType() {
         return getType();
+    }
+
+    @Override
+    protected AssignmentHolderOperationalButtonsPanel<SystemConfigurationType> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<SystemConfigurationType>> wrapperModel) {
+        return new AssignmentHolderOperationalButtonsPanel<>(id, wrapperModel) {
+
+            @Override
+            protected void refresh(AjaxRequestTarget target) {
+                PageBaseSystemConfiguration.this.refresh(target);
+            }
+
+            @Override
+            protected void savePerformed(AjaxRequestTarget target) {
+                PageBaseSystemConfiguration.this.savePerformed(target);
+            }
+
+            @Override
+            protected boolean isDeleteButtonVisible() {
+                return false;
+            }
+        };
     }
 }
