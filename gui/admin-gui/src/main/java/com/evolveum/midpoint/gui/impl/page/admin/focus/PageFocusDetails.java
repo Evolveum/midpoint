@@ -61,7 +61,10 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
     private static final String ID_PROGRESS_PANEL = "progressPanel";
 
     private boolean saveOnConfigure;
+
     protected boolean previewRequested;
+
+    private Boolean readonlyOverride;
 
     public PageFocusDetails() {
         super();
@@ -88,6 +91,10 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
                 }
             });
         }
+    }
+
+    public void setReadonlyOverride(Boolean readonlyOverride) {
+        this.readonlyOverride = readonlyOverride;
     }
 
     public void setSaveOnConfigure(boolean saveOnConfigure) {
@@ -203,9 +210,14 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
     @Override
     protected FDM createObjectDetailsModels(PrismObject<F> object) {
-        return (FDM) new FocusDetailsModels<>(createPrismObjectModel(object), this);
-    }
+        return (FDM) new FocusDetailsModels<>(createPrismObjectModel(object), this) {
 
+            @Override
+            protected boolean isReadonly() {
+                return readonlyOverride != null ? readonlyOverride : super.isReadonly();
+            }
+        };
+    }
 
     @Override
     public ProgressPanel startAndGetProgressPanel(AjaxRequestTarget target, OperationResult result) {

@@ -24,7 +24,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/serviceNew")
+                @Url(mountUrl = "/admin/serviceNew", matchUrlForSecurity = "/admin/serviceNew")
         },
         encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
