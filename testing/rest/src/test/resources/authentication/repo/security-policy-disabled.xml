@@ -46,7 +46,7 @@
                 All modules have the same order. Therefore they are both advertised in HTTP WWW-Authentication
                 header. The client can decide which one to use.
             </description>
-            <updatingFocusBehavior>disabled</updatingFocusBehavior>
+            <focusBehaviorUpdate>disabled</focusBehaviorUpdate>
             <channel>
                 <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest</channelId>
                 <default>true</default>
