@@ -6,23 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.util;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
-
-import java.util.*;
-import java.util.Objects;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-
-import com.evolveum.midpoint.web.page.error.PageError404;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.apache.wicket.RestartResponseException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -53,6 +37,18 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.wicket.RestartResponseException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
+import java.util.*;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
 /**
  * Utility class that contains methods that interact with ModelService and other
@@ -293,10 +289,7 @@ public class WebModelServiceUtils {
             page.showResult(subResult);
         }
         if (object == null && !allowNotFound) {
-            PageError404 notFound = new PageError404();
-            notFound.setBreadcrumbs(page.getBreadcrumbs());
-
-            throw new RestartResponseException(notFound);
+            page.redirectToNotFoundPage();
         }
         LOGGER.debug("Loaded {} with result {}", object, subResult);
 

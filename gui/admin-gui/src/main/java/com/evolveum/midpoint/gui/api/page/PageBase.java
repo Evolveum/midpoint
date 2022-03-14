@@ -21,6 +21,7 @@ import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -1544,6 +1545,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public Breadcrumb redirectBack() {
         return redirectBack(DEFAULT_BREADCRUMB_STEP);
+    }
+
+    public void redirectToNotFoundPage() {
+        PageError404 notFound = new PageError404();
+        notFound.setBreadcrumbs(getBreadcrumbs());
+
+        throw new RestartResponseException(notFound);
     }
 
     /**
