@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -136,6 +137,9 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         PasswordTextField oldPasswordField =
                 new PasswordTextField(ID_OLD_PASSWORD_FIELD, new PropertyModel<>(getModel(), MyPasswordsDto.F_OLD_PASSWORD));
         oldPasswordField.setRequired(false);
+        oldPasswordField.setResetPassword(false);
+        oldPasswordField.setOutputMarkupId(true);
+        oldPasswordContainer.add(new EnableBehaviour(this::canEditPassword));
         oldPasswordContainer.add(oldPasswordField);
 
         Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));
@@ -143,6 +147,8 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<>(getModel(), MyPasswordsDto.F_PASSWORD),
                 getModelObject().getFocus(), getPageBase()) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected <F extends FocusType> ValuePolicyType getValuePolicy(PrismObject<F> object) {
                 return getModelObject().getFocusPolicy();
@@ -156,6 +162,11 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                         (IVisitor<PasswordPolicyValidationPanel, PasswordPolicyValidationPanel>) (panel, iVisit) -> {
                             panel.refreshValidationPopup(target);
                         });
+            }
+
+            @Override
+            protected boolean canEditPassword() {
+                return ChangePasswordPanel.this.canEditPassword();
             }
         };
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
@@ -675,5 +686,9 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
     protected boolean isCheckOldPassword() {
         return false;
+    }
+
+    protected boolean canEditPassword() {
+        return true;
     }
 }
