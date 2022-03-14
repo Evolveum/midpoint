@@ -376,7 +376,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         if (syncCtx.isProtected()) {
             List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true); // TODO record always full sync?
             executeShadowModifications(syncCtx.getShadowedResourceObject(), modifications, task, result);
-            result.recordSuccess();
+            result.recordSuccess(); // Maybe "not applicable" would be better (it is so in Synchronizer class)
             task.onSynchronizationExclusion(syncCtx.getItemProcessingIdentifier(), SynchronizationExclusionReasonType.PROTECTED);
             LOGGER.debug("SYNCHRONIZATION: DONE for protected shadow {}", syncCtx.getShadowedResourceObject());
             return true;

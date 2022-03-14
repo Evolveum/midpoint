@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.query.hqm;
 
 import java.util.ArrayList;
@@ -47,8 +46,6 @@ public abstract class HibernateQuery {
 
     private final List<Ordering> orderingList = new ArrayList<>();
 
-    private final List<Grouping> groupingList = new ArrayList<>();
-
     public HibernateQuery(@NotNull JpaEntityDefinition primaryEntityDef) {
         primaryEntity = createItemSpecification(primaryEntityDef);
     }
@@ -73,19 +70,6 @@ public abstract class HibernateQuery {
 
         public OrderDirection getDirection() {
             return direction;
-        }
-    }
-
-    public static class Grouping {
-        @NotNull private final String byProperty;
-
-        Grouping(@NotNull String byProperty) {
-            this.byProperty = byProperty;
-        }
-
-        @NotNull
-        public String getByProperty() {
-            return byProperty;
         }
     }
 
@@ -165,21 +149,6 @@ public abstract class HibernateQuery {
             }
         }
 
-        if (!groupingList.isEmpty()) {
-            sb.append("\n");
-            indent(sb, indent);
-            sb.append("group by ");
-            boolean first = true;
-            for (Grouping grouping : groupingList) {
-                if (first) {
-                    first = false;
-                } else {
-                    sb.append(", ");
-                }
-                sb.append(grouping.byProperty);
-            }
-        }
-
         return sb.toString();
     }
 
@@ -198,7 +167,7 @@ public abstract class HibernateQuery {
         return createAlias(def.getJpaClassName(), true);
     }
 
-    public String createAlias(JpaLinkDefinition linkDefinition) {
+    public String createAlias(JpaLinkDefinition<?> linkDefinition) {
         Objects.requireNonNull(linkDefinition.getJpaName(), "Got unnamed transition");
         return createAlias(linkDefinition.getJpaName(), false);
     }
@@ -251,14 +220,4 @@ public abstract class HibernateQuery {
     public List<Ordering> getOrderingList() {
         return orderingList;
     }
-
-    public void addGrouping(String propertyPath) {
-        groupingList.add(new Grouping(propertyPath));
-    }
-
-    public List<Grouping> getGroupingList() {
-        return groupingList;
-    }
-
-    public abstract RootHibernateQuery getRootQuery();
 }

@@ -11,20 +11,17 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
-
-import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
-
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.correlator.FullCorrelationContext;
+import com.evolveum.midpoint.model.api.CorrelationProperty;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
+import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Represents the whole correlation context: a set of options, including "new owner" one.
  */
-public class CorrelationContextDto implements Serializable {
+class CorrelationContextDto implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationContextDto.class);
 
@@ -63,7 +60,7 @@ public class CorrelationContextDto implements Serializable {
      *
      * Correspond to rows in the correlation options table.
      */
-    private final List<CorrelationPropertyDefinition> correlationProperties = new ArrayList<>();
+    private final List<CorrelationProperty> correlationProperties = new ArrayList<>();
 
     CorrelationContextDto(CaseType aCase, PageBase pageBase, Task task, OperationResult result) throws CommonException {
         load(aCase, pageBase, task, result);
@@ -129,21 +126,9 @@ public class CorrelationContextDto implements Serializable {
 
     private void createCorrelationPropertiesDefinitions(CaseType aCase, PageBase pageBase, Task task, OperationResult result)
             throws CommonException {
-        FullCorrelationContext instantiationContext =
-                pageBase.getCorrelationService().getFullCorrelationContext(aCase.asPrismObject(), task, result);
-        CorrelationPropertiesDefinitionType propertiesBean = // TODO what if there's no definition?
-                instantiationContext.synchronizationBean.getCorrelationDefinition().getCorrelationProperties();
-        CorrelationOptionDto newOwnerOption = getNewOwnerOption();
-        if (propertiesBean != null) {
-            PrismObject<?> preFocus = newOwnerOption != null ? newOwnerOption.getObject() : null;
-            CorrelationPropertyDefinition.fillFromConfiguration(correlationProperties, propertiesBean, preFocus);
-        } else {
-            if (newOwnerOption == null) {
-                LOGGER.warn("Couldn't create property definitions from 'new owner' focus object because there's none");
-            } else {
-                CorrelationPropertyDefinition.fillFromObject(correlationProperties, newOwnerOption.getObject());
-            }
-        }
+        correlationProperties.clear();
+        correlationProperties.addAll(
+                pageBase.getCorrelationService().getCorrelationProperties(aCase, task, result));
     }
 
     @Nullable CorrelationOptionDto getNewOwnerOption() {
@@ -162,7 +147,7 @@ public class CorrelationContextDto implements Serializable {
         return optionHeaders;
     }
 
-    public List<CorrelationPropertyDefinition> getCorrelationProperties() {
+    public List<CorrelationProperty> getCorrelationProperties() {
         return correlationProperties;
     }
 }

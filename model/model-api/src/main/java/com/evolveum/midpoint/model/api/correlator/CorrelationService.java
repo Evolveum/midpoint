@@ -7,15 +7,20 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
+import com.evolveum.midpoint.model.api.CorrelationProperty;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 /**
  * TODO
@@ -39,7 +44,7 @@ public interface CorrelationService {
      * TODO
      */
     Correlator instantiateCorrelator(
-            @NotNull PrismObject<CaseType> aCase,
+            @NotNull CaseType aCase,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
@@ -55,19 +60,21 @@ public interface CorrelationService {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
 
-    /**
-     * TODO
-     */
-    @NotNull FullCorrelationContext getFullCorrelationContext(
-            @NotNull PrismObject<CaseType> aCase,
+    void completeCorrelationCase(CaseType currentCase, CaseCloser closeCaseInRepository, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
+
+    Collection<CorrelationProperty> getCorrelationProperties(
+            @NotNull CaseType aCase,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException;
 
-    void completeCorrelationCase(CaseType currentCase, CaseCloser closeCaseInRepository, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
+    @NotNull CorrelatorContext<?> createRootCorrelatorContext(
+            @NotNull CompositeCorrelatorType correlators,
+            @Nullable CorrelationDefinitionType correlationDefinitionBean,
+            @Nullable SystemConfigurationType systemConfiguration) throws ConfigurationException, SchemaException;
 
     @FunctionalInterface
     interface CaseCloser {

@@ -8,17 +8,19 @@
 package com.evolveum.midpoint.model.api.correlator;
 
 import com.evolveum.axiom.concepts.Lazy;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.route.ItemRoute;
 import com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.HashMap;
 import java.util.List;
@@ -35,41 +37,39 @@ import static com.evolveum.midpoint.model.api.ModelPublicConstants.PRIMARY_CORRE
  */
 public class CorrelatorContext<C extends AbstractCorrelatorType> implements DebugDumpable {
 
+    /** The final (combined) configuration bean for this correlator. */
     @NotNull private final C configurationBean;
 
+    /** The configuration wrapping the final (combined) {@link #configurationBean}. */
     @NotNull private final CorrelatorConfiguration configuration;
 
-    @Nullable private final ObjectSynchronizationType synchronizationBean;
+    /** The original configuration bean. Used to resolve child configurations. */
+    @NotNull private final AbstractCorrelatorType originalConfigurationBean;
 
-    /** Context for the containing (parent) correlator. */
-    @Nullable private final CorrelatorContext<?> parentContext;
+    /** Complete correlation definition. Used to access things outside of specific correlator configuration. */
+    @Nullable private final CorrelationDefinitionType correlationDefinitionBean;
 
+    /** System configuration, used to look for correlator configurations. */
+    @Nullable private final SystemConfigurationType systemConfiguration;
+
+    // TODO
     @NotNull private final Lazy<Map<String, ItemRoute>> targetPlacesLazy = Lazy.from(this::computeTargetPlaces);
 
-    private CorrelatorContext(
+    // TODO
+    @NotNull private final Lazy<Map<String, CorrelationItemDefinitionType>> itemDefinitionsLazy =
+            Lazy.from(this::createItemDefinitionsMap);
+
+    public CorrelatorContext(
             @NotNull CorrelatorConfiguration configuration,
-            @Nullable ObjectSynchronizationType synchronizationBean,
-            @Nullable CorrelatorContext<?> parentContext) {
+            @NotNull AbstractCorrelatorType originalConfigurationBean,
+            @Nullable CorrelationDefinitionType correlationDefinitionBean,
+            @Nullable SystemConfigurationType systemConfiguration) {
         //noinspection unchecked
         this.configurationBean = (C) configuration.getConfigurationBean();
         this.configuration = configuration;
-        this.synchronizationBean = synchronizationBean;
-        this.parentContext = parentContext;
-    }
-
-    public static CorrelatorContext<?> createRoot(
-            @NotNull CompositeCorrelatorType correlators,
-            @Nullable ObjectSynchronizationType objectSynchronizationBean) {
-        return new CorrelatorContext<>(
-                CorrelatorConfiguration.getConfiguration(correlators),
-                objectSynchronizationBean,
-                null);
-    }
-
-    @VisibleForTesting
-    public static CorrelatorContext<?> createRoot(@NotNull AbstractCorrelatorType configBean) {
-        return new CorrelatorContext<>(
-                CorrelatorConfiguration.typed(configBean), null, null);
+        this.originalConfigurationBean = originalConfigurationBean;
+        this.correlationDefinitionBean = correlationDefinitionBean;
+        this.systemConfiguration = systemConfiguration;
     }
 
     public @NotNull C getConfigurationBean() {
@@ -80,23 +80,10 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
         return configuration;
     }
 
-    public @Nullable ObjectSynchronizationType getSynchronizationBean() {
-        return synchronizationBean;
-    }
-
-    public @Nullable CorrelatorContext<?> getParentContext() {
-        return parentContext;
-    }
-
-    public CorrelatorContext<?> spawn(@NotNull CorrelatorConfiguration configuration) {
-        return new CorrelatorContext<>(configuration, synchronizationBean, this);
-    }
-
     public boolean shouldCreateCases() {
-        return synchronizationBean != null
-                && synchronizationBean.getCorrelationDefinition() != null
-                && synchronizationBean.getCorrelationDefinition().getCases() != null
-                && !Boolean.FALSE.equals(synchronizationBean.getCorrelationDefinition().getCases().isEnabled());
+        return correlationDefinitionBean != null
+                && correlationDefinitionBean.getCases() != null
+                && !Boolean.FALSE.equals(correlationDefinitionBean.getCases().isEnabled());
     }
 
     /**
@@ -141,17 +128,6 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
     }
 
     private @Nullable CorrelationPlacesDefinitionType getPlacesDefinition() {
-        CorrelationPlacesDefinitionType local = getLocalPlacesDefinitionBean();
-        if (local != null) {
-            return local;
-        } else if (parentContext != null) {
-            return parentContext.getPlacesDefinition();
-        } else {
-            return null;
-        }
-    }
-
-    private CorrelationPlacesDefinitionType getLocalPlacesDefinitionBean() {
         return configurationBean.getDefinitions() != null ?
                 configurationBean.getDefinitions().getPlaces() : null;
     }
@@ -167,37 +143,22 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
 
     /**
      * Returns the named item definition.
-     *
-     * TODO cache the map of global item definitions.
      */
     public @NotNull CorrelationItemDefinitionType getNamedItemDefinition(String ref) throws ConfigurationException {
         return MiscUtil.requireNonNull(
-                getItemDefinitionsMap().get(ref),
+                itemDefinitionsLazy.get().get(ref),
                 () -> new ConfigurationException("No item named '" + ref + "' exists"));
     }
 
     /**
      * Returns all relevant named item definitions - from this context and all its parents.
      */
-    public @NotNull Map<String, CorrelationItemDefinitionType> getItemDefinitionsMap() throws ConfigurationException {
-        try {
-            Map<String, CorrelationItemDefinitionType> defMap = new HashMap<>();
-            addAllItemsDefinitions(defMap);
-            return defMap;
-        } catch (RuntimeException e) {
-            // TODO better error handling
-            throw new ConfigurationException(e.getMessage(), e);
-        }
+    public @NotNull Map<String, CorrelationItemDefinitionType> getItemDefinitionsMap() {
+        return itemDefinitionsLazy.get();
     }
 
-    private void addAllItemsDefinitions(Map<String, CorrelationItemDefinitionType> defMap) {
-        addLocalItemsDefinitions(defMap);
-        if (parentContext != null) {
-            parentContext.addLocalItemsDefinitions(defMap);
-        }
-    }
-
-    private void addLocalItemsDefinitions(Map<String, CorrelationItemDefinitionType> defMap) {
+    private @NotNull Map<String, CorrelationItemDefinitionType> createItemDefinitionsMap() {
+        Map<String, CorrelationItemDefinitionType> defMap = new HashMap<>();
         getLocalItemsDefinitionCollection().forEach(
                 def -> {
                     String name = CorrelationItemDefinitionUtil.getName(def);
@@ -206,11 +167,25 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
                     }
                 }
         );
+        return defMap;
     }
 
     private List<CorrelationItemDefinitionType> getLocalItemsDefinitionCollection() {
-        return configurationBean.getDefinitions() != null && configurationBean.getDefinitions().getItems() != null ?
-                configurationBean.getDefinitions().getItems().getItem() : List.of();
+        CorrelatorDefinitionsType definitions = configurationBean.getDefinitions();
+        return definitions != null && definitions.getItems() != null ?
+                definitions.getItems().getItem() : List.of();
+    }
+
+    public @NotNull AbstractCorrelatorType getOriginalConfigurationBean() {
+        return originalConfigurationBean;
+    }
+
+    public @Nullable CorrelationDefinitionType getCorrelationDefinitionBean() {
+        return correlationDefinitionBean;
+    }
+
+    public @Nullable SystemConfigurationType getSystemConfiguration() {
+        return systemConfiguration;
     }
 
     @Override
@@ -218,5 +193,17 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
         // Temporary: this config bean is the core of the context; other things need not be so urgently dumped
         // (maybe they might be - in some shortened form).
         return configurationBean.debugDump(indent);
+    }
+
+    public Object dumpXmlLazily() {
+        return DebugUtil.lazy(this::dumpXml);
+    }
+
+    private String dumpXml() {
+        try {
+            return PrismContext.get().xmlSerializer().serializeRealValue(configurationBean);
+        } catch (SchemaException e) {
+            return e.getMessage();
+        }
     }
 }

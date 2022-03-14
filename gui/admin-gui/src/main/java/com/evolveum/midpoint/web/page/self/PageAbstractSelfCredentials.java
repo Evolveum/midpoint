@@ -129,6 +129,8 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
                 return new ChangePasswordPanel(panelId, new PropertyModel<>(model, MyCredentialsDto.F_MY_PASSOWRDS_DTO)) {
+                    private static final long serialVersionUID = 1L;
+
                     @Override
                     protected boolean shouldShowPasswordPropagation() {
                         return shouldLoadAccounts();
@@ -137,6 +139,11 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                     @Override
                     protected boolean isCheckOldPassword() {
                         return PageAbstractSelfCredentials.this.isCheckOldPassword();
+                    }
+
+                    @Override
+                    protected boolean canEditPassword() {
+                        return !savedPassword;
                     }
                 };
             }
@@ -160,7 +167,6 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             }
         };
         save.add(new VisibleBehaviour(() -> !this.savedPassword));
-        mainForm.setDefaultButton(save);
         mainForm.add(save);
 
         AjaxSubmitButton cancel = new AjaxSubmitButton(ID_CANCEL_BUTTON, createStringResource("PageBase.button.back")) {
@@ -303,7 +309,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 }
                 if (!result.isError()) {
                     this.savedPassword = true;
-                    target.add(getSaveButton());
+                    target.add(PageAbstractSelfCredentials.this.get(ID_MAIN_FORM));
                 }
             }
 

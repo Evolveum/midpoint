@@ -70,4 +70,19 @@ public class CorrelationCaseUtil {
                 () -> new SchemaException("No matching option for outcome " + outcomeUri + " in " + aCase));
         return matchingOption.getCandidateOwnerRef();
     }
+
+    public static @NotNull CaseCorrelationContextType getCorrelationContextRequired(@NotNull CaseType aCase) {
+        return MiscUtil.requireNonNull(
+                aCase.getCorrelationContext(),
+                () -> new IllegalStateException("No correlation context in " + aCase));
+    }
+
+    public static @NotNull ObjectType getPreFocusRequired(CaseType aCase) {
+        ObjectReferenceType ref = MiscUtil.requireNonNull(
+                getCorrelationContextRequired(aCase).getPreFocusRef(),
+                () -> new IllegalStateException("No pre-focus ref in " + aCase));
+        return (ObjectType) MiscUtil.requireNonNull(
+                ObjectTypeUtil.getObjectFromReference(ref),
+                () -> new IllegalStateException("No pre-focus in " + aCase));
+    }
 }

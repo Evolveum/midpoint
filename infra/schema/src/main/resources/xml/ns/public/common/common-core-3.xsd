@@ -9345,7 +9345,7 @@
             <xsd:enumeration value="noSynchronizationPolicy">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Resource object was excluded from synchronization because because no synchronization policy was found.
+                        Resource object was excluded from synchronization because no synchronization policy was found.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NO_SYNCHRONIZATION_POLICY"/>
@@ -9355,10 +9355,21 @@
             <xsd:enumeration value="synchronizationDisabled">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Resource object was excluded from synchronization because because synchronization is disabled for it.
+                        Resource object was excluded from synchronization because synchronization is disabled for it.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SYNCHRONIZATION_DISABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="synchronizationNotNeeded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Synchronization was not expected for the shadow in the particular situation.
+                        (E.g. a shadow exists in "remaining shadows" reconciliation activity.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SYNCHRONIZATION_NOT_NEEDED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -14894,6 +14905,19 @@
                             <xsd:appinfo>
                                 <a:displayName>SystemConfigurationType.audit</a:displayName>
                                 <a:since>4.0</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="correlators" type="tns:CompositeCorrelatorType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Globally-defined correlators.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SystemConfigurationType.correlators</a:displayName>
+                                <a:since>4.5</a:since>
                                 <a:experimental>true</a:experimental>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -23530,14 +23554,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="correlationProperties" type="tns:CorrelationPropertiesDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Specifies how to transform a shadow or a user into an object for ID Match (to match or update).
-                        HIGHLY EXPERIMENTAL. May be changed or even removed later.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -23654,18 +23670,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="definitions" type="tns:CorrelatorDefinitionsType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.definitions</a:displayName>
-                        <a:displayOrder>5</a:displayOrder>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
             <xsd:element name="order" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -23691,7 +23695,20 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="ref" type="xsd:string" minOccurs="0">
+            <xsd:element name="using" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the correlator to be used at this place.
+                        TODO refine this specification
+                        TODO implement
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractCorrelatorType.ref</a:displayName>
+                        <a:displayOrder>20</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="extending" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to an upstream definition of correlator. It is used as a template for this correlator.
@@ -23741,6 +23758,18 @@
                     <xsd:appinfo>
                         <a:displayName>AbstractCorrelatorType.documentation</a:displayName>
                         <a:displayOrder>130</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="definitions" type="tns:CorrelatorDefinitionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractCorrelatorType.definitions</a:displayName>
+                        <a:displayOrder>5</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -24246,96 +24275,6 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="idMatchCorrelator" type="tns:IdMatchCorrelatorType"/>
-
-    <xsd:complexType name="CorrelationPropertiesDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                What properties take part in the correlation?
-
-                VERY EXPERIMENTAL. WILL CHANGE. We are waiting e.g. for a way how to represent "candidate personal information"
-                (i.e. personal information coming from multiple sources of truth), from which we plan to select the most
-                accurate/reliable pieces, and put into user's "main" properties like name, title, contact information, etc.
-
-                Currently, one option is to store such information in assignments. Or it can be done in extension properties.
-                That way or another, this means we have to correlate information that resides potentially in different places:
-                e.g. assignment/extension/givenName (in pre-focus) versus givenName (in candidate owners). To cater for this,
-                this class provides properties with their sources, and primary and secondary targets.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:choice>
-                <xsd:element name="property" type="tns:CorrelationPropertyDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            Properties that take part in the correlation.
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-                <xsd:element name="mirrored" type="xsd:boolean" minOccurs="0" default="true">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            Are properties mirrored, i.e. is the source property automatically considered to
-                            be a secondary target one (or even primary, if there's no explicit primary property defined)?
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-            </xsd:choice>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="CorrelationPropertyDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Property that takes part in the correlation.
-
-                VERY EXPERIMENTAL. WILL CHANGE.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="source" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Path to the property that is the source of the comparison.
-                        This property is taken from the object whose owner we try to find.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="primaryTarget" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Path to the property that is the primary target of the comparison.
-                        This property is taken from the potential (candidate) owner.
-
-                        The meaning of "primary" is that it will be displayed in the GUI at a prominent place.
-                        Also, the correlator(s) may interpret it in their own way.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="secondaryTarget" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Path to the property that is the secondary target of the comparison.
-                        This property is taken from the potential (candidate) owner.
-
-                        The meaning of "secondary" is that it will be displayed in the GUI at less prominent place (if at all).
-                        Also, the correlator(s) may interpret it in their own way.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
 
     <xsd:complexType name="ShadowCorrelationStateType">
         <xsd:annotation>

@@ -6,12 +6,25 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
+
+import java.io.File;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
+import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -19,20 +32,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.util.List;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Tests various aspects of consistency mechanism. Unlike the complex story test,
@@ -45,6 +50,11 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
     private static final boolean ASSERT_SUCCESS = true;
 
+    private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "consistency-simple");
+
+    private static final TestResource<UserType> USER_JIM = new TestResource<>(
+            TEST_DIR, "user-jim.xml", "99576c2e-4edf-40d1-a7ea-47add9362c3a");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -52,9 +62,11 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         login(USER_ADMINISTRATOR_USERNAME);
     }
 
-    private enum FocusOperation { RECONCILE, RECOMPUTE }
-    private enum ShadowOperation { KEEP, DELETE, UNLINK, UNLINK_AND_TOMBSTONE }
-    private enum ResourceObjectOperation { KEEP, DELETE }
+    private enum FocusOperation {RECONCILE, RECOMPUTE}
+
+    private enum ShadowOperation {KEEP, DELETE, UNLINK, UNLINK_AND_TOMBSTONE}
+
+    private enum ResourceObjectOperation {KEEP, DELETE}
 
     private ResourceObjectDefinition getAccountObjectClassDefinition() throws SchemaException {
         ResourceSchema schema = ResourceSchemaFactory.getRawSchema(getDummyResourceObject());
@@ -142,6 +154,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         executeTest(FocusOperation.RECOMPUTE, ShadowOperation.DELETE, ResourceObjectOperation.KEEP);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void executeTest(FocusOperation focusOperation, ShadowOperation shadowOperation,
             ResourceObjectOperation resourceObjectOperation) throws Exception {
 
@@ -242,12 +255,12 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
                 if (liveShadowAfter == null) {
                     liveShadowAfter = shadowAfter;
                 } else {
-                    fail("More than one live shadow "+liveShadowAfter + ", " + shadowAfter);
+                    fail("More than one live shadow " + liveShadowAfter + ", " + shadowAfter);
                 }
             }
         }
         if (expected == 0 && liveShadowAfter != null) {
-            fail("Unexpected live shadow: "+liveShadowAfter);
+            fail("Unexpected live shadow: " + liveShadowAfter);
         }
         if (expected == 1 && liveShadowAfter == null) {
             fail("No live shadow");
@@ -298,5 +311,81 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
                         getAccountObjectClassDefinition().findAttributeDefinition(SchemaConstants.ICFS_NAME)).eq("jack")
                 .build();
         return repositoryService.searchObjects(ShadowType.class, shadowQuery, null, result);
+    }
+
+    /**
+     * A sequence of events leading to manifestation of MID-7292:
+     *
+     * Let's have an unreachable resource.
+     *
+     * 1. User `jim` is created, with an account on the resource assigned to him. Operation is "in progress".
+     * 2. User `jim` is deleted. But the shadow remains.
+     * 3. User `jim` is re-created with the same configuration.
+     * 4. User `jim` is reconciled.
+     */
+    @Test
+    public void test300CreateDeleteCreateReconcileJim() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("resource is unreachable");
+        getDummyResource().setBreakMode(BreakMode.NETWORK);
+
+        when("jim is created with account on unreachable resource assigned");
+        addObject(USER_JIM, task, result);
+
+        then("jim should exist, with a single account");
+        assertUser(USER_JIM.oid, "after first creation")
+                .display()
+                .assertLinks(1, 0);
+
+        when("jim is deleted");
+        deleteObject(UserType.class, USER_JIM.oid, task, result);
+
+        then("no user should be there, but an account should");
+        assertNoObject(UserType.class, USER_JIM.oid);
+        // @formatter:off
+        assertShadow(findShadowByPrismName("jim", getDummyResourceObject(), result), "after deletion")
+                .display()
+                .pendingOperations()
+                    .assertUnfinishedOperation()
+                        .deleteOperation()
+                            .display();
+        // @formatter:on
+
+        when("jim is re-created");
+        OperationResult recreationResult = new OperationResult("recreation");
+        addObject(USER_JIM, task, recreationResult);
+
+        then("operation should be in progress (no error there)");
+        assertInProgress(recreationResult);
+
+        // @formatter:off
+        assertUser(USER_JIM.oid, "after re-creation")
+                .display()
+                .singleLink()
+                    .resolveTarget()
+                        .display();
+        // @formatter:on
+
+        // TODO Maybe there should be a new account with pending ADD operation. But it's currently not so.
+
+        when("jim is reconciled"); // Just another account to break it
+        OperationResult reconciliationResult = new OperationResult("reconciliation");
+        reconcileUser(USER_JIM.oid, task, reconciliationResult);
+
+        then("operation should be in progress (no error there)");
+        assertInProgress(reconciliationResult);
+
+        // @formatter:off
+        assertUser(USER_JIM.oid, "after reconciliation")
+                .display()
+                    .singleLink()
+                        .resolveTarget()
+                            .display();
+        // @formatter:on
+
+        // TODO It is questionable if we should check "bring resource up and reconcile the user" scenario here,
+        //  or if it's in the scope of more advanced consistency tests (like TestConsistencyMechanism in story tests).
     }
 }

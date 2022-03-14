@@ -5,13 +5,15 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.sync;
+package com.evolveum.midpoint.model.impl.correlation;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
+import java.util.Collection;
 import java.util.Objects;
 
-import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
+import com.evolveum.midpoint.model.api.CorrelationProperty;
+import com.evolveum.midpoint.model.impl.correlator.FullCorrelationContext;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 
@@ -21,6 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +32,6 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -55,22 +57,21 @@ public class CorrelationServiceImpl implements CorrelationService {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         FullCorrelationContext fullContext = getFullCorrelationContext(shadowedResourceObject, task, result);
-        CorrelatorContext<?> correlatorContext = createCorrelatorContext(fullContext);
+        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
         CorrelationContext correlationContext = createCorrelationContext(fullContext, task, result);
         return correlatorFactoryRegistry
                 .instantiateCorrelator(correlatorContext, task, result)
                 .correlate(correlationContext, result);
     }
 
-    @Override
-    public @NotNull FullCorrelationContext getFullCorrelationContext(
-            @NotNull PrismObject<CaseType> aCase,
+    private @NotNull FullCorrelationContext getFullCorrelationContext(
+            @NotNull CaseType aCase,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
         return getFullCorrelationContext(
-                CorrelatorUtil.getShadowFromCorrelationCase(aCase.asObjectable()),
+                CorrelatorUtil.getShadowFromCorrelationCase(aCase),
                 task, result);
     }
 
@@ -99,7 +100,8 @@ public class CorrelationServiceImpl implements CorrelationService {
                         config,
                         MiscUtil.requireNonNull(
                                 config.getCorrelationDefinition().getCorrelators(),
-                                () -> new IllegalStateException("No correlators in " + config)));
+                                () -> new IllegalStateException("No correlators in " + config)),
+                        asObjectable(beans.systemObjectCache.getSystemConfiguration(result)));
             }
         }
         throw new IllegalStateException(
@@ -108,13 +110,13 @@ public class CorrelationServiceImpl implements CorrelationService {
 
     @Override
     public Correlator instantiateCorrelator(
-            @NotNull PrismObject<CaseType> aCase,
+            @NotNull CaseType aCase,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
         FullCorrelationContext fullContext = getFullCorrelationContext(aCase, task, result);
-        CorrelatorContext<?> correlatorContext = createCorrelatorContext(fullContext);
+        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
         return correlatorFactoryRegistry.instantiateCorrelator(correlatorContext, task, result);
     }
 
@@ -126,14 +128,8 @@ public class CorrelationServiceImpl implements CorrelationService {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         FullCorrelationContext fullContext = getFullCorrelationContext(shadowedResourceObject, task, result);
-        CorrelatorContext<?> correlatorContext = createCorrelatorContext(fullContext);
+        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
         return correlatorFactoryRegistry.instantiateCorrelator(correlatorContext, task, result);
-    }
-
-    private CorrelatorContext<?> createCorrelatorContext(FullCorrelationContext fullContext) {
-        return CorrelatorContext.createRoot(
-                fullContext.correlators,
-                fullContext.synchronizationBean);
     }
 
     private CorrelationContext createCorrelationContext(FullCorrelationContext fullContext, Task task, OperationResult result)
@@ -156,5 +152,24 @@ public class CorrelationServiceImpl implements CorrelationService {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         correlationCaseManager.completeCorrelationCase(currentCase, caseCloser, task, result);
+    }
+
+    @Override
+    public Collection<CorrelationProperty> getCorrelationProperties(
+            @NotNull CaseType aCase, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        FullCorrelationContext fullCorrelationContext = getFullCorrelationContext(aCase, task, result);
+        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullCorrelationContext);
+        return new CorrelationPropertiesCreator(correlatorContext, fullCorrelationContext, aCase)
+                .createProperties();
+    }
+
+    @Override
+    public @NotNull CorrelatorContext<?> createRootCorrelatorContext(
+            @NotNull CompositeCorrelatorType correlators,
+            @Nullable CorrelationDefinitionType correlationDefinitionBean,
+            @Nullable SystemConfigurationType systemConfiguration) throws ConfigurationException, SchemaException {
+        return CorrelatorContextCreator.createRootContext(correlators, correlationDefinitionBean, systemConfiguration);
     }
 }

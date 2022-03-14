@@ -108,6 +108,7 @@ public class ItemRoute {
                 segments.get(0).path.firstToVariableNameOrNull());
     }
 
+    /** Shouldn't return `null` values. */
     public @NotNull List<PrismValue> resolveFor(@Nullable Containerable containerable) throws SchemaException {
         return ItemRouteResolver.resolve(containerable, this);
     }

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
+
 import static java.util.Collections.emptyList;
 
 import java.util.ArrayList;
@@ -701,17 +703,23 @@ public class ProvisioningUtil {
     }
 
     public static boolean hasPendingAddOperation(PrismObject<ShadowType> shadow) {
-        for (PendingOperationType pendingOperation : shadow.asObjectable().getPendingOperation()) {
-            if (isPendingAddOperation(pendingOperation)) {
-                return true;
-            }
-        }
-        return false;
+        return shadow.asObjectable().getPendingOperation().stream()
+                .anyMatch(ProvisioningUtil::isPendingAddOperation);
+    }
+
+    public static boolean hasPendingDeleteOperation(PrismObject<ShadowType> shadow) {
+        return shadow.asObjectable().getPendingOperation().stream()
+                .anyMatch(ProvisioningUtil::isPendingDeleteOperation);
     }
 
     private static boolean isPendingAddOperation(PendingOperationType pendingOperation) {
-        return ChangeTypeType.ADD.equals(pendingOperation.getDelta().getChangeType()) &&
-                !PendingOperationExecutionStatusType.COMPLETED.equals(pendingOperation.getExecutionStatus());
+        return pendingOperation.getDelta().getChangeType() == ChangeTypeType.ADD
+                && pendingOperation.getExecutionStatus() != COMPLETED;
+    }
+
+    private static boolean isPendingDeleteOperation(PendingOperationType pendingOperation) {
+        return pendingOperation.getDelta().getChangeType() == ChangeTypeType.DELETE
+                && pendingOperation.getExecutionStatus() != COMPLETED;
     }
 
     /**

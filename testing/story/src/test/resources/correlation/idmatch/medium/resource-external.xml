@@ -115,6 +115,7 @@
             <correlationDefinition>
                 <correlators>
                     <idMatch>
+                        <extending>idmatch</extending>
                         <definitions>
                             <items>
                                 <item>
@@ -122,104 +123,28 @@
                                     <source>
                                         <path>extension/externalGivenName</path>
                                     </source>
-                                    <target>
-                                        <path>givenName</path>
-                                    </target>
-                                    <target>
-                                        <qualifier>sis</qualifier>
-                                        <path>extension/sisGivenName</path>
-                                    </target>
-                                    <target>
-                                        <qualifier>hr</qualifier>
-                                        <path>extension/hrGivenName</path>
-                                    </target>
-                                    <target>
-                                        <qualifier>external</qualifier>
-                                        <path>extension/externalGivenName</path>
-                                    </target>
                                 </item>
                                 <item>
                                     <name>familyName</name>
                                     <source>
                                         <path>extension/externalFamilyName</path>
                                     </source>
-                                    <target>
-                                        <path>familyName</path>
-                                    </target>
-                                    <target>
-                                        <qualifier>sis</qualifier>
-                                        <path>extension/sisFamilyName</path>
-                                    </target>
-                                    <target>
-                                        <qualifier>hr</qualifier>
-                                        <path>extension/hrFamilyName</path>
-                                    </target>
-                                    <target>
-                                        <qualifier>external</qualifier>
-                                        <path>extension/externalFamilyName</path>
-                                    </target>
                                 </item>
                                 <item>
                                     <name>dateOfBirth</name>
                                     <source>
                                         <path>extension/externalDateOfBirth</path>
                                     </source>
-                                    <target>
-                                        <path>extension/dateOfBirth</path>
-                                    </target>
-                                    <target>
-                                        <qualifier>sis</qualifier>
-                                        <path>extension/sisDateOfBirth</path>
-                                    </target>
-                                    <target>
-                                        <qualifier>hr</qualifier>
-                                        <path>extension/hrDateOfBirth</path>
-                                    </target>
-                                    <target>
-                                        <qualifier>external</qualifier>
-                                        <path>extension/externalDateOfBirth</path>
-                                    </target>
                                 </item>
                                 <item>
                                     <name>nationalId</name>
                                     <source>
                                         <path>extension/externalNationalId</path>
                                     </source>
-                                    <target>
-                                        <path>extension/nationalId</path>
-                                    </target>
-                                    <target>
-                                        <qualifier>sis</qualifier>
-                                        <path>extension/sisNationalId</path>
-                                    </target>
-                                    <target>
-                                        <qualifier>hr</qualifier>
-                                        <path>extension/hrNationalId</path>
-                                    </target>
-                                    <target>
-                                        <qualifier>external</qualifier>
-                                        <path>extension/externalNationalId</path>
-                                    </target>
                                 </item>
                             </items>
                         </definitions>
                         <sorIdentifierPrefix>external-</sorIdentifierPrefix>
-                        <!-- Ignored when dummy ID Match service is used -->
-                        <url>http://localhost:9090/match/api/1</url>
-                        <username>administrator</username>
-                        <password><t:clearValue>5ecr3t</t:clearValue></password>
-                        <followOn>
-                            <filter>
-                                <ownerFilter>
-                                    <q:equal>
-                                        <q:path>extension/referenceId</q:path>
-                                        <expression>
-                                            <path>$correlatorState/referenceId</path>
-                                        </expression>
-                                    </q:equal>
-                                </ownerFilter>
-                            </filter>
-                        </followOn>
                     </idMatch>
                 </correlators>
                 <cases/>

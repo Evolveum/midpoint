@@ -7,8 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.correlator.items;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -116,6 +119,13 @@ public class CorrelationItemSource {
                 () -> new UnsupportedOperationException("Multiple values of " + route + " are not supported: " + resolved));
     }
 
+    /** Shouldn't return `null` values. */
+    public @NotNull Collection<?> getRealValues() throws SchemaException {
+        return route.resolveFor(sourceObject).stream()
+                .map(PrismValue::getRealValue)
+                .collect(Collectors.toList());
+    }
+
     public @Nullable PrismProperty<?> getProperty() throws SchemaException {
         PrismValue single = getSinglePrismValue();
         if (single == null) {
@@ -129,6 +139,12 @@ public class CorrelationItemSource {
         } else {
             throw new UnsupportedOperationException("Non-property sources are not supported: " + single + " in " + this);
         }
+    }
+
+    public @Nullable ItemDefinition<?> getDefinition() throws SchemaException {
+        // Very temporary implementation
+        PrismProperty<?> property = getProperty();
+        return property != null ? property.getDefinition() : null;
     }
 
     @Override

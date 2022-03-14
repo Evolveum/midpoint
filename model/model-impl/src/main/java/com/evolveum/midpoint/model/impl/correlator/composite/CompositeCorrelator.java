@@ -118,9 +118,7 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             LOGGER.trace("Going to invoke child correlator '{}'", childConfiguration);
-            CorrelationResult childResult = beans.correlatorFactoryRegistry
-                    .instantiateCorrelator(
-                            correlatorContext.spawn(childConfiguration), task, result)
+            CorrelationResult childResult = instantiateChild(childConfiguration, task, result)
                     .correlate(correlationContext, result);
             LOGGER.trace("Child correlator '{}' provided the following result:\n{}",
                     childConfiguration, childResult.debugDumpLazily(1));

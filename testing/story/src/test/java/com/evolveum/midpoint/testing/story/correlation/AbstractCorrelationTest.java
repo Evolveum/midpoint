@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -26,7 +27,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.model.api.CaseService;
-import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.CaseRelatedUtils;
@@ -51,6 +52,7 @@ public abstract class AbstractCorrelationTest extends AbstractStoryTest {
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
+    @Autowired CorrelationService correlationService;
     @Autowired CorrelationCaseManager correlationCaseManager;
     @Autowired CaseService caseService;
 

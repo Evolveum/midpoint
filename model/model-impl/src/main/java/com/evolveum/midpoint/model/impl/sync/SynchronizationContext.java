@@ -52,6 +52,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
 /**
  * Context of the synchronization operation. It is created in the early stages of {@link ResourceObjectShadowChangeDescription}
  * progressing in {@link SynchronizationServiceImpl}.
@@ -235,23 +237,24 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return objectSynchronization.getConfirmation();
     }
 
-    // TODO reconsider cloning here
     public @NotNull CompositeCorrelatorType getCorrelators() {
-        if (objectSynchronization.getCorrelationDefinition() != null && objectSynchronization.getCorrelationDefinition().getCorrelators() != null) {
-            return objectSynchronization.getCorrelationDefinition().getCorrelators().clone();
+        CorrelationDefinitionType correlationDefinition = objectSynchronization.getCorrelationDefinition();
+        CompositeCorrelatorType correlators = correlationDefinition != null ? correlationDefinition.getCorrelators() : null;
+        if (correlators != null) {
+            return correlators;
         } else if (objectSynchronization.getCorrelation().isEmpty()) {
             LOGGER.debug("No correlation information present. Will always find no owner. In: {}", this);
-            return new CompositeCorrelatorType(PrismContext.get())
+            return new CompositeCorrelatorType()
                     .beginNone().end();
         } else {
-            CompositeCorrelatorType correlators =
-                    new CompositeCorrelatorType(PrismContext.get())
+            CompositeCorrelatorType composite =
+                    new CompositeCorrelatorType()
                             .beginFilter()
                             .confirmation(CloneUtil.clone(objectSynchronization.getConfirmation()))
                             .end();
-            correlators.getFilter().get(0).getOwnerFilter().addAll(
+            composite.getFilter().get(0).getOwnerFilter().addAll(
                     CloneUtil.cloneCollectionMembers(objectSynchronization.getCorrelation()));
-            return correlators;
+            return composite;
         }
     }
 
@@ -510,6 +513,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return shadowExistsInRepo;
     }
 
+    @SuppressWarnings("SameParameterValue")
     void setShadowExistsInRepo(boolean shadowExistsInRepo) {
         this.shadowExistsInRepo = shadowExistsInRepo;
     }
@@ -602,8 +606,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         SynchronizationContext.skipMaintenanceCheck = skipMaintenanceCheck;
     }
 
-    @Nullable ObjectSynchronizationType getObjectSynchronizationBean() {
-        return objectSynchronization;
+    @Nullable CorrelationDefinitionType getCorrelationDefinitionBean() {
+        return objectSynchronization != null ? objectSynchronization.getCorrelationDefinition() : null;
     }
 
     @NotNull List<ItemDelta<?, ?>> getPendingShadowDeltas() {
@@ -639,5 +643,9 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
      */
     boolean isUpdatingCorrelatorsOnly() {
         return isCorrelatorsUpdateRequested() && getLinkedOwner() != null;
+    }
+
+    public SystemConfigurationType getSystemConfigurationBean() {
+        return asObjectable(systemConfiguration);
     }
 }
