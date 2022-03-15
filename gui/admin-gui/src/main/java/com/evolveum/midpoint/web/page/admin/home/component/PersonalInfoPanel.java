@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -56,7 +57,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
 
     @Override
     public IModel<PersonalInfoDto> createModel() {
-        return new LoadableModel<PersonalInfoDto>(false) {
+        return new LoadableDetachableModel<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -99,7 +100,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     }
 
     protected void initLayout() {
-        DateLabelComponent lastLoginDate = new DateLabelComponent(ID_LAST_LOGIN_DATE, new IModel<Date>() {
+        DateLabelComponent lastLoginDate = new DateLabelComponent(ID_LAST_LOGIN_DATE, new IModel<>() {
 
             private static final long serialVersionUID = 1L;
 
