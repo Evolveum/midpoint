@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.api.component;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -479,21 +478,21 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return getAllApplicableArchetypeViews();
     }
 
-    private void deleteConfirmedPerformed(AjaxRequestTarget target, O objectToDelete) {
-        List<O> objects = isAnythingSelected(target, objectToDelete);
+    private void deleteConfirmedPerformed(AjaxRequestTarget target, IModel<SelectableBean<O>> objectToDelete) {
+        List<SelectableBean<O>> objects = isAnythingSelected(target, objectToDelete);
 
         if (objects.isEmpty()) {
             return;
         }
 
         OperationResult result = new OperationResult(objects.size() == 1 ? OPERATION_DELETE_OBJECT: OPERATION_DELETE_OBJECTS);
-        for (O object : objects) {
+        for (SelectableBean<O> object : objects) {
             OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
             try {
                 Task task = getPageBase().createSimpleTask(OPERATION_DELETE_OBJECT);
 
-                ObjectDelta delta = getPrismContext().deltaFactory().object().create(object.getClass(), ChangeType.DELETE);
-                delta.setOid(object.getOid());
+                ObjectDelta delta = getPrismContext().deltaFactory().object().create(object.getValue().getClass(), ChangeType.DELETE);
+                delta.setOid(object.getValue().getOid());
 
                 ExecuteChangeOptionsDto executeOptions = getExecuteOptions();
                 ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
@@ -523,8 +522,21 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     /**
      * This method check selection in table. If selectedObject != null than it
      * returns only this object.
+     * @return
      */
-    public List<O> isAnythingSelected(AjaxRequestTarget target, O selectedObject) {
+    public List<SelectableBean<O>> isAnythingSelected(AjaxRequestTarget target, IModel<SelectableBean<O>> selectedObject) {
+        List<SelectableBean<O>>  selectedObjects;
+        if (selectedObject != null) {
+            selectedObjects = new ArrayList<>();
+            selectedObjects.add(selectedObject.getObject());
+        } else {
+            selectedObjects = TableUtil.getSelectedModels(getTable().getDataTable());
+//            if (users.isEmpty() && StringUtils.isNotEmpty(getNothingSelectedMessage())) {
+//                warn(getNothingSelectedMessage());
+//                target.add(getFeedbackPanel());
+//            }
+        }
+        return selectedObjects;
 //        List<SelectableObjectModel<UserType>>  users;
 //        if (selectedObject != null) {
 //            users = new ArrayList<>();
@@ -538,7 +550,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 //        }
 //
 //        return users;
-        return new ArrayList<>();
+//        return new ArrayList<>();
     }
 
     protected String getNothingSelectedMessage() {
@@ -572,12 +584,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 return new ColumnMenuAction<SelectableBean<O>>() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            deleteConfirmedPerformed(target, null);
-                        } else {
-                            SelectableBean<O> rowDto = getRowModel().getObject();
-                            deleteConfirmedPerformed(target, rowDto.getValue());
-                        }
+                        deleteConfirmedPerformed(target, getRowModel());
                     }
                 };
             }
