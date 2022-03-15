@@ -112,8 +112,8 @@ public class CorrelationCaseManager {
             Task task,
             OperationResult result)
             throws SchemaException {
-        CaseType newCase = new CaseType(prismContext)
-                .name(getCaseName(resourceObject))
+        CaseType newCase = new CaseType()
+                .name(getCaseName(resourceObject, resource))
                 .objectRef(createObjectRefWithFullObject(resourceObject))
                 .targetRef(resourceObject.getResourceRef().clone())
                 .requestorRef(task != null ? task.getOwnerRef() : null)
@@ -147,8 +147,10 @@ public class CorrelationCaseManager {
     }
 
     // Temporary implementation
-    private String getCaseName(ShadowType resourceObject) {
-        return "Correlation of " + getKindLabel(resourceObject) + " '" + resourceObject.getName() + "'";
+    private String getCaseName(ShadowType resourceObject, ResourceType resource) {
+        return "Correlation of " + getKindLabel(resourceObject)
+                + " '" + resourceObject.getName() + "'"
+                + " on " + resource.getName().getOrig();
     }
 
     // Temporary implementation
