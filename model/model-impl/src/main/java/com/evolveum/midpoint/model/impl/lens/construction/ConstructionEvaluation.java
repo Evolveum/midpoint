@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,6 +18,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
 /**
  * State of a construction evaluation. Consists of evaluations of individual attributes and associations.
@@ -91,17 +91,15 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
 
         projectionOdo = projectionContext != null ? projectionContext.getObjectDeltaObject() : null;
 
-        if (isAllowOutbound()) {
+        if (isOutboundAllowed()) {
             evaluateAttributes();
             evaluateAssociations();
         }
     }
 
-    private boolean isAllowOutbound() {
+    private boolean isOutboundAllowed() {
         return projectionContext == null
-                || projectionContext.getLensContext() == null
-                || projectionContext.getLensContext().getPartialProcessingOptions() == null
-                || !PartialProcessingTypeType.SKIP.equals(projectionContext.getLensContext().getPartialProcessingOptions().getOutbound());
+                || projectionContext.getLensContext().getPartialProcessingOptions().getOutbound() != SKIP;
     }
 
     private void checkNotEvaluatedTwice() {
