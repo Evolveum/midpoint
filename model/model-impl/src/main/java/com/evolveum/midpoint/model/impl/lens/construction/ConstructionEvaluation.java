@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,8 +91,17 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
 
         projectionOdo = projectionContext != null ? projectionContext.getObjectDeltaObject() : null;
 
-        evaluateAttributes();
-        evaluateAssociations();
+        if (isAllowOutbound()) {
+            evaluateAttributes();
+            evaluateAssociations();
+        }
+    }
+
+    private boolean isAllowOutbound() {
+        return projectionContext == null
+                || projectionContext.getLensContext() == null
+                || projectionContext.getLensContext().getPartialProcessingOptions() == null
+                || !PartialProcessingTypeType.SKIP.equals(projectionContext.getLensContext().getPartialProcessingOptions().getOutbound());
     }
 
     private void checkNotEvaluatedTwice() {

@@ -82,7 +82,7 @@ public class TestSqaleRepositoryBeanConfig {
      * No need to clean up the cache tables, only the main and audit tables are cleared.
      */
     public void clearDatabase(SqaleRepoContext sqlRepoContext) {
-        LOGGER.info("Postprocessing session factory - removing everything from database if necessary.");
+        LOGGER.info("Clearing the testing database!");
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             // Truncate cascades to sub-rows of the "object aggregate" - if FK points to m_object table hierarchy.
             jdbcSession.executeStatement("TRUNCATE m_object CASCADE;");

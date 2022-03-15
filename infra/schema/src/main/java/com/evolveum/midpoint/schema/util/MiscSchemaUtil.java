@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.util.*;
+import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -455,6 +456,19 @@ public class MiscSchemaUtil {
         if (existPaging.getOrderDirection() == null) {
             existPaging.setOrderDirection(newPaging.getOrderDirection());
         }
+    }
+
+    public static void mergeColumns(List<GuiObjectColumnType> existingColumns, List<GuiObjectColumnType> newColumns) {
+        newColumns.forEach(newColumn -> {
+            Optional<GuiObjectColumnType> matchesColumn = existingColumns.stream().filter(
+                    existingColumn -> existingColumn.getName().equals(newColumn.getName())).findFirst();
+            if (matchesColumn.isPresent()){
+                existingColumns.remove(matchesColumn.get());
+                existingColumns.add(newColumn);
+            } else {
+                existingColumns.add(newColumn);
+            }
+        });
     }
 
     /*

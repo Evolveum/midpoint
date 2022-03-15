@@ -550,7 +550,7 @@ public class CollectionProcessor {
         existingView.setIncludeDefaultColumns(objectListViewType.isIncludeDefaultColumns());
         // Not very efficient algorithm. But must do for now.
         List<GuiObjectColumnType> existingColumns = existingView.getColumns();
-        existingColumns.addAll(newColumns);
+        MiscSchemaUtil.mergeColumns(existingColumns, objectListViewType.getColumn());
         List<GuiObjectColumnType> orderedList = MiscSchemaUtil.orderCustomColumns(existingColumns);
         existingColumns.clear();
         existingColumns.addAll(orderedList);
