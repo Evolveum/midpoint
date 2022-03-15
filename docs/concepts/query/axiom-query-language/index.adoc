@@ -10,7 +10,7 @@ Axiom Query Language is a language used to query objects in midPoint repository.
 It is a universal language used to search for objects in the repository, filter objects, set up object references and so on.
 It is used in all the places where we need to look for an object.
 
-The language closely flows midPoint data model.
+The language closely follows midPoint data model.
 Names of the properties, attributes and all the data items are directly taken from midPoint xref:/midpoint/reference/schema/[data model].
 
 This description is an attempt to provide introduction to the Axiom Query Language for the users.
@@ -63,7 +63,7 @@ Following tables summarizes common property filters:
 | `equal` | `=` | Matches if any item is equal to value
 | `not equal` | != | Matches if item is different than value
 | `less` | `<` | Matches if item is smaller than value
-| `lessOrEqual` | `<=` | Matches if item is smaller or equal to the value
+| `lessOrEqual` | `&lt;=` | Matches if item is smaller or equal to the value
 | `greater` | `>` | Matches if item is greater than value
 | `greaterOrEqual` | `>=` | Matches if item is greater or equal to value
 |====
