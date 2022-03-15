@@ -2062,6 +2062,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         IntegrationTestTools.display(title, elements);
     }
 
+    public void displayValueAsXml(String title, Object value) throws SchemaException {
+        displayValue(title,
+                value != null ?
+                        prismContext.xmlSerializer().serializeRealValue(value, SchemaConstants.C_VALUE) : null);
+    }
+
     @Override
     public void displayValue(String title, Object value) {
         PrismTestUtil.display(title, value);

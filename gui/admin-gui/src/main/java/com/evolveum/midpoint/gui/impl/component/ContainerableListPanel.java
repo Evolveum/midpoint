@@ -203,6 +203,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
                 if (isCollectionViewPanel()) {
                     CompiledObjectCollectionView view = getObjectCollectionView();
+                    if (view == null) {
+                        getPageBase().redirectToNotFoundPage();
+                    }
                     search.setCollectionSearchItem(new ObjectCollectionSearchItem(search, view));
                     search.setCollectionItemVisible(isCollectionViewPanelForWidget());
                     if (storage != null && view.getPaging() != null) {

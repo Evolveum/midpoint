@@ -14,7 +14,6 @@ import static org.testng.AssertJUnit.*;
 import static com.evolveum.midpoint.prism.PrismObject.asObjectableList;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.F_TIMESTAMP;
 
 import java.io.File;
@@ -23,7 +22,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -126,8 +124,6 @@ import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskDebugUtil;
-import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerDefinitionAsserter;
@@ -3487,6 +3483,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     /**
      * Waits for the completion of the root activity realization. Useful for task trees.
      *
+     * Stops also if there's a failed/suspended activity - see {@link #findSuspendedActivity(Task)}.
+     * This is to account for suspended multi-node tasks like `TestThresholdsStoryReconExecuteMultinode`.
+     *
      * TODO reconcile with {@link #waitForTaskActivityCompleted(String, long, OperationResult, long)}
      *
      * @param lastKnownCompletionTimestamp The completion we know about - and are _not_ interested in. If null,
@@ -3508,9 +3507,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             // Now do the real check now
             freshRootTask.refresh(waitResult);
             var rootState = freshRootTask.getActivityStateOrClone(ActivityPath.empty());
-            return rootState != null
+
+            if (verbose) {
+                displayValueAsXml("overview", freshRootTask.getActivityTreeStateOverviewOrClone());
+            }
+
+            if (rootState != null
                     && rootState.getRealizationState() == ActivityRealizationStateType.COMPLETE
-                    && isDifferent(lastKnownCompletionTimestamp, rootState.getRealizationEndTimestamp());
+                    && isDifferent(lastKnownCompletionTimestamp, rootState.getRealizationEndTimestamp())) {
+                return true;
+            }
+
+            ActivityStateOverviewType suspended = findSuspendedActivity(freshRootTask);
+            if (suspended != null) {
+                displayValueAsXml("Suspended activity -> not waiting anymore", suspended);
+                return true;
+            }
+
+            // The task lives: let's continue waiting
+            return false;
         };
 
         IntegrationTestTools.waitFor("Waiting for task tree " + freshRootTask + " next finished run",
@@ -3520,6 +3535,67 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         logger.debug("Final root task:\n{}", freshRootTask.debugDump());
         stabilize(); // TODO needed?
         return freshRootTask;
+    }
+
+    /**
+     * Finds an activity that:
+     *
+     * - is in progress,
+     * - has at least one worker task,
+     * - all of the workers are marked as "not running", at least one of them is marked as failed, and is suspended.
+     *
+     * This is to avoid waiting for multi-node tasks that will never complete.
+     *
+     * It is ugly and not 100% reliable: in theory, the failure may be expected, and the current state may be transient.
+     * But it's probably the best we can do now.
+     */
+    private @Nullable ActivityStateOverviewType findSuspendedActivity(Task task) throws SchemaException, ObjectNotFoundException {
+        ActivityStateOverviewType root = task.getActivityTreeStateOverviewOrClone();
+        return root != null ? findSuspendedActivity(root) : null;
+    }
+
+    private @Nullable ActivityStateOverviewType findSuspendedActivity(@NotNull ActivityStateOverviewType activityStateOverview)
+            throws SchemaException, ObjectNotFoundException {
+        if (activityStateOverview.getRealizationState() != ActivitySimplifiedRealizationStateType.IN_PROGRESS) {
+            return null; // Not started or complete
+        }
+        if (isSuspended(activityStateOverview)) {
+            return activityStateOverview;
+        }
+        for (ActivityStateOverviewType child : activityStateOverview.getActivity()) {
+            ActivityStateOverviewType suspendedInChild = findSuspendedActivity(child);
+            if (suspendedInChild != null) {
+                return suspendedInChild;
+            }
+        }
+        return null;
+    }
+
+    private boolean isSuspended(ActivityStateOverviewType activityStateOverview) throws SchemaException, ObjectNotFoundException {
+        List<ActivityTaskStateOverviewType> tasks = activityStateOverview.getTask();
+        if (tasks.isEmpty()) {
+            return false;
+        }
+        if (tasks.stream().anyMatch(task -> task.getExecutionState() != ActivityTaskExecutionStateType.NOT_RUNNING)) {
+            return false;
+        }
+        for (ActivityTaskStateOverviewType task : tasks) {
+            if (isSuspended(task)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isSuspended(ActivityTaskStateOverviewType taskInfo) throws SchemaException, ObjectNotFoundException {
+        if (taskInfo.getResultStatus() != OperationResultStatusType.FATAL_ERROR) {
+            return false;
+        }
+        if (taskInfo.getTaskRef() == null || taskInfo.getTaskRef().getOid() == null) {
+            return false; // shouldn't occur
+        }
+        Task task = taskManager.getTaskPlain(taskInfo.getTaskRef().getOid(), getTestOperationResult());
+        return task.getExecutionState() == TaskExecutionStateType.SUSPENDED;
     }
 
     private boolean isDifferent(@Nullable XMLGregorianCalendar lastKnownTimestamp, XMLGregorianCalendar realTimestamp) {
