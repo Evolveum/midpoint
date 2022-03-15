@@ -174,8 +174,8 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
-        save.add(new VisibleBehaviour(this::isSaveButtonVisible));
         save.add(new EnableBehaviour(this::isSavePreviewButtonEnabled));
+        save.add(new VisibleBehaviour(this::isSaveButtonVisible));
         save.titleAsLabel(true);
         save.setOutputMarkupId(true);
         save.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
