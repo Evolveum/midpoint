@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.autocomplete.LookupAutocompletePanel;
 import com.evolveum.midpoint.util.DisplayableValue;
 
 import com.evolveum.midpoint.web.component.search.FilterSearchItem;
@@ -55,18 +56,9 @@ public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> imp
 
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<T> panelCtx) {
-        LookupTableType lookupTable = panelCtx.getPredefinedValues();
-        if (lookupTable != null) {
-            return new AutoCompleteTextPanel<T>(panelCtx.getComponentId(),
-                    panelCtx.getRealValueModel(), panelCtx.getTypeClass(), panelCtx.hasValueEnumerationRef(), lookupTable) {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public Iterator<T> getIterator(String input) {
-                    return (Iterator<T>) prepareAutoCompleteList(input, lookupTable, panelCtx.getPageBase().getLocalizationService()).iterator();
-                }
-            };
+        String lookupTableOid = panelCtx.getPredefinedValuesOid();
+        if (lookupTableOid != null) {
+            return new LookupAutocompletePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), panelCtx.getTypeClass(), panelCtx.hasValueEnumerationRef(), lookupTableOid);
         }
 
         Collection<? extends DisplayableValue<T>> allowedValues = panelCtx.getAllowedValues();

@@ -372,7 +372,7 @@ public class PasswordPanel extends InputPanel {
         return null;
     }
 
-    private PageBase getPageBase() {
+    public PageBase getPageBase() {
         return pageBase;
     }
 

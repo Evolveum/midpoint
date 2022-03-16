@@ -1,50 +1,41 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+package com.evolveum.midpoint.gui.api.component.autocomplete;
+
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.EnumUtils;
-import org.springframework.stereotype.Component;
+import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-/**
- * @author skublik
- *
- */
-@Component
-public class LoggingPackageWrapperFactoryImpl<T> extends PrismPropertyWrapperFactoryImpl<T>{
+public class LoggingPackageAutocompletePanel extends AutoCompleteTextPanel<String> {
 
-    @Override
-    public boolean match(ItemDefinition<?> def) {
-        return def instanceof PrismPropertyDefinition
-                && QNameUtil.match(def.getItemName(), ClassLoggerConfigurationType.F_PACKAGE);
+    public LoggingPackageAutocompletePanel(String id, IModel<String> model) {
+        super(id, model, String.class, false);
     }
 
     @Override
-    public int getOrder() {
-        return super.getOrder() - 10;
+    public Iterator<String> getIterator(String input) {
+        return WebComponentUtil.prepareAutoCompleteList(getLookupTable(), input, ((PageBase) getPage()).getLocalizationService()).iterator();
     }
 
-
-    public LookupTableType getPredefinedValues(PrismProperty<T> item, WrapperContext wrapperContext) {
+    @Override
+    protected LookupTableType getLookupTable() {
         LookupTableType lookupTable = new LookupTableType();
         List<LookupTableRowType> list = lookupTable.createRowList();
 
@@ -64,7 +55,7 @@ public class LoggingPackageWrapperFactoryImpl<T> extends PrismPropertyWrapperFac
         List<LoggingComponentType> componentLoggers = EnumUtils.getEnumList(LoggingComponentType.class);
         for(LoggingComponentType componentLogger : componentLoggers) {
             LookupTableRowType row = new LookupTableRowType();
-                String value = ComponentLoggerType.getPackageByValue(componentLogger);
+            String value = ComponentLoggerType.getPackageByValue(componentLogger);
             row.setKey(value);
             row.setValue(value);
             PolyStringType label = new PolyStringType("LoggingComponentType." + componentLogger.name());
@@ -75,7 +66,6 @@ public class LoggingPackageWrapperFactoryImpl<T> extends PrismPropertyWrapperFac
             list.add(row);
         }
         return lookupTable;
-
     }
 
 }

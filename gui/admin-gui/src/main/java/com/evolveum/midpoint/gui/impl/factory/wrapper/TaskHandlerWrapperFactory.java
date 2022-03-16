@@ -27,22 +27,23 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+//TODO: rework, predefined values are no more stored in prism property wrapper. rather, the oid is stored and dynamic lookup tables are loaded in concrete panel
+
 @Component
 public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<String> {
 
     @Autowired private ArchetypeManager archetypeManager;
 
-    @Override
     protected LookupTableType getPredefinedValues(PrismProperty<String> item, WrapperContext ctx) {
         PrismObject<?> prismObject = getParent(ctx);
         if (prismObject == null || !TaskType.class.equals(prismObject.getCompileTimeClass())) {
-            return super.getPredefinedValues(item, ctx);
+            return null;
         }
 
-        LookupTableType parentLookup = super.getPredefinedValues(item, ctx);
-        if (parentLookup != null) {
-            return parentLookup;
-        }
+//        LookupTableType parentLookup = super.getPredefinedValues(item, ctx);
+//        if (parentLookup != null) {
+//            return parentLookup;
+//        }
 
         TaskType task = (TaskType) prismObject.asObjectable();
         Collection<AssignmentType> assignmentTypes = task.getAssignment()

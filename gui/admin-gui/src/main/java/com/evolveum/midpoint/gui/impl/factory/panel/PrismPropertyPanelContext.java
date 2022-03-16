@@ -25,8 +25,8 @@ public class PrismPropertyPanelContext<T> extends ItemPanelContext<T, PrismPrope
         super(itemWrapper);
     }
 
-    public LookupTableType getPredefinedValues() {
-        return unwrapWrapperModel().getPredefinedValues();
+    public String getPredefinedValuesOid() {
+        return unwrapWrapperModel().getPredefinedValuesOid();
     }
 
     public Collection<? extends DisplayableValue<T>> getAllowedValues() {
