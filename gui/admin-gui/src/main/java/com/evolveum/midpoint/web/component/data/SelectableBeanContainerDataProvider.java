@@ -81,29 +81,6 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
         selected.clear();
     }
 
-    @Override
-    public List<SelectableBean<C>> getSelectedObjects() {
-        preprocessSelectedDataInternal();
-        List<SelectableBean<C>> ret = new ArrayList<>();
-        for (SelectableBean<C> selectable : super.getAvailableData()) {
-            if (selectable.isSelected()) {
-                (ret).add(selectable);
-            }
-        }
-        return ret;
-    }
-
-    @Override
-    public @NotNull List<C> getSelectedRealObjects() {
-        preprocessSelectedDataInternal();
-        for (SelectableBean<C> selectable : super.getAvailableData()) {
-            if (selectable.isSelected() && selectable.getValue() != null) {
-                ((Set) selected).add(selectable.getValue());
-            }
-        }
-        return new ArrayList<>(selected);
-    }
-
     private void preprocessSelectedData() {
         preprocessSelectedDataInternal();
         getAvailableData().clear();

@@ -153,7 +153,7 @@ public class ListMappingPanel extends BasePanel<PrismContainerWrapper<MappingTyp
 
                             @Override
                             public void onClick(AjaxRequestTarget target) {
-                                editItemPerformed(target, getRowModel(), getSelectedItems());
+                                editItemPerformed(target, getRowModel(), getSelectedObjects());
                                 target.add(getFeedbackPanel());
                             }
                         };

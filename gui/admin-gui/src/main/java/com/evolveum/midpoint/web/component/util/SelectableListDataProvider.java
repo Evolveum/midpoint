@@ -113,31 +113,4 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
         return list.size();
     }
 
-    @Override
-    public List<T> getSelectedRealObjects() {
-        List<T> allSelected = new ArrayList<>();
-        for (Serializable s : super.getAvailableData()) {
-            if (s instanceof Selectable) {
-                Selectable<T> selectable = (Selectable<T>) s;
-                if (selectable.isSelected() && selectable.getValue() != null) {
-                    allSelected.add(selectable.getValue());
-                }
-            }
-        }
-        return allSelected;
-    }
-
-    @Override
-    public @NotNull List<W> getSelectedObjects() {
-        List<W> allSelected = new ArrayList<>();
-        for (Serializable s : super.getAvailableData()) {
-            if (s instanceof Selectable) {
-                Selectable selectable = (Selectable) s;
-                if (selectable.isSelected()) {
-                    allSelected.add((W)selectable);
-                }
-            }
-        }
-        return allSelected;
-    }
 }

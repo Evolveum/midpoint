@@ -13,6 +13,10 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+
+import com.evolveum.midpoint.web.component.util.SelectableRow;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -100,37 +104,24 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         }
 
         List<IModel<T>> objects = new ArrayList<>();
-        table.visitChildren(SelectableDataTable.SelectableRowItem.class, new IVisitor<SelectableDataTable.SelectableRowItem, Void>() {
-
-            @Override
-            public void component(SelectableDataTable.SelectableRowItem row, IVisit<Void> visit) {
-                objects.add(row.getModel());
-            }
-        });
+        table.visitChildren(SelectableDataTable.SelectableRowItem.class,
+                (IVisitor<SelectableDataTable.SelectableRowItem, Void>) (row, visit) -> objects.add(row.getModel()));
 
         //update selected flag in model dto objects based on select all header state
-        BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) provider;
-//        List<T> objects = new ArrayList<>();//baseProvider.getAvailableData();
         for (IModel<T> object : objects) {
-            if (object instanceof SelectableObjectModel) {
+            T modelObject = object.getObject();
+
+            if (modelObject instanceof SelectableRow) {
+                ((SelectableRow<?>) modelObject).setSelected(selected);
+            } else if (modelObject instanceof SelectableObjectModel) {  //TODO is this needed?
                 ((SelectableObjectModel<?>) object).setSelected(selected);
-            } else if (object instanceof Selectable) {
-                Selectable selectable = (Selectable) object;
-                selectable.setSelected(selected);
-            } else if (object instanceof PrismContainerValueWrapper){
-                PrismContainerValueWrapper valueWrapper = (PrismContainerValueWrapper) object;
-                valueWrapper.setSelected(selected);
             }
         }
 
-        table.visitChildren(SelectableDataTable.SelectableRowItem.class, new IVisitor<SelectableDataTable.SelectableRowItem, Void>() {
-
-            @Override
-            public void component(SelectableDataTable.SelectableRowItem row, IVisit<Void> visit) {
-                if (row.getOutputMarkupId()) {
-                    //we skip rows that doesn't have outputMarkupId set to true (it would fail)
-                    target.add(row);
-                }
+        table.visitChildren(SelectableDataTable.SelectableRowItem.class, (IVisitor<SelectableDataTable.SelectableRowItem, Void>) (row, visit) -> {
+            if (row.getOutputMarkupId()) {
+                //we skip rows that doesn't have outputMarkupId set to true (it would fail)
+                target.add(row);
             }
         });
 
