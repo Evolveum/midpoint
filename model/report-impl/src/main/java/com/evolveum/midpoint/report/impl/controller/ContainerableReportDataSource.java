@@ -20,7 +20,6 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-import java.util.List;
 
 public class ContainerableReportDataSource implements ReportDataSource<Containerable> {
 
@@ -58,11 +57,6 @@ public class ContainerableReportDataSource implements ReportDataSource<Container
 
     @Override
     public void run(Handler<Containerable> handler, OperationResult result) throws CommonException {
-        List<? extends Containerable> objects = support.searchRecords(
-                type,
-                query,
-                options,
-                result);
-        objects.forEach(handler::handle);
+        support.searchRecordsIteratively(type, query, handler, options, result);
     }
 }
