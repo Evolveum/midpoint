@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 import com.evolveum.midpoint.report.impl.controller.*;
 
+import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -38,7 +39,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -139,7 +139,7 @@ public final class ReportDataCreationActivityRun
     }
 
     private void initializeAuditReportBucketing(OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
+            throws SchemaException {
         ObjectFilter filter = masterSearchSpecification.getQuery().getFilter();
         XMLGregorianCalendar reportFrom = null;
         XMLGregorianCalendar reportTo = null;
@@ -188,10 +188,10 @@ public final class ReportDataCreationActivityRun
 
     private static <T extends PrismValue> Collection<T> getTimestampsFromFilter(ObjectFilter filter, boolean greaterOrLess) {
         if (greaterOrLess && filter instanceof GreaterFilter
-                && AuditEventRecordType.F_TIMESTAMP.equivalent(((GreaterFilter) filter).getFullPath())) {
+                && AuditEventRecordType.F_TIMESTAMP.equivalent(((GreaterFilter<?>) filter).getFullPath())) {
             return ((GreaterFilter) filter).getValues();
         } else if (!greaterOrLess && filter instanceof LessFilter
-                && AuditEventRecordType.F_TIMESTAMP.equivalent(((LessFilter) filter).getFullPath())) {
+                && AuditEventRecordType.F_TIMESTAMP.equivalent(((LessFilter<?>) filter).getFullPath())) {
             return ((LessFilter) filter).getValues();
         } else if (filter instanceof AndFilter || filter instanceof OrFilter) {
             return getTimestampsFromFilter(((NaryLogicalFilter) filter).getConditions(), greaterOrLess);
@@ -259,7 +259,7 @@ public final class ReportDataCreationActivityRun
         }
 
         @Override
-        public void run(Handler<Containerable> handler, OperationResult result) {
+        public void run(ObjectHandler<Containerable> handler, OperationResult result) {
             // no-op
         }
     }

@@ -58,7 +58,7 @@ class SearchExecutor {
     @NotNull private final ObjectClass icfObjectClass;
     private final ObjectQuery query;
     private final Filter connIdFilter;
-    @NotNull private final ObjectHandler handler;
+    @NotNull private final UcfObjectHandler handler;
     private final AttributesToReturn attributesToReturn;
     private final PagedSearchCapabilityType pagedSearchConfiguration;
     private final SearchHierarchyConstraints searchHierarchyConstraints;
@@ -75,7 +75,7 @@ class SearchExecutor {
     SearchExecutor(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             ObjectQuery query,
-            @NotNull ObjectHandler handler,
+            @NotNull UcfObjectHandler handler,
             AttributesToReturn attributesToReturn,
             PagedSearchCapabilityType pagedSearchConfiguration,
             SearchHierarchyConstraints searchHierarchyConstraints,

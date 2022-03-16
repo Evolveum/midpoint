@@ -11,9 +11,9 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.report.impl.activity.ExportActivitySupport;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.Handler;
 
 import com.evolveum.midpoint.util.exception.CommonException;
 
@@ -56,7 +56,7 @@ public class ContainerableReportDataSource implements ReportDataSource<Container
     }
 
     @Override
-    public void run(Handler<Containerable> handler, OperationResult result) throws CommonException {
+    public void run(ObjectHandler<Containerable> handler, OperationResult result) throws CommonException {
         support.searchRecordsIteratively(type, query, handler, options, result);
     }
 }

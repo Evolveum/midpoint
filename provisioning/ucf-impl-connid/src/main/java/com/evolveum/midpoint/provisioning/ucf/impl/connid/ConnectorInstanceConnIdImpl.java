@@ -1756,7 +1756,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     public SearchResultMetadata search(
             @NotNull ResourceObjectDefinition objectDefinition,
             ObjectQuery query,
-            @NotNull ObjectHandler handler,
+            @NotNull UcfObjectHandler handler,
             @Nullable AttributesToReturn attributesToReturn,
             @Nullable PagedSearchCapabilityType pagedSearchConfiguration,
             @Nullable SearchHierarchyConstraints searchHierarchyConstraints,

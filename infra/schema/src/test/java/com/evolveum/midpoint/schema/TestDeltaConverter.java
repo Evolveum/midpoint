@@ -600,10 +600,10 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         objectDelta.checkConsistence();
         assertEquals("Wrong OID", "00000000-8888-6666-0000-100000000775", objectDelta.getOid());
         PropertyDelta<Object> propertyDelta = objectDelta.findPropertyDelta(ItemPath.create("nonExistsParent", "nonExistsAttribute"));
-        assertNotNull("No targetRef delta", propertyDelta);
+        assertNotNull("No property delta", propertyDelta);
         Collection<PrismPropertyValue<Object>> valuesToReplace = propertyDelta.getValuesToReplace();
         assertEquals("Wrong number of values to replace", 1, valuesToReplace.size());
-        assertTrue("wrong target type in targetRef", valuesToReplace.iterator().next().getValue() instanceof RawType);
+        assertTrue("Wrong type of value to replace", valuesToReplace.iterator().next().getValue() instanceof RawType);
     }
 
     @Test
