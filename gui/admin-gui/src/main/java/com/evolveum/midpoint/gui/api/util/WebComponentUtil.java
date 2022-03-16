@@ -4015,7 +4015,8 @@ public final class WebComponentUtil {
             try {
                 // Do not set object to shadow.resourceRef. We don't want to serialize it
                 return pageBase.getModelObjectResolver().resolve(
-                        shadowType.getResourceRef(), ResourceType.class, null, "Load Resource", task, task.getResult());
+                        shadowType.getResourceRef(), ResourceType.class,
+                        SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), "Load Resource", task, task.getResult());
             } catch (CommonException e) {
                 //ignore exception
             }
