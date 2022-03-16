@@ -17,10 +17,10 @@ import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
 import com.evolveum.midpoint.report.impl.controller.ReportDataWriter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -71,14 +71,14 @@ public class ExportActivitySupport extends ReportActivitySupport {
     public void searchRecordsIteratively(
             Class<? extends Containerable> type,
             ObjectQuery query,
-            Handler<Containerable> handler,
+            ObjectHandler<Containerable> handler,
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult result) throws CommonException {
         if (AuditEventRecordType.class.equals(type)) {
             modelAuditService.searchObjectsIterative(
                     query,
                     options,
-                    (value, lResult) -> handler.handle(value),
+                    handler::handle,
                     runningTask,
                     result);
         } else if (ObjectType.class.isAssignableFrom(type)) {
@@ -86,15 +86,15 @@ public class ExportActivitySupport extends ReportActivitySupport {
             modelService.searchObjectsIterative(
                     objectType,
                     query,
-                    (object, lResult) -> handler.handle(object.asObjectable()),
+                    (object, lResult) -> handler.handle(object.asObjectable(), lResult),
                     options,
                     runningTask,
                     result);
         } else {
             // Temporary - until iterative search is available
-            SearchResultList<? extends Containerable> containers =
+            SearchResultList<? extends Containerable> values =
                     modelService.searchContainers(type, query, options, runningTask, result);
-            containers.forEach(handler::handle);
+            values.forEach(value -> handler.handle(value, result));
         }
     }
 

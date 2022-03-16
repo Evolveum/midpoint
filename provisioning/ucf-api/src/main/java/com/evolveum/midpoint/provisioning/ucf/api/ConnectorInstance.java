@@ -206,7 +206,7 @@ public interface ConnectorInstance {
     SearchResultMetadata search(
             @NotNull ResourceObjectDefinition objectDefinition,
             @Nullable ObjectQuery query,
-            @NotNull ObjectHandler handler,
+            @NotNull UcfObjectHandler handler,
             @Nullable AttributesToReturn attributesToReturn,
             @Nullable PagedSearchCapabilityType pagedSearchConfiguration,
             @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
