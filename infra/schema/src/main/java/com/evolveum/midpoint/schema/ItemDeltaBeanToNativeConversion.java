@@ -15,6 +15,8 @@ import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 
@@ -34,6 +36,8 @@ import static com.evolveum.midpoint.util.MiscUtil.requireNonNull;
  * As this is quite complex process, it was refactored into separate class.
  */
 class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefinition<?>> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ItemDeltaBeanToNativeConversion.class);
 
     /**
      * Delta to be converted ("XML").
@@ -104,7 +108,7 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
             //noinspection unchecked
             return (ItemDelta<IV, ID>) itemDefinition.createEmptyDelta(itemPath);
         } else {
-            PrismProperty<?> property = new PrismPropertyImpl<>(itemName, parentDefinition.getPrismContext());
+            PrismProperty<?> property = new PrismPropertyImpl<>(itemName, PrismContext.get());
             //noinspection unchecked
             return (ItemDelta<IV, ID>) property.createDelta(itemPath);
         }
@@ -114,7 +118,7 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
         if (itemDefinition == null) {
             parentDefinition = rootContainerDef.findContainerDefinition(itemPath.allUpToLastName());
             if (parentDefinition == null) {
-                throw new SchemaException("No definition for " + itemPath.allUpToLastName().lastName() +
+                LOGGER.debug("No definition for " + itemPath.allUpToLastName().lastName() +
                         " (while creating delta for " + rootContainerDef + ")");
             }
         }
@@ -125,10 +129,9 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
 
         List<IV> parsedValues = new ArrayList<>();
         for (RawType rawValue : values) {
-            if (itemDefinition == null) {
-                assert parentDefinition != null;
+            if (itemDefinition == null && parentDefinition != null) {
                 //noinspection unchecked
-                itemDefinition = (ID) ((PrismContextImpl) parentDefinition.getPrismContext()).getPrismUnmarshaller()
+                itemDefinition = (ID) ((PrismContextImpl) PrismContext.get()).getPrismUnmarshaller()
                         .locateItemDefinition(parentDefinition, itemName, rawValue.getXnode());
             }
             // Note this can be a slight problem if itemDefinition is PRD and the value is a full object.
