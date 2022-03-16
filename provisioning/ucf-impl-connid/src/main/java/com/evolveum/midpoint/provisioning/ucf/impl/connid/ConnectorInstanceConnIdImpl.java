@@ -1743,7 +1743,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     @Override
     public SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition,
-            ObjectQuery query, ObjectHandler handler, AttributesToReturn attributesToReturn,
+            ObjectQuery query, UcfObjectHandler handler, AttributesToReturn attributesToReturn,
             PagedSearchCapabilityType pagedSearchConfiguration, SearchHierarchyConstraints searchHierarchyConstraints,
             UcfFetchErrorReportingMethod ucfErrorReportingMethod, StateReporter reporter, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SecurityViolationException, SchemaException,
