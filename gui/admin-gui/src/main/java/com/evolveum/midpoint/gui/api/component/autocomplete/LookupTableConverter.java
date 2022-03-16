@@ -81,7 +81,7 @@ public class LookupTableConverter<C> implements IConverter<C> {
         return key.toString();
     }
 
-    private LookupTableType getLookupTable() {
+    protected LookupTableType getLookupTable() {
         if (lookupTableOid != null) {
             Task task = getPageBase().createSimpleTask("Load lookup table");
             OperationResult result = task.getResult();

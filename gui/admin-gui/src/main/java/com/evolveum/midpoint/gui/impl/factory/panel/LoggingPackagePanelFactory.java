@@ -15,8 +15,16 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 
+import javax.annotation.PostConstruct;
+
 @Component
-public abstract class LoggingPackagePanelFactory extends AbstractInputGuiComponentFactory<String> {
+public class LoggingPackagePanelFactory extends AbstractInputGuiComponentFactory<String> {
+
+    @PostConstruct
+    public void register() {
+        getRegistry().addToRegistry(this);
+    }
+
 
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<String> panelCtx) {
@@ -32,6 +40,6 @@ public abstract class LoggingPackagePanelFactory extends AbstractInputGuiCompone
 
     @Override
     public Integer getOrder() {
-        return 90;
+        return 1;
     }
 }
