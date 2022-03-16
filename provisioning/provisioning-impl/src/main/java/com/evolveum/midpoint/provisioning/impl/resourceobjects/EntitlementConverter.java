@@ -267,7 +267,7 @@ class EntitlementConverter {
 
         SearchHierarchyConstraints searchHierarchyConstraints = determineSearchHierarchyConstraints(entitlementCtx, result);
 
-        ObjectHandler handler = (ucfObject, lResult) -> {
+        UcfObjectHandler handler = (ucfObject, lResult) -> {
             PrismObject<ShadowType> entitlementResourceObject = ucfObject.getResourceObject();
 
             try {
@@ -642,7 +642,7 @@ class EntitlementConverter {
 
                 SearchHierarchyConstraints searchHierarchyConstraints = determineSearchHierarchyConstraints(entitlementCtx, result);
 
-                ObjectHandler handler = (ucfObject, lResult) -> {
+                UcfObjectHandler handler = (ucfObject, lResult) -> {
                     PrismObject<ShadowType> entitlementShadow = ucfObject.getResourceObject();
                     Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(entitlementShadow);
                     ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementDef.getTypeName(), primaryIdentifiers);

@@ -10,7 +10,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -24,8 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
- * Represents a resource object (e.g. an account) found by {@link ConnectorInstance#search(ResourceObjectClassDefinition, ObjectQuery, ObjectHandler, AttributesToReturn, PagedSearchCapabilityType, SearchHierarchyConstraints, UcfFetchErrorReportingMethod, Task, OperationResult)}.
- * operation.
+ * Represents a resource object (e.g. an account) found by {@link ConnectorInstance#search(ResourceObjectDefinition, ObjectQuery,
+ * UcfObjectHandler, AttributesToReturn, PagedSearchCapabilityType, SearchHierarchyConstraints, UcfFetchErrorReportingMethod,
+ * UcfExecutionContext, OperationResult)} operation.
  *
  * See also {@link UcfChange}.
  */

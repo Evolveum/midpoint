@@ -181,7 +181,7 @@ public class ResourceObjectConverter {
                     .itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getItemName()).eq(secondaryIdentifierValue)
                     .build();
             final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
-            ObjectHandler handler = (ucfObject, result) -> {
+            UcfObjectHandler handler = (ucfObject, result) -> {
                 if (!shadowHolder.isEmpty()) {
                     throw new IllegalStateException("More than one value found for secondary identifier "+finalSecondaryIdentifier);
                 }
@@ -321,7 +321,7 @@ public class ResourceObjectConverter {
      * which we want to add is already present in the backing store. In case of manual provisioning the resource
      * itself will not indicate "already exist" error. We have to explicitly check for that.
      */
-    private void checkForAddConflicts(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
+    private void checkForAddConflicts(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Checking for add conflicts for {}", ShadowUtil.shortDumpShadow(shadow));
         }
