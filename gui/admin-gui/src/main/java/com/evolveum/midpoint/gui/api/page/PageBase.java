@@ -1634,7 +1634,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         setResponsePage(page);
     }
 
-    protected void setTimeZone(PageBase page) {
+    protected void setTimeZone() {
         String timeZone = null;
         GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
         if (principal != null && principal.getCompiledGuiProfile() != null) {
