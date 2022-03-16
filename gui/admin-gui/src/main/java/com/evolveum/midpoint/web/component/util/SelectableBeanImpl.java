@@ -18,12 +18,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
+import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.IModel;
 
 /**
  * @author lazyman
  */
-public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> implements SelectableBean<T> {
+public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> implements SelectableBean<T> , IDetachable {
     private static final long serialVersionUID = 1L;
 
     public static final String F_VALUE = "value";
@@ -166,5 +167,10 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
     @Override
     public void setCustomData(Object customData) {
         this.customData = customData;
+    }
+
+    @Override
+    public void detach() {
+        customData = null;
     }
 }

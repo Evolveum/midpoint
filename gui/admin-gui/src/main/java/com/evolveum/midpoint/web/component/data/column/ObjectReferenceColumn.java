@@ -29,8 +29,7 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
     @Override
     public void populateItem(Item<ICellPopulator<T>> item, String componentId, IModel<T> rowModel) {
         IModel<ObjectReferenceType> dataModel = extractDataModel(rowModel);
-        ObjectReferenceType referenceType = dataModel.getObject();
-        item.add(new ObjectReferenceColumnPanel(componentId, Model.of(referenceType)));
+        item.add(new ObjectReferenceColumnPanel(componentId, dataModel));
 
     }
 

@@ -120,7 +120,11 @@ public class PageTasks extends PageAdmin {
             @Override
             public IModel<ObjectReferenceType> extractDataModel(IModel<SelectableBean<TaskType>> rowModel) {
                 SelectableBean<TaskType> bean = rowModel.getObject();
-                return Model.of(bean.getValue().getObjectRef());
+                ObjectReferenceType objectRef = bean.getValue().getObjectRef();
+                if (objectRef != null) {
+                    objectRef.asReferenceValue().clearParent();
+                }
+                return Model.of(objectRef);
 
             }
         });
