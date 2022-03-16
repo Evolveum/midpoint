@@ -911,57 +911,6 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         target.add(getMultivalueContainerListPanel());
     }
 
-    private List<ShadowWrapper> loadShadowWrappers() {
-        LOGGER.trace("Loading shadow wrapper");
-        long start = System.currentTimeMillis();
-        List<ShadowWrapper> list = new ArrayList<>();
-
-        PrismObjectWrapper<F> focusWrapper = getObjectWrapperModel().getObject();
-        PrismObject<F> focus = focusWrapper.getObject();
-        PrismReference prismReference = focus.findReference(UserType.F_LINK_REF);
-        if (prismReference == null || prismReference.isEmpty()) {
-            return new ArrayList<>();
-        }
-        List<PrismReferenceValue> references = prismReference.getValues();
-
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_SHADOW);
-        for (PrismReferenceValue reference : references) {
-            if (reference == null || (reference.getOid() == null && reference.getTargetType() == null)) {
-                LOGGER.trace("Skiping reference for shadow with null oid");
-                continue; // default value
-            }
-            long shadowTimestampBefore = System.currentTimeMillis();
-            OperationResult subResult = task.getResult().createMinorSubresult(OPERATION_LOAD_SHADOW);
-            PrismObject<ShadowType> projection = getPrismObjectForShadowWrapper(reference.getOid(),
-                    true, task, subResult, createLoadOptionForShadowWrapper());
-
-            long shadowTimestampAfter = System.currentTimeMillis();
-            LOGGER.trace("Got shadow: {} in {}", projection, shadowTimestampAfter - shadowTimestampBefore);
-            if (projection == null) {
-                LOGGER.error("Couldn't load shadow projection");
-                continue;
-            }
-
-            long timestampWrapperStart = System.currentTimeMillis();
-            try {
-
-                ShadowWrapper wrapper = loadShadowWrapper(projection, task, subResult);
-                wrapper.setLoadWithNoFetch(true);
-                list.add(wrapper);
-
-                //TODO catch Exception/Runtim,eException, Throwable
-            } catch (SchemaException e) {
-                getPageBase().showResult(subResult, "pageAdminFocus.message.couldntCreateShadowWrapper");
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create shadow wrapper", e);
-            }
-            long timestampWrapperEnd = System.currentTimeMillis();
-            LOGGER.trace("Load wrapper in {}", timestampWrapperEnd - timestampWrapperStart);
-        }
-        long end = System.currentTimeMillis();
-        LOGGER.trace("Load projctions in {}", end - start);
-        return list;
-    }
-
     private Collection<SelectorOptions<GetOperationOptions>> createLoadOptionForShadowWrapper() {
         return getPageBase().getOperationOptionsBuilder()
                 .resolveNames()

@@ -14,6 +14,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+import com.evolveum.midpoint.web.component.util.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +41,7 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.CollectionModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.util.visit.IVisitor;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -80,9 +84,6 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.*;
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -102,7 +103,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @param <PO>
  *     the type of the object processed by provider
  */
-public abstract class ContainerableListPanel<C extends Containerable, PO extends Serializable> extends BasePanel<C> {
+public abstract class ContainerableListPanel<C extends Containerable, PO extends SelectableRow> extends BasePanel<C> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
@@ -858,14 +859,30 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
 
     public List<PO> getSelectedObjects() {
-        ISelectableDataProvider dataProvider = getDataProvider();
-        return dataProvider.getSelectedObjects();
+        List<PO> objects = new ArrayList<>();
+        getTable().getDataTable().visitChildren(SelectableDataTable.SelectableRowItem.class, (IVisitor<SelectableDataTable.SelectableRowItem<PO>, Void>) (row, visit) -> {
+            if (row.getModelObject().isSelected()) {
+                objects.add(row.getModel().getObject());
+            }
+//                SelectableObjectModel<T> model = (SelectableObjectModel<T>) row.getModel();
+//                if (model.isSelected()) {
+//                    objects.add((SelectableObjectModel<T>) row.getModel());
+//                }
+        });
+        return objects;
+//
+//
+//        ISelectableDataProvider dataProvider = getDataProvider();
+//        return dataProvider.getSelectedObjects();
     }
 
-    public List<C> getSelectedRealObjects() {
-        ISelectableDataProvider dataProvider = getDataProvider();
-        return dataProvider.getSelectedRealObjects();
-    }
+    public abstract List<C> getSelectedRealObjects();
+//    {
+//
+////        getTable().getsele
+////        ISelectableDataProvider dataProvider = getDataProvider();
+////        return dataProvider.getSelectedRealObjects();
+//    }
 
     protected final Collection<SelectorOptions<GetOperationOptions>> createOptions() {
 

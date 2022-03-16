@@ -3862,72 +3862,24 @@ public final class WebComponentUtil {
     }
 
     public static CompositedIcon createAccountIcon(ShadowType shadow, PageBase pageBase, boolean isColumn) {
-        List<TriggerType> triggerType = shadow.getTrigger();
         String iconCssClass = WebComponentUtil.createShadowIcon(shadow.asPrismObject());
         CompositedIconBuilder builder = new CompositedIconBuilder();
-        String title = createTriggerTooltip(triggerType, pageBase);
-        if (StringUtils.isNotBlank(title)) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-clock-o " + GuiStyleConstants.BLUE_COLOR);
-            if (isColumn) {
-                builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_FOR_COLUMN_STYLE);
-            } else {
-                builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_STYLE);
-            }
-        }
         builder.setBasicIcon(iconCssClass, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
 
-        if (shadow.getResourceRef().getObject() == null && !isColumn) {
-            Task task = pageBase.createSimpleTask("Load Resource");
-            try {
-                ResourceType resource = pageBase.getModelObjectResolver().resolve(
-                        shadow.getResourceRef(), ResourceType.class, null, "Load Resource", task, task.getResult());
-                shadow.getResourceRef().asReferenceValue().setObject(resource.asPrismObject());
-            } catch (CommonException e) {
-                //ignore exception
-            }
-        }
+        String title = createTriggerTooltip(shadow.getTrigger(), pageBase);
+        appendTriggerInfo(title, isColumn, builder);
 
-        if (shadow.getResourceRef() != null && shadow.getResourceRef().getObject() != null
-                && ResourceTypeUtil.isInMaintenance(shadow.getResourceRef().getObject())) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-wrench " + GuiStyleConstants.CLASS_ICON_STYLE_MAINTENANCE);
-            if (isColumn) {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE);
-            } else {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_LEFT_STYLE);
-            }
-            if (StringUtils.isNotBlank(title)) {
-                title = title + "\n " + pageBase.createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
-            } else {
-                title = pageBase.createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
-            }
-        }
+        ResourceType resource = resolveResource(shadow, isColumn, pageBase);
 
-        if (BooleanUtils.isTrue(shadow.isDead())) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-times-circle " + GuiStyleConstants.RED_COLOR);
-            if (isColumn) {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-            } else {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
-            }
-            builder.setTitle(pageBase.createStringResource("FocusProjectionsTabPanel.deadShadow").getString()
-                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+        title = appendMaintenanceInfoAndUpdateTitle(title, resource, isColumn, pageBase, builder);
+
+        if (ShadowUtil.isDead(shadow)) {
+            appendDeadInfo(title, isColumn, pageBase, builder);
             return builder.build();
         }
 
-        if (shadow.getResourceRef() != null && shadow.getResourceRef().getObject() != null
-                && !ResourceTypeUtil.isActivationCapabilityEnabled((ResourceType) shadow.getResourceRef().getObject().asObjectable(), null)) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-ban " + GuiStyleConstants.RED_COLOR);
-            if (isColumn) {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-            } else {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
-            }
-            builder.setTitle(pageBase.createStringResource("accountIcon.activation.notSupported").getString()
-                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+        if (activationNotSupported(resource) ) {
+            appendNotSupportedActivation(title, isColumn, pageBase, builder);
             return builder.build();
         }
 
@@ -3938,19 +3890,9 @@ public final class WebComponentUtil {
             appendUndefinedIcon(builder);
             return builder.build();
         }
-        LockoutStatusType lockoutStatus = activation.getLockoutStatus();
-        XMLGregorianCalendar lockoutExpirationTimestamp = activation.getLockoutExpirationTimestamp();
-        if ((lockoutStatus != null && LockoutStatusType.LOCKED == lockoutStatus)
-                || (lockoutExpirationTimestamp != null && pageBase.getClock().isPast((lockoutExpirationTimestamp)))) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-lock " + GuiStyleConstants.RED_COLOR);
-            if (isColumn) {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-            } else {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
-            }
-            builder.setTitle(pageBase.createStringResource("LockoutStatusType.LOCKED").getString()
-                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+
+        if (isShadowLocked(activation, pageBase)) {
+            appendLockedTitle(title, isColumn, pageBase, builder);
             return builder.build();
         }
 
@@ -3983,6 +3925,104 @@ public final class WebComponentUtil {
 
         return builder.build();
     }
+
+    private static void appendLockedTitle(String title, boolean isColumn, PageBase pageBase, CompositedIconBuilder builder) {
+        IconType icon = new IconType();
+        icon.setCssClass("fa fa-lock " + GuiStyleConstants.RED_COLOR);
+        if (isColumn) {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+        } else {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+        }
+        builder.setTitle(pageBase.createStringResource("LockoutStatusType.LOCKED").getString()
+                + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+    }
+
+    private static boolean isShadowLocked(ActivationType activation, PageBase pageBase) {
+        LockoutStatusType lockoutStatus = activation.getLockoutStatus();
+        XMLGregorianCalendar lockoutExpirationTimestamp = activation.getLockoutExpirationTimestamp();
+        return (lockoutStatus != null && LockoutStatusType.LOCKED == lockoutStatus)
+                || (lockoutExpirationTimestamp != null && pageBase.getClock().isPast((lockoutExpirationTimestamp)));
+    }
+
+    private static void appendNotSupportedActivation(String title, boolean isColumn, PageBase pageBase, CompositedIconBuilder builder) {
+        IconType icon = new IconType();
+        icon.setCssClass("fa fa-ban " + GuiStyleConstants.RED_COLOR);
+        if (isColumn) {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+        } else {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+        }
+        builder.setTitle(pageBase.createStringResource("accountIcon.activation.notSupported").getString()
+                + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+    }
+
+    private static boolean activationNotSupported(ResourceType resource) {
+        return resource != null && !ResourceTypeUtil.isActivationCapabilityEnabled(resource, null);
+    }
+
+    private static void appendDeadInfo(String title, boolean isColumn, PageBase pageBase, CompositedIconBuilder builder) {
+        IconType icon = new IconType();
+        icon.setCssClass("fa fa-times-circle " + GuiStyleConstants.RED_COLOR);
+        if (isColumn) {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+        } else {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+        }
+        builder.setTitle(pageBase.createStringResource("FocusProjectionsTabPanel.deadShadow").getString()
+                + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+    }
+
+    private static String appendMaintenanceInfoAndUpdateTitle(String title, ResourceType resource, boolean isColumn, PageBase pageBase, CompositedIconBuilder builder) {
+        if (resource == null || !ResourceTypeUtil.isInMaintenance(resource)) {
+            return title;
+        }
+
+        IconType icon = new IconType();
+        icon.setCssClass("fa fa-wrench " + GuiStyleConstants.CLASS_ICON_STYLE_MAINTENANCE);
+        if (isColumn) {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE);
+        } else {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_LEFT_STYLE);
+        }
+        if (StringUtils.isNotBlank(title)) {
+            return title + "\n " + pageBase.createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
+        } else {
+            return pageBase.createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
+        }
+    }
+
+    private static void appendTriggerInfo(String title, boolean isColumn, CompositedIconBuilder builder) {
+        if (StringUtils.isNotBlank(title)) {
+            IconType icon = new IconType();
+            icon.setCssClass("fa fa-clock-o " + GuiStyleConstants.BLUE_COLOR);
+            if (isColumn) {
+                builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_FOR_COLUMN_STYLE);
+            } else {
+                builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_STYLE);
+            }
+        }
+    }
+
+    private static ResourceType resolveResource(ShadowType shadowType, boolean isColumn, PageBase pageBase) {
+        PrismObject<ResourceType> prismResource = shadowType.getResourceRef().getObject();
+        LOGGER.trace("Resource reference in shadow with full object : {}", shadowType);
+        if (prismResource != null) {
+            return prismResource.asObjectable();
+        }
+        if (!isColumn) {
+            Task task = pageBase.createSimpleTask("Load Resource");
+            try {
+                // Do not set object to shadow.resourceRef. We don't want to serialize it
+                return pageBase.getModelObjectResolver().resolve(
+                        shadowType.getResourceRef(), ResourceType.class, null, "Load Resource", task, task.getResult());
+            } catch (CommonException e) {
+                //ignore exception
+            }
+        }
+        return null;
+    }
+
 
     private static void appendUndefinedIcon(CompositedIconBuilder builder) {
         appendIcon(builder, "fa fa-question " + GuiStyleConstants.RED_COLOR, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);

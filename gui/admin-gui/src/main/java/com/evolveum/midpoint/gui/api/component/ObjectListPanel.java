@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.web.component.search.*;
@@ -187,5 +188,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     @Override
     protected IColumn<SelectableBean<O>, String> createIconColumn() {
         return ColumnUtils.createIconColumn(getPageBase());
+    }
+
+    @Override
+    public List<O> getSelectedRealObjects() {
+        return getSelectedObjects().stream().map(o -> o.getValue()).collect(Collectors.toList());
     }
 }
