@@ -150,12 +150,12 @@ public class PageUsers extends PageAdmin {
             }
 
             @Override
-            protected String getConfirmMessageKeyForSingleObject() {
+            protected String getConfirmMessageKeyForMultiObject() {
                 return "pageUsers.message.confirmationMessageForMultipleObject";
             }
 
             @Override
-            protected String getConfirmMessageKeyForMultiObject() {
+            protected String getConfirmMessageKeyForSingleObject() {
                 return "pageUsers.message.confirmationMessageForSingleObject";
             }
         };

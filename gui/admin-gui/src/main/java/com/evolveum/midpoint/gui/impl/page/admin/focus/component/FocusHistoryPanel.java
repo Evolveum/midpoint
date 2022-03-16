@@ -7,11 +7,14 @@
 package com.evolveum.midpoint.gui.impl.page.admin.focus.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrgHistory;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
+import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -28,11 +31,7 @@ import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnitHistory;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoleHistory;
-import com.evolveum.midpoint.web.page.admin.services.PageServiceHistory;
-import com.evolveum.midpoint.web.page.admin.users.PageUserHistory;
 import com.evolveum.midpoint.web.page.admin.users.PageXmlDataReview;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -171,7 +170,7 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
         } else if (RoleType.class.equals(objectClass)) {
             getPageBase().navigateToNext(new PageRoleHistory((PrismObject<RoleType>) object, date));
         } else if (OrgType.class.equals(objectClass)) {
-            getPageBase().navigateToNext(new PageOrgUnitHistory((PrismObject<OrgType>) object, date));
+            getPageBase().navigateToNext(new PageOrgHistory((PrismObject<OrgType>) object, date));
         } else if (ServiceType.class.equals(objectClass)) {
             getPageBase().navigateToNext(new PageServiceHistory((PrismObject<ServiceType>) object, date));
         }

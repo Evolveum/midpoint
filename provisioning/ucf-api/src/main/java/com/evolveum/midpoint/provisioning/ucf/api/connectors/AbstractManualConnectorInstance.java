@@ -245,7 +245,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     @Override
     public SearchResultMetadata search(
             @NotNull ResourceObjectDefinition objectDefinition, ObjectQuery query,
-            @NotNull ObjectHandler handler, @Nullable AttributesToReturn attributesToReturn,
+            @NotNull UcfObjectHandler handler, @Nullable AttributesToReturn attributesToReturn,
             @Nullable PagedSearchCapabilityType pagedSearchConfiguration,
             @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
             @Nullable UcfFetchErrorReportingMethod errorReportingMethod,

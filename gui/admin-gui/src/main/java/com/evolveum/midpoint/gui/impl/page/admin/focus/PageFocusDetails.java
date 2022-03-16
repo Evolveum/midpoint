@@ -117,6 +117,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
             protected void refresh(AjaxRequestTarget target) {
                 PageFocusDetails.this.refresh(target);
             }
+
             @Override
             protected void savePerformed(AjaxRequestTarget target) {
                 PageFocusDetails.this.savePerformed(target);
