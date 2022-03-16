@@ -38,15 +38,15 @@ import java.util.List;
  * Created by Viliam Repan (lazyman).
  */
 @PanelType(name = "subSystemLoggersContent")
-@PanelInstance(
-        identifier = "subSystemLoggersContent",
-        applicableForType = LoggingConfigurationType.class,
-        display = @PanelDisplay(
-                label = "SubSystemLoggersContentPanel.label",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 30
-        )
-)
+//@PanelInstance(
+//        identifier = "subSystemLoggersContent",
+//        applicableForType = LoggingConfigurationType.class,
+//        display = @PanelDisplay(
+//                label = "SubSystemLoggersContentPanel.label",
+//                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+//                order = 30
+//        )
+//)
 @Counter(provider = SubSystemLoggersMenuLinkCounter.class)
 public class SubSystemLoggersContentPanel extends MultivalueContainerListPanelWithDetailsPanel<SubSystemLoggerConfigurationType> {
 
