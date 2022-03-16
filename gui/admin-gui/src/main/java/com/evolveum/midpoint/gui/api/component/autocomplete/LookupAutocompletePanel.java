@@ -6,17 +6,15 @@
  */
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.factory.panel.TextPanelFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.wicket.model.IModel;
 
-import java.util.Iterator;
-import java.util.List;
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 public class LookupAutocompletePanel<T> extends AutoCompleteTextPanel<T> {
 
