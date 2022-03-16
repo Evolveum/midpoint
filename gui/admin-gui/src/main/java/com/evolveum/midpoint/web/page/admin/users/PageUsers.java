@@ -229,12 +229,7 @@ public class PageUsers extends PageAdmin {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            reconcilePerformed(target, null);
-                        } else {
-                            SelectableBean<UserType> rowDto = getRowModel().getObject();
-                            reconcilePerformed(target, rowDto.getValue());
-                        }
+                        reconcilePerformed(target, getRowModel());
                     }
                 };
             }
@@ -261,12 +256,7 @@ public class PageUsers extends PageAdmin {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            unlockPerformed(target, null);
-                        } else {
-                            SelectableBean<UserType> rowDto = getRowModel().getObject();
-                            unlockPerformed(target, rowDto.getValue());
-                        }
+                        unlockPerformed(target, getRowModel());
                     }
                 };
             }
@@ -354,13 +344,13 @@ public class PageUsers extends PageAdmin {
         setResponsePage(new PageMergeObjects(mergeObject, mergeWithObject, UserType.class));
     }
 
-    private void unlockPerformed(AjaxRequestTarget target, UserType selectedUser) {
-        List<UserType> users = getTable().isAnythingSelected(target, selectedUser);
+    private void unlockPerformed(AjaxRequestTarget target, IModel<SelectableBean<UserType>> selectedUser) {
+        List<SelectableBean<UserType>> users = getTable().isAnythingSelected(target, selectedUser);
         if (users.isEmpty()) {
             return;
         }
         OperationResult result = new OperationResult(OPERATION_UNLOCK_USERS);
-        for (UserType user : users) {
+        for (SelectableBean<UserType> user : users) {
             OperationResult opResult = result.createSubresult(getString(OPERATION_UNLOCK_USER, user));
             try {
                 Task task = createSimpleTask(OPERATION_UNLOCK_USER + user);
@@ -368,7 +358,7 @@ public class PageUsers extends PageAdmin {
                 // credentials specified (otherwise this would create
                 // almost-empty password container)
                 ObjectDelta delta = getPrismContext().deltaFactory().object().createModificationReplaceProperty(
-                        UserType.class, user.getOid(), ItemPath.create(UserType.F_ACTIVATION,
+                        UserType.class, user.getValue().getOid(), ItemPath.create(UserType.F_ACTIVATION,
                                 ActivationType.F_LOCKOUT_STATUS),
                         LockoutStatusType.NORMAL);
                 Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
@@ -389,18 +379,18 @@ public class PageUsers extends PageAdmin {
         getTable().clearCache();
     }
 
-    private void reconcilePerformed(AjaxRequestTarget target, UserType selectedUser) {
-        List<UserType> users = getTable().isAnythingSelected(target, selectedUser);
+    private void reconcilePerformed(AjaxRequestTarget target, IModel<SelectableBean<UserType>> selectedUser) {
+        List<SelectableBean<UserType>> users = getTable().isAnythingSelected(target, selectedUser);
         if (users.isEmpty()) {
             return;
         }
 
         OperationResult result = new OperationResult(OPERATION_RECONCILE_USERS);
-        for (UserType user : users) {
+        for (SelectableBean<UserType> user : users) {
             OperationResult opResult = result.createSubresult(getString(OPERATION_RECONCILE_USER, user));
             try {
                 Task task = createSimpleTask(OPERATION_RECONCILE_USER + user);
-                ObjectDelta delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(UserType.class, user.getOid()
+                ObjectDelta delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(UserType.class, user.getValue().getOid()
                 );
                 Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                 getModelService().executeChanges(deltas, executeOptions().reconcile(), task,

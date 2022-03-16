@@ -7,6 +7,16 @@
 
 package com.evolveum.midpoint.web.component.util;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -27,16 +37,6 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Provides common inline menu functionality for focal objects: enable, disable, reconcile, delete.
@@ -64,7 +64,6 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
     @NotNull private final Class<F> objectClass;
     @NotNull private final PageBase parentPage;
     @NotNull private final MainObjectListPanel<F> focusListComponent;
-    private F singleDelete;
 
     public FocusListInlineMenuHelper(@NotNull Class<F> objectClass, @NotNull PageBase parentPage, @NotNull MainObjectListPanel<F> focusListComponent) {
         this.objectClass = objectClass;
@@ -79,16 +78,11 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBeanImpl<F>>() {
+                return new ColumnMenuAction<SelectableBean<F>>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            updateActivationPerformed(target, true, null);
-                        } else {
-                            SelectableBeanImpl<F> rowDto = getRowModel().getObject();
-                            updateActivationPerformed(target, true, rowDto.getValue());
-                        }
+                        updateActivationPerformed(target, true, getRowModel());
                     }
                 };
             }
@@ -113,16 +107,11 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBeanImpl<F>>() {
+                return new ColumnMenuAction<SelectableBean<F>>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null){
-                            updateActivationPerformed(target, false, null);
-                        } else {
-                            SelectableBeanImpl<F> rowDto = getRowModel().getObject();
-                            updateActivationPerformed(target, false, rowDto.getValue());
-                        }
+                        updateActivationPerformed(target, false, getRowModel());
                     }
                 };
             }
@@ -148,16 +137,11 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBeanImpl<F>>() {
+                return new ColumnMenuAction<SelectableBean<F>>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null){
-                            reconcilePerformed(target, null);
-                        } else {
-                            SelectableBeanImpl<F> rowDto = getRowModel().getObject();
-                            reconcilePerformed(target, rowDto.getValue());
-                        }
+                        reconcilePerformed(target, getRowModel());
                     }
                 };
             }
@@ -180,16 +164,11 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBeanImpl<F>>() {
+                return new ColumnMenuAction<SelectableBean<F>>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            deleteConfirmedPerformed(target, null);
-                        } else {
-                            SelectableBeanImpl<F> rowDto = getRowModel().getObject();
-                            deleteConfirmedPerformed(target, rowDto.getValue());
-                        }
+                        deleteConfirmedPerformed(target, getRowModel());
                     }
                 };
             }
@@ -215,19 +194,19 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
         return iconClass;
     }
 
-    public void deleteConfirmedPerformed(AjaxRequestTarget target, F selectedObject) {
-        List<F> objects = getObjectsToActOn(target, selectedObject);
+    public void deleteConfirmedPerformed(AjaxRequestTarget target, IModel<SelectableBean<F>> selectedObject) {
+        List<SelectableBean<F>> objects = getObjectsToActOn(target, selectedObject);
         if (objects.isEmpty()) {
             return;
         }
 
         OperationResult result = new OperationResult(getOperationName(OPERATION_DELETE_OBJECTS));
-        for (F object : objects) {
+        for (SelectableBean<F> object : objects) {
             OperationResult subResult = result.createSubresult(getOperationName(OPERATION_DELETE_OBJECT));
             try {
                 Task task = parentPage.createSimpleTask(getOperationName(OPERATION_DELETE_OBJECT));
 
-                ObjectDelta<F> delta = parentPage.getPrismContext().deltaFactory().object().createDeleteDelta(objectClass, object.getOid()
+                ObjectDelta<F> delta = parentPage.getPrismContext().deltaFactory().object().createDeleteDelta(objectClass, object.getValue().getOid()
                 );
                 WebModelServiceUtils.save(delta, subResult, task, parentPage);
                 subResult.computeStatus();
@@ -251,21 +230,21 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
      * than it updates only that objects, otherwise it checks table for selected
      * objects.
      */
-    private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling, F selectedObject) {
-        List<F> objects = getObjectsToActOn(target, selectedObject);
+    private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling, IModel<SelectableBean<F>> selectedObject) {
+        List<SelectableBean<F>> objects = getObjectsToActOn(target, selectedObject);
         if (objects.isEmpty()) {
             return;
         }
 
         OperationResult result = new OperationResult(getOperationName(enabling ? OPERATION_ENABLE_OBJECTS : OPERATION_DISABLE_OBJECTS));
-        for (F object : objects) {
+        for (SelectableBean<F> object : objects) {
             String operationName = getOperationName(enabling ? OPERATION_ENABLE_OBJECT : OPERATION_DISABLE_OBJECT);
             OperationResult subResult = result.createSubresult(operationName);
             try {
                 Task task = parentPage.createSimpleTask(operationName);
 
                 ObjectDelta objectDelta = WebModelServiceUtils.createActivationAdminStatusDelta(
-                        objectClass, object.getOid(), enabling, parentPage.getPrismContext());
+                        objectClass, object.getValue().getOid(), enabling, parentPage.getPrismContext());
                 parentPage.getModelService().executeChanges(MiscUtil.createCollection(objectDelta), null, task, subResult);
                 subResult.recordSuccess();
             } catch (CommonException|RuntimeException ex) {
@@ -287,19 +266,19 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
         focusListComponent.refreshTable(target);
     }
 
-    private void reconcilePerformed(AjaxRequestTarget target, F selectedObject) {
-        List<F> objects = getObjectsToActOn(target, selectedObject);
+    private void reconcilePerformed(AjaxRequestTarget target, IModel<SelectableBean<F>> selectedObject) {
+        List<SelectableBean<F>> objects = getObjectsToActOn(target, selectedObject);
         if (objects.isEmpty()) {
             return;
         }
 
         OperationResult result = new OperationResult(getOperationName(OPERATION_RECONCILE_OBJECTS));
-        for (F object : objects) {
+        for (SelectableBean<F> object : objects) {
             OperationResult opResult = result.createSubresult(getOperationName(OPERATION_RECONCILE_OBJECT));
             try {
                 Task task = parentPage.createSimpleTask(OPERATION_RECONCILE_OBJECT);
                 ObjectDelta delta = parentPage.getPrismContext().deltaFactory().object()
-                        .createEmptyModifyDelta(objectClass, object.getOid()
+                        .createEmptyModifyDelta(objectClass, object.getValue().getOid()
                         );
                 Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                 parentPage.getModelService().executeChanges(deltas, parentPage.executeOptions().reconcile(), task, opResult);
@@ -328,13 +307,14 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
     /**
      * This method check selection in table. If selectedObject != null than it
      * returns only this object.
+     * @return list of selected objects
      */
-    private List<F> getObjectsToActOn(AjaxRequestTarget target, F selectedObject) {
+    private List<SelectableBean<F>> getObjectsToActOn(AjaxRequestTarget target, IModel<SelectableBean<F>> selectedObject) {
         if (selectedObject != null) {
-            return Collections.singletonList(selectedObject);
+            return Collections.singletonList(selectedObject.getObject());
         } else {
-            List<F> objects;
-            objects = focusListComponent.getSelectedRealObjects();
+            List<SelectableBean<F>> objects;
+            objects = focusListComponent.isAnythingSelected(target, selectedObject); //getSelectedRealObjects();
             if (objects.isEmpty()) {
                 parentPage.warn(parentPage.getString("FocusListInlineMenuHelper.message.nothingSelected"));
                 target.add(parentPage.getFeedbackPanel());
