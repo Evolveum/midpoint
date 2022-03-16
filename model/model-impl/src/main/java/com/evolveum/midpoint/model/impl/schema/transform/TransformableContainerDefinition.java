@@ -8,8 +8,6 @@
 package com.evolveum.midpoint.model.impl.schema.transform;
 
 import java.util.*;
-import java.util.function.Consumer;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
@@ -72,8 +70,11 @@ public class TransformableContainerDefinition<C extends Containerable>
     @Override
     public <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
         for (;;) {
-            if (path.isEmpty() && clazz.isInstance(this)) {
-                return clazz.cast(this);
+            if (path.isEmpty()) {
+                if (clazz.isInstance(this)) {
+                    return clazz.cast(this);
+                }
+                return null;
             }
             @Nullable
             Object first = path.first();
