@@ -496,8 +496,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 ExecuteChangeOptionsDto executeOptions = getExecuteOptions();
                 ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
                 LOGGER.debug("Using options {}.", executeOptions);
-                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), options, task,
-                        subResult);
+                getPageBase().getModelService()
+                        .executeChanges(MiscUtil.createCollection(delta), options, task, subResult);
                 subResult.computeStatus();
             } catch (Exception ex) {
                 subResult.recomputeStatus();
@@ -544,20 +544,20 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     public IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
         if (action.getRowModel() == null) {
-            return createStringResource(getConfirmMessageKeyForSingleObject(),
+            return createStringResource(getConfirmMessageKeyForMultiObject(),
                     actionName, getSelectedObjectsCount() );
         } else {
-            return createStringResource(getConfirmMessageKeyForMultiObject(),
-                    actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
+            return createStringResource(getConfirmMessageKeyForSingleObject(),
+                    actionName, ((ObjectType)((SelectableBean<?>)action.getRowModel().getObject()).getValue()).getName());
         }
     }
 
-    protected String getConfirmMessageKeyForSingleObject() {
-        return null;
+    protected String getConfirmMessageKeyForMultiObject() {
+        throw new UnsupportedOperationException("getConfirmMessageKeyForMultiObject() not implemented for " + getClass());
     }
 
-    protected String getConfirmMessageKeyForMultiObject() {
-        return null;
+    protected String getConfirmMessageKeyForSingleObject() {
+        throw new UnsupportedOperationException("getConfirmMessageKeyForSingleObject() not implemented for " + getClass());
     }
 
     public InlineMenuItem createDeleteInlineMenu() {

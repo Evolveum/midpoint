@@ -88,6 +88,16 @@ public class PageMessageTemplates extends PageAdmin {
             protected List<InlineMenuItem> createInlineMenu() {
                 return Arrays.asList(createDeleteInlineMenu());
             }
+
+            @Override
+            protected String getConfirmMessageKeyForMultiObject() {
+                return "pageMessageTemplates.message.confirmationMessageForMultipleObject";
+            }
+
+            @Override
+            protected String getConfirmMessageKeyForSingleObject() {
+                return "pageMessageTemplates.message.confirmationMessageForSingleObject";
+            }
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);
