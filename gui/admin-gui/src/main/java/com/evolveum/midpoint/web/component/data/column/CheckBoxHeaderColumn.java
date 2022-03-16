@@ -8,7 +8,10 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -96,11 +99,22 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
                     BaseSortableDataProvider.class.getName(), provider.getClass().getName());
         }
 
+        List<IModel<T>> objects = new ArrayList<>();
+        table.visitChildren(SelectableDataTable.SelectableRowItem.class, new IVisitor<SelectableDataTable.SelectableRowItem, Void>() {
+
+            @Override
+            public void component(SelectableDataTable.SelectableRowItem row, IVisit<Void> visit) {
+                objects.add(row.getModel());
+            }
+        });
+
         //update selected flag in model dto objects based on select all header state
         BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) provider;
-        List<T> objects = baseProvider.getAvailableData();
-        for (T object : objects) {
-            if (object instanceof Selectable) {
+//        List<T> objects = new ArrayList<>();//baseProvider.getAvailableData();
+        for (IModel<T> object : objects) {
+            if (object instanceof SelectableObjectModel) {
+                ((SelectableObjectModel<?>) object).setSelected(selected);
+            } else if (object instanceof Selectable) {
                 Selectable selectable = (Selectable) object;
                 selectable.setSelected(selected);
             } else if (object instanceof PrismContainerValueWrapper){
@@ -125,20 +139,32 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
     public boolean shouldBeHeaderSelected(DataTable table) {
         boolean selectedAll = true;
 
+        List<IModel<T>> objects = new ArrayList<>();
+        table.visitChildren(SelectableDataTable.SelectableRowItem.class, new IVisitor<SelectableDataTable.SelectableRowItem, Void>() {
+
+            @Override
+            public void component(SelectableDataTable.SelectableRowItem row, IVisit<Void> visit) {
+                objects.add(row.getModel());
+            }
+        });
+
         BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) table.getDataProvider();
-        List<T> objects = baseProvider.getAvailableData();
+//        List<T> objects = new ArrayList<>();// baseProvider.getAvailableData();
         if (objects == null || objects.isEmpty()) {
             return false;
         }
 
-        for (T object : objects) {
+        for (IModel<T> object : objects) {
             selectedAll &= isTableRowSelected(object);
         }
 
         return selectedAll;
     }
 
-    protected boolean isTableRowSelected(T object){
+    protected boolean isTableRowSelected(IModel<T> object){
+        if (object instanceof SelectableObjectModel) {
+            return ((SelectableObjectModel<?>) object).isSelected();
+        }
         if (object instanceof Selectable) {
             Selectable selectable = (Selectable) object;
             return selectable.isSelected();

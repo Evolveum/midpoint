@@ -14,11 +14,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskInformationUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
+import org.apache.wicket.model.IModel;
+
 public interface SelectableBean<T extends Serializable> extends Serializable, DebugDumpable {
 
     T getValue();
 
-    void setValue(T value);
+    void setModel(IModel<T> value);
+
+//    void setValue(T value);
 
     OperationResult getResult();
 

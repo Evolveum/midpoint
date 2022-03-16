@@ -10,25 +10,8 @@ package com.evolveum.midpoint.web.page.admin.users;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.application.*;
-import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -36,25 +19,38 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.*;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lazyman
@@ -173,12 +169,7 @@ public class PageUsers extends PageAdmin {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null){
-                            updateActivationPerformed(target, true, null);
-                        } else {
-                            SelectableBean<UserType> rowDto = getRowModel().getObject();
-                            updateActivationPerformed(target, true, rowDto.getValue());
-                        }
+                        updateActivationPerformed(target, true, getRowModel());
                     }
                 };
             }
@@ -207,12 +198,7 @@ public class PageUsers extends PageAdmin {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            updateActivationPerformed(target, false, null);
-                        } else {
-                            SelectableBean<UserType> rowDto = getRowModel().getObject();
-                            updateActivationPerformed(target, false, rowDto.getValue());
-                        }
+                        updateActivationPerformed(target, false, getRowModel());
                     }
                 };
             }
@@ -443,22 +429,23 @@ public class PageUsers extends PageAdmin {
      * users.
      */
     private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling,
-            UserType selectedUser) {
-        List<UserType> users = getTable().isAnythingSelected(target, selectedUser);
+            IModel<SelectableBean<UserType>> selectedUser) {
+        List<SelectableBean<UserType>> users = isAnythingSelected(target, selectedUser);
         if (users.isEmpty()) {
             return;
         }
+//        List<SelectableObjectModel<UserType>> users = (List<SelectableObjectModel<UserType>>) TableUtil.getSelectedModels(getTable().getTable().getDataTable());
 
         String operation = enabling ? OPERATION_ENABLE_USERS : OPERATION_DISABLE_USERS;
         OperationResult result = new OperationResult(operation);
-        for (UserType user : users) {
+        for (SelectableBean<UserType> user : users) {
             operation = enabling ? OPERATION_ENABLE_USER : OPERATION_DISABLE_USER;
             OperationResult subResult = result.createSubresult(operation);
             try {
                 Task task = createSimpleTask(operation);
 
                 ObjectDelta objectDelta = WebModelServiceUtils.createActivationAdminStatusDelta(
-                        UserType.class, user.getOid(), enabling, getPrismContext());
+                        UserType.class, user.getValue().getOid(), enabling, getPrismContext());
 
                 ExecuteChangeOptionsDto executeOptions = getTable().getExecuteOptions();
                 ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
@@ -483,5 +470,25 @@ public class PageUsers extends PageAdmin {
         target.add(getFeedbackPanel());
         getTable().clearCache();
         getTable().refreshTable(target);
+    }
+
+    /**
+     * This method check selection in table. If selectedObject != null than it
+     * returns only this object.
+     */
+    public List<SelectableBean<UserType>> isAnythingSelected(AjaxRequestTarget target, IModel<SelectableBean<UserType>> selectedObject) {
+        List<SelectableBean<UserType>>  users;
+        if (selectedObject != null) {
+            users = new ArrayList<>();
+            users.add(selectedObject.getObject());
+        } else {
+            users = TableUtil.getSelectedModels(getTable().getTable().getDataTable());
+//            if (users.isEmpty() && StringUtils.isNotEmpty(getNothingSelectedMessage())) {
+//                warn(getNothingSelectedMessage());
+//                target.add(getFeedbackPanel());
+//            }
+        }
+
+        return users;
     }
 }

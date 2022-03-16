@@ -9,7 +9,9 @@ package com.evolveum.midpoint.gui.api.component;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 
@@ -520,19 +522,20 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
      * returns only this object.
      */
     public List<O> isAnythingSelected(AjaxRequestTarget target, O selectedObject) {
-        List<O> users;
-        if (selectedObject != null) {
-            users = new ArrayList<>();
-            users.add(selectedObject);
-        } else {
-            users = getSelectedRealObjects();
-            if (users.isEmpty() && StringUtils.isNotEmpty(getNothingSelectedMessage())) {
-                warn(getNothingSelectedMessage());
-                target.add(getFeedbackPanel());
-            }
-        }
-
-        return users;
+//        List<SelectableObjectModel<UserType>>  users;
+//        if (selectedObject != null) {
+//            users = new ArrayList<>();
+//            users.add(selectedObject);
+//        } else {
+//            users = (List<SelectableObjectModel<UserType>>) TableUtil.getSelectedModels(getTable().getDataTable());
+//            if (users.isEmpty() && StringUtils.isNotEmpty(getNothingSelectedMessage())) {
+//                warn(getNothingSelectedMessage());
+//                target.add(getFeedbackPanel());
+//            }
+//        }
+//
+//        return users;
+        return new ArrayList<>();
     }
 
     protected String getNothingSelectedMessage() {
@@ -542,7 +545,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     public IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
         if (action.getRowModel() == null) {
             return createStringResource(getConfirmMessageKeyForSingleObject(),
-                    actionName, getSelectedObjectsCount() );
+                    actionName, TableUtil.getSelectedModels(getTable().getDataTable()).size() );
         } else {
             return createStringResource(getConfirmMessageKeyForMultiObject(),
                     actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
