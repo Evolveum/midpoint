@@ -43,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author lskublik
@@ -205,6 +206,11 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
             }
         }
         return provider;
+    }
+
+    @Override
+    public List<C> getSelectedRealObjects() {
+        return getSelectedObjects().stream().map(o -> o.getValue()).collect(Collectors.toList());
     }
 
     private boolean isDisableCounting() {

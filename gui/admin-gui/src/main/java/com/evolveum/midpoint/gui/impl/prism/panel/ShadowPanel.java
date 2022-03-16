@@ -28,6 +28,8 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
+import org.apache.wicket.model.LoadableDetachableModel;
+
 /**
  * @author skublik
  *
@@ -61,7 +63,7 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
         initLayout();
         setOutputMarkupId(true);
 
-        resourceModel = new LoadableModel<>(false) {
+        resourceModel = new LoadableDetachableModel<>() {
 
             @Override
             protected ResourceType load() {
@@ -78,6 +80,7 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
                     return (ResourceType) resourceRefVal.getObject().asObjectable();
                 }
 
+                //TODO wouldn't be noFetch enough?
                 PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(resourceRefVal.asReferencable(), getPageBase());
                 if (resource == null) {
                     return null;

@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 import org.apache.wicket.model.IModel;
 
-public interface SelectableBean<T extends Serializable> extends Serializable, DebugDumpable {
+public interface SelectableBean<T extends Serializable> extends SelectableRow<T>, Serializable, DebugDumpable {
 
     T getValue();
 
