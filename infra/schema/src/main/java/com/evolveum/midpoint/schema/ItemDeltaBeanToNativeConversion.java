@@ -66,8 +66,8 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
 
     /**
      * Definition of the item parent container. It is used only when itemDefinition cannot be determined directly.
-     * As soon as itemDefinition is not null, this one is useless and can be even null.
-     * On the other hand, if itemDefinition is null, this one must not be null.
+     * As soon as itemDefinition is not null, this one is useless.
+     * When parentDefinition and itemDefinition are null, then parsed value will be type RawType.
      */
     private PrismContainerDefinition<?> parentDefinition;
 
@@ -118,8 +118,8 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
         if (itemDefinition == null) {
             parentDefinition = rootContainerDef.findContainerDefinition(itemPath.allUpToLastName());
             if (parentDefinition == null) {
-                LOGGER.debug("No definition for " + itemPath.allUpToLastName().lastName() +
-                        " (while creating delta for " + rootContainerDef + ")");
+                LOGGER.debug("No definition for {} (while creating delta for {})",
+                        itemPath.allUpToLastName().lastName(), rootContainerDef);
             }
         }
     }
