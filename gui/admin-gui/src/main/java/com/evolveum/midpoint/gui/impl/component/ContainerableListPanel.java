@@ -864,25 +864,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             if (row.getModelObject().isSelected()) {
                 objects.add(row.getModel().getObject());
             }
-//                SelectableObjectModel<T> model = (SelectableObjectModel<T>) row.getModel();
-//                if (model.isSelected()) {
-//                    objects.add((SelectableObjectModel<T>) row.getModel());
-//                }
         });
         return objects;
-//
-//
-//        ISelectableDataProvider dataProvider = getDataProvider();
-//        return dataProvider.getSelectedObjects();
     }
 
     public abstract List<C> getSelectedRealObjects();
-//    {
-//
-////        getTable().getsele
-////        ISelectableDataProvider dataProvider = getDataProvider();
-////        return dataProvider.getSelectedRealObjects();
-//    }
 
     protected final Collection<SelectorOptions<GetOperationOptions>> createOptions() {
 

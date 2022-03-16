@@ -133,10 +133,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     }
 
     public List<PrismContainerValueWrapper<C>> getSelectedItems() {
-        BoxedTablePanel<PrismContainerValueWrapper<C>> itemsTable = getTable();
-        @SuppressWarnings("unchecked") ISelectableDataProvider<C, PrismContainerValueWrapper<C>> itemsProvider = (ISelectableDataProvider<C, PrismContainerValueWrapper<C>>) itemsTable.
-                getDataTable().getDataProvider();
-        return itemsProvider.getSelectedObjects();
+        return getSelectedObjects();
     }
 
     public void reloadSavePreviewButtons(AjaxRequestTarget target){

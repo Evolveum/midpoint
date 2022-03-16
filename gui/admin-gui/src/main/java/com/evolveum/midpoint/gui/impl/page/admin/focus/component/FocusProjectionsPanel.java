@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -191,6 +192,43 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     @Override
                     protected List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> createDefaultColumns() {
                         return initBasicColumns();
+                    }
+
+                    @Override
+                    protected IColumn<PrismContainerValueWrapper<ShadowType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
+                        IModel<PrismContainerDefinition<ShadowType>> shadowDef = Model.of(getShadowDefinition());
+                        return new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_NAME, ColumnType.LINK, getPageBase()) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
+                                getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
+                                target.add(getPageBase().getFeedbackPanel());
+                            }
+                        };
+                    }
+
+                    @Override
+                    protected IColumn<PrismContainerValueWrapper<ShadowType>, String> createIconColumn() {
+                        return new CompositedIconColumn<>(Model.of("")) {
+
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected CompositedIcon getCompositedIcon(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
+                                if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getRealValue() == null) {
+                                    return new CompositedIconBuilder().build();
+                                }
+                                ShadowType shadow = createShadowType(rowModel);
+                                return WebComponentUtil.createAccountIcon(shadow, getPageBase(), true);
+                            }
+
+                        };
+                    }
+
+                    @Override
+                    protected IColumn<PrismContainerValueWrapper<ShadowType>, String> createCheckboxColumn() {
+                        return new CheckBoxHeaderColumn<>();
                     }
 
                     @Override
@@ -439,36 +477,13 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         return new PropertyModel<>(model, "parent");
     }
 
+
     private List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> initBasicColumns() {
 
         IModel<PrismContainerDefinition<ShadowType>> shadowDef = Model.of(getShadowDefinition());
 
         List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> columns = new ArrayList<>();
-        columns.add(new CheckBoxHeaderColumn<>());
-        columns.add(new CompositedIconColumn<>(Model.of("")) {
 
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected CompositedIcon getCompositedIcon(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
-                if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getRealValue() == null) {
-                    return new CompositedIconBuilder().build();
-                }
-                ShadowType shadow = createShadowType(rowModel);
-                return WebComponentUtil.createAccountIcon(shadow, getPageBase(), true);
-            }
-
-        });
-
-        columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_NAME, ColumnType.LINK, getPageBase()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
-                getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
-                target.add(getPageBase().getFeedbackPanel());
-            }
-        });
         columns.add(new PrismReferenceWrapperColumn<>(shadowDef, ShadowType.F_RESOURCE_REF, ColumnType.STRING, getPageBase()));
         columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_OBJECT_CLASS, ColumnType.STRING, getPageBase()));
         columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_KIND, ColumnType.STRING, getPageBase()) {
@@ -745,7 +760,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         getMultivalueContainerListPanel().editItemPerformed(target,
-                                getRowModel(), getMultivalueContainerListPanel().getSelectedItems());
+                                getRowModel(), getMultivalueContainerListPanel().getSelectedObjects());
                         target.add(getPageBase().getFeedbackPanel());
                     }
                 };
