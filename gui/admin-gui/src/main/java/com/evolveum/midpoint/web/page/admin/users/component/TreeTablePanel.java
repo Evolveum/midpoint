@@ -9,14 +9,8 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
-import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
@@ -28,12 +22,15 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -41,6 +38,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -53,6 +52,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
@@ -65,8 +65,6 @@ import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.namespace.QName;
 
 /**
  * Used as a main component of the Org tree page.
@@ -81,7 +79,6 @@ import javax.xml.namespace.QName;
 public class TreeTablePanel extends BasePanel<String> {
 
     private static final long serialVersionUID = 1L;
-    private final PageBase parentPage;
 
     protected static final String DOT_CLASS = TreeTablePanel.class.getName() + ".";
     protected static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
@@ -100,26 +97,19 @@ public class TreeTablePanel extends BasePanel<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TreeTablePanel.class);
 
-    public TreeTablePanel(String id, IModel<String> rootOid, PageBase parentPage) {
+    public TreeTablePanel(String id, IModel<String> rootOid) {
         super(id, rootOid);
-        this.parentPage = parentPage;
-        setParent(parentPage);
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initLayout(parentPage);
+        initLayout();
     }
 
-    @Override
-    public PageBase getPageBase() {
-        return parentPage;
-    }
+    protected void initLayout() {
 
-    protected void initLayout(ModelServiceLocator serviceLocator) {
-
-        OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, getModel(), false, serviceLocator) {
+        OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, getModel(), false, getPageBase()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -140,15 +130,16 @@ public class TreeTablePanel extends BasePanel<String> {
         };
         treePanel.setOutputMarkupId(true);
         add(treePanel);
-        add(createMemberPanel(treePanel.getSelected().getValue()));
+        add(createMemberPanel());
 //
         add(createManagerPanel());
         setOutputMarkupId(true);
     }
 
-    private com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel createMemberPanel(OrgType org) {
-        FocusDetailsModels focusDetailsModels = new FocusDetailsModels(createOrgModel(org), getPageBase());
-        com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel memberPanel = new com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel(ID_MEMBER_PANEL, focusDetailsModels, null) {
+    private com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel createMemberPanel() {
+        FocusDetailsModels focusDetailsModels = new FocusDetailsModels(createOrgModel(), getPageBase());
+        com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel memberPanel =
+                new com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel(ID_MEMBER_PANEL, focusDetailsModels, null) {
 
             private static final long serialVersionUID = 1L;
 
@@ -161,25 +152,70 @@ public class TreeTablePanel extends BasePanel<String> {
         return memberPanel;
     }
 
-    private LoadableDetachableModel<PrismObject<OrgType>> createOrgModel(OrgType org) {
-        return new LoadableDetachableModel<PrismObject<OrgType>>() {
-            @Override
-            protected PrismObject<OrgType> load() {
-                return org.asPrismObject();
+    class LoadableOrgModel extends LoadableDetachableModel<PrismObject<OrgType>> {
+
+        private IModel<TreeSelectableBean<OrgType>> treeSelectableBean;
+
+        LoadableOrgModel(IModel<TreeSelectableBean<OrgType>> selected) {
+            super();
+            this.treeSelectableBean = selected;
+        }
+
+        @Override
+        protected PrismObject<OrgType> load() {
+            OrgType orgType = treeSelectableBean.getObject().getValue();
+            if (orgType == null) {
+                return null;
             }
-        };
+            return orgType.asPrismObject();
+        }
+
+        @Override
+        protected void onDetach() {
+            treeSelectableBean.detach();
+        }
     }
 
-    private WebMarkupContainer createManagerPanel() {
+    private LoadableDetachableModel<PrismObject<OrgType>> createOrgModel() {
+        return new LoadableOrgModel(getTreePanel().getSelectedOrgModel());
+    }
+
+    private <F extends FocusType> WebMarkupContainer createManagerPanel() {
         WebMarkupContainer managerContainer = new WebMarkupContainer(ID_CONTAINER_MANAGER);
         managerContainer.setOutputMarkupId(true);
         managerContainer.setOutputMarkupPlaceholderTag(true);
 
-        ListView<PrismObject<FocusType>> listView = new ListView<>(ID_MANAGER_TABLE, createManagersModel()) {
+        ListView<F> listView = new ListView<>(ID_MANAGER_TABLE, createManagersModel()) {
 
             @Override
-            protected void populateItem(ListItem<PrismObject<FocusType>> item) {
-                FocusSummaryPanel.addSummaryPanel(item, item.getModelObject(), ID_MANAGER_SUMMARY, WebComponentUtil.getSummaryPanelSpecification(item.getModelObject().getCompileTimeClass(), getPageBase().getCompiledGuiProfile()));
+            protected void populateItem(ListItem<F> item) {
+                FocusSummaryPanel.addSummaryPanel(item, item.getModel(), ID_MANAGER_SUMMARY, WebComponentUtil.getSummaryPanelSpecification(item.getModelObject().getClass(), getPageBase().getCompiledGuiProfile()));
+            }
+
+            @Override
+            protected IModel<F> getListItemModel(IModel<? extends List<F>> listViewModel, int index) {
+                List<F> objects = listViewModel.getObject();
+                if (objects == null) {
+                    return super.getListItemModel(listViewModel, index);
+                }
+
+                F focus = objects.get(index);
+                if (focus == null) {
+                    return super.getListItemModel(listViewModel, index);
+                }
+                SelectableObjectModel<F> model = new SelectableObjectModel<>(focus, null) {
+                    @Override
+                    protected F load() {
+                        Task task = getPageBase().createSimpleTask("Load manager");
+                        OperationResult result = task.getResult();
+                        PrismObject<F> manager = WebModelServiceUtils.loadObject(getType(), getOid(), getPageBase(), task, result);
+                        if (manager == null) {
+                            return null;
+                        }
+                        return manager.asObjectable();
+                    }
+                };
+                return model;
             }
         };
         managerContainer.add(listView);
@@ -187,11 +223,11 @@ public class TreeTablePanel extends BasePanel<String> {
         return managerContainer;
     }
 
-    private LoadableModel<List<PrismObject<FocusType>>> createManagersModel() {
-        return new LoadableModel<>(false) {
+    private <F extends FocusType> LoadableDetachableModel<List<F>> createManagersModel() {
+        return new LoadableDetachableModel<>() {
 
             @Override
-            protected List<PrismObject<FocusType>> load() {
+            protected List<F> load() {
                 ObjectQuery managersQuery = createManagerQuery(getTreePanel().getSelected().getValue());
 
                 OperationResult searchManagersResult = new OperationResult(OPERATION_SEARCH_MANAGERS);
@@ -199,15 +235,16 @@ public class TreeTablePanel extends BasePanel<String> {
                         .distinct()
                         .item(FocusType.F_JPEG_PHOTO).retrieve()
                         .build();
-                return WebModelServiceUtils.searchObjects(FocusType.class,
+                @NotNull List<PrismObject<F>> managers = (List) WebModelServiceUtils.searchObjects(FocusType.class,
                         managersQuery, options, searchManagersResult, getPageBase());
+                return managers.stream().map(manager -> manager.asObjectable()).collect(Collectors.toList());
             }
         };
     }
 
     private ObjectQuery createManagerQuery(OrgType org) {
         ObjectQuery query = ObjectTypeUtil.createManagerQuery(FocusType.class, org.getOid(),
-                parentPage.getRelationRegistry(), parentPage.getPrismContext());
+                getPageBase().getRelationRegistry(), getPageBase().getPrismContext());
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Searching members of org {} with query:\n{}", org.getOid(), query.debugDump());
         }
@@ -388,7 +425,7 @@ public class TreeTablePanel extends BasePanel<String> {
         boolean allowRead = false;
         try {
             allowRead = org == null ||
-                    parentPage.isAuthorized(ModelAuthorizationAction.GET.getUrl(),
+                    getPageBase().isAuthorized(ModelAuthorizationAction.GET.getUrl(),
                             AuthorizationPhaseType.REQUEST, org.asPrismObject(),
                             null, null, null);
         } catch (Throwable ex) {
@@ -401,7 +438,7 @@ public class TreeTablePanel extends BasePanel<String> {
         boolean allowModify = false;
         try {
             allowModify = org == null ||
-                    parentPage.isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
+                    getPageBase().isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
                             AuthorizationPhaseType.REQUEST, org.asPrismObject(),
                             null, null, null);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException
@@ -414,8 +451,8 @@ public class TreeTablePanel extends BasePanel<String> {
     private boolean isAllowAddNew() {
         boolean allowAddNew = false;
         try {
-            allowAddNew = parentPage.isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
-                    AuthorizationPhaseType.REQUEST, (new OrgType(parentPage.getPrismContext())).asPrismObject(),
+            allowAddNew = getPageBase().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
+                    AuthorizationPhaseType.REQUEST, (new OrgType(getPageBase().getPrismContext())).asPrismObject(),
                     null, null, null);
         } catch (Throwable ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to check menu items authorizations", ex);
@@ -427,7 +464,7 @@ public class TreeTablePanel extends BasePanel<String> {
         boolean allowDelete = false;
         try {
             allowDelete = org == null ||
-                    parentPage.isAuthorized(ModelAuthorizationAction.DELETE.getUrl(),
+                    getPageBase().isAuthorized(ModelAuthorizationAction.DELETE.getUrl(),
                             AuthorizationPhaseType.REQUEST, org.asPrismObject(),
                             null, null, null);
         } catch (Throwable ex) {
@@ -473,14 +510,14 @@ public class TreeTablePanel extends BasePanel<String> {
         }
         getTreePanel().setSelected(selected);
         getTreePanel().refreshContentPannels();
-        target.add(addOrReplace(createMemberPanel(selected.getValue())));
+        target.add(addOrReplace(createMemberPanel()));
         target.add(addOrReplace(createManagerPanel()));
     }
 
     private void moveRootPerformed(final TreeSelectableBean<OrgType> root, AjaxRequestTarget target) {
 
         OrgTreeAssignablePanel orgAssignablePanel = new OrgTreeAssignablePanel(
-                parentPage.getMainPopupBodyId(), false) {
+                getPageBase().getMainPopupBodyId(), false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -496,7 +533,7 @@ public class TreeTablePanel extends BasePanel<String> {
         };
 
         orgAssignablePanel.setOutputMarkupId(true);
-        parentPage.showMainPopup(orgAssignablePanel, target);
+        getPageBase().showMainPopup(orgAssignablePanel, target);
 
     }
 
@@ -538,11 +575,11 @@ public class TreeTablePanel extends BasePanel<String> {
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to move organization unit" + toMove, e);
         }
 
-        parentPage.showResult(result);
-        target.add(parentPage.getFeedbackPanel());
-        if (parentPage instanceof PageOrgTree && ((PageOrgTree) parentPage).getTabPanel() != null
-                && ((PageOrgTree) parentPage).getTabPanel().getTabbedPanel() != null) {
-            ((PageOrgTree) parentPage).getTabPanel().getTabbedPanel().setSelectedTab(0);
+        getPageBase().showResult(result);
+        target.add(getPageBase().getFeedbackPanel());
+        if (getPageBase() instanceof PageOrgTree && ((PageOrgTree) getPageBase()).getTabPanel() != null
+                && ((PageOrgTree) getPageBase()).getTabPanel().getTabbedPanel() != null) {
+            ((PageOrgTree) getPageBase()).getTabPanel().getTabbedPanel().setSelectedTab(0);
         }
         setResponsePage(PageOrgTree.class);
 
@@ -578,8 +615,8 @@ public class TreeTablePanel extends BasePanel<String> {
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to move organization unit" + toMove, e);
         }
 
-        parentPage.showResult(result);
-        target.add(parentPage.getFeedbackPanel());
+        getPageBase().showResult(result);
+        target.add(getPageBase().getFeedbackPanel());
         // target.add(getTreePanel());
         setResponsePage(PageOrgTree.class);
     }

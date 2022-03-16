@@ -19,6 +19,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -49,9 +50,8 @@ public abstract class AbstractOrgTabPanel extends BasePanel<OrgType> {
     private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
 
     private static final String ID_TABS = "tabs";
-    private List<PrismObject<OrgType>> roots;
 
-    public AbstractOrgTabPanel(String id, PageBase pageBase) {
+    public AbstractOrgTabPanel(String id) {
         super(id);
     }
 
@@ -62,13 +62,13 @@ public abstract class AbstractOrgTabPanel extends BasePanel<OrgType> {
     }
 
     private void initLayout() {
-        final IModel<List<ITab>> tabModel = new LoadableModel<>(true) {
+        final IModel<List<ITab>> tabModel = new LoadableDetachableModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected List<ITab> load() {
                 LOGGER.debug("Loading org. roots for tabs for tabbed panel.");
-                roots = loadOrgRoots();
+                List<PrismObject<OrgType>> roots = loadOrgRoots();
 
                 final List<ITab> tabs = new ArrayList<>();
                 for (PrismObject<OrgType> root : roots) {
@@ -146,19 +146,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel<OrgType> {
     protected abstract Panel createTreePanel(String id, Model<String> model, PageBase pageBase);
 
     private IModel<String> createTabTitle(final PrismObject<OrgType> org) {
-        return new IModel<>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                PolyString displayName = org.getPropertyRealValue(OrgType.F_DISPLAY_NAME, PolyString.class);
-                if (displayName != null) {
-                    return displayName.getOrig();
-                }
-
-                return WebComponentUtil.getName(org);
-            }
-        };
+        return Model.of(WebComponentUtil.getDisplayNameOrName(org));
     }
 
     private List<PrismObject<OrgType>> loadOrgRoots() {
@@ -177,36 +165,33 @@ public abstract class AbstractOrgTabPanel extends BasePanel<OrgType> {
             }
             list = getPageBase().getModelService().searchObjects(OrgType.class, query, null, task, result);
             // Sort org roots by displayOrder, if not set push the org to the end
-            list.sort(new Comparator<PrismObject<OrgType>>() {
-                @Override
-                public int compare(PrismObject<OrgType> o1, PrismObject<OrgType> o2) {
-                    Comparator<PrismObject<OrgType>> intComparator =
-                            Comparator.comparingInt(o -> ((ObjectUtils.defaultIfNull(o.getRealValue().getDisplayOrder(), Integer.MAX_VALUE))));
-                    int compare = intComparator.compare(o1, o2);
-                    if (compare == 0){
-                        String display1 = WebComponentUtil.getDisplayName(o1);
-                        if (StringUtils.isBlank(display1)) {
-                            display1 = WebComponentUtil.getTranslatedPolyString(o1.getName());
-                        }
-                        String display2 = WebComponentUtil.getDisplayName(o2);
-                        if (StringUtils.isBlank(display2)) {
-                            display2 = WebComponentUtil.getTranslatedPolyString(o2.getName());
-                        }
-
-                        if(StringUtils.isEmpty(display1) && StringUtils.isEmpty(display2)) {
-                            return compare;
-                        }
-                        if(StringUtils.isEmpty(display1)) {
-                            return 1;
-                        }
-                        if(StringUtils.isEmpty(display2)) {
-                            return -1;
-                        }
-
-                        return String.CASE_INSENSITIVE_ORDER.compare(display1, display2);
+            list.sort((o1, o2) -> {
+                Comparator<PrismObject<OrgType>> intComparator =
+                        Comparator.comparingInt(o -> ((ObjectUtils.defaultIfNull(o.getRealValue().getDisplayOrder(), Integer.MAX_VALUE))));
+                int compare = intComparator.compare(o1, o2);
+                if (compare == 0){
+                    String display1 = WebComponentUtil.getDisplayName(o1);
+                    if (StringUtils.isBlank(display1)) {
+                        display1 = WebComponentUtil.getTranslatedPolyString(o1.getName());
                     }
-                    return compare;
+                    String display2 = WebComponentUtil.getDisplayName(o2);
+                    if (StringUtils.isBlank(display2)) {
+                        display2 = WebComponentUtil.getTranslatedPolyString(o2.getName());
+                    }
+
+                    if(StringUtils.isEmpty(display1) && StringUtils.isEmpty(display2)) {
+                        return compare;
+                    }
+                    if(StringUtils.isEmpty(display1)) {
+                        return 1;
+                    }
+                    if(StringUtils.isEmpty(display2)) {
+                        return -1;
+                    }
+
+                    return String.CASE_INSENSITIVE_ORDER.compare(display1, display2);
                 }
+                return compare;
             });
 
             if (list.isEmpty() && isWarnMessageVisible()) {
@@ -234,12 +219,12 @@ public abstract class AbstractOrgTabPanel extends BasePanel<OrgType> {
     }
 
     protected void changeTabPerformed(int index) {
-        if (roots != null && index >= 0 && index <= roots.size()) {
+//        if (roots != null && index >= 0 && index <= roots.size()) {
             OrgStructurePanelStorage orgStructureStorage = getOrgStructurePanelStorage();
             if (orgStructureStorage != null) {
                 orgStructureStorage.setSelectedTabId(index);
             }
-        }
+//        }
     }
 
     protected OrgStructurePanelStorage getOrgStructurePanelStorage() {
