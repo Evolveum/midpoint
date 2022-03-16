@@ -108,10 +108,10 @@ public class CertCampaignDto extends Selectable {
                 String stageName = stage != null ? stage.getName() : null;
                 if (stageName != null) {
                     String key = createEnumResourceKey(state) + "_FULL";
-                    return createStringResourceStatic(page, key, stageNumber, stageName).getString();
+                    return createStringResourceStatic(key, stageNumber, stageName).getString();
                 } else {
                     String key = createEnumResourceKey(state);
-                    return createStringResourceStatic(page, key).getString() + " " + stageNumber;
+                    return createStringResourceStatic(key).getString() + " " + stageNumber;
                 }
             default:
                 return null;        // todo warning/error?

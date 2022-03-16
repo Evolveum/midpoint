@@ -348,7 +348,7 @@ public final class WebComponentUtil {
         if (descriptor == null) {
             return null;
         }
-        return createStringResourceStatic(null, descriptor.getLocalizationKey()).getString();
+        return createStringResourceStatic(descriptor.getLocalizationKey()).getString();
     }
 
     public static String getReferencedObjectNames(List<ObjectReferenceType> refs, boolean showTypes) {
@@ -414,7 +414,7 @@ public final class WebComponentUtil {
             if (descriptor == null) {
                 return null;
             }
-            sb.append(emptyIfNull(createStringResourceStatic(null, descriptor.getLocalizationKey()).getString())).append(")");
+            sb.append(emptyIfNull(createStringResourceStatic(descriptor.getLocalizationKey()).getString())).append(")");
         }
         return sb.toString();
     }
@@ -925,12 +925,12 @@ public final class WebComponentUtil {
             Validate.notNull(type2);
 
             String key1 = "ObjectType." + type1.getLocalPart();
-            String localizedType1 = createStringResourceStatic(null, key1).getString();
+            String localizedType1 = createStringResourceStatic(key1).getString();
             if (StringUtils.isEmpty(localizedType1) || localizedType1.equals(key1)) {
                 localizedType1 = type1.getLocalPart();
             }
             String key2 = "ObjectType." + type2.getLocalPart();
-            String localizedType2 = createStringResourceStatic(null, key2).getString();
+            String localizedType2 = createStringResourceStatic(key2).getString();
             if (StringUtils.isEmpty(localizedType2) || localizedType1.equals(key2)) {
                 localizedType2 = type2.getLocalPart();
             }
@@ -1113,7 +1113,7 @@ public final class WebComponentUtil {
 
     public static IModel<String> createCategoryNameModel(final Component component,
             final IModel<String> categorySymbolModel) {
-        return (IModel<String>) () -> createStringResourceStatic(component,
+        return (IModel<String>) () -> createStringResourceStatic(
                 "pageTasks.category." + categorySymbolModel.getObject()).getString();
     }
 
@@ -1375,7 +1375,7 @@ public final class WebComponentUtil {
         }
 
         if (def.getDisplayName() != null) {
-            StringResourceModel nameModel = PageBase.createStringResourceStatic(component, def.getDisplayName());
+            StringResourceModel nameModel = PageBase.createStringResourceStatic(def.getDisplayName());
             if (StringUtils.isNotEmpty(nameModel.getString()) && !def.getDisplayName().equals(nameModel.getString())) {
                 return nameModel.getString();
             }
@@ -3226,7 +3226,7 @@ public final class WebComponentUtil {
                     key = object ? KEY_BOOLEAN_TRUE : KEY_BOOLEAN_FALSE;
                 }
 
-                StringResourceModel model = PageBase.createStringResourceStatic(null, key);
+                StringResourceModel model = PageBase.createStringResourceStatic(key);
 
                 return model.getString();
             }
@@ -3241,7 +3241,7 @@ public final class WebComponentUtil {
 
             @Override
             protected CharSequence getDefaultChoice(String selectedValue) {
-                StringResourceModel model = PageBase.createStringResourceStatic(null, KEY_BOOLEAN_NULL);
+                StringResourceModel model = PageBase.createStringResourceStatic(KEY_BOOLEAN_NULL);
 
                 return model.getString();
             }

@@ -108,14 +108,14 @@ public class CountToolbar extends AbstractToolbar {
 
         if (count > 0) {
             if (count == Integer.MAX_VALUE) {
-                return PageBase.createStringResourceStatic(component, "CountToolbar.label.unknownCount",
+                return PageBase.createStringResourceStatic("CountToolbar.label.unknownCount",
                         new Object[] { from, to }).getString();
             }
 
-            return PageBase.createStringResourceStatic(component, "CountToolbar.label", new Object[]{from, to, count}).getString();
+            return PageBase.createStringResourceStatic("CountToolbar.label", new Object[]{from, to, count}).getString();
         }
 
-        return PageBase.createStringResourceStatic(component, "CountToolbar.noFound").getString();
+        return PageBase.createStringResourceStatic("CountToolbar.noFound").getString();
     }
 
     protected void pageSizeChanged(AjaxRequestTarget target) {
