@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -84,7 +84,7 @@ public class TestCsvReportMultiNode extends TestCsvReport {
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
         List<String> rows = basicCheckOutputFile(report, -1, 8, null);
-        assertTrue(rows.size() > 1000 && rows.size() <= 10010,
+        assertTrue(rows.size() > 1000 && rows.size() <= 1010,
                 "Unexpected number of rows in report. Expected:1000-1010, Actual:" + rows.size());
     }
 
@@ -94,16 +94,15 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         SearchFilterType filter = PrismContext.get().getQueryConverter().createSearchFilterType(
                 PrismContext.get().queryFor(AuditEventRecordType.class)
                         .item(AuditEventRecordType.F_TIMESTAMP).ge(auditRecords.get(500).getTimestamp()).and()
-                        .item(AuditEventRecordType.F_TIMESTAMP).le(auditRecords.get(1300).getTimestamp()).buildFilter()
-        );
+                        .item(AuditEventRecordType.F_TIMESTAMP).le(auditRecords.get(1300).getTimestamp()).buildFilter());
+
         modifyObjectReplaceProperty(
                 ObjectCollectionType.class,
                 OBJECT_COLLECTION_ALL_AUDIT_RECORDS.oid,
                 ObjectCollectionType.F_FILTER,
                 getTestTask(),
                 getTestTask().getResult(),
-                filter
-        );
+                filter);
 
         auditTest();
 
@@ -119,16 +118,15 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         SearchFilterType filter = PrismContext.get().getQueryConverter().createSearchFilterType(
                 PrismContext.get().queryFor(AuditEventRecordType.class)
                         .item(AuditEventRecordType.F_TIMESTAMP).ge(auditRecords.get(1300).getTimestamp()).or()
-                        .item(AuditEventRecordType.F_TIMESTAMP).le(auditRecords.get(500).getTimestamp()).buildFilter()
-        );
+                        .item(AuditEventRecordType.F_TIMESTAMP).le(auditRecords.get(500).getTimestamp()).buildFilter());
+
         modifyObjectReplaceProperty(
                 ObjectCollectionType.class,
                 OBJECT_COLLECTION_ALL_AUDIT_RECORDS.oid,
                 ObjectCollectionType.F_FILTER,
                 getTestTask(),
                 getTestTask().getResult(),
-                filter
-        );
+                filter);
 
         auditTest();
 
