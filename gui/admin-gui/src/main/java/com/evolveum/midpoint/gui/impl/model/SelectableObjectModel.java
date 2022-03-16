@@ -94,4 +94,8 @@ public abstract class SelectableObjectModel<O extends ObjectType> extends Loadab
         }
         return type;
     }
+
+    public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+        return options;
+    }
 }

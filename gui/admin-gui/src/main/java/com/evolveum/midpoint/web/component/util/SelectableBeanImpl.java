@@ -61,6 +61,9 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
     }
 
     public T getValue() {
+        if (model == null) {
+            return null;
+        }
         return model.getObject();
     }
 
