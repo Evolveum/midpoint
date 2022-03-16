@@ -408,35 +408,7 @@ public class ColumnUtils {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem, String componentId, IModel<SelectableBean<T>> rowModel) {
-                RepeatingView links = new RepeatingView(componentId);
-                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null
-                        && rowModel.getObject().getValue().getParentOrgRef() != null && !rowModel.getObject().getValue().getParentOrgRef().isEmpty()) {
-                    for (ObjectReferenceType parentRef : rowModel.getObject().getValue().getParentOrgRef()) {
-                        if (parentRef.getOid() == null) {
-                            continue;
-                        }
-                        Model name = Model.of(WebModelServiceUtils.resolveReferenceName(parentRef, pageBase, true));
-                        if (name.getObject() == null) {
-                            continue;
-                        }
-                        links.add(new LinkPanel(links.newChildId(), name) {
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public void onClick() {
-                                PageParameters parameters = new PageParameters();
-                                parameters.add(OnePageParameterEncoder.PARAMETER, parentRef.getOid());
-                                pageBase.navigateToNext(PageOrgUnit.class, parameters);
-                            }
-
-                            @Override
-                            public boolean isEnabled() {
-                                return parentRef.getTargetName() != null;
-                            }
-                        });
-                    }
-                }
-                cellItem.add(links);
+                createParentOrgColumn(cellItem, componentId, rowModel, pageBase);
             }
 
             @Override
@@ -447,6 +419,63 @@ public class ColumnUtils {
 
         columns.add((IColumn) getAbstractRoleColumnForProjection());
         return columns;
+    }
+
+    private static <T extends ObjectType> void createParentOrgColumn(Item<ICellPopulator<SelectableBean<T>>> cellItem, String componentId, IModel<SelectableBean<T>> rowModel, PageBase pageBase) {
+        RepeatingView links = new RepeatingView(componentId);
+        cellItem.add(links);
+
+        List<ObjectReferenceType> parentOrgRefs = getParentOrgRefs(rowModel);
+        for (ObjectReferenceType parentRef : parentOrgRefs) {
+            LinkPanel parentOrgLinkPanel = createParentOrgLink(links.newChildId(), parentRef, pageBase);
+            if (parentOrgLinkPanel == null) {
+                continue;
+            }
+            links.add(parentOrgLinkPanel);
+        }
+    }
+
+    private static <T extends ObjectType> List<ObjectReferenceType> getParentOrgRefs(IModel<SelectableBean<T>> rowModel) {
+        if (rowModel == null) {
+            return null;
+        }
+
+        SelectableBean<T> bean = rowModel.getObject();
+        if (bean == null) {
+            return null;
+        }
+        T object = bean.getValue();
+        if (object == null) {
+            return null;
+        }
+        return object.getParentOrgRef();
+    }
+
+    private static LinkPanel createParentOrgLink(String id, ObjectReferenceType parentRef, PageBase pageBase) {
+        String parentOrgOid = parentRef.getOid();
+        if (parentOrgOid == null) {
+            return null;
+        }
+        Model name = Model.of(WebModelServiceUtils.resolveReferenceName(parentRef, pageBase, true));
+        if (name.getObject() == null) {
+            return null;
+        }
+
+        return new LinkPanel(id, name) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick() {
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, parentOrgOid);
+                pageBase.navigateToNext(PageOrgUnit.class, parameters);
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return name.getObject() != null;
+            }
+        };
     }
 
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultArchetypeColumns() {
