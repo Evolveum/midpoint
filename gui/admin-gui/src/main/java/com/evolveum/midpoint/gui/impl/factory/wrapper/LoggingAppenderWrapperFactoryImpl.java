@@ -34,7 +34,7 @@ public class LoggingAppenderWrapperFactoryImpl<T> extends PrismPropertyWrapperFa
         return super.getOrder() - 10;
     }
 
-    @Override
+//    @Override
     protected LookupTableType getPredefinedValues(PrismProperty<T> item, WrapperContext wrapperContext) {
         PrismContainerValue<?> parent = item.getParent();
         if (parent == null || parent.getParent() == null) {

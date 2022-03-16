@@ -73,43 +73,16 @@ public class PrismPropertyWrapperFactoryImpl<T>
     protected PrismPropertyWrapper<T> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,
             ItemStatus status, WrapperContext wrapperContext) {
         PrismPropertyWrapper<T> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
-        propertyWrapper.setPredefinedValues(getPredefinedValues(item, wrapperContext));
+        propertyWrapper.setPredefinedValuesOid(getPredefinedValuesOid(item));
         return propertyWrapper;
     }
 
-    protected LookupTableType getPredefinedValues(PrismProperty<T> item, WrapperContext wrapperContext) {
+    protected String getPredefinedValuesOid(PrismProperty<T> item) {
         PrismReferenceValue valueEnumerationRef = item.getDefinition().getValueEnumerationRef();
         if (valueEnumerationRef == null) {
             return null;
         }
-
-        String lookupTableOid = valueEnumerationRef.getOid();
-        LookupTableType lookupTableType = wrapperContext.getLookuptableFromCache(lookupTableOid);
-        if (lookupTableType != null) {
-            LOGGER.trace("Loading lookuptable from cache");
-            return lookupTableType;
-        }
-
-        //TODO: task and result from context
-        Task task = wrapperContext.getTask();
-        OperationResult result = wrapperContext.getResult().createSubresult(OPERATION_LOAD_LOOKUP_TABLE);
-        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-                .createLookupTableRetrieveOptions(schemaService);
-
-        try {
-            PrismObject<LookupTableType> lookupTable = getModelService().getObject(LookupTableType.class, lookupTableOid, options, task, result);
-            result.computeStatusIfUnknown();
-            lookupTableType = lookupTable.asObjectable();
-            wrapperContext.rememberLookuptable(lookupTableType);
-            return lookupTableType;
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
-                | ConfigurationException | ExpressionEvaluationException e) {
-            LOGGER.error("Cannot load lookup table for {} ", item);
-            result.recordFatalError("Cannot load lookupTable for " + item + ", Reason: " + e.getMessage(), e);
-            //TODO throw???
-        }
-
-        return null;
+        return valueEnumerationRef.getOid();
     }
 
     @Override
