@@ -42,7 +42,7 @@ public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends Ab
     @Override
     protected String createLabel(PrismValueWrapper<R> object) {
         if (object.getRealValue() != null){
-            return WebModelServiceUtils.resolveReferenceName(object.getRealValue().clone(), getPageBase());
+            return WebModelServiceUtils.resolveReferenceName(object.getRealValue(), getPageBase());
         }
         return "";
     }
