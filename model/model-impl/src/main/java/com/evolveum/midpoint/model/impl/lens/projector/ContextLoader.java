@@ -84,7 +84,7 @@ public class ContextLoader implements ProjectorProcessor {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
-        for (int attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+        for (int loadAttempt = 1; ; loadAttempt++) {
             Set<String> modifiedOids = new HashSet<>();
             FocusChangeExecution.ChangeExecutionListener listener = modifiedOids::add;
             FocusChangeExecution.registerChangeExecutionListener(listener);
@@ -97,15 +97,20 @@ public class ContextLoader implements ProjectorProcessor {
             LOGGER.trace("Focus OID/OIDs modified during load operation in this thread: {}", modifiedOids);
             LensFocusContext<F> focusContext = context.getFocusContext();
             if (focusContext != null && focusContext.getOid() != null && modifiedOids.contains(focusContext.getOid())) {
-                LOGGER.debug("Detected modification of the focus during 'load' operation, retrying the loading (#{})", attempt);
-                context.rot("focus modification during loading");
+                if (loadAttempt == MAX_LOAD_ATTEMPTS) {
+                    LOGGER.warn("Focus was repeatedly modified during loading too many times ({}) - continuing,"
+                                    + " but it's suspicious", MAX_LOAD_ATTEMPTS);
+                    return;
+                } else {
+                    LOGGER.debug("Detected modification of the focus during 'load' operation, retrying the loading (#{})",
+                            loadAttempt);
+                    context.rot("focus modification during loading");
+                }
             } else {
                 LOGGER.trace("No modification of the focus during 'load' operation, continuing");
                 return;
             }
         }
-        LOGGER.warn("Focus was repeatedly modified during loading ({} times) - continuing, but it's suspicious",
-                MAX_LOAD_ATTEMPTS);
     }
 
     public <O extends ObjectType> void loadFocusContext(LensContext<O> context, Task task, OperationResult parentResult)
