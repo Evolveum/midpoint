@@ -13,13 +13,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
-
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -61,15 +54,17 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsMo
 import com.evolveum.midpoint.gui.impl.prism.panel.ShadowPanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -79,6 +74,7 @@ import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -328,36 +324,6 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                 Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
         DeadShadowSearchItem deadShadowSearchItem = new DeadShadowSearchItem(search, def);
         search.addSpecialItem(deadShadowSearchItem);
-//        SearchItemDefinition def = new SearchItemDefinition(ShadowType.F_DEAD,
-//                getShadowDefinition().findPropertyDefinition(ShadowType.F_DEAD),
-//                Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
-//        PropertySearchItem<Boolean> deadSearchItem = new PropertySearchItem<>(search, def, new SearchValue<>(false)) {
-//
-//            @Override
-//            public ObjectFilter transformToFilter() {
-//                DisplayableValue<Boolean> selectedValue = getValue();
-//                if (selectedValue == null) {
-//                    return null;
-//                }
-//                Boolean value = selectedValue.getValue();
-//                if (BooleanUtils.isTrue(value)) {
-//                    return null; // let the default behavior to take their chance
-//                }
-//
-//                return PrismContext.get().queryFor(ShadowType.class)
-//                        .not()
-//                        .item(ShadowType.F_DEAD)
-//                        .eq(true)
-//                        .buildFilter();
-//            }
-//
-//            @Override
-//            protected boolean canRemoveSearchItem() {
-//                return false;
-//            }
-//        };
-//        deadSearchItem.setFixed(true);
-//        search.addSpecialItem(deadSearchItem);
     }
 
     private void loadShadowIfNeeded(IModel<PrismContainerValueWrapper<ShadowType>> rowModel, AjaxRequestTarget target) {
