@@ -185,7 +185,9 @@ public interface Event extends DebugDumpable, ShortDumpable, Serializable {
      *
      * EXPERIMENTAL; does not always work (mainly for values being deleted)
      */
-    boolean isRelatedToItem(ItemPath itemPath);
+    default boolean isRelatedToItem(ItemPath itemPath) {
+        return false;
+    }
 
     /**
      * @return channel that was used to initiate the operation that caused this event

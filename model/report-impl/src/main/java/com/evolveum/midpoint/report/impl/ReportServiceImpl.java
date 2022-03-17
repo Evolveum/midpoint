@@ -18,6 +18,7 @@ import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.activity.ReportOutputCreatedListener;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 
 import com.evolveum.midpoint.schema.*;
@@ -58,6 +59,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 @Component
 public class ReportServiceImpl implements ReportService {
 
@@ -83,6 +86,8 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private LocalizationService localizationService;
     @Autowired private CommandLineScriptExecutor commandLineScriptExecutor;
     @Autowired private ScriptingService scriptingService;
+
+    @Autowired(required = false) private List<ReportOutputCreatedListener> reportOutputCreatedListeners;
 
     @Override
     public Collection<? extends PrismValue> evaluateScript(PrismObject<ReportType> report, @NotNull ExpressionType expression, VariablesMap variables, String shortDesc, Task task, OperationResult result)
@@ -384,5 +389,9 @@ public class ReportServiceImpl implements ReportService {
 
     public ScriptingService getScriptingService() {
         return scriptingService;
+    }
+
+    public @NotNull List<ReportOutputCreatedListener> getReportCreatedListeners() {
+        return emptyIfNull(reportOutputCreatedListeners);
     }
 }

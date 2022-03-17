@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgr
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.FINISHED;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import static java.util.Objects.requireNonNull;
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskRun;
 import com.evolveum.midpoint.schema.statistics.DummyOperationImpl;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.Operation;
+
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -218,6 +221,10 @@ public abstract class AbstractActivityRun<
         logEnd(runResult);
 
         updateAndCloseActivityState(runResult, result);
+
+        if (runResult.isFinished()) {
+            sendActivityRealizationCompleteEvent(result);
+        }
 
         return runResult;
     }
@@ -580,6 +587,18 @@ public abstract class AbstractActivityRun<
                     .recordOperationStart(info);
         } else {
             return new DummyOperationImpl(info);
+        }
+    }
+
+    private void sendActivityRealizationCompleteEvent(OperationResult result) {
+        for (ActivityListener activityListener : emptyIfNull(getBeans().activityListeners)) {
+            try {
+                activityListener.onActivityRealizationComplete(this, getRunningTask(), result);
+            } catch (Exception e) {
+                LoggingUtils.logUnexpectedException(LOGGER,
+                        "Activity listener {} failed when processing 'activity realization complete' event for {}", e,
+                        activityListener, this);
+            }
         }
     }
 }

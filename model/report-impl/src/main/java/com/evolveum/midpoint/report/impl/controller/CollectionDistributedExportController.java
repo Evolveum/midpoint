@@ -88,7 +88,7 @@ public class CollectionDistributedExportController<C extends Containerable> exte
         // We also make the name sortable by padding the number with zeros: until we can sort on the sequential number.
         String name = String.format("Partial report data for [%s] (%08d)", globalReportDataRef.getOid(), bucketNumber);
 
-        ReportDataType partialReportData = new ReportDataType(prismContext)
+        ReportDataType partialReportData = new ReportDataType()
                 .name(name)
                 .reportRef(ObjectTypeUtil.createObjectRef(report, prismContext))
                 .parentRef(globalReportDataRef.clone())

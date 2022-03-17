@@ -62,8 +62,10 @@ class ImportActivitySupport extends ReportActivitySupport {
                 null, "resolving report data", runningTask, result);
     }
 
-    public ReportDataType getReportData() {
-        return reportData;
+    /** Should be called only after initialization. */
+    @NotNull ReportDataType getReportData() {
+        return MiscUtil.requireNonNull(
+                reportData, () -> new IllegalStateException("No report data object (are we uninitialized?)"));
     }
 
     private boolean existImportScript() {

@@ -206,9 +206,20 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
 
     private ItemVisibility getContainerVisibility(ItemWrapper<?, ?> wrapper) {
         if (wrapper instanceof PrismContainerWrapper) {
-            if (((PrismContainerWrapper) wrapper).isVirtual()) {
+            PrismContainerWrapper pcw = (PrismContainerWrapper) wrapper;
+            if (pcw.isVirtual()) {
                 return ItemVisibility.AUTO;
             }
+
+            ItemPath path = pcw.getPath();
+            if (path != null ) {
+                path = path.namedSegmentsOnly();
+
+                if (path.startsWith(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_EXTENSION))) {
+                    return ItemVisibility.AUTO;
+                }
+            }
+
             return ItemVisibility.HIDDEN;
         }
         return ItemVisibility.AUTO;

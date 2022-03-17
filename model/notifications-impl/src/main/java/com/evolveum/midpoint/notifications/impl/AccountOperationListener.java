@@ -163,12 +163,12 @@ public class AccountOperationListener implements ResourceOperationListener {
 
         PrismObject<UserType> user = findRequestee(accountOid, task, result);
         if (user != null) {
-            event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, user.asObjectable()));
+            event.setRequestee(new SimpleObjectRefImpl(user.asObjectable()));
         }   // otherwise, appropriate messages were already logged
 
         PrismObject<? extends FocusType> taskOwner = task != null ? task.getOwner(result) : null;
         if (taskOwner != null) {
-            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, taskOwner));
+            event.setRequester(new SimpleObjectRefImpl(taskOwner));
         } else {
             LOGGER.warn("No owner for task {}, therefore no requester will be set for event {}", task, event.getId());
         }

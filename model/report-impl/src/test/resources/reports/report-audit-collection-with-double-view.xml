@@ -28,10 +28,13 @@
                 <previousColumn>timeColumn</previousColumn>
                 <export>
                     <expression>
-                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <script>
                             <code>
-                                str = "Test name: "
-                                return str + object;
+                                // This is to fail in the safe mode
+                                System.setProperty('hacking-system-via-setting-this-particular-property', 'dangerous-value')
+
+                                String str = "Test name: "
+                                return str + object
                             </code>
                         </script>
                     </expression>

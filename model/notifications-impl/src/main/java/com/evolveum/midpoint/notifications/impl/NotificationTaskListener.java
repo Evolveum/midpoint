@@ -13,13 +13,11 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.impl.events.TaskEventImpl;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * One of interfaces of the notifier to midPoint.
@@ -32,17 +30,9 @@ public class NotificationTaskListener implements TaskListener {
     private static final Trace LOGGER = TraceManager.getTrace(NotificationTaskListener.class);
     private static final String OPERATION_PROCESS_EVENT = NotificationTaskListener.class.getName() + "." + "processEvent";
 
-    @Autowired
-    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
-
-    @Autowired
-    private NotificationManager notificationManager;
-
-    @Autowired
-    private NotificationFunctions notificationsUtil;
-
-    @Autowired
-    private TaskManager taskManager;
+    @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    @Autowired private NotificationManager notificationManager;
+    @Autowired private TaskManager taskManager;
 
     @PostConstruct
     public void init() {
@@ -62,15 +52,8 @@ public class NotificationTaskListener implements TaskListener {
 
     private void createAndProcessEvent(Task task, TaskRunResult runResult, EventOperationType operationType, OperationResult result) {
         TaskEventImpl event = new TaskEventImpl(lightweightIdentifierGenerator, task, runResult, operationType, task.getChannel());
-
-        PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
-        if (taskOwner != null) {
-            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, taskOwner.asObjectable()));
-            event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, taskOwner.asObjectable()));
-        } else {
-            LOGGER.debug("No owner for task " + task + ", therefore no requester and requestee will be set for event " + event.getId());
-        }
-
+        event.setRequesterAndRequesteeAsTaskOwner(task, result);
+        // TODO why not using the same task?
         Task opTask = taskManager.createTaskInstance(OPERATION_PROCESS_EVENT);
         notificationManager.processEvent(event, opTask, result);
     }
