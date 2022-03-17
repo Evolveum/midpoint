@@ -123,7 +123,8 @@ public class ScriptExpressionFactory implements Cache {
         //cache cleanup method
 
         String language = getLanguage(expressionType);
-        ScriptExpression expression = new ScriptExpression(getEvaluator(language, shortDesc), expressionType);
+        ScriptEvaluator evaluator = getEvaluator(language, shortDesc);
+        ScriptExpression expression = new ScriptExpression(evaluator, expressionType);
         expression.setPrismContext(prismContext);
         expression.setOutputDefinition(outputDefinition);
         expression.setObjectResolver(objectResolver);
@@ -137,7 +138,11 @@ public class ScriptExpressionFactory implements Cache {
         // the duality of Expression and ScriptExpression ... maybe the ScriptExpression is unnecessary abstraction
         // and it should be removed.
         expression.setExpressionProfile(expressionProfile);
-        expression.setScriptExpressionProfile(processScriptExpressionProfile(expressionProfile, language, shortDesc));
+        expression.setScriptExpressionProfile(
+                processScriptExpressionProfile(
+                        expressionProfile,
+                        evaluator.getLanguageUrl(), // We need "normalized" language URI here
+                        shortDesc));
 
         return expression;
     }
