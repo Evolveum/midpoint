@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
@@ -437,17 +438,18 @@ public class GuiProfileCompiler {
     }
 
     private void joinObjectDetails(GuiObjectDetailsSetType objectDetailsSet, GuiObjectDetailsPageType newObjectDetails) {
-        GuiObjectDetailsPageType mergedObjectDetails = null;
-        for (GuiObjectDetailsPageType currentDetails : objectDetailsSet.getObjectDetailsPage()) {
-            if (isTheSameObjectType(currentDetails, newObjectDetails)) {
-                mergedObjectDetails = adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(currentDetails, newObjectDetails);
+        AtomicBoolean merged = new AtomicBoolean(false);
+        objectDetailsSet.getObjectDetailsPage().forEach(currentDetails -> {
+            if(isTheSameObjectType(currentDetails, newObjectDetails)){
+                objectDetailsSet.getObjectDetailsPage().remove(currentDetails);
+                objectDetailsSet.getObjectDetailsPage().add(
+                        adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(currentDetails, newObjectDetails));
+                merged.set(true);
             }
+        });
+        if (!merged.get()) {
+            objectDetailsSet.getObjectDetailsPage().add(newObjectDetails.clone());
         }
-        if (mergedObjectDetails == null) {
-            mergedObjectDetails = newObjectDetails.clone();
-        }
-        objectDetailsSet.getObjectDetailsPage().removeIf(currentDetails -> isTheSameObjectType(currentDetails, newObjectDetails));
-        objectDetailsSet.getObjectDetailsPage().add(mergedObjectDetails);
     }
 
     private boolean isTheSameObjectType(AbstractObjectTypeConfigurationType oldConf, AbstractObjectTypeConfigurationType newConf) {

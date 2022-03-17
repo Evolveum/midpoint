@@ -203,4 +203,16 @@ public class GuiDisplayTypeUtil {
         return displayType;
     }
 
+    public static boolean existsIconDisplay(CompiledObjectCollectionView view) {
+        if (view == null){
+            return false;
+        }
+        if (view.getDisplay() == null){
+            return false;
+        }
+        if (view.getDisplay().getIcon() == null){
+            return false;
+        }
+        return StringUtils.isNotBlank(view.getDisplay().getIcon().getCssClass());
+    }
 }

@@ -181,7 +181,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(newObjectButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(WebComponentUtil.getIconColor(newObjectButtonDisplayType));
         CompiledObjectCollectionView view = getObjectCollectionView();
-        if (ObjectCollectionViewUtil.isArchetypedCollectionView(view)) {
+        if (GuiDisplayTypeUtil.existsIconDisplay(view) && !isCollectionViewPanelForWidget()) {
             IconType plusIcon = new IconType();
             plusIcon.setCssClass(GuiStyleConstants.CLASS_ADD_NEW_OBJECT);
             plusIcon.setColor("green");
@@ -298,16 +298,12 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     private DisplayType getNewObjectButtonStandardDisplayType() {
         if (isCollectionViewPanelForCompiledView()) {
-
             CompiledObjectCollectionView view = getObjectCollectionView();
-            if (ObjectCollectionViewUtil.isArchetypedCollectionView(view)) {
-                return GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(view, getPageBase());
-            }
+            return GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(view, getPageBase());
          }
 
         String title = getTitleForNewObjectButton();
-        return GuiDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
-                title);
+        return GuiDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", title);
     }
 
     protected String getTitleForNewObjectButton() {

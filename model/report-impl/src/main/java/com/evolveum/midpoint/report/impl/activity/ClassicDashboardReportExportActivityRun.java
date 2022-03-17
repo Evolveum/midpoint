@@ -15,9 +15,9 @@ import com.evolveum.midpoint.report.impl.activity.ExportDashboardActivitySupport
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.report.impl.controller.*;
+import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -130,7 +130,7 @@ public final class ClassicDashboardReportExportActivityRun
     }
 
     @Override
-    public void iterateOverItemsInBucket(OperationResult result) throws CommonException {
+    public void iterateOverItemsInBucket(OperationResult gResult) throws CommonException {
         // Issue the search to audit or model/repository
         // And use the following handler to handle the results
 
@@ -141,23 +141,23 @@ public final class ClassicDashboardReportExportActivityRun
             ExportDashboardReportLine<Containerable> widgetLine = new ExportDashboardReportLine<>(widgetSequence.getAndIncrement(), widget);
             ItemProcessingRequest<ExportDashboardReportLine<Containerable>> widgetRequest = new ExportDashboardReportLineProcessingRequest(
                     widgetLine, this);
-            coordinator.submit(widgetRequest, result);
+            coordinator.submit(widgetRequest, gResult);
 
             if (support.isWidgetTableVisible()) {
                 AtomicInteger sequence = new AtomicInteger(1);
-                Handler<Containerable> handler = record -> {
+                ObjectHandler<Containerable> handler = (record, lResult) -> {
                     ExportDashboardReportLine<Containerable> line = new ExportDashboardReportLine<>(sequence.getAndIncrement(),
                             record,
                             widget.getIdentifier());
-                    ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request = new ExportDashboardReportLineProcessingRequest(
-                            line, this);
-                    coordinator.submit(request, result);
+                    ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request =
+                            new ExportDashboardReportLineProcessingRequest(line, this);
+                    coordinator.submit(request, lResult);
                     return true;
                 };
 
                 DashboardWidgetHolder holder = mapOfWidgetsController.get(widget.getIdentifier());
                 ContainerableReportDataSource searchSpecificationHolder = holder.getSearchSpecificationHolder();
-                searchSpecificationHolder.run(handler, result);
+                searchSpecificationHolder.run(handler, gResult);
             }
         }
     }
