@@ -146,7 +146,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         add(passwordLabel);
 
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<>(getModel(), MyPasswordsDto.F_PASSWORD),
-                getModelObject().getFocus(), getPageBase()) {
+                getModelObject().getFocus()) {
             private static final long serialVersionUID = 1L;
 
             @Override
