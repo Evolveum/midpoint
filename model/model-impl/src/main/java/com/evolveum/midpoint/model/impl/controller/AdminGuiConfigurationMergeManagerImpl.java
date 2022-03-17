@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -105,7 +106,56 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         SummaryPanelSpecificationType mergedSummaryPanel = mergeSummaryPanels(mergedDetailsPage.getSummaryPanel(), compiledPageType.getSummaryPanel());
         mergedDetailsPage.setSummaryPanel(mergedSummaryPanel);
 
+        if (compiledPageType.getSaveMethod() != null) {
+            mergedDetailsPage.saveMethod(compiledPageType.getSaveMethod());
+        }
+
+        if (mergedDetailsPage.getForms() == null) {
+            mergedDetailsPage.forms(compiledPageType.getForms());
+        } else if (compiledPageType.getForms() != null) {
+            mergeFormObject(mergedDetailsPage.getForms(), compiledPageType.getForms());
+        }
+
+        if (mergedDetailsPage.getRoleRelation() == null) {
+            mergedDetailsPage.roleRelation(mergedDetailsPage.getRoleRelation());
+        } else if (mergedDetailsPage.getRoleRelation() != null) {
+            mergeRoleRelation(mergedDetailsPage.getRoleRelation(), mergedDetailsPage.getRoleRelation());
+        }
+
         return mergedDetailsPage;
+    }
+
+    private static void mergeRoleRelation(RoleRelationObjectSpecificationType currentRoleRelation, RoleRelationObjectSpecificationType newRoleRelation) {
+        if (newRoleRelation.getObjectRelation() != null) {
+            currentRoleRelation.objectRelation(newRoleRelation.getObjectRelation());
+        }
+
+        if (!newRoleRelation.getSubjectRelation().isEmpty()) {
+            newRoleRelation.getSubjectRelation().forEach(
+                    newSubject -> currentRoleRelation.getSubjectRelation().removeIf(
+                            currentSubject -> QNameUtil.match(currentSubject, newSubject)
+                    )
+            );
+            currentRoleRelation.getSubjectRelation().addAll(newRoleRelation.getSubjectRelation());
+        }
+
+        if (newRoleRelation.isIncludeMembers() != null) {
+            currentRoleRelation.includeMembers(newRoleRelation.isIncludeMembers());
+        }
+
+        if (newRoleRelation.isIncludeReferenceRole() != null) {
+            currentRoleRelation.includeReferenceRole(newRoleRelation.isIncludeReferenceRole());
+        }
+    }
+
+    private static void mergeFormObject(ObjectFormType currentForm, ObjectFormType newForm) {
+        if (newForm.getFormSpecification() != null) {
+            currentForm.formSpecification(newForm.getFormSpecification());
+        }
+
+        if (newForm.isIncludeDefaultForms() != null) {
+            currentForm.includeDefaultForms(newForm.isIncludeDefaultForms());
+        }
     }
 
     private SummaryPanelSpecificationType mergeSummaryPanels(SummaryPanelSpecificationType defaultSummary, SummaryPanelSpecificationType compiledSummary) {
