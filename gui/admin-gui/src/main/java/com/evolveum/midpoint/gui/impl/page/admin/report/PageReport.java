@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.report;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
@@ -130,6 +131,11 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
             @Override
             protected void savePerformed(AjaxRequestTarget target) {
                 PageReport.this.savePerformed(target);
+            }
+
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageReport.this.hasUnsavedChanges(target);
             }
         };
     }

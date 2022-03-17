@@ -145,6 +145,11 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             protected void savePerformed(AjaxRequestTarget target) {
                 PageAssignmentHolderDetails.this.savePerformed(target);
             }
+
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageAssignmentHolderDetails.this.hasUnsavedChanges(target);
+            }
         };
     }
 

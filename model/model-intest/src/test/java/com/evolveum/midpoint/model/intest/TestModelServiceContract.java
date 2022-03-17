@@ -3320,7 +3320,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      *
      * This test is in this class because I've found no suitable test class in model-impl module.
      */
-    @Test(enabled = false)
+    @Test()
     public void test500MismatchedDefinitionLookupInTransformedSchema() throws CommonException {
         given("obtaining ResourceType definition via model-api");
         Task task = getTestTask();

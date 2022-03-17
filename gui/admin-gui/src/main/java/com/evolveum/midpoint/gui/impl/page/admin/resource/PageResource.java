@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 import java.util.Collection;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -75,6 +76,11 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
             @Override
             protected void savePerformed(AjaxRequestTarget target) {
                 PageResource.this.savePerformed(target);
+            }
+
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageResource.this.hasUnsavedChanges(target);
             }
         };
     }

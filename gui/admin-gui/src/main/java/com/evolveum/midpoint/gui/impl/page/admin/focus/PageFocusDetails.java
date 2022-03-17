@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
@@ -58,6 +59,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
     private static final Trace LOGGER = TraceManager.getTrace(PageFocusDetails.class);
 
     private static final String ID_PROGRESS_PANEL_FRAGMENT = "progressPanelFragment";
+
     private static final String ID_PROGRESS_PANEL = "progressPanel";
 
     private boolean saveOnConfigure;
@@ -121,6 +123,11 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
             @Override
             protected void savePerformed(AjaxRequestTarget target) {
                 PageFocusDetails.this.savePerformed(target);
+            }
+
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageFocusDetails.this.hasUnsavedChanges(target);
             }
 
             @Override

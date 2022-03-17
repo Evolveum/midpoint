@@ -314,6 +314,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public PageBase(PageParameters parameters) {
         super(parameters);
 
+        setStatelessHint(false);
+
         LOGGER.debug("Initializing page {}", this.getClass());
 
         Injector.get().inject(this);
