@@ -213,6 +213,11 @@ It can be raised if the iterative search overhead (executing the select)
 is too high compared to the time used for processing the page results.
 | `100`
 
+| `sqlDurationWarningMs`
+| Duration in millis after which the query is logged by `com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger`
+on the `WARN` level, including the provided parameters.
+| `0` (disabled)
+
 |===
 
 There are no options for compression as this is left to PostgreSQL.
@@ -224,5 +229,4 @@ This also makes the inspection of the values in the columns easier.
 * xref:../generic/[Old Generic Repository]
 * xref:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
 * xref:/midpoint/reference/repository/native-postgresql/migration/[Migration to Native PostgreSQL Repository]
-// TODO separate audit repository link
 * xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]

@@ -161,6 +161,11 @@ is too high compared to the time used for processing the page results.
 | Specifies whether midPoint should create missing columns for link:#custom-column[custom properties] during the startup.
 | `false`
 
+| `sqlDurationWarningMs`
+| Duration in millis after which the query is logged by `com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger`
+on the `WARN` level, including the provided parameters.
+| `0` (disabled)
+
 |===
 
 There are no options for compression as this is left to PostgreSQL.
