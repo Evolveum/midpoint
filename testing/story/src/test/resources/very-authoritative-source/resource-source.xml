@@ -12,7 +12,7 @@
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-	<name>resource-source</name>
+    <name>resource-source</name>
     <documentation>
         This is a "very authoritative source": It drives the value of `description` in user object (by setting
         it to a non-null value in inbound mapping. This value controls the assigning/unassigning of `role-target`,
@@ -45,62 +45,62 @@
         </icfc:configurationProperties>
     </connectorConfiguration>
 
-	<schemaHandling>
-		<objectType>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<inbound>
-					<strength>strong</strength>
-					<target>
-						<path>name</path>
-					</target>
-				</inbound>
-				<inbound>
-					<strength>strong</strength>
-					<target>
-						<!-- This is something we want to remove when the account is gone. -->
-						<path>description</path>
-					</target>
-				</inbound>
-			</attribute>
-		</objectType>
-	</schemaHandling>
-	<synchronization>
-		<objectSynchronization>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<correlation>
-				<q:equal>
-					<q:path>name</q:path>
-					<expression>
-						<path>$account/attributes/icfs:name</path>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-				<situation>linked</situation>
-				<synchronize>true</synchronize>
-			</reaction>
-			<reaction>
-				<situation>deleted</situation>
-				<objectTemplateRef oid="987585f0-d457-44d7-8550-d9f1e954dc33"/>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-				</action>
-			</reaction>
-			<reaction>
-				<situation>unlinked</situation>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-				</action>
-			</reaction>
-			<reaction>
-				<situation>unmatched</situation>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-				</action>
-			</reaction>
-		</objectSynchronization>
-	</synchronization>
+    <schemaHandling>
+        <objectType>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <!-- This is something we want to remove when the account is gone. -->
+                        <path>description</path>
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+    <synchronization>
+        <objectSynchronization>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>$account/attributes/icfs:name</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <objectTemplateRef oid="987585f0-d457-44d7-8550-d9f1e954dc33"/>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
 </resource>
