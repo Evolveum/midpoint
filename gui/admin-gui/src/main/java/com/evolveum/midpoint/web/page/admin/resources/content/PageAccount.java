@@ -293,7 +293,7 @@ public class PageAccount extends PageAdmin {
                 String name = WebComponentUtil.getName(resource);
 
                 //TODO: refactor
-                return createStringResourceStatic(PageAccount.this, "PageAccount.title", accName, name).getString();
+                return createStringResourceStatic("PageAccount.title", accName, name).getString();
             }
         };
     }

@@ -120,7 +120,7 @@ public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType,
                 };
 
         actionTable.setOutputMarkupId(true);
-        actionTable.add(new VisibleBehaviour(() -> !dataProvider.getAvailableData().isEmpty() || dataProvider.size() > 0));
+//        actionTable.add(new VisibleBehaviour(() -> !dataProvider.getAvailableData().isEmpty() || dataProvider.size() > 0));
         add(actionTable);
     }
 

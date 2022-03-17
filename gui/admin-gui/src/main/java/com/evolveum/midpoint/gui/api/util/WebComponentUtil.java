@@ -151,8 +151,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -355,7 +353,7 @@ public final class WebComponentUtil {
         if (descriptor == null) {
             return null;
         }
-        return createStringResourceStatic(null, descriptor.getLocalizationKey()).getString();
+        return createStringResourceStatic(descriptor.getLocalizationKey()).getString();
     }
 
     public static String getReferencedObjectNames(List<ObjectReferenceType> refs, boolean showTypes) {
@@ -421,7 +419,7 @@ public final class WebComponentUtil {
             if (descriptor == null) {
                 return null;
             }
-            sb.append(emptyIfNull(createStringResourceStatic(null, descriptor.getLocalizationKey()).getString())).append(")");
+            sb.append(emptyIfNull(createStringResourceStatic(descriptor.getLocalizationKey()).getString())).append(")");
         }
         return sb.toString();
     }
@@ -932,12 +930,12 @@ public final class WebComponentUtil {
             Validate.notNull(type2);
 
             String key1 = "ObjectType." + type1.getLocalPart();
-            String localizedType1 = createStringResourceStatic(null, key1).getString();
+            String localizedType1 = createStringResourceStatic(key1).getString();
             if (StringUtils.isEmpty(localizedType1) || localizedType1.equals(key1)) {
                 localizedType1 = type1.getLocalPart();
             }
             String key2 = "ObjectType." + type2.getLocalPart();
-            String localizedType2 = createStringResourceStatic(null, key2).getString();
+            String localizedType2 = createStringResourceStatic(key2).getString();
             if (StringUtils.isEmpty(localizedType2) || localizedType1.equals(key2)) {
                 localizedType2 = type2.getLocalPart();
             }
@@ -1120,7 +1118,7 @@ public final class WebComponentUtil {
 
     public static IModel<String> createCategoryNameModel(final Component component,
             final IModel<String> categorySymbolModel) {
-        return (IModel<String>) () -> createStringResourceStatic(component,
+        return (IModel<String>) () -> createStringResourceStatic(
                 "pageTasks.category." + categorySymbolModel.getObject()).getString();
     }
 
@@ -1382,7 +1380,7 @@ public final class WebComponentUtil {
         }
 
         if (def.getDisplayName() != null) {
-            StringResourceModel nameModel = PageBase.createStringResourceStatic(component, def.getDisplayName());
+            StringResourceModel nameModel = PageBase.createStringResourceStatic(def.getDisplayName());
             if (StringUtils.isNotEmpty(nameModel.getString()) && !def.getDisplayName().equals(nameModel.getString())) {
                 return nameModel.getString();
             }
@@ -1717,11 +1715,11 @@ public final class WebComponentUtil {
         BaseSortableDataProvider<T> provider = (BaseSortableDataProvider<T>) dataTable.getDataProvider();
 
         List<T> selected = new ArrayList<>();
-        for (T bean : provider.getAvailableData()) {
-            if (bean.isSelected()) {
-                selected.add(bean);
-            }
-        }
+//        for (T bean : provider.getAvailableData()) {
+//            if (bean.isSelected()) {
+//                selected.add(bean);
+//            }
+//        }
 
         return selected;
     }
@@ -3234,7 +3232,7 @@ public final class WebComponentUtil {
                     key = object ? KEY_BOOLEAN_TRUE : KEY_BOOLEAN_FALSE;
                 }
 
-                StringResourceModel model = PageBase.createStringResourceStatic(null, key);
+                StringResourceModel model = PageBase.createStringResourceStatic(key);
 
                 return model.getString();
             }
@@ -3249,7 +3247,7 @@ public final class WebComponentUtil {
 
             @Override
             protected CharSequence getDefaultChoice(String selectedValue) {
-                StringResourceModel model = PageBase.createStringResourceStatic(null, KEY_BOOLEAN_NULL);
+                StringResourceModel model = PageBase.createStringResourceStatic(KEY_BOOLEAN_NULL);
 
                 return model.getString();
             }
@@ -3296,10 +3294,8 @@ public final class WebComponentUtil {
         }
         Breadcrumb previousBreadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
         Class<?> page = null;
-        if (previousBreadcrumb instanceof BreadcrumbPageClass) {
-            page = ((BreadcrumbPageClass) previousBreadcrumb).getPage();
-        } else if (previousBreadcrumb instanceof BreadcrumbPageInstance) {
-            page = ((BreadcrumbPageInstance) previousBreadcrumb).getPage().getClass();
+        if (previousBreadcrumb != null) {
+            page = previousBreadcrumb.getPageClass();
         }
         return page;
     }
@@ -3866,72 +3862,24 @@ public final class WebComponentUtil {
     }
 
     public static CompositedIcon createAccountIcon(ShadowType shadow, PageBase pageBase, boolean isColumn) {
-        List<TriggerType> triggerType = shadow.getTrigger();
         String iconCssClass = WebComponentUtil.createShadowIcon(shadow.asPrismObject());
         CompositedIconBuilder builder = new CompositedIconBuilder();
-        String title = createTriggerTooltip(triggerType, pageBase);
-        if (StringUtils.isNotBlank(title)) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-clock-o " + GuiStyleConstants.BLUE_COLOR);
-            if (isColumn) {
-                builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_FOR_COLUMN_STYLE);
-            } else {
-                builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_STYLE);
-            }
-        }
         builder.setBasicIcon(iconCssClass, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
 
-        if (shadow.getResourceRef().getObject() == null && !isColumn) {
-            Task task = pageBase.createSimpleTask("Load Resource");
-            try {
-                ResourceType resource = pageBase.getModelObjectResolver().resolve(
-                        shadow.getResourceRef(), ResourceType.class, null, "Load Resource", task, task.getResult());
-                shadow.getResourceRef().asReferenceValue().setObject(resource.asPrismObject());
-            } catch (CommonException e) {
-                //ignore exception
-            }
-        }
+        String title = createTriggerTooltip(shadow.getTrigger(), pageBase);
+        appendTriggerInfo(title, isColumn, builder);
 
-        if (shadow.getResourceRef() != null && shadow.getResourceRef().getObject() != null
-                && ResourceTypeUtil.isInMaintenance(shadow.getResourceRef().getObject())) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-wrench " + GuiStyleConstants.CLASS_ICON_STYLE_MAINTENANCE);
-            if (isColumn) {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE);
-            } else {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_LEFT_STYLE);
-            }
-            if (StringUtils.isNotBlank(title)) {
-                title = title + "\n " + pageBase.createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
-            } else {
-                title = pageBase.createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
-            }
-        }
+        ResourceType resource = resolveResource(shadow, isColumn, pageBase);
 
-        if (BooleanUtils.isTrue(shadow.isDead())) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-times-circle " + GuiStyleConstants.RED_COLOR);
-            if (isColumn) {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-            } else {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
-            }
-            builder.setTitle(pageBase.createStringResource("FocusProjectionsTabPanel.deadShadow").getString()
-                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+        title = appendMaintenanceInfoAndUpdateTitle(title, resource, isColumn, pageBase, builder);
+
+        if (ShadowUtil.isDead(shadow)) {
+            appendDeadInfo(title, isColumn, pageBase, builder);
             return builder.build();
         }
 
-        if (shadow.getResourceRef() != null && shadow.getResourceRef().getObject() != null
-                && !ResourceTypeUtil.isActivationCapabilityEnabled((ResourceType) shadow.getResourceRef().getObject().asObjectable(), null)) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-ban " + GuiStyleConstants.RED_COLOR);
-            if (isColumn) {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-            } else {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
-            }
-            builder.setTitle(pageBase.createStringResource("accountIcon.activation.notSupported").getString()
-                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+        if (activationNotSupported(resource) ) {
+            appendNotSupportedActivation(title, isColumn, pageBase, builder);
             return builder.build();
         }
 
@@ -3942,19 +3890,9 @@ public final class WebComponentUtil {
             appendUndefinedIcon(builder);
             return builder.build();
         }
-        LockoutStatusType lockoutStatus = activation.getLockoutStatus();
-        XMLGregorianCalendar lockoutExpirationTimestamp = activation.getLockoutExpirationTimestamp();
-        if ((lockoutStatus != null && LockoutStatusType.LOCKED == lockoutStatus)
-                || (lockoutExpirationTimestamp != null && pageBase.getClock().isPast((lockoutExpirationTimestamp)))) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-lock " + GuiStyleConstants.RED_COLOR);
-            if (isColumn) {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-            } else {
-                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
-            }
-            builder.setTitle(pageBase.createStringResource("LockoutStatusType.LOCKED").getString()
-                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+
+        if (isShadowLocked(activation, pageBase)) {
+            appendLockedTitle(title, isColumn, pageBase, builder);
             return builder.build();
         }
 
@@ -3987,6 +3925,105 @@ public final class WebComponentUtil {
 
         return builder.build();
     }
+
+    private static void appendLockedTitle(String title, boolean isColumn, PageBase pageBase, CompositedIconBuilder builder) {
+        IconType icon = new IconType();
+        icon.setCssClass("fa fa-lock " + GuiStyleConstants.RED_COLOR);
+        if (isColumn) {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+        } else {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+        }
+        builder.setTitle(pageBase.createStringResource("LockoutStatusType.LOCKED").getString()
+                + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+    }
+
+    private static boolean isShadowLocked(ActivationType activation, PageBase pageBase) {
+        LockoutStatusType lockoutStatus = activation.getLockoutStatus();
+        XMLGregorianCalendar lockoutExpirationTimestamp = activation.getLockoutExpirationTimestamp();
+        return (lockoutStatus != null && LockoutStatusType.LOCKED == lockoutStatus)
+                || (lockoutExpirationTimestamp != null && pageBase.getClock().isPast((lockoutExpirationTimestamp)));
+    }
+
+    private static void appendNotSupportedActivation(String title, boolean isColumn, PageBase pageBase, CompositedIconBuilder builder) {
+        IconType icon = new IconType();
+        icon.setCssClass("fa fa-ban " + GuiStyleConstants.RED_COLOR);
+        if (isColumn) {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+        } else {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+        }
+        builder.setTitle(pageBase.createStringResource("accountIcon.activation.notSupported").getString()
+                + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+    }
+
+    private static boolean activationNotSupported(ResourceType resource) {
+        return resource != null && !ResourceTypeUtil.isActivationCapabilityEnabled(resource, null);
+    }
+
+    private static void appendDeadInfo(String title, boolean isColumn, PageBase pageBase, CompositedIconBuilder builder) {
+        IconType icon = new IconType();
+        icon.setCssClass("fa fa-times-circle " + GuiStyleConstants.RED_COLOR);
+        if (isColumn) {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+        } else {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+        }
+        builder.setTitle(pageBase.createStringResource("FocusProjectionsTabPanel.deadShadow").getString()
+                + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+    }
+
+    private static String appendMaintenanceInfoAndUpdateTitle(String title, ResourceType resource, boolean isColumn, PageBase pageBase, CompositedIconBuilder builder) {
+        if (resource == null || !ResourceTypeUtil.isInMaintenance(resource)) {
+            return title;
+        }
+
+        IconType icon = new IconType();
+        icon.setCssClass("fa fa-wrench " + GuiStyleConstants.CLASS_ICON_STYLE_MAINTENANCE);
+        if (isColumn) {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE);
+        } else {
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_LEFT_STYLE);
+        }
+        if (StringUtils.isNotBlank(title)) {
+            return title + "\n " + pageBase.createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
+        } else {
+            return pageBase.createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
+        }
+    }
+
+    private static void appendTriggerInfo(String title, boolean isColumn, CompositedIconBuilder builder) {
+        if (StringUtils.isNotBlank(title)) {
+            IconType icon = new IconType();
+            icon.setCssClass("fa fa-clock-o " + GuiStyleConstants.BLUE_COLOR);
+            if (isColumn) {
+                builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_FOR_COLUMN_STYLE);
+            } else {
+                builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_STYLE);
+            }
+        }
+    }
+
+    private static ResourceType resolveResource(ShadowType shadowType, boolean isColumn, PageBase pageBase) {
+        PrismObject<ResourceType> prismResource = shadowType.getResourceRef().getObject();
+        LOGGER.trace("Resource reference in shadow with full object : {}", shadowType);
+        if (prismResource != null) {
+            return prismResource.asObjectable();
+        }
+        if (!isColumn) {
+            Task task = pageBase.createSimpleTask("Load Resource");
+            try {
+                // Do not set object to shadow.resourceRef. We don't want to serialize it
+                return pageBase.getModelObjectResolver().resolve(
+                        shadowType.getResourceRef(), ResourceType.class,
+                        SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), "Load Resource", task, task.getResult());
+            } catch (CommonException e) {
+                //ignore exception
+            }
+        }
+        return null;
+    }
+
 
     private static void appendUndefinedIcon(CompositedIconBuilder builder) {
         appendIcon(builder, "fa fa-question " + GuiStyleConstants.RED_COLOR, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
@@ -4834,7 +4871,7 @@ public final class WebComponentUtil {
         return SessionStorage.KEY_OBJECT_LIST + "." + additionalKeyValue;
     }
 
-    public static AssignmentHolderType getObjectFromAddDeltyForCase(CaseType aCase) {
+    public static AssignmentHolderType getObjectFromAddDeltaForCase(CaseType aCase) {
         if (aCase != null && aCase.getApprovalContext() != null
                 && aCase.getApprovalContext().getDeltasToApprove() != null) {
             ObjectTreeDeltasType deltaTree = aCase.getApprovalContext().getDeltasToApprove();

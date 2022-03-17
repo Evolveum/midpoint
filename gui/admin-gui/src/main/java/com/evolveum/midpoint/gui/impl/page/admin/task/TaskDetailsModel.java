@@ -87,4 +87,11 @@ public class TaskDetailsModel extends AssignmentHolderDetailsModel<TaskType> {
     public TaskType getRootTaskModelObject() {
         return rootTaskModel.getObject();
     }
+
+    @Override
+    public void detach() {
+        rootTaskModel.detach();
+
+        super.detach();
+    }
 }

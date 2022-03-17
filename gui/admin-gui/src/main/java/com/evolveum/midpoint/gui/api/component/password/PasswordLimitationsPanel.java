@@ -71,12 +71,7 @@ public class PasswordLimitationsPanel extends BasePanel<List<StringLimitationRes
                 StringLimitationPanel limitationPanel = new StringLimitationPanel(ID_VALIDATION_ITEM, item.getModel());
                 limitationPanel.setOutputMarkupId(true);
                 item.add(limitationPanel);
-                item.add(AttributeModifier.append("class", new IModel<String>() {
-                    @Override
-                    public String getObject() {
-                        return Boolean.TRUE.equals(item.getModelObject().isSuccess()) ? " text-success" : " text-danger";
-                    }
-                }));
+                item.add(AttributeModifier.append("class", (IModel<String>) () -> Boolean.TRUE.equals(item.getModelObject().isSuccess()) ? " text-success" : " text-danger"));
             }
         };
         validationItems.setOutputMarkupId(true);

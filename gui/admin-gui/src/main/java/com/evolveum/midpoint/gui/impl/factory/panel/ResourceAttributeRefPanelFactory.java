@@ -14,10 +14,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 
 import org.apache.wicket.model.IModel;
 import org.springframework.stereotype.Component;
@@ -115,12 +122,17 @@ public class ResourceAttributeRefPanelFactory
         ConstructionValueWrapper constructionWrapper = (ConstructionValueWrapper) itemWrapper;
 
         try {
-            ResourceSchema schema = constructionWrapper.getRefinedSchema();
+            Task task = ctx.getPageBase().createSimpleTask("Load resource");
+            OperationResult result = task.getResult();
+            PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class,
+                    constructionWrapper.getResourceOid(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch()),
+                    ctx.getPageBase(), task, result);
+            ResourceSchema schema = constructionWrapper.getRefinedSchema(resource);
             if (schema == null) {
                 return new ArrayList<>();
             }
             ResourceObjectDefinition rOcd =
-                    schema.findObjectDefinition(constructionWrapper.getKind(), constructionWrapper.getIntent());
+                    schema.findObjectDefinition(constructionWrapper.getKind(), constructionWrapper.getIntent(resource));
             if (rOcd == null) {
                 return Collections.emptyList();
             }

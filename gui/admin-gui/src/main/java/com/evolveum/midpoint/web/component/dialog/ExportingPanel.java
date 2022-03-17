@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -39,6 +41,8 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import org.apache.wicket.util.visit.IVisitor;
 
 /**
  * @author lskublik
@@ -134,8 +138,13 @@ public class ExportingPanel extends BasePanel<ExportingPanel> implements Popupab
 
     private void performSelectedColumns(BoxedTablePanel<SelectableBean<Integer>> table) {
         exportedColumnsIndex.clear();
-        List<Integer> availableData = ((SelectableListDataProvider) table.getDataTable().getDataProvider()).getSelectedRealObjects();
-        exportedColumnsIndex.addAll(availableData);
+
+        table.getDataTable().visitChildren(SelectableDataTable.SelectableRowItem.class, (IVisitor<SelectableDataTable.SelectableRowItem<SelectableBean<Integer>>, Void>) (row, visit) -> {
+            if (row.getModelObject().isSelected()) {
+                exportedColumnsIndex.add(row.getModelObject().getValue());
+            }
+        });
+//        exportedColumnsIndex.addAll(availableData);
     }
 
     private IModel<String> getWarningMessageModel() {

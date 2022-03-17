@@ -90,7 +90,7 @@ public class ObjectTemplateItemPanel extends ItemRefinedPanel<ObjectTemplateItem
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         getMultivalueContainerListPanel().editItemPerformed(target, getRowModel(),
-                                getMultivalueContainerListPanel().getSelectedItems());
+                                getMultivalueContainerListPanel().getSelectedObjects());
                         target.add(getMultivalueContainerListPanel().getFeedbackPanel());
                     }
                 };

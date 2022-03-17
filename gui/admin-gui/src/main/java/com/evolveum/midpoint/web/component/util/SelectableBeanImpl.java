@@ -18,10 +18,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
+import org.apache.wicket.model.IDetachable;
+import org.apache.wicket.model.IModel;
+
 /**
  * @author lazyman
  */
-public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> implements SelectableBean<T> {
+public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> implements SelectableBean<T> , IDetachable {
     private static final long serialVersionUID = 1L;
 
     public static final String F_VALUE = "value";
@@ -31,7 +34,8 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
     /**
      * Value of object that this bean represents. It may be null in case that non-success result is set.
      */
-    private T value;
+//    private T value;
+    private IModel<T> model;
 
     //TODO probably this should not be here. find better place if needed, e.g. subclass with specific behaviour and attributes.
     private int activeSessions;
@@ -48,17 +52,29 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
     public SelectableBeanImpl() {
     }
 
-    public SelectableBeanImpl(T value) {
-        this.value = value;
+//    public SelectableBeanImpl(T value) {
+//        this.value = value;
+//    }
+
+    public SelectableBeanImpl(IModel<T> value) {
+        this.model = value;
     }
 
     public T getValue() {
-        return value;
+        if (model == null) {
+            return null;
+        }
+        return model.getObject();
     }
 
-    public void setValue(T value) {
-        this.value = value;
+    @Override
+    public void setModel(IModel<T> value) {
+
     }
+
+    //    public void setValue(T value) {
+//        this.value = value;
+//    }
 
     public OperationResult getResult() {
         return result;
@@ -93,7 +109,7 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
         final int prime = 31;
         int result = 1;
         result = prime * result + ((this.result == null) ? 0 : this.result.hashCode());
-        result = prime * result + ((value == null) ? 0 : value.hashCode());
+        result = prime * result + ((getValue() == null) ? 0 : getValue().hashCode());
         return result;
     }
 
@@ -117,15 +133,15 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
         } else if (!result.equals(other.result)) {
             return false;
         }
-        if (value == null) {
-            if (other.value != null) {
+        if (getValue() == null) {
+            if (other.getValue() != null) {
                 return false;
             }
         // In case both values are objects then compare only OIDs.
         // that should be enough. Comparing complete objects may be slow
         // (e.g. if the objects have many assignments) and Wicket
         // invokes compare a lot ...
-        } else if (!MiscSchemaUtil.quickEquals(value, other.value)) {
+        } else if (!MiscSchemaUtil.quickEquals(getValue(), other.getValue())) {
             return false;
         }
         return true;
@@ -141,7 +157,7 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("SelectableBean\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "value", value==null?null:value.toString(), indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "value", getValue()==null?null:getValue().toString(), indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "result", result==null?null:result.toString(), indent+1);
         return sb.toString();
     }
@@ -154,5 +170,10 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
     @Override
     public void setCustomData(Object customData) {
         this.customData = customData;
+    }
+
+    @Override
+    public void detach() {
+        customData = null;
     }
 }

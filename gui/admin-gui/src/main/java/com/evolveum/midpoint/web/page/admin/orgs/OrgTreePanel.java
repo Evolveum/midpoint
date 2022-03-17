@@ -70,6 +70,12 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
         if (preselecteOrgsList != null){
             this.preselecteOrgsList.addAll(preselecteOrgsList);
         }
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
         selected = new LoadableModel<TreeSelectableBean<OrgType>>() {
             private static final long serialVersionUID = 1L;
 
@@ -98,22 +104,22 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
             }
         };
 
-        initLayout(serviceLocator);
+        initLayout();
     }
 
     public TreeSelectableBean<OrgType> getSelected() {
         return selected.getObject();
     }
 
+    public IModel<TreeSelectableBean<OrgType>> getSelectedOrgModel() {
+        return selected;
+    }
+
     public void setSelected(TreeSelectableBean<OrgType> org) {
         selected.setObject(org);
     }
 
-    public List<OrgType> getSelectedOrgs() {
-        return ((OrgTreeProvider) getTree().getProvider()).getSelectedObjects();
-    }
-
-    private void initLayout(ModelServiceLocator serviceLocator) {
+    private void initLayout() {
         WebMarkupContainer treeHeader = new WebMarkupContainer(ID_TREE_HEADER);
         treeHeader.setOutputMarkupId(true);
         add(treeHeader);
@@ -219,7 +225,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
                     @Override
                     protected IModel<List<InlineMenuItem>> createInlineMenuItemsModel() {
-                        return new ReadOnlyModel<>(() -> createTreeChildrenMenuInternal(model.getObject(), serviceLocator.getCompiledGuiProfile()));
+                        return new ReadOnlyModel<>(() -> createTreeChildrenMenuInternal(model.getObject(), getPageBase().getCompiledGuiProfile()));
                     }
                 };
                 contentPannels.add(contentPannel);

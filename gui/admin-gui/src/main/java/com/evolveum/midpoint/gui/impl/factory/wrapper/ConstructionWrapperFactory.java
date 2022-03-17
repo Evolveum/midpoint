@@ -46,14 +46,9 @@ public class ConstructionWrapperFactory extends AssignmentDetailsWrapperFactoryI
         ConstructionValueWrapper constructionValueWrapper = new ConstructionValueWrapper(objectWrapper, objectValue, status);
         ConstructionType constructionType = objectValue.asContainerable();
         if (constructionType.getResourceRef() != null) {
-            PrismObject resource = constructionType.getResourceRef().asReferenceValue().getObject();
-            if (resource != null) {
-                constructionValueWrapper.setResource(resource);
-                return constructionValueWrapper;
-            }
-
+            constructionValueWrapper.setResourceOid(constructionType.getResourceRef().getOid());
         }
-        setupResource(constructionValueWrapper, constructionType, context);
+//        setupResource(constructionValueWrapper, constructionType, context);
         return constructionValueWrapper;
     }
 
@@ -72,6 +67,6 @@ public class ConstructionWrapperFactory extends AssignmentDetailsWrapperFactoryI
             return;
         }
 
-        constructionValueWrapper.setResource(resource);
+        constructionValueWrapper.setResourceOid(resource.getOid());
     }
 }

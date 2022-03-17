@@ -19,8 +19,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
-import org.apache.wicket.model.StringResourceModel;
-
 /**
  * @author Viliam Repan (lazyman)
  */
@@ -50,7 +48,7 @@ public class Property implements Serializable, Comparable<Property> {
             return WebComponentUtil.getTranslatedPolyString(displayName);
         }
         if (definition != null && StringUtils.isNotEmpty(definition.getDisplayName())) {
-            return PageBase.createStringResourceStatic(null, definition.getDisplayName()).getString();
+            return PageBase.createStringResourceStatic(definition.getDisplayName()).getString();
         }
         return WebComponentUtil.getItemDefinitionDisplayNameOrName(definition, null);
     }

@@ -120,7 +120,7 @@ public class ActivitiesStatisticsPanelOld extends BasePanel<PrismObjectWrapper<T
                 };
 
         actionTable.setOutputMarkupId(true);
-        actionTable.add(new VisibleBehaviour(() -> !dataProvider.getAvailableData().isEmpty()));
+        actionTable.add(new VisibleBehaviour(() -> true));//!dataProvider.getAvailableData().isEmpty()));
         add(actionTable);
     }
 

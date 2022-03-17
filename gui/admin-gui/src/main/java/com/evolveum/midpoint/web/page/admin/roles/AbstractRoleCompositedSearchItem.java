@@ -94,16 +94,15 @@ public class AbstractRoleCompositedSearchItem<R extends AbstractRoleType> extend
     }
 
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
-        AbstractRoleType object = getParentVariables(variables);
-        if (object == null) {
+        ObjectReferenceType parentRef = getParentVariables(variables);
+        if (parentRef == null) {
             return null;
         }
 
         Class type = getSearch().getTypeClass();
         SearchBoxScopeType scope = searchBoxConfig.getDefaultSearchScopeConfiguration().getDefaultValue();
         if (SearchBoxScopeType.SUBTREE == scope) {
-            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, (QName) null);
-            return pageBase.getPrismContext().queryFor(type).isChildOf(ref.asReferenceValue()).buildFilter();
+            return pageBase.getPrismContext().queryFor(type).isChildOf(parentRef.asReferenceValue()).buildFilter();
         }
 
         PrismContext prismContext = pageBase.getPrismContext();
@@ -120,13 +119,13 @@ public class AbstractRoleCompositedSearchItem<R extends AbstractRoleType> extend
 
         if(BooleanUtils.isTrue(indirect)) {
             filter = prismContext.queryFor(type)
-                    .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
+                    .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(parentRef, relations))
                     .buildFilter();
         } else {
             S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
                     .block()
                     .item(AssignmentType.F_TARGET_REF)
-                    .ref(MemberOperationsHelper.createReferenceValuesList(object, relations));
+                    .ref(MemberOperationsHelper.createReferenceValuesList(parentRef, relations));
 
             if (!searchBoxConfig.isTenantEmpty()) {
                 q = q.and().item(AssignmentType.F_TENANT_REF).ref(searchBoxConfig.getTenant().getOid());
@@ -152,12 +151,12 @@ public class AbstractRoleCompositedSearchItem<R extends AbstractRoleType> extend
         return null;
     }
 
-    private R getParentVariables(VariablesMap variables) {
+    private ObjectReferenceType getParentVariables(VariablesMap variables) {
         if (variables == null) {
             return null;
         }
         try {
-            return (R) variables.getValue(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleType.class);
+            return variables.getValue(ExpressionConstants.VAR_PARENT_OBJECT, ObjectReferenceType.class);
         } catch (SchemaException e) {
             LOGGER.error("Couldn't load parent object.");
         }

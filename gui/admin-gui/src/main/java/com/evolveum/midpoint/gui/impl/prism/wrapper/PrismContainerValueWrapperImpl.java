@@ -513,8 +513,8 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     }
 
     @Override
-    public boolean setSelected(boolean selected) {
-        return this.selected = selected;
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 
     @Override
