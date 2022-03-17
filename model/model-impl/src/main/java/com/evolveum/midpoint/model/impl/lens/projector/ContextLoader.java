@@ -9,10 +9,13 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.executor.FocusChangeExecution;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
 import org.jetbrains.annotations.NotNull;
@@ -64,13 +67,45 @@ public class ContextLoader implements ProjectorProcessor {
 
     public static final String CLASS_DOT = ContextLoader.class.getName() + ".";
 
+    /**
+     * How many times do we try to load the context: the load is repeated if the focus
+     * is updated by an embedded clockwork run (presumably due to discovery process).
+     */
+    private static final int MAX_LOAD_ATTEMPTS = 3;
+
+    /**
+     * Loads the whole context.
+     *
+     * The loading is repeated if the focus is modified during the `load` operation. See MID-7725.
+     */
     @ProcessorMethod
     <F extends ObjectType> void load(@NotNull LensContext<F> context, @NotNull String activityDescription,
             @SuppressWarnings("unused") XMLGregorianCalendar now, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-        new ContextLoadOperation<>(context, activityDescription, task)
-                .load(parentResult);
+
+        for (int attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+            Set<String> modifiedOids = new HashSet<>();
+            FocusChangeExecution.ChangeExecutionListener listener = modifiedOids::add;
+            FocusChangeExecution.registerChangeExecutionListener(listener);
+            try {
+                new ContextLoadOperation<>(context, activityDescription, task)
+                        .load(parentResult);
+            } finally {
+                FocusChangeExecution.unregisterChangeExecutionListener(listener);
+            }
+            LOGGER.trace("Focus OID/OIDs modified during load operation in this thread: {}", modifiedOids);
+            LensFocusContext<F> focusContext = context.getFocusContext();
+            if (focusContext != null && focusContext.getOid() != null && modifiedOids.contains(focusContext.getOid())) {
+                LOGGER.debug("Detected modification of the focus during 'load' operation, retrying the loading (#{})", attempt);
+                context.rot("focus modification during loading");
+            } else {
+                LOGGER.trace("No modification of the focus during 'load' operation, continuing");
+                return;
+            }
+        }
+        LOGGER.warn("Focus was repeatedly modified during loading ({} times) - continuing, but it's suspicious",
+                MAX_LOAD_ATTEMPTS);
     }
 
     public <O extends ObjectType> void loadFocusContext(LensContext<O> context, Task task, OperationResult parentResult)
