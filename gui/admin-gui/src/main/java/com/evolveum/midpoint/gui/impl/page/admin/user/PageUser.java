@@ -120,6 +120,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     @Override
     protected UserOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<UserType>> wrapperModel) {
         return new UserOperationalButtonsPanel(id, wrapperModel, getObjectDetailsModels().getDelegationsModel(), getObjectDetailsModels().getExecuteOptionsModel(), getObjectDetailsModels().isSelfProfile()) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -136,6 +137,10 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
                 PageUser.this.previewPerformed(target);
             }
 
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageUser.this.hasUnsavedChanges(target);
+            }
         };
     }
 

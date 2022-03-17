@@ -11,6 +11,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.activity.ActivityListener;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.run.sources.RepositoryItemSourceFactory;
@@ -29,6 +30,8 @@ import com.google.common.base.MoreObjects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class CommonTaskBeans {
@@ -53,6 +56,8 @@ public class CommonTaskBeans {
     @Autowired public BucketContentFactoryGenerator contentFactoryCreator;
     @Autowired public ExpressionFactory expressionFactory;
     @Autowired public RepositoryItemSourceFactory repositoryItemSourceFactory;
+
+    @Autowired(required = false) public List<ActivityListener> activityListeners;
 
     @Autowired(required = false) private AdvancedActivityRunSupport advancedActivityRunSupport;
 

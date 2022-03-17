@@ -42,6 +42,7 @@ class ReportActivitySupport {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportActivitySupport.class);
 
+    @NotNull protected final AbstractActivityRun<?, ?, ?> activityRun;
     @NotNull protected final RunningTask runningTask;
     @NotNull protected final CommonTaskBeans beans;
     @NotNull protected final ReportServiceImpl reportService;
@@ -50,20 +51,17 @@ class ReportActivitySupport {
     @NotNull protected final ModelAuditService modelAuditService;
     @NotNull protected final ModelService modelService;
 
-    /**
-     * Resolved report object.
-     */
+    /** Resolved report object. */
     protected ReportType report;
 
-    /**
-     * Compiled final collection from more collections and archetypes related to object type.
-     */
+    /** Compiled final collection from more collections and archetypes related to object type. */
     private CompiledObjectCollectionView compiledView;
 
     ReportActivitySupport(AbstractActivityRun<?, ?, ?> activityRun, ReportServiceImpl reportService,
             @NotNull ObjectResolver resolver, @NotNull AbstractReportWorkDefinition workDefinition) {
-        runningTask = activityRun.getTaskRun().getRunningTask();
-        beans = activityRun.getTaskRun().getBeans();
+        this.activityRun = activityRun;
+        this.runningTask = activityRun.getRunningTask();
+        this.beans = activityRun.getBeans();
         this.reportService = reportService;
         this.resolver = resolver;
         this.workDefinition = workDefinition;

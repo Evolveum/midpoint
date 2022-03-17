@@ -177,7 +177,28 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 AbstractPageObjectDetails.this.savePerformed(target);
             }
 
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return AbstractPageObjectDetails.this.hasUnsavedChanges(target);
+            }
         };
+    }
+
+    protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_SAVE);
+
+        try {
+            Collection<ObjectDelta<? extends ObjectType>> deltas = objectDetailsModels.collectDeltas(result);
+
+            return !deltas.isEmpty();
+        } catch (Throwable ex) {
+            result.recordFatalError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't compute delta changes", ex);
+            showResult(result);
+            target.add(getFeedbackPanel());
+
+            return true;
+        }
     }
 
     public void savePerformed(AjaxRequestTarget target) {
@@ -188,8 +209,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     public Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
         return saveOrPreviewPerformed(target, result, previewOnly, null);
     }
-
-//    private ObjectDelta<O> delta;
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
 

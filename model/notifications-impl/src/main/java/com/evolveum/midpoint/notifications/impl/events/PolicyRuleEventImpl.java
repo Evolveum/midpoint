@@ -9,7 +9,6 @@ package com.evolveum.midpoint.notifications.impl.events;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.notifications.api.events.PolicyRuleEvent;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
@@ -27,11 +26,6 @@ public class PolicyRuleEventImpl extends BaseEventImpl implements PolicyRuleEven
     public PolicyRuleEventImpl(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull EvaluatedPolicyRule policyRule) {
         super(lightweightIdentifierGenerator);
         this.policyRule = policyRule;
-    }
-
-    @Override
-    public boolean isRelatedToItem(ItemPath itemPath) {
-        return false;           // not supported for this kind of events
     }
 
     @Override

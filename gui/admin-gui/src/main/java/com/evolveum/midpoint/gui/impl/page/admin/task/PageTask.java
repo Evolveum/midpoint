@@ -13,6 +13,7 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.TaskOperationalButtonsPanel;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -154,6 +155,10 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
                 PageTask.this.savePerformed(target);
             }
 
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageTask.this.hasUnsavedChanges(target);
+            }
         };
     }
 

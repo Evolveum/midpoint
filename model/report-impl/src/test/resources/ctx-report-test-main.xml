@@ -26,4 +26,5 @@
     <import resource="ctx-repo-cache.xml"/>
     <import resource="ctx-configuration-test.xml"/>
     <import resource="ctx-report.xml"/>
+    <import resource="ctx-notifications.xml"/>
 </beans>

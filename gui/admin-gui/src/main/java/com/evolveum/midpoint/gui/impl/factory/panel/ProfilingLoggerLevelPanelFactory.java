@@ -42,26 +42,33 @@ public class ProfilingLoggerLevelPanelFactory extends AbstractInputGuiComponentF
         return wrapper.getParent() instanceof ProfilingClassLoggerContainerValueWrapperImpl && wrapper.getItemName().equals(ClassLoggerConfigurationType.F_LEVEL);
     }
 
-    //FIXME model
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<LoggingLevelType> panelCtx) {
-        DropDownChoicePanel<ProfilingLevel> dropDownProfilingLevel = new DropDownChoicePanel<>(panelCtx.getComponentId(), new Model<ProfilingLevel>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public ProfilingLevel getObject() {
-                return ProfilingLevel.fromLoggerLevelType(panelCtx.getRealValueModel().getObject());
-            }
-
-            @Override
-            public void setObject(ProfilingLevel object) {
-                super.setObject(object);
-                panelCtx.getRealValueModel().setObject(ProfilingLevel.toLoggerLevelType(object));
-            }
-
-        }, WebComponentUtil.createReadonlyModelFromEnum(ProfilingLevel.class), new EnumChoiceRenderer<>(), true);
+        DropDownChoicePanel<ProfilingLevel> dropDownProfilingLevel = new DropDownChoicePanel<>(panelCtx.getComponentId(), new ProfilingLevelModel(panelCtx),
+                WebComponentUtil.createReadonlyModelFromEnum(ProfilingLevel.class), new EnumChoiceRenderer<>(), true);
 
         return dropDownProfilingLevel;
+    }
+
+    private static class ProfilingLevelModel extends Model<ProfilingLevel> {
+
+        private static final long serialVersionUID = 1L;
+
+        private PrismPropertyPanelContext<LoggingLevelType> panelCtx;
+
+        public ProfilingLevelModel(PrismPropertyPanelContext<LoggingLevelType> panelCtx) {
+            this.panelCtx = panelCtx;
+        }
+
+        @Override
+        public ProfilingLevel getObject() {
+            return ProfilingLevel.fromLoggerLevelType(panelCtx.getRealValueModel().getObject());
+        }
+
+        @Override
+        public void setObject(ProfilingLevel object) {
+            super.setObject(object);
+            panelCtx.getRealValueModel().setObject(ProfilingLevel.toLoggerLevelType(object));
+        }
     }
 }

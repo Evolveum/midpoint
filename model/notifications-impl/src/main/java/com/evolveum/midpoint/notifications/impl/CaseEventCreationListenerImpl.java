@@ -85,7 +85,7 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
                 identifierGenerator,
                 ChangeType.ADD,
                 workItem,
-                SimpleObjectRefImpl.create(functions, assignee),
+                SimpleObjectRefImpl.create(assignee),
                 null,
                 null,
                 null,
@@ -100,7 +100,7 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
             WorkItemOperationInfo operationInfo, WorkItemOperationSourceInfo sourceInfo,
             CaseType aCase, Task task, OperationResult result) {
         WorkItemEventImpl event = new WorkItemLifecycleEventImpl(identifierGenerator, ChangeType.DELETE, workItem,
-                SimpleObjectRefImpl.create(functions, assignee),
+                SimpleObjectRefImpl.create(assignee),
                 getInitiator(sourceInfo), operationInfo, sourceInfo, aCase.getApprovalContext(), aCase);
         initializeWorkflowEvent(event, aCase);
         eventHelper.processEvent(event, task, result);
@@ -111,7 +111,7 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
             @NotNull WorkItemNotificationActionType notificationAction, WorkItemEventCauseInformationType cause,
             CaseType aCase, Task task, OperationResult result) {
         WorkItemEventImpl event = new WorkItemCustomEventImpl(identifierGenerator, ChangeType.ADD, workItem,
-                SimpleObjectRefImpl.create(functions, assignee),
+                SimpleObjectRefImpl.create(assignee),
                 new WorkItemOperationSourceInfo(null, cause, notificationAction),
                 aCase.getApprovalContext(), aCase, notificationAction.getHandler());
         initializeWorkflowEvent(event, aCase);
@@ -152,7 +152,7 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
             @Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
             CaseType aCase, Task task, OperationResult result) {
         WorkItemAllocationEventImpl event = new WorkItemAllocationEventImpl(identifierGenerator, ChangeType.ADD, workItem,
-                SimpleObjectRefImpl.create(functions, newActor),
+                SimpleObjectRefImpl.create(newActor),
                 getInitiator(sourceInfo), operationInfo, sourceInfo,
                 aCase.getApprovalContext(), aCase, null);
         initializeWorkflowEvent(event, aCase);
@@ -161,7 +161,7 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
 
     private SimpleObjectRef getInitiator(WorkItemOperationSourceInfo sourceInfo) {
         return sourceInfo != null ?
-                SimpleObjectRefImpl.create(functions, sourceInfo.getInitiatorRef()) : null;
+                SimpleObjectRefImpl.create(sourceInfo.getInitiatorRef()) : null;
     }
 
     private void onWorkItemAllocationModifyDelete(ObjectReferenceType currentActor, @NotNull CaseWorkItemType workItem,
@@ -170,7 +170,7 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
             Task task, OperationResult result) {
         WorkItemAllocationEventImpl event = new WorkItemAllocationEventImpl(identifierGenerator,
                 timeBefore != null ? ChangeType.MODIFY : ChangeType.DELETE, workItem,
-                SimpleObjectRefImpl.create(functions, currentActor),
+                SimpleObjectRefImpl.create(currentActor),
                 getInitiator(sourceInfo), operationInfo, sourceInfo,
                 aCase.getApprovalContext(), aCase, timeBefore);
         initializeWorkflowEvent(event, aCase);
@@ -179,8 +179,8 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
     //endregion
 
     private void initializeWorkflowEvent(CaseManagementEventImpl event, CaseType aCase) {
-        event.setRequester(SimpleObjectRefImpl.create(functions, aCase.getRequestorRef()));
-        event.setRequestee(SimpleObjectRefImpl.create(functions, aCase.getObjectRef()));
+        event.setRequester(SimpleObjectRefImpl.create(aCase.getRequestorRef()));
+        event.setRequestee(SimpleObjectRefImpl.create(aCase.getObjectRef()));
         // TODO what if requestee is yet to be created?
     }
 }

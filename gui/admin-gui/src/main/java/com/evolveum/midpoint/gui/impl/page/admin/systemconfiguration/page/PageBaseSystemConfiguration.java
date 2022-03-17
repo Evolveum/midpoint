@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
@@ -148,6 +149,11 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
             @Override
             protected boolean isDeleteButtonVisible() {
                 return false;
+            }
+
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageBaseSystemConfiguration.this.hasUnsavedChanges(target);
             }
         };
     }

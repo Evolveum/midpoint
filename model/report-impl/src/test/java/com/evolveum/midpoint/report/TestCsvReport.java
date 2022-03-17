@@ -11,13 +11,11 @@ import java.text.ParseException;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -73,5 +71,9 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
         FileFormatConfigurationType config = new FileFormatConfigurationType();
         config.setType(FileFormatTypeType.CSV);
         return config;
+    }
+
+    void assertNotificationMessage(TestResource<ReportType> reportTestResource) {
+        assertNotificationMessage(reportTestResource.getObjectable(), "text/csv");
     }
 }
