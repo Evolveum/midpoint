@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObje
 
 import java.util.*;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -35,10 +36,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.export.Abstr
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -602,7 +600,7 @@ public class ColumnUtils {
                 CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                 CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
                 String name;
-                AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltyForCase(caseType);
+                AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(caseType);
                 if (object == null) {
                     name = WebModelServiceUtils.resolveReferenceName(caseType.getObjectRef(), pageBase, true);
                 } else {
@@ -624,7 +622,7 @@ public class ColumnUtils {
                     final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                 CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltyForCase(caseType);
+                AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(caseType);
                 if (object == null) {
                     super.populateItem(cellItem, componentId, rowModel);
                 } else {
@@ -789,37 +787,41 @@ public class ColumnUtils {
         IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
         columns.add(column);
 
-        column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.objectRef")) {
+        column = new AbstractExportableColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.objectRef")) {
             @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
-                item.add(new Label(componentId, new IModel<String>() {
-                    @Override
-                    public String getObject() {
-                        CaseType caseModelObject = rowModel.getObject().getValue();
-                        if (caseModelObject == null) {
-                            return "";
-                        }
-                        AssignmentHolderType objectRef = WebComponentUtil.getObjectFromAddDeltyForCase(caseModelObject);
-                        if (objectRef != null) {
-                            return WebComponentUtil.getEffectiveName(objectRef, AbstractRoleType.F_DISPLAY_NAME);
-                        } else if (caseModelObject.getObjectRef() != null
-                                && StringUtils.isNotEmpty(caseModelObject.getObjectRef().getOid())) {
-                            if (caseModelObject.getObjectRef().getObject() != null) {
-                                return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef().getObject(),
-                                        AbstractRoleType.F_DISPLAY_NAME);
-                            } else {
-                                try {
-                                    return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef(), AbstractRoleType.F_DISPLAY_NAME, pageBase,
-                                            pageBase.getClass().getSimpleName() + "." + "loadCaseObjectRefName");
-                                } catch (Exception ex) {
-                                    LOGGER.error("Unable find the object for reference: {}", caseModelObject.getObjectRef());
-                                }
-                            }
-                        }
+            public IModel<?> getDataModel(IModel<SelectableBean<CaseType>> iModel) {
+                return (IModel<String>) () -> {
+                    CaseType caseModelObject = iModel.getObject().getValue();
+                    if (caseModelObject == null) {
                         return "";
                     }
-                }));
+                    AssignmentHolderType objectRef = WebComponentUtil.getObjectFromAddDeltaForCase(caseModelObject);
+                    if (objectRef != null) {
+                        return WebComponentUtil.getEffectiveName(objectRef, AbstractRoleType.F_DISPLAY_NAME);
+                    } else if (caseModelObject.getObjectRef() != null
+                            && StringUtils.isNotEmpty(caseModelObject.getObjectRef().getOid())) {
+                        if (caseModelObject.getObjectRef().getObject() != null) {
+                            return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef().getObject(),
+                                    AbstractRoleType.F_DISPLAY_NAME);
+                        } else {
+                            try {
+                                return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef(), AbstractRoleType.F_DISPLAY_NAME, pageBase,
+                                        pageBase.getClass().getSimpleName() + "." + "loadCaseObjectRefName");
+                            } catch (Exception ex) {
+                                LOGGER.error("Unable find the object for reference: {}", caseModelObject.getObjectRef());
+                            }
+                        }
+                    }
+                    return "";
+                };
             }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
+                item.add(new Label(componentId, getDataModel(rowModel)));
+            }
+
+
         };
         columns.add(column);
 
@@ -836,23 +838,8 @@ public class ColumnUtils {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
                     String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
-                CaseType object = rowModel.getObject().getValue();
-                MetadataType metadata = object != null ? object.getMetadata() : null;
-                XMLGregorianCalendar createdCal = metadata != null ? metadata.getCreateTimestamp() : null;
-                final Date created;
-                if (createdCal != null) {
-                    created = createdCal.toGregorianCalendar().getTime();
-//                    cellItem.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE)));
-//                    cellItem.add(new TooltipBehavior());
-                } else {
-                    created = null;
-                }
-                cellItem.add(new Label(componentId, new IModel<String>() {
-                    @Override
-                    public String getObject() {
-                        return WebComponentUtil.getShortDateTimeFormattedValue(created, pageBase);
-                    }
-                }));
+
+                cellItem.add(new Label(componentId, (IModel<String>) () -> createCaseOpenTimestampModel(rowModel, pageBase)));
             }
 
             @Override
@@ -867,22 +854,8 @@ public class ColumnUtils {
                 @Override
                 public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
                         String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
-                    CaseType object = rowModel.getObject().getValue();
-                    XMLGregorianCalendar closedCal = object != null ? object.getCloseTimestamp() : null;
-                    final Date closed;
-                    if (closedCal != null) {
-                        closed = closedCal.toGregorianCalendar().getTime();
-                        cellItem.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE)));
-                        cellItem.add(new TooltipBehavior());
-                    } else {
-                        closed = null;
-                    }
-                    cellItem.add(new Label(componentId, new IModel<String>() {
-                        @Override
-                        public String getObject() {
-                            return WebComponentUtil.getShortDateTimeFormattedValue(closed, pageBase);
-                        }
-                    }));
+
+                    cellItem.add(new Label(componentId, (IModel<String>) () -> createCaseClosedTimestampLabel(rowModel, pageBase)));
                 }
 
                 @Override
@@ -972,6 +945,33 @@ public class ColumnUtils {
         return columns;
     }
 
+    private static String createCaseClosedTimestampLabel(IModel<SelectableBean<CaseType>> rowModel, PageBase pageBase) {
+        CaseType object = rowModel.getObject().getValue();
+        XMLGregorianCalendar closedCal = object != null ? object.getCloseTimestamp() : null;
+        final Date closed;
+        if (closedCal != null) {
+            closed = closedCal.toGregorianCalendar().getTime();
+//            cellItem.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE)));
+//            cellItem.add(new TooltipBehavior());
+        } else {
+            closed = null;
+        }
+        return WebComponentUtil.getShortDateTimeFormattedValue(closed, pageBase);
+    }
+
+    private static String createCaseOpenTimestampModel(IModel<SelectableBean<CaseType>> rowModel, PageBase pageBase) {
+        CaseType object = rowModel.getObject().getValue();
+        MetadataType metadata = object != null ? object.getMetadata() : null;
+        XMLGregorianCalendar createdCal = metadata != null ? metadata.getCreateTimestamp() : null;
+        final Date created;
+        if (createdCal != null) {
+            created = createdCal.toGregorianCalendar().getTime();
+        } else {
+            created = null;
+        }
+        return WebComponentUtil.getShortDateTimeFormattedValue(created, pageBase);
+    }
+
     private static void processCaseOutcome(CaseType caseType, Map<DisplayType, Integer> map, boolean useNullAsOne) {
         if (caseType == null) {
             return;
@@ -1027,11 +1027,11 @@ public class ColumnUtils {
     }
 
     public static AbstractColumn<SelectableBean<CaseType>, String> createCaseActorsColumn(PageBase pageBase) {
-        return new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors")) {
+        return new AbstractColumn<>(createStringResource("pageCases.table.actors")) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
                 CaseType caseInstance = rowModel != null ? rowModel.getObject().getValue() : null;
-                item.add(getMultilineLinkPanel(componentId, getActorsForCase(rowModel != null ? rowModel.getObject().getValue() : null), pageBase));
+                item.add(getMultilineLinkPanel(componentId, getActorsForCase(caseInstance), pageBase));
             }
         };
     }
@@ -1042,7 +1042,7 @@ public class ColumnUtils {
         if (referencesList != null) {
             referencesList.forEach(reference -> {
                 AjaxLinkPanel referenceAjaxLinkPanel = new AjaxLinkPanel(multilineLinkPanel.newChildId(),
-                        Model.of(WebModelServiceUtils.resolveReferenceName(reference, pageBase, true))) {
+                        Model.of(WebModelServiceUtils.resolveReferenceName(reference.clone(), pageBase, true))) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -1075,6 +1075,7 @@ public class ColumnUtils {
                 actorsList.addAll(getActorsForWorkitem(caseWorkItem, CaseTypeUtil.isClosed(caseType)));
             }
         }
+        actorsList.stream().forEach(a -> a.asReferenceValue().clearParent());
         return actorsList;
     }
 
