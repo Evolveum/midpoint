@@ -73,6 +73,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestResourceInMaintenance"/>
             <class name="com.evolveum.midpoint.testing.story.TestOrphanedTasks"/>
             <class name="com.evolveum.midpoint.testing.story.async.TestAsyncProvisioning"/>
+            <class name="com.evolveum.midpoint.testing.story.TestVeryAuthoritativeSource"/>
         </classes>
     </test>
 </suite>
