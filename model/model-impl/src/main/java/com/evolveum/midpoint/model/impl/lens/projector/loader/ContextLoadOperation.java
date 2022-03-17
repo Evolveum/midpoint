@@ -11,7 +11,6 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -43,7 +42,6 @@ public class ContextLoadOperation<F extends ObjectType> {
     // For backwards compatibility reasons we use ContextLoader here (not ContextLoadOperation)
     public static final String CLASS_DOT = ContextLoader.class.getName() + ".";
     private static final String OPERATION_LOAD = CLASS_DOT + "load";
-    private static final String OPERATION_LOAD_PROJECTION = CLASS_DOT + "loadProjection";
 
     @NotNull private final LensContext<F> context;
     @NotNull private final String activityDescription;
@@ -163,7 +161,7 @@ public class ContextLoadOperation<F extends ObjectType> {
 
     private void createTraceIfNeeded(OperationResult result) throws SchemaException {
         if (result.isTracingAny(ProjectorComponentTraceType.class)) {
-            trace = new ProjectorComponentTraceType(PrismContext.get());
+            trace = new ProjectorComponentTraceType();
             if (result.isTracingNormal(ProjectorComponentTraceType.class)) {
                 trace.setInputLensContextText(context.debugDump());
             }
