@@ -4863,7 +4863,7 @@ public final class WebComponentUtil {
         return SessionStorage.KEY_OBJECT_LIST + "." + additionalKeyValue;
     }
 
-    public static AssignmentHolderType getObjectFromAddDeltyForCase(CaseType aCase) {
+    public static AssignmentHolderType getObjectFromAddDeltaForCase(CaseType aCase) {
         if (aCase != null && aCase.getApprovalContext() != null
                 && aCase.getApprovalContext().getDeltasToApprove() != null) {
             ObjectTreeDeltasType deltaTree = aCase.getApprovalContext().getDeltasToApprove();
