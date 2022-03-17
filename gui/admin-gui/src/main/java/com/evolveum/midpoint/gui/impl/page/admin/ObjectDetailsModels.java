@@ -29,12 +29,14 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.LoadableDetachableModel;
 
@@ -75,8 +77,11 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
                 try {
                     return factory.createObjectWrapper(prismObject, isEditObject(prismObject) ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
                 } catch (SchemaException e) {
-                    //TODO:
-                    return null;
+                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot create wrapper for {} \nReason: {]", e, prismObject, e.getMessage());
+                    result.recordFatalError("Cannot create wrapper for " + prismObject + ", because: " + e.getMessage(), e);
+                    getPageBase().showResult(result);
+                    throw getPageBase().redirectBackViaRestartResponseException();
+//                    return null;
                 }
 
             }
