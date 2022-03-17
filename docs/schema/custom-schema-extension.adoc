@@ -250,7 +250,7 @@ Indexing everything on the DB level for every possible filter type is simply not
 there are always compromises and specific index can be added for critical queries as needed.
 But this always depends on the specific deployment and you should consult your DB admin about it.
 Basic cases should be reasonably well indexed out-of-the-box.
-See xref:/midpoint/reference/repository/configuration/#index-tuning[Index tuning] for more information.
+See xref:/midpoint/reference/repository/native-postgresql/db-maintenance/#index-tuning[Index tuning] for more information.
 
 === Using midPoint types
 
