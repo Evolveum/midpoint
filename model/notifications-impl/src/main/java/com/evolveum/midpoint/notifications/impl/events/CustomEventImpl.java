@@ -77,12 +77,6 @@ public class CustomEventImpl extends BaseEventImpl implements CustomEvent {
     }
 
     @Override
-    public boolean isRelatedToItem(ItemPath itemPath) {
-        // TODO implement if needed
-        return false;
-    }
-
-    @Override
     public boolean isUserRelated() {
         if (object instanceof UserType) {
             return true;

@@ -152,11 +152,6 @@ abstract public class CaseManagementEventImpl extends BaseEventImpl implements C
     }
 
     @Override
-    public boolean isRelatedToItem(ItemPath itemPath) {
-        return false;
-    }
-
-    @Override
     @Nullable
     public ApprovalContextType getApprovalContext() {
         return approvalContext;

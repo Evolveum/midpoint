@@ -203,6 +203,8 @@ public class TestCsvReportExportClassic extends TestCsvReport {
             );
         }
 
+        dummyTransport.clearMessages();
+
         runExportTaskClassic(reportResource, result);
 
         when();
@@ -217,6 +219,8 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
         PrismObject<ReportType> report = getObject(ReportType.class, reportResource.oid);
         basicCheckOutputFile(report, expectedRows, expectedColumns, lastline);
+
+        assertNotificationMessage(reportResource);
     }
 
     private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns, CharSequence lastline)

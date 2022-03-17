@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.notifications.impl.SimpleObjectRefImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -80,6 +81,10 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
 
     private String channel;
 
+    BaseEventImpl() {
+        this(ApplicationContextHolder.getBean(LightweightIdentifierGenerator.class));
+    }
+
     BaseEventImpl(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator) {
         this(lightweightIdentifierGenerator, null);
     }
@@ -93,9 +98,6 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
     public LightweightIdentifier getId() {
         return id;
     }
-
-    abstract public boolean isStatusType(EventStatusType eventStatus);
-    abstract public boolean isOperationType(EventOperationType eventOperation);
 
     boolean changeTypeMatchesOperationType(ChangeType changeType, EventOperationType eventOperationType) {
         switch (eventOperationType) {
@@ -467,6 +469,17 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
 
     private OperationResult getCurrentResult() {
         return getMidpointFunctions().getCurrentResult();
+    }
+
+    public void setRequesterAndRequesteeAsTaskOwner(@NotNull Task task, @NotNull OperationResult result) {
+        PrismObject<? extends FocusType> ownerObject = task.getOwner(result);
+        if (ownerObject != null) {
+            FocusType owner = ownerObject.asObjectable();
+            setRequester(new SimpleObjectRefImpl(owner));
+            setRequestee(new SimpleObjectRefImpl(owner));
+        } else {
+            LOGGER.debug("No owner for {}, therefore no requester and requestee will be set for event {}", task, getId());
+        }
     }
 
     @Override

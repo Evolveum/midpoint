@@ -62,6 +62,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        dummyTransport.clearMessages();
+
         runExportTask(TASK_DISTRIBUTED_EXPORT_USERS, REPORT_OBJECT_COLLECTION_USERS, result);
 
         when();
@@ -76,6 +78,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_USERS.oid);
         basicCheckOutputFile(report, 1004, 2, null);
+
+        assertNotificationMessage(REPORT_OBJECT_COLLECTION_USERS);
     }
 
     @Test
@@ -144,6 +148,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        dummyTransport.clearMessages();
+
         runExportTask(TASK_DISTRIBUTED_EXPORT_AUDIT, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN, result);
 
         when();
@@ -155,6 +161,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         assertTask(TASK_DISTRIBUTED_EXPORT_AUDIT.oid, "after")
                 .assertSuccess()
                 .display();
+
+        assertNotificationMessage(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN);
     }
 
     @Override

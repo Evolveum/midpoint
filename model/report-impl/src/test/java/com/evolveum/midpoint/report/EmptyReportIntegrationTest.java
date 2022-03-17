@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.report;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
@@ -18,6 +19,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -264,4 +266,17 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
     }
 
     protected abstract FileFormatConfigurationType getFileFormatConfiguration();
+
+    void assertNotificationMessage(ReportType report, String expectedContentType) {
+        displayDumpable("dummy transport", dummyTransport);
+
+        String reportName = report.getName().getOrig();
+        assertSingleDummyTransportMessageContaining("reports", "Report: " + reportName);
+
+        Message message = dummyTransport.getMessages("dummy:reports").get(0);
+        List<NotificationMessageAttachmentType> attachments = message.getAttachments();
+        assertThat(attachments).as("notification message attachments").hasSize(1);
+        NotificationMessageAttachmentType attachment = attachments.get(0);
+        assertThat(attachment.getContentType()).as("attachment content type").isEqualTo(expectedContentType);
+    }
 }

@@ -221,7 +221,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         when("event is sent to notification manager");
         CustomEventImpl event = createCustomEvent();
         // This is used as default recipient, no recipient results in no message.
-        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+        event.setRequestee(new SimpleObjectRefImpl(
                 new UserType().emailAddress("user@example.com")));
         notificationManager.processEvent(event, getTestTask(), result);
 
@@ -268,7 +268,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         when("event is sent to notification manager");
         CustomEventImpl event = createCustomEvent();
         // This is used as default recipient, no recipient results in no message.
-        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+        event.setRequestee(new SimpleObjectRefImpl(
                 new UserType().name("John").emailAddress("user@example.com")));
         notificationManager.processEvent(event, getTestTask(), result);
 
@@ -322,7 +322,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         when("event is sent to notification manager");
         CustomEventImpl event = createCustomEvent();
         // This is used as default recipient, no recipient results in no message.
-        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+        event.setRequestee(new SimpleObjectRefImpl(
                 new UserType().emailAddress("user@example.com")));
         notificationManager.processEvent(event, getTestTask(), result);
 
@@ -372,7 +372,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         when("event is sent to notification manager, recipient has no language set");
         CustomEventImpl event = createCustomEvent();
         // This is used as default recipient, no recipient results in no message.
-        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+        event.setRequestee(new SimpleObjectRefImpl(
                 new UserType().emailAddress("user@example.com")));
         testTransport.clearMessages();
         notificationManager.processEvent(event, getTestTask(), result);
@@ -385,7 +385,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         // now when-then for sk language
         when("event is sent to notification manager, recipient has 'sk' language set");
         event = createCustomEvent();
-        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+        event.setRequestee(new SimpleObjectRefImpl(
                 new UserType().emailAddress("user2@example.com").preferredLanguage("sk")));
         testTransport.clearMessages();
         notificationManager.processEvent(event, getTestTask(), result);
@@ -398,7 +398,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         // now when-then for other language
         when("event is sent to notification manager, recipient has other language set");
         event = createCustomEvent();
-        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+        event.setRequestee(new SimpleObjectRefImpl(
                 new UserType().emailAddress("user3@example.com").preferredLanguage("uk")));
         testTransport.clearMessages();
         notificationManager.processEvent(event, getTestTask(), result);
@@ -463,7 +463,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         when("event is sent to notification manager, recipient has no language set");
         CustomEventImpl event = createCustomEvent();
         // This is used as default recipient, no recipient results in no message.
-        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+        event.setRequestee(new SimpleObjectRefImpl(
                 new UserType().emailAddress("user@example.com")));
         notificationManager.processEvent(event, getTestTask(), result);
 
@@ -476,7 +476,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         // now when-then for sk language (attachment expression inherited)
         when("recipient has 'sk' language set");
         event = createCustomEvent();
-        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+        event.setRequestee(new SimpleObjectRefImpl(
                 new UserType().emailAddress("user2@example.com").preferredLanguage("sk")));
         testTransport.clearMessages();
         notificationManager.processEvent(event, getTestTask(), result);
@@ -490,7 +490,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         // now when-then for cz language (attachment inherited)
         when("event is sent to notification manager, recipient has 'cz' language set");
         event = createCustomEvent();
-        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+        event.setRequestee(new SimpleObjectRefImpl(
                 new UserType().emailAddress("user3@example.com").preferredLanguage("cz")));
         testTransport.clearMessages();
         notificationManager.processEvent(event, getTestTask(), result);
@@ -526,7 +526,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         when("event is sent to notification manager");
         CustomEventImpl event = createCustomEvent();
         // This is used as default recipient, no recipient results in no message.
-        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+        event.setRequestee(new SimpleObjectRefImpl(
                 new UserType()
                         // this will be returned by TestMessageTransport.getDefaultRecipientAddress
                         .emailAddress("user@example.com")));
@@ -600,7 +600,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
 
         when("event with requestee is sent to notification manager");
         CustomEventImpl event = createCustomEvent();
-        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+        event.setRequestee(new SimpleObjectRefImpl(
                 new UserType().emailAddress("user@example.com")));
         notificationManager.processEvent(event, getTestTask(), result);
 
@@ -684,7 +684,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         when("event with default recipient is sent to notification manager");
         CustomEventImpl event = createCustomEvent();
         // this will be used as default recipient
-        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+        event.setRequestee(new SimpleObjectRefImpl(
                 new UserType().emailAddress("user@example.com")));
         notificationManager.processEvent(event, getTestTask(), result);
 
@@ -713,7 +713,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         when("event without default recipient is sent to notification manager");
         CustomEventImpl event = createCustomEvent();
         // this will be used as default recipient
-        event.setRequestee(new SimpleObjectRefImpl(notificationFunctions,
+        event.setRequestee(new SimpleObjectRefImpl(
                 new UserType().emailAddress("user@example.com")));
         notificationManager.processEvent(event, getTestTask(), result);
 

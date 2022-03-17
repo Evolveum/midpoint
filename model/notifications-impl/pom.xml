@@ -23,11 +23,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>report-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.evolveum.commons</groupId>
             <artifactId>util</artifactId>
             <version>${project.version}</version>
@@ -112,10 +107,6 @@
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

@@ -1507,8 +1507,11 @@ public class TaskQuartzImpl implements Task {
 
     @Override
     public void setExtensionReference(PrismReference reference) throws SchemaException {
-        addPendingModification(setExtensionReferenceAndPrepareDelta(reference.getElementName(), reference.getDefinition(),
-                PrismValueCollectionsUtil.cloneCollection(reference.getValues())));
+        addPendingModification(
+                setExtensionReferenceAndPrepareDelta(
+                        reference.getElementName(),
+                        reference.getDefinition(),
+                        PrismValueCollectionsUtil.cloneCollection(reference.getValues())));
     }
 
     @Override

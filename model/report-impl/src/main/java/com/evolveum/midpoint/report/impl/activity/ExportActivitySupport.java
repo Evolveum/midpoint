@@ -48,19 +48,19 @@ public class ExportActivitySupport extends ReportActivitySupport {
     }
 
     private void setupSaveSupport() {
-        saveSupport = new SaveReportFileSupport(report, runningTask, reportService);
+        saveSupport = new SaveReportFileSupport(activityRun, getReport(), reportService);
     }
 
     /**
      * Save exported report to a file.
      */
-    public void saveReportFile(String aggregatedData,
+    void saveReportFile(String aggregatedData,
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
         saveSupport.saveReportFile(aggregatedData, dataWriter, result);
     }
 
-    public void saveReportFile(ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
+    void saveReportFile(ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
         saveSupport.saveReportFile(dataWriter, result);
     }
