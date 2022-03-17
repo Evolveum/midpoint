@@ -10,9 +10,9 @@ package com.evolveum.midpoint.report.impl.controller;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 import java.util.Collection;
@@ -30,5 +30,5 @@ public interface ReportDataSource<C extends Containerable> {
     /**
      * Executes the search and feeds the handler with the data.
      */
-    void run(Handler<C> handler, OperationResult result) throws CommonException;
+    void run(ObjectHandler<C> handler, OperationResult result) throws CommonException;
 }

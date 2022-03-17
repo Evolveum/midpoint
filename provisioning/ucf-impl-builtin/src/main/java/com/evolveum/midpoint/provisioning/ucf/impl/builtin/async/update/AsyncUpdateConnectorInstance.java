@@ -265,7 +265,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            ObjectHandler handler, AttributesToReturn attributesToReturn,
+            UcfObjectHandler handler, AttributesToReturn attributesToReturn,
             PagedSearchCapabilityType pagedSearchConfiguration, SearchHierarchyConstraints searchHierarchyConstraints,
             UcfFetchErrorReportingMethod ucfErrorReportingMethod,
             StateReporter reporter, OperationResult parentResult) {
