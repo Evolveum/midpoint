@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,7 +13,6 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Objects;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -1080,7 +1079,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         if (providedOrdering.size() == 1) {
             ObjectOrdering objectOrdering = providedOrdering.get(0);
             ItemPath orderByPath = objectOrdering.getOrderBy();
-            boolean asc = objectOrdering.getDirection() == OrderDirection.ASCENDING;
+            boolean asc = objectOrdering.getDirection() != OrderDirection.DESCENDING; // null => asc
             S_ConditionEntry filter = prismContext()
                     .queryFor(lastProcessedObject.getCompileTimeClass())
                     .item(orderByPath);
