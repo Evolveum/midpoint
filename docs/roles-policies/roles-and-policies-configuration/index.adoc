@@ -186,6 +186,9 @@ But perhaps the most useful feature of roles is that a role can imply entitlemen
 E.g. the role can imply that the account of a user having such role will be entitled for (assigned to) the group managers on a specific LDAP server.
 We are using the concept of implied entitlements, illustrated in following diagram.
 
+NOTE: The diagram is slightly outdated. The "account construction" is just a `construction` now, and the "entitlement constuction" is a different data structure now.
+However, we are keeping the diagram as it provide a good illustration of the overall concept.
+
 image::Implied-Account-Entitlements.png[]
 
 The example illustrates following case:
@@ -199,22 +202,33 @@ The XML role definition is as follows:
 
 [source,xml]
 ----
-<role oid="9991">
+<role oid="96834a2e-a697-11ec-a854-2bf07077fddb">
     <name>Captain</name>
     <inducement>
         <construction>
-            <resourceRef oid="8882" type="ResourceType"/>
+            <resourceRef oid="8facf376-a697-11ec-a80b-1bec9f46e942" type="ResourceType"/>
             <kind>entitlement</kind>
-            <!-- TODO -->
-            <entitlement objectClass="ri:GroupObjectClass">
-            <value>
-                <mis:id>captains</mis:id>
-            </value>
+            <association>
+                 <ref>ri:group</ref>
+                 <outbound>
+                     <strength>strong</strength>
+                     <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:path>attributes/ri:name</q:path>
+                                <q:value>captains</q:value>
+                            </filter>
+                        </associationTargetSearch>
+                 </outbound>
+             </association>
         </construction>
     </inducement>
 </role>
 
 ----
+
+This approach requires a `group` entitlement to be defined in a Maritime Information System resource, with appropriate association definition for the accounts.
+Please see xref:/midpoint/reference/resources/entitlements/[] page for the details.
 
 == Assignments
 
