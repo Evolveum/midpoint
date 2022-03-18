@@ -39,7 +39,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin", matchUrlForSecurity = "/admin"),
-                @Url(mountUrl = "/admin/dashboard/info"),
+                @Url(mountUrl = "/admin/dashboard/info", matchUrlForSecurity = "/admin/dashboard/info")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminHome.AUTH_HOME_ALL_URI,
