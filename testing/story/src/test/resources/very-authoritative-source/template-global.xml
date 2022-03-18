@@ -10,8 +10,6 @@
     <name>template-global</name>
     <documentation>
         Standard object template. It creates an assignment to `role-target` if `description` is not null.
-
-        Workaround for MID-7725: If there is no source account, `description` is considered to be effectively null.
     </documentation>
     <mapping>
         <documentation>Non-null description leads to assignment of `role-target`.</documentation>
@@ -39,8 +37,7 @@
         <condition>
             <script>
                 <code>
-                    // Here is the workaround for MID-7725
-                    description != null &amp;&amp; midpoint.hasLinkedAccount('de33fd4e-753a-43a6-bda7-cf1f2576c885')
+                    description != null
                 </code>
             </script>
         </condition>

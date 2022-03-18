@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -35,15 +36,13 @@ import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.FOCUS_OPERATION;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 import static com.evolveum.midpoint.model.impl.lens.ChangeExecutor.OPERATION_EXECUTE_FOCUS;
 import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerables;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Executes changes in the focus context.
@@ -69,6 +68,12 @@ public class FocusChangeExecution<O extends ObjectType> {
      * Delta to be executed. It is gradually updated.
      */
     private ObjectDelta<O> focusDelta;
+
+    /** Just to detect leaking of the listeners. */
+    private static final int MAX_LISTENERS_PER_THREAD = 100;
+
+    private static final ThreadLocal<Set<ChangeExecutionListener>> CHANGE_EXECUTION_LISTENERS_TL =
+            ThreadLocal.withInitial(HashSet::new);
 
     public FocusChangeExecution(@NotNull LensContext<O> context, @NotNull LensFocusContext<O> focusContext,
             @NotNull Task task, @NotNull ModelBeans modelBeans) {
@@ -125,6 +130,7 @@ public class FocusChangeExecution<O extends ObjectType> {
         } finally {
             result.computeStatusIfUnknown();
             context.reportProgress(new ProgressInformation(FOCUS_OPERATION, result));
+            notifyChangeExecutionListeners();
         }
     }
 
@@ -304,5 +310,38 @@ public class FocusChangeExecution<O extends ObjectType> {
             PrismProperty<Object> prop = objectNew.findProperty(itemPath);
             focusContext.setOid(String.valueOf(prop.getRealValue()));
         }
+    }
+
+    private void notifyChangeExecutionListeners() {
+        String oid = focusContext.getOid(); // Even for ADD operations the new OID should be here.
+        if (oid == null) {
+            return; // Something must have gone wrong
+        }
+
+        for (ChangeExecutionListener listener : CHANGE_EXECUTION_LISTENERS_TL.get()) {
+            // We don't expect any exceptions to be thrown
+            listener.onFocusChange(oid);
+        }
+    }
+
+    /** Must be accompanied by respective unregister call! */
+    public static void registerChangeExecutionListener(@NotNull ChangeExecutionListener listener) {
+        Set<ChangeExecutionListener> listeners = CHANGE_EXECUTION_LISTENERS_TL.get();
+        listeners.add(listener);
+        stateCheck(listeners.size() <= MAX_LISTENERS_PER_THREAD,
+                "Leaking change execution listeners in %s: %s", Thread.currentThread(), listeners);
+    }
+
+    public static void unregisterChangeExecutionListener(@NotNull ChangeExecutionListener listener) {
+        CHANGE_EXECUTION_LISTENERS_TL.get().remove(listener);
+    }
+
+    /**
+     * Receives notifications when focus object is modified (or added, or deleted).
+     * Should be fast and should throw no exceptions.
+     */
+    @Experimental
+    public interface ChangeExecutionListener {
+        void onFocusChange(@NotNull String oid);
     }
 }
