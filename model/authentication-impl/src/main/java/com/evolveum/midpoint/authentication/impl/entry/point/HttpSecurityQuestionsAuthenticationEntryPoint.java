@@ -144,7 +144,7 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
            super.commence(request, response, authException);
            return;
        }
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     }
 
     public static void createSecurityQuestionAbortMessage(HttpServletResponse request, String json){

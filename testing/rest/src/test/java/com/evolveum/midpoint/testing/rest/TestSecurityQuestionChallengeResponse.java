@@ -11,6 +11,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -98,7 +99,7 @@ public class TestSecurityQuestionChallengeResponse extends RestServiceInitialize
     }
 
     private Response getUserAdministrator(String authorizationHeader) {
-        WebClient client = WebClient.create(ENDPOINT_ADDRESS, Arrays.asList(getProvider()));
+        WebClient client = WebClient.create(ENDPOINT_ADDRESS, Collections.singletonList(getProvider()));
         ClientConfiguration clientConfig = WebClient.getConfig(client);
 
         clientConfig.getRequestContext().put(LocalConduit.DIRECT_DISPATCH, Boolean.TRUE);
