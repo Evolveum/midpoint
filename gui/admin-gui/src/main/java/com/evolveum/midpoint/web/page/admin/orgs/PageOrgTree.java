@@ -46,12 +46,12 @@ public class PageOrgTree extends PageAdmin {
     }
 
     private void initLayout() {
-        AbstractOrgTabPanel tabbedPanel = new AbstractOrgTabPanel(ID_ORG_PANEL, this) {
+        AbstractOrgTabPanel tabbedPanel = new AbstractOrgTabPanel(ID_ORG_PANEL) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected Panel createTreePanel(String id, Model<String> model, PageBase pageBase) {
-                return new TreeTablePanel(id, model, PageOrgTree.this);
+                return new TreeTablePanel(id, model);
             }
         };
 

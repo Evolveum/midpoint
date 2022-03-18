@@ -43,13 +43,7 @@ public class LinkPanel extends Panel {
         };
         Label label;
         if(labelModel.getObject() instanceof QName) {
-            label = new Label(ID_LABEL, new IModel<String>() {
-
-                @Override
-                public String getObject() {
-                    return ((QName) labelModel.getObject()).getLocalPart();
-                }
-            });
+            label = new Label(ID_LABEL, (IModel<String>) () -> ((QName) labelModel.getObject()).getLocalPart());
         } else {
             label = new Label(ID_LABEL, labelModel);
         }

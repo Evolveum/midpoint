@@ -116,15 +116,6 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
         return list.size();
     }
 
-    @Override
-    public List<PrismContainerValueWrapper<C>> getSelectedObjects() {
-        return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
-    }
-
-    @Override
-    public @NotNull List<C> getSelectedRealObjects() {
-        return getAvailableData().stream().filter(a -> a.isSelected()).map(w -> w.getRealValue()).collect(Collectors.toList());
-    }
 
     protected List<PrismContainerValueWrapper<C>> searchThroughList() {
         List<PrismContainerValueWrapper<C>> list = model.getObject();

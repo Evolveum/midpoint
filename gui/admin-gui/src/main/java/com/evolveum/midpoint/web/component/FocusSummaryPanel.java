@@ -161,19 +161,20 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
         return true;
     }
 
-    public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, String id, SummaryPanelSpecificationType summaryPanelSpecificationType) {
-        if (focus.getCompileTimeClass().equals(UserType.class)) {
+    public static <F extends FocusType> void addSummaryPanel(MarkupContainer parentComponent, IModel<F> focus, String id, SummaryPanelSpecificationType summaryPanelSpecificationType) {
+        Class<? extends FocusType> compileTimeClass = focus.getObject().asPrismObject().getCompileTimeClass();
+        if (compileTimeClass.equals(UserType.class)) {
             parentComponent.add(new UserSummaryPanel(id,
-                    Model.of((UserType) focus.asObjectable()), summaryPanelSpecificationType));
-        } else if (focus.getCompileTimeClass().equals(RoleType.class)) {
+                    (IModel<UserType>) focus, summaryPanelSpecificationType));
+        } else if (compileTimeClass.equals(RoleType.class)) {
             parentComponent.add(new RoleSummaryPanel(id,
-                    Model.of((RoleType) focus.asObjectable()), summaryPanelSpecificationType));
-        } else if (focus.getCompileTimeClass().equals(OrgType.class)) {
+                    (IModel<RoleType>) focus, summaryPanelSpecificationType));
+        } else if (compileTimeClass.equals(OrgType.class)) {
             parentComponent.add(new OrgSummaryPanel(id,
-                    Model.of((OrgType) focus.asObjectable()), summaryPanelSpecificationType));
-        } else if (focus.getCompileTimeClass().equals(ServiceType.class)) {
+                    (IModel<OrgType>) focus, summaryPanelSpecificationType));
+        } else if (compileTimeClass.equals(ServiceType.class)) {
             parentComponent.add(new ServiceSummaryPanel(id,
-                    Model.of((ServiceType) focus.asObjectable()), summaryPanelSpecificationType));
+                    (IModel<ServiceType>) focus, summaryPanelSpecificationType));
         }
     }
 }

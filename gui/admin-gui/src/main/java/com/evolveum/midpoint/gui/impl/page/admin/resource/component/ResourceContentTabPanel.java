@@ -124,8 +124,8 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
         mainForm.addOrReplace(initTable(getObjectWrapperModel()));
         add(mainForm);
 
-        AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT,
-            new PropertyModel<>(resourceContentSearch, "intent"), String.class, false, null) {
+        AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<>(ID_INTENT,
+                new PropertyModel<>(resourceContentSearch, "intent"), String.class, false) {
             private static final long serialVersionUID = 1L;
 
             @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -28,6 +28,25 @@ public class SqlLogger extends SQLBaseListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlLogger.class);
 
+    private static final String START_TIMESTAMP_CTX_KEY = "startTs";
+
+    private final long sqlDurationWarningMs;
+
+    public SqlLogger() {
+        sqlDurationWarningMs = 0; // no long query warning
+    }
+
+    public SqlLogger(long sqlDurationWarningMs) {
+        this.sqlDurationWarningMs = sqlDurationWarningMs;
+    }
+
+    @Override
+    public void start(SQLListenerContext context) {
+        if (sqlDurationWarningMs > 0) {
+            context.setData(START_TIMESTAMP_CTX_KEY, System.currentTimeMillis());
+        }
+    }
+
     /**
      * End is the right phase common to both selects and insert/updates.
      * It's called after exceptions too.
@@ -39,6 +58,16 @@ public class SqlLogger extends SQLBaseListener {
                 logContext(context);
             } catch (Exception e) {
                 LoggingUtils.logUnexpectedException(LOGGER, e);
+            }
+        }
+
+        if (sqlDurationWarningMs > 0) {
+            Object startTimestamp = context.getData(START_TIMESTAMP_CTX_KEY);
+            if (startTimestamp instanceof Long) {
+                long durationMs = System.currentTimeMillis() - ((long) startTimestamp);
+                if (durationMs > sqlDurationWarningMs) {
+                    logDurationWarning(context, durationMs);
+                }
             }
         }
     }
@@ -64,6 +93,24 @@ public class SqlLogger extends SQLBaseListener {
             // context.getMetadata().getWhere(); this is also interesting alternative
             // limit is not part of where, it's in metadata.modifiers
         }
+    }
+
+    private void logDurationWarning(SQLListenerContext context, long durationMs) {
+        SQLBindings sqlBindings = context.getSQLBindings();
+        if (sqlBindings == null || sqlBindings.getSQL() == null) {
+            return;
+        }
+
+        List<Object> paramValues = sqlBindings.getNullFriendlyBindings();
+        LOGGER.warn("SQL duration {} ms: {}\n{}",
+                durationMs,
+                sqlBindings.getSQL().replace('\n', ' '),
+                paramValues != null && !paramValues.isEmpty()
+                        ? paramValues.stream()
+                        .map(this::valueToString)
+                        .collect(Collectors.joining(", ", "(", ")"))
+                        : "(no param values)"
+        );
     }
 
     public static final int BYTE_ARRAY_PREVIEW_LEN = 20;

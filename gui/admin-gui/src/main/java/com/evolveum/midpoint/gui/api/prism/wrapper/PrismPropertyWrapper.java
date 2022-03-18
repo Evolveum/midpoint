@@ -17,6 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
  */
 public interface PrismPropertyWrapper<T> extends ItemWrapper<PrismProperty<T>, PrismPropertyValueWrapper<T>>, PrismPropertyDefinition<T> {
 
-    LookupTableType getPredefinedValues();
-    void setPredefinedValues(LookupTableType lookupTableType);
+    String getPredefinedValuesOid();
+    void setPredefinedValuesOid(String oid);
+
 }

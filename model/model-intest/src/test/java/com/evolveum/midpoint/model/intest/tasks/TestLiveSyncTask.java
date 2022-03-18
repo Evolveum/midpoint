@@ -754,22 +754,24 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
     private void doXferInitialSync(int index, TestResource<TaskType> xferTask, DummyTestResource xferSource) throws Exception {
         given();
 
+        // @formatter:off
         assertTask(xferTask.oid, "before")
                 .rootActivityState()
-                .progress()
-                .display()
-                .end()
-                .itemProcessingStatistics()
-                .display()
-                .end()
-                .synchronizationStatistics()
-                .display()
-                //.assertTotal(0, 0)
-                .end()
-                .actionsExecuted()
-                .display()
-                .assertEmpty()
-                .end();
+                    .progress()
+                        .display()
+                    .end()
+                    .itemProcessingStatistics()
+                        .display()
+                    .end()
+                    .synchronizationStatistics()
+                    .display()
+                        //.assertTotal(0, 0)
+                    .end()
+                    .actionsExecuted()
+                        .display()
+                        .assertEmpty()
+                    .end();
+        // @formatter:on
 
         for (int i = 0; i < XFER_ACCOUNTS; i++) {
             String name = String.format("xfer%d-%04d", index, i);
@@ -783,32 +785,34 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         then();
 
         stabilize();
+        // @formatter:off
         assertTask(xferTask.oid, "after")
                 .rootActivityState()
-                .progress()
-                .display()
-                .end()
-                .itemProcessingStatistics()
-                .display()
-                .end()
-                .synchronizationStatistics()
-                .display()
+                    .progress()
+                        .display()
+                    .end()
+                    .itemProcessingStatistics()
+                        .display()
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
 //                    .assertTotal(XFER_ACCOUNTS, XFER_ACCOUNTS)
 //                    .assertUnmatched(XFER_ACCOUNTS, 0)
 //                    .assertLinked(0, XFER_ACCOUNTS)
-                .end()
-                .actionsExecuted()
-                .display()
-                .resulting()
-                .assertCount(3 * XFER_ACCOUNTS, 0)
-                .assertCount(ADD, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0)
-                .assertCount(ADD, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0)
-                .assertCount(MODIFY, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0)
-                .end()
-                .end()
+                    .end()
+                    .actionsExecuted()
+                        .display()
+                        .resulting()
+                            .assertCount(3*XFER_ACCOUNTS, 0)
+                            .assertCount(ADD, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0)
+                            .assertCount(ADD, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0)
+                            .assertCount(MODIFY, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0)
+                        .end()
+                    .end()
                 .end()
                 .assertClosed()
                 .assertSuccess();
+        // @formatter:on
     }
 
     /**
@@ -827,30 +831,32 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
     }
 
     private void assertXfer1StateAfterRename(TaskAsserter<Void> asserter) {
+        // @formatter:off
         asserter
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()
-                .itemProcessingStatistics()
-                .display()
-                .end()
-                .synchronizationStatistics()
-                .display()
+                    .itemProcessingStatistics()
+                        .display()
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
 //                    .assertTotal(2*XFER_ACCOUNTS, 2*XFER_ACCOUNTS) // each account was touched twice
 //                    .assertUnmatched(XFER_ACCOUNTS, 0) // this is information from the first run
 //                    .assertLinked(XFER_ACCOUNTS, 2*XFER_ACCOUNTS) // this is combined from the first and second runs
-                .end()
-                .actionsExecuted()
-                .display()
-                .resulting()
-                .assertCount(6 * XFER_ACCOUNTS, 0)
-                .assertCount(ADD, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
-                .assertCount(ADD, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
-                .assertCount(MODIFY, ShadowType.COMPLEX_TYPE, 2 * XFER_ACCOUNTS, 0) // from the first+second runs
-                .assertCount(MODIFY, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the second runs
-                .assertCount(DELETE, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the second run
-                .end()
-                .end();
+                    .end()
+                    .actionsExecuted()
+                        .display()
+                        .resulting()
+                            .assertCount(6*XFER_ACCOUNTS, 0)
+                            .assertCount(ADD, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
+                            .assertCount(ADD, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
+                            .assertCount(MODIFY, ShadowType.COMPLEX_TYPE, 2*XFER_ACCOUNTS, 0) // from the first+second runs
+                            .assertCount(MODIFY, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the second runs
+                            .assertCount(DELETE, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the second run
+                        .end()
+                    .end();
+        // @formatter:on
     }
 
     /**
@@ -865,48 +871,52 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
             throw new SkipException("Not in legacy");
         }
         int t = getWorkerThreads() > 0 ? getWorkerThreads() : 1;
+        // @formatter:off
         doXferRenameAndSync(TASK_XFER2, RESOURCE_DUMMY_XFER2_SOURCE)
                 .assertSuspended()
                 .assertFatalError()
                 .rootActivityState()
-                .itemProcessingStatistics()
-                .display()
-                .end()
-                .synchronizationStatistics()
-                .display()
+                    .itemProcessingStatistics()
+                        .display()
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
 //                    .assertTotal(XFER_ACCOUNTS+t, XFER_ACCOUNTS+t) // XFER_ACCOUNTS from the first run, t from the second (failed immediately)
 //                    .assertUnmatched(XFER_ACCOUNTS, 0) // from the first run
 //                    .assertLinked(t, XFER_ACCOUNTS+t) // 1 from the second run
-                .end()
-                .actionsExecuted()
-                .display()
-                .resulting()
-                .assertCount(ADD, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
-                .assertCount(ADD, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
-                .assertSuccessCount(MODIFY, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS + 1, XFER_ACCOUNTS + t) // from the first+second runs
-                .assertFailureCount(MODIFY, ShadowType.COMPLEX_TYPE, 0, 0) // from the first+second runs
-                .assertSuccessCount(MODIFY, UserType.COMPLEX_TYPE, 1, t) // from the second runs
-                .assertFailureCount(MODIFY, UserType.COMPLEX_TYPE, 0, 0) // from the second runs
-                .assertSuccessCount(DELETE, ShadowType.COMPLEX_TYPE, 0, 0) // from the second run
-                .assertFailureCount(DELETE, ShadowType.COMPLEX_TYPE, 1, t) // from the second run
-                .end()
-                .end();
+                    .end()
+                    .actionsExecuted()
+                        .display()
+                        .resulting()
+                            .assertCount(ADD, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
+                            .assertCount(ADD, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
+                            .assertSuccessCount(MODIFY, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS+1, XFER_ACCOUNTS+t) // from the first+second runs
+                            .assertFailureCount(MODIFY, ShadowType.COMPLEX_TYPE, 0, 0) // from the first+second runs
+                            .assertSuccessCount(MODIFY, UserType.COMPLEX_TYPE, 1, t) // from the second runs
+                            .assertFailureCount(MODIFY, UserType.COMPLEX_TYPE, 0, 0) // from the second runs
+                            .assertSuccessCount(DELETE, ShadowType.COMPLEX_TYPE, 0, 0) // from the second run
+                            .assertFailureCount(DELETE, ShadowType.COMPLEX_TYPE, 1, t) // from the second run
+                            .end()
+                        .end();
+        // @formatter:on
     }
 
     private TaskAsserter<Void> doXferRenameAndSync(TestResource<TaskType> xferTask, DummyTestResource xferSource) throws Exception {
         given();
 
+        // @formatter:off
         assertTask(xferTask.oid, "before")
                 .rootActivityState()
-                .itemProcessingStatistics()
-                .display()
-                .end()
-                .synchronizationStatistics()
-                .display()
-                .end()
-                .actionsExecuted()
-                .display()
-                .end();
+                    .itemProcessingStatistics()
+                        .display()
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
+                    .end()
+                    .actionsExecuted()
+                        .display()
+                    .end();
+        // @formatter:on
 
         DummyResource resource = xferSource.controller.getDummyResource();
         for (DummyAccount account : new ArrayList<>(resource.listAccounts())) {
@@ -947,30 +957,31 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         if (isLegacy()) {
             throw new SkipException("Not in legacy");
         }
+        // @formatter:off
         if (getWorkerThreads() > 0) {
             doXferLiveSync(TASK_XFER2)
                     .assertSuspended()
                     .assertFatalError()
                     .rootActivityState()
-                    .itemProcessingStatistics().display().end()
-                    .synchronizationStatistics().display().end()
-                    .actionsExecuted().display().end();
+                        .itemProcessingStatistics().display().end()
+                        .synchronizationStatistics().display().end()
+                        .actionsExecuted().display().end();
             // No special asserts here. The number of accounts being processed may depend on the timing.
         } else {
             doXferLiveSync(TASK_XFER2)
                     .assertSuspended()
                     .assertFatalError()
                     .rootActivityState()
-                    .itemProcessingStatistics().display().end()
-                    .synchronizationStatistics()
-                    .display()
+                        .itemProcessingStatistics().display().end()
+                        .synchronizationStatistics()
+                            .display()
 //                            .assertTotal(XFER_ACCOUNTS+3, XFER_ACCOUNTS+3) // XFER_ACCOUNTS from the first run, 1 from the second (failed immediately), 2 for the third (first ok, second fails)
 //                            .assertUnmatched(XFER_ACCOUNTS, 0) // from the first run
 //                            .assertLinked(3, XFER_ACCOUNTS+3) // 1 from the second run, 2 from the third
-                    .end()
-                    .actionsExecuted()
-                    .display()
-                    .resulting()
+                        .end()
+                        .actionsExecuted()
+                            .display()
+                            .resulting()
                     // TODO FIXME
 //                                .assertCount(3*XFER_ACCOUNTS+5, 2)
 //                                .assertCount(ADD, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
@@ -978,8 +989,9 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 //                                .assertCount(MODIFY, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS+3, 0) // from the first+second+third (10+1+2) runs
 //                                .assertCount(MODIFY, UserType.COMPLEX_TYPE, 2, 0) // from the second+third runs (1+1)
 //                                .assertCount(DELETE, ShadowType.COMPLEX_TYPE, 0, 2) // from the second+third run (1+1)
-                    .end()
-                    .end();
+                            .end()
+                        .end();
+            // @formatter:on
         }
 
         // Note: it seems that the failed delete caused unlinking the account, so the next live sync on the "11-th" account
@@ -1031,11 +1043,13 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
     private TaskAsserter<Void> doXferLiveSync(TestResource<TaskType> xferTask) throws Exception {
         given();
 
+        // @formatter:off
         assertTask(xferTask.oid, "before")
                 .rootActivityState()
-                .itemProcessingStatistics().display().end()
-                .synchronizationStatistics().display().end()
-                .actionsExecuted().display().end();
+                    .itemProcessingStatistics().display().end()
+                    .synchronizationStatistics().display().end()
+                    .actionsExecuted().display().end();
+        // @formatter:on
 
         when();
 
@@ -1114,33 +1128,35 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE.oid, null, task, result);
         PrismObject<ResourceType> targetResource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_ERRORS_TARGET.oid, null, task, result);
+        // @formatter:off
         //noinspection unchecked
         assertShadow("e-000003", resource)
                 .display()
                 .triggers()
-                .single()
-                .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
-                .assertTimestampBetween(fromNow(start, "PT5M"), fromNow(end, "PT5M"))
-                .extension()
-                .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
-                .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
-                .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 1)
-                .assertPropertyEquals(PlannedOperationAttemptType.F_LIMIT, 3)
-                .assertPropertyEquals(PlannedOperationAttemptType.F_INTERVAL, XmlTypeConverter.createDuration("PT1H"));
+                    .single()
+                    .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
+                    .assertTimestampBetween(fromNow(start, "PT5M"), fromNow(end, "PT5M"))
+                    .extension()
+                        .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 1)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_LIMIT, 3)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_INTERVAL, XmlTypeConverter.createDuration("PT1H"));
 
         //noinspection unchecked
         assertShadow("e-000009", resource)
                 .display()
                 .triggers()
-                .single()
-                .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
-                .assertTimestampBetween(fromNow(start, "PT30M"), fromNow(end, "PT30M"))
-                .extension()
-                .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
-                .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
-                .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 1)
-                .assertNoItem(PlannedOperationAttemptType.F_LIMIT)
-                .assertPropertyEquals(PlannedOperationAttemptType.F_INTERVAL, XmlTypeConverter.createDuration("PT1H"));
+                    .single()
+                    .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
+                    .assertTimestampBetween(fromNow(start, "PT30M"), fromNow(end, "PT30M"))
+                    .extension()
+                        .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 1)
+                            .assertNoItem(PlannedOperationAttemptType.F_LIMIT)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_INTERVAL, XmlTypeConverter.createDuration("PT1H"));
+        // @formatter:on
         assertNoShadow("e-000009", targetResource, result);
 
         when("retrying partial errors (each 3th except for 9th)");
@@ -1152,28 +1168,30 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
         then("retrying partial errors (each 3th except for 9th)");
         stabilize();
+        // @formatter:off
         assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
                 .display()
                 .rootItemProcessingInformation()
-                .display()
-                .assertSuccessCount(0)
-                .assertFailureCount(7)
-                .end()
+                    .display()
+                    .assertSuccessCount(0)
+                    .assertFailureCount(7)
+                    .end()
                 .assertProgress(7); // 3, 6, 12, 15, 21, 24, 30
 
         //noinspection unchecked
         assertShadow("e-000003", resource)
                 .display()
                 .triggers()
-                .single()
-                .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
-                .assertTimestampBetween(fromNow(triggerFirstStart, "PT1H"), fromNow(triggerFirstEnd, "PT1H")) // from current or from clock.current (overridden)?
-                .extension()
-                .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
-                .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
-                .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 2)
-                .assertPropertyEquals(PlannedOperationAttemptType.F_LIMIT, 3)
-                .assertPropertyEquals(PlannedOperationAttemptType.F_INTERVAL, XmlTypeConverter.createDuration("PT1H"));
+                    .single()
+                    .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
+                    .assertTimestampBetween(fromNow(triggerFirstStart, "PT1H"), fromNow(triggerFirstEnd, "PT1H")) // from current or from clock.current (overridden)?
+                    .extension()
+                        .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 2)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_LIMIT, 3)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_INTERVAL, XmlTypeConverter.createDuration("PT1H"));
+        // @formatter:on
 
         when("retrying fatal errors (each 9th)");
 
@@ -1185,26 +1203,28 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
         then("retrying fatal errors (each 9th)");
         stabilize();
+        // @formatter:off
         assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
                 .assertProgress(7 + 3) // 9, 18, 27
                 .display()
                 .rootItemProcessingInformation()
-                .assertSuccessCount(0)
-                .assertFailureCount(10) // counters are not cleared between runs (for now)
-                .display();
+                    .assertSuccessCount(0)
+                    .assertFailureCount(10) // counters are not cleared between runs (for now)
+                    .display();
 
         //noinspection unchecked
         assertShadow("e-000009", resource)
                 .display()
                 .triggers()
-                .single()
-                .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
-                .assertTimestampBetween(fromNow(triggerSecondStart, "PT1H"), fromNow(triggerSecondEnd, "PT1H")) // from current or from clock.current (overridden)?
-                .extension()
-                .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
-                .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
-                .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 2)
-                .assertPropertyEquals(PlannedOperationAttemptType.F_INTERVAL, XmlTypeConverter.createDuration("PT1H"));
+                    .single()
+                    .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
+                    .assertTimestampBetween(fromNow(triggerSecondStart, "PT1H"), fromNow(triggerSecondEnd, "PT1H")) // from current or from clock.current (overridden)?
+                    .extension()
+                        .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 2)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_INTERVAL, XmlTypeConverter.createDuration("PT1H"));
+        // @formatter:on
         assertNoShadow("e-000009", targetResource, result);
 
         when("retrying everything, errors turned off");
@@ -1219,14 +1239,16 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
         then("retrying everything, errors turned off");
         stabilize();
+        // @formatter:off
         assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
                 .assertProgress(7 + 3 + 10) // each 3rd
                 .display()
                 .rootActivityState()
-                .itemProcessingStatistics()
-                .assertSuccessCount(10)
-                .assertFailureCount(10) // counters are not cleared between runs (for now)
-                .display();
+                    .itemProcessingStatistics()
+                        .assertSuccessCount(10)
+                        .assertFailureCount(10) // counters are not cleared between runs (for now)
+                        .display();
+        // @formatter:on
 
         for (int i = 3; i <= 30; i += 3) {
             assertShadow(String.format("e-%06d", i), resource)
@@ -1258,17 +1280,20 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE.oid, null, task, result);
         PrismObject<ResourceType> targetResource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_ERRORS_TARGET.oid, null, task, result);
+
+        // @formatter:off
         assertShadow("e-000003", resource)
                 .display()
                 .triggers()
                 .single()
-                .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI);
+                    .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI);
 
         assertShadow("e-000009", resource)
                 .display()
                 .triggers()
                 .single()
-                .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI);
+                    .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI);
+        // @formatter:on
 
         assertNoShadow("e-000009", targetResource, result);
     }

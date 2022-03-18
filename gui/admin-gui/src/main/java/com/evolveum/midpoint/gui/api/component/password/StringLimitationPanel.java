@@ -13,7 +13,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -22,7 +21,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -79,13 +77,13 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
     private IModel<String> getRulesModel() {
         List<String> rules = new ArrayList<>();
         if (getModelObject().getMinOccurs() != null) {
-            rules.add(PageBase.createStringResourceStatic(null, "StringLimitationPanel.min", getModelObject().getMinOccurs()).getString());
+            rules.add(PageBase.createStringResourceStatic("StringLimitationPanel.min", getModelObject().getMinOccurs()).getString());
         }
         if (getModelObject().getMaxOccurs() != null) {
-            rules.add(PageBase.createStringResourceStatic(null, "StringLimitationPanel.max", getModelObject().getMaxOccurs()).getString());
+            rules.add(PageBase.createStringResourceStatic("StringLimitationPanel.max", getModelObject().getMaxOccurs()).getString());
         }
         if (Boolean.TRUE.equals(getModelObject().isMustBeFirst())) {
-            rules.add(PageBase.createStringResourceStatic(null, "StringLimitationPanel.mustBeFirst").getString());
+            rules.add(PageBase.createStringResourceStatic("StringLimitationPanel.mustBeFirst").getString());
         }
         StringBuilder sb = new StringBuilder("");
         if (!rules.isEmpty()) {
@@ -94,7 +92,7 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
                     if (i != (rules.size() - 1)) {
                         sb.append(",");
                     } else {
-                        sb.append(" ").append(PageBase.createStringResourceStatic(null, "StringLimitationPanel.rules.and").getString());
+                        sb.append(" ").append(PageBase.createStringResourceStatic("StringLimitationPanel.rules.and").getString());
                     }
                 }
                 sb.append(" ").append(rules.get(i));

@@ -79,6 +79,7 @@
             <class name="com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium"/>
             <class name="com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMultiAccounts"/>
             <class name="com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMultiAccountsSimplified"/>
+            <class name="com.evolveum.midpoint.testing.story.TestVeryAuthoritativeSource"/>
         </classes>
     </test>
 </suite>

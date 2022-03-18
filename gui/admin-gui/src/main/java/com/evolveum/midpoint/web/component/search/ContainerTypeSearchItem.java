@@ -60,7 +60,7 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
         if (configuration != null && configuration.getDisplay() != null && configuration.getDisplay().getLabel() != null){
             return WebComponentUtil.getTranslatedPolyString(configuration.getDisplay().getLabel());
         }
-        return PageBase.createStringResourceStatic(null, "ContainerTypeSearchItem.name").getString();
+        return PageBase.createStringResourceStatic("ContainerTypeSearchItem.name").getString();
     }
 
     @Override

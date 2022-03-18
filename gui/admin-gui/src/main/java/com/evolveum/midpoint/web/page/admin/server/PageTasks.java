@@ -123,7 +123,11 @@ public class PageTasks extends PageAdmin {
             @Override
             public IModel<ObjectReferenceType> extractDataModel(IModel<SelectableBean<TaskType>> rowModel) {
                 SelectableBean<TaskType> bean = rowModel.getObject();
-                return Model.of(bean.getValue().getObjectRef());
+                ObjectReferenceType objectRef = bean.getValue().getObjectRef();
+                if (objectRef != null) {
+                    objectRef.asReferenceValue().clearParent();
+                }
+                return Model.of(objectRef);
 
             }
         });
@@ -222,7 +226,7 @@ public class PageTasks extends PageAdmin {
         List<Object> localizationObjects = new ArrayList<>();
         String key = TaskTypeUtil.createScheduledToRunAgain(taskModel.getObject().getValue(), localizationObjects);
 
-        return PageBase.createStringResourceStatic(this, key, localizationObjects.isEmpty() ? null : localizationObjects.toArray())
+        return PageBase.createStringResourceStatic(key, localizationObjects.isEmpty() ? null : localizationObjects.toArray())
                 .getString();
     }
 

@@ -114,7 +114,8 @@ public class SqaleRepositoryBeanConfig {
 
         // logger on com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger
         // DEBUG = show query, TRACE = add parameter values too (bindings)
-        repositoryContext.setQuerydslSqlListener(new SqlLogger());
+        repositoryContext.setQuerydslSqlListener(
+                new SqlLogger(repositoryConfiguration.getSqlDurationWarningMs()));
 
         // Registered mapping needs repository context which needs registry. Now we can fill it.
         // Mappings are ordered alphabetically here, mappings without schema type are at the end.

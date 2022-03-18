@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
@@ -96,8 +95,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
             @Override
             protected void afterActionFinished(AjaxRequestTarget target) {
                 Breadcrumb previousBreadcrumb = getPageBase().getPreviousBreadcrumb();
-                if (previousBreadcrumb instanceof BreadcrumbPageInstance &&
-                        ((BreadcrumbPageInstance) previousBreadcrumb).getPage() instanceof PageCaseWorkItem) {
+                if (previousBreadcrumb != null && previousBreadcrumb.getPageClass().isAssignableFrom(PageCaseWorkItem.class)) {
                     getPageBase().redirectBack(3);
                 } else {
                     getPageBase().redirectBack();

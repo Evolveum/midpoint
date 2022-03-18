@@ -263,7 +263,7 @@ public class AssignmentsUtil {
                 PolicyConstraintsType constraints = policyRuleContainer.getPolicyConstraints();
                 if (constraints != null && constraints.getExclusion() != null && constraints.getExclusion().size() > 0) {
                     if (pageBase == null) {
-                        sb.append(PageBase.createStringResourceStatic(null, "PolicyConstraintsType.exclusion").getString()).append(": ");
+                        sb.append(PageBase.createStringResourceStatic("PolicyConstraintsType.exclusion").getString()).append(": ");
                     } else {
                         sb.append(pageBase.createStringResource("PolicyConstraintsType.exclusion").getString()).append(": ");
                     }

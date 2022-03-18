@@ -300,6 +300,20 @@ public class MemberOperationsHelper {
     }
 
     /**
+     * Creates reference values pointing to given target with given relations.
+     *
+     * @param relations The relations. Must be at least one, otherwise the resulting list (to be used in a query, presumably)
+     * will be empty, making the query wrong.
+     */
+    public static @NotNull List<PrismReferenceValue> createReferenceValuesList(@NotNull ObjectReferenceType targetObjectRef,
+            @NotNull Collection<QName> relations) {
+        argCheck(!relations.isEmpty(), "At least one relation must be specified");
+        return relations.stream()
+                .map(relation -> targetObjectRef.relation(relation).asReferenceValue().clone())
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Creates a query covering all selected objects (converts list of objects to a multivalued "OID" query).
      */
     public static @NotNull ObjectQuery createSelectedObjectsQuery(@NotNull List<? extends ObjectType> selectedObjects) {

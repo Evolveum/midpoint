@@ -14,6 +14,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -172,12 +174,7 @@ public class PageUsers extends PageAdmin {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null){
-                            updateActivationPerformed(target, true, null);
-                        } else {
-                            SelectableBean<UserType> rowDto = getRowModel().getObject();
-                            updateActivationPerformed(target, true, rowDto.getValue());
-                        }
+                        updateActivationPerformed(target, true, getRowModel());
                     }
                 };
             }
@@ -206,12 +203,7 @@ public class PageUsers extends PageAdmin {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            updateActivationPerformed(target, false, null);
-                        } else {
-                            SelectableBean<UserType> rowDto = getRowModel().getObject();
-                            updateActivationPerformed(target, false, rowDto.getValue());
-                        }
+                        updateActivationPerformed(target, false, getRowModel());
                     }
                 };
             }
@@ -242,12 +234,7 @@ public class PageUsers extends PageAdmin {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            reconcilePerformed(target, null);
-                        } else {
-                            SelectableBean<UserType> rowDto = getRowModel().getObject();
-                            reconcilePerformed(target, rowDto.getValue());
-                        }
+                        reconcilePerformed(target, getRowModel());
                     }
                 };
             }
@@ -274,12 +261,7 @@ public class PageUsers extends PageAdmin {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            unlockPerformed(target, null);
-                        } else {
-                            SelectableBean<UserType> rowDto = getRowModel().getObject();
-                            unlockPerformed(target, rowDto.getValue());
-                        }
+                        unlockPerformed(target, getRowModel());
                     }
                 };
             }
@@ -367,13 +349,13 @@ public class PageUsers extends PageAdmin {
         setResponsePage(new PageMergeObjects(mergeObject, mergeWithObject, UserType.class));
     }
 
-    private void unlockPerformed(AjaxRequestTarget target, UserType selectedUser) {
-        List<UserType> users = getTable().isAnythingSelected(target, selectedUser);
+    private void unlockPerformed(AjaxRequestTarget target, IModel<SelectableBean<UserType>> selectedUser) {
+        List<SelectableBean<UserType>> users = getTable().isAnythingSelected(target, selectedUser);
         if (users.isEmpty()) {
             return;
         }
         OperationResult result = new OperationResult(OPERATION_UNLOCK_USERS);
-        for (UserType user : users) {
+        for (SelectableBean<UserType> user : users) {
             OperationResult opResult = result.createSubresult(getString(OPERATION_UNLOCK_USER, user));
             try {
                 Task task = createSimpleTask(OPERATION_UNLOCK_USER + user);
@@ -381,7 +363,7 @@ public class PageUsers extends PageAdmin {
                 // credentials specified (otherwise this would create
                 // almost-empty password container)
                 ObjectDelta delta = getPrismContext().deltaFactory().object().createModificationReplaceProperty(
-                        UserType.class, user.getOid(), ItemPath.create(UserType.F_ACTIVATION,
+                        UserType.class, user.getValue().getOid(), ItemPath.create(UserType.F_ACTIVATION,
                                 ActivationType.F_LOCKOUT_STATUS),
                         LockoutStatusType.NORMAL);
                 Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
@@ -402,18 +384,18 @@ public class PageUsers extends PageAdmin {
         getTable().clearCache();
     }
 
-    private void reconcilePerformed(AjaxRequestTarget target, UserType selectedUser) {
-        List<UserType> users = getTable().isAnythingSelected(target, selectedUser);
+    private void reconcilePerformed(AjaxRequestTarget target, IModel<SelectableBean<UserType>> selectedUser) {
+        List<SelectableBean<UserType>> users = getTable().isAnythingSelected(target, selectedUser);
         if (users.isEmpty()) {
             return;
         }
 
         OperationResult result = new OperationResult(OPERATION_RECONCILE_USERS);
-        for (UserType user : users) {
+        for (SelectableBean<UserType> user : users) {
             OperationResult opResult = result.createSubresult(getString(OPERATION_RECONCILE_USER, user));
             try {
                 Task task = createSimpleTask(OPERATION_RECONCILE_USER + user);
-                ObjectDelta delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(UserType.class, user.getOid()
+                ObjectDelta delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(UserType.class, user.getValue().getOid()
                 );
                 Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                 getModelService().executeChanges(deltas, executeOptions().reconcile(), task,
@@ -442,22 +424,23 @@ public class PageUsers extends PageAdmin {
      * users.
      */
     private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling,
-            UserType selectedUser) {
-        List<UserType> users = getTable().isAnythingSelected(target, selectedUser);
+            IModel<SelectableBean<UserType>> selectedUser) {
+        List<SelectableBean<UserType>> users = isAnythingSelected(target, selectedUser);
         if (users.isEmpty()) {
             return;
         }
+//        List<SelectableObjectModel<UserType>> users = (List<SelectableObjectModel<UserType>>) TableUtil.getSelectedModels(getTable().getTable().getDataTable());
 
         String operation = enabling ? OPERATION_ENABLE_USERS : OPERATION_DISABLE_USERS;
         OperationResult result = new OperationResult(operation);
-        for (UserType user : users) {
+        for (SelectableBean<UserType> user : users) {
             operation = enabling ? OPERATION_ENABLE_USER : OPERATION_DISABLE_USER;
             OperationResult subResult = result.createSubresult(operation);
             try {
                 Task task = createSimpleTask(operation);
 
                 ObjectDelta objectDelta = WebModelServiceUtils.createActivationAdminStatusDelta(
-                        UserType.class, user.getOid(), enabling, getPrismContext());
+                        UserType.class, user.getValue().getOid(), enabling, getPrismContext());
 
                 ExecuteChangeOptionsDto executeOptions = getTable().getExecuteOptions();
                 ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
@@ -482,5 +465,25 @@ public class PageUsers extends PageAdmin {
         target.add(getFeedbackPanel());
         getTable().clearCache();
         getTable().refreshTable(target);
+    }
+
+    /**
+     * This method check selection in table. If selectedObject != null than it
+     * returns only this object.
+     */
+    public List<SelectableBean<UserType>> isAnythingSelected(AjaxRequestTarget target, IModel<SelectableBean<UserType>> selectedObject) {
+        List<SelectableBean<UserType>>  users;
+        if (selectedObject != null) {
+            users = new ArrayList<>();
+            users.add(selectedObject.getObject());
+        } else {
+            users = TableUtil.getSelectedModels(getTable().getTable().getDataTable());
+//            if (users.isEmpty() && StringUtils.isNotEmpty(getNothingSelectedMessage())) {
+//                warn(getNothingSelectedMessage());
+//                target.add(getFeedbackPanel());
+//            }
+        }
+
+        return users;
     }
 }

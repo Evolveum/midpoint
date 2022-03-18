@@ -185,9 +185,9 @@ public class CertCaseOrWorkItemDto extends Selectable {
             }
 
             if (delta > 0) {
-                return PageBase.createStringResourceStatic(page, "PageCert.in", WebComponentUtil.formatDurationWordsForLocal(delta, true, true, page)).getString();
+                return PageBase.createStringResourceStatic("PageCert.in", WebComponentUtil.formatDurationWordsForLocal(delta, true, true, page)).getString();
             } else if (delta < 0) {
-                return PageBase.createStringResourceStatic(page, "PageCert.ago", WebComponentUtil.formatDurationWordsForLocal(-delta, true, true, page)).getString();
+                return PageBase.createStringResourceStatic("PageCert.ago", WebComponentUtil.formatDurationWordsForLocal(-delta, true, true, page)).getString();
             } else {
                 return page.getString("PageCert.now");
             }

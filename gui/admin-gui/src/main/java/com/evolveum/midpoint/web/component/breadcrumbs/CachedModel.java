@@ -51,4 +51,11 @@ public class CachedModel implements IModel<String> {
 
         return cachedValue;
     }
+
+    @Override
+    public void detach() {
+        if (valueModel != null) {
+            valueModel.detach();
+        }
+    }
 }

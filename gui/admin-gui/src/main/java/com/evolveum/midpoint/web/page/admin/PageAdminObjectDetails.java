@@ -154,11 +154,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     @Override
-    protected void createBreadcrumb() {
-        createInstanceBreadcrumb();
-    }
-
-    @Override
     protected void onConfigure() {
         super.onConfigure();
         if (saveOnConfigure) {
@@ -1233,7 +1228,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
         processAdditionalFocalObjectsForPreview(modelContextMap);
 
-        navigateToNext(new PagePreviewChanges(modelContextMap, getModelInteractionService()));
+        navigateToNext(new PagePreviewChanges(modelContextMap, getModelInteractionService(), this));
     }
 
     protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<O>, ModelContext<? extends ObjectType>> modelContextMap) {

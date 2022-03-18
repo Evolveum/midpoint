@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.prism.show;
 
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -20,7 +21,6 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
@@ -35,7 +35,6 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -65,13 +64,16 @@ public class PagePreviewChanges<O extends ObjectType> extends PageAdmin {
     private Map<PrismObject<O>, ModelContext<O>> modelContextMap;
     private ModelInteractionService modelInteractionService;
 
+    private PageBase previousPage;
+
     public PagePreviewChanges() {
         throw new RestartResponseException(getApplication().getHomePage());
     }
 
-    public PagePreviewChanges(Map<PrismObject<O>, ModelContext<O>> modelContextMap, ModelInteractionService modelInteractionService) {
+    public PagePreviewChanges(Map<PrismObject<O>, ModelContext<O>> modelContextMap, ModelInteractionService modelInteractionService, PageBase previousPage) {
         this.modelContextMap = modelContextMap;
         this.modelInteractionService = modelInteractionService;
+        this.previousPage = previousPage;
     }
 
     @Override
@@ -155,26 +157,25 @@ public class PagePreviewChanges<O extends ObjectType> extends PageAdmin {
 
 
     private void cancelPerformed(AjaxRequestTarget target) {
+        if (previousPage != null) {
+            setResponsePage(previousPage);
+            return;
+        }
         redirectBack();
     }
 
     private void savePerformed(AjaxRequestTarget target) {
-        Breadcrumb bc = redirectBack();
-        if (bc instanceof BreadcrumbPageInstance) {
-            BreadcrumbPageInstance bcpi = (BreadcrumbPageInstance) bc;
-            WebPage page = bcpi.getPage();
-            if (page instanceof PageAdminObjectDetails) {
-                ((PageAdminObjectDetails) page).setSaveOnConfigure(true);
+        if (previousPage != null) {
+            setResponsePage(previousPage);
+
+            if (previousPage instanceof PageAdminObjectDetails) {
+                ((PageAdminObjectDetails) previousPage).setSaveOnConfigure(true);
             } else {
-                error("Couldn't save changes - unexpected referring page: " + page);
+                error("Couldn't save changes - unexpected referring page: " + previousPage);
             }
         } else {
+            Breadcrumb bc = redirectBack();
             error("Couldn't save changes - no instance for referring page; breadcrumb is " + bc);
         }
-    }
-
-    @Override
-    protected void createBreadcrumb() {
-        createInstanceBreadcrumb();
     }
 }
