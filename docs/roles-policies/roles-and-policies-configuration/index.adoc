@@ -207,7 +207,7 @@ The XML role definition is as follows:
     <inducement>
         <construction>
             <resourceRef oid="8facf376-a697-11ec-a80b-1bec9f46e942" type="ResourceType"/>
-            <kind>entitlement</kind>
+            <kind>account</kind>
             <association>
                  <ref>ri:group</ref>
                  <outbound>
