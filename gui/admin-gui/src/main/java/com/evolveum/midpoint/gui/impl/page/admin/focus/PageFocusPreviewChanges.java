@@ -44,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerPr
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/previewChanges", matchUrlForSecurity = "/admin/previewChanges"),
+                @Url(mountUrl = "/admin/previewFocusChanges", matchUrlForSecurity = "/admin/previewFocusChanges"),
         },
         encoder = OnePageParameterEncoder.class,
         action = {
