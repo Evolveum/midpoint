@@ -1222,7 +1222,7 @@ We cannot sort by the output of the expression as that is not stored in the repo
 
 
 | `display`
-| Specification of column display properties.
+a| Specification of column display properties.
 This can be used to override the default column label or presentation style. `display` attribute can contain:
 
 * `label`
