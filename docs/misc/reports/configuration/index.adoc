@@ -6,7 +6,7 @@
 [TIP]
 .MidPoint 4.4 and later
 
-This feature is available only in midPoint 4.4 and later. For configuration before 4.4 please see xref:/midpoint/reference/reports/configuration-before-4-4/[Report Configuration before midPoint version 4.4].
+This feature is available only in midPoint 4.4 and later. For configuration before 4.4 please see xref:../configuration-before-4-4/[Report Configuration before midPoint version 4.4].
 
 Native reports are intended to be native reporting mechanism for midPoint. The aim is to use what midPoint provides without the need for Jasper framework. Using Jasper framework was removed in midPoint 4.4. It is recommended to use reports based on midPoint concepts, namely dashboards or objectCollection. Current implementation support exporting reports to CSV and HTML file, other formats such as XSLX are planned to be added later.
 
