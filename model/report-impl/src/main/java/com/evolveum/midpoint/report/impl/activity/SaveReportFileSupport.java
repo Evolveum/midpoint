@@ -162,9 +162,10 @@ class SaveReportFileSupport {
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter) {
         File exportDir = ReportSupportUtil.getOrCreateExportDir();
 
-        String fileNamePrefix = reportType.getName().getOrig() + "-EXPORT " + getDateTime();
+        String reportName = StringUtils.replace(reportType.getName().getOrig(), File.separator, "_");
+        String fileNamePrefix = reportName + "-EXPORT " + getDateTime();
         String fileName = fileNamePrefix + dataWriter.getTypeSuffix();
-        return MiscUtil.replaceColonsInFileNameOnWindows(new File(exportDir, fileName).getPath());
+        return MiscUtil.replaceIllegalCharInFileNameOnWindows(new File(exportDir, fileName).getPath());
     }
 
     static String getNameOfExportedReportData(ReportType reportType, String type) {

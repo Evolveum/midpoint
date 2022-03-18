@@ -199,7 +199,7 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
     File findOutputFile(PrismObject<ReportType> report) throws ParseException {
         // We should use a more robust way of finding the file names, e.g. by looking at ReportDataType repo objects.
         String expectedFilePrefix =
-                MiscUtil.replaceColonsInFileNameOnWindows(
+                MiscUtil.replaceIllegalCharInFileNameOnWindows(
                         report.getName().getOrig());
         File[] matchingFiles = EXPORT_DIR.listFiles((dir, name) -> name.startsWith(expectedFilePrefix));
         if (matchingFiles == null || matchingFiles.length == 0) {
