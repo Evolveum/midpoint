@@ -512,7 +512,8 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         BoxedTablePanel<MailServerConfiguration> itemsTable = getMailServersTable();
         ListDataProvider<MailServerConfiguration> itemsProvider = (ListDataProvider<MailServerConfiguration>) itemsTable.getDataTable()
                 .getDataProvider();
-        return itemsProvider.getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
+//        return itemsProvider.getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
+        return new ArrayList<>();
     }
 
     private void mailServerEditPerformed(AjaxRequestTarget target, IModel<MailServerConfiguration> rowModel,

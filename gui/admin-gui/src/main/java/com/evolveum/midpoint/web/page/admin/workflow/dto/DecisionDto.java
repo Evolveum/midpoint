@@ -103,8 +103,8 @@ public class DecisionDto extends Selectable {
             }
             WorkItemEventCauseInformationType cause = completionEvent.getCause();
             if (cause != null && cause.getType() == WorkItemEventCauseTypeType.TIMED_ACTION) {
-                rv.user = PageBase.createStringResourceStatic(null,
-                            "DecisionDto." + (rv.outcome ? "approvedDueToTimeout" : "rejectedDueToTimeout")).getString();
+                rv.user = PageBase.createStringResourceStatic(
+                        "DecisionDto." + (rv.outcome ? "approvedDueToTimeout" : "rejectedDueToTimeout")).getString();
                 if (rv.comment == null) {
                     if (cause.getDisplayName() != null) {
                         rv.comment = cause.getDisplayName();
@@ -139,9 +139,9 @@ public class DecisionDto extends Selectable {
             ApprovalLevelOutcomeType outcome = ApprovalUtils.approvalLevelOutcomeFromUri(completion.getOutcome());
             if (outcome == ApprovalLevelOutcomeType.APPROVE || outcome == ApprovalLevelOutcomeType.REJECT) {
                 rv.outcome = outcome == ApprovalLevelOutcomeType.APPROVE;
-                rv.user = PageBase.createStringResourceStatic(null,
+                rv.user = PageBase.createStringResourceStatic(
                         "DecisionDto." + (rv.outcome ? "automaticallyApproved" : "automaticallyRejected")).getString();
-                rv.comment = PageBase.createStringResourceStatic(null, "DecisionDto." + reason.name()).getString();
+                rv.comment = PageBase.createStringResourceStatic("DecisionDto." + reason.name()).getString();
                 return rv;
             } else {
                 return null;            // SKIP (legal = should hide) or null (illegal)

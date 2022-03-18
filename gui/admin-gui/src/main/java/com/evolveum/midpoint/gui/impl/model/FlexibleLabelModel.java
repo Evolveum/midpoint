@@ -150,5 +150,6 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
 
     @Override
     public void detach() {
+        model.detach();
     }
 }

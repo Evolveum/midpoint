@@ -93,7 +93,7 @@ public class PageSelfDashboard extends PageSelf {
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
 
     public PageSelfDashboard() {
-        setTimeZone(PageSelfDashboard.this);
+        setTimeZone();
         initLayout();
     }
 

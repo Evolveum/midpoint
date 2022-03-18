@@ -11,6 +11,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -68,17 +72,20 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     }
 
     public SelectableBean<O> createDataObjectWrapper(O obj) {
-        SelectableBean<O> selectable = new SelectableBeanImpl<>(obj);
-
-        if (!WebComponentUtil.isSuccessOrHandledError(obj.getFetchResult())) {
-            try {
-                if (obj.getFetchResult() != null && !OperationResultImportanceType.MINOR.equals(obj.getFetchResult().getImportance())) {
-                    selectable.setResult(obj.getFetchResult());
-                }
-            } catch (SchemaException e) {
-                throw new SystemException(e.getMessage(), e);
+        SelectableObjectModel<O> model = new SelectableObjectModel<O>(obj, getOptions()) {
+            @Override
+            protected O load() {
+                PageBase pageBase = getPageBase();
+                Task task = pageBase.createSimpleTask("load object");
+                OperationResult result = task.getResult();
+                PrismObject<O> object = WebModelServiceUtils.loadObject(getType(), getOid(), getOptions(), pageBase, task, result);
+                result.computeStatusIfUnknown();
+                return object.asObjectable();
             }
-        }
+        };
+        SelectableBean<O> selectable = new SelectableBeanImpl<>(model);
+        //TODO result
+
         for (O s : getSelected()) {
             if (s.getOid().equals(obj.getOid())) {
                 selectable.setSelected(true);
@@ -130,6 +137,18 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
         return true;
     }
 
+    @Override
+    public IModel<SelectableBean<O>> model(SelectableBean<O> object) {
+        return new Model<>(object);
+//        return new SelectableObjectModel<>(object) {
+//
+//            @Override
+//            protected PageBase getPageBase() {
+//                return SelectableBeanObjectDataProvider.this.getPageBase();
+//            }
+//        };
+    }
+
     protected boolean isMemberPanel() {
         return isMemberPanel;
     }
@@ -141,5 +160,11 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     @Override
     protected List<O> searchObjects(Class<? extends O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommonException {
         return getModel().searchObjects(type, query, options, task, result).map(prismObject -> prismObject.asObjectable());
+    }
+
+    @Override
+    public void detach() {
+        super.detach();
+        getAvailableData().clear();
     }
 }

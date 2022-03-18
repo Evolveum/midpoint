@@ -217,7 +217,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             protected SelectableBeanObjectDataProvider<AH> createProvider() {
                 SelectableBeanObjectDataProvider<AH> provider = createSelectableBeanObjectDataProvider(() -> getCustomizedQuery(getSearchModel().getObject()), null);
                 provider.setIsMemberPanel(true);
-                provider.addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleMemberPanel.this.getModelObject());
+                provider.addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject()));
                 return provider;
             }
 

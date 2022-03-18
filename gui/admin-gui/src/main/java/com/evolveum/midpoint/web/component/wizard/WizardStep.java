@@ -61,7 +61,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return PageBase.createStringResourceStatic(this, resourceKey, objects);
+        return PageBase.createStringResourceStatic(resourceKey, objects);
     }
 
     public StringResourceModel createStringResource(Enum e) {

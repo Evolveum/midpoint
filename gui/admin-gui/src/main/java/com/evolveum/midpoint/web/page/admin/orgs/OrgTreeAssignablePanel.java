@@ -61,7 +61,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
         if (getPreselectedOrgsList() != null) {
             allTabsSelectedOrgs.addAll(getPreselectedOrgsList());
         }
-        AbstractOrgTabPanel tabbedPanel = new AbstractOrgTabPanel(ID_ORG_TABS, getPageBase()) {
+        AbstractOrgTabPanel tabbedPanel = new AbstractOrgTabPanel(ID_ORG_TABS) {
 
             private static final long serialVersionUID = 1L;
 

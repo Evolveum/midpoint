@@ -47,12 +47,12 @@ public class MenuLinkPanel extends BasePanel<InlineMenuItem> {
 
                 @Override
                 protected void onSubmit(AjaxRequestTarget target) {
-                    MenuLinkPanel.this.onSubmit(target, dto.getAction(), getModel());
+                    MenuLinkPanel.this.onSubmit(target, getModelObject().getAction(), getModel());
                 }
 
                 @Override
                 protected void onError(AjaxRequestTarget target) {
-                    MenuLinkPanel.this.onError(target, dto.getAction());
+                    MenuLinkPanel.this.onError(target, getModelObject().getAction());
                 }
 
                 @Override
@@ -66,7 +66,7 @@ public class MenuLinkPanel extends BasePanel<InlineMenuItem> {
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
-                    MenuLinkPanel.this.onClick(target, dto.getAction(), MenuLinkPanel.this.getModel());
+                    MenuLinkPanel.this.onClick(target, MenuLinkPanel.this.getModelObject().getAction(), MenuLinkPanel.this.getModel());
                 }
 
                 @Override
@@ -82,7 +82,7 @@ public class MenuLinkPanel extends BasePanel<InlineMenuItem> {
 
             @Override
             public boolean isVisible() {
-                return dto.getAction() != null;
+                return getModelObject().getAction() != null;
             }
         });
 
@@ -129,4 +129,5 @@ public class MenuLinkPanel extends BasePanel<InlineMenuItem> {
         };
         ((PageBase)getPage()).showMainPopup(dialog, target);
     }
+
 }

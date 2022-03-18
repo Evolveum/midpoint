@@ -27,6 +27,9 @@ public abstract class BaseSearchDataProvider<C extends Containerable, T extends 
         extends BaseSortableDataProvider<T> {
 
     private final IModel<Search<C>> search;
+
+    //TODO why do we need this? varaibles are serialized, in case
+    // of bug objects (e.g. prism objects) it might have impact on performance
     private final Map<String, Object> variables = new HashMap<>();
 
     private Class<C> oldType;
@@ -96,5 +99,11 @@ public abstract class BaseSearchDataProvider<C extends Containerable, T extends 
 
     public void setCompiledObjectCollectionView(CompiledObjectCollectionView objectCollectionView) {
         this.objectCollectionView = objectCollectionView;
+    }
+
+    @Override
+    public void detach() {
+        super.detach();
+        search.detach();
     }
 }

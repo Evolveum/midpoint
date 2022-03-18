@@ -125,8 +125,8 @@ public class ResourceContentTabPanel extends BasePanel<PrismObject<ResourceType>
         mainForm.addOrReplace(initTable(getModel()));
         add(mainForm);
 
-        AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT,
-            new PropertyModel<>(resourceContentSearch, "intent"), String.class, false, null) {
+        AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<>(ID_INTENT,
+                new PropertyModel<>(resourceContentSearch, "intent"), String.class, false) {
             private static final long serialVersionUID = 1L;
 
             @Override

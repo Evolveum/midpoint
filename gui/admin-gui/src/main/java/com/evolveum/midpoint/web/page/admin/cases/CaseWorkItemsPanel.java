@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -113,6 +114,11 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
                     @Override
                     protected ISelectableDataProvider<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> createProvider() {
                         return CaseWorkItemsPanel.this.createProvider(getSearchModel());
+                    }
+
+                    @Override
+                    public List<CaseWorkItemType> getSelectedRealObjects() {
+                        return getSelectedObjects().stream().map(o -> o.getRealValue()).collect(Collectors.toList());
                     }
 
                     @Override

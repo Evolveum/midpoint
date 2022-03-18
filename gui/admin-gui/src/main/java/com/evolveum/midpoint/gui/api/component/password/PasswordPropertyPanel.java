@@ -36,7 +36,7 @@ public class PasswordPropertyPanel  extends PrismPropertyPanel<ProtectedStringTy
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new ItemRealValueModel<>(item.getModel()),
                     getModelObject() != null && getModelObject().isReadOnly(),
                     item.getModelObject() == null || item.getModelObject().getRealValue() == null,
-                getPrismObjectParentIfExist(), getPageBase()){
+                getPrismObjectParentIfExist()){
             private static final long serialVersionUID = 1L;
 
             @Override

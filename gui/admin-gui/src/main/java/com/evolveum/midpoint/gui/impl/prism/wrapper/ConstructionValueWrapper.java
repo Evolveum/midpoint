@@ -25,29 +25,26 @@ public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<Con
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionValueWrapper.class);
 
-    private PrismObject<ResourceType> resource;
-    private transient RefinedResourceSchema resourceSchema;
+    private String resourceOid;
 
     public ConstructionValueWrapper(PrismContainerWrapper<ConstructionType> parent, PrismContainerValue<ConstructionType> pcv, ValueStatus status) {
         super(parent, pcv, status);
     }
 
-    public PrismObject<ResourceType> getResource() {
-        return resource;
+    public void setResourceOid(String resourceOid) {
+        this.resourceOid = resourceOid;
     }
 
-    public void setResource(PrismObject<ResourceType> resource) {
-        this.resource = resource;
+    public String getResourceOid() {
+        return resourceOid;
     }
 
-    public RefinedResourceSchema getResourceSchema() throws SchemaException {
-        if (resourceSchema == null) {
-            if (resource != null) {
-                resourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
-            }
+    public RefinedResourceSchema getResourceSchema(PrismObject<ResourceType> resource) throws SchemaException {
+        if (resource != null) {
+            return RefinedResourceSchema.getRefinedSchema(resource);
         }
 
-        return resourceSchema;
+        return null;
     }
 
     public ShadowKindType getKind() {
@@ -58,12 +55,12 @@ public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<Con
         return kind;
     }
 
-    public String getIntent() {
+    public String getIntent(PrismObject<ResourceType> resource) {
         String intent = getNewValue().asContainerable().getIntent();
         if (StringUtils.isBlank(intent)) {
             ObjectClassComplexTypeDefinition def;
             try {
-                def = findDefaultObjectClassDefinition();
+                def = findDefaultObjectClassDefinition(resource);
                 if (def != null) {
                     intent = def.getIntent();
                 }
@@ -76,8 +73,8 @@ public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<Con
         return intent;
     }
 
-    private ObjectClassComplexTypeDefinition findDefaultObjectClassDefinition() throws SchemaException {
-        RefinedResourceSchema schema = getResourceSchema();
+    private ObjectClassComplexTypeDefinition findDefaultObjectClassDefinition(PrismObject<ResourceType> resource) throws SchemaException {
+        RefinedResourceSchema schema = getResourceSchema(resource);
         if (schema == null) {
             return null;
         }

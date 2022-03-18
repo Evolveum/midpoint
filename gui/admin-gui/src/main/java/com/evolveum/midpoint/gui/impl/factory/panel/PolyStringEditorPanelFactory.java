@@ -35,6 +35,6 @@ public class PolyStringEditorPanelFactory extends AbstractInputGuiComponentFacto
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<PolyString> panelCtx) {
         return new PolyStringEditorPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
-                panelCtx.getPredefinedValues(), panelCtx.hasValueEnumerationRef());
+                panelCtx.getPredefinedValuesOid(), panelCtx.hasValueEnumerationRef());
     }
 }

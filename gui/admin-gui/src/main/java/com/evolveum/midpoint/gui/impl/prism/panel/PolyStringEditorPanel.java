@@ -69,16 +69,16 @@ public class PolyStringEditorPanel extends InputPanel {
 
     private final StringBuilder currentlySelectedLang = new StringBuilder();
     private final IModel<PolyString> model;
-    private final LookupTableType predefinedValuesLookupTable;
+    private String predefinedValuesLookupTableOid;
     private final boolean hasValueEnumerationRef;
 
     private boolean showFullData = false;
 
     public PolyStringEditorPanel(String id, IModel<PolyString> model,
-            LookupTableType predefinedValuesLookupTable, boolean hasValueEnumerationRef) {
+            String predefinedValuesLookupTableOid, boolean hasValueEnumerationRef) {
         super(id);
         this.model = model;
-        this.predefinedValuesLookupTable = predefinedValuesLookupTable;
+        this.predefinedValuesLookupTableOid = predefinedValuesLookupTableOid;
         this.hasValueEnumerationRef = hasValueEnumerationRef;
     }
 
@@ -170,17 +170,15 @@ public class PolyStringEditorPanel extends InputPanel {
 
             }
         };
-        if (predefinedValuesLookupTable == null) {
+        if (predefinedValuesLookupTableOid == null) {
             origValuePanel = new TextPanel<>(ID_ORIG_VALUE, origValueModel, String.class, false);
         } else {
-            origValuePanel = new AutoCompleteTextPanel<String>(ID_ORIG_VALUE, origValueModel, String.class,
-                    hasValueEnumerationRef, predefinedValuesLookupTable) {
-
-                private static final long serialVersionUID = 1L;
+            origValuePanel = new AutoCompleteTextPanel<>(ID_ORIG_VALUE, origValueModel, String.class,
+                    hasValueEnumerationRef, predefinedValuesLookupTableOid) {
 
                 @Override
                 public Iterator<String> getIterator(String input) {
-                    return getPredefinedValuesIterator(input).iterator();
+                    return getPredefinedValuesIterator(input, getLookupTable()).iterator();
                 }
             };
         }
@@ -486,8 +484,15 @@ public class PolyStringEditorPanel extends InputPanel {
         return model == null ? null : model.getObject();
     }
 
-    private List<String> getPredefinedValuesIterator(String input) {
+    private List<String> getPredefinedValuesIterator(String input, LookupTableType predefinedValuesLookupTable) {
         return WebComponentUtil.prepareAutoCompleteList(predefinedValuesLookupTable, input,
                 ((PageBase) getPage()).getLocalizationService());
     }
+
+    @Override
+    protected void onDetach() {
+        model.detach();
+        super.onDetach();
+    }
+
 }

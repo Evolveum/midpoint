@@ -13,9 +13,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
-
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -60,7 +57,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsMo
 import com.evolveum.midpoint.gui.impl.prism.panel.ShadowPanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -68,7 +65,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -78,6 +74,7 @@ import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -191,6 +188,43 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     @Override
                     protected List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> createDefaultColumns() {
                         return initBasicColumns();
+                    }
+
+                    @Override
+                    protected IColumn<PrismContainerValueWrapper<ShadowType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
+                        IModel<PrismContainerDefinition<ShadowType>> shadowDef = Model.of(getShadowDefinition());
+                        return new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_NAME, ColumnType.LINK, getPageBase()) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
+                                getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
+                                target.add(getPageBase().getFeedbackPanel());
+                            }
+                        };
+                    }
+
+                    @Override
+                    protected IColumn<PrismContainerValueWrapper<ShadowType>, String> createIconColumn() {
+                        return new CompositedIconColumn<>(Model.of("")) {
+
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected CompositedIcon getCompositedIcon(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
+                                if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getRealValue() == null) {
+                                    return new CompositedIconBuilder().build();
+                                }
+                                ShadowType shadow = createShadowType(rowModel);
+                                return WebComponentUtil.createAccountIcon(shadow, getPageBase(), true);
+                            }
+
+                        };
+                    }
+
+                    @Override
+                    protected IColumn<PrismContainerValueWrapper<ShadowType>, String> createCheckboxColumn() {
+                        return new CheckBoxHeaderColumn<>();
                     }
 
                     @Override
@@ -439,36 +473,13 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         return new PropertyModel<>(model, "parent");
     }
 
+
     private List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> initBasicColumns() {
 
         IModel<PrismContainerDefinition<ShadowType>> shadowDef = Model.of(getShadowDefinition());
 
         List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> columns = new ArrayList<>();
-        columns.add(new CheckBoxHeaderColumn<>());
-        columns.add(new CompositedIconColumn<>(Model.of("")) {
 
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected CompositedIcon getCompositedIcon(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
-                if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getRealValue() == null) {
-                    return new CompositedIconBuilder().build();
-                }
-                ShadowType shadow = createShadowType(rowModel);
-                return WebComponentUtil.createAccountIcon(shadow, getPageBase(), true);
-            }
-
-        });
-
-        columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_NAME, ColumnType.LINK, getPageBase()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
-                getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
-                target.add(getPageBase().getFeedbackPanel());
-            }
-        });
         columns.add(new PrismReferenceWrapperColumn<>(shadowDef, ShadowType.F_RESOURCE_REF, ColumnType.STRING, getPageBase()));
         columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_OBJECT_CLASS, ColumnType.STRING, getPageBase()));
         columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_KIND, ColumnType.STRING, getPageBase()) {
@@ -747,7 +758,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         getMultivalueContainerListPanel().editItemPerformed(target,
-                                getRowModel(), getMultivalueContainerListPanel().getSelectedItems());
+                                getRowModel(), getMultivalueContainerListPanel().getSelectedObjects());
                         target.add(getPageBase().getFeedbackPanel());
                     }
                 };
@@ -911,57 +922,6 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             }
         }
         target.add(getMultivalueContainerListPanel());
-    }
-
-    private List<ShadowWrapper> loadShadowWrappers() {
-        LOGGER.trace("Loading shadow wrapper");
-        long start = System.currentTimeMillis();
-        List<ShadowWrapper> list = new ArrayList<>();
-
-        PrismObjectWrapper<F> focusWrapper = getObjectWrapperModel().getObject();
-        PrismObject<F> focus = focusWrapper.getObject();
-        PrismReference prismReference = focus.findReference(UserType.F_LINK_REF);
-        if (prismReference == null || prismReference.isEmpty()) {
-            return new ArrayList<>();
-        }
-        List<PrismReferenceValue> references = prismReference.getValues();
-
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_SHADOW);
-        for (PrismReferenceValue reference : references) {
-            if (reference == null || (reference.getOid() == null && reference.getTargetType() == null)) {
-                LOGGER.trace("Skiping reference for shadow with null oid");
-                continue; // default value
-            }
-            long shadowTimestampBefore = System.currentTimeMillis();
-            OperationResult subResult = task.getResult().createMinorSubresult(OPERATION_LOAD_SHADOW);
-            PrismObject<ShadowType> projection = getPrismObjectForShadowWrapper(reference.getOid(),
-                    true, task, subResult, createLoadOptionForShadowWrapper());
-
-            long shadowTimestampAfter = System.currentTimeMillis();
-            LOGGER.trace("Got shadow: {} in {}", projection, shadowTimestampAfter - shadowTimestampBefore);
-            if (projection == null) {
-                LOGGER.error("Couldn't load shadow projection");
-                continue;
-            }
-
-            long timestampWrapperStart = System.currentTimeMillis();
-            try {
-
-                ShadowWrapper wrapper = loadShadowWrapper(projection, task, subResult);
-                wrapper.setLoadWithNoFetch(true);
-                list.add(wrapper);
-
-                //TODO catch Exception/Runtim,eException, Throwable
-            } catch (SchemaException e) {
-                getPageBase().showResult(subResult, "pageAdminFocus.message.couldntCreateShadowWrapper");
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create shadow wrapper", e);
-            }
-            long timestampWrapperEnd = System.currentTimeMillis();
-            LOGGER.trace("Load wrapper in {}", timestampWrapperEnd - timestampWrapperStart);
-        }
-        long end = System.currentTimeMillis();
-        LOGGER.trace("Load projctions in {}", end - start);
-        return list;
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> createLoadOptionForShadowWrapper() {

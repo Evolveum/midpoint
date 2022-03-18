@@ -7,7 +7,16 @@
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Iterator;
+
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+
+import com.evolveum.midpoint.task.api.Task;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -37,15 +46,29 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 
     private static final String ID_INPUT = "input";
 
-    private LookupTableType lookupTable = null;
+    private String lookupTableOid;
     private boolean strict;
 
     public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type,
             boolean strict, LookupTableType lookupTable) {
         this(id, model, type, StringAutoCompleteRenderer.INSTANCE);
-        this.lookupTable = lookupTable;
+        this.lookupTableOid = lookupTable != null ? lookupTable.getOid() : null;
         this.strict = strict;
     }
+
+    public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type,
+            boolean strict, String lookupTableOid) {
+        this(id, model, type, StringAutoCompleteRenderer.INSTANCE);
+        this.lookupTableOid = lookupTableOid;
+        this.strict = strict;
+    }
+
+    public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type,
+            boolean strict) {
+        this(id, model, type, StringAutoCompleteRenderer.INSTANCE);
+        this.strict = strict;
+    }
+
 
     public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type, IAutoCompleteRenderer<T> renderer) {
         super(id);
@@ -97,12 +120,34 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
     public abstract Iterator<T> getIterator(String input);
 
     protected <C> IConverter<C> getAutoCompleteConverter(Class<C> type, IConverter<C> originConverter) {
-        if (lookupTable == null) {
+        LookupTableType lookupTableType = getLookupTable();
+        if (lookupTableType == null) {
             return originConverter;
         }
 
-        return new LookupTableConverter<>(originConverter, lookupTable, getBaseFormComponent(), strict);
+        return new LookupTableConverter<>(originConverter, lookupTableType, getBaseFormComponent(), strict) {
+
+            @Override
+            protected LookupTableType getLookupTable() {
+                return AutoCompleteTextPanel.this.getLookupTable();
+            }
+        };
     }
+
+    protected LookupTableType getLookupTable() {
+        if (lookupTableOid != null) {
+                Task task = getPageBase().createSimpleTask("Load lookup table");
+                OperationResult result = task.getResult();
+                Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+                               .createLookupTableRetrieveOptions(getPageBase().getSchemaService());
+                PrismObject<LookupTableType> prismLookupTable = WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableOid, options, getPageBase(), task, result);
+                if (prismLookupTable != null) {
+                        return  prismLookupTable.asObjectable();
+                    }
+            }
+        return null;
+    }
+
 
     @Override
     public FormComponent<T> getBaseFormComponent() {

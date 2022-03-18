@@ -24,10 +24,16 @@ import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePan
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ConstructionValueWrapper;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -114,11 +120,16 @@ public class ResourceAttributeRefPanelFactory
         ConstructionValueWrapper constructionWrapper = (ConstructionValueWrapper) itemWrapper;
 
         try {
-            RefinedResourceSchema schema = constructionWrapper.getResourceSchema();
+            Task task = ctx.getPageBase().createSimpleTask("Load resource");
+            OperationResult result = task.getResult();
+            PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class,
+                    constructionWrapper.getResourceOid(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch()),
+                    ctx.getPageBase(), task, result);
+            RefinedResourceSchema schema = constructionWrapper.getResourceSchema(resource);
             if (schema == null) {
                 return new ArrayList<>();
             }
-            RefinedObjectClassDefinition rOcd = schema.getRefinedDefinition(constructionWrapper.getKind(), constructionWrapper.getIntent());
+            RefinedObjectClassDefinition rOcd = schema.getRefinedDefinition(constructionWrapper.getKind(), constructionWrapper.getIntent(resource));
             if (rOcd == null) {
                 return Collections.emptyList();
             }

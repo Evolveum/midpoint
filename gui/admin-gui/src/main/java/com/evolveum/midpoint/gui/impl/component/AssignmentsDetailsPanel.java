@@ -181,8 +181,11 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
             ShadowKindType kind;
             String intent;
             if (constructionValue instanceof ConstructionValueWrapper) {
+                Task task = getPageBase().createSimpleTask("Load resource");
+                OperationResult result = task.getResult();
+                PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class, ((ConstructionValueWrapper) constructionValue).getResourceOid(), getPageBase(), task, result);
                 kind = ((ConstructionValueWrapper) constructionValue).getKind();
-                intent = ((ConstructionValueWrapper) constructionValue).getIntent();
+                intent = ((ConstructionValueWrapper) constructionValue).getIntent(resource);
             } else {
                 kind = assignment.getConstruction().getKind();
                 intent = assignment.getConstruction().getIntent();

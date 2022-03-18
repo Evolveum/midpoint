@@ -125,7 +125,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         add(requestedBy);
 
         LinkedReferencePanel requestedFor;
-        AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltyForCase(CaseTypeUtil.getCase(getModelObject()));
+        AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(CaseTypeUtil.getCase(getModelObject()));
         if (object == null) {
             requestedFor = new LinkedReferencePanel(ID_REQUESTED_FOR,
                     Model.of(WorkItemTypeUtil.getObjectReference(getModelObject())));
