@@ -820,6 +820,9 @@ public class SchemaHandlingStep extends WizardStep {
     @Override
     public void applyState() {
         parentPage.refreshIssues(null);
+
+        removeEmptyContainers(resourceModel.getObject());
+
         if (parentPage.isReadOnly() || !isComplete()) {
             return;
         }
@@ -836,8 +839,6 @@ public class SchemaHandlingStep extends WizardStep {
         ModelService modelService = parentPage.getModelService();
         ObjectDelta delta;
         boolean saved = false;
-
-        removeEmptyContainers(newResource);
 
         try {
             oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), parentPage, task, result);
