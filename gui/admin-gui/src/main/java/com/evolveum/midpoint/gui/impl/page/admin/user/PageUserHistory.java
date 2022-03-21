@@ -25,7 +25,7 @@ import org.apache.wicket.model.IModel;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/userHistory")
+                @Url(mountUrl = "/admin/userHistoryNew")
         },
         action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
