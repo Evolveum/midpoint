@@ -57,7 +57,6 @@ import com.evolveum.midpoint.repo.sqale.update.AddObjectContext;
 import com.evolveum.midpoint.repo.sqale.update.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
-import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -122,12 +121,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         super(repositoryContext, sqlPerformanceMonitorsCollection);
         this.sqlQueryExecutor = new SqlQueryExecutor(repositoryContext);
-
-        // monitor initialization and registration
-        performanceMonitor = new SqlPerformanceMonitorImpl(
-                repositoryConfiguration().getPerformanceStatisticsLevel(),
-                repositoryConfiguration().getPerformanceStatisticsFile());
-        sqlPerformanceMonitorsCollection.register(performanceMonitor);
     }
 
     @Override
