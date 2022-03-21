@@ -361,10 +361,10 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     private void addAllAssignmentsPerformed(AjaxRequestTarget target) {
 
         List<AssignmentEditorDto> availableProviderData = new ArrayList<>();
-        getGridViewComponent().visitChildren(SelectableDataTable.SelectableRowItem.class, new IVisitor<SelectableDataTable.SelectableRowItem<AssignmentEditorDto>, Void>() {
+        getGridViewComponent().visitChildren(RoleCatalogItemButton.class, new IVisitor<RoleCatalogItemButton, Void>() {
 
             @Override
-            public void component(SelectableDataTable.SelectableRowItem<AssignmentEditorDto> row, IVisit<Void> visit) {
+            public void component(RoleCatalogItemButton row, IVisit<Void> visit) {
                 availableProviderData.add(row.getModelObject());
             }
         });
