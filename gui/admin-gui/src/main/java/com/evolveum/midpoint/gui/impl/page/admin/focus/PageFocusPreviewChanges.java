@@ -49,7 +49,7 @@ import java.util.Map;
  */
 @PageDescriptor(
         urls = {
-                @Url (mountUrl = "/admin/previewChanges", matchUrlForSecurity = "/admin/previewChanges"),
+                @Url(mountUrl = "/admin/previewFocusChanges", matchUrlForSecurity = "/admin/previewFocusChanges"),
         },
         encoder = OnePageParameterEncoder.class,
         action = {
