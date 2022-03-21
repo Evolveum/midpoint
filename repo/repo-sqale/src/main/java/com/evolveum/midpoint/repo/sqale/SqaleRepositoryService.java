@@ -315,10 +315,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 object.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
             }
 
-            if (object.getVersion() == null) {
-                object.setVersion("1");
-            }
-
             return object.getOid() == null || !options.isOverwrite()
                     ? executeAddObject(object)
                     : executeOverwriteObject(object);
