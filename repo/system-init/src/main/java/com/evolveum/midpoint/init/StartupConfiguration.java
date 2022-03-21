@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -59,9 +59,11 @@ public class StartupConfiguration implements MidpointConfiguration {
             "keyStorePassword"
     );
     private static final String SENSITIVE_VALUE_OUTPUT = "[*****]";
-    // For troubleshooting, enables like this: -DmidpointPrintSensitiveValues
+    // For troubleshooting, enables like this: -Dmidpoint.printSensitiveValues
     private static final boolean PRINT_SENSITIVE_VALUES =
-            System.getProperty("midpointPrintSensitiveValues") != null;
+            System.getProperty("midpoint.printSensitiveValues") != null
+                    // old, but left for compatibility in 4.4 LTS
+                    || System.getProperty("midpointPrintSensitiveValues") != null;
 
     private boolean silent = false;
 
