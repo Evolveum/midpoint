@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/orgUnitHistory", matchUrlForSecurity = "/admin/orgUnitHistory")
+                @Url(mountUrl = "/admin/orgHistoryNew", matchUrlForSecurity = "/admin/orgUnitHistory")
         },
         action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL,

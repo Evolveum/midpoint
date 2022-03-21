@@ -29,7 +29,7 @@ import org.apache.wicket.model.IModel;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/serviceHistory")
+                @Url(mountUrl = "/admin/serviceHistoryNew")
         },
         encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
