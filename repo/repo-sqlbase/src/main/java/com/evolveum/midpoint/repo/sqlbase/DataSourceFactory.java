@@ -59,9 +59,9 @@ public class DataSourceFactory {
         } else {
             String jdbcUrl = configuration.getJdbcUrl(applicationName);
             try {
-                LOGGER.info("Constructing default datasource with connection pooling; JDBC URL: {}"
+                LOGGER.info("Constructing datasource '{}' with connection pooling; JDBC URL: {}"
                                 + "\n Using driver: {}",
-                        jdbcUrl, configuration.getDriverClassName());
+                        applicationName, jdbcUrl, configuration.getDriverClassName());
                 HikariConfig config = createHikariConfig(applicationName);
                 dataSource = new HikariDataSource(config);
                 internalDataSource = true;

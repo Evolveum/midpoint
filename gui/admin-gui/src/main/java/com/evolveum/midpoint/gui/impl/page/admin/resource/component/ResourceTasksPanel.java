@@ -102,8 +102,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
 
                         List<ObjectReferenceType> archetypeRef = ObjectCollectionViewUtil.getArchetypeReferencesList(collectionView);
                         try {
-                            String taskNamePrefix = createTaskPrefix(collectionView);
-                            TaskType newTask = createResourceTask(getPrismContext(), taskNamePrefix, ResourceTasksPanel.this.getObjectWrapper().getObject(), archetypeRef);
+                            TaskType newTask = createResourceTask(getPrismContext(), ResourceTasksPanel.this.getObjectWrapper().getObject(), archetypeRef);
 
                             WebComponentUtil.initNewObjectWithReference(getPageBase(), newTask, archetypeRef);
                         } catch (SchemaException ex) {
@@ -187,7 +186,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
         add(suspend);
     }
 
-    public static TaskType createResourceTask(PrismContext prismContext, String taskNamePrefix, PrismObject<ResourceType> resource,
+    public static TaskType createResourceTask(PrismContext prismContext, PrismObject<ResourceType> resource,
             List<ObjectReferenceType> archetypeRefs) throws SchemaException {
 
         PrismObjectDefinition<TaskType> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(TaskType.COMPLEX_TYPE);
@@ -199,9 +198,6 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
         resourceRef.setType(ResourceType.COMPLEX_TYPE);
         resourceRef.setTargetName(new PolyStringType(resource.getName()));
         newTask.setObjectRef(resourceRef);
-
-        String name = createNewTaskName(taskNamePrefix, resource);
-        newTask.setName(new PolyStringType(name));
 
         prepopulateTask(newTask, resource, archetypeRefs);
 
@@ -309,32 +305,6 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
         }
 
         return false;
-    }
-
-    private String createTaskPrefix(CompiledObjectCollectionView view) {
-        DisplayType display = view.getDisplay();
-        if (display != null && display.getLabel() != null) {
-            return display.getLabel().getOrig();
-        }
-
-        return null;
-    }
-
-    private static String createNewTaskName(String taskNamePrefix, PrismObject<ResourceType> resource) {
-        StringBuilder sb = new StringBuilder();
-        if (StringUtils.isNotEmpty(taskNamePrefix)) {
-            sb.append(taskNamePrefix);
-            sb.append(": ");
-        } else {
-            sb.append("Task: ");
-        }
-
-        PolyString name = resource.getName();
-        if (name != null) {
-            sb.append(name.getOrig());
-        }
-
-        return sb.toString();
     }
 
     private ObjectQuery createResourceTasksQuery() {

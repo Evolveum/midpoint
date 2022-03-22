@@ -6,6 +6,12 @@
  */
 package com.evolveum.midpoint.ninja;
 
+import java.util.List;
+
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -13,12 +19,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -32,12 +32,16 @@ public class ImportRepositoryTest extends BaseTest {
 
     @Test
     public void test100ImportByOid() {
+        // Try this line to be sure what the config is (assuming init method runs fine):
+//        new Main().run(new String[] { "-m", getMidpointHome(), "info" });
+
         String[] input = new String[] { "-m", getMidpointHome(), "import", "-o", "00000000-8888-6666-0000-100000000001",
                 "-i", RESOURCES_FOLDER + "/org-monkey-island-simple.xml.zip", "-z" };
 
         executeTest(null,
                 context -> {
                     RepositoryService repo = context.getRepository();
+                    clearDbIfNative(repo);
 
                     OperationResult result = new OperationResult("count objects");
                     int count = repo.countObjects(ObjectType.class, null, null, result);
@@ -64,13 +68,14 @@ public class ImportRepositoryTest extends BaseTest {
     }
 
     @Test
-    public void test110ImportByFilterAsOption() throws Exception {
+    public void test110ImportByFilterAsOption() {
         String[] input = new String[] { "-m", getMidpointHome(), "import", "-f", "<equal><path>name</path><value>F0002</value></equal>",
                 "-i", RESOURCES_FOLDER + "/org-monkey-island-simple.xml.zip", "-z" };
 
         executeTest(null,
                 context -> {
                     RepositoryService repo = context.getRepository();
+                    clearDbIfNative(repo);
 
                     OperationResult result = new OperationResult("count objects");
                     int count = repo.countObjects(ObjectType.class, null, null, result);
@@ -93,13 +98,14 @@ public class ImportRepositoryTest extends BaseTest {
     }
 
     @Test
-    public void test120ImportByFilterAsFile() throws Exception {
+    public void test120ImportByFilterAsFile() {
         String[] input = new String[] { "-m", getMidpointHome(), "import", "-f", "@src/test/resources/filter.xml",
                 "-i", RESOURCES_FOLDER + "/org-monkey-island-simple.xml.zip", "-z" };
 
         executeTest(null,
                 context -> {
                     RepositoryService repo = context.getRepository();
+                    clearDbIfNative(repo);
 
                     OperationResult result = new OperationResult("count objects");
                     int count = repo.countObjects(ObjectType.class, null, null, result);
@@ -130,8 +136,7 @@ public class ImportRepositoryTest extends BaseTest {
         final String ROLE_2_OID = "3ed7c747-ff1b-4b45-90c6-b158bc844e2b";
 
         executeTest(null,
-                context -> {
-                },
+                context -> clearDbIfNative(context.getRepository()),
                 context -> {
                     RepositoryService repo = context.getRepository();
 
@@ -143,6 +148,7 @@ public class ImportRepositoryTest extends BaseTest {
                         repo.getObject(RoleType.class, ROLE_2_OID, null, result);
                         AssertJUnit.fail("This role should get to repository because of default polystring normalizer (name collision failure)");
                     } catch (ObjectNotFoundException ex) {
+                        // ignored
                     }
                 },
                 true, true, input);
@@ -157,8 +163,7 @@ public class ImportRepositoryTest extends BaseTest {
         final String ROLE_2_OID = "3ed7c747-ff1b-4b45-90c6-b158bc844e2b";
 
         executeTest(null,
-                context -> {
-                },
+                context -> clearDbIfNative(context.getRepository()),
                 context -> {
                     RepositoryService repo = context.getRepository();
 

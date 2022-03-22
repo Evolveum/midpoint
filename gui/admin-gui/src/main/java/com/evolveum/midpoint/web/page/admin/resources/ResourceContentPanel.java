@@ -396,21 +396,13 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     }
 
-    private String createTaskNamePrefix(String archetypeOid) {
-        Task task = getPageBase().createSimpleTask("Load archetype");
-        PrismObject<ArchetypeType> archetype = WebModelServiceUtils.loadObject(ArchetypeType.class, archetypeOid, getPageBase(), task, task.getResult());
-
-        return archetype != null ? archetype.getName().getOrig() : null;
-    }
-
     private void newTaskPerformed(AjaxRequestTarget target, String archetypeOid) {
         List<ObjectReferenceType> archetypeRef = Arrays.asList(
                 new ObjectReferenceType()
                         .oid(archetypeOid)
                         .type(ArchetypeType.COMPLEX_TYPE));
         try {
-            TaskType newTask = ResourceTasksPanel.createResourceTask(getPrismContext(),
-                    createTaskNamePrefix(archetypeOid), getResourceModel().getObject(), archetypeRef);
+            TaskType newTask = ResourceTasksPanel.createResourceTask(getPrismContext(), getResourceModel().getObject(), archetypeRef);
 
             WebComponentUtil.initNewObjectWithReference(getPageBase(), newTask, archetypeRef);
         } catch (SchemaException ex) {

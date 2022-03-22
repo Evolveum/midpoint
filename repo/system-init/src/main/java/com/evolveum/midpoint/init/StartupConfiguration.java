@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -59,9 +59,11 @@ public class StartupConfiguration implements MidpointConfiguration {
             "keyStorePassword"
     );
     private static final String SENSITIVE_VALUE_OUTPUT = "[*****]";
-    // For troubleshooting, enables like this: -DmidpointPrintSensitiveValues
+    // For troubleshooting, enables like this: -Dmidpoint.printSensitiveValues
     private static final boolean PRINT_SENSITIVE_VALUES =
-            System.getProperty("midpointPrintSensitiveValues") != null;
+            System.getProperty("midpoint.printSensitiveValues") != null
+                    // TODO: remove in 4.6, legacy property name
+                    || System.getProperty("midpointPrintSensitiveValues") != null;
 
     private boolean silent = false;
 
@@ -84,7 +86,9 @@ public class StartupConfiguration implements MidpointConfiguration {
      * Default constructor
      */
     StartupConfiguration() {
-        this.configFilename = DEFAULT_CONFIG_FILE_NAME;
+        this.configFilename = System.getProperty(
+                MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY,
+                DEFAULT_CONFIG_FILE_NAME);
     }
 
     /**
@@ -168,7 +172,7 @@ public class StartupConfiguration implements MidpointConfiguration {
             midPointHome = normalizeDirectoryPath(System.getProperty(USER_HOME_PROPERTY)) + "midpoint";
             LOGGER.info("{} system property is not set, using default value of {}", MIDPOINT_HOME_PROPERTY, midPointHome);
         }
-        // This is not really good practice. But some components such as reports rely on well-formatted midpoint.home system property.
+        // This is not a good practice. But some components such as reports rely on well-formatted midpoint.home system property.
         System.setProperty(MIDPOINT_HOME_PROPERTY, midPointHome);
         return midPointHome;
     }
@@ -178,11 +182,13 @@ public class StartupConfiguration implements MidpointConfiguration {
     }
 
     private void loadConfiguration() {
-        File configFile = new File(midPointHomePath, this.getConfigFilename());
+        File configFile = new File(midPointHomePath, configFilename);
         printToSysout("Loading midPoint configuration from file " + configFile.getAbsolutePath());
         LOGGER.info("Loading midPoint configuration from file {}", configFile.getAbsolutePath());
         try {
-            if (!configFile.exists()) {
+            // If the config name is set explicitly, we don't want to unpack the default file.
+            if (!configFile.exists()
+                    && System.getProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY) == null) {
                 extractConfigurationFile(configFile);
             }
             createXmlConfiguration(configFile.getPath());
@@ -196,9 +202,9 @@ public class StartupConfiguration implements MidpointConfiguration {
 
     private void extractConfigurationFile(File configFile) {
         LOGGER.info("Configuration file {} does not exist, the default one will be extracted.", configFile);
-        boolean success = ClassPathUtil.extractFileFromClassPath(this.getConfigFilename(), configFile.getPath());
+        boolean success = ClassPathUtil.extractFileFromClassPath(configFilename, configFile.getPath());
         if (!success || !configFile.exists()) {
-            String message = "Unable to extract configuration file " + this.getConfigFilename() + " from classpath";
+            String message = "Unable to extract configuration file " + configFilename + " from classpath";
             LOGGER.error(message);
             printToSysout(message);
             throw new SystemException(message);
@@ -400,15 +406,22 @@ public class StartupConfiguration implements MidpointConfiguration {
 
     @Override
     public String toString() {
+        if (config == null) {
+            return "StartupConfiguration{null config}";
+        }
         Iterator<String> i = config.getKeys();
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder("StartupConfiguration{");
+        boolean moreItems = false;
         while (i.hasNext()) {
+            if (moreItems) {
+                sb.append("'; ");
+            }
             String key = i.next();
             sb.append(key);
             sb.append(" = '");
             sb.append(valuePrintout(key, config.getString(key)));
-            sb.append("'; ");
+            moreItems = true;
         }
-        return sb.toString();
+        return sb.append('}').toString();
     }
 }
