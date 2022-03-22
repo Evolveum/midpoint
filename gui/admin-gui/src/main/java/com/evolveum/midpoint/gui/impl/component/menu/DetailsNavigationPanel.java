@@ -154,7 +154,6 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     private void addCount(AjaxLink<Void> link, ListItem<ContainerPanelConfigurationType> item) {
         Label label = new Label(ID_COUNT, createCountModel(item.getModel()));
         label.add(new VisibleBehaviour(() -> getCounterProvider(item.getModel()) != null));
-        label.add(new AttributeAppender("style", () -> !hasSubmenu(item.getModelObject()) ? "margin-right: 24px;" : ""));
         link.add(label);
     }
 
