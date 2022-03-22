@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -16,16 +16,6 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationService;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.cases.api.CaseManager;
-import com.evolveum.midpoint.web.page.error.PageError404;
-import com.evolveum.midpoint.wf.api.ApprovalsManager;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -34,6 +24,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.devutils.debugbar.DebugBar;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalDialog;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
@@ -47,7 +38,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.protocol.http.WebSession;
@@ -58,6 +48,8 @@ import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -88,6 +80,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
@@ -114,6 +107,10 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
@@ -141,6 +138,7 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.page.self.PageSelf;
@@ -151,6 +149,7 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
+import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -188,7 +187,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final String ID_BC_ICON = "bcIcon";
     private static final String ID_BC_NAME = "bcName";
     private static final String ID_MAIN_POPUP = "mainPopup";
-    private static final String ID_MAIN_POPUP_BODY = "popupBody";
     private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
     private static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_COPYRIGHT_MESSAGE = "copyrightMessage";
@@ -201,16 +199,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final String ID_BODY = "body";
 
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
-    public static final String PARAMETER_OBJECT_COLLECTION_TYPE_OID = "collectionOid";
     public static final String PARAMETER_OBJECT_COLLECTION_NAME = "collectionName";
     public static final String PARAMETER_DASHBOARD_TYPE_OID = "dashboardOid";
     public static final String PARAMETER_DASHBOARD_WIDGET_NAME = "dashboardWidgetName";
     public static final String PARAMETER_SEARCH_BY_NAME = "name";
 
     private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
-
-    private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
-    private static final String OPERATION_GET_DEPLOYMENT_INFORMATION = DOT_CLASS + "getDeploymentInformation";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
@@ -1019,7 +1013,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public String getMainPopupBodyId() {
-        return getMainPopup().CONTENT_ID;
+        return ModalDialog.CONTENT_ID;
     }
 
     public void showMainPopup(Popupable popupable, AjaxRequestTarget target) {
@@ -1598,14 +1592,31 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         setResponsePage(next);
     }
 
-    // TODO deduplicate with redirectBack
+    /**
+     * Returns exception, always use with `throw`.
+     */
     public RestartResponseException redirectBackViaRestartResponseException() {
+        return createRestartResponseExceptionWithBreadcrumb(2);
+    }
+
+    /**
+     * Returns exception, always use with `throw`.
+     */
+    public RestartResponseException restartResponseExceptionToReload() {
+        return createRestartResponseExceptionWithBreadcrumb(1);
+    }
+
+    /**
+     * Returns restart exception to reload the page that is `backStep` from the end of the breadcrumbs.
+     * 1 means the last page (current).
+     */
+    private RestartResponseException createRestartResponseExceptionWithBreadcrumb(int backStep) {
         List<Breadcrumb> breadcrumbs = getBreadcrumbs();
-        if (breadcrumbs.size() < 2) {
+        if (breadcrumbs.size() < backStep) {
             return new RestartResponseException(getApplication().getHomePage());
         }
 
-        Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
+        Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - backStep);
         redirectBackToBreadcrumb(breadcrumb);
         return breadcrumb.getRestartResponseException();
     }
