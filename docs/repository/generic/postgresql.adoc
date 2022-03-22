@@ -147,7 +147,7 @@ limit 50;
 === Tuning indexes
 
 TODO: PostgreSQL specific advices will be added together with the new repository.
-In the meantime, check the xref:/midpoint/reference/repository/configuration/#index-tuning[generic indexing tips].
+In the meantime, check the xref:/midpoint/reference/repository/native-postgresql/db-maintenance/#index-tuning[generic indexing tips].
 
 // TODO
 

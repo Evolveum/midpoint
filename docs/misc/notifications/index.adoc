@@ -582,6 +582,29 @@ For instructions how to configure notifiers, filters, and transports please see 
 
 To send HTML emails, set `<contentType>text/html; charset=UTF-8</contentType>` and put to `<bodyExpression>` escaped HTML in single quote.
 
+////
+TODO document expression variables
+
+E.g. for recipient variables it's:
+actor = null (event initiator, administrator, task owner, etc.)
+basic = com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions
+configuration = systemConfiguration:00000000-0000-0000-0000-000000000001
+event = CustomEventImpl{id=1645537796646-0-1,requester=null,requestee=SimpleObjectRef{oid='null', objectType=user:null(null)}} (example, other event types possible)
+localizationService = com.evolveum.midpoint.common.LocalizationServiceImpl
+log = com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions
+midpoint = com.evolveum.midpoint.model.impl.expr.MidpointFunctionsImpl
+notificationFunctions = com.evolveum.midpoint.notifications.impl.NotificationFunctions
+prismContext = com.evolveum.midpoint.prism.impl.PrismContextImpl
+requestee = user:null(null)
+requester = null (event.requester?)
+textFormatter = com.evolveum.midpoint.notifications.impl.formatters.TextFormatter
+transportName = test (String)
+
+Groovy used to print it: this.binding.variables.each {k,v -> println "$k = $v"}
+
+Link any other expression documentation discussing variables?
+////
+
 === Custom notifications
 
 These are briefly described in the xref:/midpoint/reference/misc/notifications/sending-custom-notifications/[Sending custom notifications HOWTO].

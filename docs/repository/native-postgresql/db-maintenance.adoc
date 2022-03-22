@@ -3,10 +3,63 @@
 :page-display-order: 3
 :page-since: "4.4"
 
-== Setup
+[WARNING]
+This page is work-in-progress with stuff useful to a DB admin but also to a programmer or an engineer.
 
-Add to the end of `postgresql.conf`:
+== Index tuning
 
+Anything that is externalized into columns and related tables (like extensions, references, etc.) is effectively searchable using xref:/midpoint/reference/concepts/query/query-api/[Query API].
+It is not possible to search for information stored only in the serialized form of the object.
+But _searchable_ and _efficiently searchable_ are two different things.
+
+For some tables (object types) and some columns no indexes are needed, but for others they typically are.
+MidPoint is provided with all essential indexes out of the box.
+Despite that it is possible to come up with real-life queries that will perform badly.
+While it is possible to cover nearly all needs by more and more indexes, it is not necessarily
+a good idea to have them all created by default.
+Indexes also take space and if not necessary only add cost to insert/update operation without really helping.
+
+For any non-trivial installation it is recommended to check the database performance logs/statistics
+regularly to identify sluggish queries (see the link:#db-monitoring[DB monitoring] section).
+When identified, check existing (predefined) indexes whether they should have covered the case and investigate why they didn't.
+If the existing index does not cover the case, don't be afraid to add the index according to your specific needs.
+
+Following notes and tips can be helpful:
+
+* Don't index each column separately if the critical query uses multiple where conditions,
+use https://use-the-index-luke.com/sql/where-clause/the-equals-operator/concatenated-keys[multi-column index] instead.
+Order of columns is important.
+* Searching using `like` (especially with `%` at the start of the value) or case-insensitive
+search often require specific indexes, e.g. https://www.postgresql.org/docs/current/gin-intro.html[GIN index] with https://www.postgresql.org/docs/current/pgtrgm.html[trigram options].
+// TODO reference example lower, when added
+* In general, don't index columns with low-cardinality (e.g. boolean or integer representing enum
+with just a few distinct values) alone.
+Leave the column unindexed and let other indexes do the job first.
+Searching only by such a column is not recommended.
+It is however possible to use low-cardinality column in multi-column index, and it may be beneficial
+when it is the first column (of course, only selects using the column in `WHERE` use such an index).
+* It is possible to use `where` clause in an index when only specific values are selected often, e.g. for value indicating an active user.
+This is called https://use-the-index-luke.com/sql/where-clause/partial-and-filtered-indexes[partial index].
+This is typically used for low variability columns (booleans, enums), using them in where part of the
+index is good, and it also makes the index size smaller.
+If unsure, don't use `WHERE` in the index definition.
+* Be sure to add index on the concrete table like `m_user`, not the inheritance parent like `m_object`.
+Indexes are not inherited.
+
+// TODO extension indexing
+
+Here are some examples of indexes or queries for indexes:
+[source,sql]
+----
+-- indexes for a table
+select * from pg_indexes where tablename = 'm_user';
+----
+
+== DB monitoring
+
+=== Configuration for query statistics and logging
+
+Add to the end of `postgresql.conf` for better statistics and logging:
 ----
 # this is necessary for pg_stat_statements extension
 shared_preload_libraries = 'pg_stat_statements'
@@ -21,18 +74,39 @@ log_line_prefix = '%m [%p] %h %a: '
 #log_disconnections = on
 ----
 
-== Queries
+PG server must be restarted after the change of `postgresql.conf` file.
 
-// TODO this is various selects thrown here, need to sort it out and add some narrative
+Extension https://www.postgresql.org/docs/current/pgstatstatements.html[pg_stat_statements]
+is generally recommended https://dba.stackexchange.com/a/303555/157622[even for production].
+
+https://www.postgresql.org/docs/current/runtime-config-logging.html[Logging], on the other hand,
+can bring more overhead, and can also quickly fill the disks.
+Options mentioned above should not have high overhead, but it's always better to check the difference on some other environment first.
+It is OK for non-prod environments, but there is no PG automation for the log rotation,
+so some manual (or otherwise scripted) support may be needed to prevent full disk.
+
+=== Configuration related queries
 
 [source,sql]
 ----
--- indexes for a table
-select * from pg_indexes where tablename = 'm_user';
+-- Display settings different from defaults
+SELECT name, source, setting FROM pg_settings
+WHERE source <> 'default' AND source <> 'override';
+
+-- Display all settings (equivalent to show all with more info)
+SELECT * FROM pg_settings;
+----
+
+=== Monitoring queries
+
+The following queries use `pg_stat_statements` extension for query performance monitoring:
+
+[source,sql]
+----
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements; -- needed before the first usage only
 
 -- list of selects using the most time, change order to get other avg/max/calls to top
 -- NOTE: postgresql.conf must have (+restart): shared_preload_libraries = 'pg_stat_statements'
--- Also first, to see pg_stat_statements table: CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 -- To reset collected statistics: select pg_stat_statements_reset();
 select
     (total_exec_time / 1000 / 60)::numeric(20,4) as total_min, -- min as minutes here
@@ -47,7 +121,12 @@ from pg_stat_statements
 -- where dbid = (select oid from pg_database where datname = 'midpoint')
 order by 1 desc -- change order as necessary
 limit 50;
+----
 
+Other monitoring queries without `pg_stat_statements` (locks, activity...):
+
+[source,sql]
+----
 -- show locks and related activities
 select l.locktype, l.mode, d.datname, c.relname,
        l.pid, a.application_name, a.client_addr
@@ -97,7 +176,7 @@ group by datname, usename, application_name, state
 order by datname, usename, application_name, state;
 ----
 
-Table sizes, vacuum, etc.
+Table sizes, vacuum, etc.:
 
 [source,sql]
 ----
@@ -176,55 +255,16 @@ where exists (select from pg_class c where c.oid = i.inhparent
     and c.relkind = 'p')
 group by inhparent
 order by sum(pg_total_relation_size(inhrelid)) desc;
-
--- Display settings different from defaults
-SELECT name,source,setting FROM pg_settings
-WHERE source <> 'default' AND source <> 'override';
-
--- Display all settings (equivalent to show all with more info)
-SELECT * FROM pg_settings;
 ----
 
-MidPoint object related queries:
+==== Hard-core section
+
+Memory buffers usage monitoring query, requires `pg_buffercache` extension.
+This may indicate what tables are in active memory leading to faster access:
 
 [source,sql]
 ----
--- show OID and full object preview as string (works in plain psql too)
-select oid, objecttype, substring(convert_from(fullobject, 'UTF8'), 1, 100), pg_column_size(fullobject), length(fullobject)
-from m_object
--- possible conditions here, e.g. oid = '...'
-limit 10
-;
-
--- showing all extension values exploded to rows (including multi-val)
-select oid, key, coalesce(aval, sval) val from (
-    select oid, key,
-        case when jsonb_typeof(value) = 'array' then value end avals,
-        case when jsonb_typeof(value) <> 'array' then value end sval
-    from m_user, jsonb_each(ext) fields
-) x left join jsonb_array_elements(avals) aval on true
-where oid = '0cbe39c7-c7af-4cf3-a334-098400284a0a'
--- other conditions possible, but let's not run it on the whole table or order by ext values
-;
-----
-
-== Troubleshooting
-
-When troubleshooting Postgres performance we need to check output of the following commands.
-First in bash or other shell:
-
-[source,bash]
-----
-df -h # disk sizes
-free # memory statistics, often useless on containers
-ps xau | grep -i postgres # what postgres process are running
-----
-
-In SQL:
-
-[source,sql]
-----
-CREATE EXTENSION pg_buffercache; -- required before first use to enable pg_buffercache
+CREATE EXTENSION pg_buffercache; -- required before the first use to enable pg_buffercache
 
 -- What tables use memory buffers, pg_relation_size counts only table proper ("fork" they call it)
 -- while pg_table_size would count TOAST and few more structures too, which we don't care so much.
@@ -245,8 +285,17 @@ ORDER BY count(*) DESC
 LIMIT 10;
 ----
 
-Then the use the SQL commands from section above to obtain settings and list of the largest objects.
-After that any other relevant query depending on the situation - locks, vacuum info, etc.
+== System troubleshooting commands and queries
+
+When troubleshooting Postgres performance we need to check output of the following commands.
+First in bash or other shell:
+
+[source,bash]
+----
+df -h # disk sizes
+free # memory statistics, often useless on containers
+ps xau | grep -i postgres # what postgres process are running
+----
 
 == Collation (ordering)
 
@@ -321,60 +370,3 @@ As described in the notes for https://www.postgresql.org/docs/current/sql-create
 one may need to specify `template0` as a template for database creation with different collation.
 Adding collation support for other languages to the operating system and then adding it to PG
 is beyond this page, but is described in the https://www.postgresql.org/docs/current/collation.html[docs].
-
-== Experimental
-
-=== Playing with JSON inside fullobject
-
-This is possible, but not efficient on large datasets and not recommended in production.
-This also assumes JSON is used as a serialization format (by default it is).
-
-[source,sql]
-----
--- Full object is often readable in some clients, but not in psql (it's just byte array).
-select fullobject from m_user
-where oid = '00000000-0000-0000-0000-000000000002';
-
--- Conversion to text helps, now it works in psql too.
-select convert_from(fullobject, 'UTF8') from m_user
-where oid = '00000000-0000-0000-0000-000000000002';
-
--- Playing with JSON inside (assuming it's JSON and not XML).
--- BAD: Converts JSONB fullobject into record, but there is only the top-level one (one row).
--- Also, using jsonb_each in select, we loose (key, value) structure of the record.
-select jsonb_each(convert_from(fullobject, 'UTF8')::jsonb) from m_user
-where oid = '00000000-0000-0000-0000-000000000002';
-
--- GOOD: jsonb_each is in from clause, it's structured now, but we still have just one row.
-select jrec, pg_typeof(jrec), pg_typeof(jrec.value), jrec.*
-from m_object, jsonb_each(convert_from(fullobject, 'UTF8')::jsonb) jrec
-where oid = '00000000-0000-0000-0000-000000000002';
-
--- 2nd level jsonb_each must again be in FROM to preserve (key, value) structure.
--- Now we see the top level structure of the actual object, whatever it's top level key was.
-select jrec.*
-from (select value jval
-        from m_object, jsonb_each(convert_from(fullobject, 'UTF8')::jsonb)
-        where oid = '00000000-0000-0000-0000-000000000002'
-    ) a,
-    jsonb_each(jval) jrec;
-
--- It's easy to extract exact attribute from known object type (here user).
--- But this is not optimal, also the top level key can be anything (type is
-select oid, convert_from(fullobject, 'UTF8')::jsonb->'user'->'indestructible' indestructible
-from m_user;
-
--- To do it from any type (skipping the first level), try this:
-select oid,
-    (select value jval
-        from jsonb_each(convert_from(fullobject, 'UTF8')::jsonb))
-            ->'indestructible' indestructible
-from m_object;
-
--- Wrap that with an outer select to extract multiple items from that JSON:
-select oid, jval->'indestructible' indestructible, jval->'iteration' iteration
-from (
-    select oid, (select value jval from jsonb_each(convert_from(fullobject, 'UTF8')::jsonb))
-    from m_object
-) a;
-----

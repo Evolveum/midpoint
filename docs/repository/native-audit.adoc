@@ -13,8 +13,12 @@ but before you run your midPoint in production mode, you have to consider *audit
 
 .Before you migrate your audit!
 [IMPORTANT]
+====
 If you want to migrate your old audit to the new database, *be sure to prepare the audit database as described
 in the link:#audit-migration-from-other-database[migration notes] before you start using the new repository audit*.
+
+You'll definitely want to prepare the ID sequence to keep all audit IDs unique!
+====
 
 .If you want partitioned audit tables...
 [IMPORTANT]
@@ -157,6 +161,11 @@ is too high compared to the time used for processing the page results.
 | Specifies whether midPoint should create missing columns for link:#custom-column[custom properties] during the startup.
 | `false`
 
+| `sqlDurationWarningMs`
+| Duration in millis after which the query is logged by `com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger`
+on the `WARN` level, including the provided parameters.
+| `0` (disabled)
+
 |===
 
 There are no options for compression as this is left to PostgreSQL.
@@ -185,13 +194,20 @@ Conceptually, this stores multimap (name -> references) for each record.
 See the section link:#custom-column[Custom columns] below for details.
 
 Audit event record should be uniquely identified by its `id` column (matching `recordId` in the related tables).
-However, for technical reasons related to the partitioning support, only uniqueness of `id`+`timestamp` combination is enforced.
-Database will assign a new unique ID, but if ID is provided, and is unique in combination with the timestamp, DB will accept it.
-MidPoint does not provide ID for new audit records, but export/import preserves the original record IDs.
+However, for technical reasons related to the partitioning support, only uniqueness of `id`+`timestamp` combination is enforced on the database level.
+Database will assign a new unique ID from the sequence which ensures uniqueness for a clean audit.
+But if ID is provided, and is unique in combination with the timestamp, DB will accept it.
+Audit export/import preserves the original record IDs, so if you don't set the ID sequence accordingly,
+new audit events will likely use these old existing IDs.
 
-Long story short: Audit event record ID is unique under normal circumstances.
-If you want to export/import your old audit from previous database and keep ID unique, check the
+[IMPORTANT]
+====
+Audit event record ID is unique under normal circumstances.
+To keep ID unique even after migrating your old audit from previous database use the steps from the
 link:#audit-migration-from-other-database[migration notes] below.
+
+If you don't do this, audit events will be written normally, but non-unique IDs can cause errors in the GUI!
+====
 
 === Upgrading
 
@@ -327,7 +343,7 @@ That would make writing into audit impossible during the operation, and full vac
 This makes partitions attractive, even if you want to use these traditional cleanup methods based on `DELETE`.
 Non-vacuumed partition still needs vacuuming, but only locks that partition - which likely is not the partition for current time, used for inserting the new audit entries.
 
-However, if you don't need to cleanup data daily, you may utilize full potential of the partitions.
+However, if you don't need to clean up data daily, you may utilize full potential of the partitions.
 Let's say, you don't need audit events older than 12 months, but can tolerate 13 months.
 That means that if it's December 2021, you may drop partition for November 2020, just like you dropped the one for October 2020 the previous month.
 Partitions created by the `audit_create_monthly_partitions` procedure are named with a specific suffix, so you know exactly what partitions they are.
@@ -375,13 +391,13 @@ If you're not coming from that guide, please, check it now to put these steps in
 As described in the section about link:#audit-tables[audit tables], Native SQL audit uses
 combination of `id` and `timestamp` as a unique identifier (primary key).
 There is currently nothing in audit mechanism that relies on uniqueness of `id` column (or `repoId` in schema),
-but it can be a nice property.
-If you want to keep the database audit this way, for instance, your external systems are somehow tied to the `id` column,
-you need to prepare for it.
-The following steps are the same for a separate audit database or a shared one with the repository:
+but the *GUI assumes the ID is unique when searching/reading the audit*.
+Unique ID is also a nice property, especially if other external systems reading the audit database.
 
-. Technically, it does not matter whether you import first the audit or the repository.
+Technically, it does not matter whether you import first the audit or the repository.
 It is more convenient to migrate the repository first, though, because audit can be migrated slowly while the system is working.
+
+The following steps are the same for a separate audit database or a shared one with the repository:
 
 . Be sure there are no essential audit records created in your new environment before the preparation steps.
 You can test the new environment, if you're OK with audit deletion before going serious.

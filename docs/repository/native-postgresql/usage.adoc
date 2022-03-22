@@ -273,12 +273,20 @@ xref:/midpoint/reference/upgrade/database-schema-upgrade/#upgrading-native-postg
 
 You can find further details in the source code documentation for `apply_change` procedure at the end of the `postgres-new.sql` script.
 
-////
-TODO: If different upgrade is needed for LTS version I'd start with apply_change using forced=true for LTS branch.
-Each change used in LTS must have some "if not applied yet" check in the main upgrade script.
-Alternatively m_global_metadata could be used to note what LTS changes were made.
-Generally, minimal (if any) DB changes are expected on the LTS DB.
-////
+== Troubleshooting
+
+If you find a bug or encounter performance problem with the Native repository,
+it is always important to gather more information before reporting the issue.
+
+* In case of error or exception, always include the relevant portion of the xref:/midpoint/reference/diag/logging/[midpoint.log] in the report.
+* Review xref:/midpoint/reference/repository/native-postgresql/db-maintenance/#index-tuning[Index tuning]
+tips for performance problems, especially for extension items or shadow attributes.
+* If the performance problem is indeed DB related, identify the slow query, preferably using
+`pg_stat_statements` extension as xref:/midpoint/reference/repository/native-postgresql/db-maintenance/#monitoring-queries[described here].
+* To log issued SQL queries in xref:/midpoint/reference/diag/logging/[midpoint.log],
+configure system loggers (*System* in main menu, then *Logging*) so that it contains
+`com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger` with level `DEBUG` (shows SQL)
+or `TRACE` (includes parameter values).
 
 == See also
 

@@ -719,14 +719,38 @@ After assigning _Reconciliation task_ archetype to a task, the merged archetype 
 
 Following limitations for archetype functionality apply in midPoint 4.x:
 
-* Only User, Role, Org and Service archetypes are supported in 4.0. Archetypes are designed to work with many object types, including tasks and resources.
-And in theory, archetypes may be applied to archetypes themselves, creating meta-archetypes.
+* Archetype assignments must be *direct* and non-conditional.
+Indirect archetype assignments (e.g. inducement in in a role) is not supported.
+Conditions, validity constraints and any other assignment parameters and settings are *not* supported for archetype assignments - and it is unlikely that they ever will be supported.
+Archetypes form a basic backbone of object type system.
+We will need to determine the exact types, schema and policies applying to a particular object to correctly evaluate the conditions and any other complex mechanisms.
+Allowing conditional archetype assignments may lead to all kinds of chicken-and-egg problems.
+Therefore, we are explicitly disallowing indirect and conditional archetype assignments.
+
+* MidPoint 4.0: Only User, Role, Org and Service archetypes are supported in 4.0. Archetypes are designed to work with many object types, including tasks and resources.
+MidPoint 4.4 and later supports archetypes for all assignment holder types.
+
+* Archetypes cannot be applied to archetypes.
+In theory, archetypes may be applied to archetypes themselves, creating meta-archetypes.
 But all of that is not fully supported yet.
 Some of that extra functionality may work, but it is not tested properly.
-Therefore use it at your own risk only.
+Therefore, use it at your own risk only.
 
 * An archetype can only be applied to one type.
-For example, `Employee` archetype can be applied to users, `Project` archerype can be applied to orgs, but there cannot be an archetype that is applied both to users and orgs.
+For example, `Employee` archetype can be applied to users, `Project` archetype can be applied to orgs, but there cannot be an archetype that is applied both to users and orgs.
+
+* MidPoint 4.0: Archetype assignments are not supposed to change during the lifetime of an object.
+Archetypes should be set once, ideally at the beginning of lifecycle (object created from GUI with an archetype, archetype set by inbound mapping, etc.).
+The archetype should be fixed and it should never change.
+That is expected behavior for midPoint 4.0.
+The behavior was later changed in subsequent midPoint releases.
+In midPoint 4.4, the archetypes can be changes, although in a rather controlled way.
+However, there still will be some limitations about archetype change.
+Change of archetype may mean change of object schema, therefore this will always be a sensitive operation.
+
+* Please keep in mind that change of an archetype may lead to a dramatic change of policies (and also _schema_ in future midPoint versions).
+Change of an archetype should not be taken lightly.
+The change may require manipulation of object data to proceed correctly, e.g. remove items that are not allowed by a new archetype, or adding items that are required by new archetype.
 
 * Performance limitation: Do not create too many archetypes.
 They all need to be cached in RAM.
@@ -738,11 +762,12 @@ While theoretically assignmentRelation can be placed in any assignment/inducemen
 It must be a first-order inducement (inducement order must be 1).
 Assignment relation in metaroles or other mechanism that requires higher-order inducement or inducement chaining are not supported yet.
 
-* assignment/inducement that contains assignmentRelation must be always active (non-conditional, no activation)
+* Assignment/inducement that contains assignmentRelation must be always active (non-conditional, no activation)
 
 * AssignmentRelation in archetype assignment is not fully supported yet.
 
-* AssignmentRelation must be (almost) fully specified to work well in midPoint 4.0. Only the archetype definition may be missing.
+* AssignmentRelation must be (almost) fully specified to work well in midPoint 4.0.
+Only the archetype definition may be missing.
 Object type and relation must always be specified.
 Full support for wildcard assignmentRelations is planned for later midPoint versions.
 
@@ -755,14 +780,6 @@ That is planned for later midPoint versions.
 The default behaviour of assignments is _open_ (see above).
 Assignment relation is used in midPoint 4.0 mostly to render special button for user convenience.
 
-* Archetype assignments are not supposed to change during the lifetime of an object.
-Archetypes should be set once, ideally at the beginning of lifecycle (object created from GUI with an archetype, archetype set by inbound mapping, etc.). The archetype should be fixed and it should never change.
-That is expected behavior for midPoint 4.0. This behavior can can change in later midPoint versions.
-However, there still will be some limitations about archetype change.
-Change of archetype may mean change of object schema, therefore this will always be a sensitive operation.
-
-* There is no user interface to conveniently manage archetype definitions yet.
-
 * Archetypes of archetypes (meta-archetypes) are not supported yet.
 
 * Archetype colors are not applied in the user interface consistently.
@@ -772,6 +789,10 @@ This is planned to be improved later.
 * User type colors from 3.x are currently hardcoded in the system.
 Therefore users are displayed in the menu as red.
 The plan is to be able to configure this behavior in the future.
+
+* MidPoint 4.0: There was no user interface to conveniently manage archetype definitions.
+User interface is part of midPoint 4.4.
+
 
 Please see xref:/midpoint/features/planned/archetypes/[Archetype Improvements (Planned Feature)] for future plans regarding archetype functionality development.
 

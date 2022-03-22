@@ -25,7 +25,7 @@ However, this is not acceptable for `searchObjects` performance see note there.
 * _Repository assigns any missing container IDs (CID) for object's containers._
 These IDs are unique inside a single object and assigned loosely sequentially.
 For this `m_object.cid_seq` is stored in the database and it contains the next available CID.
-IDs are assigned only to multi-valued containers, e.g. object's metadata does not need any CID.
+IDs are assigned only to multivalued containers, e.g. object's metadata does not need any CID.
 * _Repository allows searching for objects and selected containers with reasonable performance._
 This is why objects stored as documents (`fullObject`) is not enough.
 Various types are stored in specific sub-tables instead with values extracted to separate columns.
@@ -47,7 +47,7 @@ TODO possible topics to cover
 * Modify object with reindex; implemented as full delete/add cycle, very reliable
 and potentially more efficient too.
 * Right-hand path support, e.g. `column = otherColumn`, including other comparison operations.
-Minimal needed support implemented, `..` not supported, but polystrings are.
+Minimal needed support implemented, `..` not supported, but poly-strings are.
 * Support for various get/search/modify options
 ** `RepoModifyOptions.useNoFetchExtensionValuesInsertion` and `useNoFetchExtensionValuesDeletion`
 may be obsolete and ignored by the new repository.
@@ -320,12 +320,16 @@ This is a simple example, only minimal `m_message_template` table will be added,
 for its containers, because these are not searchable (full text can be used for that, if required).
 
 . New persisted object type must be declared.
-Add the new value `MESSAGE_TEMPLATE` to the `ObjectType` enum in `postgres-new.sql`.
+Add the new value `MESSAGE_TEMPLATE` to the `ObjectType` enum in both `postgres-new.sql` and `postgres-new-upgrade-audit.sql`.
 This value will be later added in the `MObjectType` Java enum, but that requires some other classes we don't have yet.
 
-. Also, prepare and test upgrade command to the same effect before the bottom comment in `postgres-new-upgrade.sql`.
-We will wrap this inside `apply_change` so it is executed only if not applied yet.
-Still, we will write it in an idempotent fashion (`IF NOTE EXISTS`), because we can and it is always more flexible:
+. Also, prepare and test upgrade command to the same effect just above the bottom comment in both
+`postgres-new-upgrade.sql` and `postgres-new-upgrade-audit.sql`.
+Adding the type value in both files is critical for cases when audit is used in a separate schema/database.
+We will wrap this inside `apply_change` (or `apply_audit_change` for audit SQL) so it is executed only if not applied yet.
+We will write it in an idempotent fashion (`IF NOT EXISTS`), not only because we can and it is more flexible,
+but because, again, it is critical, this time for cases when audit and main repo share the same database
+and both upgrade scripts are run for the same schema:
 +
 [source,sql]
 ----
@@ -353,6 +357,10 @@ https://github.com/Evolveum/midpoint/blob/7a7c337d50b6cea1ad7c898b780f308c415c7c
 . Add the same creation statements in the upgrade script `postgres-new-upgrade.sql` just after the `ALTER` from the previous step.
 You can use a single `apply_change` block for it, unless commit is required after any of the statements.
 As always, use a new change number (first parameter) for each change.
+
+. After all changes in SQL upgrade files, update the last lines in the main and audit SQL files
+containing the `call apply_[audit_]change` calls - just repeat the last change number there.
+Be careful not to mix the numbers between the main and audit SQL scripts.
 
 . Now it's time to add the mapping Java classes to the native repository module `repo-sqale`.
 For a minimal mapping example see the classes in the package named `com.evolveum.midpoint.repo.sqale.qmodel.node`.
@@ -395,6 +403,7 @@ as we presume we can trust the existing code handling the super-type columns (al
 In more interesting cases you may also add a search test into `SqaleRepoSearchTest`, etc.
 
 The whole example can be found in https://github.com/Evolveum/midpoint/commit/7a7c337d50b6cea1ad7c898b780f308c415c7cb5[this commit].
+Forgotten object type update for audit is in https://github.com/Evolveum/midpoint/commit/5cefb9bff9435055a6c4ca812590eedc8c26b785[this commit].
 
 === Possible future improvements
 
@@ -660,6 +669,95 @@ JIT:
 ----
 
 ////
+
+=== midPoint related SQL queries
+
+This is a mix of potentially handy queries, experiments and some PG SQL showing-off.
+It is in this "devel" section as it is the least bad place for this content.
+
+==== Playing with JSON inside fullobject
+
+This is possible, but not efficient on large datasets and not recommended in production.
+This also assumes JSON is used as a serialization format (by default it is).
+
+[source,sql]
+----
+-- Full object is often readable in some clients, but not in psql (it's just byte array).
+select fullobject from m_user
+where oid = '00000000-0000-0000-0000-000000000002';
+
+-- Conversion to text helps, now it works in psql too.
+select convert_from(fullobject, 'UTF8') from m_user
+where oid = '00000000-0000-0000-0000-000000000002';
+
+-- Playing with JSON inside (assuming it's JSON and not XML).
+-- BAD: Converts JSONB fullobject into record, but there is only the top-level one (one row).
+-- Also, using jsonb_each in select, we loose (key, value) structure of the record.
+select jsonb_each(convert_from(fullobject, 'UTF8')::jsonb) from m_user
+where oid = '00000000-0000-0000-0000-000000000002';
+
+-- GOOD: jsonb_each is in from clause, it's structured now, but we still have just one row.
+select jrec, pg_typeof(jrec), pg_typeof(jrec.value), jrec.*
+from m_object, jsonb_each(convert_from(fullobject, 'UTF8')::jsonb) jrec
+where oid = '00000000-0000-0000-0000-000000000002';
+
+-- 2nd level jsonb_each must again be in FROM to preserve (key, value) structure.
+-- Now we see the top level structure of the actual object, whatever it's top level key was.
+select jrec.*
+from (select value jval
+        from m_object, jsonb_each(convert_from(fullobject, 'UTF8')::jsonb)
+        where oid = '00000000-0000-0000-0000-000000000002'
+    ) a,
+    jsonb_each(jval) jrec;
+
+-- It's easy to extract exact attribute from known object type (here user).
+-- But this is not optimal, also the top level key can be anything (type is
+select oid, convert_from(fullobject, 'UTF8')::jsonb->'user'->'indestructible' indestructible
+from m_user;
+
+-- To do it from any type (skipping the first level), try this:
+select oid,
+    (select value jval
+        from jsonb_each(convert_from(fullobject, 'UTF8')::jsonb))
+            ->'indestructible' indestructible
+from m_object;
+
+-- Wrap that with an outer select to extract multiple items from that JSON:
+select oid, jval->'indestructible' indestructible, jval->'iteration' iteration
+from (
+    select oid, (select value jval from jsonb_each(convert_from(fullobject, 'UTF8')::jsonb))
+    from m_object
+) a;
+----
+
+==== Other midPoint object related queries
+
+[source,sql]
+----
+-- show OID and full object preview as string (works in plain psql too)
+select oid, objecttype, substring(convert_from(fullobject, 'UTF8'), 1, 100), pg_column_size(fullobject), length(fullobject)
+from m_object
+-- possible conditions here, e.g. oid = '...'
+limit 10
+;
+
+-- showing all extension values exploded to rows (including multi-val)
+select oid, key, coalesce(aval, sval) val from (
+    select oid, key,
+        case when jsonb_typeof(value) = 'array' then value end avals,
+        case when jsonb_typeof(value) <> 'array' then value end sval
+    from m_user, jsonb_each(ext) fields
+) x left join jsonb_array_elements(avals) aval on true
+where oid = '0cbe39c7-c7af-4cf3-a334-098400284a0a'
+-- other conditions possible, but let's not run it on the whole table or order by ext values
+;
+
+-- finding all objects with multi-value extensions
+with mvkeys as (select id::TEXT mvids from m_ext_item where cardinality = 'ARRAY')
+select ARRAY(SELECT jsonb_object_keys(ext) INTERSECT select mvids from mvkeys) mvkeys,
+       ext, * from m_object
+where array(select jsonb_object_keys(ext)) && (select array_agg(mvids) from mvkeys);
+----
 
 == See also
 

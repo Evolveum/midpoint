@@ -1162,33 +1162,38 @@ To customize columns in the object list table, please, see use the following exa
 
 [source,xml]
 ----
-<!-- configuring custom columns for the RoleType objects table -->
+<!-- configuring custom columns for the user objects table -->
 
 <adminGuiConfiguration>
    <objectCollectionViews>
       <objectCollectionView>
-         <type>c:RoleType</type>
+         <identifier>allUsers</identifiers>
+         <!-- use your existing objectCollectionView identifier
+         or allUsers to override default user list columns -->
+         <type>UserType</type>
          <column>
             <name>nameColumn</name>
             <path>name</path>
             <display>
-               <label>Custom Name Column</label>
+               <label>Login</label>
             </display>
          </column>
          <column>
-            <name>displayNameColumn</name>
-            <path>displayName</path>
-            <display>
-               <label>Custom Display Name Column</label>
-            </display>
+            <name>givenNameColumn</name>
+            <path>givenName</path>
             <previousColumn>nameColumn</previousColumn>
+         </column>
+         <column>
+            <name>familyNameColumn</name>
+            <path>familyName</path>
+            <previousColumn>givenNameColumn</previousColumn>
          </column>
       </objectCollectionView>
    </objectCollectionViews>
 </adminGuiConfiguration>
 ----
 
-image::image2017-10-12-15-45-53.png[]
+image::custom-columns-2022-03-18.png[]
 
 
 Column can be configured with the following attributes
@@ -1217,7 +1222,7 @@ We cannot sort by the output of the expression as that is not stored in the repo
 
 
 | `display`
-| Specification of column display properties.
+a| Specification of column display properties.
 This can be used to override the default column label or presentation style. `display` attribute can contain:
 
 * `label`
@@ -1241,7 +1246,7 @@ If not specified then it defaults to automatic visibility.
 This value defines ordering in which the columns should be displayed.
 The first column has no value in this element.
 If there are multiple columns that specify the same preceding columns then the implementation may choose any ordering of such columns.
-However, the algorithm should be deterministic: the same ordring should be used every time (alphabeting ordering based on "path" or displayOrder from the schema are good candidates for deterministic ordering).
+However, the algorithm should be deterministic: the same ordering should be used every time (alphabeting ordering based on `path` or displayOrder from the schema are good candidates for deterministic ordering).
 
 |===
 
@@ -1366,6 +1371,21 @@ To see changes made in this part of configuration, user needs to do logout/login
 </adminGuiConfiguration>
 ----
 
+== Notes
+
+=== Classpath scanning
+
+Different panels and pages are searched via annotations on classes, e.g. `@PageDescriptor`, `@PanelInstance`, and others.
+In versions prior 4.5 (4.4.2) whole classpath was used to search for such annotated classes.
+In midPoint version 4.5 (4.4.2) and newer default search scope is package `com.evolveum.midpoint`.
+It is possible to extend search scope, for example when using maven overlay with custom code.
+Extension can be done via setting property `midpoint.additionalPackagesToScan` with comma separated package names in `${midpoint.home}/application.yml` like so:
+
+[source, yaml]
+----
+midpoint:
+  additionalPackagesToScan: org.example.acme,com.acme
+----
 
 == Security
 
