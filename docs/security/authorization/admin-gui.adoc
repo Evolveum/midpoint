@@ -86,7 +86,7 @@ The authorization is also check while deciding if previewButton should be shown.
 
 |===
 
-== selfActionsSelf-service Actions
+== Self-service Actions
 
 [%autowidth]
 |===
@@ -132,7 +132,7 @@ use #selfRequestAssignments instead
 
 |===
 
-== homeActionsAdministration Dashboard Actions
+== Administration Dashboard Actions
 
 [%autowidth]
 |===
@@ -148,7 +148,7 @@ use #selfRequestAssignments instead
 
 |===
 
-== userActionsUser actions
+== User actions
 
 [%autowidth]
 |===
@@ -176,7 +176,7 @@ use #selfRequestAssignments instead
 
 |===
 
-== resourceActionsResource actions
+== Resource actions
 
 [%autowidth]
 |===
@@ -208,7 +208,7 @@ use #selfRequestAssignments instead
 
 |===
 
-== roleActionsRole actions
+== Role actions
 
 [%autowidth]
 |===
@@ -260,7 +260,7 @@ use #selfRequestAssignments instead
 
 |===
 
-== orgStructureActionsOrg. structure actions
+== Org. structure actions
 
 [%autowidth]
 |===
@@ -284,7 +284,7 @@ link (based on #read, #modify, #add and #delete model authorizations)
 
 |===
 
-== orgActions Organization actions
+== Organization actions
 
 [%autowidth]
 |===
@@ -332,7 +332,27 @@ link (based on #read, #modify, #add and #delete model authorizations)
 
 |===
 
-== configurationActionsConfiguration actions
+== Service actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#services
+| List services
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#service
+| Create service
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#serviceDetails
+| Details of service
+| Since 4.4.2
+
+|===
+
+== Configuration actions
 
 [%autowidth]
 |===
@@ -368,7 +388,7 @@ link (based on #read, #modify, #add and #delete model authorizations)
 
 |===
 
-== workItemsActionsWork items actions
+== Work items actions
 
 [%autowidth]
 |===
@@ -412,7 +432,7 @@ link (based on #read, #modify, #add and #delete model authorizations)
 
 |===
 
-== reportActionsReport actions
+== Report actions
 
 [%autowidth]
 |===
@@ -436,7 +456,7 @@ link (based on #read, #modify, #add and #delete model authorizations)
 
 |===
 
-== taskActionsTask actions
+== Task actions
 
 [%autowidth]
 |===
@@ -460,7 +480,7 @@ link (based on #read, #modify, #add and #delete model authorizations)
 
 |===
 
-== orgStructureActionsOrg. structure actions
+== Org. structure actions
 
 [%autowidth]
 |===
@@ -480,7 +500,7 @@ link (based on #read, #modify, #add and #delete model authorizations)
 
 |===
 
-== archetypeActionsArchetype actions
+== Archetype actions
 
 [%autowidth]
 |===
@@ -496,7 +516,7 @@ link (based on #read, #modify, #add and #delete model authorizations)
 
 |===
 
-== certificationActionsAccess certification actions
+== Access certification actions
 
 Please see xref:/midpoint/reference/roles-policies/certification/authorization/[Access Certification Security] for detailed list.
 
