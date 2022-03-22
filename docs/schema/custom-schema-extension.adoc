@@ -183,35 +183,31 @@ For indexed items, the following types are fully supported:
 
 [%autowidth,cols=3]
 |===
-h| Type
+h| XML type (Java type)
 h| How is it stored in xref:/midpoint/reference/repository/native-postgresql/[Native repository]?
 h| How is it stored in xref:/midpoint/reference/repository/generic/[Generic repository]?
 
-| xsd:string
+| xsd:string (String)
 a| stored in `ext` JSONB column as string value
 a| table `m_object_ext_string`
 
-| xsd:int
+| xsd:int (Integer)
 .3+a| stored in `ext` JSONB as numeric
 
 This is not JSON/EcmaScript limited number, but virtually limitless PostgreSQL numeric value.
 .2+a| table `m_object_ext_long`
 
-| xsd:long
+| xsd:long (Long)
 
-| xsd:integer
-a| table `m_object_ext_string`: Note that these types are really stored as strings, because they don't fit into "long" type range.
-(E.g. xsd:integer is java BigInteger, xsd:decimal is java BigDecimal).
-This means the support for these types is *very limited*:
+| xsd:integer (BigInteger)
+a| table `m_object_ext_string`: This type is stored as strings because it doesn't fit into "long" type range.
+This means that the support is *very limited* and especially comparison operations are not numerically correct!
 
-* comparisons like "less than", "more than" don't work at all (or provide wrong results),
-* equality test is to be used with a great care, as it can provide false negative results (e.g. 0.4999999999 vs. 0.5 vs 0.5000000001).
-
-| xsd:boolean
+| xsd:boolean (Boolean)
 a| stored in `ext` JSONB as boolean
 a| table `m_object_ext_boolean`
 
-| xsd:dateTime
+| xsd:dateTime (XMLGregorianCalendar)
 a| stored in `ext` JSONB as string, formatted as https://en.wikipedia.org/wiki/ISO_8601[ISO 8601]
 long date and time with `Z` timezone
 a| table `m_object_ext_date`
@@ -230,6 +226,9 @@ a| stored in `ext` JSONB as string
 a| table `m_object_ext_string`
 
 |===
+
+Java types are mentioned as well, because they are relevant when the real value of the extension
+item is used, for instance, in scripting expressions using Groovy.
 
 The default value for `indexed` flag (i.e. the XSD annotation) is `true` for the above supported types,
 and it can be switched to `false` if the property is not important for searching.
@@ -251,22 +250,29 @@ The following table lists partially supported types, describing the limitations:
 
 [%autowidth]
 |===
-| Type | Description / limitations
+| Type | Prism/GUI limitations | Repository support
 
-| xsd:decimal
-a| Not fully supported by Prism API, although repository can store it (Native repo in `ext` JSONB as numeric,
-Generic repo in `m_object_ext_string`, see the limitations for xsd:integer in the table above).
-
-| xsd:short
+| xsd:short (Short)
 a| Not fully supported by Prism API, no support on GUI.
-Repository can store it (Native repo in `ext` JSONB as numeric, Generic repo in `m_object_ext_long`).
+a| Full support.
+Native repo stores it in `ext` JSONB as numeric.
 
-| xsd:double
+Generic repo stores it in `m_object_ext_long`.
+
+| xsd:decimal (BigDecimal)
+a| Not fully supported by Prism API
+.3+a| Full support in the Native repo, stored in `ext` JSONB as numeric.
+
+Generic repo stores it in `m_object_ext_string`, because the types do not fit into "long" type range.
+This means the support for these types is *very limited*:
+
+* comparisons like "less than", "more than" don't work at all (or provide wrong results),
+* equality test is to be used with a great care, as it can provide false negative results (e.g. 0.4999999999 vs. 0.5 vs 0.5000000001).
+
+| xsd:double (Double)
 .2+a| No support on GUI.
-Repository can store it (Native repo in `ext` JSONB as numeric,
-Generic repo in `m_object_ext_string`, see the limitations for xsd:integer in the table above).
 
-| xsd:float
+| xsd:float (Float)
 
 |===
 
