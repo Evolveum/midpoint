@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2010-2020 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -10,6 +10,15 @@
     <listeners>
         <listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
     </listeners>
+    <test name="Security" preserve-order="true" parallel="false" verbose="10">
+        <classes>
+            <class name="com.evolveum.midpoint.model.intest.security.TestSecurityPrincipal"/>
+            <class name="com.evolveum.midpoint.model.intest.security.TestSecurityBasic"/>
+            <class name="com.evolveum.midpoint.model.intest.security.TestSecurityMedium"/>
+            <class name="com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced"/>
+            <class name="com.evolveum.midpoint.model.intest.security.TestSecurityMultitenant"/>
+        </classes>
+    </test>
     <test name="Model Integration" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
@@ -44,6 +53,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestEntitlements"/>
             <class name="com.evolveum.midpoint.model.intest.TestCaseIgnore"/>
             <class name="com.evolveum.midpoint.model.intest.TestIntent"/>
+            <class name="com.evolveum.midpoint.model.intest.gensync.TestAssociationInbound"/>
             <class name="com.evolveum.midpoint.model.intest.gensync.TestEditSchema"/>
             <class name="com.evolveum.midpoint.model.intest.gensync.TestRoleEntitlement"/>
             <class name="com.evolveum.midpoint.model.intest.TestConsistencySimple"/>
@@ -169,14 +179,4 @@
             <class name="com.evolveum.midpoint.model.intest.manual.TestDummyItsmIntegration"/>
         </classes>
     </test>
-    <!-- temporarily moved to testng-unit -->
-    <!--<test name="Security" preserve-order="true" parallel="false" verbose="10">-->
-        <!--<classes>-->
-            <!--<class name="com.evolveum.midpoint.model.intest.security.TestSecurityPrincipal"/>-->
-            <!--<class name="com.evolveum.midpoint.model.intest.security.TestSecurityBasic"/>-->
-            <!-- <class name="com.evolveum.midpoint.model.intest.security.TestSecurityMedium"/>-->
-            <!--<class name="com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced"/>-->
-            <!--<class name="com.evolveum.midpoint.model.intest.security.TestSecurityMultitenant"/>-->
-        <!--</classes>-->
-    <!--</test>-->
 </suite>
