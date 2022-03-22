@@ -187,7 +187,8 @@ public class StartupConfiguration implements MidpointConfiguration {
         LOGGER.info("Loading midPoint configuration from file {}", configFile.getAbsolutePath());
         try {
             // If the config name is set explicitly, we don't want to unpack the default file.
-            if (!configFile.exists() && DEFAULT_CONFIG_FILE_NAME.equals(configFilename)) {
+            if (!configFile.exists()
+                    && System.getProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY) == null) {
                 extractConfigurationFile(configFile);
             }
             createXmlConfiguration(configFile.getPath());
