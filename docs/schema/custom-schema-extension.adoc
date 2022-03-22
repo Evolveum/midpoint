@@ -84,9 +84,7 @@ The example defines two properties: `officeNumber` and `favoriteColor`.
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-
 </xsd:schema>
-
 ----
 
 This file is all it takes to extend the schema.
@@ -126,11 +124,12 @@ The schema may also define attribute multiplicity, whether it is mandatory or op
 Most of that is defined using XSD annotations and it is optional.
 
 Defining the schema extension is all that midPoint needs to make full use of the attribute.
-Once it is defined in the schema midPoint will display the attribute in the GUI and it will be displayed using suitable user field, checked for mandatory value, the attribute may be used in mappings, etc.
-It will behave as if it always was a part of midPoint.
+Once it is defined in the schema midPoint will display the attribute in the GUI and it will be displayed
+using suitable user field, checked for mandatory value, the attribute may be used in mappings, etc.
+It will behave as if it was always a part of midPoint.
 The small additional configuration is required only when these attributes are used in mappings.
 Then you have to let configuration know in which namespace it should look for an attribute definition.
-This is namespace introduced in field targetNamespace from a header of the extension xsd file.
+This is the namespace introduced by the attribute `targetNamespace` in the header of the extension XSD file.
 
 .title:Example of a user object conforming to the schema above
 [source,xml]
@@ -180,7 +179,7 @@ So they can be used in object queries.
 
 For non-indexed extension items, all data types are supported.
 
-For indexed items, the following types might be used:
+For indexed items, the following types are fully supported:
 
 [%autowidth,cols=3]
 |===
@@ -193,28 +192,20 @@ a| stored in `ext` JSONB column as string value
 a| table `m_object_ext_string`
 
 | xsd:int
-.7+a| stored in `ext` JSONB as numeric
+.3+a| stored in `ext` JSONB as numeric
 
 This is not JSON/EcmaScript limited number, but virtually limitless PostgreSQL numeric value.
-.3+a| table `m_object_ext_long`
-
-| xsd:short
+.2+a| table `m_object_ext_long`
 
 | xsd:long
 
 | xsd:integer
-.4+a| table `m_object_ext_string`: Note that these types are really stored as strings, because they don't fit into "long" type range.
+a| table `m_object_ext_string`: Note that these types are really stored as strings, because they don't fit into "long" type range.
 (E.g. xsd:integer is java BigInteger, xsd:decimal is java BigDecimal).
 This means the support for these types is *very limited*:
 
 * comparisons like "less than", "more than" don't work at all (or provide wrong results),
 * equality test is to be used with a great care, as it can provide false negative results (e.g. 0.4999999999 vs. 0.5 vs 0.5000000001).
-
-| xsd:decimal
-
-| xsd:double
-
-| xsd:float
 
 | xsd:boolean
 a| stored in `ext` JSONB as boolean
@@ -240,7 +231,11 @@ a| table `m_object_ext_string`
 
 |===
 
-The default value for `indexed` flag (i.e. the XSD annotation) is `true` for the above supported types, and `false` otherwise.
+The default value for `indexed` flag (i.e. the XSD annotation) is `true` for the above supported types,
+and it can be switched to `false` if the property is not important for searching.
+For other property types, complex types or extension containers (and their content) it is `false`
+and cannot be changed to `true`.
+It is only possible to search by the properties on the top level of the extension container.
 
 [NOTE]
 Word "indexed" here means that the information is externalized in the repository in such a way
@@ -251,6 +246,31 @@ there are always compromises and specific index can be added for critical querie
 But this always depends on the specific deployment and you should consult your DB admin about it.
 Basic cases should be reasonably well indexed out-of-the-box.
 See xref:/midpoint/reference/repository/native-postgresql/db-maintenance/#index-tuning[Index tuning] for more information.
+
+The following table lists partially supported types, describing the limitations:
+
+[%autowidth]
+|===
+| Type | Description / limitations
+
+| xsd:decimal
+a| Not fully supported by Prism API, although repository can store it (Native repo in `ext` JSONB as numeric,
+Generic repo in `m_object_ext_string`, see the limitations for xsd:integer in the table above).
+
+| xsd:short
+a| Not fully supported by Prism API, no support on GUI.
+Repository can store it (Native repo in `ext` JSONB as numeric, Generic repo in `m_object_ext_long`).
+
+| xsd:double
+.2+a| No support on GUI.
+Repository can store it (Native repo in `ext` JSONB as numeric,
+Generic repo in `m_object_ext_string`, see the limitations for xsd:integer in the table above).
+
+| xsd:float
+
+|===
+
+It is recommended to use one of the fully supported types from the first table instead of these types.
 
 === Using midPoint types
 
