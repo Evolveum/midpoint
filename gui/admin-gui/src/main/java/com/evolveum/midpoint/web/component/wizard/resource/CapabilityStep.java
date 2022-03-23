@@ -298,11 +298,13 @@ public class CapabilityStep extends WizardStep {
                             PrismObject<ResourceType> resourcePrism = resourceModel.getObject();
 
                             try {
-                                ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resourcePrism, getPageBase().getPrismContext());
+                                ResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resourcePrism, getPageBase().getPrismContext());
                                 if (schema != null) {
                                     ObjectClassComplexTypeDefinition def = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-                                    for (ResourceAttributeDefinition attribute : def.getAttributeDefinitions()) {
-                                        choices.add(attribute.getItemName());
+                                    if (def != null) {
+                                        for (ResourceAttributeDefinition attribute : def.getAttributeDefinitions()) {
+                                            choices.add(attribute.getItemName());
+                                        }
                                     }
                                 }
                             } catch (CommonException | RuntimeException e) {
