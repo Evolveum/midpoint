@@ -84,16 +84,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
                             }
                         };
                     }
-
-                    @Override
-                    protected List<OrgType> getPreSelectedOrgsList() {
-                        List<OrgType> selectedList = OrgTreeAssignablePanel.this.getPreselectedOrgsList();
-                        if (selectedList != null) {
-                            allTabsSelectedOrgs.addAll(selectedList);
-                        }
-                        return allTabsSelectedOrgs;
-                    }
-
+                    
                     @Override
                     protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel){
                             if (rowModel != null && rowModel.getObject() != null) {
