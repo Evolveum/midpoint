@@ -6,10 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -50,7 +54,7 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
     public AbstractAssignmentPanel(String id, IModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {
         super(id, null, config);
 
-        setModel(PrismContainerWrapperModel.fromContainerWrapper(model, AssignmentHolderType.F_ASSIGNMENT, () -> getPageBase()));
+        setModel(PrismContainerWrapperModel.fromContainerWrapper(model, AssignmentHolderType.F_ASSIGNMENT, (Supplier<PageBase> & Serializable) () -> getPageBase()));
     }
 
     @Override
