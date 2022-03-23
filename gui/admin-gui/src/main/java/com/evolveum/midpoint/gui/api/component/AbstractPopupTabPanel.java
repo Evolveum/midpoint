@@ -6,13 +6,14 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
@@ -26,10 +27,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Created by honchar
@@ -40,6 +37,8 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     private static final String ID_OBJECT_LIST_PANEL = "objectListPanel";
     protected static final String ID_PARAMETERS_PANEL = "parametersPanel";
     protected static final String ID_PARAMETERS_PANEL_FRAGMENT = "parametersPanelFragment";
+
+    private List<O> preselectedObjects = new ArrayList<>();
 
     public AbstractPopupTabPanel(String id) {
         super(id);
@@ -74,8 +73,9 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
             }
 
             @Override
-            protected void onUpdateCheckbox(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
-                onSelectionPerformed(target, rowModel);
+            protected void onUpdateCheckbox(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel, DataTable table) {
+                updatePreselectedObjects(rowModel);
+                onSelectionPerformed(target, rowModel, table);
             }
 
             @Override
@@ -134,7 +134,7 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     protected abstract void initParametersPanel(Fragment parametersPanel);
 
     protected List<O> getPreselectedObjects() {
-        return null;
+        return preselectedObjects;
     }
 
     protected List<O> getSelectedObjectsList() {
@@ -150,7 +150,20 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
         return (PopupObjectListPanel<T>) get(ID_OBJECT_LIST_PANEL);
     }
 
-    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
+    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel, DataTable dataTable) {
+    }
+
+    private void updatePreselectedObjects(IModel<SelectableBean<O>> rowModel) {
+        if (rowModel == null) {
+            return;
+        }
+        SelectableBean<O> selectableBean = rowModel.getObject();
+        O selectedObject = selectableBean.getValue();
+        if (selectableBean.isSelected()) {
+            preselectedObjects.add(selectedObject);
+        } else {
+            preselectedObjects.removeIf(o -> selectedObject.getOid().equals(o.getOid()));
+        }
     }
 
     protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel) {

@@ -49,7 +49,6 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
     private boolean selectable;
     private String treeTitleKey = "";
-    List<OrgType> preselecteOrgsList = new ArrayList<>();
     private List<OrgTreeFolderContent> contentPannels = new ArrayList<OrgTreeFolderContent>();
 
 
@@ -64,12 +63,8 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
     public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, ModelServiceLocator serviceLocator, String treeTitleKey,
                         List<OrgType> preselecteOrgsList) {
         super(id, rootOid);
-
         this.treeTitleKey = treeTitleKey;
         this.selectable = selectable;
-        if (preselecteOrgsList != null){
-            this.preselecteOrgsList.addAll(preselecteOrgsList);
-        }
     }
 
     @Override
@@ -153,7 +148,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
         treeMenu.setOutputMarkupPlaceholderTag(true);
         treeHeader.add(treeMenu);
 
-        ISortableTreeProvider provider = new OrgTreeProvider(this, getModel(), preselecteOrgsList) {
+        ISortableTreeProvider provider = new OrgTreeProvider(this, getModel()) {
 
             @Override
             protected ObjectFilter getCustomFilter(){
