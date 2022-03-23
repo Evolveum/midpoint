@@ -232,11 +232,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      */
     @PostConstruct
     public void initSystem() throws Exception {
-        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         if (initSystemExecuted) {
             logger.trace("initSystem: already called for class {} - IGNORING", getClass().getName());
             return;
         }
+
+        TestSpringBeans.setApplicationContext(
+                Objects.requireNonNull(applicationContext, "No Spring application context present"));
+        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         initSystemExecuted = true;
 
         // Check whether we are already initialized
@@ -3609,11 +3612,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return waitForTaskFinish(taskOid, checkSubresult, 0, timeout, errorOk);
     }
 
-    protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final int timeout, final boolean errorOk) throws CommonException {
+    protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final long timeout, final boolean errorOk) throws CommonException {
         return waitForTaskFinish(taskOid, checkSubresult, startTime, timeout, errorOk, 0, null);
     }
 
-    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult, long startTime, int timeout, boolean errorOk,
+    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult, long startTime, long timeout, boolean errorOk,
             int showProgressEach, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
         long realStartTime = startTime != 0 ? startTime : System.currentTimeMillis();
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskFinish");
