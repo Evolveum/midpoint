@@ -8,28 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.ass
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.logging.Trace;
-
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.web.session.SessionStorage;
-
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -40,21 +20,37 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> extends AbstractAssignmentTypePanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractAssignmentPanel.class);
 
     public AbstractAssignmentPanel(String id, IModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {
-        super(id, PrismContainerWrapperModel.fromContainerWrapper(model, AssignmentHolderType.F_ASSIGNMENT), config);
+        super(id, null, config);
+
+        setModel(PrismContainerWrapperModel.fromContainerWrapper(model, AssignmentHolderType.F_ASSIGNMENT, () -> getPageBase()));
     }
 
     @Override

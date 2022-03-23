@@ -10,6 +10,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -38,7 +43,8 @@ public abstract class GeneralTransportContentPanel<T extends GeneralTransportCon
 
         super(id, clazz, configurationType);
 
-        this.model = new MessageTransportContainerModel<>(this, model.getObjectWrapperModel(), messageTransportItem);
+        this.model = PrismContainerWrapperModel.fromContainerWrapper(model.getObjectWrapperModel(),
+                ItemPath.create(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION, messageTransportItem), () -> getPageBase());
     }
 
     @Override
