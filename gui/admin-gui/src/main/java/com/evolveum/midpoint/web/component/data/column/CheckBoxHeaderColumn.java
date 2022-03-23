@@ -13,6 +13,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 
 import com.evolveum.midpoint.web.component.util.SelectableRow;
@@ -103,10 +104,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
                     BaseSortableDataProvider.class.getName(), provider.getClass().getName());
         }
 
-        List<IModel<T>> objects = new ArrayList<>();
-        table.visitChildren(SelectableDataTable.SelectableRowItem.class,
-                (IVisitor<SelectableDataTable.SelectableRowItem, Void>) (row, visit) -> objects.add(row.getModel()));
-
+        List<IModel<T>> objects = TableUtil.getAvailableData(table);
         //update selected flag in model dto objects based on select all header state
         for (IModel<T> object : objects) {
             T modelObject = object.getObject();
@@ -118,29 +116,12 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
             }
         }
 
-        table.visitChildren(SelectableDataTable.SelectableRowItem.class, (IVisitor<SelectableDataTable.SelectableRowItem, Void>) (row, visit) -> {
-            if (row.getOutputMarkupId()) {
-                //we skip rows that doesn't have outputMarkupId set to true (it would fail)
-                target.add(row);
-            }
-        });
-
+        TableUtil.updateRows(table, target);
     }
 
     public boolean shouldBeHeaderSelected(DataTable table) {
         boolean selectedAll = true;
-
-        List<IModel<T>> objects = new ArrayList<>();
-        table.visitChildren(SelectableDataTable.SelectableRowItem.class, new IVisitor<SelectableDataTable.SelectableRowItem, Void>() {
-
-            @Override
-            public void component(SelectableDataTable.SelectableRowItem row, IVisit<Void> visit) {
-                objects.add(row.getModel());
-            }
-        });
-
-        BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) table.getDataProvider();
-//        List<T> objects = new ArrayList<>();// baseProvider.getAvailableData();
+        List<IModel<T>> objects = TableUtil.getAvailableData(table);
         if (objects == null || objects.isEmpty()) {
             return false;
         }
@@ -152,10 +133,11 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         return selectedAll;
     }
 
-    protected boolean isTableRowSelected(IModel<T> object){
-        if (object instanceof SelectableObjectModel) {
-            return ((SelectableObjectModel<?>) object).isSelected();
+    protected boolean isTableRowSelected(IModel<T> model){
+        if (model instanceof SelectableObjectModel) {
+            return ((SelectableObjectModel<?>) model).isSelected();
         }
+        T object = model.getObject();
         if (object instanceof Selectable) {
             Selectable selectable = (Selectable) object;
             return selectable.isSelected();

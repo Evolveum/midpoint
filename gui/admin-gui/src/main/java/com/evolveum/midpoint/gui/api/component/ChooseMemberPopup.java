@@ -37,6 +37,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -183,7 +184,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel){
+                    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel, DataTable dataTable){
                         tabLabelPanelUpdate(target);
                     }
 
@@ -216,7 +217,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel){
+                    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel, DataTable dataTable){
                         tabLabelPanelUpdate(target);
                     }
 
@@ -250,7 +251,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){
+                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel, DataTable dataTable){
                                 selectedOrgsListUpdate(rowModel);
                                 tabLabelPanelUpdate(target);
                             }
@@ -265,10 +266,10 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                                 return ChooseMemberPopup.this.getAssignmentTargetRefObject();
                             }
 
-                            @Override
-                            protected List<OrgType> getPreselectedObjects(){
-                                return selectedOrgsList;
-                            }
+//                            @Override
+//                            protected List<OrgType> getPreselectedObjects(){
+//                                return selectedOrgsList;
+//                            }
 
                         };
                     }
@@ -296,7 +297,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                         }
 
                         @Override
-                        protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel) {
+                        protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel, DataTable dataTable) {
                             selectedOrgsListUpdate(rowModel);
                             tabLabelPanelUpdate(target);
                         }
@@ -337,7 +338,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                             }
 
                             @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ServiceType>> rowModel){
+                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ServiceType>> rowModel, DataTable dataTable){
                                 tabLabelPanelUpdate(target);
                             }
 

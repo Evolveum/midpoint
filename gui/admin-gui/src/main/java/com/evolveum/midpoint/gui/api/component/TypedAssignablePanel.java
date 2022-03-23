@@ -20,6 +20,7 @@ import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -405,7 +406,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onUpdateCheckbox(AjaxRequestTarget target, IModel<SelectableBean<T>> rowModel) {
+            protected void onUpdateCheckbox(AjaxRequestTarget target, IModel<SelectableBean<T>> rowModel, DataTable table) {
                 if (type.equals(ObjectTypes.RESOURCE)) {
                     target.add(TypedAssignablePanel.this);
                 }

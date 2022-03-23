@@ -52,19 +52,15 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
 
     private Component component;
     private IModel<String> rootOid;
-    private List<OrgType> selectedOrgs = new ArrayList<>();
 
     private long offset;
     private long count;
 
     private Map<String, TreeSelectableBean<OrgType>> availableData;
 
-    public OrgTreeProvider(Component component, IModel<String> rootOid, List<OrgType> selectedOrgs) {
+    public OrgTreeProvider(Component component, IModel<String> rootOid) {
         this.component = component;
         this.rootOid = rootOid;
-        if (selectedOrgs != null) {
-            this.selectedOrgs.addAll(selectedOrgs);
-        }
     }
 
     private Map<String, TreeSelectableBean<OrgType>> getAvailableData() {

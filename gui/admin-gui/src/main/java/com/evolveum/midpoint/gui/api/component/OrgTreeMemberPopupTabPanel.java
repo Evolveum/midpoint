@@ -39,7 +39,7 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
 
             @Override
             protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel) {
-                onSelectionPerformed(target, (IModel) rowModel);
+                onSelectionPerformed(target, (IModel) rowModel, null);
             }
 
             @Override
