@@ -53,7 +53,6 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryExecutor;
-import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -82,15 +81,6 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         super(sqlRepoContext, sqlPerformanceMonitorsCollection);
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
-
-        SqaleRepositoryConfiguration repoConfig =
-                (SqaleRepositoryConfiguration) sqlRepoContext.getJdbcRepositoryConfiguration();
-
-        // monitor initialization and registration
-        performanceMonitor = new SqlPerformanceMonitorImpl(
-                repoConfig.getPerformanceStatisticsLevel(),
-                repoConfig.getPerformanceStatisticsFile());
-        sqlPerformanceMonitorsCollection.register(performanceMonitor);
     }
 
     @Override
