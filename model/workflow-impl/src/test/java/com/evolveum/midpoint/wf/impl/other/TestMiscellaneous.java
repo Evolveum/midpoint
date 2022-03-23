@@ -377,7 +377,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     /**
      * MID-6183
      */
-    @Test(enabled = false) // MID-7696
+    @Test
     public void test300DeleteRequestCase() throws Exception {
         given();
 
