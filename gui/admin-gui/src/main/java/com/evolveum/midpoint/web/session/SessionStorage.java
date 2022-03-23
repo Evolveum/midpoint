@@ -215,10 +215,11 @@ public class SessionStorage implements Serializable, DebugDumpable {
     }
 
     public PageStorage initPageStorage(String key) {
-        PageStorage pageStorage = null;
         if (key == null) {
-            return pageStorage;
+            return null;
         }
+
+        PageStorage pageStorage = null;
         if (key.startsWith(KEY_OBJECT_LIST)) {
             pageStorage = new ObjectListStorage();
         } else if (key.startsWith(KEY_ORG_MEMBER_PANEL)
@@ -241,6 +242,8 @@ public class SessionStorage implements Serializable, DebugDumpable {
         } else if (KEY_AUDIT_LOG.equals(key)
                 || key.startsWith(KEY_OBJECT_HISTORY_AUDIT_LOG)) {
             pageStorage = new AuditLogStorage();
+        } else {
+            pageStorage = new GenericPageStorage();
         }
         if (pageStorage != null) {
             pageStorageMap.put(key, pageStorage);
