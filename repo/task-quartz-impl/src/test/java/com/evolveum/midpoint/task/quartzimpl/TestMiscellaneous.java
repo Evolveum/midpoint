@@ -6,8 +6,11 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
@@ -22,8 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.quartzimpl.quartz.TaskSynchronizer;
 import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -40,8 +42,6 @@ import com.evolveum.midpoint.task.api.TaskManagerConfigurationException;
 import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskGroupExecutionLimitationType;
 
 @ContextConfiguration(locations = { "classpath:ctx-task-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -168,6 +168,42 @@ public class TestMiscellaneous extends AbstractTaskManagerTest {
 
         // this one should be started, so wa cannot assert its state (can be ready or closed)
         waitForTaskClose(TASK_42_RUNNABLE.oid, result, 10000, 500);
+    }
+
+    /**
+     * Here we check if we preserve resource names in provisioning statistics.
+     *
+     * See MID-7771.
+     */
+    @Test
+    public void test210ResourceNamesInStatistics() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("a task with resource name in statistics");
+        ObjectReferenceType resourceRef = new ObjectReferenceType()
+                .oid("216bdb8a-1fcc-47be-a227-7184972a3b3e")
+                .type(ResourceType.COMPLEX_TYPE)
+                .targetName("resource1");
+        TaskType task = new TaskType()
+                .name("task1")
+                .ownerRef(SystemObjectsType.USER_ADMINISTRATOR.value(), UserType.COMPLEX_TYPE)
+                .operationStats(new OperationStatsType()
+                        .environmentalPerformanceInformation(new EnvironmentalPerformanceInformationType()
+                                .provisioningStatistics(new ProvisioningStatisticsType()
+                                        .entry(new ProvisioningStatisticsEntryType()
+                                                .resourceRef(resourceRef)))));
+
+        when("task is stored in repo and retrieved");
+        String oid = taskManager.addTask(task.asPrismObject(), null, result);
+        Task retrieved = taskManager.getTaskPlain(oid, result);
+
+        then("the resource name should be preserved");
+        assertThat(getOrig(retrieved.getStoredOperationStatsOrClone()
+                .getEnvironmentalPerformanceInformation()
+                .getProvisioningStatistics()
+                .getEntry().get(0).getResourceRef().getTargetName()))
+                .as("stored resource name")
+                .isEqualTo("resource1");
     }
 
     private String serialize(TaskExecutionLimitationsType parsed) throws SchemaException {
