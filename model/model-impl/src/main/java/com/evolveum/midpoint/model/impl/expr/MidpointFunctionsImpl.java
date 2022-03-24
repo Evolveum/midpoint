@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
+
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-
-import static java.util.Collections.*;
-
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
@@ -31,16 +31,6 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
-import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.prism.path.ItemName;
-
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-
-import com.evolveum.midpoint.schema.processor.*;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.BooleanUtils;
@@ -51,7 +41,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.CaseService;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.expr.OptimizingTriggerCreator;
@@ -59,13 +52,14 @@ import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.expr.triggerSetter.OptimizingTriggerCreatorImpl;
 import com.evolveum.midpoint.model.impl.expr.triggerSetter.TriggerCreatorGlobalState;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.schema.messaging.MessageWrapper;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils;
@@ -75,6 +69,8 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -83,7 +79,10 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.messaging.MessageWrapper;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
@@ -2182,5 +2181,43 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         } else {
             return correlationCaseManager.findCorrelationCase(shadow, false, getCurrentResult());
         }
+    }
+
+    @Override
+    public String describeResourceObjectSet(ResourceObjectSetType set)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+
+        if (set == null) {
+            return null;
+        }
+
+        ObjectReferenceType ref = set.getResourceRef();
+        if (ref == null) {
+            return null;
+        }
+
+        ObjectType resource = resolveReferenceInternal(ref, true);
+        if (resource == null) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(resource.getName().getOrig());
+
+        if (set.getObjectclass() != null) {
+            sb.append(" for ");
+            sb.append(set.getObjectclass().getLocalPart());
+        }
+
+        ShadowKindType kind = set.getKind();
+        if (kind != null || set.getIntent() != null) {
+            sb.append(" (");
+            sb.append(kind != null ? kind.value() : "");
+            sb.append("/");
+            sb.append(set.getIntent());
+            sb.append(")");
+        }
+
+        return sb.toString();
     }
 }

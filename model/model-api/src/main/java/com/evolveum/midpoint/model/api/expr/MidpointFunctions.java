@@ -1270,4 +1270,6 @@ public interface MidpointFunctions {
     interface TriggerCustomizer {
         void customize(TriggerType trigger) throws SchemaException;
     }
+
+    String describeResourceObjectSet(ResourceObjectSetType set) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 }
