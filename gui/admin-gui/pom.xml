@@ -850,6 +850,14 @@
                     <groupId>bouncycastle</groupId>
                     <artifactId>bctsp-jdk14</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.lowagie</groupId>
+                    <artifactId>itext</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.olap4j</groupId>
+                    <artifactId>olap4j</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <!-- report dependency (needed for microsoft office formats) -->
