@@ -11,28 +11,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -281,17 +282,15 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     }
 
     @Override
-    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel) {
-        target.add(getObjectListPanel());
+    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel, DataTable dataTable) {
+        TableUtil.updateRows(dataTable, target);
         target.add(getKindDropDown());
         target.add(getIntentDropDown());
     }
 
     @Override
     protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<ResourceType>> rowModel) {
-        List selectedObjects = getSelectedObjectsList();
-        return Model.of(selectedObjects == null || selectedObjects.size() == 0
-                || (rowModel != null && rowModel.getObject() != null && rowModel.getObject().isSelected()));
+        return new ReadOnlyModel<>(() -> CollectionUtils.isEmpty(getSelectedObjectsList()) || (rowModel != null && rowModel.getObject() != null && rowModel.getObject().isSelected()));
     }
 
     protected boolean isEntitlementAssignment() {

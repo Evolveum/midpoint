@@ -91,9 +91,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     protected final SelectableBeanObjectDataProvider<O> createSelectableBeanObjectDataProvider(SerializableSupplier<ObjectQuery> querySuplier,
             SerializableFunction<SortParam<String>, List<ObjectOrdering>> orderingSuplier) {
-        List<O> preSelectedObjectList = getPreselectedObjectList();
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
-                getPageBase(), getSearchModel(), preSelectedObjectList == null ? null : new HashSet<>(preSelectedObjectList)) {
+                getPageBase(), getSearchModel(), null) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -115,6 +114,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
                     return super.createObjectOrderings(sortParam);
                 }
                 return orderingSuplier.apply(sortParam);
+            }
+
+            @Override
+            protected Set<? extends O> getSelected() {
+                List<O> preselectedObjects = getPreselectedObjectList();
+                return preselectedObjects == null ? new HashSet<>() : new HashSet<>(preselectedObjects);
             }
         };
         provider.setCompiledObjectCollectionView(getObjectCollectionView());

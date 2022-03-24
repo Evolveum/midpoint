@@ -39,7 +39,7 @@ public class OrgTreeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
 
            @Override
             protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel) {
-               onSelectionPerformed(target, (IModel) rowModel);
+               onSelectionPerformed(target, (IModel) rowModel, null);
             }
 
             @Override
