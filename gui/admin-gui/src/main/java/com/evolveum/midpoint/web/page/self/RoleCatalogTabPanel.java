@@ -161,11 +161,11 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
     @Override
     protected Search createSearch() {
         Search search = super.createSearch();
-        search.addSpecialItem(createScopeItem(search));
+        search.addSpecialItem(createScopeItem(search, getRoleCatalogStorage()));
         return search;
     }
 
-    private SearchItem createScopeItem(Search search) {
+    private SearchItem createScopeItem(Search search, RoleCatalogStorage roleCatalogStorage) {
         return new SpecialSearchItem(search) {
             @Override
             public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
@@ -174,7 +174,7 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
 
             @Override
             public SearchSpecialItemPanel createSpecialSearchPanel(String id){
-                return new SearchSpecialItemPanel(id, new PropertyModel(getRoleCatalogStorage(), RoleCatalogStorage.F_ORG_SEARCH_SCOPE)) {
+                return new SearchSpecialItemPanel(id, new PropertyModel(roleCatalogStorage, RoleCatalogStorage.F_ORG_SEARCH_SCOPE)) {
                     @Override
                     protected WebMarkupContainer initSearchItemField(String id) {
                         DropDownChoicePanel inputPanel = new DropDownChoicePanel(id, getModelValue(), Model.of(Arrays.asList(SearchBoxScopeType.values())), new EnumChoiceRenderer(), false);
