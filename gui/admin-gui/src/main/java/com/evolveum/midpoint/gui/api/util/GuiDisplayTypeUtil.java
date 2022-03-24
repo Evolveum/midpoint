@@ -43,23 +43,23 @@ public class GuiDisplayTypeUtil {
         return createDisplayType(OperationIcon.getIcon(), "", OperationIcon.getStatusLabelKey());
     }
 
-    public static DisplayType createDisplayType(String iconCssClass, String iconColor, String title) {
-        return createDisplayType(iconCssClass, iconColor, WebComponentUtil.createPolyFromOrigString(title));
+    public static DisplayType createDisplayType(String iconCssClass, String iconColor, String tooltip) {
+        return createDisplayType(iconCssClass, iconColor, WebComponentUtil.createPolyFromOrigString(tooltip));
     }
 
-    public static DisplayType createDisplayType(String iconCssClass, String iconColor, String label, String title) {
-        return createDisplayType(iconCssClass, iconColor, WebComponentUtil.createPolyFromOrigString(label), WebComponentUtil.createPolyFromOrigString(title));
+    public static DisplayType createDisplayType(String iconCssClass, String iconColor, String label, String tooltip) {
+        return createDisplayType(iconCssClass, iconColor, WebComponentUtil.createPolyFromOrigString(label), WebComponentUtil.createPolyFromOrigString(tooltip));
     }
 
-    public static DisplayType createDisplayType(String iconCssClass, PolyStringType title) {
-        return createDisplayType(iconCssClass, "", title);
+    public static DisplayType createDisplayType(String iconCssClass, PolyStringType tooltip) {
+        return createDisplayType(iconCssClass, "", tooltip);
     }
 
-    public static DisplayType createDisplayType(String iconCssClass, String iconColor, PolyStringType title) {
-        return createDisplayType(iconCssClass, iconColor, null, title);
+    public static DisplayType createDisplayType(String iconCssClass, String iconColor, PolyStringType tooltip) {
+        return createDisplayType(iconCssClass, iconColor, null, tooltip);
     }
 
-    public static DisplayType createDisplayType(String iconCssClass, String iconColor, PolyStringType label, PolyStringType title) {
+    public static DisplayType createDisplayType(String iconCssClass, String iconColor, PolyStringType label, PolyStringType tooltip) {
         DisplayType displayType = new DisplayType();
         IconType icon = new IconType();
         icon.setCssClass(iconCssClass != null ? iconCssClass.trim() : iconCssClass);
@@ -67,7 +67,7 @@ public class GuiDisplayTypeUtil {
         displayType.setIcon(icon);
         displayType.setLabel(label);
 
-        displayType.setTooltip(title);
+        displayType.setTooltip(tooltip);
         return displayType;
     }
 
@@ -89,10 +89,21 @@ public class GuiDisplayTypeUtil {
         return null;
     }
 
+    private static DisplayType createSimpleObjectRelationDisplayType(PageBase page, String key, String type, String relation) {
+        if (type == null) {
+            type = "";
+        }
+        if (relation == null) {
+            relation = "";
+        }
+        String label = page.createStringResource(key, type, relation).getString();
+        return createDisplayType("", "", label, label);
+    }
+
     public static DisplayType getAssignmentObjectRelationDisplayType(PageBase pageBase, AssignmentObjectRelation assignmentTargetRelation,
             String defaultTitleKey) {
         if (assignmentTargetRelation == null) {
-            return createDisplayType("", "", pageBase.createStringResource(defaultTitleKey, "", "").getString());
+            return createSimpleObjectRelationDisplayType(pageBase, defaultTitleKey, null, null);
         }
 
         String typeTitle = "";
@@ -164,7 +175,8 @@ public class GuiDisplayTypeUtil {
                 return displayType;
             }
         }
-        return createDisplayType("", "", pageBase.createStringResource(defaultTitleKey, typeTitle, relationTitle).getString());
+
+        return createSimpleObjectRelationDisplayType(pageBase, defaultTitleKey, typeTitle, relationTitle);
     }
 
     public static DisplayType getNewObjectDisplayTypeFromCollectionView(CompiledObjectCollectionView view, PageBase pageBase) {
