@@ -702,8 +702,19 @@ public abstract class IterativeActivityRun<
             throws SchemaException, ObjectNotFoundException{
         RunningTask coordinatorTask = getRunningTask();
 
-        coordinatorTask.updateOperationStatsInTaskPrism(updateThreadLocalStatistics);
+        coordinatorTask.updateOperationStatsInTaskPrism(
+                updateThreadLocalStatistics && canUpdateThreadLocalStatistics());
         coordinatorTask.storeStatisticsIntoRepositoryIfTimePassed(getActivityStatUpdater(), result);
+    }
+
+    /**
+     * Returns true if it's safe to update TL statistics in coordinator. Normally, it is so.
+     * A notable exception is asynchronous update using AMQP (an experimental feature for now).
+     * The reason is that the message handling occurs in a thread different from the task thread.
+     * See MID-7464.
+     */
+    protected boolean canUpdateThreadLocalStatistics() {
+        return true;
     }
 
     private Runnable getActivityStatUpdater() {

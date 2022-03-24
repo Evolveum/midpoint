@@ -126,4 +126,9 @@ public final class AsyncUpdateActivityRun
     protected String getChannelOverride() {
         return SchemaConstants.CHANNEL_ASYNC_UPDATE_URI;
     }
+
+    @Override
+    protected boolean canUpdateThreadLocalStatistics() {
+        return false; // See MID-7464 and the comment in the overridden method.
+    }
 }

@@ -125,6 +125,7 @@
             <class name="com.evolveum.midpoint.model.intest.async.TestNotifyChange"/>
             <class name="com.evolveum.midpoint.model.intest.async.TestAsyncUpdateUcf"/>
             <class name="com.evolveum.midpoint.model.intest.async.TestAsyncUpdateGrouperJson"/>
+            <class name="com.evolveum.midpoint.model.intest.async.TestAsyncUpdateTaskMechanics"/>
         </classes>
     </test>
     <test name="Importer" preserve-order="true" parallel="false" verbose="10">
