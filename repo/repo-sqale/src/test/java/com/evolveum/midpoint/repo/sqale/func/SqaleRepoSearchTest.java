@@ -53,6 +53,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 @SuppressWarnings("ConstantConditions")
 public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
@@ -1128,6 +1129,15 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test405SearchObjectHavingAnyOfValuesInMultiValueRef() throws SchemaException {
+        searchUsersTest("having parent org ref matching any of the provided values",
+                f -> f.item(UserType.F_PARENT_ORG_REF)
+                        .ref(ref(org11Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY),
+                                ref(org21Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY)),
+                user2Oid, user3Oid);
+    }
+
+    @Test
     public void test410SearchObjectByParentOrgName() throws SchemaException {
         // this is multi-value ref in separate table
         searchUsersTest("having parent org with specified name",
@@ -1771,6 +1781,31 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 user1Oid, user2Oid);
     }
 
+    @Test(description = "MID-7738")
+    public void test586SearchObjectWithExtensionRefMatchingAnyOfValsXmlFilter() throws SchemaException {
+        when("searching for user by extension single-value ref by any of multiple values using XML filter");
+        OperationResult operationResult = createOperationResult();
+        // any is necessary for refs, unless the right relation is specified (e.g. relation1 for org21Oid)
+        ObjectQuery objectQuery = prismContext.getQueryConverter().createObjectQuery(UserType.class,
+                prismContext.parserFor("<query>\n"
+                        + "  <filter>\n"
+                        + "    <ref xmlns:q='http://prism.evolveum.com/xml/ns/public/query-3'>\n"
+                        + "      <path>extension/ref</path>\n"
+                        + "      <value oid=\"" + orgXOid + "\" relation=\"q:any\"/>\n"
+                        + "      <value oid=\"" + org21Oid + "\" relation=\"q:any\"/>\n"
+                        + "    </ref>\n"
+                        + "  </filter>\n"
+                        + "</query>").parseRealValue(QueryType.class));
+        SearchResultList<UserType> result =
+                repositorySearchObjects(UserType.class, objectQuery, operationResult);
+
+        then("users with extension/ref matching any of the values are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user1Oid, user2Oid);
+    }
+
     @Test
     public void test590SearchObjectWithAssignmentExtension() throws SchemaException {
         searchUsersTest("with assignment extension item equal to value",
@@ -1801,8 +1836,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .isInstanceOf(SystemException.class)
                 .hasMessageContaining("not indexed");
     }
-
-    // TODO multi-value EQ filter (IN semantics) for extensions is not supported YET (except for refs)
     // endregion
 
     // region container search
