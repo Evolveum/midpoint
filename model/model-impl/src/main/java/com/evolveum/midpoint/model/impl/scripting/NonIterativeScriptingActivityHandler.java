@@ -13,6 +13,8 @@ import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.activity.run.*;
 
+import com.evolveum.midpoint.task.api.RunningTask;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -92,19 +94,27 @@ public class NonIterativeScriptingActivityHandler
         @Override
         public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
             return super.createReportingCharacteristics()
-                    .statisticsSupported(false);
+                    .statisticsSupported(true)
+                    .progressSupported(true)
+                    .progressCommitPointsSupported(false);
         }
 
         @Override
         protected @NotNull ActivityRunResult runLocally(OperationResult result)
-                throws ActivityRunException, CommonException {
+                throws CommonException {
+            RunningTask runningTask = getRunningTask();
             ExecuteScriptType executeScriptRequest = getWorkDefinition().getScriptExecutionRequest().clone();
-            ScriptExecutionResult executionResult = getActivityHandler().scriptingService
-                    .evaluateExpression(executeScriptRequest,
-                            VariablesMap.emptyMap(), false, getRunningTask(), result);
-            LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
-            LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
-            return standardRunResult();
+            runningTask.setExecutionSupport(this);
+            try {
+                ScriptExecutionResult executionResult = getActivityHandler().scriptingService
+                        .evaluateExpression(executeScriptRequest,
+                                VariablesMap.emptyMap(), true, runningTask, result);
+                LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
+                LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
+                return standardRunResult();
+            } finally {
+                runningTask.setExecutionSupport(null);
+            }
         }
     }
 

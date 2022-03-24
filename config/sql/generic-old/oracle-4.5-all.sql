@@ -469,6 +469,8 @@ CREATE TABLE m_task (
   taskIdentifier           VARCHAR2(255 CHAR),
   threadStopAction         NUMBER(10, 0),
   waitingReason            NUMBER(10, 0),
+  schedulingState          NUMBER(10, 0),
+  autoScalingMode          NUMBER(10, 0),
   oid                      VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
@@ -627,6 +629,7 @@ CREATE TABLE m_node (
   name_norm      VARCHAR2(255 CHAR),
   name_orig      VARCHAR2(255 CHAR),
   nodeIdentifier VARCHAR2(255 CHAR),
+  operationalState NUMBER(10, 0),
   oid            VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;

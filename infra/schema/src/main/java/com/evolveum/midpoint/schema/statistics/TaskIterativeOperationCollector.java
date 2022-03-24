@@ -31,7 +31,9 @@ public interface TaskIterativeOperationCollector {
      * The operation end is recorded by calling appropriate method on the returned object.
      */
     @NotNull default Operation recordIterativeOperationStart(IterationItemInformation info) {
-        return recordIterativeOperationStart(new IterativeOperationStartInfo(info));
+        IterativeOperationStartInfo startInfo = new IterativeOperationStartInfo(info);
+        startInfo.setSimpleCaller(true);
+        return recordIterativeOperationStart(startInfo);
     }
 
     /**

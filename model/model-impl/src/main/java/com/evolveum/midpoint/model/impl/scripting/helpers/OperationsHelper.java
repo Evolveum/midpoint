@@ -157,11 +157,11 @@ public class OperationsHelper {
 
     public Operation recordStart(ExecutionContext context, ObjectType object) {
         if (context.isRecordProgressAndIterationStatistics()) {
-            if (context.getTask() != null && object != null) {
-                return context.getTask().recordIterativeOperationStart(object.asPrismObject());
+            Task task = context.getTask();
+            if (task != null && object != null) {
+                return task.recordIterativeOperationStart(object.asPrismObject());
             } else {
-                LOGGER.warn("Couldn't record operation start in script execution; task = {}, object = {}",
-                        context.getTask(), object);
+                LOGGER.warn("Couldn't record operation start in script execution; task = {}, object = {}", task, object);
                 return null;
             }
         }
