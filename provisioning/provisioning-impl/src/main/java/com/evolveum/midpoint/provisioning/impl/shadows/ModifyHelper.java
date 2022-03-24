@@ -263,13 +263,12 @@ class ModifyHelper {
             Collection<? extends ItemDelta> modifications,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
             Task task,
-            OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            OperationResult parentResult) {
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModifyDelta(repoShadow.getOid(), modifications,
                 repoShadow.getCompileTimeClass());
-        ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
-                delta, parentResult);
+        ResourceOperationDescription operationDescription =
+                createSuccessOperationDescription(ctx, repoShadow, delta, parentResult);
 
         if (opState.isExecuting()) {
             eventDispatcher.notifyInProgress(operationDescription, task, parentResult);

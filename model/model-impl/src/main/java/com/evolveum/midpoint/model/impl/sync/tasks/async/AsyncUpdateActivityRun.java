@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.async;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClass;
 import com.evolveum.midpoint.repo.common.activity.run.*;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -119,5 +120,10 @@ public final class AsyncUpdateActivityRun
     public boolean isExcludedFromStalenessChecking() {
         // This task does not have regularly updated progress. It cannot be watched for staleness (for now).
         return true;
+    }
+
+    @Override
+    protected String getChannelOverride() {
+        return SchemaConstants.CHANNEL_ASYNC_UPDATE_URI;
     }
 }

@@ -909,6 +909,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     private void savePendingDeltas(SynchronizationContext<?> syncCtx, OperationResult result) throws SchemaException {
         Task task = syncCtx.getTask();
         PrismObject<ShadowType> shadow = syncCtx.getShadowedResourceObject();
+        String channel = syncCtx.getChannel();
 
         try {
             beans.cacheRepositoryService.modifyObject(
@@ -917,9 +918,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     syncCtx.getPendingShadowDeltas(),
                     result);
             syncCtx.clearPendingShadowDeltas();
-            task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, null);
+            task.recordObjectActionExecuted(shadow, null, null, ChangeType.MODIFY, channel, null);
         } catch (ObjectNotFoundException ex) {
-            task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, ex);
+            task.recordObjectActionExecuted(shadow, null, null, ChangeType.MODIFY, channel, ex);
             // This may happen e.g. during some recon-livesync interactions.
             // If the shadow is gone then it is gone. No point in recording the
             // situation any more.

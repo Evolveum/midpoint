@@ -177,4 +177,9 @@ public final class LiveSyncActivityRun
                 getRunningTask().getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS));
         return retryErrors ? STOP : CONTINUE;
     }
+
+    @Override
+    protected String getChannelOverride() {
+        return SchemaConstants.CHANNEL_LIVE_SYNC_URI;
+    }
 }

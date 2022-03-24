@@ -220,6 +220,15 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // Async update is not counted as a connector operation (at least not now). We should have no other ops,
         // in particular we do NOT want the clockwork to run! (MID-5853)
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 0);
+
+        // @formatter:off
+        assertTask(TASK_ASYNC_UPDATE.oid, "after")
+                .rootActivityState()
+                    .actionsExecuted()
+                        .all()
+                            .display()
+                            .assertChannels(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
+        // @formatter:on
     }
 
     /**

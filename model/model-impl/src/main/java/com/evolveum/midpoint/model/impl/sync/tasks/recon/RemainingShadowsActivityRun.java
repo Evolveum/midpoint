@@ -257,4 +257,9 @@ final class RemainingShadowsActivityRun
     public long getShadowReconCount() {
         return transientRunStatistics.getItemsProcessed();
     }
+
+    @Override
+    protected String getChannelOverride() {
+        return SchemaConstants.CHANNEL_RECON_URI;
+    }
 }

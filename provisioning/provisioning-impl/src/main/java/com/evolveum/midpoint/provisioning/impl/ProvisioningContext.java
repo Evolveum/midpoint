@@ -107,13 +107,6 @@ public class ProvisioningContext {
      */
     private Collection<ResourceObjectPattern> protectedObjectPatterns;
 
-    /**
-     * Override for values returned by {@link #getChannel()} method.
-     *
-     * TODO Remove this ugly hack. The channel should be read solely from the task.
-     */
-    private String channelOverride;
-
     /** Creating context from scratch. */
     ProvisioningContext(
             @NotNull Task task,
@@ -138,7 +131,6 @@ public class ProvisioningContext {
         this.contextFactory = originalCtx.contextFactory;
         this.connectorMap.putAll(originalCtx.connectorMap);
         this.resourceSchema = originalCtx.resourceSchema;
-        this.channelOverride = originalCtx.channelOverride;
         this.getOperationOptions = originalCtx.getOperationOptions; // OK?
         this.propagation = originalCtx.propagation;
         // Not copying protected account patters because these are object type specific.
@@ -293,12 +285,7 @@ public class ProvisioningContext {
     }
 
     public String getChannel() {
-        Task task = getTask();
-        if (channelOverride == null) {
-            return task.getChannel();
-        } else {
-            return channelOverride;
-        }
+        return task.getChannel();
     }
 
     public <T extends CapabilityType> ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult result)
@@ -469,25 +456,12 @@ public class ProvisioningContext {
         return ProvisioningUtil.getCachingStrategy(this);
     }
 
-    public void setChannelOverride(String channelOverride) {
-        this.channelOverride = channelOverride;
-    }
-
     public String toHumanReadableDescription() {
         if (resourceObjectDefinition != null) {
             return resourceObjectDefinition.getHumanReadableName() + " @" + resource;
         } else {
             return "all objects @" + resource;
         }
-    }
-
-    public Object toHumanReadableDescriptionLazy() {
-        return new Object() {
-            @Override
-            public String toString() {
-                return toHumanReadableDescription();
-            }
-        };
     }
 
     public boolean isInMaintenance() {

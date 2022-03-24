@@ -58,7 +58,7 @@ import static java.util.Objects.requireNonNull;
  * This means that it is connected to repository shadow, and this shadow is updated
  * with the appropriate information.
  */
-public class ShadowedChange<ROC extends ResourceObjectChange> implements InitializableMixin {
+public abstract class ShadowedChange<ROC extends ResourceObjectChange> implements InitializableMixin {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowedChange.class);
 
@@ -385,8 +385,14 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
     }
 
     private String getChannel() {
-        return ObjectUtils.defaultIfNull(context.getChannel(), SchemaConstants.CHANNEL_LIVE_SYNC_URI);
+        return ObjectUtils.defaultIfNull(context.getChannel(), getDefaultChannel());
     }
+
+    /**
+     * Default channel for given change. The usefulness of this method is questionable,
+     * as the context should have the correct channel already set.
+     */
+    protected abstract String getDefaultChannel();
 
     public Collection<ResourceAttribute<?>> getIdentifiers() {
         return resourceObjectChange.getIdentifiers();

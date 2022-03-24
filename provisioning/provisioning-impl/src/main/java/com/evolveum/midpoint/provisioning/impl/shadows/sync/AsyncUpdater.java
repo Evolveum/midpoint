@@ -51,10 +51,6 @@ public class AsyncUpdater {
 
         ProvisioningContext globalContext = ctxFactory.createForCoordinates(shadowCoordinates, callerTask, callerResult);
 
-        // This is a bit of hack to propagate information about async update channel to upper layers
-        // e.g. to implement MID-5853. TODO fix this hack
-        globalContext.setChannelOverride(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
-
         IndividualEventsAcknowledgeGate<AsyncUpdateEvent> acknowledgeGate = new IndividualEventsAcknowledgeGate<>();
 
         ResourceObjectAsyncChangeListener listener = (resourceObjectChange, lTask, lResult) -> {

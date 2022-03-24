@@ -250,8 +250,7 @@ class DeleteHelper {
             PrismObject<ShadowType> shadow,
             ProvisioningOperationState<AsynchronousOperationResult> opState,
             Task task,
-            OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            OperationResult parentResult) {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createDeleteDelta(shadow.getCompileTimeClass(),
                 shadow.getOid());
         ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow,

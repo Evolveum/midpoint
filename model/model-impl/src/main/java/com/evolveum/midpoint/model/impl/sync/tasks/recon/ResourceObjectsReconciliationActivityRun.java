@@ -100,4 +100,9 @@ public final class ResourceObjectsReconciliationActivityRun
     public long getResourceReconErrors() {
         return transientRunStatistics.getErrors();
     }
+
+    @Override
+    protected String getChannelOverride() {
+        return SchemaConstants.CHANNEL_RECON_URI;
+    }
 }

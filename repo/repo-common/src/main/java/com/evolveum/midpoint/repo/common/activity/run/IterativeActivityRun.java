@@ -14,7 +14,6 @@ import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.P
 
 import java.util.Objects;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
@@ -175,8 +174,10 @@ public abstract class IterativeActivityRun<
 
         LOGGER.trace("{}: Starting with local coordinator task {}", shortName, getRunningTask());
 
+        String originalChannel = getRunningTask().getChannel();
         try {
             enableGlobalConnIdOperationsListener();
+            overrideTaskChannelIfNeeded();
 
             transientRunStatistics.recordRunStart(getStartTimestampRequired());
 
@@ -196,8 +197,25 @@ public abstract class IterativeActivityRun<
 
         } finally {
             disableGlobalConnIdOperationsListener();
+            cancelTaskChannelOverride(originalChannel);
             getActivityState().getConnIdOperationsReport().flush(getRunningTask(), result);
         }
+    }
+
+    private void cancelTaskChannelOverride(String originalChannel) {
+        getRunningTask().setChannel(originalChannel);
+    }
+
+    private void overrideTaskChannelIfNeeded() {
+        String channelOverride = getChannelOverride();
+        if (channelOverride != null) {
+            getRunningTask().setChannel(channelOverride);
+        }
+    }
+
+    /** Channel URI that should be set into the task during this activity run. (If not null.) */
+    protected @Nullable String getChannelOverride() {
+        return null;
     }
 
     /**
@@ -744,7 +762,7 @@ public abstract class IterativeActivityRun<
     private void reportBucketCompleted(BucketProcessingRecord processingRecord, OperationResult result) {
         if (shouldReportBuckets()) {
             activityState.getBucketsReport().recordBucketCompleted(
-                    new BucketProcessingRecordType(PrismContext.get())
+                    new BucketProcessingRecordType()
                             .sequentialNumber(bucket.getSequentialNumber())
                             .content(bucket.getContent())
                             .size(processingRecord.getTotalSize())
@@ -761,7 +779,7 @@ public abstract class IterativeActivityRun<
     private void reportBucketAnalyzed(Integer size, OperationResult result) {
         if (shouldReportBuckets()) {
             activityState.getBucketsReport().recordBucketCompleted(
-                    new BucketProcessingRecordType(PrismContext.get())
+                    new BucketProcessingRecordType()
                             .sequentialNumber(bucket.getSequentialNumber())
                             .content(bucket.getContent())
                             .size(size),
