@@ -18,6 +18,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.PrismUtil;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.ObjectArrays;
 import com.querydsl.core.Tuple;
@@ -1821,7 +1823,11 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     }
 
     @Override
-    public void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
+    public synchronized void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
+        if (PrismUtil.realValueEquals(fullTextSearchConfiguration, fullTextSearch)) {
+            logger.trace("Ignoring full text search configuration update => the real value has not changed");
+            return;
+        }
         logger.info("Applying full text search configuration ({} entries)",
                 fullTextSearch != null ? fullTextSearch.getIndexed().size() : 0);
         fullTextSearchConfiguration = fullTextSearch;

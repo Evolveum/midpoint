@@ -19,6 +19,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.PrismUtil;
+
 import org.apache.commons.lang3.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -1275,7 +1277,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
+    public synchronized void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
+        if (PrismUtil.realValueEquals(fullTextSearchConfiguration, fullTextSearch)) {
+            LOGGER.trace("Ignoring full text search configuration update => the real value has not changed");
+            return;
+        }
         LOGGER.info("Applying full text search configuration ({} entries)",
                 fullTextSearch != null ? fullTextSearch.getIndexed().size() : 0);
         fullTextSearchConfiguration = fullTextSearch;
