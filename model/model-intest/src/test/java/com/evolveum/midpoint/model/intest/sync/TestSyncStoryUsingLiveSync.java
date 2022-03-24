@@ -122,4 +122,8 @@ public class TestSyncStoryUsingLiveSync extends AbstractSynchronizationStoryTest
         notificationManager.setDisabled(true);
     }
 
+    @Override
+    protected boolean isLiveSynchronization() {
+        return true;
+    }
 }

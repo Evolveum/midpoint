@@ -40,9 +40,13 @@ public class ConnIdOperation {
     private OperationResultStatus status;
     private String message;
 
-    private ConnIdOperation(@NotNull String identifier, @NotNull ProvisioningOperation operation,
-            @NotNull ObjectReferenceType resourceRef, ResourceObjectClassDefinition objectClassDef,
-            String uid, long startTimestamp) {
+    private ConnIdOperation(
+            @NotNull String identifier,
+            @NotNull ProvisioningOperation operation,
+            @NotNull ObjectReferenceType resourceRef,
+            ResourceObjectClassDefinition objectClassDef,
+            String uid,
+            long startTimestamp) {
         this.identifier = identifier;
         this.operation = operation;
         this.resourceRef = resourceRef;

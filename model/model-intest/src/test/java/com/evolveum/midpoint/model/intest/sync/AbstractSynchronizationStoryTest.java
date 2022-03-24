@@ -97,6 +97,10 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         return false;
     }
 
+    protected boolean isLiveSynchronization() {
+        return false;
+    }
+
     @Test
     public void test100ImportSyncTaskDummyGreen() throws Exception {
         when();
@@ -153,17 +157,17 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         PrismObject<TaskType> syncTaskTree = getTaskTree(syncTaskOid);
         OperationStatsType stats = TaskOperationStatsUtil.getOperationStatsFromTree(syncTaskTree.asObjectable(), prismContext);
         displayValue("sync task stats", TaskOperationStatsUtil.format(stats));
-        if (isReconciliation()) {
-            // Checking MID-6532 implementation (if multi-part tasks)
-            // TODO check for other kinds of sync tasks, improve asserts
-            ProvisioningStatisticsType provisioningStatistics = stats.getEnvironmentalPerformanceInformation().getProvisioningStatistics();
-            assertThat(provisioningStatistics.getEntry()).hasSize(1);
-            assertThat(provisioningStatistics.getEntry().get(0).getResourceRef().getOid()).isEqualTo(RESOURCE_DUMMY_GREEN_OID);
-            assertThat(getOrig(provisioningStatistics.getEntry().get(0).getResourceRef().getTargetName())).isEqualTo("Dummy Resource Green");
-            assertThat(provisioningStatistics.getEntry().get(0).getOperation()).isNotEmpty(); // search and sometimes get
 
+        ProvisioningStatisticsType provisioningStatistics = stats.getEnvironmentalPerformanceInformation().getProvisioningStatistics();
+        assertThat(provisioningStatistics.getEntry()).hasSize(1);
+        assertThat(provisioningStatistics.getEntry().get(0).getResourceRef().getOid()).isEqualTo(RESOURCE_DUMMY_GREEN_OID);
+        assertThat(getOrig(provisioningStatistics.getEntry().get(0).getResourceRef().getTargetName())).isEqualTo("Dummy Resource Green");
+        assertThat(provisioningStatistics.getEntry().get(0).getOperation()).isNotEmpty(); // search and sometimes get
+
+        if (isReconciliation()) {
             // MID-6930: We should process exactly 1 item even for partitioned reconciliation:
             // mancomb must not be processed in the 3rd part!
+            // @formatter:off
             assertPerformance(syncTaskOid, "progress")
                     .display()
                     .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID)
@@ -171,6 +175,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
                     .end()
                     .child(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_ID)
                         .assertItemsProcessed(0);
+            // @formatter:on
         }
 
         // notifications
