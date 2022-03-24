@@ -69,20 +69,27 @@ public class ActivityRunResult implements ShortDumpable {
      *
      * @param e Exception to be handled
      * @param opResult Operation result into which the exception should be recorded
-     * @param context Instance of activity run (or other similar object) in which the exception is converted.
+     * @param activityRun Instance of activity run in which the exception is converted.
      * It is used just for logging purposes.
      */
     static @NotNull ActivityRunResult handleException(@NotNull Exception e, @NotNull OperationResult opResult,
-            @Nullable Object context) {
+            @NotNull AbstractActivityRun<?, ?, ?> activityRun) {
         if (e instanceof ActivityRunException) {
             ActivityRunException aee = (ActivityRunException) e;
-            if (aee.getOpResultStatus() != SUCCESS) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Exception in {}", e, context);
+            OperationResultStatus status = aee.getOpResultStatus();
+            if (status == WARNING) {
+                LOGGER.warn("{}; in {}", e.getMessage(), activityRun.getDiagName());
+            } else if (status == HANDLED_ERROR) {
+                // Should we even log handled errors like this?
+                LOGGER.warn("Handled error in {}: {}", activityRun.getDiagName(), e.getMessage(), e);
+            } else if (status != SUCCESS && status != NOT_APPLICABLE) {
+                // What about other kinds of status (in progress? unknown? - they should not occur at this point)
+                LoggingUtils.logUnexpectedException(LOGGER, "Exception in {}", e, activityRun.getDiagName());
             }
-            opResult.recordStatus(aee.getOpResultStatus(), aee.getFullMessage(), aee.getCause());
+            opResult.recordStatus(status, aee.getFullMessage(), aee.getCause());
             return aee.toActivityRunResult();
         } else {
-            LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception in {}", e, context);
+            LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception in {}", e, activityRun.getDiagName());
             opResult.recordFatalError(e);
             return ActivityRunResult.exception(FATAL_ERROR, PERMANENT_ERROR, e);
         }

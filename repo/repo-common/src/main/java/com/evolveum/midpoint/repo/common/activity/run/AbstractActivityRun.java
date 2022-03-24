@@ -601,4 +601,10 @@ public abstract class AbstractActivityRun<
             }
         }
     }
+
+    /** Returns the name for diagnostic purposes, e.g. when logging an error. */
+    public @NotNull String getDiagName() {
+        RunningTask task = getRunningTask();
+        return getActivityPath().toDebugName() + " activity in '" + task.getName() + "' task (OID " + task.getOid() + ")";
+    }
 }
