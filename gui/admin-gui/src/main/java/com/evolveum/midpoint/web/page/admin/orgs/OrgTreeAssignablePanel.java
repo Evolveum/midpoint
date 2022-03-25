@@ -58,9 +58,6 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
     }
 
     private void initLayout() {
-        if (getPreselectedOrgsList() != null) {
-            allTabsSelectedOrgs.addAll(getPreselectedOrgsList());
-        }
         AbstractOrgTabPanel tabbedPanel = new AbstractOrgTabPanel(ID_ORG_TABS) {
 
             private static final long serialVersionUID = 1L;
@@ -78,7 +75,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 
                             @Override
                             public Boolean load() {
-                                for (OrgType org : allTabsSelectedOrgs) {
+                                for (OrgType org : getPreselectedOrgsList()) {
                                     if (rowModel.getObject().getValue().getOid().equals(org.getOid())) {
                                         return true;
                                     }
@@ -87,7 +84,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
                             }
                         };
                     }
-
+                    
                     @Override
                     protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel){
                             if (rowModel != null && rowModel.getObject() != null) {

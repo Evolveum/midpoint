@@ -104,7 +104,8 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     protected Map<String, AssignmentType> getSelectedAssignmentsMap() {
         Map<String, AssignmentType> assignmentsMap = new HashMap<>();
 
-        List<F> selectedObjects = getObjectType().equals(ObjectTypes.ORG) ? getPreselectedObjects() : getSelectedObjectsList();
+//        List<F> selectedObjects = getObjectType().equals(ObjectTypes.ORG) ? getPreselectedObjects() : getSelectedObjectsList();
+        List<F> selectedObjects = getSelectedObjectsList();
         QName relation = getRelationValue();
         selectedObjects.forEach(selectedObject -> assignmentsMap.put(
                 selectedObject.getOid(),

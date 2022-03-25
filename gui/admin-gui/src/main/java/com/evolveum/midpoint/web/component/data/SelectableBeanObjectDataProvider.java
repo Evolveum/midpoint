@@ -89,6 +89,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
         for (O s : getSelected()) {
             if (s.getOid().equals(obj.getOid())) {
                 selectable.setSelected(true);
+                model.setSelected(true);
             }
         }
 

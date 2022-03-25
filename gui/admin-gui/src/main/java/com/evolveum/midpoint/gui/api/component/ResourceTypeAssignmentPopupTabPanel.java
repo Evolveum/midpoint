@@ -11,11 +11,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -44,6 +50,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssoci
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import org.apache.wicket.util.visit.IVisitor;
 
 /**
  * Created by honchar
@@ -278,17 +286,15 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     }
 
     @Override
-    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel) {
-        target.add(getObjectListPanel());
+    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel, DataTable dataTable) {
+        TableUtil.updateRows(dataTable, target);
         target.add(getKindDropDown());
         target.add(getIntentDropDown());
     }
 
     @Override
     protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<ResourceType>> rowModel) {
-        List selectedObjects = getSelectedObjectsList();
-        return Model.of(selectedObjects == null || selectedObjects.size() == 0
-                || (rowModel != null && rowModel.getObject() != null && rowModel.getObject().isSelected()));
+        return new ReadOnlyModel<>(() -> CollectionUtils.isEmpty(getSelectedObjectsList()) || (rowModel != null && rowModel.getObject() != null && rowModel.getObject().isSelected()));
     }
 
     protected boolean isEntitlementAssignment() {

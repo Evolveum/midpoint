@@ -89,6 +89,10 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         this.model = model;
     }
 
+    protected void setModel(IModel<PrismContainerWrapper<AssignmentType>> model) {
+        this.model = model;
+    }
+
     @Override
     protected void onInitialize() {
         super.onInitialize();

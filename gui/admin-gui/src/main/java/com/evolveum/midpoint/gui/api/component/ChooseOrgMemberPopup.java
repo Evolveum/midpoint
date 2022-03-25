@@ -16,6 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationSearchItemConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -47,7 +48,7 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel){
+                    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel, DataTable dataTable){
                         tabLabelPanelUpdate(target);
                     }
 
