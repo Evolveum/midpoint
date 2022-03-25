@@ -161,7 +161,7 @@ public class NodeRegistrar implements Cache {
                 nodeToBe.setTaskExecutionLimitations(nodeInRepo.asObjectable().getTaskExecutionLimitations());
             }
             nodeToBe.setUrlOverride(
-                    Objects.requireNonNullElse(
+                    MiscUtil.getFirstNonNull(
                             nodeInRepo.asObjectable().getUrlOverride(),
                             configuration.getUrl()));
             nodeToBe.setUrl(nodeInRepo.asObjectable().getUrl()); // URL is refreshed later, in cluster manager thread
