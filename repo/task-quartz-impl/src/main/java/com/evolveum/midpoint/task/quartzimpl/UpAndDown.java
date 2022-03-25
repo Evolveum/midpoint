@@ -9,6 +9,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
+import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
 import com.evolveum.midpoint.task.quartzimpl.execution.*;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 import com.evolveum.midpoint.task.quartzimpl.quartz.TaskSynchronizer;
@@ -46,6 +47,7 @@ public class UpAndDown implements BeanFactoryAware {
 
     @Autowired private TaskManagerQuartzImpl taskManager;
     @Autowired private ClusterManager clusterManager;
+    @Autowired private NodeRegistrar nodeRegistrar;
     @Autowired private TaskManagerConfiguration configuration;
     @Autowired private LocalScheduler localScheduler;
     @Autowired private LocalNodeState localNodeState;
@@ -124,9 +126,9 @@ public class UpAndDown implements BeanFactoryAware {
         }
 
         // register node
-        NodeType node = clusterManager.createOrUpdateNodeInRepo(result);     // may throw initialization exception
-        if (!configuration.isTestMode()) {  // in test mode do not start cluster manager thread nor verify cluster config
-            clusterManager.checkClusterConfiguration(result);      // Does not throw exceptions. Sets the ERROR state if necessary, however.
+        NodeType node = nodeRegistrar.initializeNode(result); // may throw initialization exception
+        if (!configuration.isTestMode()) { // in test mode do not start cluster manager thread nor verify cluster config
+            clusterManager.checkClusterConfiguration(result); // Does not throw exceptions. Sets the ERROR state if necessary, however.
         }
 
         JobExecutor.setTaskManagerQuartzImpl(taskManager); // unfortunately, there seems to be no clean way of letting jobs know the taskManager

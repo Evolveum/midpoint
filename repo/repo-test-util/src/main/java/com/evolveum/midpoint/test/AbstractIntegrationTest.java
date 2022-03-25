@@ -4039,7 +4039,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         SearchResultList<PrismObject<NodeType>> existingNodes =
                 repositoryService.searchObjects(NodeType.class, null, null, result);
         for (PrismObject<NodeType> existingNode : existingNodes) {
-            if (!existingNode.getOid().equals(taskManager.getLocalNode().getOid())) {
+            if (!existingNode.getOid().equals(taskManager.getLocalNodeOid())) {
                 System.out.printf("Deleting extra node %s\n", existingNode);
                 repositoryService.deleteObject(NodeType.class, existingNode.getOid(), result);
             }

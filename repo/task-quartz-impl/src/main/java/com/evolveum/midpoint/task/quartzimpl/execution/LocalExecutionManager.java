@@ -49,12 +49,10 @@ public class LocalExecutionManager {
 
     public SchedulerInformationType getLocalSchedulerInformation(OperationResult result) {
         SchedulerInformationType info = new SchedulerInformationType();
-        NodeType node = localNodeState.getLocalNode();
-        if (node != null) {
-            node.setSecret(null);
-            node.setSecretUpdateTimestamp(null);
-            node.setTaskExecutionLimitations(null);
-        }
+        NodeType node = localNodeState.getLocalNodeWithUpdatedState();
+        node.setSecret(null);
+        node.setSecretUpdateTimestamp(null);
+        node.setTaskExecutionLimitations(null);
         info.setNode(node);
         for (String oid : localScheduler.getLocallyRunningTasksOids(result)) {
             TaskType task = new TaskType(taskManager.getPrismContext()).oid(oid);
