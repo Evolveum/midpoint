@@ -651,7 +651,7 @@ public class TestMisc extends AbstractMiscTest {
      * first assign role ship, the ship attribute in the role has mapping with calling midpoint.getLinkedShadow()
      */
     @Test
-    public void test602jackUnssigndRoleShip() throws Exception {
+    public void test602jackUnassignRoleShip() throws Exception {
         when();
         unassignRole(USER_JACK_OID, ROLE_SHIP_OID);
 
@@ -669,16 +669,16 @@ public class TestMisc extends AbstractMiscTest {
         OperationResult result = task.getResult();
 
         when();
-        NodeType localNode = taskManager.getLocalNode();
+        String localNodeOid = taskManager.getLocalNodeOid();
         ObjectDelta<NodeType> delta = deltaFor(NodeType.class)
                 .item(NodeType.F_ASSIGNMENT)
                 .add(ObjectTypeUtil.createAssignmentTo(ARCHETYPE_NODE_GROUP_GUI.oid, ObjectTypes.ARCHETYPE, prismContext))
-                .asObjectDelta(localNode.getOid());
+                .asObjectDelta(localNodeOid);
 
         executeChanges(delta, null, task, result);
 
         then();
-        assertObject(NodeType.class, localNode.getOid(), "after")
+        assertObject(NodeType.class, localNodeOid, "after")
                 .display()
                 .assertArchetypeRef(ARCHETYPE_NODE_GROUP_GUI.oid);
 

@@ -1198,10 +1198,13 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
-    public NodeType getLocalNode() {
-        return ObjectTypeUtil.asObjectable(
-                CloneUtil.clone(
-                        nodeRegistrar.getCachedLocalNodeObject()));
+    public @NotNull NodeType getLocalNode() {
+        return nodeRegistrar.getCachedLocalNodeObjectRequired().asObjectable();
+    }
+
+    @Override
+    public @NotNull String getLocalNodeOid() {
+        return nodeRegistrar.getCachedLocalNodeObjectOid();
     }
 
     @Override
@@ -1252,13 +1255,8 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
     @Override
     public Collection<ObjectReferenceType> getLocalNodeGroups() {
-        NodeType localNode = getLocalNode();
-        if (localNode == null) {
-            // should not occur during regular operation
-            return emptySet();
-        } else {
-            return Collections.unmodifiableCollection(localNode.getArchetypeRef());
-        }
+        return Collections.unmodifiableCollection(
+                getLocalNode().getArchetypeRef());
     }
 
     // TODO move to more appropriate place

@@ -87,18 +87,7 @@ public class LightweightIdentifierGeneratorImpl implements LightweightIdentifier
     }
 
     private int getHostIdentifierFromNodeOid() {
-        NodeType localNode = taskManager.getLocalNode();
-        if (localNode == null) {
-            LOGGER.warn("Couldn't determine host identifier. No local node.");
-            return UNINITIALIZED;
-        }
-
-        String localNodeOid = localNode.getOid();
-        if (localNodeOid == null) {
-            LOGGER.warn("Couldn't determine host identifier. No local node OID.");
-            return UNINITIALIZED;
-        }
-
+        String localNodeOid = taskManager.getLocalNodeOid();
         try {
             String last4digits = localNodeOid.substring(localNodeOid.length() - 4);
             return Integer.parseInt(last4digits, 16);

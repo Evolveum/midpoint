@@ -3277,7 +3277,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @Override
             public boolean check() throws CommonException {
                 var task = taskManager.getTaskWithResult(taskOid, waitResult);
-                var activity = task.getActivitiesStateOrClone().getActivity();
+                var activitiesState = task.getActivitiesStateOrClone();
+                if (activitiesState == null) {
+                    return false;
+                }
+                var activity = activitiesState.getActivity();
                 if (activity == null) {
                     return false;
                 }

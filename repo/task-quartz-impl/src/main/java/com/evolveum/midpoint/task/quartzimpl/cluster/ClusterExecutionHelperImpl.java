@@ -216,7 +216,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
         }
         client.type(MediaType.APPLICATION_XML);
         NodeType localNode = taskManager.getLocalNode();
-        ProtectedStringType protectedSecret = localNode != null ? localNode.getSecret() : null;
+        ProtectedStringType protectedSecret = localNode.getSecret();
         if (protectedSecret == null) {
             throw new SchemaException("No secret is set for local node " + localNode);
         }

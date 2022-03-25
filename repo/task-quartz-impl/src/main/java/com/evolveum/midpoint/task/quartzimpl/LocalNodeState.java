@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStateTy
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -73,12 +73,8 @@ public class LocalNodeState {
      * @return current local node information, updated with local node execution and error status.
      * Returned value is fresh, so it can be modified as needed.
      */
-    @Nullable
-    public NodeType getLocalNode() {
-        PrismObject<NodeType> localNode = clusterManager.getLocalNodeObject();
-        if (localNode == null) {
-            return null;
-        }
+    @NotNull public NodeType getLocalNodeWithUpdatedState() {
+        PrismObject<NodeType> localNode = clusterManager.getLocalNodeObject().clone();
         NodeType node = localNode.clone().asObjectable();
         node.setExecutionState(getExecutionState());
         node.setErrorState(errorState);

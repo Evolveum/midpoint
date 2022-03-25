@@ -666,7 +666,11 @@ public interface TaskManager {
 
     TaskHandler getHandler(String handlerUri);
 
-    NodeType getLocalNode();
+    /** Returns the local node object (immutable). */
+    @NotNull NodeType getLocalNode();
+
+    /** Returns the local node object OID. */
+    @NotNull String getLocalNodeOid();
 
     // A little bit of hack as well
     CacheConfigurationManager getCacheConfigurationManager();
