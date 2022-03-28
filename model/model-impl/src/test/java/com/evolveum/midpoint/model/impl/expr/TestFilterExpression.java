@@ -133,6 +133,21 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
     }
 
     @Test
+    public void test145EvaluateConstantFilter() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ObjectFilter filter = evaluateExpressionAssertFilter("expression-aql-constant-filter.xml",
+                null, EqualFilter.class, task, result);
+
+        EqualFilter equalFilter = (EqualFilter) filter;
+        AssertJUnit.assertNotNull("Expected 1 value in filter", equalFilter.getValues());
+
+        executeFilter(filter, 1, task, result);
+    }
+
+    @Test
     public void test150EvaluateExpressionEmployeeTypeDefaultsNull() throws Exception {
         // GIVEN
         Task task = getTestTask();
