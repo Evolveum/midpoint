@@ -64,6 +64,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -3534,8 +3535,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
         given("Full object was modified in database");
         clearPerformanceMonitor();
-        when("object is modified in the repository");
 
+        when("object is modified in the repository");
         RepoModifyOptions options = RepoModifyOptions.createForceReindex();
         repositoryService.modifyObject(UserType.class, user1Oid, Collections.emptyList(), options, result);
 
@@ -3549,6 +3550,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();
 
+        given("user existing in the repository");
         UserType user = new UserType().name("corrupted")
                 .beginAssignment()
                 .policySituation("kept")
@@ -3556,12 +3558,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .beginAssignment()
                 .policySituation("removed")
                 .end();
-
-        String oid = repositoryService.addObject(user.asPrismObject(),
-                null, result);
+        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
 
         when("full object is modified in the database (indices are desynced from full object)");
-
         user = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
         user.getAssignment().remove(1); // remove removed
         user.beginAssignment().policySituation("added");
@@ -3579,8 +3578,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertPolicySituationFound("removed", 1, result);
         assertPolicySituationFound("added", 0, result);
 
-        given("object is reindexed");
-
+        and("object is reindexed");
         RepoModifyOptions options = RepoModifyOptions.createForceReindex();
         repositoryService.modifyObject(UserType.class, oid, Collections.emptyList(), options, result);
 
@@ -3690,6 +3688,40 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         // single row with proper order is returned, wrong row is gone
         assertThat(assRows).hasSize(1);
         assertThat(assRows.get(0).orderValue).isEqualTo(1);
+    }
+
+    @Test
+    public void test955ReindexOfShadowWithAttributes() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("delta adding an attributes container for for shadow 1");
+        ShadowType shadow = new ShadowType()
+                .name("shadow-" + getTestName());
+        ShadowAttributesType attributesContainer = new ShadowAttributesHelper(shadow)
+                .set(new QName("https://example.com/p", "string-mv"), DOMUtil.XSD_STRING,
+                        "string-value1", "string-value2")
+                .attributesContainer();
+        String oid = repositoryService.addObject(shadow.asPrismObject(), null, result);
+
+        when("reindex is called");
+        repositoryService.modifyObject(
+                ShadowType.class, oid, List.of(), RepoModifyOptions.createForceReindex(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) still has attributes");
+        ShadowType shadowObject = repositoryService.getObject(ShadowType.class, oid, null, result)
+                .asObjectable();
+        assertThat(shadowObject.getAttributes()).isNotNull();
+
+        and("externalized attributes are also preserved");
+        MShadow row = selectObjectByOid(QShadow.class, oid);
+        assertThat(row.attributes).isNotNull();
+        Map<String, Object> attributeMap = Jsonb.toMap(row.attributes);
+        assertThat(attributeMap).containsEntry(
+                shadowAttributeKey(attributesContainer, "string-mv"),
+                List.of("string-value1", "string-value2"));
     }
 
     @Test

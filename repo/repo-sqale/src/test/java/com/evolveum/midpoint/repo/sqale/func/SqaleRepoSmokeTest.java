@@ -12,10 +12,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase.DEFAULT_SCHEMA_NAME;
 
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Queue;
-import java.util.UUID;
+import java.util.*;
 
 import org.testng.Assert;
 import org.testng.SkipException;
@@ -28,6 +25,7 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
@@ -61,6 +59,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Each test method is completely self-contained.
  */
 public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
+
+    public static final byte[] JPEG_PHOTO = { 0, 1, 2 }; // not really a JPEG, of course
 
     @AfterMethod
     public void methodCleanup() {
@@ -319,13 +319,13 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         when("user with photo is persisted");
         UserType user = new UserType()
                 .name("user" + getTestNumber())
-                .jpegPhoto(new byte[] { 0, 1, 2 });
+                .jpegPhoto(JPEG_PHOTO);
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
         assertThatOperationResult(result).isSuccess();
 
         then("photo is stored in row, but not in fullObject");
         MUser row = selectObjectByOid(QUser.class, UUID.fromString(userOid));
-        assertThat(row.photo).isEqualTo(new byte[] { 0, 1, 2 });
+        assertThat(row.photo).isEqualTo(JPEG_PHOTO);
         UserType fullObjectUser = parseFullObject(row.fullObject);
         assertThat(fullObjectUser.getJpegPhoto()).isNull();
 
@@ -341,7 +341,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         UserType userWithPhoto =
                 repositoryService.getObject(UserType.class, userOid, photoOptions, result)
                         .asObjectable();
-        assertThat(userWithPhoto.getJpegPhoto()).isEqualTo(new byte[] { 0, 1, 2 });
+        assertThat(userWithPhoto.getJpegPhoto()).isEqualTo(JPEG_PHOTO);
         assertThat(userWithPhoto.asPrismObject().findProperty(FocusType.F_JPEG_PHOTO).isIncomplete()).isFalse();
     }
 
@@ -359,14 +359,37 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         //noinspection PrimitiveArrayArgumentToVarargsMethod
         repositoryService.modifyObject(UserType.class, userOid,
                 prismContext.deltaFor(UserType.class)
-                        .item(UserType.F_JPEG_PHOTO).add(new byte[] { 0, 1, 2 })
+                        .item(UserType.F_JPEG_PHOTO).add(JPEG_PHOTO)
                         .asObjectDelta(userOid).getModifications(),
                 result);
         assertThatOperationResult(result).isSuccess();
 
         then("photo is stored in row, but not in fullObject");
         MUser row = selectObjectByOid(QUser.class, UUID.fromString(userOid));
-        assertThat(row.photo).isEqualTo(new byte[] { 0, 1, 2 });
+        assertThat(row.photo).isEqualTo(JPEG_PHOTO);
+        UserType fullObjectUser = parseFullObject(row.fullObject);
+        assertThat(fullObjectUser.getJpegPhoto()).isNull();
+    }
+
+    @Test
+    public void test222PhotoPersistenceReindex()
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+
+        given("user with photo");
+        UserType user = new UserType()
+                .name("user" + getTestNumber())
+                .jpegPhoto(JPEG_PHOTO);
+        String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
+
+        when("user is reindexed");
+        repositoryService.modifyObject(UserType.class, userOid,
+                List.of(), RepoModifyOptions.createForceReindex(), result);
+        assertThatOperationResult(result).isSuccess();
+
+        then("photo is still in row, but not in fullObject");
+        MUser row = selectObjectByOid(QUser.class, UUID.fromString(userOid));
+        assertThat(row.photo).isEqualTo(JPEG_PHOTO);
         UserType fullObjectUser = parseFullObject(row.fullObject);
         assertThat(fullObjectUser.getJpegPhoto()).isNull();
     }
