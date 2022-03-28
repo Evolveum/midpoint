@@ -242,8 +242,6 @@ public class SessionStorage implements Serializable, DebugDumpable {
         } else if (KEY_AUDIT_LOG.equals(key)
                 || key.startsWith(KEY_OBJECT_HISTORY_AUDIT_LOG)) {
             pageStorage = new AuditLogStorage();
-        } else {
-            pageStorage = new GenericPageStorage();
         }
         if (pageStorage != null) {
             pageStorageMap.put(key, pageStorage);
