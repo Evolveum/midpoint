@@ -1072,16 +1072,19 @@ public class ColumnUtils {
         if (caseType != null) {
             List<CaseWorkItemType> caseWorkItemTypes = caseType.getWorkItem();
             for (CaseWorkItemType caseWorkItem : caseWorkItemTypes) {
-                actorsList.addAll(getActorsForWorkitem(caseWorkItem, CaseTypeUtil.isClosed(caseType)));
+                actorsList.addAll(
+                        getActorsForWorkitem(caseWorkItem, CaseTypeUtil.isClosed(caseType)));
             }
         }
-        actorsList.stream().forEach(a -> a.asReferenceValue().clearParent());
+        // TODO Why not cloning the value? This makes the parent case inconsistent.
+        actorsList.forEach(a -> a.asReferenceValue().clearParent());
         return actorsList;
     }
 
     private static List<ObjectReferenceType> getActorsForWorkitem(CaseWorkItemType workItem, boolean isClosed) {
         if (isClosed) {
-            return Collections.singletonList(workItem.getPerformerRef());
+            ObjectReferenceType performerRef = workItem.getPerformerRef();
+            return performerRef != null ? List.of(performerRef) : List.of();
         } else if (workItem.getAssigneeRef() != null && !workItem.getAssigneeRef().isEmpty()) {
             return workItem.getAssigneeRef();
         } else {
