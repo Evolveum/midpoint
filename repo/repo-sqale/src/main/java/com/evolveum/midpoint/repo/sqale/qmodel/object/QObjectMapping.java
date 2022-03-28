@@ -131,6 +131,9 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     @Override
     public @NotNull Path<?>[] selectExpressions(
             Q entity, Collection<SelectorOptions<GetOperationOptions>> options) {
+        // TODO: there is currently no support for index-only extensions (from entity.ext).
+        //  See how QShadowMapping.loadIndexOnly() is used, and probably compose the result of this call
+        //  using super... call in the subclasses. (joining arrays? providing mutable list?)
         return new Path[] { entity.oid, entity.fullObject };
     }
 
