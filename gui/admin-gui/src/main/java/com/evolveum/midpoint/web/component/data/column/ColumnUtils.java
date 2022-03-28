@@ -1076,7 +1076,7 @@ public class ColumnUtils {
                         getActorsForWorkitem(caseWorkItem, CaseTypeUtil.isClosed(caseType)));
             }
         }
-        // TODO Why not cloning the value? This makes the parent case inconsistent.
+        // Note that this makes the parent case object inconsistent. Hopefully it will be thrown away anyway.
         actorsList.forEach(a -> a.asReferenceValue().clearParent());
         return actorsList;
     }
