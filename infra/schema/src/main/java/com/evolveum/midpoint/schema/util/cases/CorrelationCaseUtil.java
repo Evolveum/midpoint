@@ -24,7 +24,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 public class CorrelationCaseUtil {
 
     public static @Nullable ResourceObjectOwnerOptionsType getOwnerOptions(@NotNull CaseType aCase) {
-        ShadowType shadow = (ShadowType) ObjectTypeUtil.getObjectFromReference(aCase.getObjectRef());
+        ShadowType shadow = (ShadowType) ObjectTypeUtil.getObjectFromReference(aCase.getTargetRef());
         if (shadow != null && shadow.getCorrelation() != null) {
             return shadow.getCorrelation().getOwnerOptions();
         } else {
@@ -40,7 +40,7 @@ public class CorrelationCaseUtil {
     public static @NotNull String getShadowOidRequired(@NotNull CaseType aCase) throws SchemaException {
         return MiscUtil.requireNonNull(
                 MiscUtil.requireNonNull(
-                                aCase.getObjectRef(), () -> "No objectRef in " + aCase)
+                                aCase.getTargetRef(), () -> "No targetRef in " + aCase)
                         .getOid(), () -> "No shadow OID in " + aCase);
 
     }

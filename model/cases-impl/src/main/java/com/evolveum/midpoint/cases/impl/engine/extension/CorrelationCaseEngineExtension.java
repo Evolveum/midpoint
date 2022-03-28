@@ -10,6 +10,8 @@ package com.evolveum.midpoint.cases.impl.engine.extension;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseCorrelationContextType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -45,8 +47,8 @@ public class CorrelationCaseEngineExtension extends DefaultEngineExtension {
 
     @Override
     protected SimpleCaseSchemaType getCaseSchema(@NotNull CaseEngineOperation operation) {
-        return operation.getCurrentCase().getCorrelationContext() != null ?
-                operation.getCurrentCase().getCorrelationContext().getSchema() : null;
+        CaseCorrelationContextType context = operation.getCurrentCase().getCorrelationContext();
+        return context != null ? context.getSchema() : null;
     }
 
     @Override

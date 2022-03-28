@@ -114,17 +114,17 @@ public class CorrelationCaseManager {
             throws SchemaException {
         CaseType newCase = new CaseType()
                 .name(getCaseName(resourceObject, resource))
-                .objectRef(createObjectRefWithFullObject(resourceObject))
-                .targetRef(resourceObject.getResourceRef().clone())
+                .objectRef(resourceObject.getResourceRef().clone())
+                .targetRef(createObjectRefWithFullObject(resourceObject))
                 .requestorRef(task != null ? task.getOwnerRef() : null)
                 .archetypeRef(createArchetypeRef())
-                .assignment(new AssignmentType(prismContext)
+                .assignment(new AssignmentType()
                         .targetRef(createArchetypeRef()))
-                .correlationContext(new CaseCorrelationContextType(prismContext)
+                .correlationContext(new CaseCorrelationContextType()
                         .preFocusRef(ObjectTypeUtil.createObjectRefWithFullObject(preFocus))
                         .schema(createCaseSchema(resource.getBusiness())))
                 .state(SchemaConstants.CASE_STATE_CREATED)
-                .metadata(new MetadataType(PrismContext.get())
+                .metadata(new MetadataType()
                     .createTimestamp(clock.currentTimeXMLGregorianCalendar()));
         try {
             repositoryService.addObject(newCase.asPrismObject(), null, result);
@@ -139,7 +139,7 @@ public class CorrelationCaseManager {
         if (business == null) {
             return null;
         }
-        SimpleCaseSchemaType schema = new SimpleCaseSchemaType(PrismContext.get());
+        SimpleCaseSchemaType schema = new SimpleCaseSchemaType();
         schema.getAssigneeRef().addAll(
                 CloneUtil.cloneCollectionMembers(business.getCorrelatorRef()));
         schema.setDuration(business.getCorrelatorActionMaxDuration());
@@ -181,14 +181,11 @@ public class CorrelationCaseManager {
         CaseCorrelationContextType ctx = aCase.getCorrelationContext();
         ObjectReferenceType preFocusRef = createObjectRefWithFullObject(preFocus);
         if (ctx != null
-//                && java.util.Objects.equals(ctx.getPotentialOwners(), correlatorSpecificContext)
                 && java.util.Objects.equals(ctx.getPreFocusRef(), preFocusRef)) { // TODO is this comparison correct?
             LOGGER.trace("No need to update the case {}", aCase);
             return;
         }
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(CaseType.class)
-//                .item(CaseType.F_CORRELATION_CONTEXT, CaseCorrelationContextType.F_POTENTIAL_OWNERS)
-//                .replace(correlatorSpecificContext)
                 .item(CaseType.F_CORRELATION_CONTEXT, CaseCorrelationContextType.F_PRE_FOCUS_REF)
                 .replace(preFocusRef)
                 .asItemDeltas();
@@ -211,7 +208,7 @@ public class CorrelationCaseManager {
         checkOid(resourceObject);
         LOGGER.trace("Looking for correlation case for {}", resourceObject);
         S_AtomicFilterExit q = prismContext.queryFor(CaseType.class)
-                .item(CaseType.F_OBJECT_REF).ref(resourceObject.getOid())
+                .item(CaseType.F_TARGET_REF).ref(resourceObject.getOid())
                 .and().item(CaseType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value());
         if (mustBeOpen) {
             q = q.and().item(CaseType.F_STATE).eq(SchemaConstants.CASE_STATE_OPEN); // what about namespaces?
@@ -401,7 +398,7 @@ public class CorrelationCaseManager {
     }
 
     /**
-     * Applies the correct definition to the shadow embedded in the case.objectRef.
+     * Applies the correct definition to the shadow embedded in the case.targetRef.
      */
     private void applyShadowDefinition(CaseType aCase, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
@@ -409,7 +406,7 @@ public class CorrelationCaseManager {
         ShadowType shadow =
                 MiscUtil.requireNonNull(
                         MiscUtil.castSafely(
-                                ObjectTypeUtil.getObjectFromReference(aCase.getObjectRef()),
+                                ObjectTypeUtil.getObjectFromReference(aCase.getTargetRef()),
                                 ShadowType.class),
                         () -> "No embedded shadow in " + aCase);
         provisioningService.applyDefinition(shadow.asPrismObject(), task, result);

@@ -61,7 +61,7 @@ public class CorrelatorUtil {
     public static @NotNull ShadowType getShadowFromCorrelationCase(@NotNull CaseType aCase) throws SchemaException {
         return MiscUtil.requireNonNull(
                 MiscUtil.castSafely(
-                        ObjectTypeUtil.getObjectFromReference(aCase.getObjectRef()),
+                        ObjectTypeUtil.getObjectFromReference(aCase.getTargetRef()),
                         ShadowType.class),
                 () -> new IllegalStateException("No shadow object in " + aCase));
     }
