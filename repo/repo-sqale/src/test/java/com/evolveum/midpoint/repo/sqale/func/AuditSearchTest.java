@@ -689,7 +689,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test185SearchByParameter() throws SchemaException {
-        when("searching audit filtered by parameter attribute");
+        when("searching audit filtered by parameter item");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_PARAMETER).eq("1")
@@ -965,7 +965,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test300SearchReturnsMappedToManyAttributes() throws SchemaException {
+    public void test300SearchReturnsMappedToManyEntities() throws SchemaException {
         when("searching audit with query without any conditions and paging");
         List<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class)
@@ -979,7 +979,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 .sorted(Comparator.comparing(AuditEventRecordType::getParameter))
                 .collect(Collectors.toList());
 
-        and("record 1 has all the attributes filled");
+        and("record 1 has all the items filled");
         AuditEventRecordType record1 = result.get(0);
         assertThat(record1.getProperty()).hasSize(1);
         AuditEventRecordPropertyType prop1 = record1.getProperty().get(0);
@@ -988,7 +988,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         // Changed items are not returned, they are used for query only and can be found in deltas.
         // Also, they may be stored in wrong format (e.g. "canonicalized").
         assertThat(record1.getChangedItem()).isNullOrEmpty();
-        // for other attributes we just use the size check, fetch mechanism is similar
+        // for other items we just use the size check, fetch mechanism is similar
         assertThat(record1.getDelta()).hasSize(3)
                 .allMatch(d -> d.getObjectDelta() != null);
         assertThat(record1.getReference()).hasSize(2);

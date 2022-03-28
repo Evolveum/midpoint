@@ -73,7 +73,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String user2Oid; // different user, this one is in org
     private String user3Oid; // another user in org
     private String user4Oid; // another user in org
-    private String task1Oid; // task has more attribute type variability
+    private String task1Oid; // task has more item type variability
     private String task2Oid;
     private String shadow1Oid; // shadow with owner
     private String case1Oid; // Closed case, two work items
@@ -1165,7 +1165,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test420SearchObjectBySingleValueReferenceTargetAttribute() throws SchemaException {
+    public void test420SearchObjectBySingleValueReferenceTargetItem() throws SchemaException {
         searchUsersTest("with object creator name",
                 f -> f.item(UserType.F_METADATA, MetadataType.F_CREATOR_REF,
                                 T_OBJECT_REFERENCE, UserType.F_NAME)
@@ -1927,7 +1927,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test610SearchCaseWIContainerByAssigneeName() throws SchemaException {
         SearchResultList<CaseWorkItemType> result = searchContainerTest(
                 "by multi-value reference target's full name", CaseWorkItemType.class,
-                // again trying with user specific attribute
+                // again trying with user specific item
                 f -> f.item(CaseWorkItemType.F_ASSIGNEE_REF, T_OBJECT_REFERENCE, UserType.F_FULL_NAME)
                         .eq(new PolyString("User Name 1")));
         assertThat(result)
@@ -2017,8 +2017,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     // MID-7487, nothing found, just a query test
     @Test
-    public void test702SearchShadowsByCorrelationAttributes() throws SchemaException {
-        searchObjectTest("using all correlation attributes", ShadowType.class,
+    public void test702SearchShadowsByCorrelationItems() throws SchemaException {
+        searchObjectTest("using all correlation items", ShadowType.class,
                 f -> f.item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_START_TIMESTAMP)
                         .gt(asXMLGregorianCalendar(1L))
                         .and()
@@ -2039,7 +2039,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     // MID-7683 'disableTimestamp' in mapping SqaleNestedMapping
     @Test
     public void test703SearchFocusByDisableTimestamp() throws SchemaException {
-        searchUsersTest("using disableTimestamp attribute",
+        searchUsersTest("using disableTimestamp item",
                 f -> f.item(F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)
                         .lt(createXMLGregorianCalendar("2022-01-01T00:00:00Z")),
                 user1Oid);

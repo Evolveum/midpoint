@@ -630,7 +630,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
     // endregion
 
-    // region extension attributes
+    // region extension items
     @Test
     public void test300AddObjectWithIndexedStringExtension()
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
@@ -962,7 +962,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
     // this test covers function of QObjectMapping and all the basic object fields
     @Test
-    public void test800SystemConfigurationBasicObjectAttributes() throws Exception {
+    public void test800SystemConfigurationBasicObjectItems() throws Exception {
         OperationResult result = createOperationResult();
 
         given("system configuration");
@@ -991,7 +991,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(systemConfiguration.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         MObject row = selectObjectByOid(
@@ -1302,7 +1302,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(resource.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         MResource row = selectObjectByOid(QResource.class, resource.getOid());
@@ -1349,7 +1349,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(connector.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         MConnector row = selectObjectByOid(QConnector.class, connector.getOid());
@@ -1423,7 +1423,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(connectorHost.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         MConnectorHost row = selectObjectByOid(QConnectorHost.class, connectorHost.getOid());
@@ -1464,7 +1464,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(report.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         MReportData row = selectObjectByOid(QReportData.class, report.getOid());
@@ -1509,7 +1509,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(shadow.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         MShadow row = selectObjectByOid(QShadow.class, shadow.getOid());
@@ -1534,7 +1534,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.correlationSituation).isEqualTo(CorrelationSituationType.EXISTING_OWNER);
     }
 
-    // This covers mapping of attributes in QFocusMapping + GenericObject.
+    // This covers mapping of items in QFocusMapping + GenericObject.
     @Test
     public void test820GenericObject() throws Exception {
         OperationResult result = createOperationResult();
@@ -1574,7 +1574,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(genericObject.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         MFocus row = selectObjectByOid(
@@ -1607,7 +1607,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.subtypes).containsExactlyInAnyOrder("some-custom-object-type-uri");
     }
 
-    // This covers mapping of attributes in AbstractRole + Archetype + inducement mapping.
+    // This covers mapping of items in AbstractRole + Archetype + inducement mapping.
     // There is no focus on QFocusMapping that is covered above.
     @Test
     public void test821ArchetypeAndInducement() throws Exception {
@@ -1622,24 +1622,24 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .identifier("identifier")
                 .requestable(false)
                 .riskLevel("extremely-high")
-                // we don't need all attributes here, this is tested in test803ContainerAssignment
+                // we don't need all items here, this is tested in test803ContainerAssignment
                 .inducement(new AssignmentType()
                         .order(2)
                         .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE))
                 .inducement(new AssignmentType()
                         .order(3)
                         .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE));
-        // this is no additional attribute specific for archetype
+        // this is no additional items specific for archetype
 
         when("adding it to the repository");
         repositoryService.addObject(archetype.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         UUID archetypeOid = UUID.fromString(archetype.getOid());
         MArchetype row = selectObjectByOid(QArchetype.class, archetypeOid);
-        // all attributes from MAbstractRole
+        // all items from MAbstractRole
         assertThat(row.autoAssignEnabled).isTrue();
         assertThat(row.displayNameOrig).isEqualTo("display-name");
         assertThat(row.displayNameNorm).isEqualTo("displayname");
@@ -1680,12 +1680,12 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(user.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         UUID userOid = UUID.fromString(user.getOid());
         MUser row = selectObjectByOid(QUser.class, userOid);
-        // all attributes from MUser
+        // all items from MUser
         assertThat(row.additionalNameOrig).isEqualTo("additional-name");
         assertThat(row.additionalNameNorm).isEqualTo("additionalname");
         assertThat(row.employeeNumber).isEqualTo("3");
@@ -1755,7 +1755,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(task.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         MTask row = selectObjectByOid(QTask.class, task.getOid());
@@ -1804,7 +1804,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(node.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         MNode row = selectObjectByOid(QNode.class, node.getOid());
@@ -1832,7 +1832,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(accessCertificationDefinition.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         MAccessCertificationDefinition row = selectObjectByOid(
@@ -2005,7 +2005,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(accessCertificationCampaign.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         MAccessCertificationCampaign row = selectObjectByOid(
@@ -2314,7 +2314,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(acase.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         MCase caseRow = selectObjectByOid(QCase.class, acase.getOid());
@@ -2454,7 +2454,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(messageTemplate.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("it is stored and relevant items are in columns");
         assertThatOperationResult(result).isSuccess();
 
         MObject row = selectObjectByOid(QMessageTemplate.class, messageTemplate.getOid());
