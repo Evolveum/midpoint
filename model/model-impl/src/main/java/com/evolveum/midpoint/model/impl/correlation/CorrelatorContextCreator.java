@@ -257,7 +257,11 @@ public class CorrelatorContextCreator {
         if (systemConfiguration == null) {
             return null;
         }
-        CompositeCorrelatorType correlators = systemConfiguration.getCorrelators();
+        SystemConfigurationCorrelationType correlation = systemConfiguration.getCorrelation();
+        if (correlation == null) {
+            return null;
+        }
+        CompositeCorrelatorType correlators = correlation.getCorrelators();
         if (correlators == null) {
             return null;
         }

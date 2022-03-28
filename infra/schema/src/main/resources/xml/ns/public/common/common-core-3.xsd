@@ -14910,13 +14910,13 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="correlators" type="tns:CompositeCorrelatorType" minOccurs="0">
+                    <xsd:element name="correlation" type="tns:SystemConfigurationCorrelationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Globally-defined correlators.
+                                Global settings related to correlation.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>SystemConfigurationType.correlators</a:displayName>
+                                <a:displayName>SystemConfigurationType.correlation</a:displayName>
                                 <a:since>4.5</a:since>
                                 <a:experimental>true</a:experimental>
                             </xsd:appinfo>
@@ -14992,6 +14992,29 @@
                     <xsd:appinfo>
                         <a:displayName>FullTextSearchIndexedItemsConfigurationType.item</a:displayName>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="SystemConfigurationCorrelationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Global settings related to correlation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="correlators" type="tns:CompositeCorrelatorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Globally-defined correlators.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
