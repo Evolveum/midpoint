@@ -652,6 +652,110 @@ Panels applicable only for tasks:
 | 10
 |===
 
+Panels applicable only for system configuration:
+
+[%autowidth]
+|===
+| Panel | Identifier | Description | Default order
+
+| Additional menu links
+| `additionalMenuLinkPanel`
+|
+| 20
+
+| Appenders
+| `appendersPanel`
+|
+| 40
+
+| Class loggers
+| `classLoggersPanel`
+|
+| 20
+
+| Configurable user dashboards
+| `configurableUserDashboardPanel`
+|
+| 60
+
+| Custom transports
+| `customTransportPanel`
+|
+| 50
+
+| Event handler
+| `eventHandlerPanel`
+|
+| 10
+
+| File transports
+| `fileTransportPanel`
+|
+| 40
+
+| Global policy rules
+| `globalPolicyRulePanel`
+|
+| 20
+
+| Legacy notifications UI
+| `legacyNotificationPanel`
+|
+| 100
+
+| Logging configuration
+| `loggingPanel`
+|
+| 10
+
+| Mail transports
+| `mailTransportPanel`
+|
+| 20
+
+| Object collections views
+| `objectCollectionViewsPanel`
+|
+| 40
+
+| Object details
+| `objectDetailsPanel`
+|
+| 50
+
+| Object policies
+| `objectPolicyPanel`
+|
+| 10
+
+| Profiling configuration
+| `profilingPanel`
+|
+| 10
+
+| Relations configuration
+| `relationsPanel`
+|
+| 30
+
+| SMS transports
+| `smsTransportPanel`
+|
+| 30
+
+| Subsystem logging
+| `subSystemLoggersPanel`
+|
+|
+
+| User dashboard links
+| `userDashboardLinkContentPanel`
+|
+| 30
+|===
+
+
+
 
 == Examples
 
