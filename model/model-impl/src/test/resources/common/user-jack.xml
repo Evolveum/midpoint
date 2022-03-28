@@ -17,6 +17,7 @@
         <piracy:ship xsi:type="xsd:string">Black Pearl</piracy:ship>
         <piracy:weapon>pistol</piracy:weapon>
         <piracy:weapon>mouth</piracy:weapon>
+        <piracy:tales>Bla bla bla</piracy:tales>
     </extension>
     <activation>
         <administrativeStatus>enabled</administrativeStatus>
