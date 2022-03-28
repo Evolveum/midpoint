@@ -220,7 +220,7 @@ public class CorrelationCaseManager {
             PrismObject<CaseType> toKeep = cases.get(0);
             LOGGER.warn("Multiple correlation cases for {}. This could be a result of a race condition. "
                     + "Keeping only a single one: {}", resourceObject, toKeep);
-            throw new UnsupportedOperationException("TODO implement deletion of extra cases - or not?");
+            return cases.get(0).asObjectable(); // FIXME
         } else if (cases.size() == 1) {
             return cases.get(0).asObjectable();
         } else {
