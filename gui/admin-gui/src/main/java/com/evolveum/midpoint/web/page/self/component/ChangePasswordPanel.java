@@ -124,8 +124,12 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     private void initLayout() {
         WebMarkupContainer oldPasswordContainer = new WebMarkupContainer(ID_OLD_PASSWORD_CONTAINER);
         oldPasswordContainer.add(new VisibleEnableBehaviour() {
-
             private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled() {
+                return canEditPassword();
+            }
 
             @Override
             public boolean isVisible() {
@@ -139,7 +143,6 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         oldPasswordField.setRequired(false);
         oldPasswordField.setResetPassword(false);
         oldPasswordField.setOutputMarkupId(true);
-        oldPasswordContainer.add(new EnableBehaviour(this::canEditPassword));
         oldPasswordContainer.add(oldPasswordField);
 
         Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));
