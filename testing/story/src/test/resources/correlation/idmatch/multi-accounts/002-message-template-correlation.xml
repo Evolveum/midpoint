@@ -13,17 +13,17 @@
         <subjectExpression>
             <script>
                 <language>velocity</language>
-                <code>[midPoint] Manual account linking is needed for ${event.targetName} account</code>
+                <code>[midPoint] Manual account linking is needed for ${event.objectName} account</code>
             </script>
         </subjectExpression>
         <bodyExpression>
             <script>
                 <language>velocity</language>
-                <code>The following ${event.targetName} account requires manual decision for linking
+                <code>The following ${event.objectName} account requires manual decision for linking
 it to an existing user account or import it as a new one.
 
-Resource: ${event.targetName}
-User: ${event.getFocusValue("assignment/extension/givenName")} ${event.getFocusValue("assignment/extension/familyName")} (ID: ${event.objectName})
+Resource: ${event.objectName}
+User: ${event.getFocusValue("assignment/extension/givenName")} ${event.getFocusValue("assignment/extension/familyName")} (ID: ${event.targetName})
 
 Resolve this case: ${event.workItemUrl}
 
