@@ -12,11 +12,11 @@
     <name>Report tasks</name>
     <type>TaskType</type>
     <filter>
-        <text>
+        <q:text>
             archetypeRef matches (oid = "00000000-0000-0000-0000-000000000507")
             or archetypeRef matches (oid = "00000000-0000-0000-0000-000000000510")
             or archetypeRef matches (oid = "00000000-0000-0000-0000-000000000511")
             or archetypeRef matches (oid = "00000000-0000-0000-0000-000000000512")
-        </text>
+        </q:text>
     </filter>
 </objectCollection>
