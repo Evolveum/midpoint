@@ -50,9 +50,9 @@ import java.util.List;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@PanelType(name = "appendersContent")
+@PanelType(name = "appendersPanel")
 @PanelInstance(
-        identifier = "appendersContent",
+        identifier = "appendersPanel",
         applicableForType = LoggingConfigurationType.class,
         display = @PanelDisplay(
                 label = "AppendersContentPanel.label",

@@ -37,9 +37,9 @@ import java.util.List;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@PanelType(name = "relationsContent")
+@PanelType(name = "relationsPanel")
 @PanelInstance(
-        identifier = "relationsContent",
+        identifier = "relationsPanel",
         applicableForType = RoleManagementConfigurationType.class,
         display = @PanelDisplay(
                 label = "RelationsContentPanel.label",

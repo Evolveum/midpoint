@@ -37,9 +37,9 @@ import java.util.List;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@PanelType(name = "additionalMenuLinkContent")
+@PanelType(name = "additionalMenuLinkPanel")
 @PanelInstance(
-        identifier = "additionalMenuLinkContent",
+        identifier = "additionalMenuLinkPanel",
         applicableForType = AdminGuiConfigurationType.class,
         display = @PanelDisplay(
                 label = "AdditionalMenuLinkContentPanel.label",

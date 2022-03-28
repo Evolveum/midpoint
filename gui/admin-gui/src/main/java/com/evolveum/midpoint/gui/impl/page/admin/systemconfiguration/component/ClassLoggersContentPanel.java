@@ -47,9 +47,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@PanelType(name = "classLoggersContent")
+@PanelType(name = "classLoggersPanel")
 @PanelInstance(
-        identifier = "classLoggersContent",
+        identifier = "classLoggersPanel",
         applicableForType = LoggingConfigurationType.class,
         display = @PanelDisplay(
                 label = "ClassLoggersContentPanel.label",

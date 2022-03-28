@@ -37,9 +37,9 @@ import java.util.List;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@PanelType(name = "subSystemLoggersContent")
+@PanelType(name = "subSystemLoggersPanel")
 //@PanelInstance(
-//        identifier = "subSystemLoggersContent",
+//        identifier = "subSystemLoggersPanel",
 //        applicableForType = LoggingConfigurationType.class,
 //        display = @PanelDisplay(
 //                label = "SubSystemLoggersContentPanel.label",
