@@ -31,11 +31,26 @@ public class CorrelationItemDefinitionUtil {
         if (definitionBean.getName() != null) {
             return definitionBean.getName();
         }
+        String nameFromPath = getNameFromPath(definitionBean.getPath());
+        if (nameFromPath != null) {
+            return nameFromPath;
+        }
         String nameFromSource = getNameFromSource(definitionBean.getSource());
         if (nameFromSource != null) {
             return nameFromSource;
         }
         throw new IllegalArgumentException("Item definition with no name " + definitionBean);
+    }
+
+    private static @Nullable String getNameFromPath(ItemPathType path) {
+        if (path == null) {
+            return null;
+        }
+        ItemName lastName = path.getItemPath().lastName();
+        if (lastName != null) {
+            return lastName.getLocalPart();
+        }
+        return null;
     }
 
     private static @Nullable String getNameFromSource(CorrelationItemSourceDefinitionType source) {

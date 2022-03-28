@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api.correlator;
 
 import com.evolveum.midpoint.model.api.CorrelationProperty;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -23,25 +24,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 /**
- * TODO
+ * Supports correlation.
  */
+@Experimental
 public interface CorrelationService {
 
     /**
-     * TODO
-     *
-     * Also - include preliminary focus here!
-     */
-    @VisibleForTesting
-    CorrelationResult correlate(
-            @NotNull ShadowType shadow,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
-
-    /**
-     * TODO
+     * Instantiates the correlator for given correlation case.
      */
     Correlator instantiateCorrelator(
             @NotNull CaseType aCase,
@@ -51,7 +40,9 @@ public interface CorrelationService {
             SecurityViolationException, ObjectNotFoundException;
 
     /**
-     * TODO
+     * Instantiates the correlator for given shadow.
+     *
+     * TODO consider removal (seems to be unused)
      */
     @NotNull Correlator instantiateCorrelator(
             @NotNull ShadowType shadow,
@@ -60,10 +51,25 @@ public interface CorrelationService {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
 
-    void completeCorrelationCase(CaseType currentCase, CaseCloser closeCaseInRepository, Task task, OperationResult result)
+    /**
+     * Completes given correlation case.
+     *
+     * Preconditions:
+     *
+     * - case is freshly fetched,
+     * - case is a correlation one
+     */
+    void completeCorrelationCase(
+            @NotNull CaseType currentCase,
+            @NotNull CaseCloser closeCaseInRepository,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
 
+    /**
+     * Returns properties relevant for the correlation, e.g. to be shown in GUI.
+     */
     Collection<CorrelationProperty> getCorrelationProperties(
             @NotNull CaseType aCase,
             @NotNull Task task,
@@ -71,10 +77,31 @@ public interface CorrelationService {
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException;
 
+    /**
+     * Creates the root correlator context for given configuration.
+     */
     @NotNull CorrelatorContext<?> createRootCorrelatorContext(
             @NotNull CompositeCorrelatorType correlators,
             @Nullable CorrelationDefinitionType correlationDefinitionBean,
             @Nullable SystemConfigurationType systemConfiguration) throws ConfigurationException, SchemaException;
+
+    /**
+     * Clears the correlation state of a shadow.
+     *
+     * Does not do unlinking (if the shadow is linked)!
+     */
+    void clearCorrelationState(@NotNull String shadowOid, @NotNull OperationResult result) throws ObjectNotFoundException;
+
+    /**
+     * Executes the correlation for a given shadow.
+     */
+    @VisibleForTesting
+    CorrelationResult correlate(
+            @NotNull ShadowType shadow,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
 
     @FunctionalInterface
     interface CaseCloser {

@@ -20,12 +20,5 @@
                 </resourceObjects>
             </import>
         </work>
-        <reporting>
-            <tracing>
-                <tracingProfile>
-                    <ref>functional-model-logging</ref>
-                </tracingProfile>
-            </tracing>
-        </reporting>
     </activity>
 </task>

@@ -64,23 +64,26 @@ public class CorrelationItemTarget {
     static @NotNull Map<String, CorrelationItemTarget> createMap(
             @NotNull CorrelationItemDefinitionType itemBean,
             @NotNull CorrelatorContext<?> correlatorContext) throws ConfigurationException {
-        String ref = itemBean instanceof ItemCorrelationType ? ((ItemCorrelationType) itemBean).getRef() : null;
-        if (ref != null) {
-            return createMapFromTargetBeans(
-                    correlatorContext.getNamedItemDefinition(ref).getTarget(),
-                    correlatorContext);
-        } else if (!itemBean.getTarget().isEmpty()) {
-            return createMapFromTargetBeans(itemBean.getTarget(), correlatorContext);
-        } else {
-            ItemPathType pathBean = itemBean instanceof ItemCorrelationType ? ((ItemCorrelationType) itemBean).getPath() : null;
-            if (pathBean != null) {
-                Map<String, CorrelationItemTarget> map = new HashMap<>();
-                map.put(PRIMARY_CORRELATION_ITEM_TARGET, new CorrelationItemTarget(pathBean.getItemPath()));
-                return map;
-            } else {
-                throw new ConfigurationException("Correlation item with no ref, target, nor path");
+
+        if (itemBean instanceof ItemCorrelationType) {
+            String ref = ((ItemCorrelationType) itemBean).getRef();
+            if (ref != null) {
+                itemBean = correlatorContext.getNamedItemDefinition(ref);
             }
         }
+
+        if (!itemBean.getTarget().isEmpty()) {
+            return createMapFromTargetBeans(itemBean.getTarget(), correlatorContext);
+        }
+
+        ItemPathType pathBean = itemBean.getPath();
+        if (pathBean != null) {
+            Map<String, CorrelationItemTarget> map = new HashMap<>();
+            map.put(PRIMARY_CORRELATION_ITEM_TARGET, new CorrelationItemTarget(pathBean.getItemPath()));
+            return map;
+        }
+
+        throw new ConfigurationException("Correlation item with no ref, target, nor path");
     }
 
     @NotNull

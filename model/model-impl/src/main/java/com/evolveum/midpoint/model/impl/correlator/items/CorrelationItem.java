@@ -112,12 +112,12 @@ public class CorrelationItem {
             if (ref != null) {
                 return ref;
             }
-            ItemPathType pathBean = ((ItemCorrelationType) itemBean).getPath();
-            if (pathBean != null) {
-                ItemName lastName = pathBean.getItemPath().lastName();
-                if (lastName != null) {
-                    return lastName.getLocalPart();
-                }
+        }
+        ItemPathType pathBean = itemBean.getPath();
+        if (pathBean != null) {
+            ItemName lastName = pathBean.getItemPath().lastName();
+            if (lastName != null) {
+                return lastName.getLocalPart();
             }
         }
         CorrelationItemSourceDefinitionType sourceBean = itemBean.getSource();
@@ -131,7 +131,7 @@ public class CorrelationItem {
             }
         }
         throw new IllegalStateException(
-                "Couldn't determine name for correlation item: no name, ref, nor source path in " + itemBean);
+                "Couldn't determine name for correlation item: no name, ref, path, nor source path in " + itemBean);
     }
 
     /**

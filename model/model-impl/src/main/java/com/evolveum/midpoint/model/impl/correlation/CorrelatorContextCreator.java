@@ -363,6 +363,9 @@ public class CorrelatorContextCreator {
     private void mergeItem(
             @NotNull CorrelationItemDefinitionType existingItem,
             @NotNull CorrelationItemDefinitionType newItem) {
+        if (existingItem.getPath() == null && newItem.getPath() != null) {
+            existingItem.setPath(newItem.getPath().clone());
+        }
         if (existingItem.getSource() == null && newItem.getSource() != null) {
             existingItem.setSource(newItem.getSource().clone());
         }

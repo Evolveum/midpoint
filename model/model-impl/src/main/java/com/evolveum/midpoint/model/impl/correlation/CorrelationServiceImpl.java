@@ -14,17 +14,20 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.model.api.CorrelationProperty;
 import com.evolveum.midpoint.model.impl.correlator.FullCorrelationContext;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.correlator.*;
@@ -40,6 +43,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+@Experimental
 @Component
 public class CorrelationServiceImpl implements CorrelationService {
 
@@ -50,6 +54,7 @@ public class CorrelationServiceImpl implements CorrelationService {
     @Autowired CorrelatorFactoryRegistry correlatorFactoryRegistry;
     @Autowired SystemObjectCache systemObjectCache;
     @Autowired CorrelationCaseManager correlationCaseManager;
+    @Autowired @Qualifier("cacheRepositoryService") RepositoryService repositoryService;
 
     @Override
     public CorrelationResult correlate(
@@ -148,7 +153,11 @@ public class CorrelationServiceImpl implements CorrelationService {
     }
 
     @Override
-    public void completeCorrelationCase(CaseType currentCase, CaseCloser caseCloser, Task task, OperationResult result)
+    public void completeCorrelationCase(
+            @NotNull CaseType currentCase,
+            @NotNull CaseCloser caseCloser,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         correlationCaseManager.completeCorrelationCase(currentCase, caseCloser, task, result);
@@ -171,5 +180,21 @@ public class CorrelationServiceImpl implements CorrelationService {
             @Nullable CorrelationDefinitionType correlationDefinitionBean,
             @Nullable SystemConfigurationType systemConfiguration) throws ConfigurationException, SchemaException {
         return CorrelatorContextCreator.createRootContext(correlators, correlationDefinitionBean, systemConfiguration);
+    }
+
+    @Override
+    public void clearCorrelationState(@NotNull String shadowOid, @NotNull OperationResult result)
+            throws ObjectNotFoundException {
+        try {
+            repositoryService.modifyObject(
+                    ShadowType.class,
+                    shadowOid,
+                    PrismContext.get().deltaFor(ShadowType.class)
+                            .item(ShadowType.F_CORRELATION).replace()
+                            .asItemDeltas(),
+                    result);
+        } catch (ObjectAlreadyExistsException | SchemaException e) {
+            throw SystemException.unexpected(e, "when clearing shadow correlation state");
+        }
     }
 }

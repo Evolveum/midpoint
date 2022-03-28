@@ -265,8 +265,6 @@ public class CorrelationCaseManager {
      *
      * - case is freshly fetched,
      * - case is a correlation one
-     *
-     * Returns true if the case can be closed.
      */
     public void completeCorrelationCase(
             @NotNull CaseType aCase,

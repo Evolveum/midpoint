@@ -133,15 +133,6 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
     }
 
     /**
-     * Returns the "source" part of a named item definition.
-     */
-    public @NotNull CorrelationItemSourceDefinitionType getNamedItemSourceDefinition(String ref) throws ConfigurationException {
-        return MiscUtil.requireNonNull(
-                getNamedItemDefinition(ref).getSource(),
-                () -> new ConfigurationException("No source definition of item named '" + ref + "' exists"));
-    }
-
-    /**
      * Returns the named item definition.
      */
     public @NotNull CorrelationItemDefinitionType getNamedItemDefinition(String ref) throws ConfigurationException {

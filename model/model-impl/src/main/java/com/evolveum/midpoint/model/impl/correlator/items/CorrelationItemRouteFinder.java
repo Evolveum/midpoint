@@ -15,8 +15,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemDefin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemSourceDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,13 +36,13 @@ public class CorrelationItemRouteFinder {
     static ItemRoute findForSource(
             @NotNull CorrelationItemDefinitionType itemBean,
             @NotNull CorrelatorContext<?> correlatorContext) throws ConfigurationException {
-        String ref = itemBean instanceof ItemCorrelationType ? ((ItemCorrelationType) itemBean).getRef() : null;
-        if (ref != null) {
-            CorrelationItemSourceDefinitionType sharedDefinition = correlatorContext.getNamedItemSourceDefinition(ref);
-            return ItemRoute.fromBeans(
-                    sharedDefinition.getPath(),
-                    sharedDefinition.getRoute());
+        if (itemBean instanceof ItemCorrelationType) {
+            String ref = ((ItemCorrelationType) itemBean).getRef();
+            if (ref != null) {
+                itemBean = correlatorContext.getNamedItemDefinition(ref);
+            }
         }
+
         CorrelationItemSourceDefinitionType sourceBean = itemBean.getSource();
         if (sourceBean != null) {
             return ItemRoute.fromBeans(
@@ -52,10 +50,11 @@ public class CorrelationItemRouteFinder {
                     sourceBean.getRoute());
         }
 
-        ItemPathType pathBean = itemBean instanceof ItemCorrelationType ? ((ItemCorrelationType) itemBean).getPath() : null;
+        ItemPathType pathBean = itemBean.getPath();
         if (pathBean != null) {
             return ItemRoute.fromPath(pathBean.getItemPath());
         }
+
         throw new ConfigurationException("Neither ref, nor path, nor source present in " + itemBean);
     }
 }

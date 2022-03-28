@@ -23883,6 +23883,14 @@
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Short alternative to source/target definitions. If present, default source and target
+                        with this path are created. Should not be used along with source and/or target definitions.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="source" type="tns:CorrelationItemSourceDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -24075,13 +24083,6 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Points to a shared item definition in "items" part of "definitions".
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
