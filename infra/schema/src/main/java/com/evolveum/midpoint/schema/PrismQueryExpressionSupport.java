@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.PrismQueryExpressionFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -24,6 +25,8 @@ public class PrismQueryExpressionSupport implements PrismQueryExpressionFactory 
     private static final QName EXPRESSION = SchemaConstantsGenerated.C_EXPRESSION;
     private static final QName PATH = SchemaConstantsGenerated.C_PATH;
     private static final String YAML = "yaml";
+    private static final String CONST = "const";
+
 
 
     @Override
@@ -33,12 +36,23 @@ public class PrismQueryExpressionSupport implements PrismQueryExpressionFactory 
         if (YAML.equals(language)) {
             return parseYamlScript(script, namespaceContext);
         }
+        if (CONST.equals(language)) {
+            return parseConstScript(script, namespaceContext);
+        }
 
         if (!Strings.isNullOrEmpty(language)) {
             scriptValue.setLanguage(language);
         }
         scriptValue.setCode(script);
         expressionT.expressionEvaluator(new JAXBElement<>(SCRIPT, ScriptExpressionEvaluatorType.class, scriptValue));
+        return new ExpressionWrapper(EXPRESSION, expressionT);
+    }
+
+    private ExpressionWrapper parseConstScript(String constant, Map<String, String> namespaceContext) {
+        ExpressionType expressionT = new ExpressionType();
+        var expr = new ConstExpressionEvaluatorType();
+        expr.setValue(constant);
+        expressionT.expressionEvaluator(new JAXBElement<>(SchemaConstantsGenerated.C_CONST, ConstExpressionEvaluatorType.class, expr));
         return new ExpressionWrapper(EXPRESSION, expressionT);
     }
 
