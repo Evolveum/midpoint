@@ -359,6 +359,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         return extKey(extContainer, itemName, MExtItemHolderType.EXTENSION);
     }
 
+    /** Returns extension item key (from m_ext_item table) for the specified shadow attribute. */
     protected String shadowAttributeKey(Containerable extContainer, String itemName) {
         return extKey(extContainer, itemName, MExtItemHolderType.ATTRIBUTES);
     }
