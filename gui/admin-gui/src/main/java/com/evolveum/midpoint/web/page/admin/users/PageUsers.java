@@ -393,8 +393,9 @@ public class PageUsers extends PageAdmin {
         OperationResult result = new OperationResult(OPERATION_RECONCILE_USERS);
         for (SelectableBean<UserType> user : users) {
             OperationResult opResult = result.createSubresult(getString(OPERATION_RECONCILE_USER, user));
+            UserType userType = user.getValue();
             try {
-                Task task = createSimpleTask(OPERATION_RECONCILE_USER + user);
+                Task task = createSimpleTask(OPERATION_RECONCILE_USER + userType);
                 ObjectDelta delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(UserType.class, user.getValue().getOid()
                 );
                 Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
@@ -403,8 +404,8 @@ public class PageUsers extends PageAdmin {
                 opResult.computeStatusIfUnknown();
             } catch (Exception ex) {
                 opResult.recomputeStatus();
-                opResult.recordFatalError(getString("PageUsers.message.reconcile.fatalError", user), ex);
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reconcile user " + user + ".", ex);
+                opResult.recordFatalError(getString("PageUsers.message.reconcile.fatalError", userType), ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reconcile user " + userType + ".", ex);
             }
         }
 
