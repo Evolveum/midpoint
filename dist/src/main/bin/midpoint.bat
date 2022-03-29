@@ -2,6 +2,10 @@
 
 setlocal
 
+if "%MIDPOINT_PORT%" == "" (
+    set MIDPOINT_PORT=8080
+)
+
 if "%1" == "start" goto doStart
 if "%1" == "stop" goto doStop
 
@@ -44,6 +48,10 @@ call "%MIDPOINT_HOME%\setenv.bat"
 
 :noSetEnvMpHome
 
+if "%MIDPOINT_PORT%" NEQ "8080" (
+    set JAVA_OPTS=%JAVA_OPTS% -Dserver.port=%MIDPOINT_PORT%
+)
+
 echo Using MIDPOINT_HOME:   "%MIDPOINT_HOME%"
 
 if not exist "%LIB_DIR%\midpoint.war" (
@@ -75,8 +83,6 @@ start /b "midPoint" "%RUN_JAVA%"^
 goto end
 
 :doStop
-
-set MIDPOINT_PORT=8080
 
 echo Trying to find and stop a process listening on port %MIDPOINT_PORT%...
 set MIDPOINT_FOUND=
