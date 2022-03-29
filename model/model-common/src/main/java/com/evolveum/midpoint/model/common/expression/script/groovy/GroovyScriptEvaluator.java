@@ -187,10 +187,9 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
         }
 
         Binding binding = new Binding(prepareScriptVariablesValueMap(context));
-
-        Script scriptResultObject = InvokerHelper.createScript(compiledScriptClass, binding);
-
         try {
+            Script scriptResultObject = InvokerHelper.createScript(compiledScriptClass, binding);
+
             Object resultObject = scriptResultObject.run();
             if (resultObject == null) {
                 return null;
