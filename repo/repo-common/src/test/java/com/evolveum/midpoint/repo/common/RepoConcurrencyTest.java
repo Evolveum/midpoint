@@ -847,6 +847,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
         TaskType task = new TaskType(prismContext)
                 .name("test150")
+                .taskIdentifier("test150")
                 .beginActivityState()
                 .beginActivity()
                 .beginBucketing()
