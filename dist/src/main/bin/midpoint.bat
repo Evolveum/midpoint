@@ -84,6 +84,22 @@ goto end
 
 :doStop
 
+if not exist "%BIN_DIR%setenv.bat" goto :noSetEnvStop
+echo Applying %BIN_DIR%setenv.bat
+echo.
+
+call "%BIN_DIR%setenv.bat"
+
+:noSetEnvStop
+
+if not exist "%MIDPOINT_HOME%\setenv.bat" goto :noSetEnvMpHomeStop
+echo Applying %MIDPOINT_HOME%\setenv.bat
+echo.
+
+call "%MIDPOINT_HOME%\setenv.bat"
+
+:noSetEnvMpHomeStop
+
 echo Trying to find and stop a process listening on port %MIDPOINT_PORT%...
 set MIDPOINT_FOUND=
 FOR /F "usebackq tokens=5" %%i IN (`netstat -aon ^| findstr "0.0.0.0:%MIDPOINT_PORT% "`) DO (
