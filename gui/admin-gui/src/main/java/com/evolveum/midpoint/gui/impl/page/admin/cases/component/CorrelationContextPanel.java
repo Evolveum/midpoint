@@ -95,9 +95,11 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        WorkItemId workItemId = WorkItemId.of(correlationCase.getWorkItem().get(0));
+                        CaseWorkItemType workItem = correlationCase.getWorkItem().get(0);
+                        WorkItemId workItemId = WorkItemId.of(workItem);
                         AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
-                                .outcome(item.getModelObject().getIdentifier());
+                                .outcome(item.getModelObject().getIdentifier())
+                                .comment(workItem.getOutput() != null ? workItem.getOutput().getComment() : null);
 
                         Task task = getPageBase().createSimpleTask("DecideCorrelation");
                         OperationResult result = task.getResult();
