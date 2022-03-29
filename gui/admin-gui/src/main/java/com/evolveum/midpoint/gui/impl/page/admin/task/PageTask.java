@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.TaskOperationalButtonsPanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -22,8 +23,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.server.TaskSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.web.util.TaskOperationUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -31,6 +32,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.Collection;
+import java.util.List;
 
 @PageDescriptor(
         urls = {
@@ -128,4 +130,13 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
         super.refresh(target, soft);
     }
 
+    @Override
+    protected Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
+        return TaskOperationUtils.getAllApplicableArchetypeForNewTask(this);
+    }
+
+    @Override
+    protected List<ObjectReferenceType> getArchetypeReferencesList(CompiledObjectCollectionView collectionView) {
+        return TaskOperationUtils.getArchetypeReferencesList(collectionView);
+    }
 }
