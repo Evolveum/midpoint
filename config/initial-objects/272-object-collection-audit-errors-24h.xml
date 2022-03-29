@@ -13,6 +13,13 @@
     <name>Error audit records in 24h</name>
     <type>AuditEventRecordType</type>
     <filter>
+        <!--  TODO: Convert to Axiom Query
+        <q:text>
+            eventStage = "execution"
+            and outcome = "fatal_error"
+            and timestamp = `basic.addDuration(basic.currentDateTime(), "-P1D")
+        </q:text>
+        -->
         <q:and>
             <q:equal>
                 <q:path>eventStage</q:path>

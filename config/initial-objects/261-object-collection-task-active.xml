@@ -30,15 +30,7 @@
     </assignment>
     <type>TaskType</type>
     <filter>
-        <q:and>
-            <q:equal>
-                <q:path>executionState</q:path>
-                <q:value>runnable</q:value>
-            </q:equal>
-            <q:equal>
-                <q:path>parent</q:path>
-            </q:equal>
-        </q:and>
+        <q:text>executionState = "runnable" and parent not exists</q:text>
     </filter>
     <domain>
         <collectionRef oid="00000000-0000-0000-0001-000000000007" type="c:ObjectCollectionType"/>

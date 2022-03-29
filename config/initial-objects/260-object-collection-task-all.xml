@@ -12,8 +12,6 @@
     <name>All tasks</name>
     <type>TaskType</type>
     <filter>
-        <q:equal>
-            <q:path>parent</q:path>
-        </q:equal>
+        <q:text>parent not exists</q:text>>
     </filter>
 </objectCollection>
