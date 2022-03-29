@@ -70,8 +70,8 @@ echo Using parameters:      "%*"
 echo.
 echo Starting midPoint.
 start /b "midPoint" "%RUN_JAVA%"^
- %JAVA_OPTS% -Dmidpoint.home="%MIDPOINT_HOME%"^
- -jar "%LIB_DIR%\midpoint.war" %2 %3 %4 %5 %6 %7 %8 %9 > "%BOOT_OUT%" 2>&1
+ %JAVA_OPTS% -Dmidpoint.home="%MIDPOINT_HOME%" %2 %3 %4 %5 %6 %7 %8 %9^
+ -jar "%LIB_DIR%\midpoint.war" > "%BOOT_OUT%" 2>&1
 goto end
 
 :doStop
