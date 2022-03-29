@@ -19,6 +19,7 @@
             <class name="com.evolveum.midpoint.gui.TestPageOrg"/>
             <class name="com.evolveum.midpoint.gui.TestPageSystemConfiguration"/>
             <class name="com.evolveum.midpoint.gui.TestPageRole"/>
+            <class name="com.evolveum.midpoint.gui.TestPageService"/>
         </classes>
     </test>
     <test name="Wrapper Integration" preserve-order="true" parallel="false" verbose="10">
