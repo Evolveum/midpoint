@@ -6,11 +6,17 @@
  */
 package com.evolveum.midpoint.web.util;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.api.TaskService;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -23,7 +29,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -33,6 +39,27 @@ public class TaskOperationUtils {
     private static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTasks";
     private static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
     private static final String OPERATION_RUN_NOW_TASKS = DOT_CLASS + "runNowTasks";
+
+    private static final List<String> REPORT_ARCHETYPES = Arrays.asList(
+            SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value(),
+            SystemObjectsType.ARCHETYPE_REPORT_IMPORT_CLASSIC_TASK.value(),
+            SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK.value());
+
+    private static final List<String> UTILITY_ARCHETYPES = Arrays.asList(
+            SystemObjectsType.ARCHETYPE_SHADOW_INTEGRITY_CHECK_TASK.value(),
+            SystemObjectsType.ARCHETYPE_SHADOWS_REFRESH_TASK.value(),
+            SystemObjectsType.ARCHETYPE_SHADOWS_DELETE_LONG_TIME_NOT_UPDATED_TASK.value(),
+            SystemObjectsType.ARCHETYPE_EXECUTE_CHANGE_TASK.value(),
+            SystemObjectsType.ARCHETYPE_EXECUTE_DETLAS_TASK.value(),
+            SystemObjectsType.ARCHETYPE_REINDEX_REPOSITORY_TASK.value(),
+            SystemObjectsType.ARCHETYPE_OBJECT_INTEGRITY_CHECK_TASK.value(),
+            SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value());
+
+    private static final List<String> SYSTEM_ARCHETYPES = Arrays.asList(
+            SystemObjectsType.ARCHETYPE_VALIDITY_SCANNER_TASK.value(),
+            SystemObjectsType.ARCHETYPE_TRIGGER_SCANNER_TASK.value(),
+            SystemObjectsType.ARCHETYPE_PROPAGATION_TASK.value(),
+            SystemObjectsType.ARCHETYPE_MULTI_PROPAGATION_TASK.value());
 
     /**
      * Suspends tasks "intelligently" i.e. tries to recognize whether to suspend a single task,
@@ -157,5 +184,58 @@ public class TaskOperationUtils {
         return selectedTasks.stream()
                 .filter(ActivityStateUtil::isManageableTreeRoot)
                 .collect(Collectors.toList());
+    }
+
+    public static List<CompiledObjectCollectionView> getAllApplicableArchetypeForNewTask(PageBase pageBase) {
+        @NotNull List<CompiledObjectCollectionView> archetypes = pageBase.getCompiledGuiProfile().findAllApplicableArchetypeViews(
+                WebComponentUtil.classToQName(PrismContext.get(), TaskType.class), OperationTypeType.ADD);
+        archetypes.removeIf(archetype -> archetype.getCollection().getCollectionRef().getOid().equals(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value())
+                || archetype.getCollection().getCollectionRef().getOid().equals(SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value()));
+        return archetypes;
+    }
+
+    public static List<String> getReportArchetypesList() {
+        return REPORT_ARCHETYPES;
+    }
+
+    public static List<String> getUtilityArchetypesList() {
+        return UTILITY_ARCHETYPES;
+    }
+
+    public static List<String> getSystemArchetypesList() {
+        return SYSTEM_ARCHETYPES;
+    }
+
+    public static List<ObjectReferenceType> getArchetypeReferencesList(CompiledObjectCollectionView collectionView) {
+        List<ObjectReferenceType> references = new ArrayList<>();
+        references.addAll(ObjectCollectionViewUtil.getArchetypeReferencesList(collectionView));
+        if (references.get(0) != null) {
+            String oid = references.get(0).getOid();
+            if (UTILITY_ARCHETYPES.contains(oid)) {
+                references.add(new ObjectReferenceType()
+                        .type(ArchetypeType.COMPLEX_TYPE)
+                        .oid(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()));
+            } else if (SYSTEM_ARCHETYPES.contains(oid)) {
+                references.add(new ObjectReferenceType()
+                        .type(ArchetypeType.COMPLEX_TYPE)
+                        .oid(SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value()));
+            }
+        }
+        return references;
+    }
+
+    public static void addArchetypeReferencesList(List<ObjectReferenceType> references) {
+        if (references.get(0) != null) {
+            String oid = references.get(0).getOid();
+            if (UTILITY_ARCHETYPES.contains(oid)) {
+                references.add(new ObjectReferenceType()
+                        .type(ArchetypeType.COMPLEX_TYPE)
+                        .oid(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()));
+            } else if (SYSTEM_ARCHETYPES.contains(oid)) {
+                references.add(new ObjectReferenceType()
+                        .type(ArchetypeType.COMPLEX_TYPE)
+                        .oid(SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value()));
+            }
+        }
     }
 }
