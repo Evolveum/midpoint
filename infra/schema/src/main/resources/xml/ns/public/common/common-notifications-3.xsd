@@ -399,6 +399,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <!-- If changed to container, order is needed + fix the docs saying that servers are tried in the specified order. -->
     <xsd:complexType name="MailServerConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
