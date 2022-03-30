@@ -175,7 +175,7 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
 
     void createUsers(int users, Task initTask, OperationResult initResult) throws CommonException {
         for (int i = 0; i < users; i++) {
-            UserType user = new UserType(prismContext)
+            UserType user = new UserType()
                     .name(String.format("u%06d", i))
                     .givenName(String.format("GivenNameU%06d", i))
                     .familyName(String.format("FamilyNameU%06d", i))
