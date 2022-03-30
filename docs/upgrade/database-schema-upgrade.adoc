@@ -86,23 +86,34 @@ The scripts do not contain any version number and are safe to run repeatedly - o
 To upgrade the main repository run this command:
 [source,bash]
 ----
-psql -h localhost -U midpoint -W -d midpoint -f postgres-new-upgrade.sql
+psql -v ON_ERROR_STOP=1 -h localhost -U midpoint -W -d midpoint -f postgres-new-upgrade.sql
 ----
 
 To upgrade the audit database (here on the same server, but different database) run:
 [source,bash]
 ----
-psql -h localhost -U midaudit -W -d midaudit -f postgres-new-upgrade-audit.sql
+psql -v ON_ERROR_STOP=1 -h localhost -U midaudit -W -d midaudit -f postgres-new-upgrade-audit.sql
 ----
 
 To upgrade database containing both, use multiple `-f` options:
 [source,bash]
 ----
-psql -h localhost -U midaudit -W -d midaudit -f postgres-new-upgrade.sql -f postgres-new-upgrade-audit.sql
+psql -v ON_ERROR_STOP=1 -h localhost -U midaudit -W -d midaudit \
+  -f postgres-new-upgrade.sql -f postgres-new-upgrade-audit.sql
 ----
 
 The scripts store their internal version information in the `m_global_metadata` table.
 Please, do not modify this table manually.
+
+[IMPORTANT]
+====
+You can use other client than `psql`, but the client must send the commands to the server separately.
+E.g. IDEA Ultimate Edition or DataGrip from JetBrains work fine.
+
+Some clients, notably https://www.pgadmin.org/[pgAdmin], send the whole content in a single request.
+Please, do not use them to run upgrade scripts!
+====
+
 
 == Upgrading Generic Repository
 
