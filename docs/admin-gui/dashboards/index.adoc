@@ -21,12 +21,12 @@ Therefore the old hardcoded dashboards are no longer adequate for the job.
 == More Dashboards
 
 When it comes to data presentation, there is no single way how to do it right.
-Security officer will be interested certain specific aspects of data, but that aspects make little sense for a business manager.
+Security officer will be interested in certain specific aspects of data, but that aspects make little sense for a business manager.
 And then data protection officer will need yet another way to present the data.
 Therefore we need something that will be flexible and customizable.
 Such as customizable dashboards.
 
-In MidPoint universe, dashboards are first-class citizens.
+In midPoint universe, dashboards are first-class citizens.
 Each deployment can have as many dashboards as needed, and they can contain custom "widgets" used to present interesting pieces of information.
 Simple widgets can present data from xref:/midpoint/reference/admin-gui/collections-views/[object collections], such as number of active employees, number of failed resources, suspended tasks and so.
 That is an elegant way to create _status dashboards_ showing status of important system components.
