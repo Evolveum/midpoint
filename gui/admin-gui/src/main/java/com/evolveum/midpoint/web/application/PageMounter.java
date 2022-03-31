@@ -82,6 +82,8 @@ public final class PageMounter implements DebugDumpable {
         LOGGER.debug("Loading data from descriptor files.");
 
         try {
+            urlClassMap.clear();
+
             scanPackagesForPages(application);
 
             if (LOGGER.isTraceEnabled()) {
