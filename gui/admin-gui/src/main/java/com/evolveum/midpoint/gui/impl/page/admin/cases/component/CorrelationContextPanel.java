@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.CorrelationProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -48,6 +49,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationContextDto.class);
 
+    private static final String ID_ACTION_CONTAINER = "actionContainer";
     private static final String ID_ACTIONS = "actions";
     private static final String ID_ACTION = "action";
     private static final String ID_OUTCOME_ICON = "outcomeIcon";
@@ -67,9 +69,16 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     private static final String TEXT_CREATE_NEW = "Create new";
     private static final String TEXT_CORRELATE = "Correlate";
 
+    private IModel<CaseWorkItemType> workItemModel;
+
     @SuppressWarnings("unused") // called by the framework
     public CorrelationContextPanel(String id, CaseDetailsModels model, ContainerPanelConfigurationType config) {
+        this(id, model, null, config);
+    }
+
+    public CorrelationContextPanel(String id, CaseDetailsModels model, IModel<CaseWorkItemType> workItemModel, ContainerPanelConfigurationType config) {
         super(id, model, config);
+        this.workItemModel = workItemModel;
     }
 
     @Override
@@ -85,17 +94,21 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
         };
         add(headers);
 
+        CaseType correlationCase = getObjectDetailsModels().getObjectType();
+        WebMarkupContainer actionContainer = new WebMarkupContainer(ID_ACTION_CONTAINER);
+        actionContainer.add(new VisibleBehaviour(() -> CaseTypeUtil.isClosed(correlationCase) || isPanelForItemWork()));
+        add(actionContainer);
+
         ListView<CorrelationOptionDto> actions = new ListView<>(ID_ACTIONS,
                 new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
 
             @Override
             protected void populateItem(ListItem<CorrelationOptionDto> item) {
-                CaseType correlationCase = getObjectDetailsModels().getObjectType();
                 AjaxButton actionButton = new AjaxButton(ID_ACTION) {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        CaseWorkItemType workItem = correlationCase.getWorkItem().get(0);
+                        CaseWorkItemType workItem = workItemModel.getObject();
                         WorkItemId workItemId = WorkItemId.of(workItem);
                         AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
                                 .outcome(item.getModelObject().getIdentifier())
@@ -128,7 +141,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                 item.add(iconType);
             }
         };
-        add(actions);
+        actionContainer.add(actions);
 
         ListView<CorrelationOptionDto> referenceIds = new ListView<>(ID_NAMES,
                 new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
@@ -171,6 +184,10 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
             }
         };
         add(rows);
+    }
+
+    private boolean isPanelForItemWork() {
+        return workItemModel != null && workItemModel.getObject() != null;
     }
 
     private IModel<CorrelationContextDto> createCorrelationContextModel() {

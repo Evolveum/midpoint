@@ -87,6 +87,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
     private static final String ID_ADDITIONAL_INFORMATION = "additionalInformation";
     private static final String ID_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
     private static final String ID_APPROVER_CONTAINER = "commentContainer";
+    private static final String ID_COMMENT_LABEL = "commentLabel";
     private static final String ID_APPROVER_COMMENT = "approverComment";
     private static final String ID_CUSTOM_FORM = "customForm";
     private static final String ID_CASE_WORK_ITEM_EVIDENCE = "caseWorkItemEvidence";
@@ -217,7 +218,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             scenePanel.setOutputMarkupId(true);
             add(scenePanel);
         } else if (CaseTypeUtil.isCorrelationCase(parentCase)) {
-            add(new CorrelationContextPanel(ID_DELTAS_TO_APPROVE, new CaseDetailsModels(caseModel, getPageBase()), new ContainerPanelConfigurationType()));
+            add(new CorrelationContextPanel(ID_DELTAS_TO_APPROVE, new CaseDetailsModels(caseModel, getPageBase()), getModel(), new ContainerPanelConfigurationType()));
         } else {
             add(new WebMarkupContainer(ID_DELTAS_TO_APPROVE));
         }
@@ -298,6 +299,10 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         commentContainer.setOutputMarkupId(true);
         commentContainer.add(new VisibleBehaviour(() -> isAuthorizedForActions()));
         add(commentContainer);
+
+        String key = CaseTypeUtil.isCorrelationCase(caseModel.getObject().asObjectable()) ? "PageCaseWorkItem.caseWorkItem.comment" : "workItemPanel.approverComment";
+        Label commentLabel = new Label(ID_COMMENT_LABEL, createStringResource(key));
+        commentContainer.add(commentLabel);
 
         TextArea<String> approverComment = new TextArea<String>(ID_APPROVER_COMMENT, new PropertyModel<>(getModel(), "output.comment"));
         approverComment.add(new EnableBehaviour(() -> !isParentCaseClosed()));
