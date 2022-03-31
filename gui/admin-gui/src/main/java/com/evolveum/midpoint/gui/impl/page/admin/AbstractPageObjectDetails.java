@@ -381,17 +381,35 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {
+        if (panelConfig == null) {
+            addErrorPanel(form,  MessagePanel.MessagePanelType.WARN,"AbstractPageObjectDetails.noPanels");
+            return;
+        }
+
         getSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), panelConfig);
         String panelType = panelConfig.getPanelType();
         if (panelType == null) {
+            addErrorPanel(form,  MessagePanel.MessagePanelType.ERROR,"AbstractPageObjectDetails.panelTypeUndefined", panelConfig.getIdentifier());
             return;
         }
-        Class<? extends Panel> panelClass = findObjectPanel(panelConfig.getPanelType());
+
+        Class<? extends Panel> panelClass = findObjectPanel(panelType);
         Panel panel = WebComponentUtil.createPanel(panelClass, ID_MAIN_PANEL, objectDetailsModels, panelConfig);
-        form.addOrReplace(panel);
+        if (panel != null) {
+            form.addOrReplace(panel);
+            return;
+        }
+
+        addErrorPanel(form, MessagePanel.MessagePanelType.ERROR, "AbstractPageObjectDetails.panelErrorInitialization", panelConfig.getIdentifier(), panelType);
     }
 
+    private void addErrorPanel(MidpointForm form, MessagePanel.MessagePanelType type, String message, Object... params) {
+        WebMarkupContainer panel = new MessagePanel(ID_MAIN_PANEL, type,
+                createStringResource(message, params), false);
+        panel.add(AttributeAppender.append("style", "margin-top: 20px;"));
 
+        form.addOrReplace(panel);
+    }
 
     private DetailsNavigationPanel initNavigation() {
         return createNavigationPanel(getPanelConfigurations());
