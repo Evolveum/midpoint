@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -219,7 +220,7 @@ public class PageRegistrationFinish extends PageRegistrationBase {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                SecurityContextHolder.getContext().setAuthentication(null);
+                AuthUtil.clearMidpointAuthentication();
                 setResponsePage(PageLogin.class);
             }
         };

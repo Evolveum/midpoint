@@ -8,6 +8,7 @@ package com.evolveum.midpoint.authentication.impl.session;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 
+import com.evolveum.midpoint.authentication.api.RemoveUnusedSecurityFilterEvent;
 import com.evolveum.midpoint.authentication.impl.MidpointAutowiredBeanFactoryObjectPostProcessor;
 
 import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;

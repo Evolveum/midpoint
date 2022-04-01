@@ -18,7 +18,6 @@ import com.evolveum.midpoint.authentication.impl.filter.configurers.AuthFilterCo
 import com.evolveum.midpoint.authentication.impl.handler.AuditedAccessDeniedHandler;
 import com.evolveum.midpoint.authentication.impl.handler.AuditedLogoutHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
-import com.evolveum.midpoint.authentication.impl.session.RemoveUnusedSecurityFilterPublisher;
 import com.evolveum.midpoint.authentication.impl.session.SessionAndRequestScope;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 

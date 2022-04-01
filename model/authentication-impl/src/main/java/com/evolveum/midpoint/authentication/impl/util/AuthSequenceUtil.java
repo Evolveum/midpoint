@@ -103,23 +103,23 @@ public class AuthSequenceUtil {
         }
 
         List<AuthenticationSequenceType> sequences = getSequencesForNodeGroups(nodeGroups, authenticationPolicy);
+        if (sequences.isEmpty()) {
+            LOGGER.error("Not found any sequence for node group " + nodeGroups + ". Please see your configuration and define "
+                    + "authentication sequence for this node group by defining attribute 'nodeGroup'. When will be attribute "
+                    + "'nodeGroup' empty, then sequence will be used for all nodes.");
+            return null;
+        }
 
         if (partsOfLocalPath.length >= 2 && partsOfLocalPath[0].equals(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE)) {
-            AuthenticationSequenceType sequence = searchSequence(partsOfLocalPath[1], false, sequences);
+            AuthenticationSequenceType sequence = searchSequenceComparingUrlSuffix(partsOfLocalPath[1], sequences);
             if (sequence == null) {
                 LOGGER.debug("Couldn't find sequence by prefix {}, so try default channel", partsOfLocalPath[1]);
-                sequence = searchSequence(SecurityPolicyUtil.DEFAULT_CHANNEL, true, sequences);
+                sequence = searchSequenceComparingChannelId(SecurityPolicyUtil.DEFAULT_CHANNEL, sequences);
             }
             return sequence;
         }
         String usedChannel = searchChannelByPath(localePath);
-
-        if (usedChannel == null) {
-            usedChannel = SecurityPolicyUtil.DEFAULT_CHANNEL;
-        }
-
-        return searchSequence(usedChannel, true, sequences);
-
+        return searchSequenceComparingChannelId(usedChannel, sequences);
     }
 
     public static List<AuthenticationSequenceType> getSequencesForNodeGroups(Collection<ObjectReferenceType> nodeGroups,
@@ -188,7 +188,7 @@ public class AuthSequenceUtil {
                 return LOCAL_PATH_AND_CHANNEL.get(prefix);
             }
         }
-        return null;
+        return SecurityPolicyUtil.DEFAULT_CHANNEL;
     }
 
     public static String searchPathByChannel(String searchChannel) {
@@ -239,31 +239,56 @@ public class AuthSequenceUtil {
         return false;
     }
 
-    private static AuthenticationSequenceType searchSequence(String comparisonAttribute, boolean inputIsChannel, List<AuthenticationSequenceType> sequences) {
-        Validate.notBlank(comparisonAttribute, "Comparison attribute for searching of sequence is blank");
+    private static AuthenticationSequenceType searchSequenceComparingChannelId(String channelId, List<AuthenticationSequenceType> sequences) {
+        Validate.notBlank(channelId, "ChannelId for searching of sequence is blank");
+        List<AuthenticationSequenceType> sequencesWithSameChannel = new ArrayList<>();
         for (AuthenticationSequenceType sequence : sequences) {
-            if (sequence != null && sequence.getChannel() != null) {
-                if (inputIsChannel && comparisonAttribute.equals(sequence.getChannel().getChannelId())
-                        && Boolean.TRUE.equals(sequence.getChannel().isDefault())) {
+            if (sequence != null && sequence.getChannel() != null && channelId.equals(sequence.getChannel().getChannelId())) {
+                sequencesWithSameChannel.add(sequence);
+                if (Boolean.TRUE.equals(sequence.getChannel().isDefault())) {
                     if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
-                        return null;
-                    }
-                    return sequence;
-                } else if (!inputIsChannel && comparisonAttribute.equals(sequence.getChannel().getUrlSuffix())) {
-                    if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
+                        LOGGER.error("Found sequence " + sequence.getName() + "not contains configuration for module");
                         return null;
                     }
                     return sequence;
                 }
             }
         }
+        if (sequencesWithSameChannel.size() == 1) {
+            AuthenticationSequenceType sequence = sequencesWithSameChannel.iterator().next().clone();
+            sequence.getChannel().setDefault(Boolean.TRUE);
+            return sequence;
+        }
+        if (sequencesWithSameChannel.size() > 0) {
+            LOGGER.error("Couldn't define sequence for channel " + channelId + " "
+                    + "probably you define more authentication sequence for this channel, "
+                    + "but missing one default sequence. For non-default sequence use url "
+                    + "'midpoint_address'/'context_path'/auth/'urlSuffix_defined_in_channel_of_sequence'");
+        } else {
+            LOGGER.error("Couldn't define sequence for channel " + channelId + " "
+                    + "probably you forgot define authentication sequence for it.");
+        }
+        return null;
+    }
+
+    private static AuthenticationSequenceType searchSequenceComparingUrlSuffix(String urlSuffix, List<AuthenticationSequenceType> sequences) {
+        Validate.notBlank(urlSuffix, "UrlSuffix for searching of sequence is blank");
+        for (AuthenticationSequenceType sequence : sequences) {
+            if (sequence != null && sequence.getChannel() != null && urlSuffix.equals(sequence.getChannel().getUrlSuffix())) {
+                if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
+                    LOGGER.error("Found sequence " + sequence.getName() + "not contains configuration for module");
+                    return null;
+                }
+                return sequence;
+            }
+        }
         return null;
     }
 
     public static List<AuthModule> buildModuleFilters(AuthModuleRegistryImpl authRegistry, AuthenticationSequenceType sequence,
-                                                      HttpServletRequest request, AuthenticationModulesType authenticationModulesType,
-                                                      CredentialsPolicyType credentialPolicy, Map<Class<?>, Object> sharedObjects,
-                                                      AuthenticationChannel authenticationChannel) {
+            HttpServletRequest request, AuthenticationModulesType authenticationModulesType,
+            CredentialsPolicyType credentialPolicy, Map<Class<?>, Object> sharedObjects,
+            AuthenticationChannel authenticationChannel) {
         Validate.notNull(authRegistry, "Registry for module factories is null");
 
         if (isSpecificSequence(request)) {
@@ -430,7 +455,7 @@ public class AuthSequenceUtil {
     }
 
     public static UserType searchUserPrivileged(String username, SecurityContextManager securityContextManager, TaskManager manager,
-                                                ModelService modelService, PrismContext prismContext) {
+            ModelService modelService, PrismContext prismContext) {
         return securityContextManager.runPrivileged(new Producer<>() {
             final ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_NAME).eqPoly(username).matchingNorm()
@@ -515,7 +540,7 @@ public class AuthSequenceUtil {
 
     public static boolean isRecordSessionLessAccessChannel(HttpServletRequest httpRequest) {
         if (httpRequest != null) {
-            if (isSpecificSequence(httpRequest)){
+            if (isSpecificSequence(httpRequest)) {
                 return true;
             }
             String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
@@ -527,7 +552,7 @@ public class AuthSequenceUtil {
 
     public static boolean existLoginPageForActualAuthModule() {
         ModuleAuthentication authModule = AuthUtil.getProcessingModuleIfExist();
-        if (authModule ==  null) {
+        if (authModule == null) {
             return false;
         }
         String moduleType = authModule.getNameOfModuleType();
@@ -561,9 +586,9 @@ public class AuthSequenceUtil {
                 request.getContextPath();
     }
 
-    public static boolean isAllowUpdatingAuthBehavior(boolean isUpdatingDuringUnsuccessfulLogin){
+    public static boolean isAllowUpdatingAuthBehavior(boolean isUpdatingDuringUnsuccessfulLogin) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication && ((MidpointAuthentication)authentication).getSequence() != null) {
+        if (authentication instanceof MidpointAuthentication && ((MidpointAuthentication) authentication).getSequence() != null) {
             FocusBehaviorUpdateType actualOption = ((MidpointAuthentication) authentication).getSequence().getFocusBehaviorUpdate();
             if (actualOption == null && FocusBehaviorUpdateType.ENABLED.equals(actualOption)) {
                 return true;

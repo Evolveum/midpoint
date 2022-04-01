@@ -8,7 +8,7 @@ package com.evolveum.midpoint.authentication.impl;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
-import com.evolveum.midpoint.authentication.impl.session.RemoveUnusedSecurityFilterPublisher;
+import com.evolveum.midpoint.authentication.api.RemoveUnusedSecurityFilterPublisher;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;

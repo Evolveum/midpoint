@@ -212,4 +212,9 @@ public class PageError extends PageBase {
         }
         return SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), moduleAuthentication.getPrefix());
     }
+
+    @Override
+    protected void createBreadcrumb() {
+        //don't create breadcrumb for error page
+    }
 }

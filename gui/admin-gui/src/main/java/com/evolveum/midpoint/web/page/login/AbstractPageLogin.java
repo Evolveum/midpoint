@@ -66,6 +66,7 @@ public abstract class AbstractPageLogin extends PageBase {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                AuthUtil.clearMidpointAuthentication();
                 setResponsePage(getMidpointApplication().getHomePage());
             }
         };

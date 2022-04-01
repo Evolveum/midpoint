@@ -4,11 +4,12 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.authentication.impl.session;
+package com.evolveum.midpoint.authentication.api;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +34,7 @@ public class RemoveUnusedSecurityFilterPublisher {
 
     public void publishCustomEvent(final MidpointAuthentication mpAuthentication) {
         LOGGER.trace("Publishing RemoveUnusedSecurityFilterEvent event. With authentication: " + mpAuthentication);
-        RemoveUnusedSecurityFilterEvent customSpringEvent = new RemoveUnusedSecurityFilterEvent(this, mpAuthentication);
+        RemoveUnusedSecurityFilterEventImpl customSpringEvent = new RemoveUnusedSecurityFilterEventImpl(this, mpAuthentication);
         applicationEventPublisher.publishEvent(customSpringEvent);
     }
 
@@ -44,5 +45,20 @@ public class RemoveUnusedSecurityFilterPublisher {
 
     public static RemoveUnusedSecurityFilterPublisher get() {
         return instance;
+    }
+
+    private class RemoveUnusedSecurityFilterEventImpl extends RemoveUnusedSecurityFilterEvent {
+
+        private final MidpointAuthentication mpAuthentication;
+
+        RemoveUnusedSecurityFilterEventImpl(Object source, MidpointAuthentication mpAuthentication) {
+            super(source);
+            this.mpAuthentication = mpAuthentication;
+        }
+
+        @Override
+        public MidpointAuthentication getMpAuthentication() {
+            return mpAuthentication;
+        }
     }
 }

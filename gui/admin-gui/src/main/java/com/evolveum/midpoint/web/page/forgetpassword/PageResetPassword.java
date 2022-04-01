@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.page.forgetpassword;
 
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -73,7 +74,7 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
             MyPasswordsDto passwords = getPasswordDto();
             PrismObject<? extends FocusType> focus = passwords.getFocus();
             if (focus == null) {
-                SecurityContextHolder.getContext().setAuthentication(null);
+                AuthUtil.clearMidpointAuthentication();
                 return;
             }
 
@@ -91,7 +92,7 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
                 }
             }
 
-            SecurityContextHolder.getContext().setAuthentication(null);
+            AuthUtil.clearMidpointAuthentication();
             showResult(result);
             target.add(getFeedbackPanel());
         } else if (showFeedback) {
