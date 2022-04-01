@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -27,6 +27,11 @@ public class ConfigurableProtectorFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConfigurableProtectorFactory.class);
 
+    /**
+     * This should respect `<xmlCipher>` element if `config.xml` exists, but currently does not.
+     */
+    public static final int DEFAULT_KEY_LENGTH = 256;
+
     @Autowired private MidpointConfiguration configuration;
 
     private ProtectorConfiguration protectorConfig;
@@ -52,7 +57,7 @@ public class ConfigurableProtectorFactory {
             keystore.load(null, password);
 
             KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-            keyGen.init(128);
+            keyGen.init(DEFAULT_KEY_LENGTH);
             SecretKey secretKey = keyGen.generateKey();
 
             keystore.setKeyEntry("default", secretKey, "midpoint".toCharArray(), null);
