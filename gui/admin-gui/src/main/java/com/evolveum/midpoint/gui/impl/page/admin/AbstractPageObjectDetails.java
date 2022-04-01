@@ -382,14 +382,14 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {
         if (panelConfig == null) {
-            addErrorPanel(form,  MessagePanel.MessagePanelType.WARN,"AbstractPageObjectDetails.noPanels");
+            addErrorPanel(false, form,  MessagePanel.MessagePanelType.WARN,"AbstractPageObjectDetails.noPanels");
             return;
         }
 
         getSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), panelConfig);
         String panelType = panelConfig.getPanelType();
         if (panelType == null) {
-            addErrorPanel(form,  MessagePanel.MessagePanelType.ERROR,"AbstractPageObjectDetails.panelTypeUndefined", panelConfig.getIdentifier());
+            addErrorPanel(false, form,  MessagePanel.MessagePanelType.ERROR,"AbstractPageObjectDetails.panelTypeUndefined", panelConfig.getIdentifier());
             return;
         }
 
@@ -400,10 +400,14 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             return;
         }
 
-        addErrorPanel(form, MessagePanel.MessagePanelType.ERROR, "AbstractPageObjectDetails.panelErrorInitialization", panelConfig.getIdentifier(), panelType);
+        addErrorPanel(true, form, MessagePanel.MessagePanelType.ERROR, "AbstractPageObjectDetails.panelErrorInitialization", panelConfig.getIdentifier(), panelType);
     }
 
-    private void addErrorPanel(MidpointForm form, MessagePanel.MessagePanelType type, String message, Object... params) {
+    private void addErrorPanel(boolean force, MidpointForm form, MessagePanel.MessagePanelType type, String message, Object... params) {
+        if (!force && form.get(ID_MAIN_PANEL) != null) {
+            return;
+        }
+
         WebMarkupContainer panel = new MessagePanel(ID_MAIN_PANEL, type,
                 createStringResource(message, params), false);
         panel.add(AttributeAppender.append("style", "margin-top: 20px;"));
