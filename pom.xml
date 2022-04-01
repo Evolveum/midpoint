@@ -203,7 +203,7 @@
         <quartz.version>2.3.2.e3</quartz.version>
         <selenium.version>3.141.59</selenium.version>
         <slf4j.version>1.7.30</slf4j.version>
-        <logback.version>1.2.3e1</logback.version>
+        <logback.version>1.2.9</logback.version>
         <spring-security.version>5.6.0</spring-security.version>
         <opensaml.version>4.1.1</opensaml.version>
         <cache2k.version>2.0.0.Final</cache2k.version>
