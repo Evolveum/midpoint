@@ -409,25 +409,38 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {
         if (panelConfig == null) {
-            WebMarkupContainer panel = new MessagePanel(ID_MAIN_PANEL, MessagePanel.MessagePanelType.WARN,
-                    createStringResource("AbstractPageObjectDetails.noPanels"), false);
-            panel.add(AttributeAppender.append("style", "margin-top: 20px;"));
-
-            form.addOrReplace(panel);
+            addErrorPanel(false, form,  MessagePanel.MessagePanelType.WARN,"AbstractPageObjectDetails.noPanels");
             return;
         }
 
         getSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), panelConfig);
         String panelType = panelConfig.getPanelType();
         if (panelType == null) {
+            addErrorPanel(false, form,  MessagePanel.MessagePanelType.ERROR,"AbstractPageObjectDetails.panelTypeUndefined", panelConfig.getIdentifier());
             return;
         }
-        Class<? extends Panel> panelClass = findObjectPanel(panelConfig.getPanelType());
+
+        Class<? extends Panel> panelClass = findObjectPanel(panelType);
         Panel panel = WebComponentUtil.createPanel(panelClass, ID_MAIN_PANEL, objectDetailsModels, panelConfig);
-        form.addOrReplace(panel);
+        if (panel != null) {
+            form.addOrReplace(panel);
+            return;
+        }
+
+        addErrorPanel(true, form, MessagePanel.MessagePanelType.ERROR, "AbstractPageObjectDetails.panelErrorInitialization", panelConfig.getIdentifier(), panelType);
     }
 
+    private void addErrorPanel(boolean force, MidpointForm form, MessagePanel.MessagePanelType type, String message, Object... params) {
+        if (!force && form.get(ID_MAIN_PANEL) != null) {
+            return;
+        }
 
+        WebMarkupContainer panel = new MessagePanel(ID_MAIN_PANEL, type,
+                createStringResource(message, params), false);
+        panel.add(AttributeAppender.append("style", "margin-top: 20px;"));
+
+        form.addOrReplace(panel);
+    }
 
     private DetailsNavigationPanel initNavigation() {
         return createNavigationPanel(getPanelConfigurations());
@@ -457,7 +470,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 LOGGER.debug("Can't instantiate panel based on config\n {}", config.debugDump(), e);
             }
 
-            error("Cannot instantiate panel, " + e.getMessage() + " (" + e.getClass().getSimpleName() + ").");
+            error(getString("AbstractPageObjectDetails.replacePanelException", e.getMessage(), e.getClass().getSimpleName()));
             target.add(getFeedbackPanel());
         }
     }

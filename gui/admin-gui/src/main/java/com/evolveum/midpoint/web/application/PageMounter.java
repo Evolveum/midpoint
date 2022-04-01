@@ -8,13 +8,11 @@ package com.evolveum.midpoint.web.application;
 
 import java.util.*;
 
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -84,6 +82,8 @@ public final class PageMounter implements DebugDumpable {
         LOGGER.debug("Loading data from descriptor files.");
 
         try {
+            urlClassMap.clear();
+
             scanPackagesForPages(application);
 
             if (LOGGER.isTraceEnabled()) {
@@ -99,22 +99,16 @@ public final class PageMounter implements DebugDumpable {
     private void scanPackagesForPages(MidPointApplication application)
             throws InstantiationException, IllegalAccessException {
 
-        for (String pac : PACKAGES_TO_SCAN) {
-            LOGGER.debug("Scanning package {} for page annotations", pac);
+        LOGGER.debug("Scanning packages for page annotations");
 
-            Set<Class<?>> classes = ClassPathUtil.listClasses(pac);
-            for (Class<?> clazz : classes) {
-                if (!WebPage.class.isAssignableFrom(clazz)) {
-                    continue;
-                }
-
-                PageDescriptor descriptor = clazz.getAnnotation(PageDescriptor.class);
-                if (descriptor == null) {
-                    continue;
-                }
-
-                mountPage(descriptor, clazz, application);
+        Collection<Class<?>> classes = ClassPathUtil.scanClasses(PageDescriptor.class, PACKAGES_TO_SCAN);
+        for (Class<?> clazz : classes) {
+            if (!WebPage.class.isAssignableFrom(clazz)) {
+                continue;
             }
+
+            PageDescriptor descriptor = clazz.getAnnotation(PageDescriptor.class);
+            mountPage(descriptor, clazz, application);
         }
     }
 
@@ -128,7 +122,12 @@ public final class PageMounter implements DebugDumpable {
                     clazz.getName(), url, encoder.getClass().getSimpleName());
 
             application.mount(new ExactMatchMountedMapper(url.mountUrl(), clazz, encoder));
-            urlClassMap.put(url.mountUrl(), clazz);
+            String mountUrl = url.mountUrl();
+            if (urlClassMap.containsKey(mountUrl)) {
+                throw new IllegalStateException("Mount url '" + mountUrl + "' is already used by '" + urlClassMap.get(mountUrl).getName()
+                        + "'. Attempting to add another class '" + clazz.getName() + "'");
+            }
+            urlClassMap.put(mountUrl, clazz);
         }
     }
 
