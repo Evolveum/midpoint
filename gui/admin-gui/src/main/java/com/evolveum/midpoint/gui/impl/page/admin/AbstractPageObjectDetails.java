@@ -436,7 +436,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             target.add(form);
             target.add(getFeedbackPanel());
         } catch (Throwable e) {
-            error("Cannot instantiate panel, " + e.getMessage());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Can't instantiate panel based on config\n {}", config.debugDump(), e);
+            }
+
+            error(getString("AbstractPageObjectDetails.replacePanelException", e.getMessage(), e.getClass().getSimpleName()));
             target.add(getFeedbackPanel());
         }
     }
