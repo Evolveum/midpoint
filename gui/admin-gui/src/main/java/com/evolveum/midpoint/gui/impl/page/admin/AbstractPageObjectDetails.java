@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
@@ -23,6 +24,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -408,8 +411,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             return;
         }
 
-        WebMarkupContainer panel = new MessagePanel(ID_MAIN_PANEL, type,
-                createStringResource(message, params), false);
+        WebMarkupContainer panel = new MessagePanel(ID_MAIN_PANEL, type, createStringResource(message, params), false);
         panel.add(AttributeAppender.append("style", "margin-top: 20px;"));
 
         form.addOrReplace(panel);
