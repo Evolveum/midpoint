@@ -460,7 +460,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     protected boolean isCreateNewObjectEnabled() {
-        return true;
+        return !isCollectionViewPanel() || getObjectCollectionView().isApplicableForOperation(OperationTypeType.ADD);
     }
 
     @NotNull

@@ -567,6 +567,10 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         private final ShadowAttributesType attributesContainer;
         private final MutablePrismContainerDefinition<Containerable> attrsDefinition;
 
+        /**
+         * Creates the attribute helper for the shadow, adding attributes container to the shadow.
+         * The container can be later obtained by {@link #attributesContainer()} if/when needed.
+         */
         public ShadowAttributesHelper(ShadowType object) throws SchemaException {
             attributesContainer = new ShadowAttributesType(prismContext);
             // let's create the container+PCV inside the shadow object

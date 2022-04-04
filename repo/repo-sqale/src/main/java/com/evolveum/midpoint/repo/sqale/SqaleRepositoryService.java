@@ -108,6 +108,12 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     private static final Collection<SelectorOptions<GetOperationOptions>> GET_FOR_UPDATE_OPTIONS =
             SchemaService.get().getOperationOptionsBuilder().build();
 
+    private static final Collection<SelectorOptions<GetOperationOptions>> GET_FOR_REINDEX_OPTIONS =
+            SchemaService.get().getOperationOptionsBuilder()
+                    .retrieve()
+                    .raw()
+                    .build();
+
     private final SqlQueryExecutor sqlQueryExecutor;
 
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
@@ -655,13 +661,16 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @NotNull JdbcSession jdbcSession,
             @NotNull Class<S> schemaType,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            @NotNull UUID oid, RepoModifyOptions options)
+            @NotNull UUID oid,
+            @Nullable RepoModifyOptions options)
             throws SchemaException, ObjectNotFoundException {
 
         QueryTableMapping<S, FlexibleRelationalPathBase<Object>, Object> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(schemaType);
         Collection<SelectorOptions<GetOperationOptions>> getOptions =
-                rootMapping.updateGetOptions(GET_FOR_UPDATE_OPTIONS, modifications);
+                rootMapping.updateGetOptions(
+                        RepoModifyOptions.isForceReindex(options) ? GET_FOR_REINDEX_OPTIONS : GET_FOR_UPDATE_OPTIONS,
+                        modifications);
 
         return prepareUpdateContext(jdbcSession, schemaType, oid, getOptions, options);
     }

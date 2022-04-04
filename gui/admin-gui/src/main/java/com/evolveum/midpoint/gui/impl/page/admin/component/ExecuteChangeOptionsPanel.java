@@ -10,7 +10,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -37,6 +40,9 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
+
+import org.apache.wicket.util.visit.IVisit;
+import org.apache.wicket.util.visit.IVisitor;
 
 /**
  * @author lazyman
@@ -107,9 +113,18 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
 
                     @Override
                     public void onUpdate(AjaxRequestTarget target) {
+                        getOptionsButtonPanel().visitChildren(new IVisitor<Component, Object>() {
+                            @Override
+                            public void component(Component component, IVisit<Object> objectIVisit) {
+                                if (component instanceof CheckBoxPanel) {
+                                    target.add(component);
+                                }
+                            }
+                        });
 //                        checkboxMenuItem.getCheckBoxModel().setObject(!checkboxMenuItem.getCheckBoxModel().getObject());
                     }
                 };
+                panel.add(new EnableBehaviour(() -> isOptionEnabled(model, checkboxMenuItem)));
                 panel.setOutputMarkupId(true);
                 menuItem.add(panel);
             }
@@ -131,6 +146,33 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
         };
         add(dropdownButtonPanel);
         dropdownButtonPanel.setOutputMarkupId(true);
+    }
+
+    private DropdownButtonPanel getOptionsButtonPanel() {
+        return (DropdownButtonPanel) get(ID_OPTIONS);
+     }
+
+    private boolean isOptionEnabled(DropdownButtonDto dropdownButtonDto, CheckboxMenuItem checkboxMenuItem) {
+        if (!(checkboxMenuItem.getLabel().getObject().equals(createStringResource(KEEP_DISPLAYING_RESULTS_LABEL).getString())) &&
+                !(checkboxMenuItem.getLabel().getObject().equals(createStringResource(ID_SAVE_IN_BACKGROUND_CONTAINER).getString()))) {
+            return true;
+        }
+        List<InlineMenuItem> items = dropdownButtonDto.getMenuItems();
+        if (checkboxMenuItem.getLabel().getObject().equals(createStringResource(KEEP_DISPLAYING_RESULTS_LABEL).getString())) {
+            for (InlineMenuItem item : items) {
+                if (item.getLabel().getObject().equals(createStringResource(ID_SAVE_IN_BACKGROUND_CONTAINER).getString())) {
+                    return !Boolean.TRUE.equals(((CheckboxMenuItem)item).getCheckBoxModel().getObject());
+                }
+            }
+        }
+        if (checkboxMenuItem.getLabel().getObject().equals(createStringResource(ID_SAVE_IN_BACKGROUND_CONTAINER).getString())) {
+            for (InlineMenuItem item : items) {
+                if (item.getLabel().getObject().equals(createStringResource(KEEP_DISPLAYING_RESULTS_LABEL).getString())) {
+                    return !Boolean.TRUE.equals(((CheckboxMenuItem)item).getCheckBoxModel().getObject());
+                }
+            }
+        }
+        return true;
     }
 
    private void createTracingOptionsPanel() {

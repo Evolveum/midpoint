@@ -152,7 +152,7 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
                                 if (rowModel == null) {
                                     return Model.of(false);
                                 }
-                                List selectedObjects = getSelectedObjectsList();
+                                List selectedObjects = getPreselectedObjects();
                                 return Model.of(selectedObjects == null || selectedObjects.size() == 0
                                         || (rowModel.getObject() != null && rowModel.getObject().isSelected()));
                             }

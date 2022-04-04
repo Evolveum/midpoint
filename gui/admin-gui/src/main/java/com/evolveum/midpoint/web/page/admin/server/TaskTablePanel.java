@@ -168,18 +168,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         try {
             List<ObjectReferenceType> referenceList = new ArrayList<>();
             referenceList.addAll(getNewObjectReferencesList(collectionView, relation));
-            if (referenceList.get(0) != null) {
-                String oid = referenceList.get(0).getOid();
-                if (getUtilityArchetypesList().contains(oid)) {
-                    referenceList.add(new ObjectReferenceType()
-                            .type(ArchetypeType.COMPLEX_TYPE)
-                            .oid(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()));
-                } else if (getSystemArchetypesList().contains(oid)) {
-                    referenceList.add(new ObjectReferenceType()
-                            .type(ArchetypeType.COMPLEX_TYPE)
-                            .oid(SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value()));
-                }
-            }
+            TaskOperationUtils.addArchetypeReferencesList(referenceList);
             WebComponentUtil.initNewObjectWithReference(getPageBase(),
                     relation != null && CollectionUtils.isNotEmpty(relation.getObjectTypes()) ?
                             relation.getObjectTypes().get(0) : WebComponentUtil.classToQName(getPrismContext(), getType()),
@@ -206,44 +195,21 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         CompiledObjectCollectionView objectCollectionView  = getObjectCollectionView();
 
         if (isViewForObjectCollectionType(objectCollectionView, "00000000-0000-0000-0002-000000000007", ObjectCollectionType.COMPLEX_TYPE)){
-            return getNewTaskInfluencesList(getReportArchetypesList());
+            return getNewTaskInfluencesList(TaskOperationUtils.getReportArchetypesList());
         }
 
         if (isViewForObjectCollectionType(objectCollectionView, SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(), ArchetypeType.COMPLEX_TYPE)) {
-            return getNewTaskInfluencesList(getUtilityArchetypesList());
+            return getNewTaskInfluencesList(TaskOperationUtils.getUtilityArchetypesList());
         }
 
         if (isViewForObjectCollectionType(objectCollectionView, SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value(), ArchetypeType.COMPLEX_TYPE)) {
-            return getNewTaskInfluencesList(getSystemArchetypesList());
+            return getNewTaskInfluencesList(TaskOperationUtils.getSystemArchetypesList());
         }
         return super.getNewObjectInfluencesList();
     }
 
-    private List<String> getReportArchetypesList() {
-        return Arrays.asList(
-                SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value(),
-                SystemObjectsType.ARCHETYPE_REPORT_IMPORT_CLASSIC_TASK.value(),
-                SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK.value());
-    }
-
-    private List<String> getUtilityArchetypesList() {
-        return Arrays.asList(
-                SystemObjectsType.ARCHETYPE_SHADOW_INTEGRITY_CHECK_TASK.value(),
-                SystemObjectsType.ARCHETYPE_SHADOWS_REFRESH_TASK.value(),
-                SystemObjectsType.ARCHETYPE_SHADOWS_DELETE_LONG_TIME_NOT_UPDATED_TASK.value(),
-                SystemObjectsType.ARCHETYPE_EXECUTE_CHANGE_TASK.value(),
-                SystemObjectsType.ARCHETYPE_EXECUTE_DETLAS_TASK.value(),
-                SystemObjectsType.ARCHETYPE_REINDEX_REPOSITORY_TASK.value(),
-                SystemObjectsType.ARCHETYPE_OBJECT_INTEGRITY_CHECK_TASK.value(),
-                SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value());
-    }
-
-    private List<String> getSystemArchetypesList() {
-        return Arrays.asList(
-                SystemObjectsType.ARCHETYPE_VALIDITY_SCANNER_TASK.value(),
-                SystemObjectsType.ARCHETYPE_TRIGGER_SCANNER_TASK.value(),
-                SystemObjectsType.ARCHETYPE_PROPAGATION_TASK.value(),
-                SystemObjectsType.ARCHETYPE_MULTI_PROPAGATION_TASK.value());
+    protected List<CompiledObjectCollectionView> getAllApplicableArchetypeViews() {
+        return TaskOperationUtils.getAllApplicableArchetypeForNewTask(getPageBase());
     }
 
     private List<CompiledObjectCollectionView> getNewTaskInfluencesList(List<String> oids) {

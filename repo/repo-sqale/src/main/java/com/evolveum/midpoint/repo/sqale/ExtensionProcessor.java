@@ -53,8 +53,8 @@ public class ExtensionProcessor {
 
                 extMap.put(extItemInfo.getId(), value);
 
-                // we may need to add add also single value index, if definition is dynamic
-                // see additionalSingleValueIndexNeeded javadoc for more information
+                // We may need to add also single value index, if definition is dynamic;
+                // see additionalSingleValueIndexNeeded() javadoc for more information.
                 if (additionalSingleValueIndexNeeded(item, extItemInfo)) {
                     addSingleValueIndex(extMap, item, holderType);
                 }
