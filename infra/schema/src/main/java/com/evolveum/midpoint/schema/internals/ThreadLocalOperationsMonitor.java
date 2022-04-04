@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MonitoredOperationsS
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationMonitoringLevelType.FULL;
@@ -173,7 +174,7 @@ public class ThreadLocalOperationsMonitor {
         }
     }
 
-    private static class OperationStatistics {
+    private static class OperationStatistics implements Serializable {
         private int count;
         private long time;
 
@@ -221,7 +222,7 @@ public class ThreadLocalOperationsMonitor {
         }
     }
 
-    public static class ExecutedOperations {
+    public static class ExecutedOperations implements Serializable {
 
         private final Map<MonitoredOperationType, OperationStatistics> map = new HashMap<>();
 
