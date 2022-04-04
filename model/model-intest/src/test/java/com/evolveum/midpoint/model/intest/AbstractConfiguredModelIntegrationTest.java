@@ -63,9 +63,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     protected static final String USER_TEMPLATE_COMPLEX_INCLUDE_FILENAME = COMMON_DIR + "/user-template-complex-include.xml";
     protected static final String USER_TEMPLATE_COMPLEX_INCLUDE_OID = "10000000-0000-0000-0000-000000000223";
 
-    protected static final String USER_TEMPLATE_SYNC_FILENAME = COMMON_DIR + "/user-template-sync.xml";
-    protected static final String USER_TEMPLATE_SYNC_OID = "10000000-0000-0000-0000-000000000333";
-
     protected static final String USER_TEMPLATE_ORG_ASSIGNMENT_FILENAME = COMMON_DIR + "/user-template-org-assignment.xml";
     protected static final String USER_TEMPLATE_ORG_ASSIGNMENT_OID = "10000000-0000-0000-0000-000000000444";
 
@@ -425,23 +422,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     protected static final File SERVICE_SHIP_SEA_MONKEY_FILE = new File(COMMON_DIR, "service-ship-sea-monkey.xml");
     protected static final String SERVICE_SHIP_SEA_MONKEY_OID = "914b94be-1901-11e6-9269-972ee32cd8db";
 
-    protected static final String TASK_RECONCILE_DUMMY_FILENAME = COMMON_DIR + "/task-reconcile-dummy.xml";
     protected static final String TASK_RECONCILE_DUMMY_OID = "10000000-0000-0000-5656-565600000004";
-
-    protected static final String TASK_RECONCILE_DUMMY_BLUE_FILENAME = COMMON_DIR + "/task-reconcile-dummy-blue.xml";
-    protected static final String TASK_RECONCILE_DUMMY_BLUE_OID = "10000000-0000-0000-5656-565600000204";
-
-    protected static final String TASK_RECONCILE_DUMMY_GREEN_FILENAME = COMMON_DIR + "/task-reconcile-dummy-green.xml";
-    protected static final String TASK_RECONCILE_DUMMY_GREEN_OID = "10000000-0000-0000-5656-565600000404";
-
-    protected static final String TASK_LIVE_SYNC_DUMMY_FILENAME = COMMON_DIR + "/task-dumy-livesync.xml";
-    protected static final String TASK_LIVE_SYNC_DUMMY_OID = "10000000-0000-0000-5555-555500000004";
-
-    protected static final String TASK_LIVE_SYNC_DUMMY_BLUE_FILENAME = COMMON_DIR + "/task-dumy-blue-livesync.xml";
-    protected static final String TASK_LIVE_SYNC_DUMMY_BLUE_OID = "10000000-0000-0000-5555-555500000204";
-
-    protected static final String TASK_LIVE_SYNC_DUMMY_GREEN_FILENAME = COMMON_DIR + "/task-dumy-green-livesync.xml";
-    protected static final String TASK_LIVE_SYNC_DUMMY_GREEN_OID = "10000000-0000-0000-5555-555500000404";
 
     protected static final String TASK_VALIDITY_SCANNER_FILENAME = COMMON_DIR + "/task-validity-scanner.xml";
     protected static final String TASK_VALIDITY_SCANNER_OID = "10000000-0000-0000-5555-555505060400";
@@ -451,9 +432,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
 
     protected static final File TASK_MOCK_JACK_FILE = new File(COMMON_DIR, "task-mock-jack.xml");
     protected static final String TASK_MOCK_JACK_OID = "10000000-0000-0000-5656-565674633311";
-
-    protected static final String TASK_DELETE_NOT_UPDATED_SHADOWS = COMMON_DIR + "/task-delete-not-updated-shadows.xml";
-    protected static final String TASK_DELETE_NOT_UPDATED_SHADOWS_OID = "5b2ba49f-6d4f-4618-afdf-4d138117e40a";
 
     public static final File LOOKUP_LANGUAGES_FILE = new File(COMMON_DIR, "lookup-languages.xml");
     public static final String LOOKUP_LANGUAGES_OID = "70000000-0000-0000-1111-000000000001";
