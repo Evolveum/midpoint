@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
@@ -23,6 +24,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -381,17 +384,38 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {
+        if (panelConfig == null) {
+            addErrorPanel(false, form,  MessagePanel.MessagePanelType.WARN,"AbstractPageObjectDetails.noPanels");
+            return;
+        }
+
         getSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), panelConfig);
         String panelType = panelConfig.getPanelType();
         if (panelType == null) {
+            addErrorPanel(false, form,  MessagePanel.MessagePanelType.ERROR,"AbstractPageObjectDetails.panelTypeUndefined", panelConfig.getIdentifier());
             return;
         }
-        Class<? extends Panel> panelClass = findObjectPanel(panelConfig.getPanelType());
+
+        Class<? extends Panel> panelClass = findObjectPanel(panelType);
         Panel panel = WebComponentUtil.createPanel(panelClass, ID_MAIN_PANEL, objectDetailsModels, panelConfig);
-        form.addOrReplace(panel);
+        if (panel != null) {
+            form.addOrReplace(panel);
+            return;
+        }
+
+        addErrorPanel(true, form, MessagePanel.MessagePanelType.ERROR, "AbstractPageObjectDetails.panelErrorInitialization", panelConfig.getIdentifier(), panelType);
     }
 
+    private void addErrorPanel(boolean force, MidpointForm form, MessagePanel.MessagePanelType type, String message, Object... params) {
+        if (!force && form.get(ID_MAIN_PANEL) != null) {
+            return;
+        }
 
+        WebMarkupContainer panel = new MessagePanel(ID_MAIN_PANEL, type, createStringResource(message, params), false);
+        panel.add(AttributeAppender.append("style", "margin-top: 20px;"));
+
+        form.addOrReplace(panel);
+    }
 
     private DetailsNavigationPanel initNavigation() {
         return createNavigationPanel(getPanelConfigurations());
@@ -414,7 +438,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             target.add(form);
             target.add(getFeedbackPanel());
         } catch (Throwable e) {
-            error("Cannot instantiate panel, " + e.getMessage());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Can't instantiate panel based on config\n {}", config.debugDump(), e);
+            }
+
+            error(getString("AbstractPageObjectDetails.replacePanelException", e.getMessage(), e.getClass().getSimpleName()));
             target.add(getFeedbackPanel());
         }
     }
