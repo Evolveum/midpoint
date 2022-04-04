@@ -63,7 +63,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
     @Override
     public void initSystem() throws Exception {
-        System.out.println(">>>> Repository diag: " + plainRepositoryService.getRepositoryDiag());
+        display(">>>> Repository diag: " + plainRepositoryService.getRepositoryDiag());
     }
 
     @Test
