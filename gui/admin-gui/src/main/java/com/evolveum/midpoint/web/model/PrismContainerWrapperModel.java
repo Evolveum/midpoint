@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 
 /**
  * @author katka
@@ -53,12 +54,13 @@ public class PrismContainerWrapperModel<C extends Containerable, T extends Conta
         return new PrismContainerWrapperModel<>(parent, path, false);
     }
 
-    public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerWrapper(IModel<? extends PrismContainerWrapper<C>> parent, ItemPath path, Supplier<PageBase> page) {
+    public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerWrapper(
+            IModel<? extends PrismContainerWrapper<C>> parent, ItemPath path, SerializableSupplier<PageBase> page) {
         return new PrismContainerWrapperModel<>(parent, path, false, page);
     }
 
-    public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerWrapper(IModel<? extends PrismContainerWrapper<C>> parent, String containerIdentfier) {
-        return new PrismContainerWrapperModel<>(parent, containerIdentfier);
+    public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerWrapper(IModel<? extends PrismContainerWrapper<C>> parent, String containerIdentifier) {
+        return new PrismContainerWrapperModel<>(parent, containerIdentifier);
     }
 
     public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerWrapper(IModel<? extends PrismContainerWrapper<C>> parent, ItemName path) {
