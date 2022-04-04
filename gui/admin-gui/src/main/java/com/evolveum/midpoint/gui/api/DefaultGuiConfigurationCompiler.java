@@ -70,13 +70,13 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.web.page.admin.users"
     };
 
-    private final Map<String, Class<? extends Panel>> panelsMap = new HashMap<>();
+    private static final Map<Object, Collection<Class<?>>> SCANNED_CLASSES_MAP = new HashMap<>();
 
-    private final Map<String, SimpleCounter> countersMap = new HashMap<>();
+    private static final Map<String, Class<? extends Panel>> PANELS_MAP = new HashMap<>();
+
+    private static final Map<String, SimpleCounter> COUNTERS_MAP = new HashMap<>();
 
     private Boolean experimentalFeaturesEnabled = false;
-
-    private static final Map<Object, Collection<Class<?>>> SCANNED_CLASSES_MAP = new HashMap<>();
 
     private static synchronized Collection<Class<?>> getClassesForAnnotation(Class<? extends Annotation> annotation, String additionalPackagesToScan) {
         Collection<Class<?>> result = SCANNED_CLASSES_MAP.get(annotation);
@@ -121,31 +121,29 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return getClassesForAnnotation(PanelType.class, additionalPackagesToScan);
     }
 
-    @Override
     @PostConstruct
-    public void register() {
+    public void init() {
+        fillInPanelsMap();
+        fillInCountersMap();
+
         registry.registerCompiler(this);
     }
 
     public Class<? extends Panel> findPanel(String identifier) {
-        return panelsMap.get(identifier);
+        return PANELS_MAP.get(identifier);
     }
 
     public SimpleCounter findCounter(String identifier) {
-        return countersMap.get(identifier);
+        return COUNTERS_MAP.get(identifier);
     }
 
     @Override
     public void postProcess(CompiledGuiProfile compiledGuiProfile) {
         experimentalFeaturesEnabled = compiledGuiProfile.isEnableExperimentalFeatures();
 
-        fillInPanelsMap();
-        fillInCountersMap();
-
         compileDefaultDetailsPages(compiledGuiProfile);
         mergeCollectionViewsWithDefault(compiledGuiProfile);
         processShadowPanels(compiledGuiProfile);
-
     }
 
     private void compileDefaultDetailsPages(CompiledGuiProfile compiledGuiProfile) {
@@ -262,8 +260,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         }
     }
 
-    private void fillInPanelsMap() {
-        if (!panelsMap.isEmpty()) {
+    private synchronized void fillInPanelsMap() {
+        if (!PANELS_MAP.isEmpty()) {
             return;
         }
         for (Class<?> clazz : getPanelTypeClasses()) {
@@ -272,7 +270,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                 continue;
             }
             //noinspection unchecked
-            panelsMap.put(panelType.name(), (Class<? extends Panel>) clazz);
+            PANELS_MAP.put(panelType.name(), (Class<? extends Panel>) clazz);
         }
     }
 
@@ -289,10 +287,11 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return false;
     }
 
-    private void fillInCountersMap() {
-        if (!countersMap.isEmpty()) {
+    private synchronized void fillInCountersMap() {
+        if (!COUNTERS_MAP.isEmpty()) {
             return;
         }
+
         for (Class<?> clazz : getPanelInstanceClasses()) {
             Counter counterDefinition = clazz.getAnnotation(Counter.class);
             if (counterDefinition != null) {
@@ -300,7 +299,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                 try {
                     PanelInstance panelInstance = clazz.getAnnotation(PanelInstance.class);
                     if (panelInstance != null) {
-                        countersMap.put(panelInstance.identifier(), counterProvider.getDeclaredConstructor().newInstance());
+                        COUNTERS_MAP.put(panelInstance.identifier(), counterProvider.getDeclaredConstructor().newInstance());
                     }
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                     //TODO log at least
