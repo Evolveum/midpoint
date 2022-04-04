@@ -11,6 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.gui.impl.page.self.PageOrgSelfProfile;
+
+import com.evolveum.midpoint.gui.impl.page.self.PageRoleSelfProfile;
+
+import com.evolveum.midpoint.gui.impl.page.self.PageServiceSelfProfile;
+import com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -51,10 +58,6 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.self.PageOrgSelfProfile;
-import com.evolveum.midpoint.web.page.self.PageRoleSelfProfile;
-import com.evolveum.midpoint.web.page.self.PageServiceSelfProfile;
-import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;

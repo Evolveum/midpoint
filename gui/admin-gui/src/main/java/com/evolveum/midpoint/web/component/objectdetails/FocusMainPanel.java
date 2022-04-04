@@ -157,11 +157,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
     }
 
     protected WebMarkupContainer createObjectHistoryTabPanel(String panelId) {
-        return new ObjectHistoryTabPanel<>(panelId, getObjectModel()) {
-            protected void currentStateButtonClicked(AjaxRequestTarget target, PrismObject<F> object, String date) {
-                viewObjectHistoricalDataPerformed(target, object, date);
-            }
-        };
+        return null;
     }
 
     protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<F> object, String date) {

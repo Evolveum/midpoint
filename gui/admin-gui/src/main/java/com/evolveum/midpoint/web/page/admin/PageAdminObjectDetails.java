@@ -81,7 +81,6 @@ import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.server.OperationalButtonsPanel;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
@@ -171,10 +170,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        if (PageAdminObjectDetails.this instanceof PageSystemConfiguration) {
-            return super.createPageTitleModel();
-        }
-
         return (IModel<String>) () -> {
             String localizedSimpleName = getLocalizedObjectType();
             if (isAdd()) {

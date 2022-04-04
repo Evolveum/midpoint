@@ -26,11 +26,13 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -43,12 +45,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -64,7 +63,7 @@ public class PageAccountActivation extends PageBase {
 
     private IModel<UserType> userModel;
 
-    private static final String DOT_CLASS = PageUser.class.getName() + ".";
+    private static final String DOT_CLASS = PageAccountActivation.class.getName() + ".";
     private static final String LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_ACTIVATE_SHADOWS = DOT_CLASS + "activateShadows";
 

@@ -11,16 +11,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -30,7 +23,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
@@ -48,9 +40,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 
 public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> implements Popupable {
