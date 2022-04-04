@@ -6,18 +6,18 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
-import java.io.FileNotFoundException;
-
+import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
+import com.evolveum.midpoint.test.TestTask;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * @author semancik
@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSyncStoryUsingReconciliation extends AbstractSynchronizationStoryTest {
+public abstract class TestSyncStoryUsingReconciliation extends AbstractSynchronizationStoryTest {
 
     @Override
     protected boolean isReconciliation() {
@@ -42,41 +42,16 @@ public class TestSyncStoryUsingReconciliation extends AbstractSynchronizationSto
         getDummyResource(RESOURCE_DUMMY_BLUE_NAME).setSyncStyle(DummySyncStyle.NONE);
 
         alwaysCheckTimestamp = true;
+
+        BucketingConfigurationOverrides.setFreeBucketWaitIntervalOverride(100L);
+        for (TestTask task : getTaskMap().values()) {
+            task.initialize(this, initTask, initResult);
+        }
     }
 
     @Override
     protected String getExpectedChannel() {
         return SchemaConstants.CHANNEL_RECON_URI;
-    }
-
-    @Override
-    protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
-        if (resource == getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME)) {
-            importObjectFromFile(TASK_RECONCILE_DUMMY_GREEN_FILENAME);
-        } else if (resource == getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME)) {
-            importObjectFromFile(TASK_RECONCILE_DUMMY_BLUE_FILENAME);
-        } else if (resource == getDummyResourceObject()) {
-            importObjectFromFile(TASK_RECONCILE_DUMMY_FILENAME);
-        } else {
-            throw new IllegalArgumentException("Unknown resource "+resource);
-        }
-    }
-
-    @Override
-    protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
-        if (resource == getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME)) {
-            return TASK_RECONCILE_DUMMY_GREEN_OID;
-        } else if (resource == getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME)) {
-            return TASK_RECONCILE_DUMMY_BLUE_OID;
-        } else if (resource == getDummyResourceObject()) {
-            return TASK_RECONCILE_DUMMY_OID;
-        } else {
-            throw new IllegalArgumentException("Unknown resource "+resource);
-        }
-    }
-
-    protected int getWaitTimeout() {
-        return 70000;
     }
 
     @Override

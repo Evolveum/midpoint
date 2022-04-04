@@ -16,22 +16,16 @@ import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.test.TestTask;
 
-/**
- * Uses multithreaded reconciliation task.
- *
- * NOTE: The utility of this test is questionable, as the synchronization story test is about the correctness
- * of the synchronization algorithms themselves, not about the distribution features of the reconciliation activity.
- */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSyncStoryUsingReconciliationMultithreaded extends TestSyncStoryUsingReconciliation {
+public class TestSyncStoryUsingReconciliationPlain extends TestSyncStoryUsingReconciliation {
 
     private static final TestTask TASK_RECONCILE_DUMMY = new TestTask(
-            TEST_DIR, "task-reconcile-dummy-multithreaded.xml", "74d4297d-cdeb-43e6-a7f9-0af38d36de12");
+            TEST_DIR, "task-reconcile-dummy.xml", "1e24908a-4d0f-43f2-ae45-11fa9d37245d");
     private static final TestTask TASK_RECONCILE_DUMMY_GREEN = new TestTask(
-            TEST_DIR, "task-reconcile-dummy-green-multithreaded.xml", "36a53692-3324-443e-a683-3c23dd48a276");
+            TEST_DIR, "task-reconcile-dummy-green.xml", "b8b06b85-0916-4988-8907-bc6b10734f63");
     private static final TestTask TASK_RECONCILE_DUMMY_BLUE = new TestTask(
-            TEST_DIR, "task-reconcile-dummy-blue-multithreaded.xml", "6aea358b-2043-42fa-b2db-1cfdccb26725");
+            TEST_DIR, "task-reconcile-dummy-blue.xml", "e10c08c6-0395-4164-bc96-f88aa7bc9c1d");
 
     @Override
     protected Map<Color, TestTask> getTaskMap() {
