@@ -1,27 +1,24 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.authentication.api;
 
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author skublik
  */
-
 @Component
 public class RemoveUnusedSecurityFilterPublisher {
 
@@ -39,7 +36,7 @@ public class RemoveUnusedSecurityFilterPublisher {
     }
 
     @PostConstruct
-    public void afterConstruct(){
+    public void afterConstruct() {
         instance = this;
     }
 
@@ -47,7 +44,7 @@ public class RemoveUnusedSecurityFilterPublisher {
         return instance;
     }
 
-    private class RemoveUnusedSecurityFilterEventImpl extends RemoveUnusedSecurityFilterEvent {
+    private static class RemoveUnusedSecurityFilterEventImpl extends RemoveUnusedSecurityFilterEvent {
 
         private final MidpointAuthentication mpAuthentication;
 
