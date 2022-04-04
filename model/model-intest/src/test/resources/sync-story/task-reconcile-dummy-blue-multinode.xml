@@ -1,27 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!--Reconciliation task definition for dummy resource -->
-
-<task oid="10000000-0000-0000-565f-565600000204"
+<task oid="fa8abd8d-c379-46c1-aec8-38afb1a2d469"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
 
-    <name>Reconciliation: Dummy Blue</name>
+    <name>task-reconcile-dummy-blue-multinode</name>
 
-    <taskIdentifier>10000000-0000-0000-565f-565600000204</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionState>runnable</executionState>
-    <binding>loose</binding>
-    <schedule>
-        <interval>10</interval>
-    </schedule>
+    <executionState>closed</executionState> <!-- running on demand by the test -->
 
     <activity>
         <work>
