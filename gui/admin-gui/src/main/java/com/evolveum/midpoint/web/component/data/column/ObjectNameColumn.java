@@ -123,7 +123,14 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
                     return getName(value, selectableBean);
                 }
 
-                Object itemPathPropertyValue = new PropertyModel<>(rowModel, "value." + itemPath).getObject();
+                StringBuilder path = new StringBuilder("value");
+                itemPath.getSegments().forEach(segment -> {
+                    if (segment != null) {
+                        path.append(".").append(segment);
+                    }
+                });
+
+                Object itemPathPropertyValue = new PropertyModel<>(rowModel, path.toString()).getObject();
                 return itemPathPropertyValue != null ? itemPathPropertyValue.toString() : "";
 
             }

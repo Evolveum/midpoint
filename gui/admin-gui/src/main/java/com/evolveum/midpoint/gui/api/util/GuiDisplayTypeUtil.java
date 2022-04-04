@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
@@ -184,6 +185,11 @@ public class GuiDisplayTypeUtil {
         if (displayType == null) {
             displayType = createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", "");
         }
+
+        if (displayType.getIcon() == null || displayType.getIcon().getCssClass() == null){
+            MiscSchemaUtil.mergeDisplay(displayType, createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", ""));
+        }
+
         if (PolyStringUtils.isEmpty(displayType.getTooltip()) && !PolyStringUtils.isEmpty(displayType.getLabel())) {
             StringBuilder sb = new StringBuilder();
             sb.append(pageBase.createStringResource("MainObjectListPanel.newObject").getString());
@@ -219,12 +225,23 @@ public class GuiDisplayTypeUtil {
         if (view == null){
             return false;
         }
-        if (view.getDisplay() == null){
+        return existsIconDisplay(view.getDisplay());
+    }
+
+    private static boolean existsIconDisplay(DisplayType display) {
+        if (display == null){
             return false;
         }
-        if (view.getDisplay().getIcon() == null){
+        if (display.getIcon() == null){
             return false;
         }
-        return StringUtils.isNotBlank(view.getDisplay().getIcon().getCssClass());
+        return StringUtils.isNotBlank(display.getIcon().getCssClass());
+    }
+
+    public static boolean containsDifferentIcon(DisplayType display, String iconCss) {
+        if (existsIconDisplay(display)) {
+            return !display.getIcon().getCssClass().contains(iconCss);
+        }
+        return true;
     }
 }

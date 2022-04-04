@@ -184,7 +184,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(newObjectButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(WebComponentUtil.getIconColor(newObjectButtonDisplayType));
         CompiledObjectCollectionView view = getObjectCollectionView();
-        if (isCollectionViewPanelForCompiledView() && GuiDisplayTypeUtil.existsIconDisplay(view)) {
+        if (isCollectionViewPanelForCompiledView() && GuiDisplayTypeUtil.existsIconDisplay(view)
+                && GuiDisplayTypeUtil.containsDifferentIcon(newObjectButtonDisplayType, GuiStyleConstants.CLASS_ADD_NEW_OBJECT)) {
             IconType plusIcon = new IconType();
             plusIcon.setCssClass(GuiStyleConstants.CLASS_ADD_NEW_OBJECT);
             plusIcon.setColor("green");
