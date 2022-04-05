@@ -1199,7 +1199,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                                 .oid(refTargetOid2.toString()).relation(refRelation2),
                         new ObjectReferenceType() // nonexistent anyway
                                 .oid(refTargetOid3.toString()).relation(refRelation2),
-                        // like add bellow, the deletion will be "narrowed" out and ignored
+                        // like add below, the deletion will be "narrowed" out and ignored
                         new ObjectReferenceType()
                                 .oid(refTargetOid3.toString()).relation(refRelation1))
                 .add(new ObjectReferenceType().oid(refTargetOid3.toString())

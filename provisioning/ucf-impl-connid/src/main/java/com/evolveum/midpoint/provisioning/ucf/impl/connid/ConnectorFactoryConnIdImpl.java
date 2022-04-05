@@ -498,7 +498,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             en = ConnectorFactoryConnIdImpl.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
         } catch (IOException ex) {
             LOGGER.debug("Error during reading content from class path");
-            // TODO return? or NPE on the while bellow?
+            // TODO return? or NPE on the while below?
         }
 
         // Find which one is ICF connector
