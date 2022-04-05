@@ -2163,6 +2163,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>GeneralTransportConfigurationType.name</a:displayName>
+                        <a:displayOrder>1</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2291,6 +2292,9 @@
                                 Configuration of a particular mail server host. If there are more of them, they are tried
                                 one after another. If there is none, mail messages are not sent.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayOrder>100</a:displayOrder>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="defaultFrom" type="xsd:string" minOccurs="0">
@@ -2300,6 +2304,9 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>MailTransportConfigurationType.defaultFrom</a:displayName>
+                            </xsd:appinfo>
+                            <xsd:appinfo>
+                                <a:displayOrder>101</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2327,6 +2334,9 @@
                                 Configuration of a particular mail server host. If there are more of them, they are tried
                                 one after another. If there is none, mail messages are not sent.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayOrder>100</a:displayOrder>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="defaultFrom" type="xsd:string" minOccurs="0">
@@ -2334,6 +2344,9 @@
                             <xsd:documentation>
                                 What to put into "From" field of SMS, if supported by the gateway.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayOrder>101</a:displayOrder>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -2362,6 +2375,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>FileTransportConfigurationType.file</a:displayName>
+                                <a:displayOrder>100</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2394,6 +2408,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>CustomTransportConfigurationType.type</a:displayName>
+                                <a:displayOrder>100</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2408,6 +2423,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>CustomTransportConfigurationType.expression</a:displayName>
+                                <a:displayOrder>101</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
