@@ -61,8 +61,12 @@ Please keep in mind that midPoint is open source project and the bug reports are
 The best way to submit a bug report is to use link:https://jira.evolveum.com/browse/MID[Jira] which is our bug reporting and task tracking system.
 The registration is open to everybody.
 Using jira allows you to track the progress of issue resolution, add additional information, etc.
-Just please keep in mind that Jira is public and open to anyone following the spirit of open source.
-Therefore be careful about submitting a sensitive information.
+
+[NOTE]
+====
+Please keep in mind that Jira is public and open to anyone following the spirit of open source.
+Therefore, be careful about submitting sensitive information.
+====
 
 If Jira cannot be used then use any available channel, e.g. the one agreed in your service contract (if applicable).
 Although we recommend to use Jira all the time we do not enforce it.
@@ -94,7 +98,23 @@ You do not need to bother with this if the bug is obviously not environment-spec
 
 * Indication of midPoint version (release) or subversion revision (trunk) that was used.
 
-Not all of the above is required in a bug report.
+You can use the following fields in the *Create issue* form in Jira:
+
+* *Issue Type*: select *Bug* for bugs only, not for improvements.
+* *Summary*: short description of the issue
+* *Priority*: please specify the issue priority level. Click icon:fas-question-circle-o[] icon to provide more help. Please keep in mind that developers may update the issue priority.
+* *Subscription*: please indicate if you have a subscription
+* *Component/s*: please indicate if you know which component might be responsible for the behaviour. Leave empty if you have no idea.
+* *Affects Version/s*: specify on which version(s) the problem appears (multi-value option)
+* *Backport Version*: please indicate the version for backporting the fix, otherwise it will be fixed only in `master` branch. Example: if you are using LTS version `4.4.1`, select `4.4.2`.
+* *Fix Version/s*: this field will be set by developers
+* *Assignee*: this field will be set by developers
+* *Git Revision*: please specify the git revision if using unreleased midPoint version (e.g. builds from one of the supported support branches)
+* *Environment*: please indicate your environment such as: Java version, operating system name and version, memory, number of nodes in case of cluster, JVM variables etc. Please anonymize the content before you submit the form.
+* *Description*: full description of the problem including the steps to reproduce it and error messages, stack trace etc. Please anonymize the content before you submit the form.
+* *Attachment*: attach files if needed, e.g. log file(s), screenshots etc. Please anonymize the content before you submit the form.
+
+*Not all of the above is required in a bug report.*
 Use your common sense.
 As a rule of the thumb more information is usually better than little information.
 But sometimes too much non-relevant information may obscure the tiny problem that would be obvious if just the right amount of information is provided.
