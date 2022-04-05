@@ -15,7 +15,7 @@ Usually all information are based on the records from HR system or set directly 
 However, not all information could be present in HR or even administrator doesn't know them.
 In such cases the post-authentication is the best approach how to collect such data.
 To enable post-authentication in midPoint it is needed to configure the flow policies.
-This configuration is described bellow.
+This configuration is described below.
 
 
 == Configure post-authentication flow
@@ -45,7 +45,7 @@ To enable post-authentication you will need to add the following snippet to the 
 </securityPolicy>
 ----
 
-The example bellow specifies when to enforce the post-authentication for user.
+The example below specifies when to enforce the post-authentication for user.
 The important setting is in _requiredLifecycleState_. It tells which users are forced to perform post-authentication.
 Using the example above, the users with the lifecycle state set to the _proposed_ are automatically redirected to the post authentication form after the successful login.
 As the post-authentication form custom defined form which is shown to the user can be specified  using formRef as in the example above.
@@ -61,7 +61,7 @@ However the lifecycle state also plays its role in the computation.
 If the user has lifecycle state e.g. proposed (and the administrative status is not set to enabled) by default it means that this user is disabled and cannot login to the midPoint and cannot perform any actions.
 But, with this premise it is not possible to enforce post-authentication for such a user because he is not even able to login to midPoint.
 Therefore there is a need to configure the lifecycle activation.
-Basically, according to the configuration as shown bellow we can enforce other lifecycle state of the user.
+Basically, according to the configuration as shown below we can enforce other lifecycle state of the user.
 
 
 .Lifecycle activation configuration

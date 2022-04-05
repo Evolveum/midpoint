@@ -15,7 +15,7 @@ How to work with Jaspersoft Studio using live midPoint can be found xref:/midpoi
 == Report customization using midPoint
 
 After listing reports in midPoint (Reports -> List Reports) and clicking on the configure button you are able to modify some basic report attributes.
-As the picture bellow shows there are three tabs.
+As the picture below shows there are three tabs.
 Each of them is related to different part of report which can be configured.
 In the first tab 'Basic configuration' you can configure name of the report and export format.
 The second tab 'Jasper template' can be used to customize existing template, e.g. you can add/remove parameters, modify query etc.
@@ -805,7 +805,7 @@ Example of imported file:
 ----
 
 ....
-Example bellow shows report (ReportType) configuration for importing CSV file with header and two records above.
+Example below shows report (ReportType) configuration for importing CSV file with header and two records above.
 ....
 
 .Report-JSON

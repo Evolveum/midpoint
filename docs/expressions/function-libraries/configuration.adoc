@@ -23,7 +23,8 @@ Function library object contains definition for reusable functions across all ma
 The purpose of this object is to let the user defines the functions once and then use it as many time as he needs.
 The *important* thing *is the name of the function library* object.
 This name must be unique and should not be the same as one of the midpoint variable.
-*This name is used as a script variable name so the function library is available in the scripts under this name*. The example of such function library object is show bellow.
+*This name is used as a script variable name so the function library is available in the scripts under this name*.
+The example of such function library object is shown below.
 
 .Example of reusable functions - FunctionLibraryType
 [source,xml]
@@ -146,7 +147,7 @@ So at the end you can interpret the example above like calling the function _get
 === Invoking function from a script
 
 Functions defined in the function library can be invoked also directly in the script.
-The example of usage is shown in the example bellow.
+The example of usage is shown in the example below.
 
 .Example: Calling function from script
 [source,xml]

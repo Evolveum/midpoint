@@ -43,7 +43,7 @@ It can be said that working with services is divided into two parts:
 So, defining service means to create new object of type ServiceType.
 It is needed to fill required attributes and all other setting according to the service requirements.
 If the standard attributes defined in the schema for ServiceType are not satisfactory, xref:/midpoint/reference/schema/custom-schema-extension/[extension schema] can be used.
-The service provisioning is shown on the picture bellow.
+The service provisioning is shown on the picture below.
 It consist of ServiceType, meta-role definition and the target system (resource) where the new service will be created.
 
 

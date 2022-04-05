@@ -42,7 +42,7 @@ Dashboard contains name, display with label and widgets.
 
 In 4.2 dashboards are shown automatically when defined.
 Since 4.3 there is a need for configuration to define which dashboards should be shown in the left (sidebar) menu.
-The configuration is show bellow:
+The configuration is show below:
 
 ++++
 {% include since.html since="4.3" %}
