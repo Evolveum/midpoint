@@ -102,7 +102,7 @@ You can use the following fields in the *Create issue* form in Jira:
 
 * *Issue Type*: select *Bug* for bugs only, not for improvements.
 * *Summary*: short description of the issue
-* *Priority*: please specify the issue priority level. Click icon:fas-question-circle-o[] icon to provide more help. Please keep in mind that developers may update the issue priority.
+* *Priority*: please specify the issue priority level. Click "?" icon to provide more help. Please keep in mind that developers may update the issue priority.
 * *Subscription*: please indicate if you have a subscription
 * *Component/s*: please indicate if you know which component might be responsible for the behaviour. Leave empty if you have no idea.
 * *Affects Version/s*: specify on which version(s) the problem appears (multi-value option)
