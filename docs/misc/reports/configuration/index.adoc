@@ -595,7 +595,7 @@ Example of imported file:
 ----
 
 ....
-Example bellow shows report (ReportType) configuration for importing CSV file with header and two records above.
+Example below shows report (ReportType) configuration for importing CSV file with header and two records above.
 ....
 
 .Report-JSON

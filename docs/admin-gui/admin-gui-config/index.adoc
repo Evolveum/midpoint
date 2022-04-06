@@ -120,7 +120,9 @@ Following tables described basic configuration options for panels:
 | identifier
 | YES
 | String
-| Must be defined. Identifiers are used by merging algorithm. According to them, the configuration from different places (different roles, system configuration, archetypes) are merged together. Without identifier defined, it is not possible to merge the configurations correctly. Default panels have system defined identifiers stated in the table bellow.(TODO pointer to table)
+| Must be defined. Identifiers are used by merging algorithm. According to them, the configuration from different places (different roles, system configuration, archetypes) are merged together. Without identifier defined, it is not possible to merge the configurations correctly.
+Default panels have system defined identifiers stated in the table below.
+(TODO pointer to table)
 
 | description
 | NO
@@ -140,7 +142,10 @@ Following tables described basic configuration options for panels:
 | displayOrder
 | NO
 | Integer
-| It is used to specify order of the links in menu on details page. If there is a need to change the order of the link in the menu on details page, the `displayOrder` has to be set. E.g. on user details page, `Projections` are displayed as a second link in the menu. If they should be displayed later, ut has to be configured.
+| It is used to specify order of the links in menu on details page.
+If there is a need to change the order of the link in the menu on details page, the `displayOrder` has to be set.
+E.g. on user details page, `Projections` are displayed as a second link in the menu.
+If they should be displayed later, it has to be configured.
 
 | applicableForOperation
 | NO
@@ -183,7 +188,7 @@ Only one panel can be default. In midPoint, each object type has its default pan
 
 It is very important to be aware of difference between `identifier` and `panelType`. The attribute `identifier` points to the concrete instance of the panel idenfied by the `identifier`. This `identifier` is used to identify the same panel across different places where is might be configured and according to the `identifier` all related configurations are merged. The attribute `panelType` represents the type of the panel which will be instantiated and used to represent data. There might be different `panel` configurations with different `identifier` for the same `panelType`. In such a case, different menu links on details page will be generated and each will display instantiated `panelType` with the corresponding configuration in `panel`.
 
-MidPoint itself comes with default panels with the identifiers specified. Those are stated in the tables bellow divided by the types for which they applies.
+MidPoint itself comes with default panels with the identifiers specified. Those are stated in the tables below divided by the types for which they applies.
 
 Panels applicable for all AssignmentHolderType object (except ResourceType):
 [%autowidth]
@@ -984,7 +989,9 @@ With new configuration there are several options how to cutomize assignemnts vie
 
 === Virtual sections for different panel
 
-Suppose you need to somehow re-arrange basic properties for object or you have a lot of extension attributes which need to be divided to different sections. Since midPoint 4.4 it is possible to use _virtual sections_ for different panels. Bellow are some examples:
+Suppose you need to somehow re-arrange basic properties for object or you have a lot of extension attributes which need to be divided to different sections.
+Since midPoint 4.4 it is possible to use _virtual sections_ for different panels.
+Below are some examples:
 
 . Virtual sections for user basic panel.
 +

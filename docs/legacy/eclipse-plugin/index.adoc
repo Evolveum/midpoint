@@ -475,7 +475,7 @@ By opening it in console it allows for continuous updating of the view.
 By opening in editor pane it is possible to employ plugin customized xref:/midpoint/reference/diag/logging/log-viewer/[log viewer].
 You can also dynamically change logging levels for model, provisioning, repository and web modules.
 
-. XML Catalog content assist - see bellow
+. XML Catalog content assist - see below
 
 
 === XML Catalog content assist

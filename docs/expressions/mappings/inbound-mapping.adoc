@@ -47,7 +47,7 @@ This feature is available since 3.7
 Since version 3.7 it is possible to manage group membership directly.
 There is no more need to define some user's extension attribute and manage the group membership indirectly using this attribute.
 The inbound mapping for association will do the work.
-As the example bellow shows, inbound can be defined in resource schema handling in the association part.
+As the example below shows, inbound can be defined in resource schema handling in the association part.
 All midpoint's expression can be used.
 In the following example the assignmentTargetSearch is used.
 According to the group in which user's take a membership the assignment will be constructed.
@@ -111,11 +111,11 @@ After applying search filter the role is found and it is assigned to the user.
 </association>
 ----
 
-In the example bellow there is a script expression _return 'Auto' + entitlement?.getName()?.getNorm();_ which tells midPoint which role should be assigned to the user.
+In the example below there is a script expression _return 'Auto' + entitlement?.getName()?.getNorm();_ which tells midPoint which role should be assigned to the user.
 The _entitlement_ is a special variable pointing to the ShadowType representing group on resource.
 This variable is available only for script expression in the relativity mode relative.
 In other cases when there is a need to resolve ShadowType for a group there is a method in midpoint function library which can be used.
-This method is shown in example bellow.
+This method is shown in example below.
 
 .Resolving ShadowAssociationForGroup
 [source,xml]
