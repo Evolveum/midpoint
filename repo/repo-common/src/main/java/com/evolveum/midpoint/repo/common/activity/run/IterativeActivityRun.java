@@ -246,6 +246,8 @@ public abstract class IterativeActivityRun<
                 }
 
                 complete = processOrAnalyzeOrSkipSingleBucket(result);
+                pruneResult(result);
+
                 if (!complete) {
                     break;
                 }
@@ -260,6 +262,29 @@ public abstract class IterativeActivityRun<
                     releaseAllBucketsWhenWorker(result);
                 }
             }
+        }
+    }
+
+    /**
+     * Keeps the result of reasonable size:
+     *
+     * 1. removes successful minor subresults
+     * 2. summarizes operations (if there is a lot of buckets - see MID-7830)
+     *
+     * We catch all exceptions here, because we don't want the task to fail on these checks.
+     * We also want to execute the summarization even if the cleanup fails.
+     */
+    private void pruneResult(OperationResult result) {
+        try {
+            result.cleanupResultDeeply();
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't clean up the operation result in {}", e, this);
+        }
+
+        try {
+            result.summarize();
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't summarize the operation result in {}", e, this);
         }
     }
 
