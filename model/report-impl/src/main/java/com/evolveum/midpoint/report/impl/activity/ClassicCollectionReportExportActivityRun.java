@@ -121,8 +121,7 @@ public final class ClassicCollectionReportExportActivityRun
         ObjectHandler<Containerable> handler = (record, lResult) -> {
             ItemProcessingRequest<Containerable> request =
                     ContainerableProcessingRequest.create(sequence.getAndIncrement(), record, this);
-            coordinator.submit(request, lResult);
-            return true;
+            return coordinator.submit(request, lResult);
         };
         searchSpecificationHolder.run(handler, gResult);
     }
