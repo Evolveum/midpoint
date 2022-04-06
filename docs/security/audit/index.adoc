@@ -324,14 +324,37 @@ com.evolveum.midpoint.audit.log
 
 This logger can be directed to a specific appender to a separate audit log file using the normal logging configuration mechanism.
 
-To enable this logger, add the following `auditService` element inside `audit` element:
+To enable this logger:
 
+. Add the following `auditService` element inside `audit` element:
++
 [source,xml]
 ----
 <auditService>
     <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
 </auditService>
 ----
+
+. Enable it in the xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration]
+under _logging->auditing_ like this:
++
+[source,xml]
+----
+<systemConfiguration ...>
+    ...
+    <logging>
+        ...
+        <auditing>
+            <enabled>true</enabled>
+            <details>false</details> <!-- true for DEBUG level with more details -->
+            <appender>MIDPOINT_LOG</appender>
+        </auditing>
+    </logging>
+</systemConfiguration>
+----
+
+Note that simply setting level for `com.evolveum.midpoint.audit.log` logger to `INFO` or `DEBUG`
+will NOT work, because the level is explicitly overridden based on the System configuration.
 
 === Database Table Auditing
 
@@ -401,7 +424,7 @@ This feature is available only in midPoint 4.2 and later.
 ====
 
 If we need work with resource oid in reporting, we can allow store resource oid for audit record to database.
-For that we need to add the next snippet of code to the system configuration xml.
+For that we need to add the next snippet of code to the xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration object].
 
 [source,xml]
 ----
