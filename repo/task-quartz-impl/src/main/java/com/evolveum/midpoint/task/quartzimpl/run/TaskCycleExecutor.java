@@ -205,6 +205,7 @@ class TaskCycleExecutor {
         if (runResult.getMessage() != null) {
             taskResult.setMessage(runResult.getMessage());
         }
+        // TODO Clean up the result before updating (summarize, remove minor operations - maybe deeply?) - see e.g. MID-7830
         task.setResult(taskResult); // This updates the result in the task prism object.
     }
 
