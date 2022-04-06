@@ -71,6 +71,7 @@ public final class ClassicCollectionReportExportActivityRun
     @Override
     public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
         return super.createReportingCharacteristics()
+                .skipWritingOperationExecutionRecords(true) // because of performance
                 .determineOverallSizeDefault(ActivityOverallItemCountingOptionType.ALWAYS);
     }
 

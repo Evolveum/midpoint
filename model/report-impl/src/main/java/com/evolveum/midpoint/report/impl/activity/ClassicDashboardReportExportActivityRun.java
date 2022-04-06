@@ -71,6 +71,7 @@ public final class ClassicDashboardReportExportActivityRun
     @Override
     public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
         return super.createReportingCharacteristics()
+                .skipWritingOperationExecutionRecords(true) // a bit questionable
                 .determineOverallSizeDefault(ActivityOverallItemCountingOptionType.ALWAYS);
     }
 
