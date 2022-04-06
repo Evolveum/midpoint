@@ -276,7 +276,11 @@ public abstract class IterativeActivityRun<
      */
     private void pruneResult(OperationResult result) {
         try {
-            result.cleanupResultDeeply();
+            // We cannot clean up the current (root) result, as it is not closed yet. So we do that on subresults.
+            // (This means that minor subresult of the current root result will survive, but let's them be.
+            // Hopefully they will be eliminated later e.g. when the result is finally stored into the task.)
+            result.getSubresults().forEach(
+                    OperationResult::cleanupResultDeeply);
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't clean up the operation result in {}", e, this);
         }

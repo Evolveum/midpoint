@@ -79,7 +79,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
             Task task, OperationResult result) {
 
         StringBuilder body = new StringBuilder();
-        String message = "Your accounts was successfully created. To activate your accounts, please click on the link bellow.";
+        String message = "Your accounts was successfully created. To activate your accounts, please click on the link below.";
         body.append(message).append("\n\n").append(createConfirmationLink(getUser(event), configuration, result)).append("\n\n");
 
         FocusType owner = (FocusType) event.getRequesteeObject();

@@ -56,9 +56,19 @@ public class ObjectTemplateItemPanel extends ItemRefinedPanel<ObjectTemplateItem
             }
         });
 
+        return columns;
+    }
+
+    @Override
+    protected List<InlineMenuItem> createRefinedItemInlineMenu(List<InlineMenuItem> defaultActions) {
         List<InlineMenuItem> items = new ArrayList<>();
-        InlineMenuItem item = new InlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
+        ButtonInlineMenuItem item = new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
             private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
+            }
 
             @Override
             public InlineMenuItemAction initAction() {
@@ -97,14 +107,12 @@ public class ObjectTemplateItemPanel extends ItemRefinedPanel<ObjectTemplateItem
             }
         };
         items.add(item);
+        return items;
+    }
 
-        columns.add(new InlineMenuButtonColumn(items, getPageBase()) {
-            @Override
-            public String getCssClass() {
-                return "col-xs-1";
-            }
-        });
-        return columns;
+    @Override
+    protected boolean isCreateNewObjectVisible() {
+        return true;
     }
 
     @Override

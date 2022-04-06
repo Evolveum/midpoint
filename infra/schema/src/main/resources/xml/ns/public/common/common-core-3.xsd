@@ -14695,7 +14695,7 @@
                     <xsd:element name="defaultObjectPolicyConfiguration" type="tns:ObjectPolicyConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Definition of default object policy for a individual object type. The definition of this policy
+                                Definition of default object policy for an individual object type. The definition of this policy
                                 contains object template and other similar settings. The policy will be used
                                 "universally" during all operations with specified object types - unless it is overridden
                                 in other definitions (e.g. in resource or org).
@@ -14714,8 +14714,8 @@
                     <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                A configuration for user notifications. In future, it might be overridden e.g. at a level
-                                of a user.
+                                A configuration for user notifications.
+                                In the future, it might be overridden e.g. at a level of a user.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>SystemConfigurationType.notificationConfiguration</a:displayName>
@@ -15302,7 +15302,7 @@
             <xsd:element name="identifier" type="xsd:string" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Profile identifier. Usually short string, essentialy a simple profile name.
+                        Profile identifier. Usually short string, essentially a simple profile name.
                         Custom profiles should consider using URIs instead of simple names to avoid
                         conflicts with built-in profiles that may be provided in later versions.
                     </xsd:documentation>
@@ -15496,7 +15496,7 @@
             <xsd:element name="identifier" type="xsd:string" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Profile identifier. Usually short string, essentialy a simple profile name.
+                        Profile identifier. Usually short string, essentially a simple profile name.
                         Custom profiles should consider using URIs instead of simple names to avoid
                         conflicts with built-in profiles that may be provided in later versions.
                     </xsd:documentation>
