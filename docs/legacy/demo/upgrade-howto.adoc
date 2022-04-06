@@ -25,7 +25,7 @@ Add and start to download ubuntu-14.04-server-i386.ova.torrent  +
 Download midpoint 2.2.1 VM (demo-2.2.1-new-ip-ovf1.ova).
 New user has to be added with new password via command: sudo adduser ... sudo.
  +
-Also edit of interfaces is needed via command: sudo vim /etc/network/interfaces where static is replaced with dhcp and parts bellow are commented.
+Also edit of interfaces is needed via command: sudo vim /etc/network/interfaces where static is replaced with dhcp and parts below are commented.
  +
 Restart is needed via command: sudo service networking restart or sudo /etc/init.d/networking restart +
 \=================================================================================================================================================================

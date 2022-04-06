@@ -96,7 +96,7 @@ The second assignment container contains nested container that is called _accoun
 All objects are defined to contain container of extension type.
 This container is specific, because can occur only once (or no occur) and can possess information of every kind.
 
-In the figure bellow there is another example of _UserType_ object that contains extra container `activation` and some additional properties like `honorificPrefix`.
+In the figure below there is another example of _UserType_ object that contains extra container `activation` and some additional properties like `honorificPrefix`.
 
 [source,xml]
 ----

@@ -1,18 +1,14 @@
-= Configuring Notifications
-:page-nav-title: Configuration
-:page-wiki-name: Configuring notifications
-:page-wiki-id: 11075769
-:page-wiki-metadata-create-user: mederly
-:page-wiki-metadata-create-date: 2013-06-27T17:18:41.087+02:00
-:page-wiki-metadata-modify-user: lskublik
-:page-wiki-metadata-modify-date: 2019-08-06T13:19:38.073+02:00
+= Notification Configuration in 4.4 and before
+:page-nav-title: Configuration 4.4 and before
+:page-display-order: 210
 :page-toc: top
-:page-upkeep-status: yellow
 
-For a basic introduction to notifications, please see this xref:/midpoint/reference/misc/notifications/[general overview].
+[NOTE]
+This document shows Notification configuration for version 4.4 and previous versions.
+While the examples here work in 4.5, they are deprecated and some will not work later.
+For 4.5 and later use xref:../configuration/[this Configuration guide] instead.
 
-Here we describe detailed information pertaining to configuring the notifications from the point of view of system administrator.
-
+Here we describe detailed information on how to configure the notifications as a system administrator.
 
 == Configuring transports
 
@@ -24,30 +20,37 @@ For the time being, here we show a sample configuration, hopefully self-explanat
 [source,xml]
 ----
 <mail>
+    <!-- There can be more servers if necessary; they are tried in the specified order. -->
     <server>
         <host>smtp.gmail.com</host>
-        <port>587</port>                                <!-- specify port: 25, 587 (e.g. MS Exchange and TLS) or other based on your mail server -->
-                                                        <!-- you can skip the port definition altogether to use default -->
+        <!--
+        Specify port: 25, 587 (e.g. MS Exchange and TLS) or other based on your mail server.
+        You can skip the port definition altogether to use default (25).
+        -->
+        <port>587</port>
         <username>abc@gmail.com</username>
         <password>
             <clearValue>abcdef</clearValue>
         </password>
-        <transportSecurity>starttlsRequired</transportSecurity>        <!-- other possibilities: none, starttlsEnabled, starttlsRequired -->
-    </server>                                           <!-- there can be more servers if necessary; they are tried in the order specified -->
+        <!-- Other transportSecurity options: none, starttlsEnabled, starttlsRequired -->
+        <transportSecurity>starttlsRequired</transportSecurity>
+    </server>
 
-    <server>                                            <!-- Second server -->
+    <server> <!-- Second server -->
        . . .
     </server>
-    <server>                                            <!-- Third server -->
+    <server> <!-- Third server -->
        . . .
     </server>
 
     <defaultFrom>abc@gmail.com</defaultFrom>
-    <debug>true</debug>                                    <!-- standard javax.mail debugging; it is going to stdout (catalina.out)! -->
-    <logToFile>mail-notifications.log</logToFile>        <!-- All notifications are logged to this file IN ADDITION TO sending them via mail. They are
-                                                             logged in all cases: even if they eventually cannot be send. Implemented since 3.6.1. -->
+    <debug>true</debug> <!-- standard javax.mail debugging; it is going to stdout (catalina.out)! -->
+    <!--
+    All notifications are logged to this file IN ADDITION TO sending them via mail.
+    They are logged in all cases: even if they eventually cannot be sent.
+    -->
+    <logToFile>mail-notifications.log</logToFile>
 </mail>
-
 ----
 
 *Ensure your SMTP server will accept multiple connection (message rate limit)* as midPoint notifications are being sent as the objects are created, e.g. one user can have 15 accounts or one organization 40 entitlements created at the same time.
@@ -60,7 +63,6 @@ You may also need to store the mail server self-signed SSL certificate in your J
 ====
 For Microsoft Exchange, we've successfully tested the configuration with port=587, transportSecurity=starttlsRequired and a valid username/password combination.
 ====
-
 
 === "File" transport
 
@@ -104,12 +106,10 @@ An example:
    </notificationConfiguration>
 ----
 
-
 [TIP]
 ====
 "File" transport is available since 3.6.1.
 ====
-
 
 === "SMS" transport
 
@@ -253,9 +253,7 @@ Expressions specified in urlExpression (url), headersExpression, bodyExpression 
 
 |===
 
-
 == Configuring notifiers
-
 
 === generalNotifier
 
@@ -355,12 +353,10 @@ An example:
 
 TODO
 
-
 === simpleUserNotifier
 
 Sends out a notification about the change of a user.
 It has no special parameters in addition to parameters of a general notifier.
-
 
 === simpleResourceObjectNotifier
 
@@ -379,21 +375,17 @@ Default: false.
 
 |===
 
-
 === userPasswordNotifier, accountPasswordNotifier
 
 Send a notification when a user/account password is generated or changed.
 No special parameters.
-
 
 === workflowNotifier
 
 Send a notification when a process instance or work item is started or completed.
 No special parameters.
 
-
 == Configuring filters
-
 
 === category filter
 
@@ -441,7 +433,6 @@ An example:
 
 ----
 
-
 === status filter
 
 Passes events that can be described by one of specified status descriptions.
@@ -483,8 +474,6 @@ This has a slightly different meaning depending on the event category:
 
 |===
 
-
-
 (++*++) The result is either SUCCESS, WARNING, or NOT_APPLICABLE.
 
 (++**++) The result is either FATAL_ERROR, PARTIAL_ERROR or NOT_APPLICABLE.
@@ -494,7 +483,6 @@ This has a slightly different meaning depending on the event category:
 Please note that we take into account only user (i.e. focus) modifications, *not* modifications of user's accounts.
 
 (++****++) Alternatively, it is possible to use the following expressions for workflow events: event.isApproved(), event.isRejected(), event.isResultKnown().
-
 
 === operation filter
 
@@ -524,7 +512,6 @@ Filters events based on operation that was executed (or attempted to execute).
 
 |===
 
-
 === expression filter
 
 Passes events based on arbitrary expression.
@@ -536,7 +523,6 @@ Some examples:
     <script><code>event.isAccountRelated() &amp;&amp; event.isAdd() &amp;&amp; "security-admin".equals(requester?.getName()?.getOrig())</code></script>
 </expressionFilter>
 ----
-
 
 == Expressions
 
@@ -573,10 +559,4 @@ Variables that are available are:
 | Name of transport (e.g. "mail", "sms", etc.). Available in expressions for getting recipient(s), message subject and body.
 Not available in expressionFilters.
 
-
 |===
-
-
-== Configuring Office365
-
-You need to put certificate to midPoint keystore, please see

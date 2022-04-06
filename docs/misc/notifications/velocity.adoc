@@ -7,6 +7,7 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2016-09-08T21:14:54.826+02:00
 :page-upkeep-status: yellow
+:page-display-order: 900
 
 Starting with midPoint 3.4.1 it is possible to use Apache Velocity templates for writing notifications.
 (In fact, it is possible to use Velocity templates at each place where an expression is expected, e.g. in mappings, but the use for notifications seems to be the most natural.)

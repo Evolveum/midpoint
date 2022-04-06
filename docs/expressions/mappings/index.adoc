@@ -894,6 +894,13 @@ We have more sophisticated mechanisms now.
 Therefore, it is not clear whether this option is still needed.
 Should it be a candidate for deprecation?
 
+=== Enabled
+
+Enabled flag specifies if the mapping is evaluated or not.
+Each specified mapping is by default evaluated.
+To skip mapping evaluation, _enabled_ flag has to be set to `false`.
+
+Default value is `true`.
 
 === Exclusive
 

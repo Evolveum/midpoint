@@ -42,7 +42,7 @@ Although collections and view have different purposes and they are based on diff
 
 == Object Collection
 
-Object collection is a special midPoint objects.
+Object collection is a special midPoint object.
 The collection usually specifies a search filter that is used to find all the objects that belong to the collection:
 
 [source,xml]
@@ -59,7 +59,7 @@ The collection usually specifies a search filter that is used to find all the ob
 </objectCollection>
 ----
 
-Simply speaking this is efficiently a _named object filter_. The filter is specified in a single place in the object collection definition.
+Simply speaking this is effectively a _named object filter_. The filter is specified in a single place in the object collection definition.
 Then the definition is reused in all other places.
 
 It may seem that this is a very little functionality to justify its own object.
@@ -117,23 +117,23 @@ Views are defined in xref:/midpoint/reference/admin-gui/admin-gui-config/[admin 
 
 [source,xml]
 ----
-    <adminGuiConfiguration>
-            <objectCollectionViews>
-                    <objectCollectionView>
-                            <identifier>active-users</identifier>
-                <display>
-                    <label>Active users</label>
-                </display>
-                <column>
-                    <!-- customization of table columns may be here -->
-                </column>
-                            <type>UserType</type>
-                            <collection>
-                                    <collectionRef oid="9276c3a6-5790-11e9-a931-efe1b34f25f6" type="ObjectCollectionType"/> <!-- Active users object collection -->
-                            </collection>
-                    </objectCollectionView>
-            </objectCollectionViews>
-    </adminGuiConfiguration>
+<adminGuiConfiguration>
+    <objectCollectionViews>
+        <objectCollectionView>
+            <identifier>active-users</identifier>
+            <display>
+                <label>Active users</label>
+            </display>
+            <column>
+                <!-- customization of table columns may be here -->
+            </column>
+            <type>UserType</type>
+            <collection>
+                <collectionRef oid="9276c3a6-5790-11e9-a931-efe1b34f25f6" type="ObjectCollectionType"/> <!-- Active users object collection -->
+            </collection>
+        </objectCollectionView>
+    </objectCollectionViews>
+</adminGuiConfiguration>
 ----
 
 Once the view is defined it will be used by the user interface in all the appropriate places.
@@ -159,22 +159,22 @@ Therefore, archetypes can be used instead of a collection in the view definition
 
 [source,xml]
 ----
-    <adminGuiConfiguration>
-            <objectCollectionViews>
-                    <objectCollectionView>
-                            <identifier>all-employees</identifier>
-                            <type>UserType</type>
-                            <collection>
-                                    <collectionRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"/> <!-- Employee archetype -->
-                            </collection>
-                    </objectCollectionView>
-            </objectCollectionViews>
-    </adminGuiConfiguration>
+<adminGuiConfiguration>
+    <objectCollectionViews>
+        <objectCollectionView>
+            <identifier>all-employees</identifier>
+            <type>UserType</type>
+            <collection>
+                <collectionRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"/> <!-- Employee archetype -->
+            </collection>
+        </objectCollectionView>
+    </objectCollectionViews>
+</adminGuiConfiguration>
 ----
 
 This is also the simplest way how to get archetypes into midPoint menu.
 The archetypes are *not*  published into the menu by default, because that is seldom what people really need.
-There may be archetypes that are just being prepared for use, or archetypes that are used so rarely that there is no point to polute very limited real estate of system menu with them.
+There may be archetypes that are just being prepared for use, or archetypes that are used so rarely that there is no point to pollute very limited real estate of system menu with them.
 Archetypes are not added often, therefore it is not any great burden to create a view for them.
 Especially in this case when they can be used as an implicit collection.
 
@@ -197,7 +197,7 @@ There is also experimental functionality allowing to hide and show the collectio
 
 === Default Collection Views (since midPoint 4.4)
 
-MidPoint comes with default collections defined for most of the object. These default collection are based on object type, e.g. there is a default collection for all users in midPoint available in menu by default. Table bellow shows list of default collections and their identifiers. These identifiers are then used to adjust the default collection view. E.g. there is a need to add custom column to the default users list, new action needs to be defined for default roles list, etc. To be able to correctly merge configurations from different places for the same collection view, identifiers are mandatory and every single collection view definition has to have it defined.
+MidPoint comes with default collections defined for most of the objects. These default collection are based on object type, e.g. there is a default collection for all users in midPoint available in menu by default. Table below shows list of default collections and their identifiers. These identifiers are then used to adjust the default collection view. E.g. there is a need to add custom column to the default users list, new action needs to be defined for default roles list, etc. To be able to correctly merge configurations from different places for the same collection view, identifiers are mandatory and every single collection view definition has to have it defined.
 
 [%autowidth]
 |===
@@ -383,29 +383,29 @@ The example of search panel configuration for Users list page:
 
 [source,xml]
 ----
-        <objectCollectionView id="81">
-                <searchBoxConfiguration>
-                    <searchItems>
-                        <searchItem id="83">
-                            <filter>
-                                <q:or>
-                                    <q:substring>
-                                        <q:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:emailAddress</q:path>
-                                        <q:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">emailtest</q:value>
-                                    </q:substring>
-                                </q:or>
-                            </filter>
-                            <displayName>Email address filter</displayName>
-                        </searchItem>
-                        <searchItem id="841">
-                            <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:telephoneNumber</c:path>
-                            <description>Search item for search by telephone number</description>
-                            <displayName>Tel. number</displayName>
-                        </searchItem>
-                    </searchItems>
-                </searchBoxConfiguration>
-                <type>c:UserType</type>
-            </objectCollectionView>
+<objectCollectionView>
+    <searchBoxConfiguration>
+        <searchItems>
+            <searchItem>
+                <filter>
+                    <q:or>
+                        <q:substring>
+                            <q:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:emailAddress</q:path>
+                            <q:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">emailtest</q:value>
+                        </q:substring>
+                    </q:or>
+                </filter>
+                <displayName>Email address filter</displayName>
+            </searchItem>
+            <searchItem>
+                <path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:telephoneNumber</c:path>
+                <description>Search item for search by telephone number</description>
+                <displayName>Tel. number</displayName>
+            </searchItem>
+        </searchItems>
+    </searchBoxConfiguration>
+    <type>c:UserType</type>
+</objectCollectionView>
 ----
 
 image::search_config.png[]
@@ -414,41 +414,38 @@ The example of search panel configuration for Org member panel:
 
 [source,xml]
 ----
-            <objectCollectionView>
-                <identifier>orgMember</identifier>
-                <type>OrgType</type>
-                <additionalPanels>
-                    <memberPanel>
-                        <searchBoxConfiguration>
-                            <scopeConfiguration>
-                                <display>
-                                    <label>Custom Scope</label>
-                                    <help>Help scope text</help>
-                                </display>
-                                <defaultValue>subtree</defaultValue>
-                            </scopeConfiguration>
-                            <objectTypeConfiguration>
-                                <display>
-                                    <label>Custom Type</label>
-                                </display>
-                                <defaultValue>OrgType</defaultValue>
-                                <supportedTypes>OrgType</supportedTypes>
-                                <supportedTypes>UserType</supportedTypes>
-                                <supportedTypes>ServiceType</supportedTypes>
-                            </objectTypeConfiguration>
-                            <indirectConfiguration>
-                                <visibility>hidden</visibility>
-                            </indirectConfiguration>
-                        </searchBoxConfiguration>
-                    </memberPanel>
-                </additionalPanels>
-            </objectCollectionView>
+<objectCollectionView>
+    <identifier>orgMember</identifier>
+    <type>OrgType</type>
+    <additionalPanels>
+        <memberPanel>
+            <searchBoxConfiguration>
+                <scopeConfiguration>
+                    <display>
+                        <label>Custom Scope</label>
+                        <help>Help scope text</help>
+                    </display>
+                    <defaultValue>subtree</defaultValue>
+                </scopeConfiguration>
+                <objectTypeConfiguration>
+                    <display>
+                        <label>Custom Type</label>
+                    </display>
+                    <defaultValue>OrgType</defaultValue>
+                    <supportedTypes>OrgType</supportedTypes>
+                    <supportedTypes>UserType</supportedTypes>
+                    <supportedTypes>ServiceType</supportedTypes>
+                </objectTypeConfiguration>
+                <indirectConfiguration>
+                    <visibility>hidden</visibility>
+                </indirectConfiguration>
+            </searchBoxConfiguration>
+        </memberPanel>
+    </additionalPanels>
+</objectCollectionView>
 ----
 
 image::image2021-1-19_9-37-5.png[]
-
-
-
 
 == Limitations
 

@@ -16,7 +16,7 @@ It cannot be expected that the kind/intent are know.
 It must be expected that the kind/intent will be determined according to the conditions in the object synchronization part.
 Since 3.9 there is possibility to specify one sorter instead of specifying conditions for each intent.
 The main goal of the sorter is to divide resource objects to appropriate kind/intent so then the appropriate object synchronization can take part and perform specified actions.
-The example of such sorter can be found bellow:
+The example of such sorter can be found below:
 
 .Object synchronization sorter
 [source,xml]

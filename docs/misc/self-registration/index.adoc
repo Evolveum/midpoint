@@ -274,7 +274,7 @@ Configuration looks as follows:
                         plainTextPassword = midpoint.getPlaintextUserPassword(userType);
 
                         bodyMessage = "Dear " + userType.getGivenName() + ",\n\n" +
-                            "your account was successfully created. To activate your account click on the confirmation link bellow in the                     email." +
+                            "your account was successfully created. To activate your account click on the confirmation link below in the                     email." +
                             "\n" +
                             "After your account is activated, use following credentials to log in: \n" +
                             "username: " + userType.getName().getOrig() + "\n" +
@@ -332,7 +332,7 @@ Configuration looks as follows:
         userType = newUser.asObjectable();
         link = midpoint.getDefaultHostname() + "/registration?user=" + userType.getOid();
               bodyMessage = "Dear " + userType.getGivenName() + ",\n\n" +
-                            "your account was successfully created. To register and activate your account please click on the registration link bellow in the email." +
+                            "your account was successfully created. To register and activate your account please click on the registration link below in the email." +
                             "\n" +
                             "The registration link: \n" +
                                 link;

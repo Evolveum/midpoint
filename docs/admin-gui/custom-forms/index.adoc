@@ -24,7 +24,7 @@ Which fields would be shown, which of them would be optional and which of them w
 
 Custom forms are defined using FormType objects.
 After the complete definition for custom form is defined, it is needed to reference to this form from the correct place and the result is that the custom form is shown instead of default one.
-Most important (and actually supported) attributes are described bellow:
+Most important (and actually supported) attributes are described below:
 
 * *formDefinition* - is used to define the custom form, e.g. in this part attributes which are supposed to be shown are defined.
 There can be also additional information such as name of the form etc.

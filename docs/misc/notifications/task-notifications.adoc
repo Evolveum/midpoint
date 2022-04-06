@@ -6,6 +6,7 @@
 :page-wiki-metadata-modify-user: dantrob
 :page-wiki-metadata-modify-date: 2017-11-15T16:39:24.315+01:00
 :page-alias: { "parent" : "/midpoint/reference/tasks/" }
+:page-display-order: 420
 :page-upkeep-status: yellow
 
 Task manager provides the following notifications:

@@ -445,9 +445,9 @@ Generated number is then propagated to the OpenLDAP while creating account for u
 
 There is one object template defined.
 It is configured for the user and it is used during live synchronization for accounts in OpenLDAP.
-This template define mapping to generate uidNumber and assign Unix User role to the user.
+This template defines mapping to generate uidNumber and assign Unix User role to the user.
 
-The overall view of the configuration is displayed in the picture bellow
+The overall view of the configuration is displayed in the picture below:
 
 image::big-picture.png[]
 
@@ -469,13 +469,13 @@ Got to 'Users - List Users' and then:
 
 . In the right corner of the Assignments table click the gear wheel and select 'Assign) - popup with available roles, services, resource, orgs will be shown
 
-. From the showed pop-up (roles listed) select 'admin' role and click the 'Add' button bellow
+. From the showed pop-up (roles listed) select 'admin' role and click the 'Add' button below
 
 . Click on the newly created assignment panel for 'Machine Admin' role and then click on the pencil button for 'Organization Unit/Project' - popup with available machine sets will be shown
 
 . Select Machine Set by clicking on the name for which the user should be administrator, e.g. select m1set
 
-. Click 'Save' button bellow
+. Click 'Save' button below
 
 
 ==== Using REST API
@@ -525,9 +525,9 @@ Go to 'Organization structure - Organization tree - Machines' tab has to be sele
 
 . In the right corner of the Assignments table click the gear wheel and select 'Assign) - popup with available roles, services, resource, orgs will be shown
 
-. Select 'Metarole for Service' role and click the 'Add' button bellow
+. Select 'Metarole for Service' role and click the 'Add' button below
 
-. Click 'Save' button bellow
+. Click 'Save' button below
 
 . In the right corner of the Assignments table click the gear wheel and select 'Recompute direct members' - Recompute task will run, all the members will be recomputed and assigned to the group for the new machine according to the configuration
 
@@ -582,7 +582,7 @@ Got to 'Users - List Users' and then:
 
 . In the right corner of the Assignments table click the gear wheel and select 'Unassign' and confirm pop-up widow
 
-. Click 'Save' button bellow
+. Click 'Save' button below
 
 
 ==== Using REST API
@@ -614,9 +614,9 @@ Authorizations are configured on different levels for different roles and are al
 
 Such a user is an administrator with restriction to the Machine Set 1. It means, he/she can manage all objects in midPoint which belongs to the Machine Set 1 represented as organization in midPoint.
 You can add any objects (except node, shadow) to the organization using midPoint GUI.
-Navigate to the member table for selected organization (blue table in the right part bellow), click on the gear wheel and select assign member.
+Navigate to the member table for selected organization (blue table in the right part below), click on the gear wheel and select assign member.
 Pop-up with available objects is shown.
-Select type of object you want to assign, check object which should be assigned and click 'Add' button bellow.
+Select type of object you want to assign, check object which should be assigned and click 'Add' button below.
 The task (ExecuteChanges) starts to run to create assignemnt/link for the objects to the organization.
 
 
@@ -670,7 +670,7 @@ Got to 'Users - List Users' and then:
 
 . In the right corner of the Assignments table click the gear wheel and select 'Assign) - popup with available roles, services, resource, orgs will be shown
 
-. From the showed pop-up (roles listed) select 'admin' role and click the 'Add' button bellow
+. From the showed pop-up (roles listed) select 'admin' role and click the 'Add' button below
 
 . Click on the newly created assignment panel for 'Machine Admin' role and then click on the pencil button for 'Organization Unit/Project' - popup with available machine sets will be shown
 
@@ -678,7 +678,7 @@ Got to 'Users - List Users' and then:
 
 . In the Activation part for Assignment fill in valid to date (e.g. in three days)
 
-. Click 'Save' button bellow
+. Click 'Save' button below
 
 . Check user details - projection and its associations
 
@@ -690,7 +690,7 @@ Got to 'Users - List Users' and then:
 
 . Search for Validity scanner and open it
 
-. Click 'Run now' button bellow
+. Click 'Run now' button below
 
 
 ==== Using REST API

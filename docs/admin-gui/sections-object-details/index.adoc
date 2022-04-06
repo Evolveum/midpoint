@@ -32,7 +32,7 @@ Since 4.0 midPoint provides also mechanism for this.
 == Configuration
 
 Sections in object details could be achieved, as most other features in midPoint, with the correct configuration.
-Bellow is the example of such configuration
+Below is the example of such configuration
 
 .Sections configuration
 [source,xml]
@@ -91,6 +91,6 @@ The result of the configuration above is, that on the details page, there will b
 
 * Properties with all other common user's attributes
 
-The screenshot bellow shows the impact in the GUI.
+The screenshot below shows the impact in the GUI.
 
 image::screenshot-sections.png[]
