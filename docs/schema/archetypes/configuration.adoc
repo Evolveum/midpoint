@@ -404,7 +404,7 @@ Therefore, midPoint is designed to support three kinds of archetype:
 
 For now, only structural archetypes are implemented and supported.
 Since version 4.2 it is possible to define hierarchy between structural archetypes, so there can be one parent which is extended by its child.
-To define archetype inheritance, it is needed to point in the child archetype to its parent using _superArchetypeRef_ element, such as in the example bellow
+To define archetype inheritance, it is needed to point in the child archetype to its parent using _superArchetypeRef_ element, such as in the example below:
 
 .Archetype inheritance
 [source,xml]
@@ -435,7 +435,7 @@ In other words, example above is in midPoint 4.2 translated to inducement with t
 
 There is quite complex algorithm for merging archetype policies across hierarchy.
 Following examples will show how the merging works.
-The example bellow shows archetype for basic task.
+The example below shows archetype for basic task.
 It contains archetype policy defining the details about how the icon should look like, and two xref:/midpoint/reference/admin-gui/sections-object-details/[GUI virtual containers (sections)] used on task details page - Advanced options and Operational attributes (state)
 
 .Basic task

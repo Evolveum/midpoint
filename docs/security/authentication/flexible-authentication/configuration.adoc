@@ -974,13 +974,6 @@ Resource server contains following attributes:
 | false
 | _String_
 
-
-| `userInfoUri`
-| Uri for user info endpoint.
-| false
-| _String_
-
-
 | `nameOfUsernameClaim`
 | Name of claim in jwt, which value define name of user in Midpoint. Default value is 'sub'.
 | false

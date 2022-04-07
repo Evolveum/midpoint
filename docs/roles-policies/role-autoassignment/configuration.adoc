@@ -55,7 +55,7 @@ This is all that is needed for simple cases: just specify the condition.
 MidPoint takes care of all the rest.
 
 Since midPoint 4.2 it is possible to restrict auto assignment evaluation to specific object using selector object.
-Using example bellow, autoassignment will be applied only for the user with archetype employee:
+Using example below, autoassignment will be applied only for the user with archetype employee:
 
 .Selector example
 [source,xml]
