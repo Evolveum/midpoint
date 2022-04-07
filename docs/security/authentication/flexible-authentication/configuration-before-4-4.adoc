@@ -14,6 +14,8 @@ Basic idea of flexible authentication is described on xref:..[Flexible Authentic
 Before we describe configuration of flexible authentication, we have to become acquainted with a few terms.
 
 
+TODO it would be nice to warn the user who starts flexible authentication configuration about the risk not to have an access to midPoint GUI part. E.g. in case of incorrect LoginForm module configuration or in case of its absence, there will be no possibility to login via standard login form again. In that case the user should have another a way to restore midPoint environment.
+TODO please, add a sample of urlSuffix attribute usage. There is a sample with explanation "Midpoint searches authentication sequence base-on next part of URL, in this case 'emergency'". But it's not clear here that 'emergency' is a value of urlSuffix attribute. I would suggest to paste url sample right to the table with attribute description.
 == Basic concepts
 
 
@@ -103,7 +105,7 @@ Let's say it is GUI for this example, so request is redirect to users page in GU
 
 Flexible authentication is configured in xref:/midpoint/reference/security/security-policy[Security Policy], which is used as global security policy in System Configuration.
 Base tag is _<authentication>_.  Configuration consists of modules and sequences.
-Element `module` is basic building block of the configuration.
+Element `modules` is basic building block of the configuration.
 Each element has a configuration of a particular authentication module instance such as internal password-based authentication, SAML authentication and so on.
 Each module specified in the container must have unique name.
 Element `sequence` defines a sequence of authentication modules.
