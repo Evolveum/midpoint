@@ -16,7 +16,7 @@ Before we describe configuration of flexible authentication, we have to become a
 == Basic concepts
 
 
-=== Authentication module
+== Authentication module
 
 Authentication module is basic building unit of flexible authentication.
 The easiest example of authentication module is classic login form, which we can find on every application.
@@ -25,7 +25,7 @@ Login form represent one authentication module, next modules can be authenticati
 Every Authentication module contains some configuration properties, which define configuration for this kind of authentication module.
 
 
-=== Authentication sequence
+== Authentication sequence
 
 Authentication sequence is made up of authentication modules, so it contains chain of authentication modules.
 Each of module have its order in chain and necessity for this sequence.
@@ -35,7 +35,7 @@ Also channel contains url suffix for this authentication sequence.
 So channel define, which authentication sequence will be used for http request.
 
 
-=== Authentication channel
+== Authentication channel
 
 Flexible authentication knows following channels:
 
@@ -75,12 +75,12 @@ Channels for _rest_ and _actuator_ default don't create audit records about sess
 You can turn on it via variable in System Configuration _audit->eventRecording->recordSessionlessAccess_.
 
 
-=== Choosing of Authentication sequence
+== Choosing of Authentication sequence
 
 We can describe flow on two examples.
 
 
-==== First example
+=== First example
 
 Midpoint receives HTTP request with URL 'http:localhost:8080/midpoint/actuator/metrics'.
 Midpoint obtains suffix 'actuator' from URL and it gets channel from table base-on suffix.
@@ -89,7 +89,7 @@ Next midpoint initialize found authentication sequence.
 After successful authentication Midpoint sends request to actuator service.
 
 
-==== Second example
+=== Second example
 
 Midpoint receives HTTP request with URL 'http:localhost:8080/midpoint/auth/emergency/users'.
 Midpoint obtains suffix 'auth' from URL, this suffix defines using of specific authentication sequence.
