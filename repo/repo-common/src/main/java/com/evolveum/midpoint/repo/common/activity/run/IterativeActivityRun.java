@@ -662,6 +662,18 @@ public abstract class IterativeActivityRun<
         }
     }
 
+    /**
+     * Fails if there is any parallelism within this activity: worker threads or worker tasks.
+     * It is to avoid unintended parallel execution like the one in MID-7861.
+     *
+     * Note that this method does not preclude parallel execution with a different activity.
+     * But that is not enabled by default, so it's safe to assume it will not be configured by mistake.
+     */
+    protected final void ensureNoParallelism() {
+        ensureNotInWorkerTask(null);
+        ensureNoWorkerThreads();
+    }
+
     public final @NotNull String getShortName() {
         return shortName;
     }

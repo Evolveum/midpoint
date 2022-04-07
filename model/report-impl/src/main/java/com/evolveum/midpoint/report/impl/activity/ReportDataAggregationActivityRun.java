@@ -69,6 +69,8 @@ final class ReportDataAggregationActivityRun
 
     @Override
     public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        ensureNoParallelism();
+
         support.beforeExecution(result);
 
         dataWriter = ReportUtils.createDataWriter(
