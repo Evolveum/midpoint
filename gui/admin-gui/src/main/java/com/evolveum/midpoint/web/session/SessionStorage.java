@@ -154,22 +154,17 @@ public class SessionStorage implements Serializable, DebugDumpable {
     }
 
     public AuditLogStorage getObjectHistoryAuditLog(QName objectType) {
-        if (pageStorageMap.get(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG) == null) {
-            pageStorageMap.put(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG, new AuditLogStorage());
-        }
-        return (AuditLogStorage) pageStorageMap.get(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG);
+        String key = objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG;
+        return getPageStorage(key, new AuditLogStorage());
     }
 
     public void setObjectHistoryAuditLog(QName objectType, AuditLogStorage storage) {
-        pageStorageMap.put(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG, storage);
+        setPageStorage(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG, storage);
     }
 
     public ResourceContentStorage getResourceContentStorage(ShadowKindType kind, String searchMode) {
         String key = getContentStorageKey(kind, searchMode);
-        if (pageStorageMap.get(key) == null) {
-            pageStorageMap.put(key, new ResourceContentStorage(kind));
-        }
-        return (ResourceContentStorage) pageStorageMap.get(key);
+        return getPageStorage(key, new ResourceContentStorage(kind));
 
     }
 
@@ -261,16 +256,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
         if (!(pageStorage instanceof MemberPanelStorage)) {
             return null;
         }
-        MemberPanelStorage storage = (MemberPanelStorage) pageStorage;
-
-//        storage.setIndirectSearchItem(searchBoxConfig.getDefaultIndirectConfiguration());
-//        storage.setRelationSearchItem(searchBoxConfig.getDefaultRelationConfiguration());
-//        storage.setScopeSearchItem(searchBoxConfig.getDefaultSearchScopeConfiguration());
-//        storage.setObjectTypeSearchItem(searchBoxConfig.getDefaultObjectTypeConfiguration());
-//        storage.setTenantSearchItem(searchBoxConfig.getDefaultTenantConfiguration());
-//        storage.setProjectSearchItem(searchBoxConfig.getDefaultProjectConfiguration());
-
-        return storage;
+        return (MemberPanelStorage) pageStorage;
     }
 
     public MemberPanelStorage initMemberStorage(String storageKey) {
