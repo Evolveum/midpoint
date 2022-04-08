@@ -13,6 +13,7 @@ import java.io.IOException;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.validator.ObjectValidator;
 import com.evolveum.midpoint.schema.validator.ValidationItem;
 import com.evolveum.midpoint.schema.validator.ValidationResult;
@@ -42,12 +43,13 @@ public class TestInitialObjects extends AbstractGuiUnitTest {
 
         StringBuilder errorsSb = new StringBuilder();
 
+        //noinspection ConstantConditions
         for (File file : DIR_INITIAL_OBJECTS.listFiles()) {
             if (file.isFile()) {
                 try {
                     testInitialObject(validator, errorsSb, file);
                 } catch (Throwable e) {
-                    String msg = "Error processing file "+file.getName()+": "+e.getMessage();
+                    String msg = "Error processing file " + file.getName() + ": " + e.getMessage();
                     LOGGER.error(msg, e);
                     display(msg, e);
                     throw e;
@@ -63,11 +65,11 @@ public class TestInitialObjects extends AbstractGuiUnitTest {
     private <O extends ObjectType> void testInitialObject(ObjectValidator validator, StringBuilder errorsSb, File file) throws SchemaException, IOException {
         PrismObject<O> object = getPrismContext().parseObject(file);
         ValidationResult validationResult = validator.validate(object);
-        if (validationResult.isEmpty()) {
-            display("Checked "+object+": no warnings");
+        if (validationResult.isEmpty() || isIgnoredWarning(validationResult)) {
+            display("Checked " + object + ": no warnings");
             return;
         }
-        display("Validation warnings for "+object, validationResult);
+        display("Validation warnings for " + object, validationResult);
         for (ValidationItem valItem : validationResult.getItems()) {
             errorsSb.append(file.getName());
             errorsSb.append(" ");
@@ -76,5 +78,14 @@ public class TestInitialObjects extends AbstractGuiUnitTest {
             valItem.shortDump(errorsSb);
             errorsSb.append("\n");
         }
+    }
+
+    private boolean isIgnoredWarning(ValidationResult validationResult) {
+        for (ValidationItem item : validationResult.getItems()) {
+            if (!item.getStatus().equals(OperationResultStatus.WARNING)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
