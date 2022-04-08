@@ -6,12 +6,6 @@
  */
 package com.evolveum.midpoint.web.session;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.gui.impl.session.ContainerTabStorage;
 import com.evolveum.midpoint.gui.impl.session.WorkItemsStorage;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -19,6 +13,14 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * @author lazyman
@@ -90,11 +92,35 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return mainMenuState;
     }
 
-    public ConfigurationStorage getConfiguration() {
-        if (pageStorageMap.get(KEY_CONFIGURATION) == null) {
-            pageStorageMap.put(KEY_CONFIGURATION, new ConfigurationStorage());
+    public <T extends PageStorage> T getPageStorage(@NotNull String key, @NotNull Class<T> type) {
+        PageStorage ps = pageStorageMap.get(key);
+        if (ps == null) {
+            return null;
         }
-        return (ConfigurationStorage) pageStorageMap.get(KEY_CONFIGURATION);
+
+        if (!type.isAssignableFrom(ps.getClass())) {
+            throw new IllegalStateException("Page storage map contains key '" + key + "' with different type of object ("
+                    + ps.getClass().getName() + ") that expected '" + type.getClass().getName() + "'");
+        }
+
+        return (T) ps;
+    }
+
+    public <T extends PageStorage> void setPageStorage(@NotNull String key, T value) {
+        if (value == null) {
+            pageStorageMap.remove(key);
+        } else {
+            pageStorageMap.put(key, value);
+        }
+    }
+
+    public GenericPageStorage getConfiguration() {
+        GenericPageStorage ps = getPageStorage(KEY_CONFIGURATION, GenericPageStorage.class);
+        if (ps == null) {
+            ps = new GenericPageStorage();
+            setPageStorage(KEY_CONFIGURATION, ps);
+        }
+        return ps;
     }
 
     public OrgStructurePanelStorage getOrgStructurePanelStorage() {
