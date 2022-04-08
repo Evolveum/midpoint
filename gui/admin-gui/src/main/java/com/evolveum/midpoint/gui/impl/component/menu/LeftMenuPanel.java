@@ -629,9 +629,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return collectionNameParam.toString().equals(objectView.getViewIdentifier());
     }
 
-
     private void createSystemConfigurationMenu(SideBarMenuItem item) {
-        MainMenuItem system = createMainMenuItem("PageAdmin.menu.top.configuration.basic", "fa fa-cog", com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
+        MainMenuItem system = createMainMenuItem("PageAdmin.menu.top.configuration.basic", GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON, com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
         PageBase page = getPageBase();
         if (page != null && PageBaseSystemConfiguration.class.isAssignableFrom(page.getClass())) {
 
@@ -640,57 +639,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
             system.addMenuItem(menuItem);
         }
         item.addMainMenuItem(system);
-
-//        MainMenuItem systemConfigMenu = createMainMenuItem("PageAdmin.menu.top.configuration.basic", "fa fa-cog");
-//        createSystemConfigurationTabMebu(systemConfigMenu);
-//        item.addMainMenuItem(systemConfigMenu);
-    }
-
-    private void createSystemConfigurationTabMebu(MainMenuItem systemConfigMenu) {
-//            MenuItem menu = new MenuItem("System NEW", PageSystemConfigurationNew.class);
-//        systemConfigMenu.addMenuItem(menu);
-
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.basic",
-                PageSystemConfiguration.CONFIGURATION_TAB_BASIC);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.objectPolicy",
-                PageSystemConfiguration.CONFIGURATION_TAB_OBJECT_POLICY);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.globalPolicyRule",
-                PageSystemConfiguration.CONFIGURATION_TAB_GLOBAL_POLICY_RULE);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.globalAccountSynchronization",
-                PageSystemConfiguration.CONFIGURATION_TAB_GLOBAL_ACCOUNT_SYNCHRONIZATION);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.cleanupPolicy",
-                PageSystemConfiguration.CONFIGURATION_TAB_CLEANUP_POLICY);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.notifications",
-                PageSystemConfiguration.CONFIGURATION_TAB_NOTIFICATION);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.logging",
-                PageSystemConfiguration.CONFIGURATION_TAB_LOGGING);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.profiling",
-                PageSystemConfiguration.CONFIGURATION_TAB_PROFILING);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.adminGui",
-                PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.workflow",
-                PageSystemConfiguration.CONFIGURATION_TAB_WORKFLOW);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.roleManagement",
-                PageSystemConfiguration.CONFIGURATION_TAB_ROLE_MANAGEMENT);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.internals",
-                PageSystemConfiguration.CONFIGURATION_TAB_INTERNALS);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.deploymentInformation",
-                PageSystemConfiguration.CONFIGURATION_TAB_DEPLOYMENT_INFORMATION);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.accessCertification",
-                PageSystemConfiguration.CONFIGURATION_TAB_ACCESS_CERTIFICATION);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.infrastructure",
-                PageSystemConfiguration.CONFIGURATION_TAB_INFRASTRUCTURE);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.fullTextSearch",
-                PageSystemConfiguration.CONFIGURATION_TAB_FULL_TEXT_SEARCH);
-    }
-
-    private void addSystemMenuItem(MainMenuItem mainItem, String key, int tabIndex) {
-        PageParameters params = new PageParameters();
-        params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, tabIndex);
-
-        boolean isTabActive = classMatches(PageSystemConfiguration.class) && tabIndex == getSelectedTabForConfiguration(getPageBase());
-        MenuItem menu = new MenuItem(key, PageSystemConfiguration.class, params, isTabActive);
-        mainItem.addMenuItem(menu);
     }
 
     private int getSelectedTabForConfiguration(WebPage page) {
