@@ -114,27 +114,25 @@ public class SessionStorage implements Serializable, DebugDumpable {
         }
     }
 
-    public GenericPageStorage getConfiguration() {
-        GenericPageStorage ps = getPageStorage(KEY_CONFIGURATION, GenericPageStorage.class);
+    private <T extends PageStorage> T getPageStorage(@NotNull String key, @NotNull T defaultValue) {
+        T ps = getPageStorage(key, (Class<T>) defaultValue.getClass());
         if (ps == null) {
-            ps = new GenericPageStorage();
-            setPageStorage(KEY_CONFIGURATION, ps);
+            ps = defaultValue;
+            setPageStorage(key, ps);
         }
         return ps;
     }
 
+    public GenericPageStorage getConfiguration() {
+        return getPageStorage(KEY_CONFIGURATION, new GenericPageStorage());
+    }
+
     public OrgStructurePanelStorage getOrgStructurePanelStorage() {
-        if (pageStorageMap.get(KEY_ORG_STRUCTURE_PANEL_STORAGE) == null) {
-            pageStorageMap.put(KEY_ORG_STRUCTURE_PANEL_STORAGE, new OrgStructurePanelStorage());
-        }
-        return (OrgStructurePanelStorage) pageStorageMap.get(KEY_ORG_STRUCTURE_PANEL_STORAGE);
+        return getPageStorage(KEY_ORG_STRUCTURE_PANEL_STORAGE, new OrgStructurePanelStorage());
     }
 
     public ObjectListStorage getObjectListStorage(String key) {
-        if (pageStorageMap.get(key) != null) {
-            pageStorageMap.put(key, new ObjectListStorage());
-        }
-        return (ObjectListStorage) pageStorageMap.get(key);
+        return getPageStorage(key, new ObjectListStorage());
     }
 
     public ObjectDetailsStorage getObjectDetailsStorage(String key) {
@@ -148,17 +146,11 @@ public class SessionStorage implements Serializable, DebugDumpable {
     }
 
     public RoleCatalogStorage getRoleCatalog() {
-        if (pageStorageMap.get(KEY_ROLE_CATALOG) == null) {
-            pageStorageMap.put(KEY_ROLE_CATALOG, new RoleCatalogStorage());
-        }
-        return (RoleCatalogStorage) pageStorageMap.get(KEY_ROLE_CATALOG);
+        return getPageStorage(KEY_ROLE_CATALOG, new RoleCatalogStorage());
     }
 
     public AuditLogStorage getAuditLog() {
-        if (pageStorageMap.get(KEY_AUDIT_LOG) == null) {
-            pageStorageMap.put(KEY_AUDIT_LOG, new AuditLogStorage());
-        }
-        return (AuditLogStorage) pageStorageMap.get(KEY_AUDIT_LOG);
+        return getPageStorage(KEY_AUDIT_LOG, new AuditLogStorage());
     }
 
     public AuditLogStorage getObjectHistoryAuditLog(QName objectType) {
@@ -182,10 +174,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     }
 
     private ContainerTabStorage getContainerTabStorage(String key) {
-        if (pageStorageMap.get(key) == null) {
-            pageStorageMap.put(key, new ContainerTabStorage());
-        }
-        return (ContainerTabStorage) pageStorageMap.get(key);
+        return getPageStorage(key, new ContainerTabStorage());
     }
 
     public ContainerTabStorage getNotificationConfigurationTabMailServerTableStorage() {
@@ -213,24 +202,15 @@ public class SessionStorage implements Serializable, DebugDumpable {
     }
 
     public WorkItemsStorage getWorkItemStorage() {
-        if (pageStorageMap.get(KEY_WORK_ITEMS) == null) {
-            pageStorageMap.put(KEY_WORK_ITEMS, new WorkItemsStorage());
-        }
-        return (WorkItemsStorage) pageStorageMap.get(KEY_WORK_ITEMS);
+        return getPageStorage(KEY_WORK_ITEMS, new WorkItemsStorage());
     }
 
     public CertCampaignsStorage getCertCampaigns() {
-        if (pageStorageMap.get(KEY_CERT_CAMPAIGNS) == null) {
-            pageStorageMap.put(KEY_CERT_CAMPAIGNS, new CertCampaignsStorage());
-        }
-        return (CertCampaignsStorage) pageStorageMap.get(KEY_CERT_CAMPAIGNS);
+        return getPageStorage(KEY_CERT_CAMPAIGNS, new CertCampaignsStorage());
     }
 
     public CertDecisionsStorage getCertDecisions() {
-        if (pageStorageMap.get(KEY_CERT_DECISIONS) == null) {
-            pageStorageMap.put(KEY_CERT_DECISIONS, new CertDecisionsStorage());
-        }
-        return (CertDecisionsStorage) pageStorageMap.get(KEY_CERT_DECISIONS);
+        return getPageStorage(KEY_CERT_DECISIONS, new CertDecisionsStorage());
     }
 
     public UserProfileStorage getUserProfile() {
