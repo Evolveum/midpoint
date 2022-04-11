@@ -29,6 +29,17 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype;
+import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
+import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
+import com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate;
+import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
+import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -172,10 +183,8 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
@@ -218,33 +227,26 @@ public final class WebComponentUtil {
      */
     private static RelationRegistry staticallyProvidedRelationRegistry;
 
-    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP;
     private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> CREATE_NEW_OBJECT_PAGE_MAP;
 
-    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP_NEW;
+    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP;
 
     static {
         OBJECT_DETAILS_PAGE_MAP = new HashMap<>();
+        OBJECT_DETAILS_PAGE_MAP.put(UserType.class, PageUser.class);
+        OBJECT_DETAILS_PAGE_MAP.put(OrgType.class, PageOrg.class);
+        OBJECT_DETAILS_PAGE_MAP.put(RoleType.class, PageRole.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ServiceType.class, PageService.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ResourceType.class, PageResource.class);
+        OBJECT_DETAILS_PAGE_MAP.put(TaskType.class, PageTask.class);
         OBJECT_DETAILS_PAGE_MAP.put(ReportType.class, PageReport.class);
-        OBJECT_DETAILS_PAGE_MAP.put(ShadowType.class, PageAccount.class);
-    }
 
-    static {
-        OBJECT_DETAILS_PAGE_MAP_NEW = new HashMap<>();
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(UserType.class, com.evolveum.midpoint.gui.impl.page.admin.user.PageUser.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(OrgType.class, PageOrg.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(RoleType.class, com.evolveum.midpoint.gui.impl.page.admin.role.PageRole.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ServiceType.class, com.evolveum.midpoint.gui.impl.page.admin.service.PageService.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ResourceType.class, com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(TaskType.class, com.evolveum.midpoint.gui.impl.page.admin.task.PageTask.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ReportType.class, com.evolveum.midpoint.gui.impl.page.admin.report.PageReport.class);
-
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(CaseType.class, com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ArchetypeType.class, com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ShadowType.class, PageShadow.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectCollectionType.class, com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectTemplateType.class, com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(MessageTemplateType.class, PageMessageTemplate.class);
+        OBJECT_DETAILS_PAGE_MAP.put(CaseType.class, PageCase.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ArchetypeType.class, PageArchetype.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ShadowType.class, PageShadow.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ObjectCollectionType.class, PageObjectCollection.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ObjectTemplateType.class, PageObjectTemplate.class);
+        OBJECT_DETAILS_PAGE_MAP.put(MessageTemplateType.class, PageMessageTemplate.class);
     }
 
     static {
@@ -2555,16 +2557,10 @@ public final class WebComponentUtil {
     }
 
     public static boolean hasDetailsPage(Class<?> clazz) {
-        if (isNewDesignEnabled()) {
-            return OBJECT_DETAILS_PAGE_MAP_NEW.containsKey(clazz);
-        }
         return OBJECT_DETAILS_PAGE_MAP.containsKey(clazz);
     }
 
     public static Class<? extends PageBase> getObjectDetailsPage(Class<? extends ObjectType> type) {
-        if (isNewDesignEnabled()) {
-            return OBJECT_DETAILS_PAGE_MAP_NEW.get(type);
-        }
         return OBJECT_DETAILS_PAGE_MAP.get(type);
     }
 
@@ -2572,9 +2568,6 @@ public final class WebComponentUtil {
         if (ResourceType.class.equals(type)) {
             return CREATE_NEW_OBJECT_PAGE_MAP.get(type);
         } else {
-            if (isNewDesignEnabled()) {
-                return OBJECT_DETAILS_PAGE_MAP_NEW.get(type);
-            }
             return OBJECT_DETAILS_PAGE_MAP.get(type);
         }
     }

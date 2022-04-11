@@ -201,10 +201,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
 
     public <AH extends AssignmentHolderType> PrismObject<AH> getFocusObject(){
-        AssignmentHolderTypeMainPanel mainPanel = findParent(AssignmentHolderTypeMainPanel.class);
-        if (mainPanel != null) {
-            return mainPanel.getObjectWrapper().getObject();
-        }
         PageBase pageBase = getPageBase();
         if (pageBase != null && pageBase instanceof PageAssignmentHolderDetails) {
             PageAssignmentHolderDetails pageAssignmentHolderDetails = (PageAssignmentHolderDetails) pageBase;

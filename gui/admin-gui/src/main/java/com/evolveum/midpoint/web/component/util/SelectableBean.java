@@ -48,4 +48,5 @@ public interface SelectableBean<T extends Serializable> extends SelectableRow<T>
      * FIXME: TEMPORARY SOLUTION!
      */
     void setCustomData(Object data);
+
 }

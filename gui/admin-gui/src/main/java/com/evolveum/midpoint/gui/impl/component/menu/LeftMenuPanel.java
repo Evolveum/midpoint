@@ -449,11 +449,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private Class<? extends PageBase> getDetailsPage(PageTypes pageDesc) {
-        CompiledGuiProfile guiProfile = getPageBase().getCompiledGuiProfile();
-        if (guiProfile.isUseNewDesign()) {
-            return pageDesc.getDetailsPage();
-        }
-        return pageDesc.getOldDetailsPage();
+        return pageDesc.getDetailsPage();
     }
 
     private boolean isEditForAdminObjectDetails() {
