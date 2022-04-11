@@ -13,6 +13,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeSynchronizationPolicy;
+
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -150,7 +159,9 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
         assertNotNull(userType);
         userType.asObjectable().setName(new PolyStringType("JACK"));
 
-        SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE, Collections.singletonList(CORRELATION_CASE_INSENSITIVE), RESOURCE_DUMMY_FILE, task, result);
+        SynchronizationContext<UserType> syncCtx = createSynchronizationContext(
+                ACCOUNT_SHADOW_JACK_DUMMY_FILE, Collections.singletonList(CORRELATION_CASE_INSENSITIVE),
+                task, result);
 
         try {
             boolean matchedUsers = evaluator.matchFocusByCorrelationRule(syncCtx, userType, result);
@@ -174,7 +185,8 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
         assertNotNull(userType);
         userType.asObjectable().setEmployeeNumber("JaCk");
 
-        SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE, Collections.singletonList(CORRELATION_CASE_INSENSITIVE_EMPL_NUMBER), RESOURCE_DUMMY_FILE, task, result);
+        SynchronizationContext<UserType> syncCtx = createSynchronizationContext(
+                ACCOUNT_SHADOW_JACK_DUMMY_FILE, Collections.singletonList(CORRELATION_CASE_INSENSITIVE_EMPL_NUMBER), task, result);
 
         try {
             boolean matchedUsers = evaluator.matchFocusByCorrelationRule(syncCtx, userType, result);
@@ -188,7 +200,11 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
         }
     }
 
-    private SynchronizationContext<UserType> createSynchronizationContext(File account, List<String> correlationFilters, File resource, Task task, OperationResult result) throws SchemaException, IOException {
+    private SynchronizationContext<UserType> createSynchronizationContext(
+            File account,
+            List<String> correlationFilters,
+            Task task,
+            OperationResult result) throws SchemaException, IOException, ConfigurationException, ObjectNotFoundException {
 
         ShadowType shadow = parseObjectType(account, ShadowType.class);
 
@@ -198,8 +214,8 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
             conditionalSearchFilterTypes.add(query);
         }
 
-
-        ResourceType resourceType = parseObjectType(resource, ResourceType.class);
+        ResourceType resourceType =
+                repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result).asObjectable();
         resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().clear();
         resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().addAll(conditionalSearchFilterTypes);
 
@@ -211,12 +227,15 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
                 shadow.asPrismObject(),
                 null,
                 resourceType.asPrismObject(),
-                null,
+                SchemaConstants.CHANNEL_USER_URI,
                 beans,
                 task,
                 null);
         syncCtx.setSystemConfiguration(systemConfiguration);
-        syncCtx.setObjectSynchronization(objectSynchronizationType);
+
+        ResourceObjectTypeSynchronizationPolicy policy = ResourceObjectTypeSynchronizationPolicy.forStandalone(
+                objectSynchronizationType, ResourceSchemaFactory.getCompleteSchemaRequired(resourceType));
+        syncCtx.setObjectSynchronizationPolicy(policy);
         syncCtx.setFocusClass(UserType.class);
         return syncCtx;
     }
@@ -265,7 +284,7 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
 
 
         SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE,
-                Arrays.asList(CORRELATION_WITH_CONDITION, CORRELATION_WITH_CONDITION_EMPL_NUMBER), RESOURCE_DUMMY_FILE, task, result);
+                Arrays.asList(CORRELATION_WITH_CONDITION, CORRELATION_WITH_CONDITION_EMPL_NUMBER), task, result);
 
         boolean matches = evaluator.matchFocusByCorrelationRule(syncCtx, userType, result);
 
@@ -283,7 +302,7 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
 
 
         SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE,
-                Arrays.asList(CORRELATION_WITH_CONDITION, CORRELATION_WITH_CONDITION_NAME), RESOURCE_DUMMY_FILE, task, result);
+                Arrays.asList(CORRELATION_WITH_CONDITION, CORRELATION_WITH_CONDITION_NAME), task, result);
 
         boolean matches = evaluator.matchFocusByCorrelationRule(syncCtx, userType, result);
 

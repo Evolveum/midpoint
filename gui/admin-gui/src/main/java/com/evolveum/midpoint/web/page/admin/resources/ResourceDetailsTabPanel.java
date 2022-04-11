@@ -12,6 +12,11 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeSynchronizationPolicy;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -25,7 +30,6 @@ import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -192,26 +196,21 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
         }
 
         try {
-            for (ResourceObjectTypeDefinitionType objectType : objectTypes) {
-                ObjectSynchronizationType objectSynchronization = null;
-                if (resource.getSynchronization() != null
-                        && resource.getSynchronization().getObjectSynchronization() != null) {
-
-                    objectSynchronization = getSynchronizationFor(objectType,
-                            resource.getSynchronization().getObjectSynchronization(),
-                            resource.asPrismObject());
-
-                }
-                List<TaskType> syncTask = new ArrayList<>();
-                if (objectSynchronization != null) {
-                    syncTask = getTaskFor(tasks, objectSynchronization, resource.asPrismObject());
+            for (ResourceObjectTypeDefinitionType objectTypeDefBean : objectTypes) {
+                ResourceObjectTypeSynchronizationPolicy syncPolicy =
+                        ResourceObjectTypeSynchronizationPolicy.forDefinitionBean(objectTypeDefBean, resource);
+                List<TaskType> syncTasks;
+                if (syncPolicy != null) {
+                    syncTasks = getTasksFor(tasks, syncPolicy, resource.asPrismObject());
+                } else {
+                    syncTasks = new ArrayList<>();
                 }
 
-                ResourceConfigurationDto resourceConfig = new ResourceConfigurationDto(objectType,
-                        objectSynchronization != null, syncTask);
+                ResourceConfigurationDto resourceConfig =
+                        new ResourceConfigurationDto(objectTypeDefBean, syncPolicy != null, syncTasks);
                 configs.add(resourceConfig);
             }
-        } catch (SchemaException ex) {
+        } catch (SchemaException | ConfigurationException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Could not determine resource configuration", ex);
         }
 
@@ -251,7 +250,7 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
                 getPageBase().getString("PageResource.resource.mappings"));
         infoBoxType.setNumber(getPageBase().getString(numberKey));
 
-        if (isSynchronizationDefined(resource)) {
+        if (ResourceTypeUtil.isSynchronizationDefined(resource)) {
             infoBoxType.setDescription(getPageBase().getString("PageResource.resource.sync"));
         }
 
@@ -387,27 +386,8 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
 
     }
 
-    private ObjectSynchronizationType getSynchronizationFor(
-            ResourceObjectTypeDefinitionType objectTypesDefinition,
-            List<ObjectSynchronizationType> synchronizationPolicies, PrismObject<ResourceType> resource)
-            throws SchemaException {
-
-        for (ObjectSynchronizationType synchronizationPolicy : synchronizationPolicies) {
-            if (SynchronizationUtils.isPolicyApplicable(objectTypesDefinition.getObjectClass(),
-                    objectTypesDefinition.getKind(), objectTypesDefinition.getIntent(), synchronizationPolicy,
-                    resource)) {
-                if (synchronizationPolicy.getObjectClass().isEmpty()) {
-                    synchronizationPolicy.getObjectClass().add(objectTypesDefinition.getObjectClass());
-                }
-                return synchronizationPolicy;
-            }
-        }
-
-        return null;
-    }
-
-    private List<TaskType> getTaskFor(List<PrismObject<TaskType>> tasks,
-            ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource)
+    private List<TaskType> getTasksFor(List<PrismObject<TaskType>> tasks,
+            ResourceObjectTypeSynchronizationPolicy synchronizationPolicy, PrismObject<ResourceType> resource)
             throws SchemaException {
         List<TaskType> syncTasks = new ArrayList<>();
         for (PrismObject<TaskType> task : tasks) {
@@ -423,7 +403,7 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
             }
 
             // TODO: unify with determineObjectClass in Utils (model-impl, which
-            // is not accessible in admin-gui)
+            //  is not accessible in admin-gui)
             if (taskObjectClassValue == null) {
                 ResourceObjectDefinition taskObjectClassDef = null;
                 ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
@@ -448,8 +428,7 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
                 }
             }
 
-            if (SynchronizationUtils.isPolicyApplicable(taskObjectClassValue, taskKindValue, taskIntentValue,
-                    synchronizationPolicy, resource, true)) {
+            if (synchronizationPolicy.isApplicableTo(taskObjectClassValue, taskKindValue, taskIntentValue, true)) {
                 syncTasks.add(task.asObjectable());
             }
         }
@@ -458,41 +437,6 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
     }
 
     // TODO: ####### start of move to ResourceTypeUtil ###########
-
-    private boolean isOutboundDefined(ResourceAttributeDefinitionType attr) {
-        return attr.getOutbound() != null
-                && (attr.getOutbound().getSource() != null || attr.getOutbound().getExpression() != null);
-    }
-
-    private boolean isInboundDefined(ResourceAttributeDefinitionType attr) {
-        return attr.getInbound() != null && CollectionUtils.isNotEmpty(attr.getInbound())
-                && (attr.getInbound().get(0).getTarget() != null
-                || attr.getInbound().get(0).getExpression() != null);
-    }
-
-    private boolean isSynchronizationDefined(ResourceType resource) {
-        if (resource.getSynchronization() == null) {
-            return false;
-        }
-
-        if (resource.getSynchronization().getObjectSynchronization().isEmpty()) {
-            return false;
-        }
-
-        for (ObjectSynchronizationType syncType : resource.getSynchronization().getObjectSynchronization()) {
-            if (syncType.isEnabled() != null && !syncType.isEnabled()) {
-                continue;
-            }
-
-            if (CollectionUtils.isEmpty(syncType.getReaction())) {
-                continue;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
 
     private SourceTarget determineIfSourceOrTarget(ResourceType resource) {
 
@@ -519,11 +463,11 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
                     }
 
                     if (!hasOutbound) {
-                        hasOutbound = isOutboundDefined(attr);
+                        hasOutbound = ResourceTypeUtil.isOutboundDefined(attr);
                     }
 
                     if (!hasInbound) {
-                        hasInbound = isInboundDefined(attr);
+                        hasInbound = ResourceTypeUtil.isInboundDefined(attr);
                     }
                 }
 

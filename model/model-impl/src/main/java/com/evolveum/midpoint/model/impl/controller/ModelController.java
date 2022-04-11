@@ -24,6 +24,8 @@ import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 
 import com.evolveum.midpoint.cases.api.CaseManager;
 
+import com.evolveum.midpoint.schema.util.*;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,10 +78,6 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
@@ -1491,13 +1489,14 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         try {
             resource = getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result).asObjectable();
 
-            if (resource.getSynchronization() == null || resource.getSynchronization().getObjectSynchronization().isEmpty()) {
+            List<ObjectSynchronizationType> allSyncDefBeans = ResourceTypeUtil.getAllSynchronizationBeans(resource);
+            if (allSyncDefBeans.isEmpty()) {
                 OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE + ".check");
                 subresult.recordWarning("No synchronization settings in " + resource + ", import will probably do nothing");
                 LOGGER.warn("No synchronization settings in " + resource + ", import will probably do nothing");
             } else {
-                ObjectSynchronizationType syncType = resource.getSynchronization().getObjectSynchronization().iterator().next();
-                if (syncType.isEnabled() != null && !syncType.isEnabled()) {
+                boolean anyEnabled = allSyncDefBeans.stream().anyMatch(ResourceTypeUtil::isEnabled);
+                if (!anyEnabled) {
                     OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE + ".check");
                     subresult.recordWarning("Synchronization is disabled for " + resource + ", import will probably do nothing");
                     LOGGER.warn("Synchronization is disabled for " + resource + ", import will probably do nothing");

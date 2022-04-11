@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.impl.sync;
 import static com.evolveum.midpoint.common.SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta;
 import static com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils.isLogDebug;
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
-import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
@@ -30,28 +29,19 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.RefinedDefinitionUtil;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -93,12 +83,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     @Autowired private SynchronizationExpressionsEvaluator synchronizationExpressionsEvaluator;
     @Autowired private ContextFactory contextFactory;
     @Autowired private Clockwork clockwork;
-    @Autowired private ExpressionFactory expressionFactory;
-    @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
     @Autowired private ClockworkMedic clockworkMedic;
     @Autowired private ModelBeans beans;
+    @Autowired private SynchronizationContextLoader synchronizationContextLoader;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -116,7 +105,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             logStart(change);
             checkConsistence(change);
 
-            SynchronizationContext<?> syncCtx = loadSynchronizationContextFromChange(change, task, result);
+            SynchronizationContext<?> syncCtx = synchronizationContextLoader.
+                    loadSynchronizationContextFromChange(change, task, result);
 
             syncCtx.checkNotInMaintenance(result);
 
@@ -180,163 +170,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             LOGGER.warn("Found {} owners for shadow oid {}, returning first owner.", owners.size(), shadowOid);
         }
         return owners.get(0);
-    }
-
-    private SynchronizationContext<FocusType> loadSynchronizationContextFromChange(
-            @NotNull ResourceObjectShadowChangeDescription change, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
-
-        PrismObject<ResourceType> resource =
-                MiscUtil.requireNonNull(
-                        change.getResource(),
-                        () -> new IllegalStateException("No resource in change description: " + change));
-
-        SynchronizationContext<FocusType> syncCtx = loadSynchronizationContext(
-                change.getShadowedResourceObject(),
-                change.getObjectDelta(),
-                resource,
-                change.getSourceChannel(),
-                change.getItemProcessingIdentifier(),
-                null,
-                task,
-                result);
-        if (Boolean.FALSE.equals(change.getShadowExistsInRepo())) {
-            syncCtx.setShadowExistsInRepo(false);
-            // TODO shadowExistsInRepo in syncCtx perhaps should be tri-state as well
-        }
-        LOGGER.trace("SYNCHRONIZATION context created: {}", syncCtx);
-        return syncCtx;
-    }
-
-    @Override
-    public <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(
-            @NotNull PrismObject<ShadowType> shadowedResourceObject,
-            ObjectDelta<ShadowType> resourceObjectDelta,
-            @NotNull PrismObject<ResourceType> resource,
-            String sourceChanel,
-            String itemProcessingIdentifier,
-            PrismObject<SystemConfigurationType> explicitSystemConfiguration,
-            Task task,
-            OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
-
-        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(
-                shadowedResourceObject,
-                resourceObjectDelta,
-                resource,
-                sourceChanel,
-                beans,
-                task,
-                itemProcessingIdentifier);
-        setSystemConfiguration(syncCtx, explicitSystemConfiguration, result);
-
-        SynchronizationType synchronization = resource.asObjectable().getSynchronization();
-        if (synchronization == null) {
-            LOGGER.trace("No synchronization configuration, exiting");
-            return syncCtx;
-        }
-
-        ObjectSynchronizationDiscriminatorType synchronizationDiscriminator =
-                evaluateSynchronizationSorter(synchronization, syncCtx, task, result);
-        if (synchronizationDiscriminator != null) {
-            syncCtx.setForceIntentChange(true);
-            LOGGER.trace("Setting synchronization situation to synchronization context: {}",
-                    synchronizationDiscriminator.getSynchronizationSituation());
-            syncCtx.setSituation(synchronizationDiscriminator.getSynchronizationSituation());
-
-            // TODO This is dubious: How could be the linked owner set in syncCtx at this moment?
-            F owner = syncCtx.getLinkedOwner();
-            if (owner != null && alreadyLinked(owner, syncCtx.getShadowedResourceObject())) {
-                LOGGER.trace("Setting linked owner in synchronization context: {}", synchronizationDiscriminator.getOwner());
-                //noinspection unchecked
-                syncCtx.setLinkedOwner((F) synchronizationDiscriminator.getOwner());
-            }
-
-            LOGGER.trace("Setting correlated owner in synchronization context: {}", synchronizationDiscriminator.getOwner());
-            //noinspection unchecked
-            syncCtx.setCorrelatedOwner((F) synchronizationDiscriminator.getOwner());
-        }
-
-        for (ObjectSynchronizationType objectSynchronization : synchronization.getObjectSynchronization()) {
-            if (isPolicyApplicable(objectSynchronization, synchronizationDiscriminator, syncCtx, result)) {
-                syncCtx.setObjectSynchronization(objectSynchronization);
-                break;
-            }
-        }
-
-        processTag(syncCtx, result);
-
-        return syncCtx;
-    }
-
-    private <F extends FocusType> void setSystemConfiguration(SynchronizationContext<F> syncCtx,
-            PrismObject<SystemConfigurationType> explicitSystemConfiguration, OperationResult result) throws SchemaException {
-        if (explicitSystemConfiguration != null) {
-            syncCtx.setSystemConfiguration(explicitSystemConfiguration);
-        } else {
-            syncCtx.setSystemConfiguration(systemObjectCache.getSystemConfiguration(result));
-        }
-    }
-
-    private <F extends FocusType> void processTag(SynchronizationContext<F> syncCtx, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        PrismObject<ShadowType> applicableShadow = syncCtx.getShadowedResourceObject();
-        if (applicableShadow.asObjectable().getTag() != null) {
-            return;
-        }
-        ResourceObjectTypeDefinition rOcd = syncCtx.findObjectTypeDefinition();
-        if (rOcd == null) {
-            // We probably do not have kind/intent yet.
-            return;
-        }
-        ResourceObjectMultiplicityType multiplicity = rOcd.getObjectMultiplicity();
-        if (!RefinedDefinitionUtil.isMultiaccount(multiplicity)) {
-            return;
-        }
-        String tag = synchronizationExpressionsEvaluator.generateTag(multiplicity, applicableShadow,
-                syncCtx.getResource(), syncCtx.getSystemConfiguration(), "tag expression for " + applicableShadow, syncCtx.getTask(), result);
-        LOGGER.debug("SYNCHRONIZATION: TAG generated: {}", tag);
-        syncCtx.setTag(tag);
-    }
-
-    private <F extends FocusType> boolean isPolicyApplicable(ObjectSynchronizationType synchronizationPolicy,
-            ObjectSynchronizationDiscriminatorType synchronizationDiscriminator, SynchronizationContext<F> syncCtx,
-            OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return SynchronizationServiceUtils.isPolicyApplicable(synchronizationPolicy, synchronizationDiscriminator, expressionFactory, syncCtx, result);
-    }
-
-    private <F extends FocusType> ObjectSynchronizationDiscriminatorType evaluateSynchronizationSorter(
-            @NotNull SynchronizationType synchronization, @NotNull SynchronizationContext<F> syncCtx,
-            Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-
-        ObjectSynchronizationSorterType synchronizationSorter = synchronization.getObjectSynchronizationSorter();
-        if (synchronizationSorter == null || synchronizationSorter.getExpression() == null) {
-            return null;
-        }
-
-        ExpressionType classificationExpression = synchronizationSorter.getExpression();
-        String desc = "synchronization divider type ";
-        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, syncCtx.getShadowedResourceObject(), null,
-                syncCtx.getResource(), syncCtx.getSystemConfiguration(), null, syncCtx.getPrismContext());
-        variables.put(ExpressionConstants.VAR_CHANNEL, syncCtx.getChannel(), String.class);
-        try {
-            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
-            //noinspection unchecked
-            PrismPropertyDefinition<ObjectSynchronizationDiscriminatorType> discriminatorDef = prismContext.getSchemaRegistry()
-                    .findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_OBJECT_SYNCHRONIZATION_DISCRIMINATOR);
-            PrismPropertyValue<ObjectSynchronizationDiscriminatorType> discriminator = ExpressionUtil.evaluateExpression(
-                    variables, discriminatorDef, classificationExpression, syncCtx.getExpressionProfile(),
-                    expressionFactory, desc, task, result);
-            return getRealValue(discriminator);
-        } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-        }
     }
 
     /**
@@ -413,10 +246,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         } catch (Throwable t) {
             task.recordObjectActionExecuted(object, ChangeType.MODIFY, t);
         }
-    }
-
-    private <F extends FocusType> boolean alreadyLinked(F focus, PrismObject<ShadowType> shadow) {
-        return focus.getLinkRef().stream().anyMatch(link -> link.getOid().equals(shadow.getOid()));
     }
 
     private void checkConsistence(ResourceObjectShadowChangeDescription change) {
@@ -519,7 +348,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             throws ConfigurationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 
-        SynchronizationContext<F> synchronizationContext = loadSynchronizationContext(
+        SynchronizationContext<F> synchronizationContext = synchronizationContextLoader.loadSynchronizationContext(
                 shadowedResourceObject,
                 null,
                 resourceType.asPrismObject(),

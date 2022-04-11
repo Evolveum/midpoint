@@ -4155,6 +4155,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
              </xsd:element>
+            <xsd:element name="synchronization" type="tns:ObjectSynchronizationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO better description
+
+                        How this object type is synchronized (from the resource to midPoint).
+                        Before 4.6 this was part of the "synchronization" section of the resource definition.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -8913,6 +8926,8 @@
                         defined by schemaHandling part will be used. However this element can define
                         a more specific kind in case that the schemaHandling part is ambiguous
                         (e.g. the same objectclass is used for two kinds).
+
+                        Should not be used if the definition is embedded in schemaHandling.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -8923,6 +8938,8 @@
                         defined by schemaHandling part will be used. However this element can define
                         a more specific intent in case that the schemaHandling part is ambiguous
                         (e.g. the same objectclass is used for two intents).
+
+                        Should not be used if the definition is embedded in schemaHandling.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

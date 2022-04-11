@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -482,19 +483,17 @@ public class ResourceTypeUtil {
         return MidPointConstants.NS_RI;
     }
 
-    public static boolean isSynchronizationOpportunistic(ResourceType resourceType) {
-        SynchronizationType synchronization = resourceType.getSynchronization();
-        if (synchronization == null) {
+    /** TODO why we ask only about the first synchronization?! */
+    public static boolean isFirstSynchronizationOpportunistic(ResourceType resource) {
+        List<ObjectSynchronizationType> syncBeans = getAllSynchronizationBeans(resource);
+        if (syncBeans.isEmpty()) {
             return false;
         }
-        if (synchronization.getObjectSynchronization().isEmpty()) {
+        ObjectSynchronizationType first = syncBeans.iterator().next();
+        if (first.isEnabled() != null && !first.isEnabled()) {
             return false;
         }
-        ObjectSynchronizationType objectSynchronizationType = synchronization.getObjectSynchronization().iterator().next();
-        if (objectSynchronizationType.isEnabled() != null && !objectSynchronizationType.isEnabled()) {
-            return false;
-        }
-        Boolean isOpportunistic = objectSynchronizationType.isOpportunistic();
+        Boolean isOpportunistic = first.isOpportunistic();
         return isOpportunistic == null || isOpportunistic;
     }
 
@@ -630,13 +629,16 @@ public class ResourceTypeUtil {
         return null;
     }
 
+    // TODO specify semantics of this method
     @Nullable
-    public static ObjectSynchronizationType findObjectSynchronization(@Nullable ResourceType resource, @Nullable ShadowKindType kind, @Nullable String intent) {
-        if (resource == null || resource.getSynchronization() == null) {
+    public static ObjectSynchronizationType findObjectSynchronization(
+            @Nullable ResourceType resource, @Nullable ShadowKindType kind, @Nullable String intent) {
+        if (resource == null) {
             return null;
         }
-        for (ObjectSynchronizationType def : resource.getSynchronization().getObjectSynchronization()) {
-            if (fillDefault(kind).equals(fillDefault(def.getKind())) && fillDefault(intent).equals(fillDefault(def.getIntent()))) {
+        for (ObjectSynchronizationType def : getAllSynchronizationBeans(resource)) {
+            if (fillDefault(kind).equals(fillDefault(def.getKind()))
+                    && fillDefault(intent).equals(fillDefault(def.getIntent()))) {
                 return def;
             }
         }
@@ -740,5 +742,64 @@ public class ResourceTypeUtil {
 
     public static boolean isInMaintenance(PrismObject<ResourceType> resource) {
         return isInMaintenance(resource.asObjectable());
+    }
+
+    // Moved from GUI. Seems to be quite dependent on GUI conventions (empty values?)
+    public static boolean isOutboundDefined(ResourceAttributeDefinitionType attr) {
+        if (attr.asPrismContainerValue().isEmpty()) {
+            return false;
+        }
+        return attr.getOutbound() != null
+                && (attr.getOutbound().getSource() != null || attr.getOutbound().getExpression() != null);
+    }
+
+    // Moved from GUI. Seems to be quite dependent on GUI conventions (empty values?)
+    public static boolean isInboundDefined(ResourceAttributeDefinitionType attr) {
+        return attr.getInbound() != null
+                && CollectionUtils.isNotEmpty(attr.getInbound())
+                && (attr.getInbound().get(0).getTarget() != null || attr.getInbound().get(0).getExpression() != null);
+    }
+
+    public static boolean isSynchronizationDefined(ResourceType resource) {
+        for (ObjectSynchronizationType syncBean : getAllSynchronizationBeans(resource)) {
+            if (isEnabled(syncBean) && !syncBean.getReaction().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isEnabled(ObjectSynchronizationType syncBean) {
+        return !Boolean.FALSE.equals(syncBean.isEnabled());
+    }
+
+    /**
+     * Returns all synchronization configuration beans from given resource object:
+     * both "inlined" into object type definitions (4.6+) and "standalone" (pre-4.6).
+     */
+    public static List<ObjectSynchronizationType> getAllSynchronizationBeans(ResourceType resource) {
+        List<ObjectSynchronizationType> all = new ArrayList<>();
+        if (resource.getSchemaHandling() != null) {
+            for (ResourceObjectTypeDefinitionType typeDef : resource.getSchemaHandling().getObjectType()) {
+                if (typeDef.getSynchronization() != null) {
+                    all.add(typeDef.getSynchronization());
+                }
+            }
+        }
+        if (resource.getSynchronization() != null) {
+            all.addAll(resource.getSynchronization().getObjectSynchronization());
+        }
+        return all;
+    }
+
+    public static @Nullable ExpressionType getSynchronizationSorterExpression(@NotNull ResourceType resource) {
+        SynchronizationType synchronization = resource.getSynchronization();
+
+        if (synchronization == null) {
+            return null;
+        }
+
+        ObjectSynchronizationSorterType sorter = synchronization.getObjectSynchronizationSorter();
+        return sorter != null ? sorter.getExpression() : null;
     }
 }

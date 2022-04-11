@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 
+import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.SchemaService;
 
@@ -129,4 +130,5 @@ public class ModelBeans {
     @Autowired public CorrelationCaseManager correlationCaseManager;
     @Autowired public CorrelationService correlationService;
     @Autowired public BuiltInResultCreator builtInResultCreator;
+    @Autowired public ResourceObjectClassifier resourceObjectClassifier;
 }

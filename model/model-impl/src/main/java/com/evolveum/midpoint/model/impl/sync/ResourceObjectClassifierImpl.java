@@ -3,31 +3,27 @@ package com.evolveum.midpoint.model.impl.sync;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 @Component
 public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
 
     private static final String OP_CLASSIFY = ResourceObjectClassifierImpl.class.getName() + ".classify";
 
-    @Autowired private SystemObjectCache systemObjectCache;
-    @Autowired private SynchronizationService synchronizationService;
+    @Autowired private SynchronizationContextLoader synchronizationContextLoader;
     @Autowired private ProvisioningService provisioningService;
 
     @PostConstruct
@@ -54,7 +50,8 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
                 .addParam("resource", resource)
                 .build();
         try {
-            provisioningService.applyDefinition(combinedObject, task, parentResult);  //To be sure that everything is in order (MID-7236)
+            // To be sure that everything is in order (MID-7236)
+            provisioningService.applyDefinition(combinedObject, task, parentResult);
             return doClassify(combinedObject, resource, task, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -72,11 +69,11 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
 
-        SynchronizationContext<?> syncCtx = synchronizationService.loadSynchronizationContext(
+        SynchronizationContext<?> syncCtx = synchronizationContextLoader.loadSynchronizationContext(
                 combinedObject,
                 null,
                 resource,
-                task.getCategory(),
+                task.getChannel(),
                 null,
                 null,
                 task,

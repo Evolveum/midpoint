@@ -1837,7 +1837,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public <F extends FocusType> List<F> getFocusesByCorrelationRule(Class<F> type, String resourceOid, ShadowKindType kind, String intent, ShadowType shadow) {
+    public <F extends FocusType> List<F> getFocusesByCorrelationRule(
+            Class<F> type,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            ShadowType shadow) throws SchemaException {
+
+        // TODO REWORK THIS!!!
+
         ResourceType resource;
         try {
             resource = getObject(ResourceType.class, resourceOid, GetOperationOptions.createNoFetchCollection());
@@ -1848,6 +1856,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         SynchronizationType synchronization = resource.getSynchronization();
         if (synchronization == null) {
+            return null;
+        }
+
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
+        if (schema == null) {
             return null;
         }
 
@@ -1875,7 +1888,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
             for (ObjectSynchronizationType objectSync : synchronization.getObjectSynchronization()) {
 
-                if (SynchronizationServiceUtils.isPolicyApplicable(objectSync, discriminator, expressionFactory, syncCtx, result)) {
+                ResourceObjectTypeSynchronizationPolicy policy =
+                        ResourceObjectTypeSynchronizationPolicy.forStandalone(objectSync, schema);
+
+                if (policy != null && SynchronizationServiceUtils.isPolicyFullyApplicable(policy, discriminator, syncCtx, result)) {
                     applicablePolicy = objectSync;
                     break;
                 }

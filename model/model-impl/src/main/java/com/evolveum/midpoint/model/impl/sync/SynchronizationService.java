@@ -8,36 +8,19 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * TODO
  */
 public interface SynchronizationService extends ResourceObjectChangeListener {
-
-    <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(
-            @NotNull PrismObject<ShadowType> shadowedResourceObject,
-            ObjectDelta<ShadowType> resourceObjectDelta,
-            @NotNull PrismObject<ResourceType> resource,
-            String sourceChanel,
-            String itemProcessingIdentifier,
-            PrismObject<SystemConfigurationType> explicitSystemConfiguration,
-            Task task,
-            OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
 
     <F extends FocusType> boolean matchUserCorrelationRule(
             PrismObject<ShadowType> shadowedResourceObject,

@@ -4711,37 +4711,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      * Returns appropriate object synchronization settings for the class.
      * Assumes single sync setting for now.
      */
-    protected ObjectSynchronizationType determineSynchronization(ResourceType resource, Class<UserType> type, String name) {
-        SynchronizationType synchronization = resource.getSynchronization();
-        if (synchronization == null) {
-            return null;
-        }
-        List<ObjectSynchronizationType> objectSynchronizations = synchronization.getObjectSynchronization();
+    protected ObjectSynchronizationType determineSynchronization(
+            ResourceType resource, QName focusTypeName, String name) {
+        List<ObjectSynchronizationType> objectSynchronizations = ResourceTypeUtil.getAllSynchronizationBeans(resource);
         if (objectSynchronizations.isEmpty()) {
             return null;
         }
-        for (ObjectSynchronizationType objSyncType : objectSynchronizations) {
-            QName focusTypeQName = objSyncType.getFocusType();
-            if (focusTypeQName == null) {
-                if (type != UserType.class) {
-                    continue;
-                }
-            } else {
-                ObjectTypes focusType = ObjectTypes.getObjectTypeFromTypeQName(focusTypeQName);
-                if (type != (Class<?>) focusType.getClassDefinition()) {
-                    continue;
-                }
-            }
-            if (name == null) {
-                // we got it
-                return objSyncType;
-            } else {
-                if (name.equals(objSyncType.getName())) {
-                    return objSyncType;
-                }
+        for (ObjectSynchronizationType objSyncBean : objectSynchronizations) {
+            QName configuredFocusTypeName = Objects.requireNonNullElse(objSyncBean.getFocusType(), UserType.COMPLEX_TYPE);
+            if (QNameUtil.match(configuredFocusTypeName, focusTypeName)
+                    && (name == null || name.equals(objSyncBean.getName()))) {
+                return objSyncBean;
             }
         }
-        throw new IllegalArgumentException("Synchronization setting for " + type + " and name " + name + " not found in " + resource);
+        throw new IllegalArgumentException(
+                "Synchronization setting for " + focusTypeName + " and name " + name + " not found in " + resource);
     }
 
     protected void assertShadowKindIntent(String shadowOid, ShadowKindType expectedKind,

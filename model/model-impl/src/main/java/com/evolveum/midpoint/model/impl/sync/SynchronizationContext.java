@@ -9,17 +9,16 @@ package com.evolveum.midpoint.model.impl.sync;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -94,7 +93,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     private final Task task;
 
-    private ObjectSynchronizationType objectSynchronization;
+    private ResourceObjectTypeSynchronizationPolicy synchronizationPolicy;
 
     /**
      * Preliminary focus object - a result pre pre-mappings execution.
@@ -169,7 +168,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     }
 
     public boolean isSynchronizationEnabled() {
-        return objectSynchronization != null && BooleanUtils.isNotFalse(objectSynchronization.isEnabled());
+        return synchronizationPolicy != null
+                && BooleanUtils.isNotFalse(synchronizationPolicy.getSynchronizationBean().isEnabled());
     }
 
     public boolean isProtected() {
@@ -182,11 +182,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
             return ShadowKindType.UNKNOWN;
         }
 
-        if (objectSynchronization.getKind() == null) {
-            return ShadowKindType.ACCOUNT;
-        }
-
-        return objectSynchronization.getKind();
+        return synchronizationPolicy.getKind();
     }
 
     public String getIntent() throws SchemaException {
@@ -229,15 +225,24 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         this.tag = tag;
     }
 
+    private ObjectSynchronizationType getSynchronizationBean() {
+        return synchronizationPolicy != null ? synchronizationPolicy.getSynchronizationBean() : null;
+    }
+
     public List<ConditionalSearchFilterType> getCorrelation() {
-        return objectSynchronization.getCorrelation();
+        return getSynchronizationBean().getCorrelation();
     }
 
     public ExpressionType getConfirmation() {
-        return objectSynchronization.getConfirmation();
+        return getSynchronizationBean().getConfirmation();
     }
 
+    /**
+     * Assumes synchronization is defined.
+     */
     public @NotNull CompositeCorrelatorType getCorrelators() {
+        ObjectSynchronizationType objectSynchronization = getSynchronizationBean();
+        assert objectSynchronization != null;
         CorrelationDefinitionType correlationDefinition = objectSynchronization.getCorrelationDefinition();
         CompositeCorrelatorType correlators = correlationDefinition != null ? correlationDefinition.getCorrelators() : null;
         if (correlators != null) {
@@ -263,7 +268,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
             return reaction.getObjectTemplateRef();
         }
 
-        return objectSynchronization.getObjectTemplateRef();
+        return getSynchronizationBean().getObjectTemplateRef();
     }
 
     public SynchronizationReactionType getReaction(OperationResult result)
@@ -274,7 +279,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         }
 
         SynchronizationReactionType defaultReaction = null;
-        for (SynchronizationReactionType reactionToConsider : objectSynchronization.getReaction()) {
+        for (SynchronizationReactionType reactionToConsider : getSynchronizationBean().getReaction()) {
             SynchronizationSituationType reactionSituation = reactionToConsider.getSituation();
             if (reactionSituation == null) {
                 throw new ConfigurationException("No situation defined for a reaction in " + resource);
@@ -342,26 +347,26 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return focus;
     }
 
-    public boolean hasApplicablePolicy() {
-        return objectSynchronization != null;
+    boolean hasApplicablePolicy() {
+        return synchronizationPolicy != null;
     }
 
-    public String getPolicyName() {
-        if (objectSynchronization == null) {
+    String getPolicyName() {
+        if (synchronizationPolicy == null) {
             return null;
         }
-        if (objectSynchronization.getName() != null) {
-            return objectSynchronization.getName();
+        if (getSynchronizationBean().getName() != null) {
+            return getSynchronizationBean().getName();
         }
-        return objectSynchronization.toString();
+        return synchronizationPolicy.toString();
     }
 
     public Boolean isDoReconciliation() {
         if (reaction.isReconcile() != null) {
             return reaction.isReconcile();
         }
-        if (objectSynchronization.isReconcile() != null) {
-            return objectSynchronization.isReconcile();
+        if (getSynchronizationBean().isReconcile() != null) {
+            return getSynchronizationBean().isReconcile();
         }
         return null;
     }
@@ -370,7 +375,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return reaction.getExecuteOptions();
     }
 
-    public Boolean isLimitPropagation() {
+    Boolean isLimitPropagation() {
         if (StringUtils.isNotBlank(channel)) {
             QName channelQName = QNameUtil.uriToQName(channel);
             // Discovery channel is used when compensating some inconsistent
@@ -387,8 +392,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         if (reaction.isLimitPropagation() != null) {
             return reaction.isLimitPropagation();
         }
-        if (objectSynchronization.isLimitPropagation() != null) {
-            return objectSynchronization.isLimitPropagation();
+        if (getSynchronizationBean().isLimitPropagation() != null) {
+            return getSynchronizationBean().isLimitPropagation();
         }
         return null;
     }
@@ -415,7 +420,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
             throw new IllegalStateException("synchronizationPolicy is null");
         }
 
-        QName focusTypeQName = objectSynchronization.getFocusType();
+        QName focusTypeQName = getSynchronizationBean().getFocusType();
         if (focusTypeQName == null) {
             //noinspection unchecked
             this.focusClass = (Class<F>) UserType.class;
@@ -460,9 +465,9 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return situation;
     }
 
-    public void setObjectSynchronization(ObjectSynchronizationType objectSynchronization) {
-        this.intent = objectSynchronization.getIntent();
-        this.objectSynchronization = objectSynchronization;
+    void setObjectSynchronizationPolicy(ResourceObjectTypeSynchronizationPolicy policy) {
+        this.intent = policy.getIntent();
+        this.synchronizationPolicy = policy;
     }
 
     public void setFocusClass(Class<F> focusClass) {
@@ -550,13 +555,13 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     @Override
     public String toString() {
         String policyDesc = null;
-        if (objectSynchronization != null) {
-            if (objectSynchronization.getName() == null) {
-                policyDesc = "(kind=" + objectSynchronization.getKind() + ", intent="
-                        + objectSynchronization.getIntent() + ", objectclass="
-                        + objectSynchronization.getObjectClass() + ")";
+        if (synchronizationPolicy != null) {
+            if (getSynchronizationBean().getName() == null) {
+                policyDesc = "(kind=" + synchronizationPolicy.getKind() + ", intent="
+                        + synchronizationPolicy.getIntent() + ", objectclass="
+                        + getSynchronizationBean().getObjectClass() + ")";
             } else {
-                policyDesc = objectSynchronization.getName();
+                policyDesc = getSynchronizationBean().getName();
             }
         }
 
@@ -571,7 +576,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         DebugUtil.debugDumpWithLabelToStringLn(sb, "systemConfiguration", systemConfiguration, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "channel", channel, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "expressionProfile", expressionProfile, indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "objectSynchronization", objectSynchronization, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "synchronizationPolicy", synchronizationPolicy, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "focusClass", focusClass, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "preFocus", preFocus, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "currentOwner", linkedOwner, indent + 1);
@@ -607,6 +612,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     }
 
     @Nullable CorrelationDefinitionType getCorrelationDefinitionBean() {
+        ObjectSynchronizationType objectSynchronization = getSynchronizationBean();
         return objectSynchronization != null ? objectSynchronization.getCorrelationDefinition() : null;
     }
 
@@ -647,5 +653,48 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     public SystemConfigurationType getSystemConfigurationBean() {
         return asObjectable(systemConfiguration);
+    }
+
+    @NotNull Collection<ResourceObjectTypeSynchronizationPolicy> getAllSynchronizationPolicies() throws SchemaException {
+        List<ResourceObjectTypeSynchronizationPolicy> policies = new ArrayList<>();
+
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
+        if (schema == null) {
+            LOGGER.warn("No synchronization policies can be collected from {}. It has no schema.", resource);
+            return List.of();
+        }
+
+        for (ResourceObjectTypeDefinition typeDef : schema.getObjectTypeDefinitions()) {
+            ObjectSynchronizationType syncDef = typeDef.getDefinitionBean().getSynchronization();
+            if (syncDef != null) {
+                policies.add(ResourceObjectTypeSynchronizationPolicy.forEmbedded(typeDef, syncDef));
+            }
+        }
+
+        SynchronizationType synchronization = resource.asObjectable().getSynchronization();
+        if (synchronization != null) {
+            for (ObjectSynchronizationType synchronizationBean : synchronization.getObjectSynchronization()) {
+                ResourceObjectTypeSynchronizationPolicy policy =
+                        ResourceObjectTypeSynchronizationPolicy.forStandalone(synchronizationBean, schema);
+                if (policy != null) {
+                    policies.add(policy);
+                } else {
+                    LOGGER.warn("Synchronization configuration {} cannot be connected to resource object definition in {}",
+                            synchronizationBean, resource);
+                }
+            }
+        }
+
+        return policies;
+    }
+
+    boolean isShadowAlreadyLinked() {
+        return linkedOwner != null
+                && linkedOwner.getLinkRef().stream()
+                .anyMatch(link -> link.getOid().equals(shadowedResourceObject.getOid()));
+    }
+
+    public @NotNull ModelBeans getBeans() {
+        return Objects.requireNonNull(beans, () -> "no model Spring beans in " + this);
     }
 }

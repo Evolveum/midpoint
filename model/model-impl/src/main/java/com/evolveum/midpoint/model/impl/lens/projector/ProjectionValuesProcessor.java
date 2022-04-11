@@ -273,7 +273,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                                         LOGGER.debug("There is no owner linked with the conflicting projection.");
                                         ResourceType resource = projContext.getResource();
 
-                                        if (ResourceTypeUtil.isSynchronizationOpportunistic(resource)) {
+                                        if (ResourceTypeUtil.isFirstSynchronizationOpportunistic(resource)) {
                                             LOGGER.trace("Trying to find owner using correlation expression.");
                                             boolean match = synchronizationService.matchUserCorrelationRule(fullConflictingShadow,
                                                     context.getFocusContext().getObjectNew(), resource, context.getSystemConfiguration(), task, iterationResult);

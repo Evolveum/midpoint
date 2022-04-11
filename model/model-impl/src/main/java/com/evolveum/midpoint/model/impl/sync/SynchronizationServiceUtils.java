@@ -6,96 +6,74 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.model.impl.expr.MidpointFunctionsImpl;
 
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import org.apache.commons.lang.Validate;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.common.SynchronizationUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationDiscriminatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeSynchronizationPolicy;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 
 public class SynchronizationServiceUtils {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SynchronizationServiceUtils.class);
+    //private static final Trace LOGGER = TraceManager.getTrace(SynchronizationServiceUtils.class);
 
-    public static <F extends FocusType> boolean isPolicyApplicable(ObjectSynchronizationType synchronizationPolicy,
-            ObjectSynchronizationDiscriminatorType discriminator, ExpressionFactory expressionFactory,
-            SynchronizationContext<F> syncCtx, OperationResult result) throws SchemaException, ExpressionEvaluationException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    /**
+     * Checks if the policy is applicable either to discriminator (if provided), or to the shadow in sync context.
+     *
+     * Moreover, policy condition is evaluated in both cases. Hence the name "fully applicable".
+     *
+     * TODO move to {@link SynchronizationContextLoader} after
+     *  {@link MidpointFunctionsImpl#getFocusesByCorrelationRule(Class, String, ShadowKindType, String, ShadowType)} is reworked.
+     */
+    public static <F extends FocusType> boolean isPolicyFullyApplicable(
+            @NotNull ResourceObjectTypeSynchronizationPolicy policy,
+            @Nullable ObjectSynchronizationDiscriminatorType discriminator,
+            @NotNull SynchronizationContext<F> syncCtx,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
-        boolean isApplicablePolicy;
+        boolean isPolicyApplicable;
         if (discriminator != null) {
-            isApplicablePolicy = isPolicyApplicable(discriminator, synchronizationPolicy, syncCtx.getResource());
+            isPolicyApplicable = policy.isApplicableToDiscriminator(discriminator);
         } else {
-            isApplicablePolicy = isPolicyApplicable(synchronizationPolicy, syncCtx);
+            isPolicyApplicable = policy.isApplicableToShadow(
+                    syncCtx.getShadowedResourceObject().asObjectable());
         }
 
-        return isApplicablePolicy &&
-                evaluateSynchronizationPolicyCondition(synchronizationPolicy, syncCtx, expressionFactory, result);
-    }
-
-    private static <F extends FocusType> boolean isPolicyApplicable(ObjectSynchronizationType synchronizationPolicy, SynchronizationContext<F> syncCtx)
-                    throws SchemaException {
-        ShadowType currentShadowType = syncCtx.getShadowedResourceObject().asObjectable();
-
-        // objectClass
-        QName shadowObjectClass = currentShadowType.getObjectClass();
-        Validate.notNull(shadowObjectClass, "No objectClass in currentShadow");
-
-        return SynchronizationUtils.isPolicyApplicable(shadowObjectClass, currentShadowType.getKind(), currentShadowType.getIntent(), synchronizationPolicy, syncCtx.getResource());
-
-    }
-
-    private static boolean isPolicyApplicable(ObjectSynchronizationDiscriminatorType synchronizationDiscriminator,
-            ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource)
-                    throws SchemaException {
-        ShadowKindType kind = synchronizationDiscriminator.getKind();
-        String intent = synchronizationDiscriminator.getIntent();
-        if (kind == null && intent == null) {
-            throw new SchemaException(
-                    "Illegal state, object synchronization discriminator type must have kind/intent specified. Current values are: kind="
-                            + kind + ", intent=" + intent);
-        }
-        return SynchronizationUtils.isPolicyApplicable(null, kind, intent, synchronizationPolicy, resource);
+        return isPolicyApplicable &&
+                evaluateSynchronizationPolicyCondition(policy, syncCtx, result);
     }
 
     private static <F extends FocusType> boolean evaluateSynchronizationPolicyCondition(
-            ObjectSynchronizationType synchronizationPolicy, SynchronizationContext<F> syncCtx,
-            ExpressionFactory expressionFactory, OperationResult result)
+            @NotNull ResourceObjectTypeSynchronizationPolicy policy,
+            @NotNull SynchronizationContext<F> syncCtx,
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        if (synchronizationPolicy.getCondition() == null) {
+        ObjectSynchronizationType synchronizationBean = policy.getSynchronizationBean();
+        if (synchronizationBean.getCondition() == null) {
             return true;
         }
-        ExpressionType conditionExpressionBean = synchronizationPolicy.getCondition();
-        String desc = "condition in object synchronization " + synchronizationPolicy.getName();
+        ExpressionType conditionExpressionBean = synchronizationBean.getCondition();
+        String desc = "condition in object synchronization " + synchronizationBean.getName();
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, syncCtx.getShadowedResourceObject(), null,
                 syncCtx.getResource(), syncCtx.getSystemConfiguration(), null, syncCtx.getPrismContext());
         try {
             ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(syncCtx.getTask(), result));
+            ExpressionFactory expressionFactory = syncCtx.getBeans().expressionFactory;
             return ExpressionUtil.evaluateConditionDefaultTrue(variables,
                     conditionExpressionBean, syncCtx.getExpressionProfile(), expressionFactory, desc, syncCtx.getTask(), result);
         } finally {

@@ -15,10 +15,7 @@ import java.util.Objects;
 import com.evolveum.midpoint.model.api.CorrelationProperty;
 import com.evolveum.midpoint.model.impl.correlator.FullCorrelationContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeSynchronizationPolicy;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -92,25 +89,21 @@ public class CorrelationServiceImpl implements CorrelationService {
         String intent = MiscUtil.requireNonNull(shadow.getIntent(), () -> new IllegalStateException("No intent in " + shadow));
         // TODO check for "unknown" ?
 
-        // We'll look for type definition in the future (after synchronization is integrated into it).
-        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition typeDefinition = schema.findObjectTypeDefinitionRequired(kind, intent);
-
-        for (ObjectSynchronizationType config : resource.getSynchronization().getObjectSynchronization()) {
-            if (config.getKind() == kind && intent.equals(config.getIntent())) {
-                return new FullCorrelationContext(
-                        shadow,
-                        resource,
-                        typeDefinition,
-                        config,
-                        MiscUtil.requireNonNull(
-                                config.getCorrelationDefinition().getCorrelators(),
-                                () -> new IllegalStateException("No correlators in " + config)),
-                        asObjectable(beans.systemObjectCache.getSystemConfiguration(result)));
-            }
+        ResourceObjectTypeSynchronizationPolicy policy =
+                ResourceObjectTypeSynchronizationPolicy.forKindAndIntent(kind, intent, resource);
+        if (policy == null) {
+            throw new IllegalStateException(
+                    "No " + kind + "/" + intent + " (kind/intent) type and synchronization definition in " + resource
+                            + " (for " + shadow + ")");
+        } else {
+            return new FullCorrelationContext(
+                    shadow,
+                    resource,
+                    policy.getResourceTypeDefinitionRequired(),
+                    policy.getSynchronizationBean(),
+                    policy.getCorrelatorsCloned(),
+                    asObjectable(systemObjectCache.getSystemConfiguration(result)));
         }
-        throw new IllegalStateException(
-                "No " + kind + "/" + intent + " (kind/intent) definition in " + resource + " (for " + shadow + ")");
     }
 
     @Override

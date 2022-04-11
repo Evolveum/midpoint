@@ -10,20 +10,9 @@ package com.evolveum.midpoint.model.impl.integrity.shadows;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.model.impl.ModelBeans;
-
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -31,11 +20,14 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -45,7 +37,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class ShadowIntegrityCheckItemProcessor {
+class ShadowIntegrityCheckItemProcessor {
 
     private static final String CLASS_DOT = ShadowIntegrityCheckItemProcessor.class.getName() + ".";
     static final String KEY_EXISTS_ON_RESOURCE = CLASS_DOT + "existsOnResource";
@@ -327,7 +319,7 @@ public class ShadowIntegrityCheckItemProcessor {
             PrismObject<ShadowType> shadow,
             PrismObject<ResourceType> resource,
             Task task,
-            OperationResult result) throws SchemaException {
+            OperationResult result) {
         PrismObject<ShadowType> fullShadow;
 
         if (!getConfiguration().checkFetch) {
@@ -340,26 +332,26 @@ public class ShadowIntegrityCheckItemProcessor {
             return;
         }
 
-        SynchronizationContext<? extends FocusType> syncCtx;
+        // We clear existing values, because otherwise the classifier would use them.
+        fullShadow.asObjectable().setKind(null);
+        fullShadow.asObjectable().setIntent(null);
+
+        ResourceObjectClassifier.Classification classification;
         try {
-            syncCtx = getSynchronizationService()
-                    .loadSynchronizationContext(fullShadow, null, resource, task.getChannel(),
-                            null, null, task, result);
-        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-            checkResult.recordError(ShadowStatistics.CANNOT_APPLY_FIX, new SystemException("Couldn't prepare fix for missing intent, because the synchronization policy couldn't be determined", e));
+            classification = getModelBeans().resourceObjectClassifier.classify(fullShadow, resource, task, result);
+        } catch (CommonException e) {
+            checkResult.recordError(ShadowStatistics.CANNOT_APPLY_FIX,
+                    new SystemException("Couldn't prepare fix for missing intent, because shadow cannot be classified", e));
             return;
         }
-        if (syncCtx.hasApplicablePolicy()) {
-            if (syncCtx.getIntent() != null) {
-                PropertyDelta<String> delta = prismContext.deltaFactory().property()
-                        .createReplaceDelta(fullShadow.getDefinition(), ShadowType.F_INTENT, syncCtx.getIntent());
-                LOGGER.trace("Intent fix delta (not executed now) = \n{}", delta.debugDumpLazily());
-                checkResult.addFixDelta(delta, ShadowStatistics.NO_INTENT_SPECIFIED);
-            } else {
-                LOGGER.info("Synchronization policy does not contain intent: {}", syncCtx);
-            }
+
+        if (classification.getIntent() != null) {
+            PropertyDelta<String> delta = prismContext.deltaFactory().property()
+                    .createReplaceDelta(fullShadow.getDefinition(), ShadowType.F_INTENT, classification.getIntent());
+            LOGGER.trace("Intent fix delta (not executed now) = \n{}", delta.debugDumpLazily());
+            checkResult.addFixDelta(delta, ShadowStatistics.NO_INTENT_SPECIFIED);
         } else {
-            LOGGER.info("Intent couldn't be fixed, because no synchronization policy was found");
+            LOGGER.info("Classification does not contain intent: {}", classification);
         }
     }
 
@@ -491,10 +483,6 @@ public class ShadowIntegrityCheckItemProcessor {
 
     private RepositoryService getRepositoryService() {
         return getModelBeans().cacheRepositoryService;
-    }
-
-    private SynchronizationService getSynchronizationService() {
-        return getModelBeans().synchronizationService;
     }
 
     private @NotNull ModelBeans getModelBeans() {
