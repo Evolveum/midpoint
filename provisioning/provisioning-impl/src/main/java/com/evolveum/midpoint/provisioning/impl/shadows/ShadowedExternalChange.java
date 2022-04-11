@@ -20,4 +20,9 @@ public class ShadowedExternalChange extends ShadowedChange<ExternalResourceObjec
     public ShadowedExternalChange(@NotNull ExternalResourceObjectChange resourceObjectChange, ChangeProcessingBeans beans) {
         super(resourceObjectChange, beans);
     }
+
+    @Override
+    protected String getDefaultChannel() {
+        return null; // TODO ?
+    }
 }

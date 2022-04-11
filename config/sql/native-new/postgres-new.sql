@@ -16,6 +16,8 @@
 --
 -- Other notes:
 -- TEXT is used instead of VARCHAR, see: https://dba.stackexchange.com/a/21496/157622
+-- We prefer "CREATE UNIQUE INDEX" to "ALTER TABLE ... ADD CONSTRAINT", unless the column
+-- is marked as UNIQUE directly - then the index is implied, don't create it explicitly.
 --
 -- For Audit tables see 'postgres-new-audit.sql' right next to this file.
 -- For Quartz tables see 'postgres-new-quartz.sql'.
@@ -43,6 +45,7 @@ CREATE TYPE ContainerType AS ENUM (
     'OPERATION_EXECUTION',
     'TRIGGER');
 
+-- NOTE: Keep in sync with the same enum in postgres-new-audit.sql!
 CREATE TYPE ObjectType AS ENUM (
     'ABSTRACT_ROLE',
     'ACCESS_CERTIFICATION_CAMPAIGN',
@@ -111,12 +114,15 @@ CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
 
 CREATE TYPE AvailabilityStatusType AS ENUM ('DOWN', 'UP', 'BROKEN');
 
+CREATE TYPE CorrelationSituationType AS ENUM ('UNCERTAIN', 'EXISTING_OWNER', 'NO_OWNER', 'ERROR');
+
 CREATE TYPE LockoutStatusType AS ENUM ('NORMAL', 'LOCKED');
 
 CREATE TYPE NodeOperationalStateType AS ENUM ('UP', 'DOWN', 'STARTING');
 
 CREATE TYPE OperationExecutionRecordTypeType AS ENUM ('SIMPLE', 'COMPLEX');
 
+-- NOTE: Keep in sync with the same enum in postgres-new-audit.sql!
 CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
     'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
 
@@ -875,7 +881,13 @@ CREATE TABLE m_shadow (
     primaryIdentifierValue TEXT,
     synchronizationSituation SynchronizationSituationType,
     synchronizationTimestamp TIMESTAMPTZ,
-    attributes JSONB
+    attributes JSONB,
+    -- correlation
+    correlationStartTimestamp TIMESTAMPTZ,
+    correlationEndTimestamp TIMESTAMPTZ,
+    correlationCaseOpenTimestamp TIMESTAMPTZ,
+    correlationCaseCloseTimestamp TIMESTAMPTZ,
+    correlationSituation CorrelationSituationType
 )
     INHERITS (m_object);
 
@@ -899,6 +911,10 @@ CREATE INDEX m_shadow_fullTextInfo_idx ON m_shadow USING gin (fullTextInfo gin_t
 CREATE INDEX m_shadow_resourceRefTargetOid_idx ON m_shadow (resourceRefTargetOid);
 CREATE INDEX m_shadow_createTimestamp_idx ON m_shadow (createTimestamp);
 CREATE INDEX m_shadow_modifyTimestamp_idx ON m_shadow (modifyTimestamp);
+CREATE INDEX m_shadow_correlationStartTimestamp_idx ON m_shadow (correlationStartTimestamp);
+CREATE INDEX m_shadow_correlationEndTimestamp_idx ON m_shadow (correlationEndTimestamp);
+CREATE INDEX m_shadow_correlationCaseOpenTimestamp_idx ON m_shadow (correlationCaseOpenTimestamp);
+CREATE INDEX m_shadow_correlationCaseCloseTimestamp_idx ON m_shadow (correlationCaseCloseTimestamp);
 
 /*
 TODO: reconsider, especially boolean things like dead (perhaps WHERE in other indexes?)
@@ -1164,7 +1180,6 @@ CREATE UNIQUE INDEX m_connector_typeVersionHost_key
     ON m_connector (connectorType, connectorVersion, connectorHostRefTargetOid)
     WHERE connectorHostRefTargetOid IS NOT NULL;
 CREATE INDEX m_connector_nameOrig_idx ON m_connector (nameOrig);
--- TODO: wasn't unique but duplicates caused problems, is it fixed by unique indexes above?
 CREATE INDEX m_connector_nameNorm_idx ON m_connector (nameNorm);
 CREATE INDEX m_connector_subtypes_idx ON m_connector USING gin(subtypes);
 CREATE INDEX m_connector_policySituation_idx
@@ -1556,7 +1571,7 @@ CREATE TRIGGER m_object_template_oid_delete_tr AFTER DELETE ON m_object_template
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_object_template_nameOrig_idx ON m_object_template (nameOrig);
-ALTER TABLE m_object_template ADD CONSTRAINT m_object_template_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_object_template_nameNorm_key ON m_object_template (nameNorm);
 CREATE INDEX m_object_template_subtypes_idx ON m_object_template USING gin(subtypes);
 CREATE INDEX m_object_template_policySituation_idx
     ON m_object_template USING gin(policysituations gin__int_ops);
@@ -1594,7 +1609,7 @@ CREATE TRIGGER m_function_library_oid_delete_tr AFTER DELETE ON m_function_libra
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_function_library_nameOrig_idx ON m_function_library (nameOrig);
-ALTER TABLE m_function_library ADD CONSTRAINT m_function_library_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_function_library_nameNorm_key ON m_function_library (nameNorm);
 CREATE INDEX m_function_library_subtypes_idx ON m_function_library USING gin(subtypes);
 CREATE INDEX m_function_library_policySituation_idx
     ON m_function_library USING gin(policysituations gin__int_ops);
@@ -1615,7 +1630,7 @@ CREATE TRIGGER m_sequence_oid_delete_tr AFTER DELETE ON m_sequence
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_sequence_nameOrig_idx ON m_sequence (nameOrig);
-ALTER TABLE m_sequence ADD CONSTRAINT m_sequence_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_sequence_nameNorm_key ON m_sequence (nameNorm);
 CREATE INDEX m_sequence_subtypes_idx ON m_sequence USING gin(subtypes);
 CREATE INDEX m_sequence_policySituation_idx ON m_sequence USING gin(policysituations gin__int_ops);
 CREATE INDEX m_sequence_createTimestamp_idx ON m_sequence (createTimestamp);
@@ -1637,7 +1652,7 @@ CREATE TRIGGER m_form_oid_delete_tr AFTER DELETE ON m_form
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_form_nameOrig_idx ON m_form (nameOrig);
-ALTER TABLE m_form ADD CONSTRAINT m_form_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_form_nameNorm_key ON m_form (nameNorm);
 CREATE INDEX m_form_subtypes_idx ON m_form USING gin(subtypes);
 CREATE INDEX m_form_policySituation_idx ON m_form USING gin(policysituations gin__int_ops);
 CREATE INDEX m_form_createTimestamp_idx ON m_form (createTimestamp);
@@ -1834,8 +1849,7 @@ CREATE TABLE m_ext_item (
 );
 
 -- This works fine for itemName+holderType search used in raw processing
-ALTER TABLE m_ext_item ADD CONSTRAINT m_ext_item_key
-    UNIQUE (itemName, holderType, valueType, cardinality);
+CREATE UNIQUE INDEX m_ext_item_key ON m_ext_item (itemName, holderType, valueType, cardinality);
 -- endregion
 
 -- INDEXING:
@@ -1889,4 +1903,4 @@ END $$;
 -- endregion
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
-call apply_change(3, $$ SELECT 1 $$, true);
+call apply_change(5, $$ SELECT 1 $$, true);

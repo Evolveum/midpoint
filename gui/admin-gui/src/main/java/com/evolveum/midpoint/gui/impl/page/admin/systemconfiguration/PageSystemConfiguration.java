@@ -7,37 +7,33 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageAdminGui;
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageLogging;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.*;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
-
-import com.evolveum.midpoint.web.page.admin.configuration.PageInternals;
-import com.evolveum.midpoint.web.page.admin.configuration.system.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author lazyman
@@ -45,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/config/system2"),
+                @Url(mountUrl = "/admin/config/system"),
         },
         action = {
                 @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
@@ -56,6 +52,60 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                         description = "PageSystemConfiguration.auth.configSystemConfiguration.description")
         })
 public class PageSystemConfiguration extends PageBase {
+
+    public enum SubPage {
+
+        BASIC("fa fa-wrench", PageSystemBasic.class),
+
+        POLICIES("fa fa-camera", PageSystemPolicies.class),
+
+        NOTIFICATION("fa fa-envelope", PageSystemNotification.class),
+
+        LOGGING("fa fa-file-text", PageSystemLogging.class),
+
+        PROFILING("fa fa-bar-chart", PageProfiling.class),
+
+        ADMIN_GUI("fa fa-desktop", PageSystemAdminGui.class),
+
+        WORKFLOW("fa fa-code-fork", PageSystemWorkflow.class),
+
+        ROLE_MANAGEMENT("fe fe-role", PageRoleManagement.class),
+
+        INTERNALS("fa fa-cogs", PageSystemInternals.class),
+
+        ACCESS_CERTIFICATION("fa fa-certificate", PageAccessCertification.class);
+
+        String icon;
+
+        Class<? extends PageBaseSystemConfiguration> page;
+
+        SubPage(String icon, Class<? extends PageBaseSystemConfiguration> page) {
+            this.icon = icon;
+            this.page = page;
+        }
+
+        public String getIcon() {
+            return icon;
+        }
+
+        public Class<? extends PageBaseSystemConfiguration> getPage() {
+            return page;
+        }
+
+        public static String getIcon(Class<?extends PageBaseSystemConfiguration> page) {
+            if (page == null) {
+                return null;
+            }
+
+            for (SubPage sp : values()) {
+                if (page.equals(sp.getPage())) {
+                    return sp.getIcon();
+                }
+            }
+
+            return null;
+        }
+    }
 
     private static final long serialVersionUID = 1L;
 
@@ -70,31 +120,11 @@ public class PageSystemConfiguration extends PageBase {
     }
 
     private void initLayout() {
-        IModel<List<CompositedIconButtonDto>> model = new LoadableModel<>() {
-            @Override
-            protected List<CompositedIconButtonDto> load() {
-                List<CompositedIconButtonDto> buttons = new ArrayList<>();
-                buttons.add(createCompositedButton("Basic", "fa fa-wrench", PageSystemConfigurationBasic.class));
-                buttons.add(createCompositedButton("Object policies", "fa  fa-umbrella", PageObjectPoliciesConfiguration.class));
-                buttons.add(createCompositedButton("Global policy rule", "fa fa-eye", PageGlobalPolicyRule.class));
-                buttons.add(createCompositedButton("Global projection policy", "fa fa-globe", PageGlobalProjectionPolicy.class));
-                buttons.add(createCompositedButton("Cleanup policy", "fa  fa-eraser", PageCleanupPolicy.class));
-                buttons.add(createCompositedButton("Notifications", "fa fa-envelope", PageNotificationConfiguration.class));
-                buttons.add(createCompositedButton("Logging", "fa fa-file-text", PageLogging.class));
-                buttons.add(createCompositedButton("Profiling", "fa fa-camera", PageProfiling.class));
-                buttons.add(createCompositedButton("Admin GUI configuration", "fa fa-camera", PageAdminGui.class));
-                buttons.add(createCompositedButton("Workflow configuration", "fa fa-camera", PageWorkflowConfiguration.class));
-                buttons.add(createCompositedButton("Role management", "fa fa-camera", PageRoleManagement.class));
-                buttons.add(createCompositedButton("Internals", "fa fa-camera", PageInternals.class));
-                buttons.add(createCompositedButton("Deployment information", "fa fa-camera", PageDeploymentInformation.class));
-                buttons.add(createCompositedButton("Access certification", "fa fa-camera", PageAccessCertification.class));
-                buttons.add(createCompositedButton("Infrastructure", "fa fa-camera", PageInfrastructure.class));
-                buttons.add(createCompositedButton("Full text configuration", "fa fa-camera", PageFullTextSearch.class));
+        List<CompositedIconButtonDto> buttons = Arrays.stream(SubPage.values())
+                .map(s -> createCompositedButton(s.getIcon(), s.getPage())).collect(Collectors.toUnmodifiableList());
 
+        IModel<List<CompositedIconButtonDto>> model = Model.ofList(buttons);
 
-                return buttons;
-            }
-        };
         MultiCompositedButtonPanel panel = new MultiCompositedButtonPanel(ID_CONTAINER, model) {
 
             @Override
@@ -106,15 +136,16 @@ public class PageSystemConfiguration extends PageBase {
         add(panel);
     }
 
+    private CompositedIconButtonDto createCompositedButton(String icon, Class<? extends WebPage> page) {
+        String title = page.getSimpleName() + ".title";
 
-    private CompositedIconButtonDto createCompositedButton(String type, String icon, Class<? extends WebPage> page) {
         CompositedIconButtonDto button = new CompositedIconButtonDto();
         CompositedIconBuilder builder = new CompositedIconBuilder();
-        builder.setTitle(type);
+        builder.setTitle(title);
         builder.setBasicIcon(icon, IconCssStyle.IN_ROW_STYLE);
         button.setCompositedIcon(builder.build());
         DisplayType displayType = new DisplayType();
-        displayType.setLabel(new PolyStringType(type));
+        displayType.setLabel(new PolyStringType(title));
         button.setAdditionalButtonDisplayType(displayType);
         button.setPage(page);
 

@@ -272,9 +272,11 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
     }
 
     private ModelExecuteOptions createPreviewAssignmentsOptions() {
-        return getPageBase()
+        ModelExecuteOptions options = getPageBase()
                 .executeOptions()
                 .evaluateAllAssignmentRelationsOnRecompute();
+        options.getOrCreatePartialProcessing().outbound(PartialProcessingTypeType.SKIP);
+        return options;
     }
 
     private List<PrismContainerValueWrapper<AssignmentType>> loadEvaluatedAssignments(IModel<PrismContainerWrapper<AssignmentType>> parent)

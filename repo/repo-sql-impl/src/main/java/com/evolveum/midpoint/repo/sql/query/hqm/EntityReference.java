@@ -17,8 +17,6 @@ import org.apache.commons.lang3.Validate;
 /**
  * Specifies an entity that is to be used in the query (its name and its alias),
  * along with any entities joined by associations.
- *
- * @author mederly
  */
 public class EntityReference {
 

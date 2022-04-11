@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 
@@ -128,6 +129,8 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
                 return new ChangePasswordPanel(panelId, new PropertyModel<>(model, MyCredentialsDto.F_MY_PASSOWRDS_DTO)) {
+                    private static final long serialVersionUID = 1L;
+
                     @Override
                     protected boolean shouldShowPasswordPropagation() {
                         return shouldLoadAccounts();
@@ -136,6 +139,11 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                     @Override
                     protected boolean isCheckOldPassword() {
                         return PageAbstractSelfCredentials.this.isCheckOldPassword();
+                    }
+
+                    @Override
+                    protected boolean canEditPassword() {
+                        return !savedPassword;
                     }
                 };
             }
@@ -159,7 +167,6 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             }
         };
         save.add(new VisibleBehaviour(() -> !this.savedPassword));
-        mainForm.setDefaultButton(save);
         mainForm.add(save);
 
         AjaxSubmitButton cancel = new AjaxSubmitButton(ID_CANCEL_BUTTON, createStringResource("PageBase.button.back")) {
@@ -180,6 +187,21 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     }
 
     protected void onSavePerformed(AjaxRequestTarget target) {
+
+        if (getPasswordDto().getFocus() == null) {
+            if (getFeedbackMessages().isEmpty()) {
+                warn(getString("PageAbstractSelfCredentials.message.couldntLoadFocus.fatalError"));
+            } else {
+                getFeedbackMessages().forEach(message -> {
+                    if (message.getMessage() instanceof OpResult) {
+                        ((OpResult)message.getMessage()).setAlreadyShown(false);
+                    }
+                });
+            }
+            target.add(getFeedbackPanel());
+            return;
+        }
+
         Component actualTab = getActualTabPanel();
         if (actualTab instanceof ChangePasswordPanel) {
             ProtectedStringType oldPassword = null;
@@ -287,7 +309,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 }
                 if (!result.isError()) {
                     this.savedPassword = true;
-                    target.add(getSaveButton());
+                    target.add(PageAbstractSelfCredentials.this.get(ID_MAIN_FORM));
                 }
             }
 

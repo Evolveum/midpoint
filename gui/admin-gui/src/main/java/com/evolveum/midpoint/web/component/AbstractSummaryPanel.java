@@ -41,7 +41,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
- * @author mederly
  */
 public abstract class AbstractSummaryPanel<C extends Containerable> extends BasePanel<C> {
     private static final long serialVersionUID = 1L;
@@ -138,7 +137,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         if (getTitleModel() != null) {
             box.add(new Label(ID_TITLE, getTitleModel()));
         } else if (getTitlePropertyName() != null) {
-            box.add(new Label(ID_TITLE, createLabelModel(getTitlePropertyName(), SummaryPanelSpecificationType.F_TITLE_1)));
+            box.add(new Label(ID_TITLE, createLabelModel(getTitlePropertyName(), SummaryPanelSpecificationType.F_TITLE1)));
         } else {
             box.add(new Label(ID_TITLE, " "));
         }
@@ -146,7 +145,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         if (getTitle2Model() != null) {
             box.add(new Label(ID_TITLE2, getTitle2Model()));
         } else if (getTitle2PropertyName() != null) {
-            box.add(new Label(ID_TITLE, createLabelModel(getTitle2PropertyName(), SummaryPanelSpecificationType.F_TITLE_2)));
+            box.add(new Label(ID_TITLE, createLabelModel(getTitle2PropertyName(), SummaryPanelSpecificationType.F_TITLE2)));
         } else {
             Label label = new Label(ID_TITLE2, " ");
             label.setVisible(false);
@@ -156,7 +155,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         if (getTitle3Model() != null) {
             box.add(new Label(ID_TITLE3, getTitle3Model()));
         } else if (getTitle3PropertyName() != null) {
-            box.add(new Label(ID_TITLE, createLabelModel(getTitle3PropertyName(), SummaryPanelSpecificationType.F_TITLE_3)));
+            box.add(new Label(ID_TITLE, createLabelModel(getTitle3PropertyName(), SummaryPanelSpecificationType.F_TITLE3)));
         } else {
             Label label = new Label(ID_TITLE3, " ");
             label.setVisible(false);

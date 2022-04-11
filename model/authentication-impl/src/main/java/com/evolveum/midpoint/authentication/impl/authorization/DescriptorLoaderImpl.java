@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -30,6 +31,8 @@ import java.util.function.Consumer;
 public final class DescriptorLoaderImpl implements DescriptorLoader {
 
     private static final Trace LOGGER = TraceManager.getTrace(DescriptorLoaderImpl.class);
+
+    @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
 
     // All could be final, but then Checkstyle complains about lower-case, although these are not constants.
     private static Map<String, AuthorizationActionValue[]> actions = new HashMap<>();
@@ -78,7 +81,9 @@ public final class DescriptorLoaderImpl implements DescriptorLoader {
     }
 
     private void scanPackagesForPages() throws InstantiationException, IllegalAccessException {
-        Collection<Class<?>> classes = ClassPathUtil.scanClasses(PageDescriptor.class);
+        Collection<Class<?>> classes = ClassPathUtil.scanClasses(PageDescriptor.class,
+                StringUtils.joinWith(",", ClassPathUtil.DEFAULT_PACKAGE_TO_SCAN, additionalPackagesToScan));
+
         for (Class<?> clazz : classes) {
             PageDescriptor descriptor = clazz.getAnnotation(PageDescriptor.class);
             if (descriptor == null) {

@@ -9,9 +9,6 @@ package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
-/**
- * @author mederly
- */
 public class OrCondition extends JunctionCondition {
 
     public OrCondition(RootHibernateQuery rootHibernateQuery, Condition... conditions) {

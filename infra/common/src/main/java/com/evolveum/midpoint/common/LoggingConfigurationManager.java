@@ -18,8 +18,12 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
+
+import com.evolveum.midpoint.prism.util.PrismUtil;
+
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -48,32 +52,54 @@ public class LoggingConfigurationManager {
     private static final String TRACING_APPENDER_CLASS_NAME = TracingAppender.class.getName();
     private static final LoggingLevelType DEFAULT_PROFILING_LEVEL = LoggingLevelType.INFO;
 
-    private static String currentlyUsedVersion = null;
+    private static final String OP_CONFIGURE = LoggingConfigurationManager.class.getName() + ".configure";
 
-    public static void configure(LoggingConfigurationType config, String version,
-            MidpointConfiguration midpointConfiguration, OperationResult result) throws SchemaException {
+    /** Determines whether we apply the new configuration. */
+    private static LoggingConfigurationType currentlyUsedConfiguration;
 
-        OperationResult res = result.createSubresult(LoggingConfigurationManager.class.getName() + ".configure");
+    public synchronized static void configure(
+            @Nullable LoggingConfigurationType updatedConfiguration,
+            String updatedVersion,
+            MidpointConfiguration midpointConfiguration,
+            OperationResult parentResult) throws SchemaException {
 
-        if (InternalsConfig.isAvoidLoggingChange()) {
-            LOGGER.info("IGNORING change of logging configuration (current config version: {}, new version {}) because avoidLoggingChange=true", currentlyUsedVersion, version);
-            res.recordNotApplicableIfUnknown();
-            return;
+        OperationResult result = parentResult.createSubresult(OP_CONFIGURE);
+        try {
+
+            if (InternalsConfig.isAvoidLoggingChange()) {
+                LOGGER.info("IGNORING change of logging configuration (version {}) because avoidLoggingChange=true",
+                        updatedVersion);
+                result.recordNotApplicableIfUnknown();
+                return;
+            }
+
+            if (PrismUtil.realValueEquals(currentlyUsedConfiguration, updatedConfiguration)) {
+                LOGGER.debug("Skipped logging configuration update (version {}) because the same configuration is already"
+                                + " applied", updatedVersion);
+                result.recordNotApplicableIfUnknown();
+                return;
+            }
+
+            LOGGER.info("Applying logging configuration (system configuration version {})", updatedVersion);
+
+            applyConfiguration(updatedConfiguration, midpointConfiguration, result);
+
+            currentlyUsedConfiguration = updatedConfiguration != null && !updatedConfiguration.isImmutable() ?
+                    updatedConfiguration.clone() : updatedConfiguration;
+
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
         }
+    }
 
-        if (java.util.Objects.equals(currentlyUsedVersion, version)) {
-            LOGGER.debug("Skipped logging configuration because the same version {}"
-                    + " is already configured", version);
-            res.recordNotApplicableIfUnknown();
-            return;
-        }
-
-        if (currentlyUsedVersion != null) {
-            LOGGER.info("Applying logging configuration (currently applied version: {}, new version: {})", currentlyUsedVersion, version);
-        } else {
-            LOGGER.info("Applying logging configuration (version {})", version);
-        }
-        currentlyUsedVersion = version;
+    private static void applyConfiguration(
+            LoggingConfigurationType updatedConfiguration,
+            MidpointConfiguration midpointConfiguration,
+            OperationResult result)
+            throws SchemaException {
 
         // JUL Bridge initialization was here. (SLF4JBridgeHandler)
         // But it was moved to a later phase as suggested by http://jira.qos.ch/browse/LOGBACK-740
@@ -82,32 +108,29 @@ public class LoggingConfigurationManager {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
 
-        //Get current log configuration
+        // Get current log configuration
         LoggerContext lc = (LoggerContext) TraceManager.getILoggerFactory();
 
-        //Prepare configurator in current context
+        // Prepare configurator in current context
         JoranConfigurator configurator = new JoranConfigurator();
         configurator.setContext(lc);
 
-        //Generate configuration file as string
-        String configXml = prepareConfiguration(config, midpointConfiguration);
+        // Generate configuration file as string
+        String configXml = prepareConfiguration(updatedConfiguration, midpointConfiguration);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("New logging configuration:");
-            LOGGER.trace(configXml);
-        }
+        LOGGER.trace("New logging configuration:\n{}", configXml);
 
         InputStream cis = new ByteArrayInputStream(configXml.getBytes());
         LOGGER.debug("Resetting current logging configuration");
         lc.getStatusManager().clear();
-        //Set all loggers to error
+        // Set all loggers to error
         for (Logger l : lc.getLoggerList()) {
             LOGGER.trace("Disable logger: {}", l);
             l.setLevel(Level.ERROR);
         }
         // Reset configuration
         lc.reset();
-        //Switch to new logging configuration
+        // Switch to new logging configuration
         lc.setName("MidPoint");
         try {
             configurator.doConfigure(cis);
@@ -118,7 +141,7 @@ public class LoggingConfigurationManager {
             result.createSubresult("Applying logging configuration.").recordFatalError(e.getMessage(), e);
         }
 
-        //Get messages if error occurred;
+        // Get messages if error occurred;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         StatusPrinter.setPrintStream(new PrintStream(baos));
         StatusPrinter.print(lc);
@@ -126,17 +149,17 @@ public class LoggingConfigurationManager {
         String internalLog = baos.toString(StandardCharsets.UTF_8);
 
         if (!StringUtils.isEmpty(internalLog)) {
-            //Parse internal log
-            res.recordSuccess();
+            // Parse internal log
+            result.recordSuccess();
             for (String internalLogLine : internalLog.split("\n")) {
                 if (internalLogLine.contains("|-ERROR")) {
-                    res.recordPartialError(internalLogLine);
+                    result.recordPartialError(internalLogLine);
                 }
-                res.appendDetail(internalLogLine);
+                result.appendDetail(internalLogLine);
             }
             LOGGER.trace("LogBack internal log:\n{}", internalLog);
         } else {
-            res.recordSuccess();
+            result.recordSuccess();
         }
 
         // Initialize JUL bridge
@@ -261,7 +284,7 @@ public class LoggingConfigurationManager {
         generateAuditingLogConfig(config.getAuditing(), sb);
 
         if (null != config.getAdvanced()) {
-            for (Object item : config.getAdvanced().getContent()) {
+            for (Object item : config.getAdvanced().getAny()) {
                 sb.append(item.toString());
                 sb.append("\n");
             }

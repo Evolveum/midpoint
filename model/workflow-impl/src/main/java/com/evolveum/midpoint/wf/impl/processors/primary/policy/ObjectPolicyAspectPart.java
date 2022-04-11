@@ -47,9 +47,6 @@ import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
-/**
- * @author mederly
- */
 @Component
 public class ObjectPolicyAspectPart {
 

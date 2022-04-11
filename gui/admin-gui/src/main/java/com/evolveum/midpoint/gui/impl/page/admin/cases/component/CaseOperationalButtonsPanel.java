@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -58,17 +61,25 @@ public class CaseOperationalButtonsPanel extends AssignmentHolderOperationalButt
     }
 
     private void stopCaseProcessConfirmed(AjaxRequestTarget target) {
+        PageBase page = getPageBase();
+
         OperationResult result = new OperationResult(OPERATION_STOP_CASE_PROCESS);
-        Task task = getPageBase().createSimpleTask(OPERATION_STOP_CASE_PROCESS);
+        Task task = page.createSimpleTask(OPERATION_STOP_CASE_PROCESS);
         try {
-            getPageBase().getWorkflowService().cancelCase(getModelObject().getOid(), task, result);
+            page.getCaseService().cancelCase(getModelObject().getOid(), task, result);
         } catch (Exception ex) {
             LOGGER.error("Couldn't stop case process: {}", ex.getLocalizedMessage());
             result.recordFatalError(createStringResource("PageCases.message.stopCaseProcessConfirmed.fatalError").getString(), ex);
         }
         result.computeStatusComposite();
-        getPageBase().showResult(result);
-        target.add(getPageBase().getFeedbackPanel());
+
+        page.showResult(result);
+
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            target.add(page.getFeedbackPanel());
+        } else {
+            page.redirectBack();
+        }
     }
 
     @Override

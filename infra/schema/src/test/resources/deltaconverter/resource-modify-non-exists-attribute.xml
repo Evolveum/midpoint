@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectModification
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <oid>00000000-8888-6666-0000-100000000775</oid>
+    <itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>c:nonExistsParent/c:nonExistsAttribute</t:path>
+        <t:value>
+            <c:objectActionsEntry>
+                <c:objectType>c:ResourceType</c:objectType>
+                <c:operation>modify</c:operation>
+                <c:totalSuccessCount>1</c:totalSuccessCount>
+                <c:lastSuccessObjectName>RTISZ_T</c:lastSuccessObjectName>
+                <c:lastSuccessObjectOid>cececece-44c9-492b-8fea-619591591097</c:lastSuccessObjectOid>
+                <c:lastSuccessTimestamp>2021-11-02T07:24:47.291+01:00</c:lastSuccessTimestamp>
+                <c:totalFailureCount>0</c:totalFailureCount>
+            </c:objectActionsEntry>
+            <c:resultingObjectActionsEntry>
+                <c:objectType>c:ResourceType</c:objectType>
+                <c:operation>modify</c:operation>
+                <c:totalSuccessCount>1</c:totalSuccessCount>
+                <c:lastSuccessObjectName>RTISZ_T</c:lastSuccessObjectName>
+                <c:lastSuccessObjectOid>cececece-44c9-492b-8fea-619591591097</c:lastSuccessObjectOid>
+                <c:lastSuccessTimestamp>2021-11-02T07:24:47.291+01:00</c:lastSuccessTimestamp>
+                <c:totalFailureCount>0</c:totalFailureCount>
+            </c:resultingObjectActionsEntry>
+        </t:value>
+    </itemDelta>
+</objectModification>

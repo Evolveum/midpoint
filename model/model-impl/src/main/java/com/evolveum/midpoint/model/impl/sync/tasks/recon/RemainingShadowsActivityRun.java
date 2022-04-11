@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Reconciliatio
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -40,9 +40,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Scans shadows for unfinished operations and tries to finish them.
@@ -68,10 +65,7 @@ final class RemainingShadowsActivityRun
     public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
         return super.createReportingCharacteristics()
                 .actionsExecutedStatisticsSupported(true)
-                .synchronizationStatisticsSupported(false);
-        // TODO We will eventually want to provide sync statistics even for this part, in order to see transitions
-        //  to DELETED situation. Unfortunately, now it's not possible, because we limit sync stats to the directly
-        //  invoked change processing.
+                .synchronizationStatisticsSupported(true);
     }
 
     /**
@@ -140,7 +134,7 @@ final class RemainingShadowsActivityRun
             return true;
         }
 
-        reconcileShadow(shadow, workerTask, result);
+        reconcileShadow(shadow, request.getIdentifier(), workerTask, result);
         return true;
     }
 
@@ -149,7 +143,7 @@ final class RemainingShadowsActivityRun
      * However, in order to detect errors in the processing, we need to have more strict control over the process:
      * the result must not be marked as `HANDLED_ERROR` as it's currently the case in provisioning handling.
      */
-    private void reconcileShadow(ShadowType shadow, Task task, OperationResult result)
+    private void reconcileShadow(ShadowType shadow, String requestIdentifier, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException {
         LOGGER.trace("Reconciling shadow {}, fullSynchronizationTimestamp={}", shadow,
@@ -162,13 +156,35 @@ final class RemainingShadowsActivityRun
                             .forceRefresh(!isDryRun())
                             .readOnly()
                             .build();
-            getModelBeans().provisioningService.getObject(ShadowType.class, shadow.getOid(), options, task, result);
+            PrismObject<ShadowType> shadowFetched =
+                    getModelBeans().provisioningService.getObject(ShadowType.class, shadow.getOid(), options, task, result);
+            handleNoException(shadowFetched, requestIdentifier, task, result);
         } catch (ObjectNotFoundException e) {
-            handleObjectNotFoundException(shadow, e, task, result);
+            handleObjectNotFoundException(shadow, requestIdentifier, e, task, result);
         }
     }
 
-    private void handleObjectNotFoundException(ShadowType shadow, ObjectNotFoundException e, Task task,
+    private void handleNoException(
+            PrismObject<ShadowType> shadowFetched, String requestIdentifier, Task task, OperationResult result) {
+        // Here are e.g. protected shadows or tombstones. To keep the statistics reasonable, let us provide
+        // a reason for synchronization exclusion.
+        LOGGER.debug("ObjectNotFound was not thrown, so no need to issue DELETE sync event. Shadow: {}", shadowFetched);
+        if (ShadowUtil.isProtected(shadowFetched)) {
+            LOGGER.trace("Shadow is protected. Technically, signalling 'synchronization not needed' would be correct, "
+                    + "but let's be more specific by providing the reason as 'protected'.");
+            task.onSynchronizationExclusion(requestIdentifier, SynchronizationExclusionReasonType.PROTECTED);
+            result.recordNotApplicable("Resource object exists (and it is protected)");
+        } else {
+            task.onSynchronizationExclusion(requestIdentifier, SynchronizationExclusionReasonType.SYNCHRONIZATION_NOT_NEEDED);
+            result.recordNotApplicable("Resource object exists");
+        }
+    }
+
+    private void handleObjectNotFoundException(
+            ShadowType shadow,
+            String requestIdentifier,
+            ObjectNotFoundException e,
+            Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
         if (!shadow.getOid().equals(e.getOid())) {
@@ -181,15 +197,18 @@ final class RemainingShadowsActivityRun
         result.muteLastSubresultError();
 
         if (ShadowUtil.isDead(shadow) || !ShadowUtil.isExists(shadow)) {
+            // Not sure when exactly this can occur.
             LOGGER.debug("Shadow already marked as dead and/or not existing. "
                     + "DELETE notification will not be issued. Shadow: {}", shadow);
+            task.onSynchronizationExclusion(requestIdentifier, SynchronizationExclusionReasonType.SYNCHRONIZATION_NOT_NEEDED);
+            result.recordNotApplicable("Shadow already marked dead and/or not existing");
             return;
         }
 
-        reactShadowGone(shadow, task, result);
+        reactShadowGone(shadow, requestIdentifier, task, result);
     }
 
-    private void reactShadowGone(ShadowType originalShadow, Task task, OperationResult result)
+    private void reactShadowGone(ShadowType originalShadow, String requestIdentifier, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
 
@@ -204,6 +223,7 @@ final class RemainingShadowsActivityRun
         change.setObjectDelta(shadow.createDeleteDelta());
         change.setShadowedResourceObject(shadow);
         change.setSimulate(isPreview());
+        change.setItemProcessingIdentifier(requestIdentifier); // To record synchronization state changes
         ModelImplUtils.clearRequestee(task);
         getModelBeans().eventDispatcher.notifyChange(change, task, result);
     }
@@ -236,5 +256,10 @@ final class RemainingShadowsActivityRun
     @VisibleForTesting
     public long getShadowReconCount() {
         return transientRunStatistics.getItemsProcessed();
+    }
+
+    @Override
+    protected String getChannelOverride() {
+        return SchemaConstants.CHANNEL_RECON_URI;
     }
 }

@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
@@ -19,10 +18,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
-import com.evolveum.midpoint.wf.util.ChangesByState;
+import com.evolveum.midpoint.wf.api.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
@@ -65,7 +63,7 @@ public class OperationRequestCasePanel extends AbstractObjectMainPanel<CaseType,
                 OperationResult result = new OperationResult(OPERATION_PREPARE_DELTA_VISUALIZATION);
                 Task task = pageBase.createSimpleTask(OPERATION_PREPARE_DELTA_VISUALIZATION);
                 try {
-                    ChangesByState changesByState = pageBase.getWorkflowManager().getChangesByState(caseObject,
+                    ChangesByState<?> changesByState = pageBase.getApprovalsManager().getChangesByState(caseObject,
                             pageBase.getModelInteractionService(), pageBase.getPrismContext(), task, result);
                     List<SceneDto> sceneDtoList = WebComponentUtil.computeChangesCategorizationList(changesByState, caseObject.getObjectRef(),
                              pageBase.getModelInteractionService(), pageBase.getPrismContext(), task, result);

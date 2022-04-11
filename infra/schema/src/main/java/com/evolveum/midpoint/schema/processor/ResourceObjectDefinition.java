@@ -298,6 +298,13 @@ public interface ResourceObjectDefinition
      * @see ResourceObjectTypeDefinitionType#getVolatility()
      */
     @NotNull ResourceObjectVolatilityType getVolatility();
+
+    /**
+     * Returns the phases in which inbound mappings are evaluated by default.
+     *
+     * @see ResourceObjectTypeDefinitionType#getInboundMappingsEvaluation()
+     */
+    @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases();
     //endregion
 
     //region Creating artifacts (shadow, query, PCD, instances, ...)

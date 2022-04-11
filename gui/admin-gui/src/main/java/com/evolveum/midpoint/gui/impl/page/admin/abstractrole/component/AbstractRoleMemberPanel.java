@@ -9,6 +9,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.search.*;
+
+import com.evolveum.midpoint.web.page.admin.roles.IndirectSearchItem;
+
+import com.evolveum.midpoint.web.page.admin.roles.ScopeSearchItem;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -65,7 +71,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelInstances;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
@@ -93,24 +98,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @PanelType(name = "members")
-@PanelInstances(instances = {
-        @PanelInstance(identifier = "roleMembers",
-                applicableForType = RoleType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 80)),
-        @PanelInstance(identifier = "roleGovernance",
-                applicableForType = RoleType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90)),
-        @PanelInstance(identifier = "serviceMembers",
-                applicableForType = ServiceType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 80)),
-        @PanelInstance(identifier = "serviceGovernance",
-                applicableForType = ServiceType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90))
-})
+@PanelInstance(identifier = "roleMembers",
+        applicableForType = RoleType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 80))
+@PanelInstance(identifier = "roleGovernance",
+        applicableForType = RoleType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90))
+@PanelInstance(identifier = "serviceMembers",
+        applicableForType = ServiceType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 80))
+@PanelInstance(identifier = "serviceGovernance",
+        applicableForType = ServiceType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90))
 @PanelDisplay(label = "Members", order = 60)
 public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends AbstractObjectMainPanel<R, FocusDetailsModels<R>> {
 
@@ -233,7 +236,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             @Override
             protected SelectableBeanObjectDataProvider<AH> createProvider() {
                 SelectableBeanObjectDataProvider<AH> provider = createSelectableBeanObjectDataProvider(() -> getCustomizedQuery(getSearchModel().getObject()), null);
-                provider.addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleMemberPanel.this.getModelObject());
+                provider.addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject()));
                 return provider;
             }
 
@@ -449,21 +452,6 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     private AbstractRoleCompositedSearchItem createMemberSearchPanel(Search search, SearchBoxConfigurationHelper searchBoxConfig) {
         return new AbstractRoleCompositedSearchItem(search, searchBoxConfig, !isNotRole(), isOrg());
-//        {
-
-//            @Override
-//            protected PrismReferenceDefinition getReferenceDefinition(ItemName refName) {
-////                return PrismContext.get().getSchemaRegistry()
-////                        .findContainerDefinitionByCompileTimeClass(AssignmentType.class)
-////                        .findReferenceDefinition(refName);
-//            }
-
-//            @Override
-//            protected R getAbstractRoleObject() {
-//                return AbstractRoleMemberPanel.this.getModelObject();
-//            }
-
-//        };
     }
 
     private <AH extends AssignmentHolderType> ObjectQuery getCustomizedQuery(Search<AH> search) {
@@ -1161,6 +1149,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return (MainObjectListPanel<FocusType>) get(getPageBase().createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
     }
 
+    private Search<FocusType> getSearch() {
+        return getMemberTable().getSearchModel().getObject();
+    }
+
     protected QueryScope getQueryScope() {
         // TODO if all selected objects have OIDs we can eliminate getOids call
         if (CollectionUtils.isNotEmpty(
@@ -1168,12 +1160,39 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             return QueryScope.SELECTED;
         }
 
-        if (getSearchBoxConfiguration().isIndirect()
-                || getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)) {
+        if (isIndirect() || isSubtreeScope()) {
             return QueryScope.ALL;
         }
 
         return QueryScope.ALL_DIRECT;
+    }
+
+    private boolean isSubtreeScope() {
+        Search<FocusType> search = getSearch();
+        SearchItem compositedItem = search.getCompositedSpecialItem();
+        if (compositedItem instanceof AbstractRoleCompositedSearchItem ) {
+            List<SearchItem> items = ((AbstractRoleCompositedSearchItem) compositedItem).getSearchItems();
+            for (SearchItem item : items) {
+                if (item instanceof ScopeSearchItem) {
+                    return SearchBoxScopeType.SUBTREE.equals(((ScopeSearchItem) item).getScopeType());
+                }
+            }
+        }
+        return getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE);
+    }
+
+    private boolean isIndirect() {
+        Search<FocusType> search = getSearch();
+        SearchItem compositedItem = search.getCompositedSpecialItem();
+        if (compositedItem instanceof AbstractRoleCompositedSearchItem ) {
+            List<SearchItem> items = ((AbstractRoleCompositedSearchItem)compositedItem).getSearchItems();
+            for (SearchItem item : items) {
+                if (item instanceof IndirectSearchItem) {
+                    return ((IndirectSearchItem) item).isIndirect();
+                }
+            }
+        }
+        return getSearchBoxConfiguration().isIndirect();
     }
 
     protected void recomputeMembersPerformed(AjaxRequestTarget target) {

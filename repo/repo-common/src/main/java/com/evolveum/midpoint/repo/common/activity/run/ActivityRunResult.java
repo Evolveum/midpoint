@@ -44,6 +44,9 @@ public class ActivityRunResult implements ShortDumpable {
     /** The original exception (if any). */
     private Throwable throwable;
 
+    /** Optional message. Overrides the message in {@link #throwable}. */
+    @Nullable private String message;
+
     public ActivityRunResult() {
     }
 
@@ -51,7 +54,9 @@ public class ActivityRunResult implements ShortDumpable {
         this(operationResultStatus, runResultStatus, null);
     }
 
-    public ActivityRunResult(OperationResultStatus operationResultStatus, TaskRunResultStatus runResultStatus,
+    public ActivityRunResult(
+            OperationResultStatus operationResultStatus,
+            TaskRunResultStatus runResultStatus,
             Throwable throwable) {
         this.operationResultStatus = operationResultStatus;
         this.runResultStatus = runResultStatus;
@@ -64,20 +69,27 @@ public class ActivityRunResult implements ShortDumpable {
      *
      * @param e Exception to be handled
      * @param opResult Operation result into which the exception should be recorded
-     * @param context Instance of activity run (or other similar object) in which the exception is converted.
+     * @param activityRun Instance of activity run in which the exception is converted.
      * It is used just for logging purposes.
      */
     static @NotNull ActivityRunResult handleException(@NotNull Exception e, @NotNull OperationResult opResult,
-            @Nullable Object context) {
+            @NotNull AbstractActivityRun<?, ?, ?> activityRun) {
         if (e instanceof ActivityRunException) {
             ActivityRunException aee = (ActivityRunException) e;
-            if (aee.getOpResultStatus() != SUCCESS) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Exception in {}", e, context);
+            OperationResultStatus status = aee.getOpResultStatus();
+            if (status == WARNING) {
+                LOGGER.warn("{}; in {}", e.getMessage(), activityRun.getDiagName());
+            } else if (status == HANDLED_ERROR) {
+                // Should we even log handled errors like this?
+                LOGGER.warn("Handled error in {}: {}", activityRun.getDiagName(), e.getMessage(), e);
+            } else if (status != SUCCESS && status != NOT_APPLICABLE) {
+                // What about other kinds of status (in progress? unknown? - they should not occur at this point)
+                LoggingUtils.logUnexpectedException(LOGGER, "Exception in {}", e, activityRun.getDiagName());
             }
-            opResult.recordStatus(aee.getOpResultStatus(), aee.getFullMessage(), aee.getCause());
+            opResult.recordStatus(status, aee.getFullMessage(), aee.getCause());
             return aee.toActivityRunResult();
         } else {
-            LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception in {}", e, context);
+            LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception in {}", e, activityRun.getDiagName());
             opResult.recordFatalError(e);
             return ActivityRunResult.exception(FATAL_ERROR, PERMANENT_ERROR, e);
         }
@@ -89,7 +101,11 @@ public class ActivityRunResult implements ShortDumpable {
                 MoreObjects.firstNonNull(runResultStatus, FINISHED));
         runResult.setOperationResultStatus(operationResultStatus);
         runResult.setThrowable(throwable);
-        runResult.setMessage(throwable != null ? throwable.getMessage() : null);
+        if (message != null) {
+            runResult.setMessage(message);
+        } else if (throwable != null) {
+            runResult.setMessage(throwable.getMessage());
+        }
         // progress is intentionally kept null (meaning "do not update it in the task")
         return runResult;
     }
@@ -148,6 +164,8 @@ public class ActivityRunResult implements ShortDumpable {
         return "ActivityRunResult{" +
                 "opStatus=" + operationResultStatus +
                 ", runStatus=" + runResultStatus +
+                (throwable != null ? ", throwable=" + throwable : "") +
+                (message != null ? ", message=" + message : "") +
                 '}';
     }
 
@@ -155,6 +173,17 @@ public class ActivityRunResult implements ShortDumpable {
     public void shortDump(StringBuilder sb) {
         sb.append("opStatus: ").append(operationResultStatus);
         sb.append(", runStatus: ").append(runResultStatus);
+        if (throwable != null) {
+            sb.append(", throwable: ").append(throwable);
+        }
+        if (message != null) {
+            sb.append(", message: ").append(message);
+        }
+    }
+
+    public ActivityRunResult message(String message) {
+        this.message = message;
+        return this;
     }
 
     public boolean isError() {

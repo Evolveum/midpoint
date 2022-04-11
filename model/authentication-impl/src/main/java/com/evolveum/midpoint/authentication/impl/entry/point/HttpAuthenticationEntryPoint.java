@@ -27,7 +27,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
  */
 public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private static final String DEFAULT_REALM = "midpoint";
+    public static final String DEFAULT_REALM = "midpoint";
 
     @Override
     public void commence(
@@ -42,30 +42,18 @@ public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint {
             List<ModuleAuthentication> parallelProcessingModules =
                     mpAuthentication.getParallelProcessingModules();
             if (!parallelProcessingModules.isEmpty()) {
-                StringBuilder sb = new StringBuilder();
-
-                boolean first = true;
                 for (ModuleAuthentication moduleAuthentication : parallelProcessingModules) {
-                    if (!first) {
-                        sb.append(", ");
-                    }
-                    first = false;
-                    sb.append(moduleAuthentication.getNameOfModuleType())
-                            .append(" realm=\"")
-                            .append(getRealm(moduleAuthentication))
-                            .append("\"");
+                    response.addHeader("WWW-Authenticate", getRealmForHeader(moduleAuthentication, authException));
                 }
-                response.setHeader("WWW-Authenticate", sb.toString());
             }
         }
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     }
 
-    private String getRealm(ModuleAuthentication moduleAuthentication) {
-        if (moduleAuthentication instanceof HttpModuleAuthentication
-                && ((HttpModuleAuthentication) moduleAuthentication).getRealm() != null) {
-            return ((HttpModuleAuthentication) moduleAuthentication).getRealm();
+    private String getRealmForHeader(ModuleAuthentication moduleAuthentication, AuthenticationException authException) {
+        if (moduleAuthentication instanceof HttpModuleAuthentication) {
+            return ((HttpModuleAuthentication) moduleAuthentication).getRealmFroHeader(authException);
         }
-        return DEFAULT_REALM;
+        return moduleAuthentication.getNameOfModuleType() +" realm=\"" + DEFAULT_REALM + "\"";
     }
 }

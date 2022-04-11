@@ -91,9 +91,6 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
                 String localePath = savedRequest.getRedirectUrl().substring(startIndex, endIndex);
                 channelSavedRequest = AuthSequenceUtil.searchChannelByPath(localePath);
             }
-            if (channelSavedRequest == null) {
-                channelSavedRequest = SecurityPolicyUtil.DEFAULT_CHANNEL;
-            }
             if (!(channelSavedRequest.equals(authenticatedChannel))) {
                 getRedirectStrategy().sendRedirect(request, response, urlSuffix);
                 return;

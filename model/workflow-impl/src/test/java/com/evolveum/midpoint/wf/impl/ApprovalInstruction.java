@@ -9,9 +9,6 @@ package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
-/**
- * @author mederly
- */
 public class ApprovalInstruction {
 
     public final ExpectedWorkItem expectedWorkItem;

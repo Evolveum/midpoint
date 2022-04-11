@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -54,7 +54,7 @@ public class RoleMemberListRepoTest extends SqaleRepoBaseTest {
         OperationResult operationResult = createOperationResult();
         for (int roleIndex = ROLE_MIN; roleIndex <= ROLE_MAX; roleIndex++) {
             String name = String.format("role-%05d", roleIndex);
-            RoleType role = new RoleType(prismContext)
+            RoleType role = new RoleType()
                     .name(PolyStringType.fromOrig(name));
             try {
                 repositoryService.addObject(role.asPrismObject(), null, operationResult);
@@ -71,7 +71,7 @@ public class RoleMemberListRepoTest extends SqaleRepoBaseTest {
 
         for (int userIndex = USER_MIN; userIndex <= USER_MAX; userIndex++) {
             String name = String.format("user-%07d", userIndex);
-            UserType user = new UserType(prismContext)
+            UserType user = new UserType()
                     .name(PolyStringType.fromOrig(name));
             addRoles(user);
             try {
@@ -90,7 +90,7 @@ public class RoleMemberListRepoTest extends SqaleRepoBaseTest {
             // 2d converts size to double and also gives minuscule chance to the last role.
             double probability = (size - counter) / (2d + size);
             if (probability > RND.nextDouble()) {
-                user.assignment(new AssignmentType(prismContext)
+                user.assignment(new AssignmentType()
                         .targetRef(roleOid, RoleType.COMPLEX_TYPE));
                 user.roleMembershipRef(roleOid, RoleType.COMPLEX_TYPE);
             }

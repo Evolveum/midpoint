@@ -312,6 +312,18 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return this;
     }
 
+    public TaskAsserter<RA> assertWarning() {
+        OperationResultType result = getTaskBean().getResult();
+        if (result != null) {
+            TestUtil.assertStatus(result, OperationResultStatusType.WARNING);
+        } else {
+            assertThat(getTaskBean().getResultStatus())
+                    .as("result status")
+                    .isEqualTo(OperationResultStatusType.WARNING);
+        }
+        return this;
+    }
+
     public TaskAsserter<RA> assertPartialError() {
         OperationResultType result = getTaskBean().getResult();
         if (result != null) {

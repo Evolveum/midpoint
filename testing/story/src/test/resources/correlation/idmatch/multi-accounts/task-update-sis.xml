@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+        oid="3fd6d6a8-4cd3-4d46-bdca-bec123dbd507">
+    <name>update-sis</name>
+    <extension>
+        <mext:updateIdMatch>true</mext:updateIdMatch>
+    </extension>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="21d4788c-15eb-40cc-8ac5-3cd379362ffe"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+            </import>
+        </work>
+        <executionMode>dryRun</executionMode>
+    </activity>
+</task>

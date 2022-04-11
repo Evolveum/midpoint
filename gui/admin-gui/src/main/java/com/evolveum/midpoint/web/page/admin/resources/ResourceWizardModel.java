@@ -19,8 +19,6 @@ import org.apache.wicket.extensions.wizard.WizardModel;
  * Currently we ignore that history list grows bigger on each 'next' click.
  * <p>
  * This class provides the custom previous/isPreviousAvailable functionality.
- *
- * @author mederly
  */
 public class ResourceWizardModel extends WizardModel {
 

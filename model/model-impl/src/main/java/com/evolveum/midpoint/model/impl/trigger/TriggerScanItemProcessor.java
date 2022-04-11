@@ -15,6 +15,8 @@ import java.util.*;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.trigger.MultipleTriggersHandler;
+import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainer;

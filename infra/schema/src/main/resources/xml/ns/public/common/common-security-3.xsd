@@ -107,7 +107,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- later: audit: login/logout auditing settings (if needed) -->
             <xsd:element name="mailAuthentication" type="tns:MailAuthenticationPolicyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -345,7 +344,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <!-- later: oidHeader -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -482,19 +480,16 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:network</a:element>
+                    <a:version>4.5</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractAuthenticationModuleType">
                 <xsd:sequence>
-                    <xsd:element name="network" type="tns:Saml2NetworkAuthenticationModuleType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:plannedRemoval>4.5</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="serviceProvider" type="tns:Saml2ServiceProviderAuthenticationModuleType" minOccurs="1" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
@@ -525,6 +520,37 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:defaultDigest</a:element>
+                    <a:version>4.5</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:wantAssertionsSigned</a:element>
+                    <a:version>4.5</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:singleLogoutEnabled</a:element>
+                    <a:version>4.5</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:nameId</a:element>
+                    <a:version>4.5</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:provider</a:element>
+                    <a:version>4.5</a:version>
+                    <a:operation>moved</a:operation>
+                    <a:replacement>tns:identityProvider</a:replacement>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:metadata</a:element>
+                    <a:version>4.5</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -556,58 +582,11 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="defaultDigest" type="tns:Saml2DigestAuthenticationModuleType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Default digest method. Default is SHA256;
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.5</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="signRequests" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
                         Flag indicating whether this service signs authentication requests.
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="wantAssertionsSigned" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Flag indicating whether this service requires signed assertions.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.5</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="singleLogoutEnabled" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Flag indicating whether this service enable single logout.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.5</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="nameId" type="tns:Saml2NameIdAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name identifiers to be included in the metadata. Supported values are:
-                        EMAIL, TRANSIENT, PERSISTENT, UNSPECIFIED and X509_SUBJECT.
-                        Order of NameIDs in the property determines order of NameIDs
-                        in the generated metadata.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.5</a:plannedRemoval>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="keys" type="tns:Saml2KeyAuthenticationModuleType" minOccurs="0" maxOccurs="1">
@@ -617,17 +596,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="provider" type="tns:Saml2ProviderAuthenticationModuleType" minOccurs="1" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Possible identity providers for this service provider.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.5</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="identityProvider" type="tns:Saml2ProviderAuthenticationModuleType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -635,112 +603,8 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="metadata" type="tns:Saml2ProviderMetadataAuthenticationModuleType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Service provider can use prepared metadata.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.5</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-
-    <xsd:simpleType name="Saml2NameIdAuthenticationModuleType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Possible NameId.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:deprecated>true</a:deprecated>
-                <a:plannedRemoval>4.5</a:plannedRemoval>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="EMAIL"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TRANSIENT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="urn:oasis:names:tc:SAML:2.0:nameid-format:persistent">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="PERSISTENT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="UNSPECIFIED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="X509_SUBJECT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="Saml2DigestAuthenticationModuleType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Possible digest method.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:deprecated>true</a:deprecated>
-                <a:plannedRemoval>4.5</a:plannedRemoval>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="http://www.w3.org/2000/09/xmldsig#sha1">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SHA1"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="http://www.w3.org/2001/04/xmlenc#sha256">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SHA256"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="http://www.w3.org/2001/04/xmlenc#sha512">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SHA512"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="http://www.w3.org/2001/04/xmlenc#ripemd160">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="RIPEMD160"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
 
     <xsd:simpleType name="Saml2SigningAlgorithmAuthenticationModuleType">
         <xsd:annotation>
@@ -860,33 +724,8 @@
             <xsd:element name="keyStorePath" type="xsd:string" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="keyStorePassword" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="keyAlias" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="keyPassword" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="keyPassword" type="t:ProtectedStringType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="OidcKeyStoreKeyType">
-        <xsd:annotation>
-            <xsd:documentation>
-                OIDC key from key store. Supported only JKS type of key store.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.1</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractKeyStoreKeyType">
-                <xsd:sequence>
-                    <xsd:element name="keyId" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The key ID of JWK is used to match a specific key.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="AbstractSimpleKeyType">
@@ -897,39 +736,18 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.5</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:name</a:element>
+                    <a:version>4.5</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="privateKey" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="passphrase" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="certificate" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="OidcSimpleKeyType">
-        <xsd:annotation>
-            <xsd:documentation>
-                OIDC key from string representation.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.5</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractSimpleKeyType">
-                <xsd:sequence>
-                    <xsd:element name="keyId" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The key ID of JWK is used to match a specific key.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ModuleSaml2SimpleKeyType">
@@ -993,6 +811,21 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:alias</a:element>
+                    <a:version>4.5</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:skipSslValidation</a:element>
+                    <a:version>4.5</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:metadataTrustCheck</a:element>
+                    <a:version>4.5</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1003,41 +836,11 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="alias" type="xsd:string" minOccurs="1" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Unique alias used to identify the selected local service provider based on used URL.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.5</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="metadata" type="tns:Saml2ProviderMetadataAuthenticationModuleType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Metadata of Identity provider.
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="skipSslValidation" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.5</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="metadataTrustCheck" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Flag indicating disabled signature verification.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.5</a:plannedRemoval>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="linkText" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -1115,10 +918,83 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractAuthenticationModuleType">
                 <xsd:sequence>
-                    <xsd:element name="client" type="tns:OidcClientAuthenticationModuleType" minOccurs="1" maxOccurs="unbounded"/>
+                    <xsd:element name="client" type="tns:OidcClientAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="resourceServer" type="tns:OidcResourceServerAuthenticationModuleType" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="OidcResourceServerAuthenticationModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                OpenID Connect resource server.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="realm" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Realm which Midpoint use for WWW-Authentication header
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="issuerUri" type="xsd:string" minOccurs="0" maxOccurs="1" >
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Issuer identifier uri for the OpenID Connect provider.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="jwkSetUri" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uri for the JSON Web Key (JWK) Set endpoint.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="nameOfUsernameClaim" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of claim in jwt, which value define name of user in Midpoint. Default value is 'sub'.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="singleSymmetricKey" type="t:ProtectedStringType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Trusting a Single Asymmetric Key.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="trustedAlgorithm" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Trusted Algorithms. (RFC7518 section-3.1).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:choice>
+                <xsd:element name="trustingAsymmetricCertificate" type="t:ProtectedStringType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Certificate of trusting a single asymmetric RSA public key.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="keyStoreTrustingAsymmetricKey" type="tns:AbstractKeyStoreKeyType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Key store with trusting a single asymmetric RSA public key.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice> <!--> can use only one of types, but all can be null<-->
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="OidcClientAuthenticationModuleType">
@@ -1184,23 +1060,24 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="nameOfUsernameAttribute" type="xsd:string" minOccurs="1" maxOccurs="1">
+            <xsd:element name="nameOfUsernameAttribute" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of attribute in response, which value define name of user in Midpoint. For example 'username'.
+                        Name of attribute in response, which value define name of user in Midpoint.
+                        Default value is 'sub'.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="openIdProvider" type="tns:OidcOpenIdProviderType" minOccurs="1" maxOccurs="1"/>
             <xsd:choice>
-                <xsd:element name="simpleProofKey" type="tns:OidcSimpleKeyType" minOccurs="0">
+                <xsd:element name="simpleProofKey" type="tns:AbstractSimpleKeyType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             Key used for sign with PRIVATE_KEY_JWT.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="keyStoreProofKey" type="tns:OidcKeyStoreKeyType" minOccurs="0">
+                <xsd:element name="keyStoreProofKey" type="tns:AbstractKeyStoreKeyType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             Key used for sign with PRIVATE_KEY_JWT.
@@ -1267,7 +1144,7 @@
             <xsd:element name="authorizationUri" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Uri for the authorization endpoint..
+                        Uri for the authorization endpoint.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1285,17 +1162,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="jwkSetUri" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+            <xsd:element name="issuerUri" type="xsd:string" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Uri for the JSON Web Key (JWK) Set endpoint.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="issuerUri" type="xsd:string" minOccurs="1" maxOccurs="1" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Issuer identifier uri for the OpenID Connect 1.0 provider.
+                        Issuer identifier uri for the OpenID Connect provider.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1499,8 +1369,68 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="focusBehaviorUpdate" type="tns:FocusBehaviorUpdateType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:since>4.5</a:since>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Option for updating focus authentication behaviour attributes. We can enable/disable updating of focus
+                        behavior  during every login, or we can use option for updating behaviour only when login failed and
+                        during success login after fails login. Default value is 'everyLogin'.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:simpleType name="FocusBehaviorUpdateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Option for updating focus authentication behaviour attributes. We can enable/disable updating of focus
+                behavior  during every login, or we can use option for updating behaviour only when login failed and
+                during success login after fails login.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="enabled">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Behaviour attributes will be updated every login.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ENABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="disabled">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Authentication behaviour attributes will not be updated during login.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DISABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="failureOnly">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Authentication behaviour attributes will be updated when login failed and when login will be success,
+                        but previous login was failed and midPoint need update attributes as is number of login fails
+                        and lockout state.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FAILURE_ONLY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="AuthenticationSequenceChannelType">
         <xsd:annotation>
@@ -1797,7 +1727,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- Later: authenticationSequenceName -->
             <xsd:element name="newCredentialSource" type="tns:CredentialSourceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1852,7 +1781,7 @@
             <xsd:element name="formRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Reference to form which is displayed for registration
+                        Reference to form which is displayed for reset
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
@@ -2084,6 +2013,26 @@
             <xsd:element name="displayName" type="xsd:string" minOccurs="0">
             </xsd:element>
             <xsd:element name="additionalAuthenticationName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Deprecated from 4.5 please use element 'additionalAuthenticationSequence'.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.5</a:deprecatedSince>
+                        <a:plannedRemoval>4.6</a:plannedRemoval>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="additionalAuthenticationSequence" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defined authentication sequence, which will be use for additional authentication.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.5</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="defaultRole" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>

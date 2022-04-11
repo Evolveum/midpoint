@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -72,7 +72,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
  * already present.
  *
  * @author lazyman
- * @author mederly
  */
 public class QueryInterpreter {
 
@@ -100,10 +99,14 @@ public class QueryInterpreter {
     public RootHibernateQuery interpret(ObjectQuery query, @NotNull Class<? extends Containerable> type,
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull PrismContext prismContext,
             @NotNull RelationRegistry relationRegistry, boolean countingObjects, @NotNull Session session) throws QueryException {
-        boolean distinctRequested = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
-        LOGGER.trace("Interpreting query for type '{}' (counting={}, distinctRequested={}), query:\n{}", type, countingObjects, distinctRequested, query);
 
-        InterpretationContext context = new InterpretationContext(this, type, prismContext, relationRegistry, extItemDictionary, session);
+        boolean distinctRequested = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
+        LOGGER.trace("Interpreting query for type '{}' (counting={}, distinctRequested={}), query:\n{}",
+                type, countingObjects, distinctRequested, query);
+
+        // I'm sorry about the 7th parameter, but this will die with the old repo soon.
+        InterpretationContext context = new InterpretationContext(this, type, prismContext,
+                relationRegistry, extItemDictionary, session, repoConfiguration.getDatabaseType());
         interpretQueryFilter(context, query);
         String rootAlias = context.getHibernateQuery().getPrimaryEntityAlias();
         ResultStyle resultStyle = getResultStyle(context);
@@ -133,7 +136,7 @@ public class QueryInterpreter {
         if (distinct && !distinctBlobCapable) {
             String subqueryText = "\n" + hibernateQuery.getAsHqlText(2, true);
             InterpretationContext wrapperContext = new InterpretationContext(
-                    this, type, prismContext, relationRegistry, extItemDictionary, session);
+                    this, type, prismContext, relationRegistry, extItemDictionary, session, repoConfiguration.getDatabaseType());
             try {
                 interpretPagingAndSorting(wrapperContext, query, false);
             } catch (QueryException e) {
@@ -353,12 +356,6 @@ public class QueryInterpreter {
                 addOrdering(context, ordering);
             }
         }
-
-        if (paging.hasGrouping()) {
-            for (ObjectGrouping grouping : paging.getGroupingInstructions()) {
-                addGrouping(context, grouping);
-            }
-        }
     }
 
     private void addOrdering(InterpretationContext context, ObjectOrdering ordering) throws QueryException {
@@ -409,45 +406,6 @@ public class QueryInterpreter {
             hibernateQuery.addOrdering(hqlPropertyPath, OrderDirection.ASCENDING);
         }
 
-    }
-
-    private void addGrouping(InterpretationContext context, ObjectGrouping grouping) throws QueryException {
-
-        ItemPath groupByPath = grouping.getGroupBy();
-
-        // TODO if we'd like to have group-by extension properties, we'd need to provide itemDefinition for them
-        ProperDataSearchResult<?> result = context.getItemPathResolver().findProperDataDefinition(
-                context.getRootEntityDefinition(), groupByPath, null, JpaDataNodeDefinition.class, context.getPrismContext());
-        if (result == null) {
-            LOGGER.error("Unknown path '" + groupByPath + "', couldn't find definition for it, "
-                    + "list will not be grouped by it.");
-            return;
-        }
-        JpaDataNodeDefinition targetDefinition = result.getLinkDefinition().getTargetDefinition();
-        if (targetDefinition instanceof JpaAnyContainerDefinition) {
-            throw new QueryException("Grouping based on extension item or attribute is not supported yet: " + groupByPath);
-        } else if (targetDefinition instanceof JpaReferenceDefinition) {
-            throw new QueryException("Grouping based on reference is not supported: " + groupByPath);
-        } else if (result.getLinkDefinition().isMultivalued()) {
-            throw new QueryException("Grouping based on multi-valued item is not supported: " + groupByPath);
-        } else if (targetDefinition instanceof JpaEntityDefinition) {
-            throw new QueryException("Grouping based on entity is not supported: " + groupByPath);
-        } else if (!(targetDefinition instanceof JpaPropertyDefinition)) {
-            throw new IllegalStateException("Unknown item definition type: " + result.getClass());
-        }
-
-        JpaEntityDefinition baseEntityDefinition = result.getEntityDefinition();
-        JpaPropertyDefinition groupByDefinition = (JpaPropertyDefinition) targetDefinition;
-        String hqlPropertyPath = context.getItemPathResolver()
-                .resolveItemPath(groupByPath, null, context.getPrimaryEntityAlias(), baseEntityDefinition, true)
-                .getHqlPath();
-        if (RPolyString.class.equals(groupByDefinition.getJpaClass())) {
-            hqlPropertyPath += ".orig";
-        }
-
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
-
-        hibernateQuery.addGrouping(hqlPropertyPath);
     }
 
     public <T> Matcher<T> findMatcher(T value) {

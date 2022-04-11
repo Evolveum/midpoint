@@ -66,7 +66,7 @@ public class UserPasswordNotifier extends AbstractGeneralNotifier<ModelEvent, Us
 
     @Override
     protected String getBody(ModelEvent event, UserPasswordNotifierType configuration, String transport, Task task, OperationResult result) {
-        return "Password for user " + notificationsUtil.getObjectType(event.getRequestee(), false, result).getName()
+        return "Password for user " + notificationsUtil.getObject(event.getRequestee(), false, result).getName()
                 + " is: " + event.getFocusPassword();
     }
 

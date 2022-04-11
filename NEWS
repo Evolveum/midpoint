@@ -1,14 +1,12 @@
-midPoint 4.4 "Tesla"
-----------------------
+midPoint 4.5 "Nightingale"
+--------------------------
 
-Release 4.4 is thirty-seventh midPoint release code-named Tesla.
-The 4.4 release brings major performance and scalability improvements implemented in scope of
-midScale project. In addition to that there are significant user experience and reporting
-improvements.
+Release 4.5 is a fortieth midPoint release code-named Nightingale.
+The 4.5 release brings identity matching capabilities, support for OpenID Connect, notification, user interface and other improvements.
 
-Release date: 26th November 2021
-Release type: Long-term support release
-End of support: 26th November 2024
+Release date: 11th April 2022
+Release type: Feature release
+End of support: 11th April 2023
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.4/
+https://docs.evolveum.com/midpoint/release/4.5/

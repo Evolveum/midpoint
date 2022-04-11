@@ -17,9 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
 
-/**
- * @author mederly
- */
 class DuplicateObjectTypeDetector {
 
     @NotNull private final Set<ObjectTypeRecord> records = new HashSet<>();

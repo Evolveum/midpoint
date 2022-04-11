@@ -10,7 +10,7 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
@@ -24,8 +24,6 @@ import java.util.List;
 /**
  * Extract from ApprovalSchemaExecutionInformationType that could be directly displayed via the GUI as "approval process preview"
  * (either for the whole process or only the future stages).
- *
- * @author mederly
  */
 public class ApprovalProcessExecutionInformationDto implements Serializable {
 

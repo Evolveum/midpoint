@@ -51,8 +51,6 @@ import static java.util.Collections.singleton;
 
 /**
  * Supports campaign/stage closing operations and related actions.
- *
- * @author mederly
  */
 @Component
 public class AccCertCloserHelper {

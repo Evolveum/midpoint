@@ -31,6 +31,8 @@ import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
@@ -144,7 +146,7 @@ public class ObjectDataProvider<W extends Serializable, O extends ObjectType>
     }
 
     public W createDataObjectWrapper(PrismObject<O> obj) {
-        SelectableBeanImpl<O> selectable = new SelectableBeanImpl<>(obj.asObjectable());
+        SelectableBeanImpl<O> selectable = new SelectableBeanImpl<>(Model.of(obj.asObjectable()));
         if (selected.contains(obj.asObjectable())) {
             selectable.setSelected(true);
         }

@@ -97,9 +97,7 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
                 throw new SystemException(e.getMessage(), e);
             }
         } else {
-            throw new ObjectNotFoundException("Object "+oid+" does not exists");
+            throw new ObjectNotFoundException("Object " + oid + " does not exist");
         }
     }
-
-
 }

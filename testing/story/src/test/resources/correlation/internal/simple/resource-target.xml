@@ -1,0 +1,245 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+            oid="917e846f-39a5-423e-a63a-b00c3595da37">
+
+    <name>Target</name>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration>
+        <icfc:configurationProperties
+                xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+            <icfccsvfile:filePath>will-be-replaced-by-test-code</icfccsvfile:filePath> <!-- resource-target.csv -->
+            <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
+            <icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
+            <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
+            <icfccsvfile:uniqueAttribute>login</icfccsvfile:uniqueAttribute>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <!-- login,gn,sn,mail,telephoneNumber,employeeNumber -->
+            <attribute>
+                <ref>ri:login</ref>
+                <outbound>
+                    <!-- We don't want to change existing login names -->
+                    <strength>weak</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>givenName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <!-- only for correlation -->
+                    <target>
+                        <path>givenName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:sn</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>familyName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <!-- only for correlation -->
+                    <target>
+                        <path>familyName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:mail</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>emailAddress</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <!-- only for correlation -->
+                    <target>
+                        <path>emailAddress</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:telephoneNumber</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>telephoneNumber</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <!-- only for correlation -->
+                    <target>
+                        <path>telephoneNumber</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:employeeNumber</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>employeeNumber</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <!-- only for correlation -->
+                    <target>
+                        <path>employeeNumber</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <mappingsEvaluation>
+                <inbound>
+                    <defaultEvaluationPhases>
+                        <!-- NO clockwork, i.e. these mappings will not be used for data transfer from target to midPoint -->
+                        <phase>beforeCorrelation</phase>
+                    </defaultEvaluationPhases>
+                </inbound>
+            </mappingsEvaluation>
+        </objectType>
+    </schemaHandling>
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <kind>account</kind>
+            <intent>default</intent>
+            <correlationDefinition>
+                <correlators>
+                    <name>composite</name>
+                    <documentation>Implements correlation rules #1-#4 (see TestCorrelationSimple javadoc)</documentation>
+                    <filter>
+                        <order>10</order>
+                        <authority>authoritative</authority>
+                        <name>employee number</name>
+                        <documentation>Matching on employeeNumber (rule #1).</documentation>
+                        <ownerFilter>
+                            <q:equal>
+                                <q:path>employeeNumber</q:path>
+                                <expression>
+                                    <path>$focus/employeeNumber</path>
+                                </expression>
+                            </q:equal>
+                            <condition>
+                                <script>
+                                    <code>focus.employeeNumber != null</code>
+                                </script>
+                            </condition>
+                        </ownerFilter>
+                    </filter>
+                    <filter>
+                        <order>20</order>
+                        <authority>authoritative</authority>
+                        <name>email address</name>
+                        <documentation>Matching on emailAddress (rule #2).</documentation>
+                        <ownerFilter>
+                            <q:equal>
+                                <q:path>emailAddress</q:path>
+                                <expression>
+                                    <path>$focus/emailAddress</path>
+                                </expression>
+                            </q:equal>
+                            <condition>
+                                <script>
+                                    <code>focus.emailAddress != null</code>
+                                </script>
+                            </condition>
+                        </ownerFilter>
+                    </filter>
+                    <filter>
+                        <order>30</order>
+                        <authority>nonAuthoritative</authority>
+                        <name>family name</name>
+                        <documentation>Non-authoritative matching on familyName (rule #3).</documentation>
+                        <ownerFilter>
+                            <q:equal>
+                                <q:path>familyName</q:path>
+                                <expression>
+                                    <path>$focus/familyName</path>
+                                </expression>
+                            </q:equal>
+                            <condition>
+                                <script>
+                                    <code>focus.familyName != null</code>
+                                </script>
+                            </condition>
+                        </ownerFilter>
+                    </filter>
+                    <filter>
+                        <order>40</order>
+                        <authority>nonAuthoritative</authority>
+                        <name>telephone number</name>
+                        <documentation>Non-authoritative matching on telephoneNumber (rule #4).</documentation>
+                        <ownerFilter>
+                            <q:equal>
+                                <q:path>telephoneNumber</q:path>
+                                <expression>
+                                    <path>$focus/telephoneNumber</path>
+                                </expression>
+                            </q:equal>
+                            <condition>
+                                <script>
+                                    <code>focus.telephoneNumber != null</code>
+                                </script>
+                            </condition>
+                        </ownerFilter>
+                    </filter>
+                </correlators>
+                <cases/>
+            </correlationDefinition>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>false</synchronize> <!-- no need to sync (no inbounds) -->
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>false</synchronize> <!-- no need to sync (no inbounds); unlinking is automatic (is it?) -->
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>false</synchronize> <!-- we want to do nothing for these accounts -->
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+</resource>

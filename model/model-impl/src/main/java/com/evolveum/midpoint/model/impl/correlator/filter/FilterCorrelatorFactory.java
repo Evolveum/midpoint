@@ -51,6 +51,6 @@ public class FilterCorrelatorFactory implements CorrelatorFactory<FilterCorrelat
             @NotNull CorrelatorContext<FilterCorrelatorType> context,
             @NotNull Task task,
             @NotNull OperationResult result) throws ConfigurationException {
-        return new FilterCorrelator(context.getConfigurationBean(), beans);
+        return new FilterCorrelator(context, beans);
     }
 }

@@ -15,9 +15,9 @@ import com.evolveum.midpoint.report.impl.activity.ExportDashboardActivitySupport
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.report.impl.controller.*;
+import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -70,6 +71,7 @@ public final class ClassicDashboardReportExportActivityRun
     @Override
     public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
         return super.createReportingCharacteristics()
+                .skipWritingOperationExecutionRecords(true) // a bit questionable
                 .determineOverallSizeDefault(ActivityOverallItemCountingOptionType.ALWAYS);
     }
 
@@ -130,34 +132,45 @@ public final class ClassicDashboardReportExportActivityRun
     }
 
     @Override
-    public void iterateOverItemsInBucket(OperationResult result) throws CommonException {
+    public void iterateOverItemsInBucket(OperationResult gResult) throws CommonException {
         // Issue the search to audit or model/repository
         // And use the following handler to handle the results
 
         List<DashboardWidgetType> widgets = support.getDashboard().getWidget();
         AtomicInteger widgetSequence = new AtomicInteger(1);
+        AtomicBoolean stopped = new AtomicBoolean(false);
         for (DashboardWidgetType widget : widgets) {
+
+            if (Boolean.TRUE.equals(stopped.get())) {
+                return;
+            }
 
             ExportDashboardReportLine<Containerable> widgetLine = new ExportDashboardReportLine<>(widgetSequence.getAndIncrement(), widget);
             ItemProcessingRequest<ExportDashboardReportLine<Containerable>> widgetRequest = new ExportDashboardReportLineProcessingRequest(
                     widgetLine, this);
-            coordinator.submit(widgetRequest, result);
+            if (!coordinator.submit(widgetRequest, gResult)) {
+                break;
+            }
 
             if (support.isWidgetTableVisible()) {
                 AtomicInteger sequence = new AtomicInteger(1);
-                Handler<Containerable> handler = record -> {
+                ObjectHandler<Containerable> handler = (record, lResult) -> {
                     ExportDashboardReportLine<Containerable> line = new ExportDashboardReportLine<>(sequence.getAndIncrement(),
                             record,
                             widget.getIdentifier());
-                    ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request = new ExportDashboardReportLineProcessingRequest(
-                            line, this);
-                    coordinator.submit(request, result);
-                    return true;
+                    ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request =
+                            new ExportDashboardReportLineProcessingRequest(line, this);
+                    if (coordinator.submit(request, lResult)) {
+                        return true;
+                    } else {
+                        stopped.set(true);
+                        return false;
+                    }
                 };
 
                 DashboardWidgetHolder holder = mapOfWidgetsController.get(widget.getIdentifier());
                 ContainerableReportDataSource searchSpecificationHolder = holder.getSearchSpecificationHolder();
-                searchSpecificationHolder.run(handler, result);
+                searchSpecificationHolder.run(handler, gResult);
             }
         }
     }

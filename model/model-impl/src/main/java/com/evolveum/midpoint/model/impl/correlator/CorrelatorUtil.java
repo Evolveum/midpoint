@@ -12,9 +12,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -24,17 +22,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class CorrelatorUtil {
-
-    @NotNull
-    public static CorrelationResult createCorrelationResult(List<? extends ObjectType> candidates) {
-        if (candidates.isEmpty()) {
-            return CorrelationResult.noOwner();
-        } else if (candidates.size() == 1) {
-            return CorrelationResult.existingOwner(candidates.get(0));
-        } else {
-            return CorrelationResult.uncertain();
-        }
-    }
 
     public static <F extends ObjectType> void addCandidates(List<F> allCandidates, List<F> candidates, Trace logger) {
         for (F candidate : candidates) {
@@ -66,23 +53,23 @@ public class CorrelatorUtil {
                 correlationContext.getResource(),
                 correlationContext.getSystemConfiguration());
         variables.put(ExpressionConstants.VAR_CORRELATION_CONTEXT, correlationContext, CorrelationContext.class);
-        variables.put(ExpressionConstants.VAR_CORRELATION_STATE, correlationContext.getCorrelationState(),
-                AbstractCorrelationStateType.class);
+        variables.put(ExpressionConstants.VAR_CORRELATOR_STATE,
+                correlationContext.getCorrelatorState(), AbstractCorrelatorStateType.class);
         return variables;
     }
 
-    public static @NotNull ShadowType getShadowFromCorrelationCase(@NotNull PrismObject<CaseType> aCase) throws SchemaException {
+    public static @NotNull ShadowType getShadowFromCorrelationCase(@NotNull CaseType aCase) throws SchemaException {
         return MiscUtil.requireNonNull(
                 MiscUtil.castSafely(
-                        ObjectTypeUtil.getObjectFromReference(aCase.asObjectable().getObjectRef()),
+                        ObjectTypeUtil.getObjectFromReference(aCase.getTargetRef()),
                         ShadowType.class),
                 () -> new IllegalStateException("No shadow object in " + aCase));
     }
 
-    public static @NotNull FocusType getPreFocusFromCorrelationCase(@NotNull PrismObject<CaseType> aCase) throws SchemaException {
-        CorrelationContextType correlationContext =
+    public static @NotNull FocusType getPreFocusFromCorrelationCase(@NotNull CaseType aCase) throws SchemaException {
+        CaseCorrelationContextType correlationContext =
                 MiscUtil.requireNonNull(
-                        aCase.asObjectable().getCorrelationContext(),
+                        aCase.getCorrelationContext(),
                         () -> new IllegalStateException("No correlation context in " + aCase));
         return MiscUtil.requireNonNull(
                 MiscUtil.castSafely(

@@ -19,9 +19,6 @@ import org.apache.wicket.model.PropertyModel;
 
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class ApprovalProcessesPreviewPanel extends BasePanel<List<ApprovalProcessExecutionInformationDto>> {
 
     private static final String ID_PROCESSES = "processes";

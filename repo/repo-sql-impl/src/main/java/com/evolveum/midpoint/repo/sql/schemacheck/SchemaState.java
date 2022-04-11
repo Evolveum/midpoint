@@ -11,8 +11,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Current state of the database schema as determined by the SchemaChecker.
- *
- * @author mederly
  */
 class SchemaState {
 

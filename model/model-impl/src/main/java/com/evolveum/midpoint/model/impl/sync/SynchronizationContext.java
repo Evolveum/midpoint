@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -49,6 +52,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
 /**
  * Context of the synchronization operation. It is created in the early stages of {@link ResourceObjectShadowChangeDescription}
  * progressing in {@link SynchronizationServiceImpl}.
@@ -75,9 +80,16 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
      */
     private final ObjectDelta<ShadowType> resourceObjectDelta;
 
-    private PrismObject<ResourceType> resource;
+    /**
+     * The resource. It is updated in {@link #checkNotInMaintenance(OperationResult)}. But it's never null.
+     */
+    @NotNull private PrismObject<ResourceType> resource;
+
+    /** Current system configuration */
     private PrismObject<SystemConfigurationType> systemConfiguration;
-    private String channel;
+
+    private final String channel;
+
     private ExpressionProfile expressionProfile;
 
     private final Task task;
@@ -130,9 +142,21 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     @Experimental
     private final String itemProcessingIdentifier;
 
-    public SynchronizationContext(@NotNull PrismObject<ShadowType> shadowedResourceObject,
-            ObjectDelta<ShadowType> resourceObjectDelta, PrismObject<ResourceType> resource, String channel,
-            ModelBeans beans, Task task, String itemProcessingIdentifier) {
+    /**
+     * Deltas that should be written to the shadow along with other sync metadata.
+     *
+     * They are already applied to the shadow - immediately as they are added to the list.
+     */
+    @NotNull private final List<ItemDelta<?, ?>> pendingShadowDeltas = new ArrayList<>();
+
+    public SynchronizationContext(
+            @NotNull PrismObject<ShadowType> shadowedResourceObject,
+            ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull PrismObject<ResourceType> resource,
+            String channel,
+            ModelBeans beans,
+            Task task,
+            String itemProcessingIdentifier) {
         this.shadowedResourceObject = shadowedResourceObject;
         this.resourceObjectDelta = resourceObjectDelta;
         this.resource = resource;
@@ -213,23 +237,24 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return objectSynchronization.getConfirmation();
     }
 
-    // TODO reconsider cloning here
-    public @NotNull CorrelatorsType getCorrelators() {
-        if (objectSynchronization.getCorrelators() != null) {
-            return objectSynchronization.getCorrelators().clone();
+    public @NotNull CompositeCorrelatorType getCorrelators() {
+        CorrelationDefinitionType correlationDefinition = objectSynchronization.getCorrelationDefinition();
+        CompositeCorrelatorType correlators = correlationDefinition != null ? correlationDefinition.getCorrelators() : null;
+        if (correlators != null) {
+            return correlators;
         } else if (objectSynchronization.getCorrelation().isEmpty()) {
             LOGGER.debug("No correlation information present. Will always find no owner. In: {}", this);
-            return new CorrelatorsType(PrismContext.get())
+            return new CompositeCorrelatorType()
                     .beginNone().end();
         } else {
-            CorrelatorsType correlators =
-                    new CorrelatorsType(PrismContext.get())
+            CompositeCorrelatorType composite =
+                    new CompositeCorrelatorType()
                             .beginFilter()
                             .confirmation(CloneUtil.clone(objectSynchronization.getConfirmation()))
                             .end();
-            correlators.getFilter().get(0).getFilter().addAll(
+            composite.getFilter().get(0).getOwnerFilter().addAll(
                     CloneUtil.cloneCollectionMembers(objectSynchronization.getCorrelation()));
-            return correlators;
+            return composite;
         }
     }
 
@@ -372,7 +397,11 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return shadowedResourceObject;
     }
 
-    public PrismObject<ResourceType> getResource() {
+    public @Nullable ObjectDelta<ShadowType> getResourceObjectDelta() {
+        return resourceObjectDelta;
+    }
+
+    public @NotNull PrismObject<ResourceType> getResource() {
         return resource;
     }
 
@@ -408,6 +437,11 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         preFocus = prismContext.createObjectable(
                 getFocusClass());
         return preFocus;
+    }
+
+    public @NotNull PrismObject<F> getPreFocusAsPrismObject() throws SchemaException {
+        //noinspection unchecked
+        return (PrismObject<F>) preFocus.asPrismObject();
     }
 
     public F getLinkedOwner() {
@@ -455,16 +489,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return channel;
     }
 
-    public void setResource(PrismObject<ResourceType> resource) {
-        this.resource = resource;
-    }
-
     public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
         this.systemConfiguration = systemConfiguration;
-    }
-
-    public void setChannel(String channel) {
-        this.channel = channel;
     }
 
     public ExpressionProfile getExpressionProfile() {
@@ -487,6 +513,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return shadowExistsInRepo;
     }
 
+    @SuppressWarnings("SameParameterValue")
     void setShadowExistsInRepo(boolean shadowExistsInRepo) {
         this.shadowExistsInRepo = shadowExistsInRepo;
     }
@@ -503,7 +530,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return itemProcessingIdentifier;
     }
 
-    ResourceObjectTypeDefinition findRefinedObjectClassDefinition() throws SchemaException {
+    ResourceObjectTypeDefinition findObjectTypeDefinition() throws SchemaException {
         ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         ShadowKindType kind = getKind();
 
@@ -554,6 +581,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         DebugUtil.debugDumpWithLabelToStringLn(sb, "tag", tag, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "reaction", reaction, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowExistsInRepo", shadowExistsInRepo, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "pendingShadowDeltas", pendingShadowDeltas, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "forceIntentChange", forceIntentChange, indent + 1);
         return sb.toString();
     }
@@ -578,7 +606,46 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         SynchronizationContext.skipMaintenanceCheck = skipMaintenanceCheck;
     }
 
-    public @Nullable ObjectSynchronizationType getObjectSynchronizationBean() {
-        return objectSynchronization;
+    @Nullable CorrelationDefinitionType getCorrelationDefinitionBean() {
+        return objectSynchronization != null ? objectSynchronization.getCorrelationDefinition() : null;
+    }
+
+    @NotNull List<ItemDelta<?, ?>> getPendingShadowDeltas() {
+        return pendingShadowDeltas;
+    }
+
+    void clearPendingShadowDeltas() {
+        pendingShadowDeltas.clear();
+    }
+
+    void addShadowDeltas(@NotNull Collection<ItemDelta<?, ?>> deltas) throws SchemaException {
+        for (ItemDelta<?, ?> delta : deltas) {
+            pendingShadowDeltas.add(delta);
+            delta.applyTo(shadowedResourceObject);
+        }
+    }
+
+    /**
+     * Should we update correlators' state? (With or without re-correlation, at least for the time being.)
+     *
+     * Currently a temporary implementation based on checking id-match related flag in task extension.
+     */
+    public boolean isCorrelatorsUpdateRequested() {
+        return Boolean.TRUE.equals(
+                task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_UPDATE_ID_MATCH));
+    }
+
+    /**
+     * Are we updating the correlators' state and ignoring the (potentially updated) correlation result?
+     *
+     * This is a temporary response to the question of what we have to do if the correlator comes
+     * to a conclusion different from the original one: we ignore it.
+     */
+    boolean isUpdatingCorrelatorsOnly() {
+        return isCorrelatorsUpdateRequested() && getLinkedOwner() != null;
+    }
+
+    public SystemConfigurationType getSystemConfigurationBean() {
+        return asObjectable(systemConfiguration);
     }
 }

@@ -16,9 +16,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-/**
- * @author mederly
- */
 public class EvaluatedTriggerGroupPanel extends BasePanel<EvaluatedTriggerGroupDto> {
 
     private static final String ID_TRIGGERS = "triggers";

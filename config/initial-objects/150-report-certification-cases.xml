@@ -17,6 +17,7 @@
     <objectCollection>
         <collection>
             <filter>
+                <!--  TODO: Convert to Axiom Query -->
                 <q:equal>
                     <q:path>../name</q:path>
                     <expression>

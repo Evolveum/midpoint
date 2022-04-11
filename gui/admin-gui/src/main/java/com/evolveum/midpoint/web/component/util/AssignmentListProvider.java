@@ -54,4 +54,21 @@ public class AssignmentListProvider extends MultivalueContainerListDataProvider<
         PrismObject<? extends ObjectType> object = WebModelServiceUtils.loadObject(targetRef, getPageBase());
         targetRef.asReferenceValue().setObject(object);
     }
+
+    @Override
+    public void detach() {
+        for (PrismContainerValueWrapper<AssignmentType> assignment : getAvailableData()) {
+            AssignmentType assignmentType = assignment.getRealValue();
+            if (assignmentType == null) {
+                continue;
+            }
+            ObjectReferenceType ref = assignmentType.getTargetRef();
+            if (ref == null) {
+                continue;
+            }
+            if (ref.getObject() != null) {
+                ref.asReferenceValue().setObject(null);
+            }
+        }
+    }
 }

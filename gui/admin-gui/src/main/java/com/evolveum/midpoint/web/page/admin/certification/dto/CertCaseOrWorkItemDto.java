@@ -32,8 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * A common superclass for CertCaseDto + CertWorkItemDto.
  * <p>
  * TODO cleanup a bit
- *
- * @author mederly
  */
 public class CertCaseOrWorkItemDto extends Selectable {
 
@@ -187,9 +185,9 @@ public class CertCaseOrWorkItemDto extends Selectable {
             }
 
             if (delta > 0) {
-                return PageBase.createStringResourceStatic(page, "PageCert.in", WebComponentUtil.formatDurationWordsForLocal(delta, true, true, page)).getString();
+                return PageBase.createStringResourceStatic("PageCert.in", WebComponentUtil.formatDurationWordsForLocal(delta, true, true, page)).getString();
             } else if (delta < 0) {
-                return PageBase.createStringResourceStatic(page, "PageCert.ago", WebComponentUtil.formatDurationWordsForLocal(-delta, true, true, page)).getString();
+                return PageBase.createStringResourceStatic("PageCert.ago", WebComponentUtil.formatDurationWordsForLocal(-delta, true, true, page)).getString();
             } else {
                 return page.getString("PageCert.now");
             }

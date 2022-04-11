@@ -162,6 +162,8 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         }
         ButtonInlineMenuItem menuItem = buttonMenuItems.get(id);
         if (menuItem.getAction() != null) {
+            // TODO: getConfirmationMessageModel is called here and again in showConfirmationPopup, but these are not getters,
+            //  but both create model (perhaps not very expensive, but it still seems like waste.
             if (menuItem.showConfirmationDialog() && menuItem.getConfirmationMessageModel() != null) {
                 showConfirmationPopup(menuItem, target);
             } else {

@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
@@ -43,23 +44,23 @@ public class GuiDisplayTypeUtil {
         return createDisplayType(OperationIcon.getIcon(), "", OperationIcon.getStatusLabelKey());
     }
 
-    public static DisplayType createDisplayType(String iconCssClass, String iconColor, String title) {
-        return createDisplayType(iconCssClass, iconColor, WebComponentUtil.createPolyFromOrigString(title));
+    public static DisplayType createDisplayType(String iconCssClass, String iconColor, String tooltip) {
+        return createDisplayType(iconCssClass, iconColor, WebComponentUtil.createPolyFromOrigString(tooltip));
     }
 
-    public static DisplayType createDisplayType(String iconCssClass, String iconColor, String label, String title) {
-        return createDisplayType(iconCssClass, iconColor, WebComponentUtil.createPolyFromOrigString(label), WebComponentUtil.createPolyFromOrigString(title));
+    public static DisplayType createDisplayType(String iconCssClass, String iconColor, String label, String tooltip) {
+        return createDisplayType(iconCssClass, iconColor, WebComponentUtil.createPolyFromOrigString(label), WebComponentUtil.createPolyFromOrigString(tooltip));
     }
 
-    public static DisplayType createDisplayType(String iconCssClass, PolyStringType title) {
-        return createDisplayType(iconCssClass, "", title);
+    public static DisplayType createDisplayType(String iconCssClass, PolyStringType tooltip) {
+        return createDisplayType(iconCssClass, "", tooltip);
     }
 
-    public static DisplayType createDisplayType(String iconCssClass, String iconColor, PolyStringType title) {
-        return createDisplayType(iconCssClass, iconColor, null, title);
+    public static DisplayType createDisplayType(String iconCssClass, String iconColor, PolyStringType tooltip) {
+        return createDisplayType(iconCssClass, iconColor, null, tooltip);
     }
 
-    public static DisplayType createDisplayType(String iconCssClass, String iconColor, PolyStringType label, PolyStringType title) {
+    public static DisplayType createDisplayType(String iconCssClass, String iconColor, PolyStringType label, PolyStringType tooltip) {
         DisplayType displayType = new DisplayType();
         IconType icon = new IconType();
         icon.setCssClass(iconCssClass != null ? iconCssClass.trim() : iconCssClass);
@@ -67,7 +68,7 @@ public class GuiDisplayTypeUtil {
         displayType.setIcon(icon);
         displayType.setLabel(label);
 
-        displayType.setTooltip(title);
+        displayType.setTooltip(tooltip);
         return displayType;
     }
 
@@ -89,10 +90,21 @@ public class GuiDisplayTypeUtil {
         return null;
     }
 
+    private static DisplayType createSimpleObjectRelationDisplayType(PageBase page, String key, String type, String relation) {
+        if (type == null) {
+            type = "";
+        }
+        if (relation == null) {
+            relation = "";
+        }
+        String label = page.createStringResource(key, type, relation).getString();
+        return createDisplayType("", "", label, label);
+    }
+
     public static DisplayType getAssignmentObjectRelationDisplayType(PageBase pageBase, AssignmentObjectRelation assignmentTargetRelation,
             String defaultTitleKey) {
         if (assignmentTargetRelation == null) {
-            return createDisplayType("", "", pageBase.createStringResource(defaultTitleKey, "", "").getString());
+            return createSimpleObjectRelationDisplayType(pageBase, defaultTitleKey, null, null);
         }
 
         String typeTitle = "";
@@ -164,7 +176,8 @@ public class GuiDisplayTypeUtil {
                 return displayType;
             }
         }
-        return createDisplayType("", "", pageBase.createStringResource(defaultTitleKey, typeTitle, relationTitle).getString());
+
+        return createSimpleObjectRelationDisplayType(pageBase, defaultTitleKey, typeTitle, relationTitle);
     }
 
     public static DisplayType getNewObjectDisplayTypeFromCollectionView(CompiledObjectCollectionView view, PageBase pageBase) {
@@ -172,6 +185,11 @@ public class GuiDisplayTypeUtil {
         if (displayType == null) {
             displayType = createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", "");
         }
+
+        if (displayType.getIcon() == null || displayType.getIcon().getCssClass() == null){
+            MiscSchemaUtil.mergeDisplay(displayType, createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", ""));
+        }
+
         if (PolyStringUtils.isEmpty(displayType.getTooltip()) && !PolyStringUtils.isEmpty(displayType.getLabel())) {
             StringBuilder sb = new StringBuilder();
             sb.append(pageBase.createStringResource("MainObjectListPanel.newObject").getString());
@@ -203,4 +221,27 @@ public class GuiDisplayTypeUtil {
         return displayType;
     }
 
+    public static boolean existsIconDisplay(CompiledObjectCollectionView view) {
+        if (view == null){
+            return false;
+        }
+        return existsIconDisplay(view.getDisplay());
+    }
+
+    private static boolean existsIconDisplay(DisplayType display) {
+        if (display == null){
+            return false;
+        }
+        if (display.getIcon() == null){
+            return false;
+        }
+        return StringUtils.isNotBlank(display.getIcon().getCssClass());
+    }
+
+    public static boolean containsDifferentIcon(DisplayType display, String iconCss) {
+        if (existsIconDisplay(display)) {
+            return !display.getIcon().getCssClass().contains(iconCss);
+        }
+        return true;
+    }
 }

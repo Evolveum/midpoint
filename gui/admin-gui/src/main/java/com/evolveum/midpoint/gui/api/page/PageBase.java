@@ -1,11 +1,13 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.page;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -14,12 +16,6 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationService;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -28,12 +24,11 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.devutils.debugbar.DebugBar;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalDialog;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -53,6 +48,8 @@ import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -83,6 +80,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
@@ -109,6 +107,10 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
@@ -126,8 +128,6 @@ import com.evolveum.midpoint.web.application.SimpleCounter;
 import com.evolveum.midpoint.web.boot.Wro4jConfig;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.BaseMenuItem;
@@ -138,6 +138,7 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.page.self.PageSelf;
@@ -148,7 +149,7 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -174,6 +175,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_DEBUG_BAR = "debugBar";
     private static final String ID_CLEAR_CACHE = "clearCssCache";
+    private static final String ID_DUMP_PAGE_TREE = "dumpPageTree";
     private static final String ID_CART_BUTTON = "cartButton";
     private static final String ID_CART_ITEMS_COUNT = "itemsCount";
     private static final String ID_SIDEBAR_MENU = "sidebarMenu";
@@ -185,7 +187,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final String ID_BC_ICON = "bcIcon";
     private static final String ID_BC_NAME = "bcName";
     private static final String ID_MAIN_POPUP = "mainPopup";
-    private static final String ID_MAIN_POPUP_BODY = "popupBody";
     private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
     private static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_COPYRIGHT_MESSAGE = "copyrightMessage";
@@ -198,16 +199,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final String ID_BODY = "body";
 
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
-    public static final String PARAMETER_OBJECT_COLLECTION_TYPE_OID = "collectionOid";
     public static final String PARAMETER_OBJECT_COLLECTION_NAME = "collectionName";
     public static final String PARAMETER_DASHBOARD_TYPE_OID = "dashboardOid";
     public static final String PARAMETER_DASHBOARD_WIDGET_NAME = "dashboardWidgetName";
     public static final String PARAMETER_SEARCH_BY_NAME = "name";
 
     private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
-
-    private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
-    private static final String OPERATION_GET_DEPLOYMENT_INFORMATION = DOT_CLASS + "getDeploymentInformation";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
@@ -245,10 +242,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private ModelAuditService modelAuditService;
 
     @SpringBean(name = "modelController")
-    private WorkflowService workflowService;
+    private CaseService caseService;
 
-    @SpringBean(name = "workflowManager")
-    private WorkflowManager workflowManager;
+    @SpringBean(name = "caseManager")
+    private CaseManager caseManager;
+
+    @SpringBean(name = "approvalsManager")
+    private ApprovalsManager approvalsManager;
 
     @SpringBean(name = "midpointConfiguration")
     private MidpointConfiguration midpointConfiguration;
@@ -308,6 +308,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public PageBase(PageParameters parameters) {
         super(parameters);
 
+        setStatelessHint(false);
+
         LOGGER.debug("Initializing page {}", this.getClass());
 
         Injector.get().inject(this);
@@ -339,29 +341,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected void createBreadcrumb() {
-        BreadcrumbPageClass bc = new BreadcrumbPageClass(new IModel<>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return getPageTitleModel().getObject();
-            }
-        }, this.getClass(), getPageParameters());
-
-        addBreadcrumb(bc);
-    }
-
-    protected void createInstanceBreadcrumb() {
-        BreadcrumbPageInstance bc = new BreadcrumbPageInstance(new IModel<>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return getPageTitleModel().getObject();
-            }
-        }, this);
-
-        addBreadcrumb(bc);
+        addBreadcrumb(new Breadcrumb(getPageTitleModel(), this.getClass(), getPageParameters()));
     }
 
     public void updateBreadcrumbParameters(String key, Object value) {
@@ -434,12 +414,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return taskManager;
     }
 
-    public WorkflowService getWorkflowService() {
-        return workflowService;
+    public CaseService getCaseService() {
+        return caseService;
     }
 
-    public WorkflowManager getWorkflowManager() {
-        return workflowManager;
+    public CaseManager getCaseManager() {
+        return caseManager;
+    }
+
+    public ApprovalsManager getApprovalsManager() {
+        return approvalsManager;
     }
 
     public ResourceValidator getResourceValidator() {
@@ -623,7 +607,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public static StringResourceModel createStringResourceStatic(Component component, Enum<?> e) {
         String resourceKey = createEnumResourceKey(e);
-        return createStringResourceStatic(component, resourceKey);
+        return createStringResourceStatic(resourceKey);
     }
 
     public static String createEnumResourceKey(Enum<?> e) {
@@ -712,15 +696,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         pageTitleReal.setRenderBodyOnly(true);
         pageTitle.add(pageTitleReal);
 
-        IModel<List<Breadcrumb>> breadcrumbsModel = new IModel<>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public List<Breadcrumb> getObject() {
-                return getBreadcrumbs();
-            }
-        };
+        IModel<List<Breadcrumb>> breadcrumbsModel = () -> getBreadcrumbs();
 
         ListView<Breadcrumb> breadcrumbs = new ListView<>(ID_BREADCRUMB, breadcrumbsModel) {
 
@@ -728,14 +704,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             @Override
             protected void populateItem(ListItem<Breadcrumb> item) {
-                final Breadcrumb dto = item.getModelObject();
+//                final Breadcrumb dto = item.getModelObject();
 
                 AjaxLink<String> bcLink = new AjaxLink<>(ID_BC_LINK) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        redirectBackToBreadcrumb(dto);
+                        redirectBackToBreadcrumb(item.getModelObject());
                     }
                 };
                 item.add(bcLink);
@@ -744,7 +720,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
                     @Override
                     public boolean isEnabled() {
-                        return dto.isUseLink();
+                        return item.getModelObject().isUseLink();
                     }
                 });
 
@@ -754,13 +730,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
                     @Override
                     public boolean isVisible() {
-                        return dto.getIcon() != null && dto.getIcon().getObject() != null;
+                        return item.getModelObject().getIcon() != null && item.getModelObject().getIcon().getObject() != null;
                     }
                 });
-                bcIcon.add(AttributeModifier.replace("class", dto.getIcon()));
+                bcIcon.add(AttributeModifier.replace("class", item.getModelObject().getIcon()));
                 bcLink.add(bcIcon);
 
-                Label bcName = new Label(ID_BC_NAME, dto.getLabel());
+                Label bcName = new Label(ID_BC_NAME, item.getModelObject().getLabel());
                 bcLink.add(bcName);
 
                 item.add(new VisibleEnableBehaviour() {
@@ -768,7 +744,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
                     @Override
                     public boolean isVisible() {
-                        return dto.isVisible();
+                        return item.getModelObject().isVisible();
                     }
                 });
             }
@@ -1037,7 +1013,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public String getMainPopupBodyId() {
-        return getMainPopup().CONTENT_ID;
+        return ModalDialog.CONTENT_ID;
     }
 
     public void showMainPopup(Popupable popupable, AjaxRequestTarget target) {
@@ -1108,6 +1084,24 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
         debugBar.add(clearCache);
+
+        AjaxButton dumpPageTree = new AjaxButton(ID_DUMP_PAGE_TREE, createStringResource("PageBase.dumpPageTree")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                dumpPageTree(target);
+            }
+        };
+        debugBar.add(dumpPageTree);
+    }
+
+    private void dumpPageTree(AjaxRequestTarget target) {
+        try (PrintWriter pw = new PrintWriter(System.out)) {
+            new PageStructureDump().dumpStructure(this, pw);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     protected void clearLessJsCache(AjaxRequestTarget target) {
@@ -1196,7 +1190,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public IModel<String> getPageTitleModel() {
-        return (IModel<String>) get(ID_TITLE).getDefaultModel();
+        String title = (String) get(ID_TITLE).getDefaultModel().getObject();
+        return Model.of(title);
     }
 
     public String getString(String resourceKey, Object... objects) {
@@ -1204,7 +1199,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
+        return new StringResourceModel(resourceKey).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
 
@@ -1218,7 +1213,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         if (polystringKey != null) {
             resourceKey = localizationService.translate(polystringKey, WebComponentUtil.getCurrentLocale(), true);
         }
-        return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
+        return new StringResourceModel(resourceKey).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
 
@@ -1227,7 +1222,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         if (polystringKey != null) {
             resourceKey = localizationService.translate(PolyString.toPolyString(polystringKey), WebComponentUtil.getCurrentLocale(), true);
         }
-        return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
+        return new StringResourceModel(resourceKey).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
 
@@ -1237,9 +1232,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     @NotNull
-    public static StringResourceModel createStringResourceStatic(Component component, String resourceKey,
+    public static StringResourceModel createStringResourceStatic(String resourceKey,
             Object... objects) {
-        return new StringResourceModel(resourceKey, component).setModel(new Model<String>())
+        return new StringResourceModel(resourceKey).setModel(new Model<String>())
                 .setDefaultValue(resourceKey).setParameters(objects);
     }
 
@@ -1527,7 +1522,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
         if (breadcrumbs.size() == backStep && (breadcrumbs.get(breadcrumbs.size() - backStep)) != null) {
             Breadcrumb br = breadcrumbs.get(breadcrumbs.size() - backStep);
-            if (br instanceof BreadcrumbPageInstance || br instanceof BreadcrumbPageClass) {
+            if (br != null) {
                 return true;
             }
         }
@@ -1537,6 +1532,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public Breadcrumb redirectBack() {
         return redirectBack(DEFAULT_BREADCRUMB_STEP);
+    }
+
+    public void redirectToNotFoundPage() {
+        PageError404 notFound = new PageError404();
+        notFound.setBreadcrumbs(getBreadcrumbs());
+
+        throw new RestartResponseException(notFound);
     }
 
     /**
@@ -1590,14 +1592,31 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         setResponsePage(next);
     }
 
-    // TODO deduplicate with redirectBack
+    /**
+     * Returns exception, always use with `throw`.
+     */
     public RestartResponseException redirectBackViaRestartResponseException() {
+        return createRestartResponseExceptionWithBreadcrumb(2);
+    }
+
+    /**
+     * Returns exception, always use with `throw`.
+     */
+    public RestartResponseException restartResponseExceptionToReload() {
+        return createRestartResponseExceptionWithBreadcrumb(1);
+    }
+
+    /**
+     * Returns restart exception to reload the page that is `backStep` from the end of the breadcrumbs.
+     * 1 means the last page (current).
+     */
+    private RestartResponseException createRestartResponseExceptionWithBreadcrumb(int backStep) {
         List<Breadcrumb> breadcrumbs = getBreadcrumbs();
-        if (breadcrumbs.size() < 2) {
+        if (breadcrumbs.size() < backStep) {
             return new RestartResponseException(getApplication().getHomePage());
         }
 
-        Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
+        Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - backStep);
         redirectBackToBreadcrumb(breadcrumb);
         return breadcrumb.getRestartResponseException();
     }
@@ -1627,7 +1646,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         setResponsePage(page);
     }
 
-    protected void setTimeZone(PageBase page) {
+    protected void setTimeZone() {
         String timeZone = null;
         GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal != null && principal.getCompiledGuiProfile() != null) {

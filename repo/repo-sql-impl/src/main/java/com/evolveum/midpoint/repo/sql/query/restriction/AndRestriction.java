@@ -16,7 +16,6 @@ import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 
 /**
  * @author lazyman
- * @author mederly
  */
 public class AndRestriction extends NaryLogicalRestriction<AndFilter> {
 

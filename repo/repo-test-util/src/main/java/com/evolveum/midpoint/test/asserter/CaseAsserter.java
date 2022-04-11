@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -21,7 +22,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import javax.xml.namespace.QName;
 
+import java.util.List;
+
 import static com.evolveum.midpoint.prism.PrismObject.asObjectableList;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CASE_STATE_CLOSED_QNAME;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CASE_STATE_CLOSING_QNAME;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -133,6 +140,17 @@ public class CaseAsserter<RA> extends PrismObjectAsserter<CaseType,RA> {
         return this;
     }
 
+    @Override
+    public CaseAsserter<RA> displayXml() throws SchemaException {
+        super.displayXml();
+        return this;
+    }
+
+    @Override
+    public CaseAsserter<RA> displayXml(String message) throws SchemaException {
+        super.displayXml(message);
+        return this;
+    }
 
     @Override
     public PolyStringAsserter<CaseAsserter<RA>> name() {
@@ -165,16 +183,29 @@ public class CaseAsserter<RA> extends PrismObjectAsserter<CaseType,RA> {
     }
 
     public CaseAsserter<RA> assertClosed() {
-        return assertState(SchemaConstants.CASE_STATE_CLOSED_QNAME);
+        return assertState(CASE_STATE_CLOSED_QNAME);
     }
 
     public CaseAsserter<RA> assertOpen() {
         return assertState(SchemaConstants.CASE_STATE_OPEN_QNAME);
     }
 
-    private CaseAsserter<RA> assertState(QName expected) {
-        MidPointAsserts.assertUriMatches(getObjectable().getState(), "state", expected);
+    public CaseAsserter<RA> assertClosingOrClosed() {
+        String stateUri = getState();
+        QName stateQName = QNameUtil.uriToQName(stateUri, true);
+        if (!QNameUtil.matchAny(stateQName, List.of(CASE_STATE_CLOSING_QNAME, CASE_STATE_CLOSED_QNAME))) {
+            fail("State is neither closing or closed: " + stateUri);
+        }
         return this;
+    }
+
+    private CaseAsserter<RA> assertState(QName expected) {
+        MidPointAsserts.assertUriMatches(getState(), "state", expected);
+        return this;
+    }
+
+    private String getState() {
+        return getObjectable().getState();
     }
 
     public CaseAsserter<RA> assertApproved() {
@@ -201,7 +232,8 @@ public class CaseAsserter<RA> extends PrismObjectAsserter<CaseType,RA> {
         } catch (SchemaException e) {
             throw new AssertionError(e);
         }
-        SubcasesAsserter<RA> asserter = new SubcasesAsserter<>(this, asObjectableList(subcases), getDetails());
+        SubcasesAsserter<RA> asserter =
+                new SubcasesAsserter<>(this, asObjectableList(subcases), getDetails());
         copySetupTo(asserter);
         return asserter;
     }
@@ -234,6 +266,14 @@ public class CaseAsserter<RA> extends PrismObjectAsserter<CaseType,RA> {
 
     public CaseWorkItemsAsserter<RA> workItems() {
         CaseWorkItemsAsserter<RA> asserter = new CaseWorkItemsAsserter<>(this, getObjectable().getWorkItem(), getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    @Override
+    public TriggersAsserter<CaseType, ? extends CaseAsserter<RA>, RA> triggers() {
+        TriggersAsserter<CaseType, ? extends CaseAsserter<RA>, RA> asserter =
+                new TriggersAsserter<>(this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }

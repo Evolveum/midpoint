@@ -14,7 +14,6 @@ import static org.testng.AssertJUnit.*;
 import static com.evolveum.midpoint.prism.PrismObject.asObjectableList;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.F_TIMESTAMP;
 
 import java.io.File;
@@ -23,7 +22,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -33,6 +31,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,8 +124,6 @@ import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskDebugUtil;
-import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerDefinitionAsserter;
@@ -151,7 +148,7 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
  *
  * @author Radovan Semancik
  */
-public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest {
+public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest implements ResourceTester {
 
     protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
     protected static final String CONNECTOR_DUMMY_VERSION = "2.0";
@@ -297,6 +294,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 resource.controllerInitLambda, task, result);
         resource.reload(result); // To have schema, etc
         return resource.controller;
+    }
+
+    protected void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result)
+            throws Exception {
+        resource.controller = dummyResourceCollection.initDummyResource(
+                resource.name, resource.file, resource.oid, resource.controllerInitLambda, task, result);
+        assertSuccess(
+                modelService.testResource(resource.controller.getResource().getOid(), task));
+        resource.reload(result); // To have schema, etc
     }
 
     protected DummyResourceContoller initDummyResource(String name, File resourceFile, String resourceOid,
@@ -3271,7 +3277,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @Override
             public boolean check() throws CommonException {
                 var task = taskManager.getTaskWithResult(taskOid, waitResult);
-                var activity = task.getActivitiesStateOrClone().getActivity();
+                var activitiesState = task.getActivitiesStateOrClone();
+                if (activitiesState == null) {
+                    return false;
+                }
+                var activity = activitiesState.getActivity();
                 if (activity == null) {
                     return false;
                 }
@@ -3380,11 +3390,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     // We assume the task is runnable/running.
+    // Uses heartbeat method to determine the progress; so the progress may not be reflected in the repo after returning
+    // from this method.
     @Experimental
     protected Task waitForTaskProgress(String taskOid, long progressToReach, int timeout, OperationResult waitResult) throws Exception {
         return waitForTaskProgress(taskOid, progressToReach, null, timeout, (int) DEFAULT_TASK_SLEEP_TIME, waitResult);
     }
 
+    // Uses heartbeat method to determine the progress; so the progress may not be reflected in the repo after returning
+    // from this method.
     @Experimental
     protected Task waitForTaskProgress(String taskOid, long progressToReach, CheckedProducer<Boolean> extraTest,
             int timeout, int sleepTime, OperationResult waitResult) throws Exception {
@@ -3425,134 +3439,172 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return freshTask;
     }
 
-    // BEWARE of race conditions: if the task starts "by itself", lastRunFinishTimestamp can be updated before waiting starts
-    protected OperationResult waitForTaskTreeNextFinishedRun(String rootTaskOid, int timeout) throws Exception {
-        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskTreeNextFinishedRun");
-        Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult, true);
+    protected void runTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
+        OperationResult result = getTestOperationResult();
+        Task origRootTask = taskManager.getTask(rootTaskOid, null, result);
+        restartTask(rootTaskOid, result);
+        waitForRootActivityCompletion(
+                rootTaskOid,
+                origRootTask.getRootActivityCompletionTimestamp(),
+                timeout);
     }
 
-    protected OperationResult runTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
-        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".runTaskTreeAndWaitForFinish");
-        Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
-        restartTask(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult, true);
-    }
-
-    protected OperationResult resumeTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
+    protected void resumeTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".runTaskTreeAndWaitForFinish");
         Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
         taskManager.resumeTaskTree(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult, false);
+        waitForRootActivityCompletion(
+                rootTaskOid,
+                origRootTask.getRootActivityCompletionTimestamp(),
+                timeout);
     }
 
-    // a bit experimental
-    protected OperationResult waitForTaskTreeNextFinishedRun(TaskType origRootTask, int timeout, OperationResult waitResult,
-            boolean checkRootTaskLastStartTimestamp) throws Exception {
-        long origLastRunStartTimestamp = XmlTypeConverter.toMillis(origRootTask.getLastRunStartTimestamp());
-        long origLastRunFinishTimestamp = XmlTypeConverter.toMillis(origRootTask.getLastRunFinishTimestamp());
+    /**
+     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, int)}.
+     *
+     * To be used on tasks that are scheduled to be run in regular intervals. (So it needs not be absolutely precise:
+     * if the task realization completes between the method is started and the current completion timestamp is determined,
+     * it's no problem: the task will be started again in the near future.)
+     *
+     * @return root task in the moment of completion
+     */
+    protected Task waitForNextRootActivityCompletion(@NotNull String rootTaskOid, int timeout) throws CommonException {
+        OperationResult result = getTestOperationResult();
+        XMLGregorianCalendar currentCompletionTimestamp = taskManager.getTaskWithResult(rootTaskOid, result)
+                        .getRootActivityCompletionTimestamp();
+        return waitForRootActivityCompletion(rootTaskOid, currentCompletionTimestamp, timeout);
+    }
 
-        long start = System.currentTimeMillis();
-        AtomicBoolean triggered = new AtomicBoolean(false);
-        OperationResult aggregateResult = new OperationResult("aggregate");
+    /**
+     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, int)}.
+     *
+     * To be used on tasks that were _not_ executed before. I.e. we are happy with any task completion.
+     */
+    protected void waitForRootActivityCompletion(@NotNull String rootTaskOid, int timeout) throws CommonException {
+        waitForRootActivityCompletion(rootTaskOid, null, timeout);
+    }
+
+    /**
+     * Waits for the completion of the root activity realization. Useful for task trees.
+     *
+     * Stops also if there's a failed/suspended activity - see {@link #findSuspendedActivity(Task)}.
+     * This is to account for suspended multi-node tasks like `TestThresholdsStoryReconExecuteMultinode`.
+     *
+     * TODO reconcile with {@link #waitForTaskActivityCompleted(String, long, OperationResult, long)}
+     *
+     * @param lastKnownCompletionTimestamp The completion we know about - and are _not_ interested in. If null,
+     * we are interested in any completion.
+     */
+    protected Task waitForRootActivityCompletion(
+            @NotNull String rootTaskOid,
+            @Nullable XMLGregorianCalendar lastKnownCompletionTimestamp,
+            int timeout) throws CommonException {
+        OperationResult waitResult = getTestOperationResult();
+        Task freshRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
+        argCheck(freshRootTask.getParent() == null, "Non-root task: %s", freshRootTask);
         Checker checker = () -> {
-            Task freshRootTask = taskManager.getTaskWithResult(origRootTask.getOid(), waitResult);
 
-            displayValue("task tree", TaskDebugUtil.dumpTaskTree(freshRootTask, waitResult));
+            // This is just to display the progress (we don't have the completion timestamp there)
+            assertProgress(rootTaskOid, "waiting for activity completion")
+                    .display();
 
-            long waiting = (System.currentTimeMillis() - start) / 1000;
-            String description =
-                    freshRootTask.getName().getOrig() + " [es:" + freshRootTask.getExecutionState() + ", rs:" +
-                            freshRootTask.getResultStatus() + ", p:" + freshRootTask.getLegacyProgress() + ", n:" +
-                            freshRootTask.getNode() + "] (waiting for: " + waiting + " seconds)";
-            // was the whole task tree refreshed at least once after we were called?
-            long lastRunStartTimestamp = or0(freshRootTask.getLastRunStartTimestamp());
-            long lastRunFinishTimestamp = or0(freshRootTask.getLastRunFinishTimestamp());
+            // Now do the real check now
+            freshRootTask.refresh(waitResult);
+            var rootState = freshRootTask.getActivityStateOrClone(ActivityPath.empty());
 
-            if (!triggered.get() &&
-                    checkRootTaskLastStartTimestamp &&
-                    (lastRunStartTimestamp == origLastRunStartTimestamp
-                            || lastRunFinishTimestamp == origLastRunFinishTimestamp
-                            || lastRunStartTimestamp >= lastRunFinishTimestamp)) {
-                display("Current root task run has not been completed yet: " + description
-                        + "\n  lastRunStartTimestamp=" + lastRunStartTimestamp
-                        + ", origLastRunStartTimestamp=" + origLastRunStartTimestamp
-                        + ", lastRunFinishTimestamp=" + lastRunFinishTimestamp
-                        + ", origLastRunFinishTimestamp=" + origLastRunFinishTimestamp);
-                return false;
-            }
-            triggered.set(true);
-
-            aggregateResult.getSubresults().clear();
-            // TODO: Could Subtasks be from previous runs?
-            // TODO: Could we miss runs where all subtasks are completed?
-            List<? extends Task> allSubtasks = freshRootTask.listSubtasksDeeply(waitResult);
-            for (Task subtask : allSubtasks) {
-                try {
-                    subtask.refresh(waitResult); // quick hack to get operation results
-                } catch (ObjectNotFoundException e) {
-                    logger.warn("Task {} does not exist any more", subtask);
-                }
-            }
-            if (!checkRootTaskLastStartTimestamp && allSubtasks.isEmpty()) {
-                display("No subtasks yet (?) => continuing waiting: " + description);
-                return false;
+            if (verbose) {
+                displayValueAsXml("overview", freshRootTask.getActivityTreeStateOverviewOrClone());
             }
 
-            List<? extends Task> subtasks = TaskUtil.getLeafTasks(allSubtasks);
-            Task failedTask = null;
-            for (Task subtask : subtasks) {
-                /*
-                var subtaskStartTime = or0(subtask.getLastRunStartTimestamp());
-                if (subtaskStartTime < lastRunStartTimestamp) {
-                    display("Subtask was started before we started waiting: " + description, subtask);
-                    return false;
-                }
-                */
-
-                if (subtask.getSchedulingState() == TaskSchedulingStateType.READY) {
-                    display("Found ready subtasks during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                if (subtask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
-                    display("Found waiting subtasks during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                OperationResult subtaskResult = subtask.getResult();
-                if (subtaskResult == null) {
-                    display("No subtask operation result during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                if (subtaskResult.getStatus() == OperationResultStatus.IN_PROGRESS) {
-                    display("Found 'in_progress' subtask operation result during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                if (subtaskResult.getStatus() == OperationResultStatus.UNKNOWN) {
-                    display("Found 'unknown' subtask operation result during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                aggregateResult.addSubresult(subtaskResult);
-                if (subtaskResult.isError()) {
-                    failedTask = subtask;
-                }
-            }
-            if (failedTask != null) {
-                display("Found 'error' subtask operation result during waiting => done waiting: " + description, failedTask);
+            if (rootState != null
+                    && rootState.getRealizationState() == ActivityRealizationStateType.COMPLETE
+                    && isDifferent(lastKnownCompletionTimestamp, rootState.getRealizationEndTimestamp())) {
                 return true;
             }
-            if (freshRootTask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
-                display("Found WAITING root task during wait for next finished run => continuing waiting: " + description);
-                return false;
+
+            ActivityStateOverviewType suspended = findSuspendedActivity(freshRootTask);
+            if (suspended != null) {
+                displayValueAsXml("Suspended activity -> not waiting anymore", suspended);
+                return true;
             }
-            return true; // all executive subtasks are closed
+
+            // The task lives: let's continue waiting
+            return false;
         };
 
-        IntegrationTestTools.waitFor("Waiting for task tree " + origRootTask + " next finished run", checker, timeout, DEFAULT_TASK_TREE_SLEEP_TIME);
-        Task freshTask = taskManager.getTaskWithResult(origRootTask.getOid(), waitResult);
-        logger.debug("Final root task:\n{}", freshTask.debugDump());
-        aggregateResult.computeStatusIfUnknown();
+        IntegrationTestTools.waitFor("Waiting for task tree " + freshRootTask + " next finished run",
+                checker, timeout, DEFAULT_TASK_TREE_SLEEP_TIME);
+        // We must NOT update the task. It should be in the "completed" state. (Because the task may be recurring,
+        // so updating could get the state from a subsequent run.)
+        logger.debug("Final root task:\n{}", freshRootTask.debugDump());
         stabilize(); // TODO needed?
-        return aggregateResult;
+        return freshRootTask;
+    }
+
+    /**
+     * Finds an activity that:
+     *
+     * - is in progress,
+     * - has at least one worker task,
+     * - all of the workers are marked as "not running", at least one of them is marked as failed, and is suspended.
+     *
+     * This is to avoid waiting for multi-node tasks that will never complete.
+     *
+     * It is ugly and not 100% reliable: in theory, the failure may be expected, and the current state may be transient.
+     * But it's probably the best we can do now.
+     */
+    private @Nullable ActivityStateOverviewType findSuspendedActivity(Task task) throws SchemaException, ObjectNotFoundException {
+        ActivityStateOverviewType root = task.getActivityTreeStateOverviewOrClone();
+        return root != null ? findSuspendedActivity(root) : null;
+    }
+
+    private @Nullable ActivityStateOverviewType findSuspendedActivity(@NotNull ActivityStateOverviewType activityStateOverview)
+            throws SchemaException, ObjectNotFoundException {
+        if (activityStateOverview.getRealizationState() != ActivitySimplifiedRealizationStateType.IN_PROGRESS) {
+            return null; // Not started or complete
+        }
+        if (isSuspended(activityStateOverview)) {
+            return activityStateOverview;
+        }
+        for (ActivityStateOverviewType child : activityStateOverview.getActivity()) {
+            ActivityStateOverviewType suspendedInChild = findSuspendedActivity(child);
+            if (suspendedInChild != null) {
+                return suspendedInChild;
+            }
+        }
+        return null;
+    }
+
+    private boolean isSuspended(ActivityStateOverviewType activityStateOverview) throws SchemaException, ObjectNotFoundException {
+        List<ActivityTaskStateOverviewType> tasks = activityStateOverview.getTask();
+        if (tasks.isEmpty()) {
+            return false;
+        }
+        if (tasks.stream().anyMatch(task -> task.getExecutionState() != ActivityTaskExecutionStateType.NOT_RUNNING)) {
+            return false;
+        }
+        for (ActivityTaskStateOverviewType task : tasks) {
+            if (isSuspended(task)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isSuspended(ActivityTaskStateOverviewType taskInfo) throws SchemaException, ObjectNotFoundException {
+        if (taskInfo.getResultStatus() != OperationResultStatusType.FATAL_ERROR) {
+            return false;
+        }
+        if (taskInfo.getTaskRef() == null || taskInfo.getTaskRef().getOid() == null) {
+            return false; // shouldn't occur
+        }
+        Task task = taskManager.getTaskPlain(taskInfo.getTaskRef().getOid(), getTestOperationResult());
+        return task.getExecutionState() == TaskExecutionStateType.SUSPENDED;
+    }
+
+    private boolean isDifferent(@Nullable XMLGregorianCalendar lastKnownTimestamp, XMLGregorianCalendar realTimestamp) {
+        return lastKnownTimestamp == null
+                || !lastKnownTimestamp.equals(realTimestamp);
     }
 
     public void waitForCaseClose(CaseType aCase) throws Exception {
@@ -4069,6 +4121,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
         }
         fail("Notifier " + name + " message body " + expectedBody + " not found");
+    }
+
+    protected void assertHasDummyTransportMessageContaining(String name, String expectedBodySubstring) {
+        List<Message> messages = dummyTransport.getMessages("dummy:" + name);
+        assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
+        for (Message message : messages) {
+            if (message.getBody() != null && message.getBody().contains(expectedBodySubstring)) {
+                return;
+            }
+        }
+        fail("Notifier " + name + " message body containing '" + expectedBodySubstring + "' not found");
     }
 
     protected void displayAllNotifications() {
@@ -5981,6 +6044,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .display();
     }
 
+    protected CaseAsserter<Void> assertCaseAfter(CaseType aCase) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return assertCase(aCase, "after")
+                .display();
+    }
+
     protected ShadowAsserter<Void> assertModelShadow(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<ShadowType> repoShadow = getShadowModel(oid);
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "model");
@@ -6707,5 +6775,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     public ProvisioningService getProvisioningService() {
         return provisioningService;
+    }
+
+    @Override
+    public OperationResult testResource(@NotNull String oid, @NotNull Task task) throws ObjectNotFoundException {
+        return modelService.testResource(oid, task);
     }
 }

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
@@ -91,9 +92,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     protected final SelectableBeanObjectDataProvider<O> createSelectableBeanObjectDataProvider(SerializableSupplier<ObjectQuery> querySuplier,
             SerializableFunction<SortParam<String>, List<ObjectOrdering>> orderingSuplier) {
-        List<O> preSelectedObjectList = getPreselectedObjectList();
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
-                getPageBase(), getSearchModel(), preSelectedObjectList == null ? null : new HashSet<>(preSelectedObjectList)) {
+                getPageBase(), getSearchModel(), null) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -115,6 +115,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
                     return super.createObjectOrderings(sortParam);
                 }
                 return orderingSuplier.apply(sortParam);
+            }
+
+            @Override
+            protected Set<? extends O> getSelected() {
+                List<O> preselectedObjects = getPreselectedObjectList();
+                return preselectedObjects == null ? new HashSet<>() : new HashSet<>(preselectedObjects);
             }
         };
         provider.setCompiledObjectCollectionView(getObjectCollectionView());
@@ -188,5 +194,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     @Override
     protected IColumn<SelectableBean<O>, String> createIconColumn() {
         return ColumnUtils.createIconColumn(getPageBase());
+    }
+
+    @Override
+    public List<O> getSelectedRealObjects() {
+        return getSelectedObjects().stream().map(o -> o.getValue()).collect(Collectors.toList());
     }
 }

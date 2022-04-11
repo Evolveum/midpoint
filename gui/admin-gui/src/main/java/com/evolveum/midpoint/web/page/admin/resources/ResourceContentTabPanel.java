@@ -11,6 +11,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -120,8 +122,8 @@ public class ResourceContentTabPanel extends BasePanel<PrismObject<ResourceType>
         mainForm.addOrReplace(initTable(getModel()));
         add(mainForm);
 
-        AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT,
-            new PropertyModel<>(resourceContentSearch, "intent"), String.class, false, null) {
+        AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<>(ID_INTENT,
+                new PropertyModel<>(resourceContentSearch, "intent"), String.class, false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -174,7 +176,13 @@ public class ResourceContentTabPanel extends BasePanel<PrismObject<ResourceType>
                     if (refinedSchema == null) {
                         return "NO SCHEMA DEFINED";
                     }
-                    ocDef = refinedSchema.findObjectDefinition(getKind(), getIntent());
+                    String intent = getIntent();
+                    if (ShadowUtil.isKnown(intent)) {
+                        ocDef = refinedSchema.findObjectDefinition(getKind(), intent);
+                    } else {
+                        // TODO: Can be intent unknown or null here? If so, what should we do with that?
+                        ocDef = refinedSchema.findObjectDefinition(getKind(), null);
+                    }
                     if (ocDef != null) {
                         return ocDef.getObjectClassDefinition().getTypeName().getLocalPart();
                     }

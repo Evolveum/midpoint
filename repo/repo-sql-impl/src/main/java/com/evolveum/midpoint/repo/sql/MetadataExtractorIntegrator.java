@@ -12,8 +12,6 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.service.spi.SessionFactoryServiceRegistry;
 
 /**
- * @author mederly
- *
  * Adapted from https://vladmihalcea.com/how-to-get-access-to-database-table-metadata-with-hibernate-5/
  */
 public class MetadataExtractorIntegrator implements org.hibernate.integrator.spi.Integrator {

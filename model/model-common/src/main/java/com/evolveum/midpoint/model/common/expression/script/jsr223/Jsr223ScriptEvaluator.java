@@ -68,9 +68,6 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
         return bindings;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#getLanguageName()
-     */
     @Override
     public String getLanguageName() {
         if (scriptEngine != null) {
@@ -79,9 +76,6 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
         return engineName;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#getLanguageUrl()
-     */
     @Override
     public String getLanguageUrl() {
         return MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + getLanguageName();

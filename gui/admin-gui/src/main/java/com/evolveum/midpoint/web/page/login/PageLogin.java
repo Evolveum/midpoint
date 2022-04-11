@@ -32,6 +32,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -56,41 +57,48 @@ public class PageLogin extends AbstractPageLogin {
     protected static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = DOT_CLASS + "loadPasswordResetPolicy";
     private static final String OPERATION_LOAD_REGISTRATION_POLICY = DOT_CLASS + "loadRegistrationPolicy";
 
+    private final LoadableDetachableModel<SecurityPolicyType> securityPolicyModel;
+
     public PageLogin() {
+
+        securityPolicyModel = new LoadableDetachableModel<>() {
+            @Override
+            protected SecurityPolicyType load() {
+                Task task = createAnonymousTask(OPERATION_LOAD_RESET_PASSWORD_POLICY);
+                OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
+                try {
+                    return getModelInteractionService().getSecurityPolicy((PrismObject<? extends FocusType>) null, task, parentResult);
+                } catch (CommonException e) {
+                    LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
+                }
+                return null;
+            }
+        };
+    }
+
+    private SecurityPolicyType getSecurityPolicy() {
+        return securityPolicyModel.getObject();
     }
 
     @Override
     protected void initCustomLayer() {
         MidpointForm form = new MidpointForm(ID_FORM);
-        form.add(AttributeModifier.replace("action", new IModel<String>() {
-            @Override
-            public String getObject() {
-                return getUrlProcessingLogin();
-            }
-        }));
+        form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));
         add(form);
 
         BookmarkablePageLink<String> link = new BookmarkablePageLink<>(ID_FORGET_PASSWORD, PageForgotPassword.class);
-        Task task = createAnonymousTask(OPERATION_LOAD_RESET_PASSWORD_POLICY);
-        OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
-        SecurityPolicyType securityPolicy = null;
-        try {
-            securityPolicy = getModelInteractionService().getSecurityPolicy((PrismObject<? extends FocusType>) null, task, parentResult);
-        } catch (CommonException e) {
-            LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
-        }
-        SecurityPolicyType finalSecurityPolicy = securityPolicy;
+
         link.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
-
+                SecurityPolicyType finalSecurityPolicy = getSecurityPolicy();
                 if (finalSecurityPolicy == null) {
                     return false;
                 }
 
-                if (finalSecurityPolicy != null && finalSecurityPolicy.getCredentialsReset() != null
+                if (finalSecurityPolicy.getCredentialsReset() != null
                         && StringUtils.isNotBlank(finalSecurityPolicy.getCredentialsReset().getAuthenticationSequenceName())) {
                     AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(finalSecurityPolicy.getCredentialsReset().getAuthenticationSequenceName(), finalSecurityPolicy.getAuthentication());
                     if (sequence != null
@@ -102,15 +110,12 @@ public class PageLogin extends AbstractPageLogin {
                 CredentialsPolicyType creds = finalSecurityPolicy.getCredentials();
 
                 // TODO: Not entirely correct. This means we have reset somehow configured, but not necessarily enabled.
-                if (creds != null
+                return creds != null
                         && ((creds.getSecurityQuestions() != null
-                        && creds.getSecurityQuestions().getQuestionNumber() != null) || (finalSecurityPolicy.getCredentialsReset() != null))) {
-                    return true;
-                }
-
-                return false;
+                        && creds.getSecurityQuestions().getQuestionNumber() != null) || (finalSecurityPolicy.getCredentialsReset() != null));
             }
         });
+        SecurityPolicyType securityPolicy = getSecurityPolicy();
         if (securityPolicy != null && securityPolicy.getCredentialsReset() != null
                 && StringUtils.isNotBlank(securityPolicy.getCredentialsReset().getAuthenticationSequenceName())) {
             AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
@@ -121,12 +126,7 @@ public class PageLogin extends AbstractPageLogin {
                     LOGGER.error(message, new IllegalArgumentException(message));
                     error(message);
                 }
-                link.add(AttributeModifier.replace("href", new IModel<String>() {
-                    @Override
-                    public String getObject() {
-                        return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
-                    }
-                }));
+                link.add(AttributeModifier.replace("href", (IModel<String>) () -> "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix()));
             }
         }
         form.add(link);
@@ -148,28 +148,19 @@ public class PageLogin extends AbstractPageLogin {
                     LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
                 }
 
-                boolean linkIsVisible = false;
-                if (registrationPolicies != null
-                        && registrationPolicies.getSelfRegistration() != null) {
-                    linkIsVisible = true;
-                }
-
-                return linkIsVisible;
+                return registrationPolicies != null
+                        && registrationPolicies.getSelfRegistration() != null;
             }
         });
         if (securityPolicy != null) {
-            SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
-            if (selfRegistrationPolicy != null
-                    && StringUtils.isNotBlank(selfRegistrationPolicy.getAdditionalAuthenticationName())) {
-                AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(selfRegistrationPolicy.getAdditionalAuthenticationName(),
-                        securityPolicy.getAuthentication());
-                if (sequence != null) {
-                    registration.add(AttributeModifier.replace("href", new IModel<String>() {
-                        @Override
-                        public String getObject() {
-                            return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
-                        }
-                    }));
+            SelfRegistrationPolicyType policy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
+            if (policy != null) {
+                String sequenceName = policy.getAdditionalAuthenticationSequence() == null ? policy.getAdditionalAuthenticationName() : policy.getAdditionalAuthenticationSequence();
+                if (StringUtils.isNotBlank(sequenceName)) {
+                    AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(sequenceName, securityPolicy.getAuthentication());
+                    if (sequence != null) {
+                        registration.add(AttributeModifier.replace("href", () ->  "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix()));
+                    }
                 }
             }
         }
@@ -193,5 +184,11 @@ public class PageLogin extends AbstractPageLogin {
         }
 
         return "./spring_security_login";
+    }
+
+    @Override
+    protected void onDetach() {
+        securityPolicyModel.detach();
+        super.onDetach();
     }
 }

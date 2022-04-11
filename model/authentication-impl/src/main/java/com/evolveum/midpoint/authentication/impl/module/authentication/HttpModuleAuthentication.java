@@ -6,6 +6,13 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.authentication;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
+
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.core.AuthenticationException;
+
 /**
  * @author skublik
  */
@@ -49,5 +56,10 @@ public class HttpModuleAuthentication extends CredentialModuleAuthenticationImpl
         }
         module.setAuthentication(this.getAuthentication());
         super.clone(module);
+    }
+
+    public String getRealmFroHeader(AuthenticationException authException) {
+        String realm = StringUtils.isNotBlank(getRealm()) ? getRealm() : HttpAuthenticationEntryPoint.DEFAULT_REALM;
+        return AuthUtil.resolveTokenTypeByModuleType(getNameOfModuleType()) +" realm=\"" + realm + "\"";
     }
 }

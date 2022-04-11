@@ -257,7 +257,7 @@ public abstract class SchemaConstants {
 
     public static final String NS_REPORT = NS_MIDPOINT_PUBLIC + "/report";
     public static final String NS_CERTIFICATION = NS_MIDPOINT_PUBLIC + "/certification";
-    public static final String NS_WORKFLOW = NS_MIDPOINT_PUBLIC + "/workflow";
+    public static final String NS_WORKFLOW = NS_MIDPOINT_PUBLIC + "/workflow"; // TODO change to "case" or "cases"
 
     public static final QName CHANNEL_WEB_SERVICE_QNAME = new QName(NS_CHANNEL, "webService");
     public static final String CHANNEL_WEB_SERVICE_URI = qNameToUri(CHANNEL_WEB_SERVICE_QNAME);
@@ -308,6 +308,11 @@ public abstract class SchemaConstants {
     public static final String MODEL_POLICY_SITUATION_ORPHANED =
             qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "orphaned"));
 
+    public static final String NS_MODEL_CASES = NS_MODEL + "/cases";
+    public static final String NS_MODEL_CASES_OUTCOME = NS_MODEL_CASES + "/outcome";
+    public static final String NS_MODEL_CASES_OUTCOME_DEFAULT =
+            qNameToUri(new QName(NS_MODEL_CASES_OUTCOME, "default"));
+
     public static final String NS_MODEL_APPROVAL = NS_MODEL + "/approval";
     public static final String NS_MODEL_APPROVAL_OUTCOME = NS_MODEL_APPROVAL + "/outcome";
     public static final String MODEL_APPROVAL_OUTCOME_APPROVE =
@@ -339,6 +344,9 @@ public abstract class SchemaConstants {
 
     public static final ItemName MODEL_EXTENSION_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "dryRun");
     public static final ItemPath PATH_MODEL_EXTENSION_DRY_RUN = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+
+    // Temporary
+    public static final ItemName MODEL_EXTENSION_UPDATE_ID_MATCH = new ItemName(NS_MODEL_EXTENSION, "updateIdMatch");
 
     public static final ItemName MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS = new ItemName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
     public static final ItemName MODEL_EXTENSION_LIVE_SYNC_ERROR_HANDLING_STRATEGY = new ItemName(NS_MODEL_EXTENSION, "liveSyncErrorHandlingStrategy");
@@ -429,6 +437,8 @@ public abstract class SchemaConstants {
     public static final String CHANNEL_USER_URI = qNameToUri(CHANNEL_USER_QNAME);
 
     //GUI constants which are also used in the notifiers
+    public static final String WORK_ITEM_URL_PREFIX = "/admin/workItem?pathParameter=";
+    public static final String CASE_URL_PREFIX = "/admin/caseNew/";
     public static final String REGISTRATION_CONFIRMATION_PREFIX = "/confirm/registration";
     public static final String PASSWORD_RESET_CONFIRMATION_PREFIX = "/confirm/reset";
     public static final String ACCOUNT_ACTIVATION_PREFIX = "/activate/accounts";
@@ -626,9 +636,6 @@ public abstract class SchemaConstants {
     public static final ActivityPath PATH_CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP =
             ActivityPath.fromId(ID_CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP);
 
-    public static final String CORRELATION_NS = NS_C; // at least for now
     public static final String CORRELATION_NONE = "none";
-    public static final QName CORRELATION_NONE_QNAME = new QName(CORRELATION_NS, CORRELATION_NONE);
-    public static final String CORRELATION_NONE_URI = qNameToUri(CORRELATION_NONE_QNAME);
-    public static final String CORRELATION_OPTION_PREFIX = "existing-";
+    public static final String CORRELATION_EXISTING_PREFIX = "existing-";
 }

@@ -23,9 +23,6 @@ import java.util.List;
 import static com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil.arrangeForPresentationExt;
 import static java.util.Collections.singleton;
 
-/**
- * @author mederly
- */
 public class EvaluatedTriggerGroupDto implements Serializable {
 
     public final LocalizableMessage title;

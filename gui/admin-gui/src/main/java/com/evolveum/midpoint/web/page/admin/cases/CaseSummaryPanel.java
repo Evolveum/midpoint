@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -16,7 +17,6 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -26,7 +26,7 @@ import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -70,13 +70,20 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
         SummaryTag<CaseType> tagOutcome = new SummaryTag<CaseType>(ID_SUMMARY_TAG, getModel()) {
             @Override
             protected void initialize(CaseType taskType) {
-                String icon, name;
-                if (getModelObject().getOutcome() == null) {
+
+                CaseType aCase = getModelObject();
+                if (!CaseTypeUtil.isApprovalCase(aCase) && !CaseTypeUtil.isManualProvisioningCase(aCase)) {
+                    // TEMPORARY: avoiding problems with parsing of the outcome for correlation cases
+                    return;
+                }
+
+                if (aCase.getOutcome() == null) {
                     // shouldn't occur!
                     return;
                 }
 
-                if (ApprovalUtils.approvalBooleanValueFromUri(getModelObject().getOutcome())) {
+                String icon, name;
+                if (ApprovalUtils.approvalBooleanValueFromUri(aCase.getOutcome())) {
                     icon = ApprovalOutcomeIcon.APPROVED.getIcon();
                     name = "approved";
                 } else {

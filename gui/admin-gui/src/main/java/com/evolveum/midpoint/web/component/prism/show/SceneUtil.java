@@ -25,9 +25,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class SceneUtil {
 
     public static Scene visualizeObjectTreeDeltas(ObjectTreeDeltasType deltas, String displayNameKey,

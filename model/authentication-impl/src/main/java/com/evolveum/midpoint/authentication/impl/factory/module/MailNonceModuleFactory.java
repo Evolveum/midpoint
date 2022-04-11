@@ -27,7 +27,7 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory
         <ModuleWebSecurityConfiguration, MailNonceFormModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration>> {
 
     @Override
-    public boolean match(AbstractAuthenticationModuleType moduleType) {
+    public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
         return moduleType instanceof MailNonceAuthenticationModuleType;
     }
 

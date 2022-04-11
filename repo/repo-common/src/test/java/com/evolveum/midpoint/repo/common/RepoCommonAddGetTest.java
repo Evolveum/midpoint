@@ -9,12 +9,15 @@ package com.evolveum.midpoint.repo.common;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.velocityExpression;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizedMessageTemplateContentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MessageTemplateContentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MessageTemplateType;
@@ -34,13 +37,13 @@ public class RepoCommonAddGetTest extends AbstractRepoCommonTest {
 
         given("message template");
         String objectName = "messageTemplate" + getTestNumber();
-        var messageTemplate = new MessageTemplateType(prismContext)
+        var messageTemplate = new MessageTemplateType()
                 .name(objectName)
-                .defaultContent(new MessageTemplateContentType(prismContext)
-                        .subjectPrefix("subject-prefix"))
-                .localizedContent(new LocalizedMessageTemplateContentType(prismContext)
+                .defaultContent(new MessageTemplateContentType()
+                        .subjectExpression(velocityExpression("subject-prefix")))
+                .localizedContent(new LocalizedMessageTemplateContentType()
                         .language("sk_SK")
-                        .subjectPrefix("Oné"));
+                        .subjectExpression(velocityExpression("Oné")));
 
         when("adding it to the repository");
         String oid = repositoryService.addObject(messageTemplate.asPrismObject(), null, result);
@@ -52,7 +55,8 @@ public class RepoCommonAddGetTest extends AbstractRepoCommonTest {
                         .asObjectable();
         // not null implied by the contract
         assertThat(objectFromRepo.getDefaultContent()).isNotNull();
-        assertThat(objectFromRepo.getDefaultContent().getSubjectPrefix()).isEqualTo("subject-prefix");
+        ExpressionType subjectExpression = objectFromRepo.getDefaultContent().getSubjectExpression();
+        assertThat(subjectExpression).isNotNull();
         assertThatOperationResult(result).isSuccess();
 
         and("it can be deleted");

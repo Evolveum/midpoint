@@ -141,7 +141,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
         tableColumns.addAll(ColumnUtils.createColumns(columns));
 
         PropertyColumn tasksColumn = new PropertyColumn(
-                PageBase.createStringResourceStatic(this, "ResourceType.tasks"), "definedTasks") {
+                PageBase.createStringResourceStatic("ResourceType.tasks"), "definedTasks") {
 
             @Override
             public void populateItem(Item item, String componentId, final IModel rowModel) {
@@ -190,6 +190,13 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
             List<ResourceConfigurationDto> configs = new ArrayList<>();
 
             if (resource.getSchemaHandling() == null) {
+                return configs;
+            }
+
+            if (resource.getSchema() == null) {
+                // Current implementation of SynchronizationUtils.isPolicyApplicable (that is called from the code below)
+                // fails if there is no resource schema. So let's just pretend there are no configurations there.
+                // TODO Remove this temporary code after handling of synchronization section is cleaned up in 4.6.
                 return configs;
             }
 

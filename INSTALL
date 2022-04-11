@@ -7,7 +7,7 @@ https://docs.evolveum.com/midpoint/install/source/
 
 1. Prerequisites:
 
-    1. Java (JDK) 11
+    1. Java (JDK) 11 or 17
     2. Apache Maven 3
     3. midPoint source code retrieved via Git
 

@@ -71,8 +71,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
  *
  * Methods in this module (e.g. searchCases) are to be called from outside only, as they carry out the authorization.
  * For pre-authorized versions please see various helpers, e.g. AccCertQueryHelper.
- *
- * @author mederly
  */
 @Service(value = "certificationManager")
 public class CertificationManagerImpl implements CertificationManager {

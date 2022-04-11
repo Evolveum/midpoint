@@ -8,7 +8,7 @@ package com.evolveum.midpoint.authentication.impl;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
-import com.evolveum.midpoint.authentication.impl.session.RemoveUnusedSecurityFilterPublisher;
+import com.evolveum.midpoint.authentication.api.RemoveUnusedSecurityFilterPublisher;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -20,11 +20,9 @@ import org.springframework.security.core.context.SecurityContext;
 public class MidpointSecurityContext implements SecurityContext {
 
     private final SecurityContext securityContext;
-    private final RemoveUnusedSecurityFilterPublisher publisher;
 
-    public MidpointSecurityContext (SecurityContext securityContext, RemoveUnusedSecurityFilterPublisher publisher) {
+    public MidpointSecurityContext (SecurityContext securityContext) {
         this.securityContext = securityContext;
-        this.publisher = publisher;
     }
 
     @Override
@@ -36,7 +34,7 @@ public class MidpointSecurityContext implements SecurityContext {
     public void setAuthentication(Authentication authentication) {
         if (getAuthentication() instanceof MidpointAuthentication
                 && !getAuthentication().equals(authentication)) {
-            publisher.publishCustomEvent((MidpointAuthentication) getAuthentication());
+            RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent((MidpointAuthentication) getAuthentication());
         }
         securityContext.setAuthentication(authentication);
     }

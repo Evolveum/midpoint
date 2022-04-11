@@ -70,8 +70,6 @@ import org.hibernate.type.Type;
  *
  * If it would turn out that no harm is caused by this hack, it could be kept here.
  * If not, alternative #3 should be employed. After HHH-16 is provided, we should implement alternative #2.
- *
- * @author mederly
  */
 public class MidpointPersisterUtil {
 

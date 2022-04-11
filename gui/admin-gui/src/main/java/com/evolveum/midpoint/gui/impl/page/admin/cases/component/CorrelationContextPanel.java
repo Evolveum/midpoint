@@ -7,9 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.CorrelationProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -18,8 +23,11 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 
 import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -38,13 +46,15 @@ import static com.evolveum.midpoint.gui.impl.page.admin.cases.component.Correlat
 
 @PanelType(name = "correlationContext")
 @PanelInstance(identifier = "correlationContext",
-        display = @PanelDisplay(label = "PageCase.correlationContextPanel", order = 40))
+        display = @PanelDisplay(label = "PageCase.correlationContextPanel", order = 1))
 public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, CaseDetailsModels> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationContextDto.class);
 
+    private static final String ID_ACTION_CONTAINER = "actionContainer";
     private static final String ID_ACTIONS = "actions";
     private static final String ID_ACTION = "action";
+    private static final String ID_OUTCOME_ICON = "outcomeIcon";
     private static final String ID_NAMES = "names";
     private static final String ID_NAME = "name";
     private static final String ID_COLUMNS = "columns";
@@ -56,14 +66,22 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     private static final String ID_COLUMN = "column";
 
     private static final String OP_LOAD = CorrelationContextPanel.class.getName() + ".load";
+    private static final String OP_DECIDE_CORRELATION = CorrelationContextPanel.class.getName() + ".decideCorrelation";
 
     // Move into properties
     private static final String TEXT_CREATE_NEW = "Create new";
     private static final String TEXT_CORRELATE = "Correlate";
 
+    private IModel<CaseWorkItemType> workItemModel;
+
     @SuppressWarnings("unused") // called by the framework
     public CorrelationContextPanel(String id, CaseDetailsModels model, ContainerPanelConfigurationType config) {
+        this(id, model, null, config);
+    }
+
+    public CorrelationContextPanel(String id, CaseDetailsModels model, IModel<CaseWorkItemType> workItemModel, ContainerPanelConfigurationType config) {
         super(id, model, config);
+        this.workItemModel = workItemModel;
     }
 
     @Override
@@ -79,6 +97,11 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
         };
         add(headers);
 
+        CaseType correlationCase = getObjectDetailsModels().getObjectType();
+        WebMarkupContainer actionContainer = new WebMarkupContainer(ID_ACTION_CONTAINER);
+        actionContainer.add(new VisibleBehaviour(() -> CaseTypeUtil.isClosed(correlationCase) || isPanelForItemWork()));
+        add(actionContainer);
+
         ListView<CorrelationOptionDto> actions = new ListView<>(ID_ACTIONS,
                 new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
 
@@ -88,21 +111,29 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        CaseType correlationCase = getObjectDetailsModels().getObjectType();
-                        WorkItemId workItemId = WorkItemId.of(correlationCase.getWorkItem().get(0));
+                        CaseWorkItemType workItem = workItemModel.getObject();
+                        WorkItemId workItemId = WorkItemId.of(workItem);
                         AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
-                                .outcome(item.getModelObject().getUri());
+                                .outcome(item.getModelObject().getIdentifier())
+                                .comment(workItem.getOutput() != null ? workItem.getOutput().getComment() : null);
 
-                        Task task = getPageBase().createSimpleTask("DecideCorrelation");
+                        PageBase page = getPageBase();
+                        Task task = page.createSimpleTask(OP_DECIDE_CORRELATION);
                         OperationResult result = task.getResult();
                         try {
-                            getPageBase().getWorkflowService().completeWorkItem(workItemId, output, task, result);
+                            page.getCaseService().completeWorkItem(workItemId, output, task, result);
                             result.computeStatusIfUnknown();
                         } catch (Throwable e) {
                             result.recordFatalError("Cannot finish correlation process, " + e.getMessage(), e);
                         }
-                        getPageBase().showResult(result);
-                        target.add(getPageBase().getFeedbackPanel());
+
+                        page.showResult(result);
+
+                        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+                            target.add(page.getFeedbackPanel());
+                        } else {
+                            page.redirectBack();
+                        }
                     }
                 };
 
@@ -110,10 +141,17 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                         new Label(ID_ACTION_LABEL,
                                 item.getModelObject().isNewOwner() ? TEXT_CREATE_NEW : TEXT_CORRELATE));
 
+                String outcome = correlationCase.getOutcome();
+                actionButton.add(new VisibleBehaviour(() -> outcome == null));
                 item.add(actionButton);
+
+                WebMarkupContainer iconType = new WebMarkupContainer(ID_OUTCOME_ICON);
+                iconType.setOutputMarkupId(true);
+                iconType.add(new VisibleBehaviour(() -> outcome != null && item.getModelObject().matches(outcome)));
+                item.add(iconType);
             }
         };
-        add(actions);
+        actionContainer.add(actions);
 
         ListView<CorrelationOptionDto> referenceIds = new ListView<>(ID_NAMES,
                 new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
@@ -139,16 +177,16 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
         };
         add(referenceIds);
 
-        ListView<CorrelationPropertyDefinition> rows = new ListView<>(ID_ROWS,
+        ListView<CorrelationProperty> rows = new ListView<>(ID_ROWS,
                 new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_PROPERTIES)) {
 
             @Override
-            protected void populateItem(ListItem<CorrelationPropertyDefinition> item) {
+            protected void populateItem(ListItem<CorrelationProperty> item) {
                 // First column contains the property name
                 item.add(
                         new Label(ID_ATTR_NAME,
                                 new PropertyModel<>(
-                                        item.getModel(), CorrelationPropertyDefinition.F_DISPLAY_NAME)));
+                                        item.getModel(), CorrelationProperty.F_DISPLAY_NAME)));
 
                 // Here are columns for values for individual options
                 item.add(
@@ -158,11 +196,15 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
         add(rows);
     }
 
+    private boolean isPanelForItemWork() {
+        return workItemModel != null && workItemModel.getObject() != null;
+    }
+
     private IModel<CorrelationContextDto> createCorrelationContextModel() {
         return new ReadOnlyModel<>(() -> {
             CaseType aCase = getObjectDetailsModels().getObjectType();
-            CorrelationContextType correlationContext = aCase.getCorrelationContext();
-            if (correlationContext == null || correlationContext.getPotentialOwners() == null) {
+            CaseCorrelationContextType correlationContext = aCase.getCorrelationContext();
+            if (correlationContext == null || CorrelationCaseUtil.getOwnerOptions(aCase) == null) {
                 return null;
             }
 
@@ -181,21 +223,21 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     }
 
     private ListView<CorrelationOptionDto> createColumnsForPropertyRow(
-            IModel<CorrelationContextDto> contextModel, ListItem<CorrelationPropertyDefinition> rowItem) {
+            IModel<CorrelationContextDto> contextModel, ListItem<CorrelationProperty> rowItem) {
 
         return new ListView<>(ID_COLUMNS, new PropertyModel<>(contextModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
             @Override
             protected void populateItem(ListItem<CorrelationOptionDto> columnItem) {
                 CorrelationContextDto contextDto = contextModel.getObject();
                 CorrelationOptionDto optionDto = columnItem.getModelObject();
-                CorrelationPropertyDefinition propertyDefinition = rowItem.getModelObject();
+                CorrelationProperty correlationProperty = rowItem.getModelObject();
 
-                CorrelationPropertyValues valuesForOption = optionDto.getPropertyValues(propertyDefinition);
+                CorrelationPropertyValues valuesForOption = optionDto.getPropertyValues(correlationProperty);
                 Label label = new Label(ID_COLUMN, valuesForOption.format());
 
                 CorrelationOptionDto referenceOption = contextDto.getNewOwnerOption();
                 if (referenceOption != null && !optionDto.isNewOwner()) {
-                    CorrelationPropertyValues referenceValues = referenceOption.getPropertyValues(propertyDefinition);
+                    CorrelationPropertyValues referenceValues = referenceOption.getPropertyValues(correlationProperty);
                     Match match = referenceValues.match(valuesForOption);
                     label.add(
                             AttributeAppender.append("class", match.getCss()));

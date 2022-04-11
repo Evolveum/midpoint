@@ -13,9 +13,6 @@ import java.util.Objects;
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
-/**
- * @author mederly
- */
 public class InCondition extends PropertyCondition {
 
     private Collection<?> values;

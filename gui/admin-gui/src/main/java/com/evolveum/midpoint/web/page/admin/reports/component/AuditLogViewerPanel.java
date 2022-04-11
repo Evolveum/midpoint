@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObje
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.exception.*;
@@ -195,6 +196,11 @@ public class AuditLogViewerPanel extends BasePanel {
                         };
                         provider.setSort(AuditEventRecordType.F_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
                         return provider;
+                    }
+
+                    @Override
+                    public List<AuditEventRecordType> getSelectedRealObjects() {
+                        return getSelectedObjects().stream().map(o -> o.getValue()).collect(Collectors.toList());
                     }
 
                     @Override

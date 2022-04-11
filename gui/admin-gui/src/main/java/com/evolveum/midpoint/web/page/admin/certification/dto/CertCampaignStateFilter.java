@@ -12,9 +12,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 
-/**
- * @author mederly
- */
 public enum CertCampaignStateFilter {
     ALL,
     NOT_CLOSED,

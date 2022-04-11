@@ -30,7 +30,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappi
 /**
  * (Traditional) data mapping.
  */
-public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends AbstractMappingImpl<V, D, MappingType> {
+public class MappingImpl<V extends PrismValue, D extends ItemDefinition<?>> extends AbstractMappingImpl<V, D, MappingType> {
 
     MappingImpl(MappingBuilder<V, D> builder) {
         super(builder);

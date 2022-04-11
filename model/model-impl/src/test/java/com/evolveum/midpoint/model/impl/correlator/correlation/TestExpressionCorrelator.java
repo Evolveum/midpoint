@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlator.correlation;
 
-import static com.evolveum.midpoint.model.api.correlator.CorrelationResult.Status.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -226,10 +226,10 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
                 .collect(Collectors.joining(", ", "[", "]"));
     }
 
-    private void assertCorrelationResult(CorrelationResult correlationResult, CorrelationResult.Status expectedStatus,
-            String expectedOid) {
+    private void assertCorrelationResult(
+            CorrelationResult correlationResult, CorrelationSituationType expectedSituation, String expectedOid) {
         displayDumpable("correlation result", correlationResult);
-        assertThat(correlationResult.getStatus()).as("correlation result status").isEqualTo(expectedStatus);
+        assertThat(correlationResult.getSituation()).as("correlation result status").isEqualTo(expectedSituation);
         ObjectType owner = correlationResult.getOwner();
         String oid = owner != null ? owner.getOid() : null;
         assertThat(oid).as("correlated owner OID").isEqualTo(expectedOid);

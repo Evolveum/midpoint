@@ -15,9 +15,6 @@ import org.apache.wicket.model.IModel;
 
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class InformationListPanel extends BasePanel<List<InformationType>> {
 
     private static final String ID_INFORMATION_LIST = "informationList";

@@ -23,8 +23,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralTransportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class DummyTransport implements Transport<GeneralTransportConfigurationType>, DebugDumpable {
 
@@ -76,7 +76,7 @@ public class DummyTransport implements Transport<GeneralTransportConfigurationTy
     }
 
     @Override
-    public String getDefaultRecipientAddress(UserType recipient) {
+    public String getDefaultRecipientAddress(FocusType recipient) {
         return recipient.getEmailAddress() != null ? recipient.getEmailAddress() : "dummyAddress";
     }
 
@@ -99,7 +99,7 @@ public class DummyTransport implements Transport<GeneralTransportConfigurationTy
     }
 
     @Override
-    public void init(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
+    public void configure(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
         // not called for legacy transport component
     }
 

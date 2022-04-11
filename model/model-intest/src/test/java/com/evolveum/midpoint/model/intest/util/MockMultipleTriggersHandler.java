@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.intest.util;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.evolveum.midpoint.model.impl.trigger.MultipleTriggersHandler;
+import com.evolveum.midpoint.model.api.trigger.MultipleTriggersHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -18,6 +18,7 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import org.jetbrains.annotations.NotNull;
 
 public class MockMultipleTriggersHandler implements MultipleTriggersHandler {
 
@@ -58,8 +59,8 @@ public class MockMultipleTriggersHandler implements MultipleTriggersHandler {
     }
 
     @Override
-    public <O extends ObjectType> Collection<TriggerType> handle(PrismObject<O> object, Collection<TriggerType> triggers, RunningTask task,
-            OperationResult result) {
+    public <O extends ObjectType> Collection<TriggerType> handle(@NotNull PrismObject<O> object, @NotNull Collection<TriggerType> triggers, @NotNull RunningTask task,
+                                                                 @NotNull OperationResult result) {
         IntegrationTestTools.display("Mock multiple triggers handler called with " + object);
         lastTriggers = CloneUtil.cloneCollectionMembers(triggers);
         lastObject = object.clone();

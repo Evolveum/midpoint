@@ -25,9 +25,6 @@ import static com.evolveum.midpoint.schema.TestConstants.OBJECTS_WRONG_FILE_BASE
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
-/**
- * @author mederly
- */
 public class TestParseObjectsIterativelyWrong extends AbstractParserTest {
 
     @Override

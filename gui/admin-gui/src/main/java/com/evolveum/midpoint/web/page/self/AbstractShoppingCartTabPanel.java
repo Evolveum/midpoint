@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -46,6 +48,9 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.util.visit.IVisit;
+import org.apache.wicket.util.visit.IVisitor;
 
 /**
  * Created by honchar.
@@ -355,8 +360,18 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     private void addAllAssignmentsPerformed(AjaxRequestTarget target) {
-        List<AssignmentEditorDto> availableProviderData =
-                getGridViewComponent().getProvider().getAvailableData();
+
+        List<AssignmentEditorDto> availableProviderData = new ArrayList<>();
+        getGridViewComponent().visitChildren(RoleCatalogItemButton.class, new IVisitor<RoleCatalogItemButton, Void>() {
+
+            @Override
+            public void component(RoleCatalogItemButton row, IVisit<Void> visit) {
+                availableProviderData.add(row.getModelObject());
+            }
+        });
+
+//        List<AssignmentEditorDto> availableProviderData =
+//                getGridViewComponent().getProvider().getAvailableData();
 
         if (availableProviderData != null) {
             int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),

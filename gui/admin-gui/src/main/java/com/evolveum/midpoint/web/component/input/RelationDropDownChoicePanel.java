@@ -53,15 +53,9 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
 
         ListModel supportedRelationsModel = new ListModel<>(supportedRelations);
         if (!allowNull && defaultRelation == null) {
-            if (CollectionUtils.isNotEmpty(supportedRelations)) {
-                List<QName> sortedRelations = WebComponentUtil.sortDropDownChoices(supportedRelationsModel, getRenderer());
-                defaultRelation = sortedRelations.get(0);
-            } else {
-                defaultRelation = PrismConstants.Q_ANY;
-            }
             defaultRelation = supportedRelations.size() > 0 ? supportedRelations.get(0) : PrismConstants.Q_ANY;
         }
-        DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, Model.of(defaultRelation), supportedRelationsModel, getRenderer(),
+        DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, createValueModel(defaultRelation), supportedRelationsModel, getRenderer(),
                 getRelationLabelModel(), "relationDropDownChoicePanel.tooltip.relation", "col-md-4",
                 getRelationLabelModel() == null || StringUtils.isEmpty(getRelationLabelModel().getObject()) ? "" : "col-md-8", !allowNull) {
             private static final long serialVersionUID = 1L;
@@ -85,6 +79,10 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
 
         setOutputMarkupId(true);
         setOutputMarkupPlaceholderTag(true);
+    }
+
+    protected IModel<QName> createValueModel(QName defaultRelation) {
+        return Model.of(defaultRelation);
     }
 
     protected IChoiceRenderer<QName> getRenderer() {

@@ -360,11 +360,10 @@ class AddHelper {
             PrismObject<ShadowType> addedShadow,
             ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
             Task task,
-            OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            OperationResult parentResult) {
         ObjectDelta<ShadowType> delta = DeltaFactory.Object.createAddDelta(addedShadow);
-        ResourceOperationDescription operationDescription = Util.createSuccessOperationDescription(ctx, addedShadow,
-                delta, parentResult);
+        ResourceOperationDescription operationDescription = Util.createSuccessOperationDescription(
+                ctx, addedShadow, delta, parentResult);
 
         if (opState.isExecuting()) {
             eventDispatcher.notifyInProgress(operationDescription, task, parentResult);

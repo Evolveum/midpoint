@@ -13,8 +13,6 @@ import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
  * Provides a correct handler for a given handler URI.
  *
  * Very primitive implementation (for now).
- *
- * @author mederly
  */
 public class CertGuiHandlerRegistry {
 

@@ -31,8 +31,6 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  *  - fill-in their approval schema (list of approval actions with policy rules)
  *
  * TODO find better names
- *
- * @author mederly
  */
 public class ProcessSpecifications implements DebugDumpable {
 

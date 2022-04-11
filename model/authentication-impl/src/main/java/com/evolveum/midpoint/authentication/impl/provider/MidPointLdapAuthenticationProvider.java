@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.ldap.LdapDirContextAdapter;
+import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
@@ -228,8 +229,10 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
 
         FocusType focusBefore = principal.getFocus().clone();
         Integer failedLogins = behavior.getFailedLogins();
+        boolean successLoginAfterFail = false;
         if (failedLogins != null && failedLogins > 0) {
             behavior.setFailedLogins(0);
+            successLoginAfterFail = true;
         }
         LoginEventType event = new LoginEventType();
         event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
@@ -241,30 +244,14 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
         behavior.setPreviousSuccessfulLogin(behavior.getLastSuccessfulLogin());
         behavior.setLastSuccessfulLogin(event);
 
-        focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
-        recordAuthenticationSuccess(principal.getFocus(), channel);
-    }
-
-    private String getChannel() {
-        Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
-        if (actualAuthentication instanceof MidpointAuthentication && ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel() != null) {
-            return ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel().getChannelId();
-        } else {
-            return SchemaConstants.CHANNEL_USER_URI;
+        if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(successLoginAfterFail)) {
+            focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
         }
+        recordAuthenticationSuccess(principal.getFocus(), channel);
     }
 
     private void recordAuthenticationSuccess(@NotNull FocusType focusType, @NotNull String channel) {
         auditProvider.auditLoginSuccess(focusType, createConnectEnvironment(channel));
-    }
-
-    private ConnectionEnvironment createConnectEnvironment(String channel) {
-        ConnectionEnvironment env = ConnectionEnvironment.create(channel);
-        Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
-        if (actualAuthentication instanceof MidpointAuthentication && ((MidpointAuthentication) actualAuthentication).getSessionId() != null) {
-            env.setSessionIdOverride(((MidpointAuthentication) actualAuthentication).getSessionId());
-        }
-        return env;
     }
 
     public void recordPasswordAuthenticationFailure(String name, String reason) {
@@ -301,7 +288,9 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
             }
 
             behavior.setLastFailedLogin(event);
-            focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+            if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(true)) {
+                focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+            }
         }
 
         recordAuthenticationFailure(name, focus, channel, reason);

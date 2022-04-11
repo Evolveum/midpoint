@@ -7,8 +7,5 @@
 
 package com.evolveum.midpoint.wf.impl.objects;
 
-/**
- * @author mederly
- */
 public class TestObjectLifecycleApprovalPlain extends AbstractTestObjectLifecycleApproval {
 }

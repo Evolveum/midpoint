@@ -172,4 +172,18 @@ public class ActivityStateOverviewAsserter<RA> extends AbstractAsserter<RA> {
         assertThat(information.getPersistence()).as("persistence").isEqualTo(expected);
         return this;
     }
+
+    public ActivityStateOverviewAsserter<RA> assertErrors(int expected) {
+        assertThat(getErrors()).as("# of errors").isEqualTo(expected);
+        return this;
+    }
+
+    public ActivityStateOverviewAsserter<RA> assertNoErrors() {
+        return assertErrors(0);
+    }
+
+    public int getErrors() {
+        ItemsProgressInformation info = ItemsProgressInformation.fromOverview(information);
+        return info != null ? info.getErrors() : 0;
+    }
 }

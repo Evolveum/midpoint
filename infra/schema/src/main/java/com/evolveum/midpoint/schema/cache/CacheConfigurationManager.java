@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.cache;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -54,7 +55,7 @@ public class CacheConfigurationManager {
     private CachingConfigurationType currentGlobalConfiguration;
 
     private boolean wrongConfiguration;
-    private Map<CacheType, CacheConfiguration> compiledGlobalConfigurations;        // not null if !wrongConfiguration
+    private Map<CacheType, CacheConfiguration> compiledGlobalConfigurations; // not null if !wrongConfiguration
 
     private final ThreadLocal<ThreadLocalConfiguration> threadLocalConfiguration = new ThreadLocal<>();
 
@@ -75,18 +76,31 @@ public class CacheConfigurationManager {
         }
     }
 
-    public void applyCachingConfiguration(SystemConfigurationType configuration) {
-        InternalsConfigurationType internals = configuration != null ? configuration.getInternals() : null;
-        currentGlobalConfiguration = internals != null ? internals.getCaching() : null;
+    public synchronized void applyCachingConfiguration(SystemConfigurationType systemConfiguration) {
+        InternalsConfigurationType internals = systemConfiguration != null ? systemConfiguration.getInternals() : null;
+        CachingConfigurationType configurationToApply = internals != null ? internals.getCaching() : null;
+        if (PrismUtil.realValueEquals(currentGlobalConfiguration, configurationToApply)) {
+            LOGGER.trace("Caching configuration was not changed, skipping the update");
+            return;
+        }
 
-        if (validateSystemConfiguration()) {
-            LOGGER.info("Applied caching configuration: {} profiles",
-                    currentGlobalConfiguration != null ? currentGlobalConfiguration.getProfile().size() : 0);
-            compiledGlobalConfigurations = compileConfigurations(currentGlobalConfiguration, emptySet());
-            wrongConfiguration = false;
-        } else {
-            compiledGlobalConfigurations = null;
+        currentGlobalConfiguration = configurationToApply;
+        try {
+            if (validateSystemConfiguration()) {
+                LOGGER.info("Applying caching configuration: {} profile(s)",
+                        currentGlobalConfiguration != null ? currentGlobalConfiguration.getProfile().size() : 0);
+                compiledGlobalConfigurations = compileConfigurations(currentGlobalConfiguration, emptySet());
+                wrongConfiguration = false;
+            } else {
+                compiledGlobalConfigurations = null;
+                wrongConfiguration = true;
+            }
+        } catch (Throwable t) {
+            // Couldn't we do the update without setting global config before the application is done?
+            // We wouldn't need clearing that information in case of error.
+            currentGlobalConfiguration = null;
             wrongConfiguration = true;
+            throw t;
         }
     }
 
@@ -205,7 +219,7 @@ public class CacheConfigurationManager {
             for (CachingProfileType profile : relevantProfiles) {
                 addProfile(rv, profile);
             }
-            if (configuration != null && Boolean.TRUE.equals(configuration.isTraceConfiguration())) {
+            if (shouldTrace(configuration)) {
                 LOGGER.info("Compiled configurations (profiles = {}):", profiles);
                 for (Map.Entry<CacheType, CacheConfiguration> entry : rv.entrySet()) {
                     LOGGER.info("  {}:\n{}", entry.getKey(), entry.getValue().debugDump(2));
@@ -218,6 +232,10 @@ public class CacheConfigurationManager {
             // benefit.
             throw new SystemException("Couldn't compile cache configuration: " + e.getMessage(), e);
         }
+    }
+
+    private boolean shouldTrace(@Nullable CachingConfigurationType configuration) {
+        return configuration != null && Boolean.TRUE.equals(configuration.isTraceConfiguration());
     }
 
     private void addProfile(Map<CacheType, CacheConfiguration> aggregate, CachingProfileType profile) throws SchemaException {

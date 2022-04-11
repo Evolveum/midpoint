@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.correlator.correlation;
 
 import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
 import com.evolveum.midpoint.model.test.idmatch.DummyIdMatchServiceImpl;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchCorrelatorFactory;
@@ -120,7 +120,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
      */
     private void initDummyIdMatchService() throws SchemaException {
         ShadowType ian200 = CorrelatorTestUtil.findAccount(allAccounts, 200).getShadow();
-        dummyIdMatchService.addRecord(ian200.getAttributes(), "9481", null);
+        dummyIdMatchService.addRecord("200", ian200.getAttributes(), "9481", null);
         idMatchCorrelatorFactory.setServiceOverride(dummyIdMatchService);
     }
 
@@ -128,8 +128,15 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         for (File correlatorFile : CORRELATOR_FILES) {
             AbstractCorrelatorType configBean = prismContext.parserFor(correlatorFile)
                     .parseRealValue(AbstractCorrelatorType.class);
+            CorrelatorContext<?> correlatorContext =
+                    new CorrelatorContext<>(
+                            CorrelatorConfiguration.typed(configBean),
+                            configBean,
+                            null,
+                            systemConfiguration
+                    );
             Correlator correlator = correlatorFactoryRegistry.instantiateCorrelator(
-                    CorrelatorContext.create(configBean), task, result);
+                    correlatorContext, task, result);
             correlatorMap.put(configBean.getName(), correlator);
         }
     }
@@ -164,11 +171,11 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 preFocus,
                 RESOURCE_DETERMINISTIC.getResource().asObjectable(),
                 resourceObjectTypeDefinition,
-                systemConfiguration);
+                systemConfiguration, task);
 
         then("correlating account #" + account.getNumber());
 
-        CorrelationResult correlationResult = correlator.correlate(context, task, result);
+        CorrelationResult correlationResult = correlator.correlate(context, result);
         assertCorrelationResult(correlationResult, account, result);
     }
 
@@ -178,11 +185,11 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
 
         displayDumpable("Correlation result", correlationResult);
 
-        assertThat(correlationResult.getStatus())
+        assertThat(correlationResult.getSituation())
                 .as("correlation result status")
-                .isEqualTo(account.getExpectedCorrelationStatus());
+                .isEqualTo(account.getExpectedCorrelationSituation());
 
-        if (correlationResult.getStatus() == CorrelationResult.Status.EXISTING_OWNER) {
+        if (correlationResult.getSituation() == CorrelationSituationType.EXISTING_OWNER) {
             ObjectType realOwner = correlationResult.getOwner();
             assertThat(realOwner).as("correlated owner").isNotNull();
             String expectedOwnerName = account.getExpectedOwnerName();

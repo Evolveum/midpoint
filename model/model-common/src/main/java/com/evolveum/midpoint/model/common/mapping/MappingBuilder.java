@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Builder for (traditional) data mappings.
  */
-public class MappingBuilder<V extends PrismValue, D extends ItemDefinition>
+public class MappingBuilder<V extends PrismValue, D extends ItemDefinition<?>>
     extends AbstractMappingBuilder<V, D, MappingType, MappingBuilder<V, D>> {
 
     @Override

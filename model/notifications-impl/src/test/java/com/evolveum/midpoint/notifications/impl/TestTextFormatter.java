@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,14 +15,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import com.evolveum.midpoint.notifications.impl.formatters.ValueFormatter;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeSuite;
@@ -30,23 +22,26 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
+import com.evolveum.midpoint.notifications.impl.formatters.ValueFormatter;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- *
- */
-@ContextConfiguration(locations = {"classpath:ctx-notifications-test.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-notifications-test.xml" })
 public class TestTextFormatter extends AbstractSpringTest {
 
     private static final String OBJECTS_DIR_NAME = "src/test/resources/objects";
@@ -309,7 +304,7 @@ public class TestTextFormatter extends AbstractSpringTest {
                     .replace(ActivationStatusType.ENABLED)
                 // see MID-5350
                 .item(UserType.F_ASSIGNMENT, 1, UserType.F_ACTIVATION)
-                    .replace(new ActivationType(prismContext).effectiveStatus(ActivationStatusType.ENABLED))
+                    .replace(new ActivationType().effectiveStatus(ActivationStatusType.ENABLED))
                 .asObjectDelta("some-user-oid");
         // @formatter:on
 
@@ -329,5 +324,4 @@ public class TestTextFormatter extends AbstractSpringTest {
         ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(new File(filename), ObjectModificationType.COMPLEX_TYPE);
         return DeltaConvertor.createObjectDelta(modElement, UserType.class, prismContext);
     }
-
 }

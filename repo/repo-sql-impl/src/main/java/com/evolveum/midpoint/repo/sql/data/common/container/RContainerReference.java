@@ -21,7 +21,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * @author lazyman
- * @author mederly
  * <p>
  * This is a reference that is contained in (any) container. Its owner is identified by OID, container value ID,
  * and owner type.

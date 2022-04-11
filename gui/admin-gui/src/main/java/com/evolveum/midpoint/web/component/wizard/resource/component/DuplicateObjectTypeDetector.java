@@ -16,9 +16,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizatio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
-/**
- * @author mederly
- */
 public class DuplicateObjectTypeDetector {
 
     @NotNull private final Set<ObjectTypeRecord> records = new HashSet<>();

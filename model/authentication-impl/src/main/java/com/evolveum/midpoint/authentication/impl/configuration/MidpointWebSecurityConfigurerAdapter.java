@@ -18,7 +18,6 @@ import com.evolveum.midpoint.authentication.impl.filter.configurers.AuthFilterCo
 import com.evolveum.midpoint.authentication.impl.handler.AuditedAccessDeniedHandler;
 import com.evolveum.midpoint.authentication.impl.handler.AuditedLogoutHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
-import com.evolveum.midpoint.authentication.impl.session.RemoveUnusedSecurityFilterPublisher;
 import com.evolveum.midpoint.authentication.impl.session.SessionAndRequestScope;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 
@@ -63,9 +62,6 @@ public class MidpointWebSecurityConfigurerAdapter extends WebSecurityConfigurerA
 
     @Autowired
     private SessionRegistry sessionRegistry;
-
-    @Autowired
-    private RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher;
 
     private ObjectPostProcessor<Object> objectObjectPostProcessor;
 
@@ -171,7 +167,7 @@ public class MidpointWebSecurityConfigurerAdapter extends WebSecurityConfigurerA
 
             @Override
             protected SecurityContext generateNewContext() {
-                return new MidpointSecurityContext(super.generateNewContext(), removeUnusedSecurityFilterPublisher);
+                return new MidpointSecurityContext(super.generateNewContext());
             }
         };
         httpSecurityRepository.setDisableUrlRewriting(true);

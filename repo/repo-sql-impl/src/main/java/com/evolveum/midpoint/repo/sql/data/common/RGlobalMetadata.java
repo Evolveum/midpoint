@@ -13,9 +13,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.util.Objects;
 
-/**
- * @author mederly
- */
 @Entity
 @Ignore
 public class RGlobalMetadata {

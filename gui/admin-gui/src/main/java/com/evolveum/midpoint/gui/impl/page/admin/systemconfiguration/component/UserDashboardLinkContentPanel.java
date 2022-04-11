@@ -14,10 +14,13 @@ import com.evolveum.midpoint.web.application.Counter;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
+import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -25,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 @PanelType(name = "userDashboardLinkContentPanel")
 @PanelInstance(
         identifier = "userDashboardLinkContentPanel",
-        applicableForType = SystemConfigurationType.class,
+        applicableForType = AdminGuiConfigurationType.class,
         display = @PanelDisplay(
                 label = "UserDashboardLinkContentPanel.label",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
@@ -43,6 +46,11 @@ public class UserDashboardLinkContentPanel extends RichHyperlinkListContentPanel
 
     @Override
     protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.PAGE_MESSAGE_TEMPLATE_LOCALIZED_CONTENT_PANEL;    // todo fix
+        return UserProfileStorage.TableId.PANEL_USER_DASHBOARD_LINK_CONTENT;
+    }
+
+    @Override
+    protected List<InlineMenuItem> createInlineMenu() {
+        return getDefaultMenuActions();
     }
 }

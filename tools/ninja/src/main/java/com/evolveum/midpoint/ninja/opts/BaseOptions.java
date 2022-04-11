@@ -7,10 +7,11 @@
 
 package com.evolveum.midpoint.ninja.opts;
 
+import java.io.File;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
-import java.io.File;
+import com.beust.jcommander.ParametersDelegate;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -54,6 +55,9 @@ public class BaseOptions {
     @Parameter(names = {P_VERSION, P_VERSION_LONG}, descriptionKey = "base.version")
     private boolean version = false;
 
+    @ParametersDelegate
+    private PolyStringNormalizerOptions polyStringNormalizerOptions = new PolyStringNormalizerOptions();
+
     public boolean isHelp() {
         return help;
     }
@@ -76,5 +80,9 @@ public class BaseOptions {
 
     public File getJdbc() {
         return jdbc;
+    }
+
+    public PolyStringNormalizerOptions getPolyStringNormalizerOptions() {
+        return polyStringNormalizerOptions;
     }
 }

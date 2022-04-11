@@ -13,8 +13,6 @@ package com.evolveum.midpoint.repo.sql.query.definition;
  * <p>
  * It was created to ensure consistency of resolution mechanism, which should provide
  * HQL property + JPA definition for any item path provided.
- *
- * @author mederly
  */
 public class JpaAnyReferenceDefinition extends JpaReferenceDefinition<JpaAnyReferenceDefinition> {
 

@@ -1,0 +1,216 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<systemConfiguration
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="00000000-0000-0000-0000-000000000001">
+    <name>SystemConfiguration</name>
+    <indestructible>true</indestructible>
+    <logging>
+        <classLogger id="1">
+            <level>ERROR</level>
+            <package>ro.isdc.wro.extensions.processor.css.Less4jProcessor</package>
+        </classLogger>
+        <classLogger id="2">
+            <level>OFF</level>
+            <package>org.springframework.security.web.DefaultSecurityFilterChain</package>
+        </classLogger>
+        <classLogger id="3">
+            <level>OFF</level>
+            <package>org.hibernate.engine.jdbc.spi.SqlExceptionHelper</package>
+        </classLogger>
+        <classLogger id="4">
+            <level>OFF</level>
+            <package>org.hibernate.engine.jdbc.batch.internal.BatchingBatch</package>
+        </classLogger>
+        <classLogger id="5">
+            <level>WARN</level>
+            <package>org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl</package>
+        </classLogger>
+        <classLogger id="6">
+            <level>OFF</level>
+            <package>org.hibernate.internal.ExceptionMapperStandardImpl</package>
+        </classLogger>
+        <classLogger id="7">
+            <level>WARN</level>
+            <package>org.apache.wicket.resource.PropertiesFactory</package>
+        </classLogger>
+        <classLogger id="8">
+            <level>ERROR</level>
+            <package>org.springframework.context.support.ResourceBundleMessageSource</package>
+        </classLogger>
+        <classLogger id="9">
+            <level>INFO</level>
+            <package>com.evolveum.midpoint.model.impl.lens.projector.Projector</package>
+        </classLogger>
+        <classLogger id="10">
+            <level>INFO</level>
+            <package>com.evolveum.midpoint.model.impl.lens.Clockwork</package>
+        </classLogger>
+        <appender id="11" xsi:type="c:FileAppenderConfigurationType">
+            <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
+            <name>MIDPOINT_LOG</name>
+            <fileName>${midpoint.home}/log/midpoint.log</fileName>
+            <filePattern>${midpoint.home}/log/midpoint-%d{yyyy-MM-dd}.%i.log</filePattern>
+            <maxHistory>10</maxHistory>
+            <maxFileSize>100MB</maxFileSize>
+            <append>true</append>
+        </appender>
+        <appender id="12" xsi:type="c:FileAppenderConfigurationType">
+            <pattern>%date %level: %msg%n</pattern>
+            <name>MIDPOINT_PROFILE_LOG</name>
+            <fileName>${midpoint.home}/log/midpoint-profile.log</fileName>
+            <filePattern>${midpoint.home}/log/midpoint-profile-%d{yyyy-MM-dd}.%i.log</filePattern>
+            <maxHistory>10</maxHistory>
+            <maxFileSize>100MB</maxFileSize>
+            <append>true</append>
+        </appender>
+        <rootLoggerAppender>MIDPOINT_LOG</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
+        <auditing>
+            <enabled>false</enabled>
+            <details>false</details>
+        </auditing>
+    </logging>
+    <defaultObjectPolicyConfiguration>
+        <objectTemplateRef oid="bf275746-f2ce-4ae3-9e91-0c40e26422b7" />
+        <type>UserType</type>
+    </defaultObjectPolicyConfiguration>
+    <internals>
+        <tracing>
+            <profile id="15">
+                <name>functional-model-logging</name>
+                <displayName>Functional tracing (with model logging)</displayName>
+                <visible>true</visible>
+                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
+                <createRepoObject>true</createRepoObject>
+                <compressOutput>true</compressOutput>
+                <collectLogEntries>true</collectLogEntries>
+                <loggingOverride>
+                    <levelOverride id="18">
+                        <logger>com.evolveum.midpoint.model</logger>
+                        <level>TRACE</level>
+                    </levelOverride>
+                </loggingOverride>
+                <tracingTypeProfile id="19">
+                    <level>normal</level>
+                </tracingTypeProfile>
+            </profile>
+        </tracing>
+    </internals>
+    <correlation>
+        <correlators>
+            <idMatch>
+                <name>idmatch</name>
+                <definitions>
+                    <items>
+                        <item>
+                            <name>givenName</name>
+                            <!-- source is system specific -->
+                            <target>
+                                <!-- Where the "primary" (selected, official) value of the given name is found -->
+                                <path>givenName</path>
+                            </target>
+                            <target>
+                                <!-- Where the SIS-specific value of the given name is found. -->
+                                <path>extension/sisGivenName</path>
+                                <qualifier>sis</qualifier>
+                            </target>
+                            <target>
+                                <!-- Where the HR-specific value of the given name is found. -->
+                                <path>extension/hrGivenName</path>
+                                <qualifier>hr</qualifier>
+                            </target>
+                            <target>
+                                <!-- Where the "External-specific" value of the given name is found. -->
+                                <path>extension/externalGivenName</path>
+                                <qualifier>external</qualifier>
+                            </target>
+                        </item>
+                        <item>
+                            <name>familyName</name>
+                            <!-- source is system specific -->
+                            <target>
+                                <path>familyName</path>
+                            </target>
+                            <target>
+                                <path>extension/sisFamilyName</path>
+                                <qualifier>sis</qualifier>
+                            </target>
+                            <target>
+                                <path>extension/hrFamilyName</path>
+                                <qualifier>hr</qualifier>
+                            </target>
+                            <target>
+                                <path>extension/externalFamilyName</path>
+                                <qualifier>external</qualifier>
+                            </target>
+                        </item>
+                        <item>
+                            <name>dateOfBirth</name>
+                            <!-- source is system specific -->
+                            <target>
+                                <path>extension/dateOfBirth</path>
+                            </target>
+                            <target>
+                                <path>extension/sisDateOfBirth</path>
+                                <qualifier>sis</qualifier>
+                            </target>
+                            <target>
+                                <path>extension/hrDateOfBirth</path>
+                                <qualifier>hr</qualifier>
+                            </target>
+                            <target>
+                                <path>extension/externalDateOfBirth</path>
+                                <qualifier>external</qualifier>
+                            </target>
+                        </item>
+                        <item>
+                            <name>nationalId</name>
+                            <!-- source is system specific -->
+                            <target>
+                                <path>extension/nationalId</path>
+                            </target>
+                            <target>
+                                <path>extension/sisNationalId</path>
+                                <qualifier>sis</qualifier>
+                            </target>
+                            <target>
+                                <path>extension/hrNationalId</path>
+                                <qualifier>hr</qualifier>
+                            </target>
+                            <target>
+                                <path>extension/externalNationalId</path>
+                                <qualifier>external</qualifier>
+                            </target>
+                        </item>
+                    </items>
+                </definitions>
+                <!-- Ignored when dummy ID Match service is used -->
+                <url>http://localhost:9090/match/api/1</url>
+                <username>administrator</username>
+                <password><t:clearValue>5ecr3t</t:clearValue></password>
+                <followOn>
+                    <filter>
+                        <ownerFilter>
+                            <q:equal>
+                                <q:path>extension/referenceId</q:path>
+                                <expression>
+                                    <path>$correlatorState/referenceId</path>
+                                </expression>
+                            </q:equal>
+                        </ownerFilter>
+                    </filter>
+                </followOn>
+            </idMatch>
+        </correlators>
+    </correlation>
+</systemConfiguration>

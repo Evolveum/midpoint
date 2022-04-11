@@ -20,6 +20,9 @@ import com.evolveum.midpoint.gui.impl.component.search.PropertySearchItemWrapper
 
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+import com.evolveum.midpoint.web.component.util.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,8 +44,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.util.CollectionModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.util.visit.IVisitor;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -107,7 +112,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @param <PO>
  *     the type of the object processed by provider
  */
-public abstract class ContainerableListPanel<C extends Containerable, PO extends Serializable> extends BasePanel<C> {
+public abstract class ContainerableListPanel<C extends Containerable, PO extends SelectableRow> extends BasePanel<C> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
@@ -213,6 +218,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
                 if (isCollectionViewPanel()) {
                     CompiledObjectCollectionView view = getObjectCollectionView();
+                    if (view == null) {
+                        getPageBase().redirectToNotFoundPage();
+                    }
 //                    search.setCollectionSearchItem(new ObjectCollectionSearchItem(search, view));
 //                    search.setCollectionItemVisible(isCollectionViewPanelForWidget());
                     if (isCollectionViewPanelForWidget()) {
@@ -640,11 +648,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return columnPath != null && !columnPath.isEmpty();
     }
 
-    private IModel<?> getExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
+    protected IModel<?> getExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
         return new ReadOnlyModel<>(() -> loadExportableColumnDataModel(rowModel, customColumn, columnPath, expression));
     }
 
-    protected Collection<String> loadExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
+    public Collection<String> loadExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
         C value = getRowRealValue(rowModel.getObject());
         if (value == null) {
             return Collections.singletonList("");
@@ -869,14 +877,16 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
 
     public List<PO> getSelectedObjects() {
-        ISelectableDataProvider dataProvider = getDataProvider();
-        return dataProvider.getSelectedObjects();
+        List<PO> objects = new ArrayList<>();
+        getTable().getDataTable().visitChildren(SelectableDataTable.SelectableRowItem.class, (IVisitor<SelectableDataTable.SelectableRowItem<PO>, Void>) (row, visit) -> {
+            if (row.getModelObject().isSelected()) {
+                objects.add(row.getModel().getObject());
+            }
+        });
+        return objects;
     }
 
-    public List<C> getSelectedRealObjects() {
-        ISelectableDataProvider dataProvider = getDataProvider();
-        return dataProvider.getSelectedRealObjects();
-    }
+    public abstract List<C> getSelectedRealObjects();
 
     protected final Collection<SelectorOptions<GetOperationOptions>> createOptions() {
 
@@ -1151,7 +1161,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return PageBase.createStringResourceStatic(this, resourceKey, objects);
+        return PageBase.createStringResourceStatic(resourceKey, objects);
     }
 
     protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends C>> objectsSupplier) {
@@ -1204,7 +1214,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         this.manualRefreshEnabled = manualRefreshEnabled;
     }
 
-    protected LoadableDetachableModel<Search<C>> getSearchModel() {
+    public LoadableDetachableModel<Search<C>> getSearchModel() {
         return searchModel;
     }
 

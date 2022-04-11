@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.module.authentication.Saml2ModuleAuthenticationImpl;
@@ -30,7 +29,6 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 import org.springframework.util.CollectionUtils;
 
-import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -96,7 +94,13 @@ public class Saml2Provider extends RemoteModuleProvider {
         Authentication token;
         if (authentication instanceof Saml2AuthenticationToken) {
             Saml2AuthenticationToken samlAuthenticationToken = (Saml2AuthenticationToken) authentication;
-            Saml2Authentication samlAuthentication = (Saml2Authentication) openSamlProvider.authenticate(samlAuthenticationToken);
+            Saml2Authentication samlAuthentication;
+            try {
+                samlAuthentication = (Saml2Authentication) openSamlProvider.authenticate(samlAuthenticationToken);
+            } catch (AuthenticationException e) {
+                getAuditProvider().auditLoginFailure(null, null, createConnectEnvironment(getChannel()), e.getMessage());
+                throw e;
+            }
             Saml2ModuleAuthenticationImpl samlModule = (Saml2ModuleAuthenticationImpl) AuthUtil.getProcessingModule();
             try {
                 DefaultSaml2AuthenticatedPrincipal principal = (DefaultSaml2AuthenticatedPrincipal) samlAuthentication.getPrincipal();

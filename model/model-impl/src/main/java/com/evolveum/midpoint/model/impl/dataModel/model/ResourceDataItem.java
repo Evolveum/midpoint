@@ -23,9 +23,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
-/**
- * @author mederly
- */
 public class ResourceDataItem extends DataItem {
 
     @NotNull private final DataModel ctx;

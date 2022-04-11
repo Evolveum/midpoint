@@ -28,10 +28,6 @@ import org.apache.wicket.model.PropertyModel;
 import javax.xml.namespace.QName;
 import java.util.List;
 
-/**
- * @author mederly
- */
-
 public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 
     private static final String ID_NAME = "name";

@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageBaseSystemConfiguration;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -64,7 +66,7 @@ import com.evolveum.midpoint.web.page.self.PageSelfConsents;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -208,7 +210,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         menu.addMainMenuItem(createRolesMenu());
         menu.addMainMenuItem(createServicesItems());
         menu.addMainMenuItem(createResourcesItems());
-        if (getPageBase().getWorkflowManager().isEnabled()) {
+        if (getPageBase().getCaseManager().isEnabled()) {
             menu.addMainMenuItem(createWorkItemsItems());
         }
         menu.addMainMenuItem(createCertificationItems());
@@ -629,9 +631,19 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
 
     private void createSystemConfigurationMenu(SideBarMenuItem item) {
-        MainMenuItem systemConfigMenu = createMainMenuItem("PageAdmin.menu.top.configuration.basic", "fa fa-cog");
-        createSystemConfigurationTabMebu(systemConfigMenu);
-        item.addMainMenuItem(systemConfigMenu);
+        MainMenuItem system = createMainMenuItem("PageAdmin.menu.top.configuration.basic", "fa fa-cog", com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
+        PageBase page = getPageBase();
+        if (page != null && PageBaseSystemConfiguration.class.isAssignableFrom(page.getClass())) {
+
+            // title key is not nice - model should be sent there...
+            MenuItem menuItem = new MenuItem(page.getClass().getSimpleName() + ".title", page.getClass(), new PageParameters());
+            system.addMenuItem(menuItem);
+        }
+        item.addMainMenuItem(system);
+
+//        MainMenuItem systemConfigMenu = createMainMenuItem("PageAdmin.menu.top.configuration.basic", "fa fa-cog");
+//        createSystemConfigurationTabMebu(systemConfigMenu);
+//        item.addMainMenuItem(systemConfigMenu);
     }
 
     private void createSystemConfigurationTabMebu(MainMenuItem systemConfigMenu) {

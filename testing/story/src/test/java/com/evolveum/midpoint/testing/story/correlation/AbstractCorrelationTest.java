@@ -7,15 +7,37 @@
 
 package com.evolveum.midpoint.testing.story.correlation;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.testing.story.AbstractStoryTest;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.List;
+
+import com.evolveum.midpoint.model.api.correlator.CorrelationService;
+import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerOptionType;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+
+import com.evolveum.midpoint.model.api.CaseService;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.CaseRelatedUtils;
+import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.testing.story.AbstractStoryTest;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 /**
  * Common superclass for all correlation tests.
@@ -26,7 +48,13 @@ public abstract class AbstractCorrelationTest extends AbstractStoryTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "correlation");
 
+    static final String NS_EXT = "http://example.com/idmatch";
+
     public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+
+    @Autowired CorrelationService correlationService;
+    @Autowired CorrelationCaseManager correlationCaseManager;
+    @Autowired CaseService caseService;
 
     @Override
     protected File getSystemConfigurationFile() {
@@ -36,5 +64,33 @@ public abstract class AbstractCorrelationTest extends AbstractStoryTest {
     @Override
     protected void importSystemTasks(OperationResult initResult) throws FileNotFoundException {
         // We don't need these now.
+    }
+
+    // Owner OID may be different from the identifier in URI.
+    void resolveCase(@NotNull CaseType aCase, @Nullable String ownerOid, Task task, OperationResult result)
+            throws CommonException {
+        List<CaseWorkItemType> workItems = CaseRelatedUtils.getOpenWorkItems(aCase);
+        assertThat(workItems).as("work items in " + aCase).isNotEmpty();
+
+        caseService.completeWorkItem(
+                WorkItemId.of(workItems.get(0)),
+                CorrelationCaseUtil.createDefaultOutput(
+                        determineOwnerOptionIdentifier(aCase, ownerOid)),
+                task,
+                result);
+    }
+
+    private @NotNull OwnerOptionIdentifier determineOwnerOptionIdentifier(@NotNull CaseType aCase, @Nullable String ownerOid)
+            throws SchemaException {
+        if (ownerOid == null) {
+            return OwnerOptionIdentifier.forNoOwner();
+        }
+        for (ResourceObjectOwnerOptionType optionBean : CorrelationCaseUtil.getOwnerOptionsList(aCase)) {
+            ObjectReferenceType ownerRef = optionBean.getCandidateOwnerRef();
+            if (ownerRef != null && ownerOid.equals(ownerRef.getOid())) {
+                return OwnerOptionIdentifier.fromStringValue(optionBean.getIdentifier());
+            }
+        }
+        throw new IllegalStateException("Unknown owner OID (not in the options list): " + ownerOid);
     }
 }

@@ -13,9 +13,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-/**
- * @author mederly
- */
 class ObjectTypeRecord {
 
     @NotNull public final ShadowKindType kind;

@@ -112,11 +112,6 @@ public class PageResourceWizard extends PageAdmin {
         initLayout();
     }
 
-    @Override
-    protected void createBreadcrumb() {
-        createInstanceBreadcrumb();
-    }
-
     @NotNull
     private NonEmptyLoadableModel<PrismObject<ResourceType>> createResourceModel(final Collection<SelectorOptions<GetOperationOptions>> options) {
         return new NonEmptyLoadableModel<PrismObject<ResourceType>>(false) {

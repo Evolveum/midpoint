@@ -1,11 +1,32 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.notifications.impl.events;
+
+import java.util.Collection;
+import java.util.List;
+
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.notifications.impl.SimpleObjectRefImpl;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.notifications.api.events.Event;
@@ -16,7 +37,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -28,16 +50,15 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
+import javax.xml.namespace.QName;
 
 /**
  * Base implementation of Event that contains the common functionality.
  */
 public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(BaseEventImpl.class);
 
     @NotNull private final LightweightIdentifier id;
 
@@ -60,6 +81,10 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
 
     private String channel;
 
+    BaseEventImpl() {
+        this(ApplicationContextHolder.getBean(LightweightIdentifierGenerator.class));
+    }
+
     BaseEventImpl(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator) {
         this(lightweightIdentifierGenerator, null);
     }
@@ -74,24 +99,16 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
         return id;
     }
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "{" +
-                "id=" + id +
-                ",requester=" + requester +
-                ",requestee=" + requestee +
-                '}';
-    }
-
-    abstract public boolean isStatusType(EventStatusType eventStatus);
-    abstract public boolean isOperationType(EventOperationType eventOperation);
-
     boolean changeTypeMatchesOperationType(ChangeType changeType, EventOperationType eventOperationType) {
         switch (eventOperationType) {
-            case ADD: return changeType == ChangeType.ADD;
-            case MODIFY: return changeType == ChangeType.MODIFY;
-            case DELETE: return changeType == ChangeType.DELETE;
-            default: throw new IllegalStateException("Unexpected EventOperationType: " + eventOperationType);
+            case ADD:
+                return changeType == ChangeType.ADD;
+            case MODIFY:
+                return changeType == ChangeType.MODIFY;
+            case DELETE:
+                return changeType == ChangeType.DELETE;
+            default:
+                throw new IllegalStateException("Unexpected EventOperationType: " + eventOperationType);
         }
     }
 
@@ -202,10 +219,10 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
             return containsItem(delta.getObjectToAdd(), itemPath);
         } else //noinspection SimplifiableIfStatement
             if (delta.getChangeType() == ChangeType.MODIFY) {
-            return containsItemInModifications(delta.getModifications(), itemPath);
-        } else {
-            return false;
-        }
+                return containsItemInModifications(delta.getModifications(), itemPath);
+            } else {
+                return false;
+            }
     }
 
     private boolean containsItemInModifications(Collection<? extends ItemDelta<?, ?>> modifications, ItemPath itemPath) {
@@ -271,8 +288,8 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
         if (itemPath.isEmpty()) {
             return true;
         }
-        for (Object o : container.getValues()) {
-            if (containsItem((PrismContainerValue<?>) o, itemPath)) {
+        for (PrismContainerValue<?> o : container.getValues()) {
+            if (containsItem(o, itemPath)) {
                 return true;
             }
         }
@@ -293,10 +310,10 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
             return pathTail.isEmpty();      // we do not want to look inside references
         } else //noinspection SimplifiableIfStatement
             if (item instanceof PrismProperty) {
-            return pathTail.isEmpty();      // ...neither inside atomic values
-        } else {
-            return false;                   // should not occur anyway
-        }
+                return pathTail.isEmpty();      // ...neither inside atomic values
+            } else {
+                return false;                   // should not occur anyway
+            }
     }
 
     private ItemPath stripFirstIds(ItemPath itemPath) {
@@ -353,6 +370,10 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
         return midpointFunctions;
     }
 
+    private ModelService getModelService() {
+        return ApplicationContextHolder.getBean(ModelService.class);
+    }
+
     PrismContext getPrismContext() {
         if (prismContext == null) {
             prismContext = ApplicationContextHolder.getBean(PrismContext.class);
@@ -365,5 +386,116 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
             textFormatter = ApplicationContextHolder.getBean(TextFormatter.class);
         }
         return textFormatter;
+    }
+
+    /**
+     * As {@link MidpointFunctions#resolveReferenceIfExists(ObjectReferenceType)} but a bit more intelligent
+     * (e.g. it stores resolved object right in the reference).
+     */
+    @Nullable ObjectType resolveReferenceIfExists(@Nullable ObjectReferenceType reference) {
+        if (reference == null) {
+            return null;
+        }
+        if (reference.getObject() != null) {
+            return (ObjectType) reference.getObject().asObjectable();
+        }
+        QName type = reference.getType(); // TODO what about implicitly specified types, like in resourceRef?
+        PrismObjectDefinition<ObjectType> objectDefinition =
+                PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(reference.getType());
+        try {
+            if (objectDefinition == null) {
+                throw new SchemaException("No definition for type " + type);
+            }
+            Collection<SelectorOptions<GetOperationOptions>> options = SchemaService.get().getOperationOptionsBuilder()
+                    .executionPhase()
+                    .allowNotFound(true)
+                    .build();
+            PrismObject<ObjectType> object = getModelService().getObject(
+                    objectDefinition.getCompileTimeClass(),
+                    reference.getOid(),
+                    options,
+                    getCurrentTask(),
+                    getCurrentResult());
+            if (!reference.asReferenceValue().isImmutable()) {
+                reference.asReferenceValue().setObject(object);
+            }
+            return object.asObjectable();
+        } catch (ObjectNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't resolve object from reference: {}", e, reference);
+            return null;
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object from reference: {}", e, reference);
+            return null;
+        }
+    }
+
+    @Nullable PolyStringType getNameFromReference(@Nullable ObjectReferenceType reference) {
+        if (reference == null) {
+            return null;
+        } else if (reference.getTargetName() != null) {
+            return reference.getTargetName();
+        } else if (reference.getObject() != null) {
+            return reference.getObject().asObjectable().getName();
+        } else {
+            ObjectType resolved = resolveReferenceIfExists(reference);
+            if (resolved != null) {
+                return resolved.getName();
+            } else {
+                return PolyStringType.fromOrig(
+                        reference.getOid()); // At least something
+            }
+        }
+    }
+
+    protected @Nullable PolyStringType getDisplayNameFromReference(@Nullable ObjectReferenceType reference) {
+        if (reference == null) {
+            return null;
+        } else if (reference.getObject() != null) {
+            return getDisplayName((ObjectType) reference.getObject().asObjectable());
+        } else {
+            ObjectType resolved = resolveReferenceIfExists(reference);
+            if (resolved != null) {
+                return getDisplayName(resolved);
+            } else {
+                return PolyStringType.fromOrig(
+                        reference.getOid()); // At least something
+            }
+        }
+    }
+
+    private Task getCurrentTask() {
+        return getMidpointFunctions().getCurrentTask();
+    }
+
+    private OperationResult getCurrentResult() {
+        return getMidpointFunctions().getCurrentResult();
+    }
+
+    public void setRequesterAndRequesteeAsTaskOwner(@NotNull Task task, @NotNull OperationResult result) {
+        PrismObject<? extends FocusType> ownerObject = task.getOwner(result);
+        if (ownerObject != null) {
+            FocusType owner = ownerObject.asObjectable();
+            setRequester(new SimpleObjectRefImpl(owner));
+            setRequestee(new SimpleObjectRefImpl(owner));
+        } else {
+            LOGGER.debug("No owner for {}, therefore no requester and requestee will be set for event {}", task, getId());
+        }
+    }
+
+    @Override
+    public String toString() {
+        return toStringPrefix() + '}';
+    }
+
+    /**
+     * Prefix for {@link #toString()} after which other attributes can be added; final `}` needs be added too.
+     * Useful for event subclasses.
+     */
+    @NotNull
+    protected String toStringPrefix() {
+        return getClass().getSimpleName() + "{" +
+                "id=" + id +
+                ",requester=" + requester +
+                ",requestee=" + requestee;
     }
 }

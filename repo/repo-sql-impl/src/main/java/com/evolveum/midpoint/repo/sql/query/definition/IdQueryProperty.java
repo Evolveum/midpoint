@@ -15,8 +15,6 @@ import java.lang.annotation.Target;
 /**
  * Target of "#" (ID) queries.
  * Actually, a shorthand for @jaxbName(t:ID)
- *
- * @author mederly
  */
 @Target({ ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)

@@ -1,0 +1,49 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                oid="0da34c23-628a-40b2-866a-51e6e81ebb1f">
+    <name>object-template-user</name>
+    <iterationSpecification>
+        <maxIterations>9999</maxIterations>
+    </iterationSpecification>
+    <mapping>
+        <strength>strong</strength>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    basic.stringify(givenName) + ' ' + basic.stringify(familyName)
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>fullName</path>
+        </target>
+    </mapping>
+    <mapping>
+        <strength>weak</strength>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    basic.stringify(familyName).toLowerCase() + (iteration + 1)
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>name</path>
+        </target>
+    </mapping>
+</objectTemplate>

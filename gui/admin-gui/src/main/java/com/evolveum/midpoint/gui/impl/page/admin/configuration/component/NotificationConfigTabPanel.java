@@ -42,6 +42,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
 import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component.DeprecatedPropertyWrapperModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -140,7 +141,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         add(createHeader(ID_FILE_CONFIG_HEADER, FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
 
-        IModel<PrismPropertyWrapper<FileConfigurationType>> fileConfig = PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_FILE);
+        IModel<PrismPropertyWrapper<FileConfigurationType>> fileConfig = new DeprecatedPropertyWrapperModel<>(this, getModel(), NotificationConfigurationType.F_FILE);
 
         WebMarkupContainer files = new WebMarkupContainer(ID_FILE_CONFIG);
         files.setOutputMarkupId(true);
@@ -304,7 +305,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         return header;
     }
 
-    private void newItemPerformed(AjaxRequestTarget target, List<MailServerConfiguration> mailServers, PropertyModel<MailConfigurationType> mailConfigType) {
+    private void newItemPerformed(AjaxRequestTarget target, List<MailServerConfiguration> mailServers, IModel<MailConfigurationType> mailConfigType) {
         MailServerConfigurationType newServerType = new MailServerConfigurationType();
         mailConfigType.getObject().server(newServerType);
         MailServerConfiguration newServer = new MailServerConfiguration(newServerType);
@@ -513,7 +514,8 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         BoxedTablePanel<MailServerConfiguration> itemsTable = getMailServersTable();
         ListDataProvider<MailServerConfiguration> itemsProvider = (ListDataProvider<MailServerConfiguration>) itemsTable.getDataTable()
                 .getDataProvider();
-        return itemsProvider.getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
+//        return itemsProvider.getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
+        return new ArrayList<>();
     }
 
     private void mailServerEditPerformed(AjaxRequestTarget target, IModel<MailServerConfiguration> rowModel,

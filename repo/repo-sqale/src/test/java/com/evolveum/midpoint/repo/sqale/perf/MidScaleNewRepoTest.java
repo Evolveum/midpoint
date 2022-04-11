@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -64,8 +64,8 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
     @BeforeClass
     public void initFullTextConfig() {
         repositoryService.applyFullTextSearchConfiguration(
-                new FullTextSearchConfigurationType(prismContext)
-                        .indexed(new FullTextSearchIndexedItemsConfigurationType(prismContext)
+                new FullTextSearchConfigurationType()
+                        .indexed(new FullTextSearchIndexedItemsConfigurationType()
                                 .item(new ItemPathType(ObjectType.F_NAME))
                                 .item(new ItemPathType(ObjectType.F_DESCRIPTION))));
     }
@@ -99,7 +99,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         Stopwatch stopwatch = stopwatch("resource.add", "Repository addObject(resource)");
         for (int resourceIndex = 1; resourceIndex <= RESOURCE_COUNT; resourceIndex++) {
             String name = String.format("resource-%03d", resourceIndex);
-            ResourceType resourceType = new ResourceType(prismContext)
+            ResourceType resourceType = new ResourceType()
                     .name(PolyStringType.fromOrig(name))
                     .description(randomDescription(name));
             if (resourceIndex == RESOURCE_COUNT) {
@@ -125,7 +125,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         Stopwatch stopwatch = stopwatch("user.add", "Repository addObject(user) - 1st batch");
         for (int userIndex = 1; userIndex <= BASE_USER_COUNT; userIndex++) {
             String name = String.format("user-%07d", userIndex);
-            UserType user = new UserType(prismContext)
+            UserType user = new UserType()
                     .name(PolyStringType.fromOrig(name))
                     .description(randomDescription(name));
             addExtensionValues(user);
@@ -146,7 +146,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
     }
 
     private void addExtensionValues(ObjectType object) throws SchemaException {
-        object.extension(new ExtensionType(prismContext));
+        object.extension(new ExtensionType());
         ExtensionType ext = object.getExtension();
         double random = RND.nextDouble();
         addExtensionValue(ext, EXT_KEY_TRICKY, random < 0.98 ? TRICKY_VALUE : "tricky-value-" + random);
@@ -184,7 +184,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
 
     @NotNull
     private ShadowType createShadow(String shadowName, String resourceOid) throws SchemaException {
-        ShadowType shadow = new ShadowType(prismContext)
+        ShadowType shadow = new ShadowType()
                 .name(PolyStringType.fromOrig(shadowName))
                 .description(randomDescription(shadowName))
                 .resourceRef(MiscSchemaUtil.createObjectReference(
@@ -222,7 +222,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         Stopwatch stopwatch = stopwatch("user.addMore", "Repository addObject(user) - 2nd batch");
         for (int userIndex = MORE_USER_START; userIndex <= MORE_USER_COUNT; userIndex++) {
             String name = String.format("user-more-%07d", userIndex);
-            UserType user = new UserType(prismContext)
+            UserType user = new UserType()
                     .name(PolyStringType.fromOrig(name))
                     .description(randomDescription(name));
             addExtensionValues(user);
@@ -279,7 +279,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         Stopwatch stopwatch = stopwatch("user.addPeak", "Repository addObject(user) - 3rd batch");
         for (int userIndex = 1; userIndex <= PEAK_USER_COUNT; userIndex++) {
             String name = String.format("user-peak-%07d", userIndex);
-            UserType user = new UserType(prismContext)
+            UserType user = new UserType()
                     .name(PolyStringType.fromOrig(name))
                     .description(randomDescription(name));
             addExtensionValues(user);
@@ -320,7 +320,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         Stopwatch stopwatch = stopwatch("user.addPeakWithOid", "Repository addObject(user) - 4th batch");
         for (int userIndex = 1; userIndex <= PEAK_USER_COUNT; userIndex++) {
             String name = String.format("user-peak-oid-%07d", userIndex);
-            UserType user = new UserType(prismContext)
+            UserType user = new UserType()
                     // (not) assigning OID makes little/no difference for old repo
                     .oid(UUID.randomUUID().toString())
                     .name(PolyStringType.fromOrig(name))

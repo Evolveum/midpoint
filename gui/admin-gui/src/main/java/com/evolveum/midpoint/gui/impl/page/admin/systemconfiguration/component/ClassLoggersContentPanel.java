@@ -7,48 +7,60 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.model.IModel;
-
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.Counter;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-@PanelType(name = "classLoggersContent")
+@PanelType(name = "classLoggersPanel")
 @PanelInstance(
-        identifier = "classLoggersContent",
-        applicableForType = SystemConfigurationType.class,
+        identifier = "classLoggersPanel",
+        applicableForType = LoggingConfigurationType.class,
         display = @PanelDisplay(
                 label = "ClassLoggersContentPanel.label",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 30
+                order = 20
         )
 )
 @Counter(provider = ClassLoggersMenuLinkCounter.class)
-public class ClassLoggersContentPanel extends MultivalueContainerListPanelWithDetailsPanel<ClassLoggerConfigurationType> {
+public class ClassLoggersContentPanel extends MultivalueContainerListPanel<ClassLoggerConfigurationType> {
+
+    private static final long serialVersionUID = 1L;
 
     private IModel<PrismContainerWrapper<ClassLoggerConfigurationType>> model;
 
@@ -62,30 +74,25 @@ public class ClassLoggersContentPanel extends MultivalueContainerListPanelWithDe
     }
 
     @Override
-    protected IColumn<PrismContainerValueWrapper<ClassLoggerConfigurationType>, String> createCheckboxColumn() {
-        return new CheckBoxHeaderColumn<>();
+    protected List<SearchItemDefinition> initSearchableItems(
+            PrismContainerDefinition<ClassLoggerConfigurationType> containerDef) {
+        List<SearchItemDefinition> defs = new ArrayList<>();
+
+        SearchFactory.addSearchPropertyDef(containerDef, ClassLoggerConfigurationType.F_APPENDER, defs);
+        SearchFactory.addSearchPropertyDef(containerDef, ClassLoggerConfigurationType.F_PACKAGE, defs);
+
+        defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
+
+        return defs;
     }
 
     @Override
-    protected List<IColumn<PrismContainerValueWrapper<ClassLoggerConfigurationType>, String>> createDefaultColumns() {
-        return Arrays.asList(
-                new PrismPropertyWrapperColumn<>(getContainerModel(), ClassLoggerConfigurationType.F_PACKAGE,
-                        AbstractItemWrapperColumn.ColumnType.LINK, getPageBase()) {
+    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
+        PrismContainerWrapper<ClassLoggerConfigurationType> wrapper = model.getObject();
 
-                    @Override
-                    protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> model) {
-                        ClassLoggersContentPanel.this.itemDetailsPerformed(target, model);
-                    }
-                },
-                new PrismPropertyWrapperColumn<>(getContainerModel(), ClassLoggerConfigurationType.F_LEVEL,
-                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
-
-                    @Override
-                    protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> model) {
-                        ClassLoggersContentPanel.this.itemDetailsPerformed(target, model);
-                    }
-                }
-        );
+        PrismContainerValue<ClassLoggerConfigurationType> newLogger = wrapper.getItem().createNewValue();
+        PrismContainerValueWrapper<ClassLoggerConfigurationType> newLoggerWrapper = createNewItemContainerValueWrapper(newLogger, wrapper, target);
+        loggerEditPerformed(target, Model.of(newLoggerWrapper), null);
     }
 
     @Override
@@ -99,14 +106,71 @@ public class ClassLoggersContentPanel extends MultivalueContainerListPanelWithDe
     }
 
     @Override
-    protected MultivalueContainerDetailsPanel<ClassLoggerConfigurationType> getMultivalueContainerDetailsPanel(
-            ListItem<PrismContainerValueWrapper<ClassLoggerConfigurationType>> item) {
-
-        return new ClassLoggerDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), true);
+    protected String getStorageKey() {
+        return SessionStorage.KEY_LOGGING_TAB_LOGGER_TABLE;
     }
 
     @Override
     protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.PAGE_MESSAGE_TEMPLATE_LOCALIZED_CONTENT_PANEL;    // todo fix
+        return UserProfileStorage.TableId.LOGGING_TAB_LOGGER_TABLE;
+    }
+
+    @Override
+    protected List<IColumn<PrismContainerValueWrapper<ClassLoggerConfigurationType>, String>> createDefaultColumns() {
+        List<IColumn<PrismContainerValueWrapper<ClassLoggerConfigurationType>, String>> columns = new ArrayList<>();
+
+        columns.add(new CheckBoxHeaderColumn<>());
+        columns.add(new IconColumn<>(Model.of("")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
+                return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
+
+            }
+
+        });
+
+        columns.add(new PrismPropertyWrapperColumn(model, ClassLoggerConfigurationType.F_PACKAGE, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
+
+            @Override
+            public String getCssClass() {
+                return " col-md-5 ";
+            }
+        });
+        columns.add(new PrismPropertyWrapperColumn<>(model, ClassLoggerConfigurationType.F_LEVEL, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()));
+        columns.add(new PrismPropertyWrapperColumn<>(model, ClassLoggerConfigurationType.F_APPENDER, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()));
+
+        List<InlineMenuItem> menuActionsList = getDefaultMenuActions();
+        columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
+
+            @Override
+            public String getCssClass() {
+                return " col-md-1 ";
+            }
+        });
+
+        return columns;
+    }
+
+    @Override
+    protected void editItemPerformed(AjaxRequestTarget target,
+            IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> rowModel,
+            List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> listItems) {
+        loggerEditPerformed(target, rowModel, listItems);
+    }
+
+    private void loggerEditPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> rowModel,
+            List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> listItems) {
+        if (rowModel != null) {
+            PrismContainerValueWrapper<ClassLoggerConfigurationType> logger = rowModel.getObject();
+            logger.setSelected(true);
+        } else {
+            for (PrismContainerValueWrapper<ClassLoggerConfigurationType> logger : listItems) {
+                logger.setSelected(true);
+            }
+        }
+        target.add(this);
     }
 }

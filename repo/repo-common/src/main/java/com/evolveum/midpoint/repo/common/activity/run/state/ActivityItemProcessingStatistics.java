@@ -28,7 +28,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
@@ -84,7 +83,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
 
     ActivityItemProcessingStatistics(@NotNull CurrentActivityState<?> activityState) {
         this.activityState = activityState;
-        this.value = new ActivityItemProcessingStatisticsType(PrismContext.get());
+        this.value = new ActivityItemProcessingStatisticsType();
     }
 
     /**
@@ -118,7 +117,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
     public synchronized Operation recordOperationStart(IterativeOperationStartInfo startInfo) {
         assertInitialized();
         IterationItemInformation item = startInfo.getItem();
-        ProcessedItemType processedItem = new ProcessedItemType(PrismContext.get())
+        ProcessedItemType processedItem = new ProcessedItemType()
                 .name(item.getObjectName())
                 .displayName(item.getObjectDisplayName())
                 .type(item.getObjectType())
@@ -162,7 +161,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
                 return record;
             }
         }
-        ActivityRunRecordType newRecord = new ActivityRunRecordType(PrismContext.get())
+        ActivityRunRecordType newRecord = new ActivityRunRecordType()
                 .startTimestamp(startAsGregorian);
         records.add(newRecord);
         return newRecord;
@@ -213,7 +212,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
                 .orElseGet(
                         () -> ActivityItemProcessingStatisticsUtil.add(
                                 part.getProcessed(),
-                                new ProcessedItemSetType(PrismContext.get())
+                                new ProcessedItemSetType()
                                         .outcome(outcome.cloneWithoutId())));
     }
 

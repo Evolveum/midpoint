@@ -161,7 +161,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
     private static final String VERY_STRANGE_PARAMETER = "This iš a véry stándže p§räméteř!";
 
     private static final String SHADOW_GHOST_OID = "0c244f74-0169-11eb-a13f-77a028a1ab97";
-    protected static final File SHADOW_GHOST_FILE = new File(TEST_DIR, "shadow-ghost.xml");
+//    protected static final File SHADOW_GHOST_FILE = new File(TEST_DIR, "shadow-ghost.xml");
 
     private boolean allowDuplicateSearchResults = false;
 
@@ -223,6 +223,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
     }
 
     protected abstract String getAccountJackSid();
+
+    protected abstract File getShadowGhostFile();
 
     private UserLdapConnectionConfig getSubLdapConnectionConfig() {
         UserLdapConnectionConfig config = new UserLdapConnectionConfig();
@@ -744,7 +746,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        importObjectFromFile(SHADOW_GHOST_FILE);
+        importObjectFromFile(getShadowGhostFile());
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);

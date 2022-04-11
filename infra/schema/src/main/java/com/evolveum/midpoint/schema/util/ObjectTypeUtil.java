@@ -1077,6 +1077,15 @@ public class ObjectTypeUtil {
         return isIndestructible(object.asObjectable());
     }
 
+    // Currently ignoring reference definition (target type limitations)
+    public static Class<? extends ObjectType> getTargetClassFromReference(@NotNull ObjectReferenceType ref) {
+        if (ref.getType() != null) {
+            return ObjectTypes.getObjectTypeClass(ref.getType());
+        } else {
+            return ObjectType.class;
+        }
+    }
+
     @FunctionalInterface
     private interface ExtensionItemRemover {
         // Removes item (known from the context) from the extension

@@ -22,9 +22,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-/**
- * @author mederly
- */
 public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
 
     private static final String ID_NAME_CONTAINER = "nameContainer";

@@ -327,8 +327,8 @@ class RefreshHelper {
         }
 
         for (ObjectDelta<ShadowType> notificationDelta: notificationDeltas) {
-            ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
-                    notificationDelta, parentResult);
+            ResourceOperationDescription operationDescription =
+                    createSuccessOperationDescription(ctx, repoShadow, notificationDelta, parentResult);
             operationListener.notifySuccess(operationDescription, task, parentResult);
         }
 
@@ -536,8 +536,8 @@ class RefreshHelper {
             LOGGER.debug("Deleting dead {} because it is expired", repoShadow);
             shadowManager.deleteShadow(repoShadow, task, parentResult);
             definitionsHelper.applyDefinition(repoShadow, task, parentResult);
-            ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
-                    repoShadow.createDeleteDelta(), parentResult);
+            ResourceOperationDescription operationDescription =
+                    createSuccessOperationDescription(ctx, repoShadow, repoShadow.createDeleteDelta(), parentResult);
             operationListener.notifySuccess(operationDescription, task, parentResult);
             return null;
         }

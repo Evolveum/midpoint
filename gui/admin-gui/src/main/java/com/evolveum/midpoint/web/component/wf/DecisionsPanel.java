@@ -29,7 +29,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 /**
  * @author lazyman
- * @author mederly
  */
 public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
     private static final long serialVersionUID = 1L;

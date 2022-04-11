@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -43,7 +44,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -113,6 +114,11 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
                     @Override
                     protected ISelectableDataProvider<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> createProvider() {
                         return CaseWorkItemsPanel.this.createProvider(getSearchModel());
+                    }
+
+                    @Override
+                    public List<CaseWorkItemType> getSelectedRealObjects() {
+                        return getSelectedObjects().stream().map(o -> o.getRealValue()).collect(Collectors.toList());
                     }
 
                     @Override
@@ -276,6 +282,17 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
             }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel = ((ColumnMenuAction<PrismContainerValueWrapper<CaseWorkItemType>>) getAction()).getRowModel();
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getRealValue() != null) {
+                    CaseWorkItemType workItem = rowModel.getObject().getRealValue();
+                    return Model.of(!CaseTypeUtil.isCorrelationCase(CaseTypeUtil.getCase(workItem)));
+                } else {
+                    return super.getVisible();
+                }
+            }
         });
         menu.add(new ButtonInlineMenuItem(createStringResource("pageWorkItem.button.approve")) {
             private static final long serialVersionUID = 1L;
@@ -310,6 +327,17 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 return createStringResource("CaseWorkItemsPanel.confirmWorkItemsApproveAction");
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel = ((ColumnMenuAction<PrismContainerValueWrapper<CaseWorkItemType>>) getAction()).getRowModel();
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getRealValue() != null) {
+                    CaseWorkItemType workItem = rowModel.getObject().getRealValue();
+                    return Model.of(!CaseTypeUtil.isCorrelationCase(CaseTypeUtil.getCase(workItem)));
+                } else {
+                    return super.getVisible();
+                }
             }
         });
 

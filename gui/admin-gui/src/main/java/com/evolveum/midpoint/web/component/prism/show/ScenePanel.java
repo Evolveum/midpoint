@@ -12,7 +12,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -39,9 +38,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class ScenePanel extends BasePanel<SceneDto> {
 
     private static final String ID_BOX = "box";
@@ -395,7 +391,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
                 return "";
             }
             if (def instanceof PrismObjectDefinition) {
-                return PageBase.createStringResourceStatic(ScenePanel.this, SchemaConstants.OBJECT_TYPE_KEY_PREFIX +def.getTypeName().getLocalPart()).getObject();
+                return PageBase.createStringResourceStatic(SchemaConstants.OBJECT_TYPE_KEY_PREFIX +def.getTypeName().getLocalPart()).getObject();
             } else {
                 return "";
             }
@@ -411,8 +407,8 @@ public class ScenePanel extends BasePanel<SceneDto> {
     }
 
     private IModel<?> getShowOperationalItemsLinkLabel(){
-        return operationalItemsVisible ? PageBase.createStringResourceStatic(ScenePanel.this, "ScenePanel.hideOperationalItemsLink")
-                : PageBase.createStringResourceStatic(ScenePanel.this, "ScenePanel.showOperationalItemsLink");
+        return operationalItemsVisible ? PageBase.createStringResourceStatic("ScenePanel.hideOperationalItemsLink")
+                : PageBase.createStringResourceStatic("ScenePanel.showOperationalItemsLink");
     }
 
     private boolean isOperationalPartialScene(IModel<SceneDto> sceneDtoModel){

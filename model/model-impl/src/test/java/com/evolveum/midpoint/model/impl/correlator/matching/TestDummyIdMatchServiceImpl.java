@@ -11,8 +11,9 @@ import com.evolveum.midpoint.model.test.idmatch.DummyIdMatchServiceImpl;
 import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchService;
 
 /**
- * Tests {@link DummyIdMatchServiceImpl}. Used to develop the testing data for real {@link TestIdMatchServiceImpl}
- * and other tests in this package.
+ * Tests {@link DummyIdMatchServiceImpl}.
+ *
+ * Used to develop the tests for real {@link TestIdMatchServiceImpl} and other tests in this package.
  */
 public class TestDummyIdMatchServiceImpl extends AbstractIdMatchServiceTest {
 

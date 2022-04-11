@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<object xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="FormType" oid="6a1874a7-1e60-43b3-8d67-7f76484dead5" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<form oid="6a1874a7-1e60-43b3-8d67-7f76484dead5" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>FullName and description</name>
     <formDefinition>
         <display>
@@ -29,4 +29,4 @@
             </formField>
         </formItems>
     </formDefinition>
-</object>
+</form>

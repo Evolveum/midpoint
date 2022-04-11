@@ -40,7 +40,6 @@ import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 /**
  * @author lazyman
- * @author mederly
  */
 public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWorkItemDto> {
     private static final long serialVersionUID = 1L;

@@ -18,12 +18,15 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.cases.impl.engine.CaseEngineImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.CaseService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
@@ -37,7 +40,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -48,18 +51,12 @@ import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.CaseAsserter;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.impl.access.WorkItemManager;
-import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
-import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
+import com.evolveum.midpoint.cases.impl.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
-import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractWfTest extends AbstractModelImplementationIntegrationTest {
@@ -82,12 +79,11 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
 
     @Autowired protected Clockwork clockwork;
     @Autowired protected TaskManager taskManager;
-    @Autowired protected WorkflowManager workflowManager;
-    @Autowired protected WorkflowEngine workflowEngine;
+    @Autowired protected CaseManager caseManager;
+    @Autowired protected CaseEngineImpl caseEngine;
     @Autowired protected WorkItemManager workItemManager;
-    @Autowired protected WorkflowService workflowService;
+    @Autowired protected CaseService caseService;
     @Autowired protected PrimaryChangeProcessor primaryChangeProcessor;
-    @Autowired protected GeneralChangeProcessor generalChangeProcessor;
     @Autowired protected SystemObjectCache systemObjectCache;
     @Autowired protected RelationRegistry relationRegistry;
     @Autowired protected WfTestHelper testHelper;
@@ -329,7 +325,8 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     protected void approveWorkItem(CaseWorkItemType workItem, Task task, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 new AbstractWorkItemOutputType(prismContext).outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE),
                 task, result);
     }
@@ -337,7 +334,8 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     protected void rejectWorkItem(CaseWorkItemType workItem, Task task, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        workflowService.completeWorkItem(WorkItemId.of(workItem),
+        caseService.completeWorkItem(
+                WorkItemId.of(workItem),
                 new AbstractWorkItemOutputType(prismContext).outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT),
                 task, result);
     }

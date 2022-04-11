@@ -40,7 +40,7 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
     private static final Trace LOGGER = TraceManager.getTrace(HttpHeaderModuleFactory.class);
 
     @Override
-    public boolean match(AbstractAuthenticationModuleType moduleType) {
+    public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
         return moduleType instanceof HttpHeaderAuthenticationModuleType;
     }
 

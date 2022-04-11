@@ -48,7 +48,6 @@ import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
 
 /**
  * @author semancik
- * @author mederly
  */
 @Component
 public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluator<MultiplicityPolicyConstraintType> {

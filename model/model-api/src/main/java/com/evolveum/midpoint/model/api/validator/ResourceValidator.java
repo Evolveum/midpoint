@@ -20,8 +20,6 @@ import java.util.Locale;
  * EXPERIMENTAL
  *
  * TODO make interface generic and integrate it into model API
- *
- * @author mederly
  */
 @FunctionalInterface
 public interface ResourceValidator {

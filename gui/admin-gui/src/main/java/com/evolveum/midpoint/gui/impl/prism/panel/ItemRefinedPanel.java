@@ -85,7 +85,7 @@ public class ItemRefinedPanel<C extends ItemRefinedDefinitionType> extends BaseP
 
             @Override
             protected boolean isCreateNewObjectVisible() {
-                return false;
+                return ItemRefinedPanel.this.isCreateNewObjectVisible();
             }
 
             @Override
@@ -153,6 +153,14 @@ public class ItemRefinedPanel<C extends ItemRefinedDefinitionType> extends BaseP
             return getPageBase().createStringResource("feedbackMessagePanel.message.undefined").getString();
         });
 
+    }
+
+    protected boolean isCreateNewObjectVisible() {
+        return false;
+    }
+
+    protected List<InlineMenuItem> getMenuActions() {
+        return null;
     }
 
     protected List<InlineMenuItem> createRefinedItemInlineMenu(List<InlineMenuItem> defaultActions) {

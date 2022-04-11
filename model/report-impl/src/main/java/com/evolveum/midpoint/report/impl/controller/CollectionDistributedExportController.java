@@ -77,6 +77,9 @@ public class CollectionDistributedExportController<C extends Containerable> exte
      */
     public void afterBucketExecution(int bucketNumber, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
+
+        // TODO what if the task is being suspended?
+
         String data = dataWriter.getStringData();
         dataWriter.reset();
 
@@ -86,9 +89,9 @@ public class CollectionDistributedExportController<C extends Containerable> exte
         // Note that we include [oid] in the object name to allow a poor man searching over the children.
         // It's until parentRef is properly indexed in the repository.
         // We also make the name sortable by padding the number with zeros: until we can sort on the sequential number.
-        String name = String.format("Partial report data for [%s] (%08d)", globalReportDataRef.getOid(), bucketNumber);
+        String name = String.format("Partial report data for %s (%08d)", globalReportDataRef.getOid(), bucketNumber);
 
-        ReportDataType partialReportData = new ReportDataType(prismContext)
+        ReportDataType partialReportData = new ReportDataType()
                 .name(name)
                 .reportRef(ObjectTypeUtil.createObjectRef(report, prismContext))
                 .parentRef(globalReportDataRef.clone())

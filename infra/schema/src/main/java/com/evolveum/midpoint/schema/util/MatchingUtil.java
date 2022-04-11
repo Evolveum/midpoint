@@ -47,9 +47,9 @@ public class MatchingUtil {
             if (visitable instanceof PrismProperty<?>) {
                 PrismProperty<?> property = (PrismProperty<?>) visitable;
                 if (property.size() > 1) {
-                    LOGGER.info("Ignoring property because of multiple values: {}", property);
+                    LOGGER.trace("getSingleValuedProperties: Ignoring property because of multiple values: {}", property);
                 } else {
-                    LOGGER.info("Using property {}", property);
+                    LOGGER.trace("getSingleValuedProperties: Using property {}", property);
                     properties.add(property);
                 }
             }
@@ -57,11 +57,28 @@ public class MatchingUtil {
         return properties;
     }
 
+    @SuppressWarnings("unused") // Used from scripts
+    public static Set<String> getValuesForPath(ObjectType object, Object... pathComponents) {
+        return getValuesForPath(object.asPrismObject(), ItemPath.create(pathComponents));
+    }
+
     public static Set<String> getValuesForPath(PrismObject<?> object, ItemPath path) {
         return object.getAllValues(path).stream()
                 .filter(Objects::nonNull)
                 .map(PrismValue::getRealValue)
                 .map(String::valueOf)
+                .collect(Collectors.toSet());
+    }
+
+    public static Set<?> getRealValuesForPath(Containerable containerable, ItemPath path) {
+        return getRealValuesForPath(containerable.asPrismContainerValue(), path);
+    }
+
+    private static Set<?> getRealValuesForPath(PrismContainerValue<?> pcv, ItemPath path) {
+        return pcv.getAllValues(path).stream()
+                .filter(Objects::nonNull)
+                .map(PrismValue::getRealValue)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
 

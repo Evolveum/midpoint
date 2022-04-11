@@ -104,7 +104,7 @@
 
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>midpoint</artifactId>
-    <version>4.5-SNAPSHOT</version>
+    <version>4.6-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>midPoint Project</name>
@@ -200,7 +200,7 @@
         <cxf-xjc.version>3.3.1</cxf-xjc.version>
         <wss4j.version>2.3.2</wss4j.version>
         <opendj.version>2.6.2</opendj.version>
-        <quartz.version>2.3.2.e1</quartz.version>
+        <quartz.version>2.3.2.e3</quartz.version>
         <selenium.version>3.141.59</selenium.version>
         <slf4j.version>1.7.30</slf4j.version>
         <logback.version>1.2.3e1</logback.version>
@@ -226,7 +226,7 @@
         <wicket.version>9.7.0</wicket.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
         <!-- Groovy 3.0.8 is also default for Spring Boot 2.5.0 -->
-        <groovy.version>3.0.8</groovy.version>
+        <groovy.version>3.0.9</groovy.version>
         <xmlsec.version>2.2.3</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
         <connid.version>1.5.0.18</connid.version>
@@ -914,7 +914,7 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
                 <!-- Do not forget to update provisioning/ucf-impl-connid/src/test/resources/connector-ldap.xml when changing connector version. -->
-                <version>3.3.1</version>
+                <version>3.4</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>
@@ -922,11 +922,6 @@
                         <artifactId>slf4j-jdk14</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.evolveum.polygon</groupId>
-                <artifactId>connector-powershell</artifactId>
-                <version>1.1.1</version>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
@@ -1543,6 +1538,19 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-authz-client</artifactId>
+                <version>16.1.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-core</artifactId>
+                <version>16.1.1</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -1752,6 +1760,10 @@
 
                                 <!--dependency contains bug when dependency is used only in annotation, we use it in authentication-impl -->
                                 <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-autoconfigure</ignoredUnusedDeclaredDependency>
+
+                                <!--  Since generated code depends on prism-impl, it needs sometime to be runtime/ compile
+                                      but report can not detect this uses (and if you change scope, it can not compile target project -->
+                                <ignoredUsedUndeclaredDependency>com.evolveum.prism:prism-impl</ignoredUsedUndeclaredDependency>
                             </ignoredUnusedDeclaredDependencies>
                             <ignoredUsedUndeclaredDependencies>
                                 <!--

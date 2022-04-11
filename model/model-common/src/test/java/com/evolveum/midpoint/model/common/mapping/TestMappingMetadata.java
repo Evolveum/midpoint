@@ -23,6 +23,8 @@ import java.util.stream.Stream;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.testng.annotations.BeforeClass;
@@ -1242,6 +1244,11 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
 
             @Override
             public String getTaskTreeOid(Task task, OperationResult result) {
+                return null;
+            }
+
+            @Override
+            public ExpressionProfile getPrivilegedExpressionProfile() {
                 return null;
             }
         };

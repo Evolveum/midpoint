@@ -2362,7 +2362,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         property.addRealValue("q");
 
         List evaluators = expression.getExpressionEvaluator();
-        Collection<JAXBElement<RawType>> collection = StaticExpressionUtil.serializeValueElements(property, null);
+        Collection<JAXBElement<RawType>> collection = StaticExpressionUtil.serializeValueElements(property);
         ObjectFactory of = new ObjectFactory();
         for (JAXBElement<RawType> obj : collection) {
             //noinspection unchecked
@@ -3309,6 +3309,32 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertCustomColumn("foo", "test");
+    }
+
+    /**
+     * Tests the sanity of transformed schema. Currently there is a specific problem
+     * with looking up container definitions pretending they are properties. See
+     * also `TestSchemaRegistry.testMismatchedDefinitionLookup`.
+     *
+     * See MID-7690.
+     *
+     * This test is in this class because I've found no suitable test class in model-impl module.
+     */
+    @Test()
+    public void test500MismatchedDefinitionLookupInTransformedSchema() throws CommonException {
+        given("obtaining ResourceType definition via model-api");
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<ResourceType> resource =
+                modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        PrismObjectDefinition<ResourceType> objectDefinition = resource.getDefinition();
+
+        when("looking up a definition for 'synchronization' (now container) assuming it's a property");
+        PrismPropertyDefinition<?> propDef = objectDefinition.findPropertyDefinition(ResourceType.F_SYNCHRONIZATION);
+
+        then("asserting it's null");
+        assertThat(propDef).as("definition of property 'synchronization'").isNull();
     }
 
     private String addTestRole(Task task, OperationResult result) throws CommonException {

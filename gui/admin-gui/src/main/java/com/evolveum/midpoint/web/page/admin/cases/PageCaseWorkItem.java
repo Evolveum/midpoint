@@ -9,7 +9,8 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -39,9 +40,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author mederly
- */
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/workItem", matchUrlForSecurity = "/admin/workItem")
@@ -68,7 +66,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
     private static final String ID_BACK_BUTTON = "backButton";
 
     private final LoadableModel<CaseWorkItemType> caseWorkItemModel;
-    private final PageParameters pageParameters;
+    private PageParameters pageParameters;
 
     private LoadableModel<CaseType> caseModel;
     private WorkItemId workItemId;
@@ -130,11 +128,6 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
-    }
-
-    @Override
-    protected void createBreadcrumb() {
-        createInstanceBreadcrumb();            // to preserve page state (e.g. approver's comment)
     }
 
     private CaseType loadCaseIfNecessary() {
@@ -260,5 +253,15 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 
         }
         return null;
+    }
+
+    public PageParameters getPageParameters() {
+        if (pageParameters == null || StringUtils.isEmpty(pageParameters.get(OnePageParameterEncoder.PARAMETER).toString())) {
+            pageParameters = new PageParameters();
+            CaseWorkItemType workItem = caseWorkItemModel.getObject();
+            CaseType parentCase = CaseTypeUtil.getCase(workItem);
+            pageParameters.add(OnePageParameterEncoder.PARAMETER, WorkItemId.createWorkItemId(parentCase.getOid(), workItem.getId()));
+        }
+        return pageParameters;
     }
 }

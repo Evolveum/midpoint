@@ -1014,8 +1014,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-            MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers) throws SchemaException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), nameMatchingRule, requireNormalizedIdentfiers);
+            MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers) throws SchemaException {
+        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), nameMatchingRule, requireNormalizedIdentifiers);
     }
 
     protected QName getAccountObjectClass(ResourceType resourceType) {
@@ -2062,6 +2062,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         IntegrationTestTools.display(title, elements);
     }
 
+    public void displayValueAsXml(String title, Object value) throws SchemaException {
+        displayValue(title,
+                value != null ?
+                        prismContext.xmlSerializer().serializeRealValue(value, SchemaConstants.C_VALUE) : null);
+    }
+
     @Override
     public void displayValue(String title, Object value) {
         PrismTestUtil.display(title, value);
@@ -2164,6 +2170,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return profile.getLoggingOverride()
                 .beginLevelOverride()
                 .logger("com.evolveum.midpoint.wf")
+                .logger("com.evolveum.midpoint.cases")
                 .level(LoggingLevelType.TRACE)
                 .<LoggingOverrideType>end()
                 .end();
@@ -3251,8 +3258,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      * Waits a little before asserting task status. This is to enable task manager to write e.g. operationStatus
      * after task operation result status indicates that the handler has finished.
      */
-    protected void stabilize() throws InterruptedException {
-        Thread.sleep(500);
+    protected void stabilize() {
+        MiscUtil.sleepCatchingInterruptedException(500);
     }
 
     protected ShadowAsserter<Void> assertSelectedAccountByName(Collection<PrismObject<ShadowType>> accounts, String name) {
@@ -3626,11 +3633,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         waitForTaskFinish(task, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
-    protected void waitForTaskFinish(Task task, boolean checkSubresult, final int timeout) throws Exception {
+    protected void waitForTaskFinish(Task task, boolean checkSubresult, final int timeout) throws CommonException {
         waitForTaskFinish(task, checkSubresult, timeout, DEFAULT_TASK_SLEEP_TIME);
     }
 
-    protected void waitForTaskFinish(final Task task, final boolean checkSubresult, final int timeout, long sleepTime) throws Exception {
+    protected void waitForTaskFinish(final Task task, final boolean checkSubresult, final int timeout, long sleepTime)
+            throws CommonException {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskFinish");
         Checker checker = new Checker() {
             @Override
@@ -4031,7 +4039,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         SearchResultList<PrismObject<NodeType>> existingNodes =
                 repositoryService.searchObjects(NodeType.class, null, null, result);
         for (PrismObject<NodeType> existingNode : existingNodes) {
-            if (!existingNode.getOid().equals(taskManager.getLocalNode().getOid())) {
+            if (!existingNode.getOid().equals(taskManager.getLocalNodeOid())) {
                 System.out.printf("Deleting extra node %s\n", existingNode);
                 repositoryService.deleteObject(NodeType.class, existingNode.getOid(), result);
             }

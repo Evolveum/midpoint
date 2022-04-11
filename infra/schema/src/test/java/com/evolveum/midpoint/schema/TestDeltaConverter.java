@@ -582,6 +582,31 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     }
 
     @Test
+    public void testModifyNonExistsAttribute() throws Exception {
+        System.out.println("===[ testModifyNonExistsAttribute ]====");
+
+        ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, "resource-modify-non-exists-attribute.xml"),
+                ObjectModificationType.COMPLEX_TYPE);
+
+        // WHEN
+        ObjectDelta<ResourceType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, ResourceType.class,
+                getPrismContext());
+
+        System.out.println("Delta:");
+        System.out.println(objectDelta.debugDump());
+
+        // THEN
+        assertNotNull("No object delta", objectDelta);
+        objectDelta.checkConsistence();
+        assertEquals("Wrong OID", "00000000-8888-6666-0000-100000000775", objectDelta.getOid());
+        PropertyDelta<Object> propertyDelta = objectDelta.findPropertyDelta(ItemPath.create("nonExistsParent", "nonExistsAttribute"));
+        assertNotNull("No property delta", propertyDelta);
+        Collection<PrismPropertyValue<Object>> valuesToReplace = propertyDelta.getValuesToReplace();
+        assertEquals("Wrong number of values to replace", 1, valuesToReplace.size());
+        assertTrue("Wrong type of value to replace", valuesToReplace.iterator().next().getValue() instanceof RawType);
+    }
+
+    @Test
     public void test100ObjectAdd() throws Exception {
         System.out.println("===[ test100ObjectAdd ]====");
 

@@ -10,9 +10,6 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 
-/**
- * @author mederly
- */
 public class RepoQueryDto implements Serializable {
 
     public static final String F_OBJECT_TYPE = "objectType";

@@ -10,12 +10,9 @@ package com.evolveum.midpoint.provisioning.ucf.api.async;
 import com.evolveum.midpoint.schema.AcknowledgementSink;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateMessageType;
 
-import com.google.common.annotations.VisibleForTesting;
-
 /**
  * Listener that receives "raw" async update messages from asynchronous update source (e.g. AMQP, JMS, REST, ...).
  */
-@VisibleForTesting // just to provide mock implementations
 public interface AsyncUpdateMessageListener {
 
     /**

@@ -12,12 +12,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
-import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -54,7 +54,7 @@ public class NotificationFunctions {
         }
     }
 
-    public ObjectType getObjectType(SimpleObjectRef simpleObjectRef, boolean allowNotFound, OperationResult result) {
+    public ObjectType getObject(SimpleObjectRef simpleObjectRef, boolean allowNotFound, OperationResult result) {
         if (simpleObjectRef == null) {
             return null;
         }
@@ -70,7 +70,7 @@ public class NotificationFunctions {
         return objectType;
     }
 
-    public ObjectType getObjectType(ObjectReferenceType ref, boolean allowNotFound, OperationResult result) {
+    public ObjectType getObject(ObjectReferenceType ref, boolean allowNotFound, OperationResult result) {
         if (ref == null) {
             return null;
         }

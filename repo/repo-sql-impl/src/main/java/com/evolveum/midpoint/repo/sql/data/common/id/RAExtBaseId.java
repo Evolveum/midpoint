@@ -12,9 +12,6 @@ import com.evolveum.midpoint.repo.sql.data.common.any.RAExtBase;
 import java.io.Serializable;
 import java.util.Objects;
 
-/**
- * @author mederly
- */
 public class RAExtBaseId implements Serializable {
 
     protected String ownerOid;

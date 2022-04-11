@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.notifications.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.IOException;
@@ -18,7 +19,6 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
+import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationTransportConfigurationType;
@@ -48,7 +49,7 @@ public class TestTransportUtils extends AbstractSpringTest {
 
     @Test
     public void test010CheckVariablesWhiteList() {
-        // GIVEN
+        given();
         NotificationTransportConfigurationType config = new NotificationTransportConfigurationType();
 
         config.getWhiteList().add("*@evolveum.com");
@@ -68,25 +69,29 @@ public class TestTransportUtils extends AbstractSpringTest {
         recipients.add("jack@evodevel.sk");
         recipients.add("janko@evolveum.eu");
 
-        // WHEN
-        TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task, task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), logger);
+        when();
+        TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task,
+                task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), logger);
 
         then();
-
-        assertTrue("Expected <4> allowed recipient(s), but was <" + allowRecipient.size() + ">", allowRecipient.size() == 4);
+        assertThat(allowRecipient)
+                .withFailMessage("Expected <4> allowed recipient(s), but was <" + allowRecipient.size() + ">")
+                .hasSize(4);
         assertTrue("janko@evodevel.com should be allowed, but isn't.", allowRecipient.contains("janko@evodevel.com"));
         assertTrue("janko@evolveum.com should be allowed, but isn't.", allowRecipient.contains("janko@evolveum.com"));
         assertTrue("viliam@evodevel.com should be allowed, but isn't.", allowRecipient.contains("viliam@evodevel.com"));
         assertTrue("majka@evodevel.eu should be allowed, but isn't.", allowRecipient.contains("majka@evodevel.eu"));
 
-        assertTrue("Expected <2> forbidden recipient(s), but was <" + forbiddenRecipient.size() + ">", forbiddenRecipient.size() == 2);
+        assertThat(forbiddenRecipient)
+                .withFailMessage("Expected <2> forbidden recipient(s), but was <" + forbiddenRecipient.size() + ">")
+                .hasSize(2);
         assertTrue("jack@evodevel.sk should be forbidden, but isn't.", forbiddenRecipient.contains("jack@evodevel.sk"));
         assertTrue("janko@evolveum.eu should be forbidden, but isn't.", forbiddenRecipient.contains("janko@evolveum.eu"));
     }
 
     @Test
     public void test020CheckVariablesBlackList() {
-        // GIVEN
+        given();
         NotificationTransportConfigurationType config = new NotificationTransportConfigurationType();
 
         config.getBlackList().add("*@evolveum.com");
@@ -106,18 +111,22 @@ public class TestTransportUtils extends AbstractSpringTest {
         recipients.add("jack@evodevel.sk");
         recipients.add("janko@evolveum.eu");
 
-        // WHEN
-        TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task, task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), logger);
+        when();
+        TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task,
+                task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), logger);
 
         then();
-
-        assertTrue("Expected <4> forbidden recipient(s), but was <" + forbiddenRecipient.size() + ">", forbiddenRecipient.size() == 4);
+        assertThat(forbiddenRecipient)
+                .withFailMessage("Expected <4> forbidden recipient(s), but was <" + forbiddenRecipient.size() + ">")
+                .hasSize(4);
         assertTrue("janko@evodevel.com should be forbidden, but isn't.", forbiddenRecipient.contains("janko@evodevel.com"));
         assertTrue("janko@evolveum.com should be forbidden, but isn't.", forbiddenRecipient.contains("janko@evolveum.com"));
         assertTrue("viliam@evodevel.com should be forbidden, but isn't.", forbiddenRecipient.contains("viliam@evodevel.com"));
         assertTrue("majka@evodevel.eu should be forbidden, but isn't.", forbiddenRecipient.contains("majka@evodevel.eu"));
 
-        assertTrue("Expected <2> allowed recipient(s), but was <" + allowRecipient.size() + ">", allowRecipient.size() == 2);
+        assertThat(allowRecipient)
+                .withFailMessage("Expected <2> allowed recipient(s), but was <" + allowRecipient.size() + ">")
+                .hasSize(2);
         assertTrue("jack@evodevel.sk should be allowed, but isn't.", allowRecipient.contains("jack@evodevel.sk"));
         assertTrue("janko@evolveum.eu should be allowed, but isn't.", allowRecipient.contains("janko@evolveum.eu"));
     }

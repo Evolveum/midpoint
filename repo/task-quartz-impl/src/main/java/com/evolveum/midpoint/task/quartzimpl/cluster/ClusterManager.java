@@ -8,7 +8,6 @@ package com.evolveum.midpoint.task.quartzimpl.cluster;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
@@ -16,7 +15,6 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
@@ -110,15 +108,12 @@ public class ClusterManager {
         nodeRegistrar.deleteNode(nodeOid, result);
     }
 
-    public NodeType createOrUpdateNodeInRepo(OperationResult result) throws TaskManagerInitializationException {
-        return nodeRegistrar.createOrUpdateNodeInRepo(result);
+    public @NotNull PrismObject<NodeType> getLocalNodeObject() {
+        return nodeRegistrar.getCachedLocalNodeObjectRequired();
     }
 
-    public PrismObject<NodeType> getLocalNodeObject() {
-        return nodeRegistrar.getCachedLocalNodeObject();
-    }
-
-    public NodeType getFreshVerifiedLocalNodeObject(OperationResult result) {
+    /** Returns null only in case of error. */
+    public @Nullable NodeType getFreshVerifiedLocalNodeObject(OperationResult result) {
         return nodeRegistrar.verifyNodeObject(result);
     }
 
@@ -139,7 +134,7 @@ public class ClusterManager {
         // We do not want to query cluster nodes at this moment. We rely on the repository information.
         SearchResultList<PrismObject<NodeType>> nodes =
                 getRepositoryService().searchObjects(NodeType.class, null, null, result);
-        ClusterStateType clusterState = new ClusterStateType(PrismContext.get());
+        ClusterStateType clusterState = new ClusterStateType();
         // TODO use query after making operationalState indexed
         for (PrismObject<NodeType> node : nodes) {
             String nodeIdentifier = node.asObjectable().getNodeIdentifier();
@@ -209,7 +204,7 @@ public class ClusterManager {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception in ClusterManager thread; continuing execution.", t);
                 }
 
-                LOGGER.trace("ClusterManager thread sleeping for {} msec", delay);
+                LOGGER.trace("ClusterManager thread sleeping for {} ms", delay);
                 MiscUtil.sleepCatchingInterruptedException(delay);
             }
 
@@ -270,7 +265,7 @@ public class ClusterManager {
     }
 
     private boolean isRemoteNode(NodeType node) {
-        return taskManager.getNodeId() == null || !taskManager.getNodeId().equals(node.getNodeIdentifier());
+        return !taskManager.getNodeId().equals(node.getNodeIdentifier());
     }
 
     private boolean shouldBeMarkedAsDown(NodeType node) {

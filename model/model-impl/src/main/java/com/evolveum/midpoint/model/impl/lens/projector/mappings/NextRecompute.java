@@ -39,7 +39,7 @@ public class NextRecompute {
     @NotNull private final XMLGregorianCalendar nextRecomputeTime;
     @Nullable private final String triggerOriginDescription;
 
-    NextRecompute(@NotNull XMLGregorianCalendar nextRecomputeTime, @Nullable String triggerOriginDescription) {
+    public NextRecompute(@NotNull XMLGregorianCalendar nextRecomputeTime, @Nullable String triggerOriginDescription) {
         this.nextRecomputeTime = nextRecomputeTime;
         this.triggerOriginDescription = triggerOriginDescription;
     }
@@ -48,7 +48,7 @@ public class NextRecompute {
         createTrigger(focusContext.getObjectCurrent(), focusContext.getObjectDefinition(), focusContext);
     }
 
-    <V extends PrismValue, D extends ItemDefinition, T extends ObjectType, F extends FocusType> void createTrigger(
+    public <V extends PrismValue, D extends ItemDefinition, T extends ObjectType, F extends FocusType> void createTrigger(
             PrismObject<T> targetObject, PrismObjectDefinition<T> targetObjectDefinition, LensElementContext<T> targetContext) throws SchemaException {
         if (targetObject != null) {
             for (TriggerType trigger: targetObject.asObjectable().getTrigger()) {

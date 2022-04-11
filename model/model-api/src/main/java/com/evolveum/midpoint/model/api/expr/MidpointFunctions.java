@@ -19,13 +19,14 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.CaseService;
 import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -53,6 +54,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -151,7 +154,7 @@ public interface MidpointFunctions {
      * processing any policies, caching mechanisms, etc. This can be influenced by using options.
      * </p>
      * <p>
-     * Fails if object with the OID does not exists.
+     * Fails if object with the OID does not exist.
      * </p>
      *
      * @param type
@@ -191,7 +194,7 @@ public interface MidpointFunctions {
      * processing any policies, caching mechanisms, etc.
      * </p>
      * <p>
-     * Fails if object with the OID does not exists.
+     * Fails if object with the OID does not exist.
      * </p>
      *
      * @param type
@@ -1068,7 +1071,7 @@ public interface MidpointFunctions {
 
     String getChannel();
 
-    WorkflowService getWorkflowService();
+    CaseService getWorkflowService();
 
     /**
      * Used for account activation notifier to collect all shadows which are going to be activated.
@@ -1078,6 +1081,13 @@ public interface MidpointFunctions {
     String createRegistrationConfirmationLink(UserType userType);
 
     String createPasswordResetLink(UserType userType);
+
+    /**
+     * Returns a link where given work item can be completed.
+     *
+     * @return null if such a link cannot be created
+     */
+    @Nullable String createWorkItemCompletionLink(@NotNull WorkItemId workItemId);
 
     String createAccountActivationLink(UserType userType);
 
@@ -1138,7 +1148,7 @@ public interface MidpointFunctions {
 
     ModelProjectionContext getProjectionContext();
 
-    <V extends PrismValue, D extends ItemDefinition> Mapping<V,D> getMapping();
+    <V extends PrismValue, D extends ItemDefinition<?>> Mapping<V, D> getMapping();
 
     Object executeAdHocProvisioningScript(ResourceType resource, String language, String code)
             throws SchemaException, ObjectNotFoundException,
@@ -1192,21 +1202,24 @@ public interface MidpointFunctions {
 
     <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException;
 
-    <O extends ObjectType> boolean hasArchetype(O object, String archetypeOid);
+    default <O extends ObjectType> boolean hasArchetype(O object, String archetypeOid) {
+        return getArchetypeOids(object).contains(archetypeOid);
+    }
 
     /**
      * Assumes single archetype. May throw error if used on object that has more than one archetype.
      */
     @Deprecated
     <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException, ConfigurationException;
-    <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException, ConfigurationException;
+    @NotNull <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException, ConfigurationException;
 
     /**
      * Assumes single archetype. May throw error if used on object that has more than one archetype.
      */
     @Deprecated
     <O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException;
-    <O extends ObjectType> List<String> getArchetypeOids(O object) throws SchemaException, ConfigurationException;
+
+    @NotNull <O extends ObjectType> List<String> getArchetypeOids(O object);
 
     default <O extends ObjectType> void addRecomputeTrigger(O object, Long timestamp)
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
@@ -1247,8 +1260,16 @@ public interface MidpointFunctions {
     @Experimental
     void createRecomputeTrigger(Class<? extends ObjectType> type, String oid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 
+    /**
+     * Returns a correlation case for given shadow. (Need not be full.)
+     */
+    @Experimental
+    @Nullable CaseType getCorrelationCaseForShadow(@Nullable ShadowType shadow) throws SchemaException;
+
     @FunctionalInterface
     interface TriggerCustomizer {
         void customize(TriggerType trigger) throws SchemaException;
     }
+
+    String describeResourceObjectSet(ResourceObjectSetType set) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 }

@@ -117,7 +117,7 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
     }
 
     private IModel<String> createLabelModel(final String key) {
-        return (IModel<String>) () -> PageBase.createStringResourceStatic(getPage(), key).getString();
+        return (IModel<String>) () -> PageBase.createStringResourceStatic(key).getString();
     }
 
     public void changeStepPerformed(AjaxRequestTarget target, WizardStepDto dto) {

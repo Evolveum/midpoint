@@ -21,8 +21,6 @@ import com.evolveum.midpoint.repo.sql.query.resolution.DataSearchResult;
  * As a hack, we implement self pointers (e.g. RAssignment.metadata->RAssignment) also for non-root
  * entities, provided they are resolved on creation. (The reason of using JpaEntityPointerDefinition
  * there is just to break navigation cycles e.g. when using a visitor.)
- *
- * @author mederly
  */
 public class JpaEntityPointerDefinition extends JpaDataNodeDefinition<JpaEntityPointerDefinition> {
 

@@ -60,7 +60,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
- * @author mederly
  * @author semancik
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })

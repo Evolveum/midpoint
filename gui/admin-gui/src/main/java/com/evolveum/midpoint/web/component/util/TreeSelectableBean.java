@@ -10,6 +10,8 @@ package com.evolveum.midpoint.web.component.util;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
 
@@ -20,14 +22,9 @@ public class TreeSelectableBean<T extends Serializable> extends SelectableBeanIm
 
     private static final Trace LOGGER = TraceManager.getTrace(TreeSelectableBean.class);
 
-    public TreeSelectableBean() {
-        super();
-    }
-
-    public TreeSelectableBean(T value) {
+    public TreeSelectableBean(IModel<T> value) {
         super(value);
     }
-
 
     private long offset=0;
     private long count=20;

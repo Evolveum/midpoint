@@ -53,7 +53,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstra
 
 /**
  * @author semancik
- * @author mederly
  */
 @Component
 @ProcessorExecution(focusRequired = true, focusType = AssignmentHolderType.class)

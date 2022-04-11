@@ -38,7 +38,7 @@ public class MidpointSaml2WebSsoAuthenticationFilter extends Saml2WebSsoAuthenti
     }
 
     public void unsuccessfulAuth(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws ServletException, IOException {
-        super.unsuccessfulAuthentication(request, response, failed);
+        remoteUnsuccessfulAuthentication(request, response, failed, getRememberMeServices(), getFailureHandler());
     }
 
     @Override

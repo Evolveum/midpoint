@@ -11,9 +11,6 @@ import com.evolveum.midpoint.prism.PrismValue;
 
 import java.util.List;
 
-/**
- * @author Pavol Mederly
- */
 public class QueryResult<V extends PrismValue> {
 
     private List<V> resultingList;

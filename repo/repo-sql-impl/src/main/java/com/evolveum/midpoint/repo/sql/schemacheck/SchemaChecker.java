@@ -29,9 +29,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * @author mederly
- */
 @Component
 public class SchemaChecker {
 

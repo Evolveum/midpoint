@@ -198,4 +198,22 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         AuthenticationChannel channel = null;
         Class<? extends FocusType> focusType = UserType.class;
     }
+
+    protected String getChannel() {
+        Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        if (actualAuthentication instanceof MidpointAuthentication && ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel() != null) {
+            return ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel().getChannelId();
+        } else {
+            return SchemaConstants.CHANNEL_USER_URI;
+        }
+    }
+
+    protected ConnectionEnvironment createConnectEnvironment(String channel) {
+        ConnectionEnvironment env = ConnectionEnvironment.create(channel);
+        Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        if (actualAuthentication instanceof MidpointAuthentication && ((MidpointAuthentication) actualAuthentication).getSessionId() != null) {
+            env.setSessionIdOverride(((MidpointAuthentication) actualAuthentication).getSessionId());
+        }
+        return env;
+    }
 }

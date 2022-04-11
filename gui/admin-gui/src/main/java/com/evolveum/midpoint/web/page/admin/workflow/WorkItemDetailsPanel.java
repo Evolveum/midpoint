@@ -11,6 +11,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.cases.CaseDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.cases.component.CorrelationContextPanel;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -20,10 +22,10 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -49,12 +51,12 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -85,6 +87,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
     private static final String ID_ADDITIONAL_INFORMATION = "additionalInformation";
     private static final String ID_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
     private static final String ID_APPROVER_CONTAINER = "commentContainer";
+    private static final String ID_COMMENT_LABEL = "commentLabel";
     private static final String ID_APPROVER_COMMENT = "approverComment";
     private static final String ID_CUSTOM_FORM = "customForm";
     private static final String ID_CASE_WORK_ITEM_EVIDENCE = "caseWorkItemEvidence";
@@ -92,6 +95,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
 
 
     private IModel<SceneDto> sceneModel;
+    private LoadableDetachableModel<PrismObject<CaseType>> caseModel;
     public WorkItemDetailsPanel(String id, IModel<CaseWorkItemType> caseWorkItemTypeIModel) {
         super(id, caseWorkItemTypeIModel);
     }
@@ -116,6 +120,14 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
                 }
             }
         };
+
+        caseModel = new LoadableDetachableModel<>() {
+            @Override
+            protected PrismObject<CaseType> load() {
+                CaseType parentCase = CaseTypeUtil.getCase(WorkItemDetailsPanel.this.getModelObject());
+                return parentCase == null ? null : parentCase.asPrismObject();
+            }
+        };
     }
 
     private void initLayout(){
@@ -125,7 +137,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         add(requestedBy);
 
         LinkedReferencePanel requestedFor;
-        AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltyForCase(CaseTypeUtil.getCase(getModelObject()));
+        AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(CaseTypeUtil.getCase(getModelObject()));
         if (object == null) {
             requestedFor = new LinkedReferencePanel(ID_REQUESTED_FOR,
                     Model.of(WorkItemTypeUtil.getObjectReference(getModelObject())));
@@ -205,6 +217,8 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             ScenePanel scenePanel = new ScenePanel(ID_DELTAS_TO_APPROVE, sceneModel);
             scenePanel.setOutputMarkupId(true);
             add(scenePanel);
+        } else if (CaseTypeUtil.isCorrelationCase(parentCase)) {
+            add(new CorrelationContextPanel(ID_DELTAS_TO_APPROVE, new CaseDetailsModels(caseModel, getPageBase()), getModel(), new ContainerPanelConfigurationType()));
         } else {
             add(new WebMarkupContainer(ID_DELTAS_TO_APPROVE));
         }
@@ -286,6 +300,10 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         commentContainer.add(new VisibleBehaviour(() -> isAuthorizedForActions()));
         add(commentContainer);
 
+        String key = CaseTypeUtil.isCorrelationCase(caseModel.getObject().asObjectable()) ? "PageCaseWorkItem.caseWorkItem.comment" : "workItemPanel.approverComment";
+        Label commentLabel = new Label(ID_COMMENT_LABEL, createStringResource(key));
+        commentContainer.add(commentLabel);
+
         TextArea<String> approverComment = new TextArea<String>(ID_APPROVER_COMMENT, new PropertyModel<>(getModel(), "output.comment"));
         approverComment.add(new EnableBehaviour(() -> !isParentCaseClosed()));
         approverComment.setOutputMarkupId(true);
@@ -299,9 +317,9 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         OperationResult result = task.getResult();
         try {
             return WebComponentUtil.runUnderPowerOfAttorneyIfNeeded(() ->
-                            getPageBase().getWorkflowManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result) ||
-                                    getPageBase().getWorkflowManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result) ||
-                                    getPageBase().getWorkflowManager().isCurrentUserAuthorizedToClaim(getModelObject()),
+                            getPageBase().getCaseManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result) ||
+                                    getPageBase().getCaseManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result) ||
+                                    getPageBase().getCaseManager().isCurrentUserAuthorizedToClaim(getModelObject()),
                     getPowerDonor(), getPageBase(), task, result);
         } catch (Exception ex) {
             LOGGER.error("Unable to check user authorization for workitem actions: {}", ex.getLocalizedMessage());

@@ -49,21 +49,23 @@
             <kind>account</kind>
             <intent>default</intent>
             <focusType>UserType</focusType>
-            <correlators>
-                <expression>
-                    <ownerRef>
-                        <script>
-                            <code>
-                                def code = basic.stringify(basic.getAttributeValue(projection, 'correlationCode'))
-                                log.info('Code:\n{}', code)
-                                def result = Eval.me('correlationContext', correlationContext, code)
-                                log.info('Result: {}', result)
-                                result
-                            </code>
-                        </script>
-                    </ownerRef>
-                </expression>
-            </correlators>
+            <correlationDefinition>
+                <correlators>
+                    <expression>
+                        <ownerRef>
+                            <script>
+                                <code>
+                                    def code = basic.stringify(basic.getAttributeValue(projection, 'correlationCode'))
+                                    log.info('Code:\n{}', code)
+                                    def result = Eval.me('correlationContext', correlationContext, code)
+                                    log.info('Result: {}', result)
+                                    result
+                                </code>
+                            </script>
+                        </ownerRef>
+                    </expression>
+                </correlators>
+            </correlationDefinition>
         </objectSynchronization>
     </synchronization>
 </resource>

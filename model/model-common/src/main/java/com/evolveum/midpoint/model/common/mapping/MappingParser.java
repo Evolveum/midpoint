@@ -35,7 +35,7 @@ import java.util.Collection;
 /**
  * TODO better name, clean up the code; maybe move operation result management code here
  */
-class MappingParser<D extends ItemDefinition, MBT extends AbstractMappingType> implements Serializable {
+class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType> implements Serializable {
 
     private final AbstractMappingImpl<?, D, MBT> m;
 
@@ -126,7 +126,7 @@ class MappingParser<D extends ItemDefinition, MBT extends AbstractMappingType> i
         return path;
     }
 
-    private <IV extends PrismValue, ID extends ItemDefinition> Source<IV, ID> parseSource(
+    private <IV extends PrismValue, ID extends ItemDefinition<?>> Source<IV, ID> parseSource(
             VariableBindingDefinitionType sourceDefinition, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {

@@ -46,6 +46,11 @@ public class PotentialMatch implements DebugDumpable {
         return confidence;
     }
 
+    public Double getConfidenceScaledToOne() {
+        return confidence != null ?
+                confidence / 100.0 : null;
+    }
+
     public @Nullable String getReferenceId() {
         return referenceId;
     }

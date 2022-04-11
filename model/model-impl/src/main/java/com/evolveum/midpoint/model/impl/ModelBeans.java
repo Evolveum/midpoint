@@ -15,12 +15,13 @@ import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.correlator.BuiltInCaseManager;
-import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
+import com.evolveum.midpoint.model.impl.correlator.BuiltInResultCreator;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionValueMetadataCreator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
@@ -42,7 +43,7 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 
 import com.evolveum.midpoint.task.api.TaskManager;
 
-import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.cases.api.CaseManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -88,6 +89,7 @@ public class ModelBeans {
     @Autowired public MatchingRuleRegistry matchingRuleRegistry;
     @Autowired public AutoAssignMappingCollector autoAssignMappingCollector;
     @Autowired public MappingEvaluator mappingEvaluator;
+    @Autowired public ProjectionMappingSetEvaluator projectionMappingSetEvaluator;
     @Autowired public MappingFactory mappingFactory;
     @Autowired public ModelCommonBeans commonBeans;
     @Autowired public ContextLoader contextLoader;
@@ -103,7 +105,7 @@ public class ModelBeans {
     @Autowired public OperationalDataManager metadataManager;
     @Autowired public TaskManager taskManager;
     @Autowired public ExpressionFactory expressionFactory;
-    @Autowired(required = false) public WorkflowManager workflowManager; // not available e.g. during tests
+    @Autowired(required = false) public CaseManager caseManager; // not available e.g. during tests
     @Autowired public ClockworkConflictResolver clockworkConflictResolver;
     @Autowired public ContextFactory contextFactory;
     @Autowired public Clockwork clockwork;
@@ -126,5 +128,5 @@ public class ModelBeans {
     @Autowired public CorrelatorFactoryRegistry correlatorFactoryRegistry;
     @Autowired public CorrelationCaseManager correlationCaseManager;
     @Autowired public CorrelationService correlationService;
-    @Autowired public BuiltInCaseManager builtInCaseManager;
+    @Autowired public BuiltInResultCreator builtInResultCreator;
 }

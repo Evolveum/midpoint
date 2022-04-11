@@ -9,7 +9,10 @@ package com.evolveum.midpoint.model.api.correlator;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorsType;
+import com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorAuthorityLevelType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -17,54 +20,58 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
  * Wrapper for both typed (bean-only) and untyped (bean + item name) correlator configuration.
  */
 public abstract class CorrelatorConfiguration {
 
-    @NotNull private final AbstractCorrelatorType configurationBean;
+    @NotNull final AbstractCorrelatorType configurationBean;
 
     CorrelatorConfiguration(@NotNull AbstractCorrelatorType configurationBean) {
         this.configurationBean = configurationBean;
     }
 
-    /**
-     * Returns exactly one {@link CorrelatorConfiguration} from given "correlators" structure.
-     *
-     * @throws IllegalArgumentException If there's not exactly one configuration there.
-     */
-    public static @NotNull CorrelatorConfiguration getConfiguration(CorrelatorsType correlators) {
-        Collection<CorrelatorConfiguration> configurations = getConfigurations(correlators);
-        argCheck(!configurations.isEmpty(), "No correlator configurations in %s", correlators);
-        argCheck(configurations.size() == 1, "Multiple correlator configurations in %s", correlators);
-        return configurations.iterator().next();
+    public @Nullable Integer getOrder() {
+        return configurationBean.getOrder();
+    }
+
+    private @NotNull String getDebugName() {
+        return configurationBean.getName() != null ?
+                configurationBean.getName() : getDefaultDebugName();
+    }
+
+    abstract @NotNull String getDefaultDebugName();
+
+    @Override
+    public String toString() {
+        return String.format("%s (order %d; %s)", getDebugName(), getOrder(), getAuthority());
     }
 
     /**
      * Extracts {@link CorrelatorConfiguration} objects from given "correlators" structure (both typed and untyped).
      */
-    public static @NotNull Collection<CorrelatorConfiguration> getConfigurations(@NotNull CorrelatorsType correlation) {
+    public static @NotNull Collection<CorrelatorConfiguration> getConfigurations(@NotNull CompositeCorrelatorType correlatorsBean) {
         List<CorrelatorConfiguration> configurations =
                 Stream.of(
-                                correlation.getNone().stream(),
-                                correlation.getFilter().stream(),
-                                correlation.getExpression().stream(),
-                                correlation.getIdMatch().stream())
+                                correlatorsBean.getNone().stream(),
+                                correlatorsBean.getFilter().stream(),
+                                correlatorsBean.getExpression().stream(),
+                                correlatorsBean.getItems().stream(),
+                                correlatorsBean.getComposite().stream(),
+                                correlatorsBean.getIdMatch().stream())
                         .flatMap(s -> s)
                         .map(TypedCorrelationConfiguration::new)
                         .collect(Collectors.toCollection(ArrayList::new));
 
-        if (correlation.getExtension() != null) {
+        if (correlatorsBean.getExtension() != null) {
             //noinspection unchecked
-            Collection<Item<?, ?>> items = correlation.getExtension().asPrismContainerValue().getItems();
+            Collection<Item<?, ?>> items = correlatorsBean.getExtension().asPrismContainerValue().getItems();
             for (Item<?, ?> item : items) {
                 for (PrismValue value : item.getValues()) {
                     // TODO better type safety checks (provide specific exceptions)
@@ -81,6 +88,44 @@ public abstract class CorrelatorConfiguration {
         return configurations;
     }
 
+    public static List<CorrelatorConfiguration> getConfigurationsSorted(CompositeCorrelatorType correlatorsBean) {
+        List<CorrelatorConfiguration> configurations = new ArrayList<>(getConfigurations(correlatorsBean));
+        configurations.sort(
+                Comparator.comparing(CorrelatorConfiguration::getOrder, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(CorrelatorConfiguration::getAuthority));
+        return configurations;
+    }
+
+    public static @NotNull List<CorrelatorConfiguration> getConfigurationsDeeply(CompositeCorrelatorType composite) {
+        List<CorrelatorConfiguration> allConfigurations = new ArrayList<>();
+        addConfigurationsDeeplyInternal(allConfigurations, composite);
+        return allConfigurations;
+    }
+
+    private static void addConfigurationsDeeplyInternal(
+            @NotNull List<CorrelatorConfiguration> allConfigurations,
+            @NotNull CompositeCorrelatorType composite) {
+        Collection<CorrelatorConfiguration> directChildren = getConfigurations(composite);
+        for (CorrelatorConfiguration directChild : directChildren) {
+            allConfigurations.add(directChild);
+            AbstractCorrelatorType directChildBean = directChild.getConfigurationBean();
+            if (directChildBean instanceof CompositeCorrelatorType) {
+                addConfigurationsDeeplyInternal(allConfigurations, (CompositeCorrelatorType) directChildBean);
+            }
+        }
+    }
+
+    public static String identify(@NotNull Collection<CorrelatorConfiguration> configurations) {
+        return configurations.stream()
+                .map(config -> config.identify())
+                .collect(Collectors.joining(", "));
+    }
+
+    private @NotNull String identify() {
+        return CorrelationItemDefinitionUtil.identify(
+                getConfigurationBean());
+    }
+
     public static @NotNull CorrelatorConfiguration typed(@NotNull AbstractCorrelatorType configBean) {
         return new TypedCorrelationConfiguration(configBean);
     }
@@ -89,9 +134,28 @@ public abstract class CorrelatorConfiguration {
         return configurationBean;
     }
 
+    @Experimental
+    public @NotNull CorrelatorAuthorityLevelType getAuthority() {
+        return Objects.requireNonNullElse(
+                configurationBean.getAuthority(),
+                CorrelatorAuthorityLevelType.AUTHORITATIVE);
+    }
+
+    public abstract boolean isUntyped();
+
     public static class TypedCorrelationConfiguration extends CorrelatorConfiguration {
-        TypedCorrelationConfiguration(@NotNull AbstractCorrelatorType configurationBean) {
+        public TypedCorrelationConfiguration(@NotNull AbstractCorrelatorType configurationBean) {
             super(configurationBean);
+        }
+
+        @Override
+        @NotNull String getDefaultDebugName() {
+            return configurationBean.getClass().getSimpleName();
+        }
+
+        @Override
+        public boolean isUntyped() {
+            return false;
         }
     }
 
@@ -107,6 +171,16 @@ public abstract class CorrelatorConfiguration {
 
         public @NotNull ItemName getConfigurationItemName() {
             return configurationItemName;
+        }
+
+        @Override
+        @NotNull String getDefaultDebugName() {
+            return configurationItemName.getLocalPart();
+        }
+
+        @Override
+        public boolean isUntyped() {
+            return true;
         }
     }
 }

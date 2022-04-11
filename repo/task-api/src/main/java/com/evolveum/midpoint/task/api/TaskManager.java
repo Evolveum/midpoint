@@ -33,7 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Stability: DRAFT
  *
  * @author Radovan Semancik
- * @author Pavol Mederly
  * </p>
  * <p>
  * Task manager provides controls task execution, coordination, distribution and failover between nodes, etc.
@@ -134,7 +133,7 @@ public interface TaskManager {
 
     /**
      * Modifies task using relative change description. Must fail if object with
-     * provided OID does not exists. Must fail if any of the described changes
+     * provided OID does not exist. Must fail if any of the described changes
      * cannot be applied. Should be atomic.
      *
      * If two or more modify operations are executed in parallel, the operations
@@ -437,6 +436,9 @@ public interface TaskManager {
 
     /**
      * Puts a WAITING task back into RUNNABLE state.
+     *
+     * @throws PreconditionViolationException If there is a conflict during unpausing, i.e. the task is originally in
+     * the waiting state, but (independently) changes the state during execution of the method.
      */
     void unpauseTask(Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, PreconditionViolationException;
@@ -664,7 +666,11 @@ public interface TaskManager {
 
     TaskHandler getHandler(String handlerUri);
 
-    NodeType getLocalNode();
+    /** Returns the local node object (immutable). */
+    @NotNull NodeType getLocalNode();
+
+    /** Returns the local node object OID. */
+    @NotNull String getLocalNodeOid();
 
     // A little bit of hack as well
     CacheConfigurationManager getCacheConfigurationManager();

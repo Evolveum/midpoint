@@ -29,8 +29,6 @@ import java.util.Date;
 
 /**
  * TODO unify with PrettyPrinter somehow
- *
- * @author mederly
  */
 public class ValueDisplayUtil {
     public static String toStringValue(PrismPropertyValue propertyValue) {

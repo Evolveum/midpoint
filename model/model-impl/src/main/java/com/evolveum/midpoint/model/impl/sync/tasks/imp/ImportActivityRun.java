@@ -107,4 +107,9 @@ public final class ImportActivityRun
     private @NotNull ModelBeans getModelBeans() {
         return getActivityHandler().getModelBeans();
     }
+
+    @Override
+    protected String getChannelOverride() {
+        return SchemaConstants.CHANNEL_IMPORT_URI;
+    }
 }

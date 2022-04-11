@@ -1983,9 +1983,72 @@ public class TestUnix extends AbstractStoryTest {
         return entry.getDN().toString();
     }
 
+    /**
+     * Here is some OpenDJ weirdness that causes this test to fail.
+     *
+     * This is the account after test122:
+     *
+     *     2022-03-18 02:03:05,015 [TestUnix.test122AssignUserLargoBasic] DEBUG (c.evolveum.midpoint.test.IntegrationTestTools): *** Posix account entry
+     *     dn: uid=largo,ou=people,dc=example,dc=com
+     *     objectClass: person
+     *     objectClass: inetOrgPerson
+     *     objectClass: organizationalPerson
+     *     objectClass: top
+     *     objectClass: person
+     *     objectClass: inetOrgPerson
+     *     objectClass: organizationalPerson
+     *     objectClass: top
+     *     sn: LaGrande
+     *     cn: Largo LaGrande
+     *     givenName: Largo
+     *     uid: largo
+     *     ds-pwp-account-disabled: FALSE
+     *     createTimestamp: 20220318010304Z
+     *
+     * Note there is no modifyTimestamp. And the time is already after 02:03:05,000.
+     *
+     * Then there is a successful modification on 02:03:05,084:
+     *
+     *     2022-03-18 02:03:05,084 [TestUnix.test124AssignUserLargoUnix] DEBUG (c.evolveum.polygon.connector.ldap.OperationLog): method: null msg:ldap://localhost:10389/ Modify REQ uid=largo,ou=people,dc=example,dc=com: [add:homeDirectory=/home/largo,add:uidNumber=1002,add:objectClass=posixAccount,add:gidNumber=1002,], control=PermissiveModify
+     *     2022-03-18 02:03:05,085 [TestUnix.test124AssignUserLargoUnix] DEBUG (c.evolveum.polygon.connector.ldap.OperationLog): method: null msg:ldap://localhost:10389/ Modify RES uid=largo,ou=people,dc=example,dc=com:         Ldap Result (...) Result code : (SUCCESS) success (...)
+     *     2022-03-18 02:03:05,085 [TestUnix.test124AssignUserLargoUnix] DEBUG (c.e.polygon.connector.ldap.ConnectionLog): method: null msg:CONN ldap://localhost:10389/ modify success (uid=largo,ou=people,dc=example,dc=com)
+     *
+     * But the timestamp is still "010304":
+     *
+     *     2022-03-18 02:03:05,147 [TestUnix.test124AssignUserLargoUnix] DEBUG (c.evolveum.midpoint.test.IntegrationTestTools): *** Posix account entry
+     *     dn: uid=largo,ou=people,dc=example,dc=com
+     *     objectClass: top
+     *     objectClass: inetOrgPerson
+     *     objectClass: posixAccount
+     *     objectClass: organizationalPerson
+     *     objectClass: person
+     *     objectClass: top
+     *     objectClass: inetOrgPerson
+     *     objectClass: posixAccount
+     *     objectClass: organizationalPerson
+     *     objectClass: person
+     *     sn: LaGrande
+     *     cn: Largo LaGrande
+     *     givenName: Largo
+     *     homeDirectory: /home/largo
+     *     gidNumber: 1002
+     *     uidNumber: 1002
+     *     uid: largo
+     *     ds-pwp-account-disabled: FALSE
+     *     createTimestamp: 20220318010304Z
+     *     modifyTimestamp: 20220318010304Z
+     *
+     * Therefore we set the safety margin to a value greater than 1000 millis.
+     */
     protected void assertModifyTimestamp(PrismObject<ShadowType> shadow, long startTs, long endTs) throws Exception {
         Long actual = getTimestampAttribute(shadow);
-        TestUtil.assertBetween("Wrong modify timestamp attribute in " + shadow, startTs - 1000, endTs + 1000, actual);
+        // The timestamp is rounded to whole seconds, so let's have a safety margin here.
+        // For unknown reasons (see javadoc above), 1000 millis is sometimes too low. Let's be more generous.
+        long expectedFrom = startTs - 1500;
+        long expectedTo = endTs + 1500;
+        System.out.printf("Timestamp attribute: %,d, expected between %,d and %,d (startTs = %,d, endTs = %,d)%n",
+                actual, expectedFrom, expectedTo, startTs, endTs);
+        TestUtil.assertBetween("Wrong modify timestamp attribute in " + shadow, expectedFrom, expectedTo, actual);
     }
 
     protected Long getTimestampAttribute(PrismObject<ShadowType> shadow) throws Exception {

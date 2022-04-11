@@ -181,8 +181,11 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
             ShadowKindType kind;
             String intent;
             if (constructionValue instanceof ConstructionValueWrapper) {
+                Task task = getPageBase().createSimpleTask("Load resource");
+                OperationResult result = task.getResult();
+                PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class, ((ConstructionValueWrapper) constructionValue).getResourceOid(), getPageBase(), task, result);
                 kind = ((ConstructionValueWrapper) constructionValue).getKind();
-                intent = ((ConstructionValueWrapper) constructionValue).getIntent();
+                intent = ((ConstructionValueWrapper) constructionValue).getIntent(resource);
             } else {
                 kind = assignment.getConstruction().getKind();
                 intent = assignment.getConstruction().getIntent();
@@ -203,9 +206,20 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
 
     private ItemVisibility getContainerVisibility(ItemWrapper<?, ?> wrapper) {
         if (wrapper instanceof PrismContainerWrapper) {
-            if (((PrismContainerWrapper) wrapper).isVirtual()) {
+            PrismContainerWrapper pcw = (PrismContainerWrapper) wrapper;
+            if (pcw.isVirtual()) {
                 return ItemVisibility.AUTO;
             }
+
+            ItemPath path = pcw.getPath();
+            if (path != null ) {
+                path = path.namedSegmentsOnly();
+
+                if (path.startsWith(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_EXTENSION))) {
+                    return ItemVisibility.AUTO;
+                }
+            }
+
             return ItemVisibility.HIDDEN;
         }
         return ItemVisibility.AUTO;

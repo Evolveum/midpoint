@@ -14,8 +14,6 @@ import java.lang.annotation.Target;
 
 /**
  * Denotes method that is used to access the container parent ID.
- *
- * @author mederly
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

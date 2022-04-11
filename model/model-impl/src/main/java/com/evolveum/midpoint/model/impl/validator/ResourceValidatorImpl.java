@@ -55,8 +55,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
  *  - empty correlation, correlation condition?
  *  - empty confirmation condition?
  *  - empty synchronization condition?
- *
- * @author mederly
  */
 @Component(value = "resourceValidator")
 public class ResourceValidatorImpl implements ResourceValidator {
@@ -122,6 +120,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
             checkSynchronizationDuplicateObjectTypes(ctx, synchronization);
             int i = 1;
             for (ObjectSynchronizationType objectSync : resource.getSynchronization().getObjectSynchronization()) {
+                // TODO is the path construction correct here? (meaning "i" as PCV id!)
                 checkObjectSynchronization(ctx, ItemPath.create(ResourceType.F_SYNCHRONIZATION, SynchronizationType.F_OBJECT_SYNCHRONIZATION, i), objectSync);
                 i++;
             }

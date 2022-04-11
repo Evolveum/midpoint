@@ -70,7 +70,7 @@ public class OidcLoginAuthenticationFilter extends OAuth2LoginAuthenticationFilt
 
     public void unsuccessfulAuth(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed)
             throws IOException, ServletException {
-        super.unsuccessfulAuthentication(request, response, failed);
+        remoteUnsuccessfulAuthentication(request, response, failed, getRememberMeServices(), getFailureHandler());
     }
 
     @Override

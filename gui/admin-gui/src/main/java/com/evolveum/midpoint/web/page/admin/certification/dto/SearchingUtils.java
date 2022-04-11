@@ -28,7 +28,6 @@ import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 
 /**
  * TODO better class name
- * @author mederly
  */
 public class SearchingUtils {
 

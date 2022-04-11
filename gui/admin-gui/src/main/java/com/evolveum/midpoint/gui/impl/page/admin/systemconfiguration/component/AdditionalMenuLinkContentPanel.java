@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -36,10 +37,10 @@ import java.util.List;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@PanelType(name = "additionalMenuLinkContent")
+@PanelType(name = "additionalMenuLinkPanel")
 @PanelInstance(
-        identifier = "additionalMenuLinkContent",
-        applicableForType = SystemConfigurationType.class,
+        identifier = "additionalMenuLinkPanel",
+        applicableForType = AdminGuiConfigurationType.class,
         display = @PanelDisplay(
                 label = "AdditionalMenuLinkContentPanel.label",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
@@ -57,6 +58,11 @@ public class AdditionalMenuLinkContentPanel extends RichHyperlinkListContentPane
 
     @Override
     protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.PAGE_MESSAGE_TEMPLATE_LOCALIZED_CONTENT_PANEL;    // todo fix
+        return UserProfileStorage.TableId.PANEL_ADDITIONAL_MENU_LINK_CONTENT;
+    }
+
+    @Override
+    protected List<InlineMenuItem> createInlineMenu() {
+        return getDefaultMenuActions();
     }
 }

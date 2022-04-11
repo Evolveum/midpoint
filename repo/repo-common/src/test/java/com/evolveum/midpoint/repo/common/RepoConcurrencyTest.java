@@ -63,7 +63,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
     @Override
     public void initSystem() throws Exception {
-        System.out.println(">>>> Repository diag: " + plainRepositoryService.getRepositoryDiag());
+        display(">>>> Repository diag: " + plainRepositoryService.getRepositoryDiag());
     }
 
     @Test
@@ -522,7 +522,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         int THREADS = 8;
         long DURATION = 30_000L;
 
-        UserType user = new UserType(prismContext).name("jack");
+        UserType user = new UserType().name("jack");
 
         OperationResult result = new OperationResult("test100AddOperationExecution");
         String oid = plainRepositoryService.addObject(user.asPrismObject(), null, result);
@@ -540,7 +540,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                 Collection<ItemDelta<?, ?>> getItemDeltas() throws Exception {
                     return prismContext.deltaFor(UserType.class)
                             .item(UserType.F_OPERATION_EXECUTION).add(
-                                    new OperationExecutionType(prismContext)
+                                    new OperationExecutionType()
                                             .channel(threadIndex + ":" + counter)
                                             .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date())))
                             .asItemDeltas();
@@ -576,7 +576,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
         AtomicInteger globalCounter = new AtomicInteger();
 
-        UserType user = new UserType(prismContext).name("alice");
+        UserType user = new UserType().name("alice");
 
         OperationResult result = new OperationResult("test110AddAssignments");
         String oid = plainRepositoryService.addObject(user.asPrismObject(), null, result);
@@ -595,7 +595,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                     globalCounter.incrementAndGet();
                     return prismContext.deltaFor(UserType.class)
                             .item(UserType.F_ASSIGNMENT).add(
-                                    new AssignmentType(prismContext).targetRef(
+                                    new AssignmentType().targetRef(
                                             String.format("000049f4-8d7a-4791-%04d-%012d", threadIndex, counter.get()),
                                             OrgType.COMPLEX_TYPE))
                             .asItemDeltas();
@@ -619,7 +619,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         long DURATION = 30_000L;
         final String DELEGATED_REF_FORMAT = "bcce49f4-8d7a-4791-%04d-%012d";
 
-        RoleType role = new RoleType(prismContext).name("judge");
+        RoleType role = new RoleType().name("judge");
 
         OperationResult result = new OperationResult("test120AddApproverRef");
         String oid = plainRepositoryService.addObject(role.asPrismObject(), null, result);
@@ -702,7 +702,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
             AddObjectsThread<UserType> thread = new AddObjectsThread<>(i, "adder #" + i, OBJECTS_PER_THREAD) {
                 @Override
                 protected PrismObject<UserType> getObjectToAdd() {
-                    return new UserType(prismContext).name(String.format("user-%d-%06d", threadIndex, counter.intValue())).asPrismObject();
+                    return new UserType().name(String.format("user-%d-%06d", threadIndex, counter.intValue())).asPrismObject();
                 }
             };
             thread.start();
@@ -753,7 +753,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         int THREADS = 8;
         long DURATION = 30_000L;
 
-        TaskType task = new TaskType(prismContext)
+        TaskType task = new TaskType()
                 .name("test140")
                 .beginActivityState()
                 .beginActivity()
@@ -788,7 +788,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                 private WorkBucketType getNextBucket(TaskType task) {
                     int lastBucketNumber = task.getActivityState() != null ?
                             getLastBucketNumber(task.getActivityState().getActivity().getBucketing().getBucket()) : 0;
-                    return new WorkBucketType(prismContext)
+                    return new WorkBucketType()
                             .sequentialNumber(lastBucketNumber + 1)
                             .state(WorkBucketStateType.DELEGATED)
                             .workerRef(String.valueOf(threadIndex), TaskType.COMPLEX_TYPE);
@@ -840,8 +840,9 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         int THREADS = 8;
         long DURATION = 30_000L;
 
-        TaskType task = new TaskType(prismContext)
+        TaskType task = new TaskType()
                 .name("test150")
+                .taskIdentifier("test150")
                 .beginActivityState()
                 .beginActivity()
                 .beginBucketing()
@@ -880,7 +881,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                 }
 
                 private WorkBucketType getNextBucket(List<WorkBucketType> currentBuckets) {
-                    return new WorkBucketType(prismContext)
+                    return new WorkBucketType()
                             .sequentialNumber(getLastBucketNumber(currentBuckets) + 1)
                             .state(WorkBucketStateType.DELEGATED)
                             .workerRef(String.valueOf(threadIndex), TaskType.COMPLEX_TYPE);

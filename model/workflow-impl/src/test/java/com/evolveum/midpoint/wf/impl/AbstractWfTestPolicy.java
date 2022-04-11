@@ -18,13 +18,18 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemT
 import java.io.File;
 import java.util.*;
 
+import com.evolveum.midpoint.cases.api.CaseManager;
+
+import com.evolveum.midpoint.cases.impl.engine.CaseEngineImpl;
+import com.evolveum.midpoint.wf.api.ApprovalsManager;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.CaseService;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
@@ -39,19 +44,16 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.impl.access.WorkItemManager;
-import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
-import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
+import com.evolveum.midpoint.cases.impl.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
@@ -63,12 +65,12 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
     @Autowired protected Clockwork clockwork;
     @Autowired protected ClockworkMedic clockworkMedic;
     @Autowired protected TaskManager taskManager;
-    @Autowired protected WorkflowManager workflowManager;
-    @Autowired protected WorkflowService workflowService;
-    @Autowired protected WorkflowEngine workflowEngine;
+    @Autowired protected CaseManager caseManager;
+    @Autowired protected ApprovalsManager approvalsManager;
+    @Autowired protected CaseService caseService;
+    @Autowired protected CaseEngineImpl caseEngine;
     @Autowired protected WorkItemManager workItemManager;
     @Autowired protected PrimaryChangeProcessor primaryChangeProcessor;
-    @Autowired protected GeneralChangeProcessor generalChangeProcessor;
     @Autowired protected SystemObjectCache systemObjectCache;
     @Autowired protected RelationRegistry relationRegistry;
     @Autowired protected WfTestHelper testHelper;
@@ -181,7 +183,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
                 modelService.searchContainers(CaseWorkItemType.class,
                         getOpenItemsQuery(), options1, opTask, result));
 
-        displayDumpable("changes by state after first clockwork run", workflowManager
+        displayDumpable("changes by state after first clockwork run", approvalsManager
                 .getChangesByState(rootCase, modelInteractionService, prismContext, opTask, result));
 
         testDetails.afterFirstClockworkRun(rootCase, case0, subcases, workItems, opTask, result);
@@ -190,7 +192,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
             if (case0 != null) {
                 testHelper.waitForCaseClose(case0, 20000);
             }
-            displayDumpable("changes by state after case0 finishes", workflowManager
+            displayDumpable("changes by state after case0 finishes", approvalsManager
                     .getChangesByState(rootCase, modelInteractionService, prismContext, opTask, result));
             testDetails.afterCase0Finishes(rootCase, opTask, result);
         }
@@ -211,7 +213,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
             for (CaseWorkItemType caseWorkItem : caseWorkItems) {
                 Boolean approve = testDetails.decideOnApproval(caseWorkItem);
                 if (approve != null) {
-                    workflowManager.completeWorkItem(WorkItemId.create(caseOid, caseWorkItem.getId()),
+                    caseManager.completeWorkItem(WorkItemId.create(caseOid, caseWorkItem.getId()),
                             new AbstractWorkItemOutputType(prismContext)
                                     .outcome(ApprovalUtils.toUri(approve)),
                             null, opTask, result);
@@ -242,7 +244,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
                             }
                             login(getUserFromRepo(approvalInstruction.approverOid));
                             System.out.println("Completing work item " + WorkItemId.of(workItem) + " using " + approvalInstruction);
-                            workflowManager.completeWorkItem(WorkItemId.of(workItem),
+                            caseManager.completeWorkItem(WorkItemId.of(workItem),
                                     new AbstractWorkItemOutputType(prismContext)
                                             .outcome(ApprovalUtils.toUri(approvalInstruction.approval))
                                             .comment(approvalInstruction.comment),
@@ -269,8 +271,8 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         subcases = miscHelper.getSubcases(rootCaseAfter, result);
         WfTestHelper.findAndRemoveCase0(subcases);
 
-        displayDumpable("changes by state after root case finishes", workflowManager
-                .getChangesByState(rootCaseAfter, modelInteractionService, prismContext, opTask, result));
+        displayDumpable("changes by state after root case finishes", approvalsManager.getChangesByState(
+                rootCaseAfter, modelInteractionService, prismContext, opTask, result));
 
         testDetails.afterRootCaseFinishes(rootCaseAfter, subcases, opTask, result);
 
@@ -285,10 +287,6 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
     protected void assertWfContextAfterClockworkRun(
             CaseType rootCase, List<CaseType> subcases, List<CaseWorkItemType> workItems,
             String objectOid, List<ExpectedTask> expectedTasks, List<ExpectedWorkItem> expectedWorkItems) {
-
-        // TODO: dead code, remove 2021
-//        final Collection<SelectorOptions<GetOperationOptions>> options =
-//                SelectorOptions.createCollection(prismContext.path(F_APPROVAL_CONTEXT, F_WORK_ITEM), createRetrieve());
 
         display("rootCase", rootCase);
         assertEquals("Wrong # of wf subcases (" + expectedTasks + ")", expectedTasks.size(), subcases.size());
@@ -462,7 +460,8 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
                     for (CaseType subcase : subcases) {
                         if (subcase.getApprovalContext() != null) {
                             OperationResult opResult = new OperationResult("dummy");
-                            ApprovalSchemaExecutionInformationType info = workflowManager.getApprovalSchemaExecutionInformation(subcase.getOid(), opTask, opResult);
+                            ApprovalSchemaExecutionInformationType info =
+                                    approvalsManager.getApprovalSchemaExecutionInformation(subcase.getOid(), opTask, opResult);
                             modelObjectResolver.resolveAllReferences(Collections.singleton(info.asPrismContainerValue()), opTask, result); // MID-6171
                             display("Execution info for " + subcase, info);
                             opResult.computeStatus();

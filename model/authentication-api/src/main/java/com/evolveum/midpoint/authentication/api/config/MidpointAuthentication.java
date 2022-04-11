@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
@@ -297,7 +299,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         int resolvedIndex = -1;
         for (ModuleAuthentication parallelProcessingModule : parallelProcessingModules) {
             int usedIndex = getAuthentications().indexOf(parallelProcessingModule);
-            if (parallelProcessingModule.getNameOfModuleType().equalsIgnoreCase(type)
+            if (AuthUtil.resolveTokenTypeByModuleType(parallelProcessingModule.getNameOfModuleType()).equalsIgnoreCase(type)
                     && resolvedIndex == -1) {
                 parallelProcessingModule.setState(AuthenticationModuleState.LOGIN_PROCESSING);
                 if (usedIndex != -1) {

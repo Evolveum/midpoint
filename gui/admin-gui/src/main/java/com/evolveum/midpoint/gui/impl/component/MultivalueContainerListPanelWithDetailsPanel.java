@@ -93,9 +93,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
                 MultivalueContainerDetailsPanel<C> detailsPanel = getMultivalueContainerDetailsPanel(item);
                 item.add(detailsPanel);
                 detailsPanel.setOutputMarkupId(true);
-
             }
-
         };
 
         itemDetailsView.setOutputMarkupId(true);

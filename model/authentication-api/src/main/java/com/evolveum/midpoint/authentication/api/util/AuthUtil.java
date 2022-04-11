@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.authentication.api.util;
 
+import com.evolveum.midpoint.authentication.api.RemoveUnusedSecurityFilterPublisher;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
@@ -150,6 +152,7 @@ public class AuthUtil {
         }
         return s;
     }
+
     public static String stripStartingSlashes(String s) {
         if (StringUtils.isNotEmpty(s) && s.startsWith("/")) {
             if (s.equals("/")) {
@@ -164,5 +167,22 @@ public class AuthUtil {
         s = stripStartingSlashes(s);
         s = stripEndingSlashes(s);
         return s;
+    }
+
+    public static String resolveTokenTypeByModuleType(String nameOfModuleType) {
+        if (AuthenticationModuleNameConstants.OIDC.equals(nameOfModuleType)) {
+            return "Bearer";
+        }
+        return nameOfModuleType;
+    }
+
+    public static void clearMidpointAuthentication() {
+        Authentication oldAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        if (oldAuthentication instanceof MidpointAuthentication
+                && ((MidpointAuthentication)oldAuthentication).getAuthenticationChannel() != null
+                && SecurityPolicyUtil.DEFAULT_CHANNEL.equals(((MidpointAuthentication)oldAuthentication).getAuthenticationChannel().getChannelId())) {
+            RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent((MidpointAuthentication) oldAuthentication);
+        }
+        SecurityContextHolder.getContext().setAuthentication(null);
     }
 }

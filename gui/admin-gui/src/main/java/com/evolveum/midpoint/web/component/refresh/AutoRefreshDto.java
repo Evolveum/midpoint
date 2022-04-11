@@ -9,9 +9,6 @@ package com.evolveum.midpoint.web.component.refresh;
 
 import java.io.Serializable;
 
-/**
- * @author mederly
- */
 public class AutoRefreshDto implements Serializable {
 
     private long lastRefreshed = System.currentTimeMillis();        // currently not used (useful if the refresh should not be done on each timer click)

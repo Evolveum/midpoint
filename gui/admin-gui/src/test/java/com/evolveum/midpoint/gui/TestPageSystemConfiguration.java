@@ -8,11 +8,8 @@ package com.evolveum.midpoint.gui;
 
 import static org.testng.Assert.assertEquals;
 
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageAdminGui;
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageLogging;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.*;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
-
-import com.evolveum.midpoint.web.page.admin.configuration.system.*;
 
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -55,37 +52,17 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
     @Test
     public void test002testPageSystemConfigurationBasic() {
-        renderPage(PageSystemConfigurationBasic.class);
-    }
-
-    @Test
-    public void test003testPageObjectPoliciesConfiguration() {
-        renderPage(PageObjectPoliciesConfiguration.class);
-    }
-
-    @Test
-    public void test004testPageGlobalPolicyRule() {
-        renderPage(PageGlobalPolicyRule.class);
-    }
-
-    @Test
-    public void test005testPageGlobalProjectionPolicy() {
-        renderPage(PageGlobalProjectionPolicy.class);
-    }
-
-    @Test
-    public void test006testPageCleanupPolicy() {
-        renderPage(PageCleanupPolicy.class);
+        renderPage(PageSystemBasic.class);
     }
 
     @Test
     public void test007testPageNotificationConfiguration() {
-        renderPage(PageNotificationConfiguration.class);
+        renderPage(PageSystemNotification.class);
     }
 
     @Test
     public void test008testPageLogging() {
-        renderPage(PageLogging.class);
+        renderPage(PageSystemLogging.class);
     }
 
     @Test
@@ -95,12 +72,12 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
     @Test
     public void test010testPageAdminGuiConfiguration() {
-        renderPage(PageAdminGui.class);
+        renderPage(PageSystemAdminGui.class);
     }
 
     @Test
     public void test011testPageWorkflowConfiguration() {
-        renderPage(PageWorkflowConfiguration.class);
+        renderPage(PageSystemWorkflow.class);
     }
 
     @Test
@@ -110,12 +87,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
     @Test
     public void test013testPageInternalsConfiguration() {
-        renderPage(PageInternalsConfiguration.class);
-    }
-
-    @Test
-    public void test013testPageDeploymentInformation() {
-        renderPage(PageDeploymentInformation.class);
+        renderPage(PageSystemInternals.class);
     }
 
     @Test
@@ -124,21 +96,11 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
     }
 
     @Test
-    public void test016testPageInfrastructure() {
-        renderPage(PageInfrastructure.class);
-    }
-
-    @Test
-    public void test017testPageFullTextSearch() {
-        renderPage(PageFullTextSearch.class);
-    }
-
-    @Test
     public void test018testModifySystemConfig() throws Exception {
         renderPage(com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
 
         tester.executeAjaxEvent("container:additionalButtons:0:additionalButton:compositedButton", "click");
-        tester.assertRenderedPage(PageSystemConfigurationBasic.class);
+        tester.assertRenderedPage(PageSystemBasic.class);
 
         final String mainFormPath = "detailsView:mainForm";
         final String descriptionPath = "mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:input:propertiesLabel:properties:1:property:values:0:value:valueForm:valueContainer:input:input";

@@ -14,9 +14,6 @@ import java.io.Serializable;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
-/**
- * @author mederly
- */
 public class PolicyRuleExternalizationOptions implements Serializable {
 
     @NotNull private TriggeredPolicyRulesStorageStrategyType triggeredRulesStorageStrategy;

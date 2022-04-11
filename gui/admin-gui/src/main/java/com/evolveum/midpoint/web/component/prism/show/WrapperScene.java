@@ -25,8 +25,6 @@ import java.util.List;
 /**
  * Artificial implementation of a scene used to hold a list of deltas.
  * (A bit of hack, unfortunately.)
- *
- * @author mederly
  */
 public class WrapperScene implements Scene {
 

@@ -17,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
- * @author mederly
  */
 public final class GetContainerableResult implements Serializable {
 

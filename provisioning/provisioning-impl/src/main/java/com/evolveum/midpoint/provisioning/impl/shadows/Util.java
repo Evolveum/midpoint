@@ -64,9 +64,7 @@ class Util {
     }
 
     static ResourceOperationDescription createSuccessOperationDescription(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadowType, ObjectDelta<? extends ShadowType> delta, OperationResult parentResult)
-                    throws ObjectNotFoundException, SchemaException, CommunicationException,
-                    ConfigurationException, ExpressionEvaluationException {
+            PrismObject<ShadowType> shadowType, ObjectDelta<? extends ShadowType> delta, OperationResult parentResult) {
         ResourceOperationDescription operationDescription = new ResourceOperationDescription();
         operationDescription.setCurrentShadow(shadowType);
         operationDescription.setResource(ctx.getResource().asPrismObject());

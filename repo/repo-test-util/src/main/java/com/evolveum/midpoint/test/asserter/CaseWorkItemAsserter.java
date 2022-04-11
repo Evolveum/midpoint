@@ -8,9 +8,13 @@ package com.evolveum.midpoint.test.asserter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +28,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
  * Asserts about CaseWorkItemType.
  */
 public class CaseWorkItemAsserter<RA> extends PrismContainerValueAsserter<CaseWorkItemType, RA> {
+
+    private static final int DEADLINE_TOLERANCE = 60000;
 
     public CaseWorkItemAsserter(CaseWorkItemType workItem) {
         //noinspection unchecked
@@ -84,5 +90,42 @@ public class CaseWorkItemAsserter<RA> extends PrismContainerValueAsserter<CaseWo
     public CaseWorkItemAsserter<RA> assertClosed() {
         assertThat(getWorkItem().getCloseTimestamp()).as("closeTimestamp").isNotNull();
         return this;
+    }
+
+    public CaseWorkItemAsserter<RA> assertNotClosed() {
+        assertThat(getWorkItem().getCloseTimestamp()).as("closeTimestamp").isNull();
+        return this;
+    }
+
+    public CaseWorkItemAsserter<RA> assertEscalationLevelNumber(int expected) {
+        assertThat(getEscalationLevelNumber()).as("escalation level number").isEqualTo(expected);
+        return this;
+    }
+
+    private int getEscalationLevelNumber() {
+        return WorkItemTypeUtil.getEscalationLevelNumber(
+                getWorkItem());
+    }
+
+    public CaseWorkItemAsserter<RA> assertDeadlineApproximately(String duration) {
+        if (duration == null) {
+            assertThat(getDeadline()).as("deadline").isNull();
+        } else {
+            long expected = XmlTypeConverter.toMillis(
+                    XmlTypeConverter.fromNow(duration));
+            assertThat(getDeadlineMillis())
+                    .as("deadline (millis)")
+                    .isBetween(expected - DEADLINE_TOLERANCE, expected + DEADLINE_TOLERANCE);
+        }
+        return this;
+    }
+
+    private XMLGregorianCalendar getDeadline() {
+        return getWorkItem().getDeadline();
+    }
+
+    // 0 if null
+    private long getDeadlineMillis() {
+        return XmlTypeConverter.toMillis(getDeadline());
     }
 }

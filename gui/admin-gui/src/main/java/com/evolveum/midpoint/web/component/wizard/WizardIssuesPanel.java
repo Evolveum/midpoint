@@ -22,9 +22,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class WizardIssuesPanel extends BasePanel<WizardIssuesDto> {
 
     private static final String ID_PANEL = "panel";

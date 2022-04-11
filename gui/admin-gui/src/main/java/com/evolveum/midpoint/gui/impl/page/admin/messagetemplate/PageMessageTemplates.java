@@ -15,7 +15,9 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.CollectionInstance;
 import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -25,6 +27,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MessageTemplateType;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.Form;
+
+import java.util.Arrays;
+import java.util.List;
 
 @PageDescriptor(
         urls = {
@@ -76,7 +81,22 @@ public class PageMessageTemplates extends PageAdmin {
 
             @Override
             protected IColumn<SelectableBean<MessageTemplateType>, String> createCheckboxColumn() {
-                return null;
+                return new CheckBoxHeaderColumn<>();
+            }
+
+            @Override
+            protected List<InlineMenuItem> createInlineMenu() {
+                return Arrays.asList(createDeleteInlineMenu());
+            }
+
+            @Override
+            protected String getConfirmMessageKeyForMultiObject() {
+                return "pageMessageTemplates.message.confirmationMessageForMultipleObject";
+            }
+
+            @Override
+            protected String getConfirmMessageKeyForSingleObject() {
+                return "pageMessageTemplates.message.confirmationMessageForSingleObject";
             }
         };
         table.setOutputMarkupId(true);

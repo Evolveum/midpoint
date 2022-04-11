@@ -8,20 +8,19 @@
   -->
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-            elementFormDefault="qualified"
-            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="2.0">
+        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+        elementFormDefault="qualified"
+        xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+        jaxb:extensionBindingPrefixes="xjc"
+        jaxb:version="2.0">
 
     <xsd:annotation>
         <xsd:documentation>
-            TODO
+            Part of the common-3 namespace related to approvals. (The old term was "workflow", hence the file name.)
         </xsd:documentation>
     </xsd:annotation>
 
@@ -63,8 +62,8 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="stage" type="c:ApprovalStageDefinitionType" minOccurs="1" maxOccurs="unbounded">
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="stage" type="c:ApprovalStageDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Levels, or stages, of the approval process.
@@ -133,7 +132,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1086,11 +1085,12 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="processName" minOccurs="1" type="xsd:string">
+            <xsd:element name="processName" minOccurs="0" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        A name of the approval process. When the above condition is met, this process is started. It has to evaluate the situation,
-                        seek user's (or users') approval(s), modifying the situation if necessary.
+                        A name of the approval process. When the above condition is met, this process is started.
+                        It has to evaluate the situation, seek user's (or users') approval(s), modifying
+                        the situation if necessary.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1159,7 +1159,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="enabled" minOccurs="0" maxOccurs="1" type="xsd:boolean">
+            <xsd:element name="enabled" minOccurs="0" type="xsd:boolean">
                 <xsd:annotation>
                     <xsd:documentation>
                         Whether the aspect is enabled or not.
@@ -1197,7 +1197,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         More complex (multi-stage) approval schema. If used, it overrides both
@@ -1209,7 +1209,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="approvalProcess" type="xsd:string" minOccurs="0" maxOccurs="1">
+            <xsd:element name="approvalProcess" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Name of custom approval process. If used, it overrides
@@ -1222,7 +1222,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Condition specifying when the item is automatically approved (e.g. "user is
@@ -1234,7 +1234,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="applicabilityCondition" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="applicabilityCondition" type="c:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Condition specifying if the workflow should be started in the first place.
@@ -1571,5 +1571,4 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-
 </xsd:schema>

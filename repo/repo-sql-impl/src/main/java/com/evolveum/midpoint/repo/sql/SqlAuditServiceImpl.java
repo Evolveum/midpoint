@@ -1090,7 +1090,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         if (providedOrdering.size() == 1) {
             ObjectOrdering objectOrdering = providedOrdering.get(0);
             ItemPath orderByPath = objectOrdering.getOrderBy();
-            boolean asc = objectOrdering.getDirection() == OrderDirection.ASCENDING;
+            boolean asc = objectOrdering.getDirection() != OrderDirection.DESCENDING; // null => asc
             S_ConditionEntry filter = schemaService.prismContext()
                     .queryFor(AuditEventRecordType.class)
                     .item(orderByPath);

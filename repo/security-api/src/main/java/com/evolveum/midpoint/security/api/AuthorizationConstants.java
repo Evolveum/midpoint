@@ -131,6 +131,9 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_SERVICE_QNAME = new QName(NS_AUTHORIZATION_UI, "service");
     public static final String AUTZ_UI_SERVICE_URL = NS_AUTHORIZATION_UI + "#service";
 
+    public static final QName AUTZ_UI_SERVICE_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "serviceDetails");
+    public static final String AUTZ_UI_SERVICE_DETAILS_URL = NS_AUTHORIZATION_UI + "#serviceDetails";
+
     public static final QName AUTZ_UI_ARCHETYPES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "archetypesAll");
     public static final String AUTZ_UI_ARCHETYPES_ALL_URL = NS_AUTHORIZATION_UI + "#archetypesAll";
 

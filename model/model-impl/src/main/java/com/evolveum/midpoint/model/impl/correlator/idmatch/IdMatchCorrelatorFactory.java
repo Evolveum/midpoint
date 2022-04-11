@@ -53,10 +53,10 @@ public class IdMatchCorrelatorFactory implements CorrelatorFactory<IdMatchCorrel
 
     @Override
     public @NotNull IdMatchCorrelator instantiate(
-            @NotNull CorrelatorContext<IdMatchCorrelatorType> configuration,
+            @NotNull CorrelatorContext<IdMatchCorrelatorType> correlatorContext,
             @NotNull Task task,
             @NotNull OperationResult result) throws ConfigurationException {
-        return new IdMatchCorrelator(configuration, serviceOverride, beans);
+        return new IdMatchCorrelator(correlatorContext, serviceOverride, beans);
     }
 
     @VisibleForTesting

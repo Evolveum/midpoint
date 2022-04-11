@@ -313,9 +313,9 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         int count = 400;
 
         // 50 is the default "step" in paged iterative search, so we can expect we always have 50 objects in memory
-        // And "times 3" is the safety margin. It might or might not be sufficient, as System.gc() is not guaranteed to
+        // And "times 4" is the safety margin. It might or might not be sufficient, as System.gc() is not guaranteed to
         // really execute the garbage collection (only suggests JVM to do it).
-        long tolerance = (50 * size) * 3;
+        long tolerance = (50 * size) * 4;
 
         showMemory("Initial");
         dumpHeap("initial");

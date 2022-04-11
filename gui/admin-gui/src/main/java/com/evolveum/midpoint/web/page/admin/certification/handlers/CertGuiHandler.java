@@ -11,9 +11,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrWorkItemDto;
 import org.apache.wicket.model.IModel;
 
-/**
- * @author mederly
- */
 @FunctionalInterface
 public interface CertGuiHandler {
     String getCaseInfoButtonTitle(IModel<? extends CertCaseOrWorkItemDto> rowModel, PageBase page);

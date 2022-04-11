@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="0d69d2c9-d1f4-4cfc-acb3-af8a71db81d1">
+    <name>lab-access</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="a353d845-64dd-439e-b0ce-3f9fe095c060"/>
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+    </inducement>
+</role>

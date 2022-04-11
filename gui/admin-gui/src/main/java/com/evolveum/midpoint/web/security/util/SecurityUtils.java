@@ -1,19 +1,17 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.security.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
-import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
-
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
@@ -25,12 +23,15 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.web.csrf.CsrfToken;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
 
 /**
  * @author lazyman
@@ -155,7 +156,9 @@ public class SecurityUtils {
     }
 
     public static String getPathForLogoutWithContextPath(String contextPath, @NotNull String prefix) {
-        return "/" + AuthUtil.stripSlashes(contextPath) + getPathForLogout(prefix);
+        return StringUtils.isNotEmpty(contextPath)
+                ? "/" + AuthUtil.stripSlashes(contextPath) + getPathForLogout(prefix)
+                : getPathForLogout(prefix);
     }
 
     private static String getPathForLogout(@NotNull String prefix) {

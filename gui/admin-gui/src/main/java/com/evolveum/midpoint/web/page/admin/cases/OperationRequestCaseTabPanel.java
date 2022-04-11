@@ -14,11 +14,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
-import com.evolveum.midpoint.wf.util.ChangesByState;
+import com.evolveum.midpoint.wf.api.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 import org.apache.wicket.markup.html.list.ListItem;
@@ -62,7 +61,7 @@ public class OperationRequestCaseTabPanel extends AbstractObjectTabPanel<CaseTyp
                 OperationResult result = new OperationResult(OPERATION_PREPARE_DELTA_VISUALIZATION);
                 Task task = pageBase.createSimpleTask(OPERATION_PREPARE_DELTA_VISUALIZATION);
                 try {
-                    ChangesByState changesByState = pageBase.getWorkflowManager().getChangesByState(caseObject,
+                    ChangesByState<?> changesByState = pageBase.getApprovalsManager().getChangesByState(caseObject,
                             pageBase.getModelInteractionService(), pageBase.getPrismContext(), task, result);
                     List<SceneDto> sceneDtoList = WebComponentUtil.computeChangesCategorizationList(changesByState, caseObject.getObjectRef(),
                              pageBase.getModelInteractionService(), pageBase.getPrismContext(), task, result);

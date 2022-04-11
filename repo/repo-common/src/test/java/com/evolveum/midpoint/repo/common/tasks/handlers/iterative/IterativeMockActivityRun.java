@@ -25,8 +25,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import org.jetbrains.annotations.Nullable;
-
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
@@ -72,12 +70,12 @@ final class IterativeMockActivityRun
     }
 
     @Override
-    public @Nullable Integer determineOverallSize(OperationResult result) {
+    public Integer determineOverallSize(OperationResult result) {
         return getWorkDefinition().getInterval().getSize();
     }
 
     @Override
-    public @Nullable Integer determineCurrentBucketSize(OperationResult result) {
+    public Integer determineCurrentBucketSize(OperationResult result) {
         return NumericIntervalBucketUtil.getNarrowedInterval(
                         bucket,
                         getWorkDefinition().getInterval())

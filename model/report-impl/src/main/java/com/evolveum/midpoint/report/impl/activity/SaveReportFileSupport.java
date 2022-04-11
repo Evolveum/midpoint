@@ -10,6 +10,8 @@ package com.evolveum.midpoint.report.impl.activity;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.activity.ReportOutputCreatedListener;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.reports.ReportSupportUtil;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
@@ -26,10 +28,10 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -55,22 +57,23 @@ class SaveReportFileSupport {
 
     private static final String OP_CREATE_REPORT_DATA = SaveReportFileSupport.class.getName() + "createReportData";
 
+    @NotNull protected final AbstractActivityRun<?, ?, ?> activityRun;
     @NotNull protected final RunningTask runningTask;
     @NotNull protected final ReportServiceImpl reportService;
 
-    /**
-     * Resolved report object.
-     */
-    private final ReportType report;
+    /** Resolved report object. */
+    @NotNull private final ReportType report;
 
-    /**
-     * Type of storing exported data.
-     */
-    private final StoreExportedWidgetDataType storeType;
+    /** Type of storing exported data. */
+    @NotNull private final StoreExportedWidgetDataType storeType;
 
-    SaveReportFileSupport(ReportType report, @NotNull RunningTask task, @NotNull ReportServiceImpl reportService) {
+    SaveReportFileSupport(
+            @NotNull AbstractActivityRun<?, ?, ?> activityRun,
+            @NotNull ReportType report,
+            @NotNull ReportServiceImpl reportService) {
+        this.activityRun = activityRun;
         this.report = report;
-        runningTask = task;
+        this.runningTask = activityRun.getRunningTask();
         this.reportService = reportService;
 
         StoreExportedWidgetDataType storeType = report.getDashboard() == null ?
@@ -79,14 +82,13 @@ class SaveReportFileSupport {
         this.storeType = storeType == null ? StoreExportedWidgetDataType.ONLY_FILE : storeType;
     }
 
-    public void saveReportFile(String aggregatedData,
+    void saveReportFile(String aggregatedData,
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
-
         storeExportedReport(dataWriter.completizeReport(aggregatedData), dataWriter, result);
     }
 
-    public void saveReportFile(ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
+    void saveReportFile(ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
         storeExportedReport(dataWriter.completizeReport(), dataWriter, result);
     }
@@ -94,6 +96,12 @@ class SaveReportFileSupport {
     private void storeExportedReport(String completizedReport,
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
+
+        if (!activityRun.getRunningTask().canRun()) {
+            LOGGER.warn("Not storing the resulting report, as the activity is being suspended: {}", report);
+            return;
+        }
+
         String aggregatedFilePath = getDestinationFileName(report, dataWriter);
 
         if (StoreExportedWidgetDataType.ONLY_FILE.equals(storeType)
@@ -144,6 +152,7 @@ class SaveReportFileSupport {
                                 DashboardWidgetDataType.F_STORED_DATA));
                 if (data.getStoredData() == null) {
                     PrismPropertyValue<Object> newValue = PrismContext.get().itemFactory().createPropertyValue(widgetData);
+                    //noinspection unchecked
                     delta.addValuesToAdd(newValue);
                 } else {
                     delta.setRealValuesToReplace(widgetData);
@@ -159,9 +168,10 @@ class SaveReportFileSupport {
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter) {
         File exportDir = ReportSupportUtil.getOrCreateExportDir();
 
-        String fileNamePrefix = reportType.getName().getOrig() + "-EXPORT " + getDateTime();
+        String reportName = StringUtils.replace(reportType.getName().getOrig(), File.separator, "_");
+        String fileNamePrefix = reportName + "-EXPORT " + getDateTime();
         String fileName = fileNamePrefix + dataWriter.getTypeSuffix();
-        return MiscUtil.replaceColonsInFileNameOnWindows(new File(exportDir, fileName).getPath());
+        return new File(exportDir, MiscUtil.replaceIllegalCharInFileNameOnWindows(fileName)).getPath();
     }
 
     static String getNameOfExportedReportData(ReportType reportType, String type) {
@@ -187,67 +197,117 @@ class SaveReportFileSupport {
 
     private void saveReportDataObject(
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
-            String aggregatedFilePath,
-            OperationResult result) throws CommonException {
-        saveReportDataType(
-                aggregatedFilePath,
-                report,
-                dataWriter,
-                runningTask,
-                result);
+            String filePath,
+            OperationResult parentResult) throws CommonException {
 
-        LOGGER.info("Aggregated report was saved - the file is {}", aggregatedFilePath);
-    }
+        String reportDataName = getNameOfExportedReportData(report, dataWriter.getType());
 
-    private void saveReportDataType(String filePath, ReportType reportType,
-            ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
-            Task task,OperationResult parentResult) throws CommonException {
+        ReportDataType reportDataObject = new ReportDataType();
 
-        String reportDataName = getNameOfExportedReportData(reportType, dataWriter.getType());
-
-        ReportDataType reportDataType = new ReportDataType();
-        reportService.getPrismContext().adopt(reportDataType);
-
-        reportDataType.setFilePath(filePath);
-        reportDataType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE));
-        reportDataType.setName(new PolyStringType(reportDataName));
-        if (reportType.getDescription() != null) {
-            reportDataType.setDescription(reportType.getDescription() + " - " + dataWriter.getType());
+        reportDataObject.setFilePath(filePath);
+        reportDataObject.setReportRef(MiscSchemaUtil.createObjectReference(report.getOid(), ReportType.COMPLEX_TYPE));
+        reportDataObject.setName(new PolyStringType(reportDataName));
+        if (report.getDescription() != null) {
+            reportDataObject.setDescription(report.getDescription() + " - " + dataWriter.getType());
         }
         if (dataWriter.getFileFormatConfiguration() != null) {
-            reportDataType.setFileFormat(dataWriter.getFileFormatConfiguration().getType());
+            reportDataObject.setFileFormat(dataWriter.getFileFormatConfiguration().getType());
         }
 
-        SearchResultList<PrismObject<NodeType>> nodes = reportService.getModelService().searchObjects(NodeType.class, reportService.getPrismContext()
-                .queryFor(NodeType.class).item(NodeType.F_NODE_IDENTIFIER).eq(task.getNode()).build(), null, task, parentResult);
+        reportDataObject.setNodeRef(
+                getCurrentNodeRef(parentResult));
+
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+        ObjectDelta<ReportDataType> objectDelta = DeltaFactory.Object.createAddDelta(reportDataObject.asPrismObject());
+        deltas.add(objectDelta);
+        OperationResult subResult = parentResult.createSubresult(OP_CREATE_REPORT_DATA);
+        try {
+
+            Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas =
+                    reportService.getModelService().executeChanges(deltas, null, runningTask, subResult);
+            String reportDataOid = ObjectDeltaOperation.findAddDeltaOid(executedDeltas, reportDataObject.asPrismObject());
+
+            LOGGER.debug("Created report output with OID {}", reportDataOid);
+
+            // Write to the task extension ("legacy way" - however, it is still used from there e.g. by GUI)
+            PrismReference reportDataRef = reportService.getPrismContext().getSchemaRegistry()
+                    .findReferenceDefinitionByElementName(ReportConstants.REPORT_DATA_PROPERTY_NAME).instantiate();
+            PrismReferenceValue refValue = reportService.getPrismContext().itemFactory().createReferenceValue(reportDataOid, ReportDataType.COMPLEX_TYPE);
+            reportDataRef.getValues().add(refValue);
+            runningTask.setExtensionReference(reportDataRef);
+
+            // Write to activity state ("new way")
+            ObjectReferenceType ref = new ObjectReferenceType()
+                    .type(ReportDataType.COMPLEX_TYPE)
+                    .oid(reportDataOid);
+            activityRun.getActivityState().setWorkStateItemRealValues(ReportExportWorkStateType.F_REPORT_DATA_REF, ref);
+
+            // Save both deltas
+            runningTask.flushPendingModifications(subResult);
+
+            sendReportCreatedEvent(reportDataObject, subResult);
+        } catch (Throwable t) {
+            subResult.recordFatalError(t);
+            throw t;
+        } finally {
+            subResult.close();
+        }
+        LOGGER.info("Report was saved - the file is {}", filePath); // TODO change to .debug?
+    }
+
+    /**
+     * Returns a reference to the current node.
+     *
+     * TODO this functionality could (and should) be provided directly by {@link TaskManager}.
+     *
+     * But even here, it could be replaced by something like:
+     *
+     *      createObjectRef(taskManager.getLocalNode())
+     */
+    private ObjectReferenceType getCurrentNodeRef(OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        SearchResultList<PrismObject<NodeType>> nodes = reportService.getModelService().searchObjects(
+                NodeType.class,
+                reportService.getPrismContext()
+                        .queryFor(NodeType.class).item(NodeType.F_NODE_IDENTIFIER).eq(runningTask.getNode()).build(),
+                null,
+                runningTask,
+                parentResult);
         if (nodes == null || nodes.isEmpty()) {
             LOGGER.error("Could not found node for storing the report.");
             throw new ObjectNotFoundException("Could not find node where to save report");
         }
 
         if (nodes.size() > 1) {
-            LOGGER.error("Found more than one node with ID {}.", task.getNode());
-            throw new IllegalStateException("Found more than one node with ID " + task.getNode());
+            LOGGER.error("Found more than one node with ID {}.", runningTask.getNode());
+            throw new IllegalStateException("Found more than one node with ID " + runningTask.getNode());
         }
 
-        reportDataType.setNodeRef(ObjectTypeUtil.createObjectRef(nodes.iterator().next(), reportService.getPrismContext()));
+        return ObjectTypeUtil.createObjectRef(nodes.iterator().next(), reportService.getPrismContext());
+    }
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ReportDataType> objectDelta = DeltaFactory.Object.createAddDelta(reportDataType.asPrismObject());
-        deltas.add(objectDelta);
-        OperationResult subResult = parentResult.createSubresult(OP_CREATE_REPORT_DATA);
-
-        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = reportService.getModelService().executeChanges(deltas, null, task, subResult);
-        String reportDataOid = ObjectDeltaOperation.findAddDeltaOid(executedDeltas, reportDataType.asPrismObject());
-
-        LOGGER.debug("Created report output with OID {}", reportDataOid);
-        PrismReference reportDataRef = reportService.getPrismContext().getSchemaRegistry()
-                .findReferenceDefinitionByElementName(ReportConstants.REPORT_DATA_PROPERTY_NAME).instantiate();
-        PrismReferenceValue refValue = reportService.getPrismContext().itemFactory().createReferenceValue(reportDataOid, ReportDataType.COMPLEX_TYPE);
-        reportDataRef.getValues().add(refValue);
-        task.setExtensionReference(reportDataRef);
-
-        subResult.computeStatus();
+    /**
+     * Creates and sends "report output created" event. This is a temporary solution that uses
+     * {@link ReportOutputCreatedListener}. It will be replaced by directly creating and sending those
+     * events as soon as it will be possible. (I.e. as soon as the events will be directly creatable from
+     * modules other than `notification-impl`.)
+     */
+    private void sendReportCreatedEvent(ReportDataType reportDataObject, OperationResult subResult) {
+        for (ReportOutputCreatedListener listener : reportService.getReportCreatedListeners()) {
+            try {
+                listener.onReportOutputCreated(
+                        activityRun,
+                        report,
+                        reportDataObject,
+                        activityRun.getRunningTask(),
+                        subResult);
+            } catch (Exception e) {
+                LoggingUtils.logUnexpectedException(LOGGER,
+                        "'Report created' listener {} failed when processing 'report created' event for {}", e,
+                        listener, reportDataObject);
+            }
+        }
     }
 
     private void processPostReportScript(ReportType parentReport, String reportOutputFilePath, Task task, OperationResult parentResult) {

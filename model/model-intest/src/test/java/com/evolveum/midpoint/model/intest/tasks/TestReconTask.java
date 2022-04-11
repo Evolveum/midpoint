@@ -70,10 +70,6 @@ public class TestReconTask extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test100FullRun() throws Exception {
-        given();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
         when();
 
         runTaskTreeAndWaitForFinish(getReconciliationTaskOid(), 30000);

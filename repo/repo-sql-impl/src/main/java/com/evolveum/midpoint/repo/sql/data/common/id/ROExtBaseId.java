@@ -13,9 +13,6 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import java.io.Serializable;
 import java.util.Objects;
 
-/**
- * @author mederly
- */
 public class ROExtBaseId implements Serializable {
 
     protected String ownerOid;

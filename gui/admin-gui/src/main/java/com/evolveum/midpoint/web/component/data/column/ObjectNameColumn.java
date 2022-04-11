@@ -8,6 +8,10 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+
+import com.evolveum.midpoint.util.PrettyPrinter;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -123,8 +127,8 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
                     return getName(value, selectableBean);
                 }
 
-                Object itemPathPropertyValue = new PropertyModel<>(rowModel, "value." + itemPath).getObject();
-                return itemPathPropertyValue != null ? itemPathPropertyValue.toString() : "";
+                com.evolveum.midpoint.prism.Item item = value.asPrismObject().findItem(itemPath);
+                return item != null ? cellItem.getDefaultModelObjectAsString(item.getRealValue()) : "";
 
             }
         };

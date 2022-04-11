@@ -16,12 +16,11 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.TaskConstants;
@@ -33,6 +32,7 @@ import com.evolveum.midpoint.task.quartzimpl.execution.LocalExecutionManager;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.NetworkUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -64,6 +64,8 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.*;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+
 /**
  * Takes care about registration of the local node in repository.
  *
@@ -78,7 +80,8 @@ public class NodeRegistrar implements Cache {
     private static final int SECRET_LENGTH = 20;
     private static final long SECRET_RENEWAL_PERIOD = 86400L * 1000L * 10L;
 
-    private static final String OP_REFRESH_CACHED_LOCAL_NODE_OBJECT = NodeRegistrar.class.getName() + ".refreshCachedLocalNodeObject";
+    private static final String OP_REFRESH_CACHED_LOCAL_NODE_OBJECT_ON_INVALIDATION =
+            NodeRegistrar.class.getName() + ".refreshCachedLocalNodeObjectOnInvalidation";
 
     @Autowired private TaskManagerQuartzImpl taskManager;
     @Autowired private TaskManagerConfiguration configuration;
@@ -91,6 +94,7 @@ public class NodeRegistrar implements Cache {
     @Autowired private CacheRegistry cacheRegistry;
     @Autowired private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
+    @Autowired private SchemaService schemaService;
 
     private String webContextPath;
 
@@ -101,14 +105,16 @@ public class NodeRegistrar implements Cache {
     private static final long DISCOVERY_RETRY = 10000L;
 
     /**
-     * Here we keep information synchronized with the one in repository.
-     * Problem is if the object in repository gets corrupted (e.g. overwritten by some other node).
-     * In such cases we keep last 'good' information here.
+     * Here we keep current information about the local node object, as it is stored in the repository.
+     * It should be current enough, because the object is updated through this class each 10 seconds (by default).
      *
-     * So it should be non-null in all reasonable conditions.
+     * If the object in repository gets corrupted (e.g. overwritten by some other node), or deleted,
+     * the we keep last 'good' information here.
      *
-     * TODO Think about thread safety of this reference. E.g. what if it is replaced unexpectedly by some 'invalidate' call?
-     *  See MID-6324.
+     * It is always not null after task manager initialization ({@link TaskManagerQuartzImpl#init()} (that
+     * calls {@link #initializeNode(OperationResult)}).
+     *
+     * It is always immutable, to ensure thread safety.
      */
     private volatile PrismObject<NodeType> cachedLocalNodeObject;
 
@@ -130,16 +136,16 @@ public class NodeRegistrar implements Cache {
      * Executes node startup registration: if Node object with a give name (node ID) exists, deletes it.
      * Then creates a new Node with the information relevant to this node.
      *
-     * @param result Node prism to be used for periodic re-registrations.
+     * @return Created or updated node object (immutable)
      */
-    NodeType createOrUpdateNodeInRepo(OperationResult result) throws TaskManagerInitializationException {
+    public NodeType initializeNode(OperationResult result) throws TaskManagerInitializationException {
 
         NodeType nodeToBe = createLocalNodeObject(configuration);
         LOGGER.info("Registering this node in the repository as {} at {}", nodeToBe.getNodeIdentifier(), nodeToBe.getHostname());
 
         List<PrismObject<NodeType>> nodesInRepo;
         try {
-            nodesInRepo = findNodesWithGivenName(result, PolyString.getOrig(nodeToBe.getName()));
+            nodesInRepo = findNodesWithGivenName(getOrig(nodeToBe.getName()), result);
         } catch (SchemaException e) {
             throw new TaskManagerInitializationException("Node registration failed because of schema exception", e);
         }
@@ -154,8 +160,11 @@ public class NodeRegistrar implements Cache {
                 // But usually we take execution limitations from the repository.
                 nodeToBe.setTaskExecutionLimitations(nodeInRepo.asObjectable().getTaskExecutionLimitations());
             }
-            nodeToBe.setUrlOverride(applyDefault(nodeInRepo.asObjectable().getUrlOverride(), configuration.getUrl()));
-            nodeToBe.setUrl(nodeInRepo.asObjectable().getUrl());        // URL is refreshed later, in cluster manager thread
+            nodeToBe.setUrlOverride(
+                    MiscUtil.getFirstNonNull(
+                            nodeInRepo.asObjectable().getUrlOverride(),
+                            configuration.getUrl()));
+            nodeToBe.setUrl(nodeInRepo.asObjectable().getUrl()); // URL is refreshed later, in cluster manager thread
             if (shouldRenewSecret(nodeInRepo.asObjectable())) {
                 LOGGER.info("Renewing node secret for the current node");
             } else {
@@ -171,7 +180,8 @@ public class NodeRegistrar implements Cache {
                 setCachedLocalNodeObject(nodeToBe.asPrismObject());
                 return nodeToBe;
             } catch (ObjectNotFoundException|SchemaException|ObjectAlreadyExistsException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update node object on system initialization; will re-create the node", e);
+                LoggingUtils.logUnexpectedException(
+                        LOGGER, "Couldn't update node object on system initialization; will re-create the node", e);
             }
         }
 
@@ -195,6 +205,8 @@ public class NodeRegistrar implements Cache {
             String oid = repositoryService.addObject(nodeToBe.asPrismObject(), null, result);
             nodeToBe.setOid(oid);
             setCachedLocalNodeObject(nodeToBe.asPrismObject());
+            LOGGER.debug("Node was successfully registered (created) in the repository.");
+            return nodeToBe;
         } catch (ObjectAlreadyExistsException e) {
             localNodeState.setErrorState(NodeErrorStateType.NODE_REGISTRATION_FAILED);
             throw new TaskManagerInitializationException("Cannot register this node, because it already exists (this should not happen, as nodes with such a name were just removed)", e);
@@ -202,46 +214,41 @@ public class NodeRegistrar implements Cache {
             localNodeState.setErrorState(NodeErrorStateType.NODE_REGISTRATION_FAILED);
             throw new TaskManagerInitializationException("Cannot register this node because of schema exception", e);
         }
-
-        LOGGER.debug("Node was successfully registered (created) in the repository.");
-        return nodeToBe;
     }
 
     private boolean shouldRenewSecret(NodeType nodeInRepo) {
-        return nodeInRepo.getSecret() == null || nodeInRepo.getSecretUpdateTimestamp() == null ||
-                System.currentTimeMillis() >= XmlTypeConverter.toMillis(nodeInRepo.getSecretUpdateTimestamp()) + SECRET_RENEWAL_PERIOD;
-    }
-
-    private <T> T applyDefault(T oldValue, T defaultValue) {
-        return oldValue != null ? oldValue : defaultValue;
+        return nodeInRepo.getSecret() == null
+                || nodeInRepo.getSecretUpdateTimestamp() == null
+                || System.currentTimeMillis() >=
+                XmlTypeConverter.toMillis(nodeInRepo.getSecretUpdateTimestamp()) + SECRET_RENEWAL_PERIOD;
     }
 
     @NotNull
     private NodeType createLocalNodeObject(TaskManagerConfiguration configuration) {
-        XMLGregorianCalendar currentTime = getCurrentTime();
+        XMLGregorianCalendar currentTime = XmlTypeConverter.createXMLGregorianCalendar();
         NodeType node = prismContext.createKnownObjectable(NodeType.class);
         String nodeId = configuration.getNodeId();
         node.setNodeIdentifier(nodeId);
         node.setName(new PolyStringType(nodeId));
         node.setHostname(getMyHostname());
         node.getIpAddress().addAll(getMyIpAddresses());
-        node.setUrlOverride(configuration.getUrl());                 // overridden later (if already exists in repo)
+        node.setUrlOverride(configuration.getUrl()); // overridden later (if already exists in repo)
         node.setClustered(configuration.isClustered());
         node.setOperationalState(operationalStatus);
         node.setLastCheckInTime(currentTime);
         node.setBuild(getBuildInformation());
-        node.setTaskExecutionLimitations(computeTaskExecutionLimitations(
-                configuration.getTaskExecutionLimitations(), configuration.getNodeId()));
+        node.setTaskExecutionLimitations(
+                computeTaskExecutionLimitations(configuration.getTaskExecutionLimitations(), configuration.getNodeId()));
         generateInternalNodeIdentifier(node);
-        node.setSecretUpdateTimestamp(currentTime);                 // overridden later (if already exists in repo)
-        node.setSecret(generateNodeSecret());                       // overridden later (if already exists in repo)
+        node.setSecretUpdateTimestamp(currentTime); // overridden later (if already exists in repo)
+        node.setSecret(generateNodeSecret()); // overridden later (if already exists in repo)
         return node;
     }
 
     // public static because of testing
     @NotNull
-    public static TaskExecutionLimitationsType computeTaskExecutionLimitations(TaskExecutionLimitationsType configuredLimitations,
-            String nodeId) {
+    public static TaskExecutionLimitationsType computeTaskExecutionLimitations(
+            TaskExecutionLimitationsType configuredLimitations, String nodeId) {
         TaskExecutionLimitationsType rv = new TaskExecutionLimitationsType();
         boolean nullGroupPresent = false;
         boolean currentNodePresent = false;
@@ -332,15 +339,10 @@ public class NodeRegistrar implements Cache {
      * Generates an identifier that is used to ensure that this Node object is not (by mistake) overwritten
      * by another node in cluster. ClusterManager thread periodically checks if this identifier has not been changed.
      */
-
     private void generateInternalNodeIdentifier(NodeType node) {
         String id = node.getNodeIdentifier() + ":" + Math.round(Math.random() * 10000000000000.0);
         LOGGER.trace("internal node identifier generated: {}", id);
         node.setInternalNodeIdentifier(id);
-    }
-
-    private XMLGregorianCalendar getCurrentTime() {
-        return XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
     }
 
     /**
@@ -348,13 +350,13 @@ public class NodeRegistrar implements Cache {
      */
     void recordNodeShutdown(OperationResult result) {
         String nodeName = configuration.getNodeId();
-        String nodeOid = getLocalNodeObjectOid();
+        String nodeOid = getCachedLocalNodeObjectOid();
         LOGGER.trace("Registering this node shutdown (name {}, oid {})", nodeName, nodeOid);
         try {
             setLocalNodeOperationalStatus(NodeOperationalStateType.DOWN);
             List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(NodeType.class)
                     .item(NodeType.F_OPERATIONAL_STATE).replace(operationalStatus)
-                    .item(NodeType.F_LAST_CHECK_IN_TIME).replace(getCurrentTime())
+                    .item(NodeType.F_LAST_CHECK_IN_TIME).replace(XmlTypeConverter.createXMLGregorianCalendar())
                     .asItemDeltas();
             repositoryService.modifyObject(NodeType.class, nodeOid, modifications, result);
             LOGGER.trace("Node shutdown successfully registered.");
@@ -372,13 +374,13 @@ public class NodeRegistrar implements Cache {
      * Updates registration of this node (runs periodically within ClusterManager thread and on system startup).
      */
     void updateNodeObject(OperationResult result) {
-        String nodeOid = getLocalNodeObjectOid();
+        String nodeOid = getCachedLocalNodeObjectOid();
         String nodeName = configuration.getNodeId();
         try {
             refreshCachedLocalNodeObject(nodeOid, result);
             LOGGER.trace("Updating this node registration:\n{}", cachedLocalNodeObject.debugDumpLazily());
 
-            XMLGregorianCalendar currentTime = getCurrentTime();
+            XMLGregorianCalendar currentTime = XmlTypeConverter.createXMLGregorianCalendar();
             String myUrl = getMyUrl();
             LOGGER.debug("My intra-cluster communication URL is '{}'", myUrl);
             List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(NodeType.class)
@@ -428,17 +430,22 @@ public class NodeRegistrar implements Cache {
 
     private void refreshCachedLocalNodeObject(String nodeOid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        setCachedLocalNodeObject(repositoryService.getObject(NodeType.class, nodeOid, null, result));
+        setCachedLocalNodeObject(
+                repositoryService.getObject(
+                        NodeType.class,
+                        nodeOid,
+                        schemaService.getOperationOptionsBuilder().readOnly().build(),
+                        result));
     }
 
     /**
      * Checks whether this Node object was not overwritten by another node (implying there is duplicate node ID in cluster).
      *
-     * @return current node, if everything is OK
+     * @return current node, if everything is OK (else null)
      */
     NodeType verifyNodeObject(OperationResult result) {
         PrismObject<NodeType> nodeInRepo;
-        String oid = getLocalNodeObjectOid();
+        String oid = getCachedLocalNodeObjectOid();
         String myName = configuration.getNodeId();
         LOGGER.trace("Verifying node record with OID {}", oid);
 
@@ -476,6 +483,7 @@ public class NodeRegistrar implements Cache {
             registerNodeError(NodeErrorStateType.DUPLICATE_NODE_ID_OR_NAME, result);
             return null;
         }
+        setCachedLocalNodeObject(nodeInRepo);
         return nodeInRepo.asObjectable();
     }
 
@@ -527,16 +535,19 @@ public class NodeRegistrar implements Cache {
 
     private boolean doesNodeExist(OperationResult result, String myName) {
         try {
-            return !findNodesWithGivenName(result, myName).isEmpty();
+            return !findNodesWithGivenName(myName, result).isEmpty();
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Existence of a Node cannot be checked due to schema exception.", e);
             return false;
         }
     }
 
-    private List<PrismObject<NodeType>> findNodesWithGivenName(OperationResult result, String name) throws SchemaException {
-        ObjectQuery q = ObjectQueryUtil.createOrigNameQuery(name, prismContext);
-        return repositoryService.searchObjects(NodeType.class, q, null, result);
+    private List<PrismObject<NodeType>> findNodesWithGivenName(String name, OperationResult result) throws SchemaException {
+        return repositoryService.searchObjects(
+                NodeType.class,
+                ObjectQueryUtil.createOrigNameQuery(name, prismContext),
+                null,
+                result);
     }
 
     /**
@@ -597,12 +608,12 @@ public class NodeRegistrar implements Cache {
     }
 
     private String getMyUrl() {
-        NodeType localNode = cachedLocalNodeObject != null ? cachedLocalNodeObject.asObjectable() : null;
-        String path = webContextPath;
-        if (localNode != null && localNode.getUrlOverride() != null) {
+        NodeType localNode = cachedLocalNodeObject.asObjectable();
+        if (localNode.getUrlOverride() != null) {
             return localNode.getUrlOverride();
         }
 
+        String path = webContextPath;
         String intraClusterHttpUrlPattern = taskManager.getIntraClusterHttpUrlPattern();
         if (intraClusterHttpUrlPattern != null) {
             String url = intraClusterHttpUrlPattern.replace("$host", getMyHostname());
@@ -669,28 +680,33 @@ public class NodeRegistrar implements Cache {
     }
 
     @SuppressWarnings("RedundantIfStatement")
-    private boolean isLocalAddress(String addr) {
-        if (addr.startsWith("127.")) {
+    private boolean isLocalAddress(String address) {
+        if (address.startsWith("127.")) {
             return true;
         }
-        if (addr.equals("0:0:0:0:0:0:0:1")) {
+        if (address.equals("0:0:0:0:0:0:0:1")) {
             return true;
         }
-        if (addr.equals("::1")) {
+        if (address.equals("::1")) {
             return true;
         }
         return false;
     }
 
-    public PrismObject<NodeType> getCachedLocalNodeObject() {
-        return cachedLocalNodeObject;
+    public @NotNull PrismObject<NodeType> getCachedLocalNodeObjectRequired() {
+        return MiscUtil.requireNonNull(
+                cachedLocalNodeObject,
+                () -> new IllegalStateException("No cached local node object: task manager was not initialized"));
     }
 
-    private String getLocalNodeObjectOid() {
+    public @NotNull String getCachedLocalNodeObjectOid() {
         return cachedLocalNodeObject.getOid();
     }
 
-    private void setCachedLocalNodeObject(PrismObject<NodeType> cachedLocalNodeObject) {
+    private void setCachedLocalNodeObject(@NotNull PrismObject<NodeType> cachedLocalNodeObject) {
+        if (!cachedLocalNodeObject.isImmutable()) {
+            cachedLocalNodeObject.freeze();
+        }
         this.cachedLocalNodeObject = cachedLocalNodeObject;
     }
 
@@ -732,20 +748,21 @@ public class NodeRegistrar implements Cache {
 
     @Override
     public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
-        // TODO is it a good idea to fetch local node immediately on invalidation?
-        //  Maybe we could postpone it to next call of 'get local node'
-        //  See MID-6324.
-        PrismObject<NodeType> currentNode = this.cachedLocalNodeObject;
-        if (currentNode == null) {
-            return; // nothing to invalidate
+        // We could do "lazy invalidation" by setting a "dirty" flag and re-reading on the next read attempt.
+        // But this is perhaps simpler. The read attempt should be fast and safe. (But the invalidation should
+        // be fast and safe as well... :)
+        PrismObject<NodeType> currentNodeObject = cachedLocalNodeObject;
+        if (currentNodeObject == null) {
+            return; // nothing to invalidate (shouldn't occur, as the current node should be non-null)
         }
+        String currentNodeOid = currentNodeObject.getOid();
         if (oid != null) {
-            if (oid.equals(currentNode.getOid())) {
-                refreshCachedLocalNodeObject(currentNode.getOid());
+            if (oid.equals(currentNodeOid)) {
+                refreshCachedLocalNodeObjectOnInvalidation(currentNodeOid);
             }
         } else {
             if (type == null || type.isAssignableFrom(NodeType.class)) {
-                refreshCachedLocalNodeObject(currentNode.getOid());
+                refreshCachedLocalNodeObjectOnInvalidation(currentNodeOid);
             }
         }
     }
@@ -755,8 +772,8 @@ public class NodeRegistrar implements Cache {
         webContextPath = path;
     }
 
-    private void refreshCachedLocalNodeObject(String oid) {
-        OperationResult result = new OperationResult(OP_REFRESH_CACHED_LOCAL_NODE_OBJECT);
+    private void refreshCachedLocalNodeObjectOnInvalidation(String oid) {
+        OperationResult result = new OperationResult(OP_REFRESH_CACHED_LOCAL_NODE_OBJECT_ON_INVALIDATION);
         try {
             refreshCachedLocalNodeObject(oid, result);
         } catch (Throwable t) {
@@ -766,7 +783,7 @@ public class NodeRegistrar implements Cache {
 
     @Override
     public @NotNull Collection<SingleCacheStateInformationType> getStateInformation() {
-        return Collections.singleton(new SingleCacheStateInformationType(prismContext)
+        return Collections.singleton(new SingleCacheStateInformationType()
                 .name(NodeRegistrar.class.getName())
                 .size(cachedLocalNodeObject != null ? 1 : 0));
     }

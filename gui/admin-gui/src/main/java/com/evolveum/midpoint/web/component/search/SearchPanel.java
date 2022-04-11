@@ -360,7 +360,9 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         });
         searchButtonBeforeDropdown.setOutputMarkupId(true);
         searchContainer.add(searchButtonBeforeDropdown);
-        form.setDefaultButton(searchButtonBeforeDropdown);
+        if (form.isRootForm() || (form.getRootForm() != null && form.getRootForm().getDefaultButton() == null)) {
+            form.setDefaultButton(searchButtonBeforeDropdown);
+        }
 
         WebMarkupContainer dropdownButton = new WebMarkupContainer(ID_SEARCH_BUTTON_DROPDOWN);
         dropdownButton.add(new VisibleBehaviour(() -> getModelObject().getAllowedSearchType().size() != 1));
@@ -485,8 +487,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
             @Override
             public IModel<Boolean> getVisible() {
-                return Model.of(WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())
-                        && getModelObject().isAllowedSearchMode(SearchBoxModeType.AXIOM_QUERY));
+                return Model.of(getModelObject().isAllowedSearchMode(SearchBoxModeType.AXIOM_QUERY));
             }
         };
         searchItems.add(searchItem);

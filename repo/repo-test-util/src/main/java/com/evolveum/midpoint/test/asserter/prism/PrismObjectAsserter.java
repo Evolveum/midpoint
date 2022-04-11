@@ -520,11 +520,29 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    public PrismObjectAsserter<O,RA> assertPolicySituations(String... uris) {
+        assertThat(getObject().asObjectable().getPolicySituation())
+                .as("Policy situations")
+                .containsExactlyInAnyOrder(uris);
+        return this;
+    }
+
     public PrismObjectAsserter<O,RA> assertNoPolicySituation(String uri) {
         assertThat(getObject().asObjectable().getPolicySituation())
                 .as("Policy situations")
                 .doesNotContain(uri);
         return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertTriggeredPolicyRules(int count) {
+        assertThat(getObject().asObjectable().getTriggeredPolicyRule())
+                .as("Triggered policy rules")
+                .hasSize(count);
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertNoTriggeredPolicyRules() {
+        return assertTriggeredPolicyRules(0);
     }
 
     public PrismObjectAsserter<O,RA> assertSuccessOrNoFetchResult() {
@@ -562,6 +580,38 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
             }
         }
         throw new AssertionError("No complex operation execution record for task OID " + taskOid + " and status " + status);
+    }
+
+    /**
+     * Preliminary test method (until full operation execution asserter is created).
+     */
+    public PrismObjectAsserter<O, RA> assertHasComplexOperationExecutionFailureWithMessage(String taskOid, String message) {
+        for (OperationExecutionType record : getObjectable().getOperationExecution()) {
+            if (matches(record, OperationExecutionRecordTypeType.COMPLEX, taskOid, OperationResultStatusType.FATAL_ERROR)
+                    && message.equals(record.getMessage())) {
+                assertRecordSanity(record);
+                return this;
+            }
+        }
+        throw new AssertionError("No complex operation execution record for task OID "
+                + taskOid + " and status FATAL_ERROR with message '" + message + "'");
+    }
+
+    /**
+     * Preliminary test method (until full operation execution asserter is created).
+     */
+    public PrismObjectAsserter<O, RA> assertHasComplexOperationExecutionFailureWithMessageContaining(
+            String taskOid, String fragment) {
+        for (OperationExecutionType record : getObjectable().getOperationExecution()) {
+            if (matches(record, OperationExecutionRecordTypeType.COMPLEX, taskOid, OperationResultStatusType.FATAL_ERROR)
+                    && record.getMessage() != null
+                    && record.getMessage().contains(fragment)) {
+                assertRecordSanity(record);
+                return this;
+            }
+        }
+        throw new AssertionError("No complex operation execution record for task OID "
+                + taskOid + " and status FATAL_ERROR with message containing '" + fragment + "'");
     }
 
     // TEMPORARY! TODO Create OperationExecutionAsserter

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.trigger;
 
+import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;

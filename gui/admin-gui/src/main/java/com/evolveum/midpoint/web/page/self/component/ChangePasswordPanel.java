@@ -27,11 +27,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -95,7 +97,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initPasswordModel();
         initMidpointAccountSelected();
@@ -111,7 +113,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     private void initMidpointAccountSelected() {
         MyPasswordsDto dto = getModelObject();
         PasswordAccountDto midpointAccount = null;
-        for(PasswordAccountDto account : dto.getAccounts()){
+        for (PasswordAccountDto account : dto.getAccounts()) {
             if (account.isMidpoint()) {
                 midpointAccount = account;
             }
@@ -122,8 +124,12 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     private void initLayout() {
         WebMarkupContainer oldPasswordContainer = new WebMarkupContainer(ID_OLD_PASSWORD_CONTAINER);
         oldPasswordContainer.add(new VisibleEnableBehaviour() {
-
             private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled() {
+                return canEditPassword();
+            }
 
             @Override
             public boolean isVisible() {
@@ -135,13 +141,17 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         PasswordTextField oldPasswordField =
                 new PasswordTextField(ID_OLD_PASSWORD_FIELD, new PropertyModel<>(getModel(), MyPasswordsDto.F_OLD_PASSWORD));
         oldPasswordField.setRequired(false);
+        oldPasswordField.setResetPassword(false);
+        oldPasswordField.setOutputMarkupId(true);
         oldPasswordContainer.add(oldPasswordField);
 
         Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));
         add(passwordLabel);
 
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<>(getModel(), MyPasswordsDto.F_PASSWORD),
-                getModelObject().getFocus(), getPageBase()){
+                getModelObject().getFocus()) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected <F extends FocusType> ValuePolicyType getValuePolicy(PrismObject<F> object) {
                 return getModelObject().getFocusPolicy();
@@ -154,7 +164,12 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                 getTable().visitChildren(PasswordPolicyValidationPanel.class,
                         (IVisitor<PasswordPolicyValidationPanel, PasswordPolicyValidationPanel>) (panel, iVisit) -> {
                             panel.refreshValidationPopup(target);
-                });
+                        });
+            }
+
+            @Override
+            protected boolean canEditPassword() {
+                return ChangePasswordPanel.this.canEditPassword();
             }
         };
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
@@ -164,7 +179,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
         List<IColumn<PasswordAccountDto, String>> columns = initColumns();
         ListDataProvider<PasswordAccountDto> provider = new ListDataProvider<>(this,
-            new PropertyModel<>(getModel(), MyPasswordsDto.F_ACCOUNTS));
+                new PropertyModel<>(getModel(), MyPasswordsDto.F_ACCOUNTS));
         TablePanel accounts = new TablePanel(ID_ACCOUNTS_TABLE, provider, columns);
         accounts.setItemsPerPage(30);
         accounts.setShowPaging(false);
@@ -187,7 +202,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     private List<IColumn<PasswordAccountDto, String>> initColumns() {
         List<IColumn<PasswordAccountDto, String>> columns = new ArrayList<>();
 
-        columns.add(new CheckBoxColumn<>(Model.of(""), Selectable.F_SELECTED){
+        columns.add(new CheckBoxColumn<>(Model.of(""), Selectable.F_SELECTED) {
             @Override
             protected IModel<Boolean> getEnabled(IModel<PasswordAccountDto> rowModel) {
                 return () -> {
@@ -249,7 +264,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
             @Override
             public void populateItem(Item<ICellPopulator<PasswordAccountDto>> item, String componentId,
-                                     final IModel<PasswordAccountDto> rowModel) {
+                    final IModel<PasswordAccountDto> rowModel) {
                 item.add(new Label(componentId, new IModel<>() {
                     private static final long serialVersionUID = 1L;
 
@@ -270,10 +285,10 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                     final IModel<PasswordAccountDto> rowModel) {
                 IModel<String> helpModel = () -> {
                     String title = "";
-                    if (!rowModel.getObject().isMidpoint() && !rowModel.getObject().isPasswordCapabilityEnabled()){
+                    if (!rowModel.getObject().isMidpoint() && !rowModel.getObject().isPasswordCapabilityEnabled()) {
                         title = createStringResource("ChangePasswordPanel.legendMessage.no.password.capability").getString();
                     }
-                    if (rowModel.getObject().isMaintenanceState()){
+                    if (rowModel.getObject().isMaintenanceState()) {
                         title = title
                                 + (StringUtils.isEmpty(title) ? "" : " ")
                                 + createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
@@ -289,7 +304,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                         PasswordAccountDto dto = rowModel.getObject();
                         return dto.getResourceName();
                     }
-                }){
+                }) {
                     @Override
                     protected IModel<String> getHelpModel() {
                         return helpModel;
@@ -298,7 +313,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
             }
         });
 
-        IconColumn enabled = new IconColumn<PasswordAccountDto>(createStringResource("ChangePasswordPanel.enabled")){
+        IconColumn enabled = new IconColumn<PasswordAccountDto>(createStringResource("ChangePasswordPanel.enabled")) {
 
             @Override
             protected DisplayType getIconDisplayType(IModel<PasswordAccountDto> rowModel) {
@@ -380,8 +395,8 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                                 return progressActivity.getOperationResult();
                             } else if (progressActivity.getStatus() != null && !rowModel.getObject().isMidpoint()
                                     && ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION.equals(progressActivity.getActivityType())
-                                            && progressActivity.getResourceOperationResultList() != null
-                                            && !progressActivity.getResourceOperationResultList().isEmpty()) {
+                                    && progressActivity.getResourceOperationResultList() != null
+                                    && !progressActivity.getResourceOperationResultList().isEmpty()) {
                                 String resourceOid = rowModel.getObject().getResourceOid();
                                 if (StringUtils.isNotEmpty(resourceOid) && progressActivity.getResourceShadowDiscriminator() != null
                                         && resourceOid.equals(progressActivity.getResourceShadowDiscriminator().getResourceOid())) {
@@ -393,14 +408,14 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                         return new OperationResult("Empty result");
                     }
                 };
-                ColumnResultPanel resultPanel = new ColumnResultPanel(componentId, resultStatusModel){
+                ColumnResultPanel resultPanel = new ColumnResultPanel(componentId, resultStatusModel) {
                     @Override
                     protected boolean isProjectionResult() {
                         return !rowModel.getObject().isMidpoint();
                     }
 
                     @Override
-                    protected DisplayType getDisplayForEmptyResult(){
+                    protected DisplayType getDisplayForEmptyResult() {
                         String policyOid = rowModel.getObject().getPasswordValuePolicyOid();
                         if (StringUtils.isNotEmpty(policyOid) && ChangePasswordPanel.this.getModelObject().getPasswordPolicies().containsKey(policyOid)) {
                             if (limitationsByPolicyOid.get(policyOid) != null) {
@@ -438,7 +453,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         getTable().visitChildren(ColumnResultPanel.class,
                 (IVisitor<ColumnResultPanel, ColumnResultPanel>) (panel, iVisit) -> {
                     if (panel.getModel() instanceof LoadableModel) {
-                        ((LoadableModel)panel.getModel()).reset();
+                        ((LoadableModel) panel.getModel()).reset();
                     }
                     target.add(panel);
                 });
@@ -449,11 +464,23 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
         MyPasswordsDto passwordsDto = new MyPasswordsDto();
         OperationResult result = new OperationResult(OPERATION_LOAD_USER_WITH_ACCOUNTS);
+        String focusOid = AuthUtil.getPrincipalUser().getOid();
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_USER);
+        OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);
+        PrismObject<? extends FocusType> focus = null;
         try {
-            String focusOid = AuthUtil.getPrincipalUser().getOid();
-            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_USER);
-            OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);
-            PrismObject<? extends FocusType> focus = getPageBase().getModelService().getObject(FocusType.class, focusOid, null, task, subResult);
+            focus = getPageBase().getModelService().getObject(FocusType.class, focusOid, null, task, subResult);
+        } catch (CommonException e) {
+            if (shouldShowPasswordPropagation()) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user: " + e.getMessage(), e);
+                result.recordFatalError(getString("ChangePasswordPanel.message.couldntLoadUser.fatalError", e.getMessage()), e);
+            } else {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user: " + e.getMessage(), e);
+                result.recordFatalError(getString("web.security.provider.access.denied"), e);
+            }
+            result.recomputeStatus();
+        }
+        if (focus != null) {
             passwordsDto = createMyPasswordsDto(focus);
             subResult.recordSuccessIfUnknown();
 
@@ -469,13 +496,15 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                 return passwordsDto;
             }
 
-            addAccountsToMyPasswordsDto(passwordsDto, reference.getValues(), task, result);
-            result.recordSuccessIfUnknown();
-        } catch (Exception ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load accounts", ex);
-            result.recordFatalError(getString("PageAbstractSelfCredentials.message.couldntLoadAccounts.fatalError"), ex);
-        } finally {
-            result.recomputeStatus();
+            try {
+                addAccountsToMyPasswordsDto(passwordsDto, reference.getValues(), task, result);
+                result.recordSuccessIfUnknown();
+            } catch (Exception ex) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load accounts", ex);
+                result.recordFatalError(getString("PageAbstractSelfCredentials.message.couldntLoadAccounts.fatalError"), ex);
+            } finally {
+                result.recomputeStatus();
+            }
         }
 
         Collections.sort(passwordsDto.getAccounts());
@@ -493,7 +522,6 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         CredentialsPolicyType credentialsPolicyType = WebComponentUtil.getPasswordCredentialsPolicy(focus, getPageBase(), task);
         dto.getAccounts().add(createDefaultPasswordAccountDto(focus, getPasswordPolicyOid(credentialsPolicyType)));
 
-
         if (credentialsPolicyType != null) {
             PasswordCredentialsPolicyType passwordCredentialsPolicy = credentialsPolicyType.getPassword();
             if (passwordCredentialsPolicy != null) {
@@ -506,7 +534,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                     dto.setPasswordChangeSecurity(passwordChangeSecurity);
                 }
                 ObjectReferenceType valuePolicyRef = passwordCredentialsPolicy.getValuePolicyRef();
-                if (valuePolicyRef != null && valuePolicyRef.getOid() != null){
+                if (valuePolicyRef != null && valuePolicyRef.getOid() != null) {
                     task = getPageBase().createSimpleTask("load value policy");
                     PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
                             valuePolicyRef, getPageBase(), task, task.getResult());
@@ -536,7 +564,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         CredentialsPolicyType credentialsPolicyType = null;
         try {
             SecurityPolicyType securityPolicy = getPageBase().getModelInteractionService().getSecurityPolicy(rOCDef, task, result);
-            if (securityPolicy != null){
+            if (securityPolicy != null) {
                 credentialsPolicyType = securityPolicy.getCredentials();
             }
             result.recordSuccessIfUnknown();
@@ -580,7 +608,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         }
     }
 
-    private PasswordAccountDto createPasswordAccountDto(MyPasswordsDto passwordDto, PrismObject<ShadowType> account, Task task, OperationResult result){
+    private PasswordAccountDto createPasswordAccountDto(MyPasswordsDto passwordDto, PrismObject<ShadowType> account, Task task, OperationResult result) {
         PrismReference resourceRef = account.findReference(ShadowType.F_RESOURCE_REF);
         String resourceName;
         if (resourceRef == null || resourceRef.getValue() == null || resourceRef.getValue().getObject() == null) {
@@ -651,7 +679,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         return false;
     }
 
-    private PasswordPanel getPasswordPanel(){
+    private PasswordPanel getPasswordPanel() {
         return (PasswordPanel) get(ID_PASSWORD_PANEL);
     }
 
@@ -659,7 +687,11 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         return (TablePanel) get(getPageBase().createComponentPath(ID_ACCOUNTS_CONTAINER, ID_ACCOUNTS_TABLE));
     }
 
-    protected boolean isCheckOldPassword(){
+    protected boolean isCheckOldPassword() {
         return false;
+    }
+
+    protected boolean canEditPassword() {
+        return true;
     }
 }

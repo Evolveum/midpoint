@@ -19,6 +19,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+
 /**
  * State of a construction evaluation. Consists of evaluations of individual attributes and associations.
  *
@@ -89,8 +91,15 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
 
         projectionOdo = projectionContext != null ? projectionContext.getObjectDeltaObject() : null;
 
-        evaluateAttributes();
-        evaluateAssociations();
+        if (isOutboundAllowed()) {
+            evaluateAttributes();
+            evaluateAssociations();
+        }
+    }
+
+    private boolean isOutboundAllowed() {
+        return projectionContext == null
+                || projectionContext.getLensContext().getPartialProcessingOptions().getOutbound() != SKIP;
     }
 
     private void checkNotEvaluatedTwice() {

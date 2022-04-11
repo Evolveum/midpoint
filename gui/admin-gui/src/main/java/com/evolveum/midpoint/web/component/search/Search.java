@@ -139,6 +139,10 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return specialItems;
     }
 
+    public SearchItem getCompositedSpecialItem() {
+        return compositedSpecialItems;
+    }
+
     public void setSpecialItems(List<SearchItem> specialItems) {
         this.specialItems = specialItems;
     }
@@ -813,7 +817,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             t = t.getCause();
         }
         if (StringUtils.isBlank(sb.toString())) {
-            sb.append(PageBase.createStringResourceStatic(null, "SearchPanel.unexpectedQuery").getString());
+            sb.append(PageBase.createStringResourceStatic("SearchPanel.unexpectedQuery").getString());
         }
 
         return sb.toString();

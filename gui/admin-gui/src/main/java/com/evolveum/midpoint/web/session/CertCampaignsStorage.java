@@ -13,7 +13,6 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignsSearc
 
 /**
  *  @author shood
- *  @author mederly
  * */
 public class CertCampaignsStorage implements PageStorage {
     private static final long serialVersionUID = 1L;

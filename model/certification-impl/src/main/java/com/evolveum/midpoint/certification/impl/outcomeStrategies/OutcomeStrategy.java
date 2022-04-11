@@ -11,9 +11,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationR
 
 import java.util.List;
 
-/**
- * @author mederly
- */
 public interface OutcomeStrategy {
 
     /**

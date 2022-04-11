@@ -41,8 +41,6 @@ import javax.annotation.PostConstruct;
  * One of interfaces of the notifier to midPoint.
  *
  * Used to catch user-related events.
- *
- * @author mederly
  */
 @Component
 public class NotificationHook implements ChangeHook {
@@ -168,7 +166,7 @@ public class NotificationHook implements ChangeHook {
             OperationResult result) {
         PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
         if (taskOwner != null) {
-            ((BaseEventImpl) event).setRequester(new SimpleObjectRefImpl(notificationsUtil, taskOwner.asObjectable()));
+            ((BaseEventImpl) event).setRequester(new SimpleObjectRefImpl(taskOwner.asObjectable()));
         } else {
             LOGGER.debug("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
         }
@@ -178,6 +176,6 @@ public class NotificationHook implements ChangeHook {
             object = object.clone();
             object.setOid(modelContext.getFocusContext().getOid());
         }
-        ((BaseEventImpl) event).setRequestee(new SimpleObjectRefImpl(notificationsUtil, (ObjectType) object.asObjectable()));
+        ((BaseEventImpl) event).setRequestee(new SimpleObjectRefImpl((ObjectType) object.asObjectable()));
     }
 }

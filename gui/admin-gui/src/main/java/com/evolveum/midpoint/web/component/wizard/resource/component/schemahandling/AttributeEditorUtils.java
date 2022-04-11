@@ -26,9 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.List;
 
-/**
- * @author mederly
- */
 class AttributeEditorUtils {
 
     private static final String ID_MATCHING_RULE = "matchingRule";

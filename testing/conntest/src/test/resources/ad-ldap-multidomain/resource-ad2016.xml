@@ -35,7 +35,6 @@
                 <t:clearValue>qwe.123</t:clearValue>
             </icfcldap:bindPassword>
             <icfcldap:servers>host=ad06.ad2016.lab.evolveum.com; baseContext=DC=sub2016,DC=ad2016,DC=lab,DC=evolveum,DC=com; bindDn=CN=midpoint,CN=Users,DC=sub2016,DC=ad2016,DC=lab,DC=evolveum,DC=com</icfcldap:servers>
-            <icfcldap:referralStrategy>ignore</icfcldap:referralStrategy>
             <icfcldap:globalCatalogStrategy>resolve</icfcldap:globalCatalogStrategy>
             <icfcldap:operationalAttributes>msExchHideFromAddressLists</icfcldap:operationalAttributes>
             <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests>

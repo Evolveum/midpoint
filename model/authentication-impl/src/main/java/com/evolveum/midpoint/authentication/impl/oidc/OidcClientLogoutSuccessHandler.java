@@ -12,7 +12,7 @@ import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.handler.AuditedLogoutHandler;
 
-import com.evolveum.midpoint.authentication.impl.module.authentication.OidcModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.module.authentication.OidcClientModuleAuthenticationImpl;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -54,7 +54,7 @@ public class OidcClientLogoutSuccessHandler extends AuditedLogoutHandler {
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mPAuthentication = (MidpointAuthentication) authentication;
             ModuleAuthentication moduleAuthentication = mPAuthentication.getProcessingModuleAuthentication();
-            if (moduleAuthentication instanceof OidcModuleAuthenticationImpl) {
+            if (moduleAuthentication instanceof OidcClientModuleAuthenticationImpl) {
                 Authentication internalAuthentication = moduleAuthentication.getAuthentication();
                 if (internalAuthentication instanceof PreAuthenticatedAuthenticationToken
                         || internalAuthentication instanceof AnonymousAuthenticationToken) {
@@ -105,9 +105,9 @@ public class OidcClientLogoutSuccessHandler extends AuditedLogoutHandler {
 
     private String endpointUri(URI endSessionEndpoint, String idToken, String postLogoutRedirectUri) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUri(endSessionEndpoint);
-        builder.queryParam("id_token_hint", new Object[]{idToken});
+        builder.queryParam("id_token_hint", idToken);
         if (postLogoutRedirectUri != null) {
-            builder.queryParam("post_logout_redirect_uri", new Object[]{postLogoutRedirectUri});
+            builder.queryParam("post_logout_redirect_uri", postLogoutRedirectUri);
         }
 
         return builder.encode(StandardCharsets.UTF_8).build().toUriString();

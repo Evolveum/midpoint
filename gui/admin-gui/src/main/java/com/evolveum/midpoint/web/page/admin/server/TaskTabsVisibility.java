@@ -27,8 +27,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Used to determine whether tabs have to be refreshed - by comparing instances of this class before and after task update.
- *
- * @author mederly
  */
 class TaskTabsVisibility implements Serializable {
 

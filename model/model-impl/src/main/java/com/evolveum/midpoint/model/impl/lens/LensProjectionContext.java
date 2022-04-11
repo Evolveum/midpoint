@@ -203,6 +203,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * The synchronization intent is used instead.
      */
     private SynchronizationSituationType synchronizationSituationDetected;
+
     /**
      * Synchronization situation which was the result of synchronization reaction (projector and clockwork run).
      * This is mostly for debug purposes. Projector and clockwork do not care about this (except for setting it).
@@ -1692,5 +1693,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     /** Assumes that the resource is loaded. */
     public boolean isInMaintenance() {
         return ResourceTypeUtil.isInMaintenance(resource);
+    }
+
+    /**
+     * Returns true if there is any context that depends on us.
+     * (Note that "dependency source" means the context that depends on the "dependency target". We are the target here.)
+     */
+    public boolean hasDependentContext() {
+        for (LensProjectionContext projectionContext : lensContext.getProjectionContexts()) {
+            for (ResourceObjectTypeDependencyType dependency : projectionContext.getDependencies()) {
+                if (LensUtil.areDependent(projectionContext, this, dependency)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

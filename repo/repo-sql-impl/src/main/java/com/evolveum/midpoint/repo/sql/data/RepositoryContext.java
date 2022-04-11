@@ -14,9 +14,6 @@ import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class RepositoryContext {
     @NotNull public final RepositoryService repositoryService;
     @NotNull public final PrismContext prismContext;

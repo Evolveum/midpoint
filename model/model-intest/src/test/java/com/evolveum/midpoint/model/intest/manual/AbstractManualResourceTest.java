@@ -203,7 +203,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .familyName(USER_WILL_FAMILY_NAME)
                 .fullName(USER_WILL_FULL_NAME)
                 .beginActivation().administrativeStatus(ActivationStatusType.ENABLED).<UserType>end()
-                .beginCredentials().beginPassword().beginValue().setClearValue(USER_WILL_PASSWORD_OLD);
+                .beginCredentials().beginPassword().setValue(new ProtectedStringType().clearValue(USER_WILL_PASSWORD_OLD));
         return user;
     }
 

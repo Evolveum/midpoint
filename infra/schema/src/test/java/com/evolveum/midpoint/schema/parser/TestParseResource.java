@@ -488,7 +488,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         }
 
         if (!isSimple) {
-            PrismProperty<SynchronizationType> synchronizationProp = resource.findProperty(ResourceType.F_SYNCHRONIZATION);
+            PrismContainer<SynchronizationType> synchronizationProp = resource.findContainer(ResourceType.F_SYNCHRONIZATION);
             SynchronizationType synchronizationType = synchronizationProp.getRealValue();
             ObjectSynchronizationType objectSynchronizationType = synchronizationType.getObjectSynchronization().get(0);
             List<ConditionalSearchFilterType> correlations = objectSynchronizationType.getCorrelation();

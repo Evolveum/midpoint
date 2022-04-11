@@ -97,12 +97,12 @@ public class PageObjectCollections extends PageAdmin{
             }
 
             @Override
-            protected String getConfirmMessageKeyForSingleObject() {
+            protected String getConfirmMessageKeyForMultiObject() {
                 return "pageObjectCollections.message.confirmationMessageForMultipleObject";
             }
 
             @Override
-            protected String getConfirmMessageKeyForMultiObject() {
+            protected String getConfirmMessageKeyForSingleObject() {
                 return "pageObjectCollections.message.confirmationMessageForSingleObject";
             }
         };

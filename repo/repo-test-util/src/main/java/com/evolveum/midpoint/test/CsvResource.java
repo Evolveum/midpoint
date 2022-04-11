@@ -7,10 +7,17 @@
 
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.List;
 
+import com.google.common.io.Files;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -24,10 +31,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
  * Represents CSV resource to be used in tests.
@@ -88,10 +91,25 @@ public class CsvResource extends TestResource<ResourceType> {
         this.initialContent = initialContent;
     }
 
+    /**
+     * Imports the resource (using appropriate importer e.g. model importer) and reloads it - to have all the metadata.
+     */
     public void initialize(Task task, OperationResult result)
             throws IOException, CommonException {
         prepareObject();
         importObject(task, result);
+        reload(result);
+    }
+
+    /**
+     * Imports the resource, tests it, and reloads it (to have e.g. the schema).
+     */
+    public void initializeAndTest(ResourceTester tester, Task task, OperationResult result) throws CommonException, IOException {
+        prepareObject();
+        importObject(task, result);
+        assertSuccess(
+                tester.testResource(oid, task));
+        reload(result);
     }
 
     private void prepareObject() throws SchemaException, IOException {
@@ -150,10 +168,65 @@ public class CsvResource extends TestResource<ResourceType> {
     }
 
     /**
+     * Replaces the whole file with new content. The caller is responsible for including appropriate line separators.
+     */
+    public void replace(String data) throws IOException {
+        write(dataFile, data);
+    }
+
+    /**
+     * Returns the current content of the file as a mutable list of lines.
+     */
+    public List<String> getContent() throws IOException {
+        //noinspection UnstableApiUsage
+        return Files.readLines(dataFile, charset);
+    }
+
+    /**
+     * Rewrites the file with given list of lines. Lines should not contain separators.
+     */
+    public void setContent(List<String> lines) throws IOException {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(dataFile, charset))) {
+            for (String line : lines) {
+                checkNoSeparator(line);
+                pw.println(line);
+            }
+        }
+    }
+
+    /**
      * Appends given line to the "live" file. The argument should NOT contain line separators.
      */
     public void appendLine(String line) throws IOException {
-        argCheck(!line.contains(System.lineSeparator()), "No line separators are allowed: %s", line);
+        checkNoSeparator(line);
         append(line + System.lineSeparator());
+    }
+
+    private void checkNoSeparator(String line) {
+        argCheck(!line.contains(System.lineSeparator()), "No line separators are allowed: %s", line);
+    }
+
+    /**
+     * Replaces first line that matches given regular expression with the new content.
+     * Throws an exception if there was no matching line.
+     *
+     * The new line should NOT contain line separators.
+     */
+    public void replaceLine(@Language("RegExp") String regex, String newLine) throws IOException {
+        checkNoSeparator(newLine);
+        List<String> content = getContent();
+        boolean found = false;
+        for (int i = 0; i < content.size(); i++) {
+            String existingLine = content.get(i);
+            if (existingLine.matches(regex)) {
+                content.set(i, newLine);
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            throw new IllegalArgumentException("No line matched '" + regex + "'");
+        }
+        setContent(content);
     }
 }

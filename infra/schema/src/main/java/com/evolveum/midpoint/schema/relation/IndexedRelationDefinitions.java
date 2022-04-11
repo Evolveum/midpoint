@@ -31,8 +31,6 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 /**
  * Relation definitions indexed for fast querying by the relation registry.
  * It is intentionally package-private. Should be used only for RelationRegistryImpl.
- *
- * @author mederly
  */
 class IndexedRelationDefinitions {
 

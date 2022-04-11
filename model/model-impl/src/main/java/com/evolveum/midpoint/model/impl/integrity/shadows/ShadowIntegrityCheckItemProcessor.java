@@ -321,8 +321,13 @@ public class ShadowIntegrityCheckItemProcessor {
         }
     }
 
-    private void doFixIntent(ShadowCheckResult checkResult, PrismObject<ShadowType> fetchedShadow, PrismObject<ShadowType> shadow,
-            PrismObject<ResourceType> resource, Task task, OperationResult result) throws SchemaException {
+    private void doFixIntent(
+            ShadowCheckResult checkResult,
+            PrismObject<ShadowType> fetchedShadow,
+            PrismObject<ShadowType> shadow,
+            PrismObject<ResourceType> resource,
+            Task task,
+            OperationResult result) throws SchemaException {
         PrismObject<ShadowType> fullShadow;
 
         if (!getConfiguration().checkFetch) {

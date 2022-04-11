@@ -35,8 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin", matchUrlForSecurity = "/admin"),
-                @Url(mountUrl = "/admin/dashboard"),
+                @Url(mountUrl = "/admin/dashboard", matchUrlForSecurity = "/admin/dashboard")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminHome.AUTH_HOME_ALL_URI,

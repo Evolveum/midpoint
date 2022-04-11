@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.HANDLED_ERROR;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isInMaintenance;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
@@ -16,7 +16,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjec
 
 import static java.util.Objects.requireNonNull;
 
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR;
 
@@ -249,7 +248,9 @@ public class SyncTaskHelper {
      */
     private static void checkNotInMaintenance(ResourceType resource) throws ActivityRunException {
         if (!skipMaintenanceCheck && isInMaintenance(resource)) {
-            throw new ActivityRunException("Resource is in maintenance", HANDLED_ERROR, TEMPORARY_ERROR);
+            // Temporary error means that the recurring task should continue (until the maintenance mode is off).
+            throw new ActivityRunException("Couldn't synchronize resource '" + resource.getName()
+                    + "', because it is in maintenance", WARNING, TEMPORARY_ERROR);
         }
     }
 

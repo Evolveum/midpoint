@@ -27,8 +27,6 @@ import java.util.List;
 
 /**
  * BEWARE: CertificationManager is responsible for authorizing all actions carried out through it.
- *
- * @author mederly
  */
 public interface CertificationManager {
 

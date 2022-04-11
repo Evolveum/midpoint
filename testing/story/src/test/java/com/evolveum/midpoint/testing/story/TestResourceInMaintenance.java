@@ -768,8 +768,8 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         assertTask(taskAfter, "reconciliation after run")
                 .display()
-                .assertHandledError()
-                .assertExecutionState(TaskExecutionStateType.SUSPENDED); // Maybe should be discussed.
+                .assertWarning()
+                .assertExecutionState(TaskExecutionStateType.SUSPENDED); // This is a reaction to TEMPORARY_ERROR status.
     }
 
     /**

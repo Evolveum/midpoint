@@ -11,9 +11,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import javax.xml.namespace.QName;
 
-/**
- * @author mederly
- */
 public class NotificationConstants {
 
     public static final QName ACCOUNT_CREATION_QNAME = new QName(SchemaConstants.NS_C, "accountCreation");

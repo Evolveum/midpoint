@@ -16,6 +16,6 @@ uid  | givenName      | familyName      | dateOfBirth     | nationalId    | test
 1    | Ian            | Smith           | 2004-02-06      | 0402061328    | new             |
 2    | Mary           | Smith           | 2006-04-10      | 0604101993    | new             |
 3    | Jan            | Smith           | 2004-02-06      | 0402061328    | =1              | same as 1 but with different given name
-4    | Ian            | Smith           | 2004-02-06      | 040206----    | ?1:1            | same as 1 but with trimmed national ID (same person)
-5    | Ian            | Smith           | 2004-02-06      | 0402068231    | ?1,4:new        | same as 1 but with different national ID (another person)
-6    | Ian            | Smith           | 2004-02-06      | 0402068230    | ?1,4,5:5        | can be 1 or 5 (names+DoB) but he's 5, due to typo in nat. ID
+4    | Ian            | Smith           | 2004-02-06      | 040206----    | ?1,4:1          | same as 1 but with trimmed national ID (same person)
+5    | Ian            | Smith           | 2004-02-06      | 0402068231    | ?1,4,5:new      | same as 1 but with different national ID (another person)
+6    | Ian            | Smith           | 2004-02-06      | 0402068230    | ?1,4,5,6:5      | can be 1 or 5 (names+DoB) but he's 5, due to typo in nat. ID

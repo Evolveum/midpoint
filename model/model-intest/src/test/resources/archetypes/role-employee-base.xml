@@ -5,10 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="e869d6c4-f6ef-11e8-b51f-df3e51bba129"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Employee base</name>
     <description>Role that induces an archetype</description>
     <inducement>

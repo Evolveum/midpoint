@@ -19,8 +19,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * TODO better name ;)
- *
- * @author mederly
  */
 public class DelegatorWithOtherPrivilegesLimitations implements DebugDumpable {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -30,6 +30,7 @@ CREATE SCHEMA IF NOT EXISTS public;
 
 -- region custom enum types
 DO $$ BEGIN
+    -- NOTE: Types in this block must be updated when changed in postgres-new.sql!
     CREATE TYPE ObjectType AS ENUM (
         'ABSTRACT_ROLE',
         'ACCESS_CERTIFICATION_CAMPAIGN',
@@ -45,6 +46,7 @@ DO $$ BEGIN
         'FUNCTION_LIBRARY',
         'GENERIC_OBJECT',
         'LOOKUP_TABLE',
+        'MESSAGE_TEMPLATE',
         'NODE',
         'OBJECT',
         'OBJECT_COLLECTION',
@@ -337,4 +339,4 @@ limit 50;
 */
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
-call apply_audit_change(1, $$ SELECT 1 $$, true);
+call apply_audit_change(2, $$ SELECT 1 $$, true);

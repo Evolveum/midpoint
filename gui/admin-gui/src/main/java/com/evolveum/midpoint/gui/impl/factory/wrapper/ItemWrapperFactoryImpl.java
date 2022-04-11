@@ -125,7 +125,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         }
 
         if (ItemProcessing.IGNORE == def.getProcessing()) {
-            LOGGER.trace("Skip creating wrapper for {}, because item processig is set to IGNORE.", def);
+            LOGGER.trace("Skip creating wrapper for {}, because item processing is set to IGNORE.", def);
             return true;
         }
 

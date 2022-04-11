@@ -78,7 +78,7 @@ public class TestJavaSerialization extends AbstractSchemaTest {
 
         // THEN
         System.out.println("\nSerialized object:");
-        System.out.println(serializedObject);
+        //System.out.println(serializedObject);
         PrismObject<O> deserializedObject = SerializationUtil.fromString(serializedObject);
 
         System.out.println("\nDeserialized object (PrismObject):");

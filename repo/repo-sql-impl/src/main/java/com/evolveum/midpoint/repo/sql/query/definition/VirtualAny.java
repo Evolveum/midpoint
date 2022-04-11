@@ -17,7 +17,6 @@ import java.lang.annotation.Target;
 
 /**
  * @author lazyman
- * @author mederly
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

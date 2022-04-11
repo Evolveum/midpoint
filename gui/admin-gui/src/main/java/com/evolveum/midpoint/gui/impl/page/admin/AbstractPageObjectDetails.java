@@ -6,23 +6,16 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin;
 
-import java.util.*;
-
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
-
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.util.exception.*;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -31,24 +24,32 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extends ObjectDetailsModels<O>> extends PageBase {
 
@@ -90,6 +91,13 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         isAdd = params == null && object == null;
         objectDetailsModels = createObjectDetailsModels(object);
         initLayout();
+    }
+
+    @Override
+    protected void onDetach() {
+        objectDetailsModels.detach();
+
+        super.onDetach();
     }
 
     protected boolean isAdd() {
@@ -176,7 +184,28 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 AbstractPageObjectDetails.this.savePerformed(target);
             }
 
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return AbstractPageObjectDetails.this.hasUnsavedChanges(target);
+            }
         };
+    }
+
+    protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_SAVE);
+
+        try {
+            Collection<ObjectDelta<? extends ObjectType>> deltas = objectDetailsModels.collectDeltas(result);
+
+            return !deltas.isEmpty();
+        } catch (Throwable ex) {
+            result.recordFatalError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't compute delta changes", ex);
+            showResult(result);
+            target.add(getFeedbackPanel());
+
+            return true;
+        }
     }
 
     public void savePerformed(AjaxRequestTarget target) {
@@ -187,8 +216,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     public Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
         return saveOrPreviewPerformed(target, result, previewOnly, null);
     }
-
-//    private ObjectDelta<O> delta;
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
 
@@ -344,7 +371,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 .stream()
                 .filter(config -> isApplicableForOperation(config) && WebComponentUtil.getElementVisibility(config.getVisibility()))
                 .findFirst()
-                .get();
+                .orElseGet(() -> null);
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs) {
@@ -381,30 +408,55 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {
+        if (panelConfig == null) {
+            addErrorPanel(false, form,  MessagePanel.MessagePanelType.WARN,"AbstractPageObjectDetails.noPanels");
+            return;
+        }
+
         getSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), panelConfig);
         String panelType = panelConfig.getPanelType();
         if (panelType == null) {
+            addErrorPanel(false, form,  MessagePanel.MessagePanelType.ERROR,"AbstractPageObjectDetails.panelTypeUndefined", panelConfig.getIdentifier());
             return;
         }
-        Class<? extends Panel> panelClass = findObjectPanel(panelConfig.getPanelType());
+
+        Class<? extends Panel> panelClass = findObjectPanel(panelType);
         Panel panel = WebComponentUtil.createPanel(panelClass, ID_MAIN_PANEL, objectDetailsModels, panelConfig);
-        form.addOrReplace(panel);
+        if (panel != null) {
+            form.addOrReplace(panel);
+            return;
+        }
+
+        addErrorPanel(true, form, MessagePanel.MessagePanelType.ERROR, "AbstractPageObjectDetails.panelErrorInitialization", panelConfig.getIdentifier(), panelType);
     }
 
+    private void addErrorPanel(boolean force, MidpointForm form, MessagePanel.MessagePanelType type, String message, Object... params) {
+        if (!force && form.get(ID_MAIN_PANEL) != null) {
+            return;
+        }
 
+        WebMarkupContainer panel = new MessagePanel(ID_MAIN_PANEL, type,
+                createStringResource(message, params), false);
+        panel.add(AttributeAppender.append("style", "margin-top: 20px;"));
+
+        form.addOrReplace(panel);
+    }
 
     private DetailsNavigationPanel initNavigation() {
         return createNavigationPanel(getPanelConfigurations());
     }
 
     private DetailsNavigationPanel<O> createNavigationPanel(IModel<List<ContainerPanelConfigurationType>> panels) {
+        DetailsNavigationPanel panel = new DetailsNavigationPanel<>(AbstractPageObjectDetails.ID_NAVIGATION, objectDetailsModels, panels) {
 
-        return new DetailsNavigationPanel<>(AbstractPageObjectDetails.ID_NAVIGATION, objectDetailsModels, panels) {
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
                 replacePanel(config, target);
             }
         };
+        panel.add(new VisibleBehaviour(() -> panels.getObject() != null && panels.getObject().size() > 1));
+
+        return panel;
     }
 
     public void replacePanel(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
@@ -414,8 +466,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             target.add(form);
             target.add(getFeedbackPanel());
         } catch (Throwable e) {
-            error("Cannot instantiate panel, " + e.getMessage());
-            LOGGER.error("Cannot instantiate panel, " + e.getMessage(), e.getStackTrace());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Can't instantiate panel based on config\n {}", config.debugDump(), e);
+            }
+
+            error(getString("AbstractPageObjectDetails.replacePanelException", e.getMessage(), e.getClass().getSimpleName()));
             target.add(getFeedbackPanel());
         }
     }
@@ -487,6 +542,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     public abstract Class<O> getType();
+
     protected abstract Panel createSummaryPanel(String id, IModel<O> summaryModel);
 
     private MidpointForm getMainForm() {
@@ -503,11 +559,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     public PrismObject<O> getPrismObject() {
         return getModelPrismObject();
-    }
-
-    @Override
-    protected void createBreadcrumb() {
-        createInstanceBreadcrumb();
     }
 
     protected SummaryPanelSpecificationType getSummaryPanelSpecification() {

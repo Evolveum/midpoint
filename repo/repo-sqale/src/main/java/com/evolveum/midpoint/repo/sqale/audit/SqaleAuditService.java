@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,7 +17,6 @@ import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Objects;
 import java.util.*;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -53,7 +52,6 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryExecutor;
-import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -82,15 +80,6 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         super(sqlRepoContext, sqlPerformanceMonitorsCollection);
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
-
-        SqaleRepositoryConfiguration repoConfig =
-                (SqaleRepositoryConfiguration) sqlRepoContext.getJdbcRepositoryConfiguration();
-
-        // monitor initialization and registration
-        performanceMonitor = new SqlPerformanceMonitorImpl(
-                repoConfig.getPerformanceStatisticsLevel(),
-                repoConfig.getPerformanceStatisticsFile());
-        sqlPerformanceMonitorsCollection.register(performanceMonitor);
     }
 
     @Override
@@ -783,7 +772,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         if (providedOrdering.size() == 1) {
             ObjectOrdering objectOrdering = providedOrdering.get(0);
             ItemPath orderByPath = objectOrdering.getOrderBy();
-            boolean asc = objectOrdering.getDirection() == OrderDirection.ASCENDING;
+            boolean asc = objectOrdering.getDirection() != OrderDirection.DESCENDING; // null => asc
             S_ConditionEntry filter = prismContext()
                     .queryFor(AuditEventRecordType.class)
                     .item(orderByPath);

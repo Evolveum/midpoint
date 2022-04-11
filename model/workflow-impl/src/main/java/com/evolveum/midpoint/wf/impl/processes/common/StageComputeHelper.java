@@ -21,6 +21,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.cases.api.temporary.ComputationMode;
+import com.evolveum.midpoint.cases.impl.helpers.CaseMiscHelper;
+import com.evolveum.midpoint.wf.impl.util.ComputationResult;
+import com.evolveum.midpoint.cases.api.temporary.VariablesProvider;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -37,15 +41,13 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -54,9 +56,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Helps with computing things needed for stage approval (e.g. approvers, auto-approval result, ...)
@@ -69,72 +70,11 @@ public class StageComputeHelper {
     @Autowired private ExpressionEvaluationHelper evaluationHelper;
     @Autowired private PrismContext prismContext;
     @Autowired private MiscHelper miscHelper;
+    @Autowired private CaseMiscHelper caseMiscHelper;
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
     @Autowired private SystemObjectCache systemObjectCache;
-
-    public VariablesMap getDefaultVariables(CaseType aCase, ApprovalContextType wfContext, String requestChannel,
-            OperationResult result) throws SchemaException {
-
-        VariablesMap variables = new VariablesMap();
-        variables.put(ExpressionConstants.VAR_REQUESTER, miscHelper.resolveTypedObjectReference(aCase.getRequestorRef(), result));
-        variables.put(ExpressionConstants.VAR_OBJECT, miscHelper.resolveTypedObjectReference(aCase.getObjectRef(), result));
-        // might be null
-        variables.put(ExpressionConstants.VAR_TARGET, miscHelper.resolveTypedObjectReference(aCase.getTargetRef(), result));
-        variables.put(ExpressionConstants.VAR_OBJECT_DELTA, getFocusPrimaryDelta(wfContext), ObjectDelta.class);
-        variables.put(ExpressionConstants.VAR_CHANNEL, requestChannel, String.class);
-        variables.put(ExpressionConstants.VAR_APPROVAL_CONTEXT, wfContext, ApprovalContextType.class);
-        variables.put(ExpressionConstants.VAR_THE_CASE, aCase, List.class);
-        // todo other variables?
-
-        return variables;
-    }
-
-    private ObjectDelta getFocusPrimaryDelta(ApprovalContextType actx) throws SchemaException {
-        ObjectDeltaType objectDeltaType = getFocusPrimaryObjectDeltaType(actx);
-        return objectDeltaType != null ? DeltaConvertor.createObjectDelta(objectDeltaType, prismContext) : null;
-    }
-
-    // mayBeNull=false means that the corresponding variable must be present (not that focus must be non-null)
-    // TODO: review/correct this!
-    private ObjectDeltaType getFocusPrimaryObjectDeltaType(ApprovalContextType actx) {
-        ObjectTreeDeltasType deltas = getObjectTreeDeltaType(actx);
-        return deltas != null ? deltas.getFocusPrimaryDelta() : null;
-    }
-
-    private ObjectTreeDeltasType getObjectTreeDeltaType(ApprovalContextType actx) {
-        return actx != null ? actx.getDeltasToApprove() : null;
-    }
-
-    // TODO name
-    public static class ComputationResult {
-        private ApprovalLevelOutcomeType predeterminedOutcome;
-        private AutomatedCompletionReasonType automatedCompletionReason;
-        private Set<ObjectReferenceType> approverRefs;
-        private boolean noApproversFound;   // computed but not found (i.e. not set when outcome is given by an auto-outcome expression)
-
-        public ApprovalLevelOutcomeType getPredeterminedOutcome() {
-            return predeterminedOutcome;
-        }
-
-        public AutomatedCompletionReasonType getAutomatedCompletionReason() {
-            return automatedCompletionReason;
-        }
-
-        public Set<ObjectReferenceType> getApproverRefs() {
-            return approverRefs;
-        }
-
-        public boolean noApproversFound() {
-            return noApproversFound;
-        }
-    }
-
-    @FunctionalInterface
-    public interface VariablesProvider {
-        VariablesMap get() throws SchemaException, ObjectNotFoundException;
-    }
 
     // TODO method name
     public ComputationResult computeStageApprovers(ApprovalStageDefinitionType stageDef, CaseType theCase,
@@ -300,11 +240,5 @@ public class StageComputeHelper {
         }
     }
 
-    /**
-     * Do we do our computation during preview or during actual execution?
-     */
-    public enum ComputationMode {
-        PREVIEW, EXECUTION
-    }
 }
 

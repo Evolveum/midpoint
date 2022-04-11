@@ -16,7 +16,6 @@ import java.lang.annotation.Target;
  * Denotes method that is used to access the container parent. E.g. AccessCertificationCase -> AccessCertificationCampaign.
  *
  * @author lazyman
- * @author mederly
  */
 @Target({ ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)

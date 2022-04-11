@@ -75,7 +75,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * @author Radovan Semancik
  */
 @SuppressWarnings("JavadocReference")
-public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDefinition, MBT extends AbstractMappingType>
+public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDefinition<?>, MBT extends AbstractMappingType>
         implements Mapping<V, D>, DebugDumpable, PrismValueDeltaSetTripleProducer<V, D> {
 
     static final Trace LOGGER = TraceManager.getTrace(AbstractMappingImpl.class);

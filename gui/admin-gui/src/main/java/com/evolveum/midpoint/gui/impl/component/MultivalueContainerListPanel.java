@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
@@ -147,10 +148,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     }
 
     public List<PrismContainerValueWrapper<C>> getSelectedItems() {
-        BoxedTablePanel<PrismContainerValueWrapper<C>> itemsTable = getTable();
-        @SuppressWarnings("unchecked") ISelectableDataProvider<C, PrismContainerValueWrapper<C>> itemsProvider = (ISelectableDataProvider<C, PrismContainerValueWrapper<C>>) itemsTable.
-                getDataTable().getDataProvider();
-        return itemsProvider.getSelectedObjects();
+        return getSelectedObjects();
     }
 
     public void reloadSavePreviewButtons(AjaxRequestTarget target){
@@ -318,4 +316,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return rowModelObject.getRealValue();
     }
 
+    @Override
+    public List<C> getSelectedRealObjects() {
+        return getSelectedObjects().stream().map(o -> o.getRealValue()).collect(Collectors.toList());
+    }
 }

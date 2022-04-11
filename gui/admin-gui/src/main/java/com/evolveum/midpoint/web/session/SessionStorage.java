@@ -215,10 +215,11 @@ public class SessionStorage implements Serializable, DebugDumpable {
     }
 
     public PageStorage initPageStorage(String key) {
-        PageStorage pageStorage = null;
         if (key == null) {
-            return pageStorage;
+            return null;
         }
+
+        PageStorage pageStorage = null;
         if (key.startsWith(KEY_OBJECT_LIST)) {
             pageStorage = new ObjectListStorage();
         } else if (key.startsWith(KEY_ORG_MEMBER_PANEL)

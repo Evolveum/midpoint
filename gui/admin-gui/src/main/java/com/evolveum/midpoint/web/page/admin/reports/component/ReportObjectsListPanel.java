@@ -47,6 +47,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author lskublik
@@ -211,6 +212,11 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
             }
         }
         return provider;
+    }
+
+    @Override
+    public List<C> getSelectedRealObjects() {
+        return getSelectedObjects().stream().map(o -> o.getValue()).collect(Collectors.toList());
     }
 
     private boolean isDisableCounting() {
@@ -402,7 +408,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     public void checkView() {
         if (!hasView()) {
-            getSession().warn(PageBase.createStringResourceStatic(null, "ReportObjectsListPanel.message.defineType").getString());
+            getSession().warn(PageBase.createStringResourceStatic("ReportObjectsListPanel.message.defineType").getString());
         }
     }
 

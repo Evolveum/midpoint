@@ -133,7 +133,7 @@ public class GetObjectOpHandler extends CachedOpHandler {
         TracingLevelType tracingLevel = result.getTracingLevel(RepositoryGetObjectTraceType.class);
         RepositoryGetObjectTraceType trace;
         if (isAtLeastMinimal(tracingLevel)) {
-            trace = new RepositoryGetObjectTraceType(prismContext)
+            trace = new RepositoryGetObjectTraceType()
                     .cache(true)
                     .objectType(prismContext.getSchemaRegistry().determineTypeForClass(type))
                     .oid(oid)

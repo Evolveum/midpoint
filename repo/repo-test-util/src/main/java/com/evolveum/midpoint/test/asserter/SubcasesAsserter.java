@@ -20,13 +20,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
  * Asserts over a set of subcases.
  *
  */
-public class SubcasesAsserter<RA> extends AbstractAsserter<RA> {
+public class SubcasesAsserter<RA> extends AbstractAsserter<CaseAsserter<RA>> {
 
     @NotNull private final CaseAsserter<RA> parentCaseAsserter;
     @NotNull private final List<CaseType> subcases;
 
-    public SubcasesAsserter(@NotNull CaseAsserter<RA> parentCaseAsserter, @NotNull List<CaseType> subcases, String details) {
-        super(details);
+    SubcasesAsserter(@NotNull CaseAsserter<RA> parentCaseAsserter, @NotNull List<CaseType> subcases, String details) {
+        super(parentCaseAsserter, details);
         this.parentCaseAsserter = parentCaseAsserter;
         this.subcases = subcases;
     }

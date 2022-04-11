@@ -89,7 +89,7 @@
     </capabilities>
 
     <synchronization>
-        <objectSynchronization>
+        <objectSynchronization id="1">
             <correlation>
                 <q:equal xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
                     <q:path>name</q:path>       <!-- change from c:name to name should be recognized -->

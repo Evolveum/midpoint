@@ -15,6 +15,7 @@ import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationMoni
 
 import static java.util.Collections.unmodifiableMap;
 
-public class OperationMonitoringConfiguration {
+public class OperationMonitoringConfiguration implements Serializable {
 
     /**
      * What operations should be monitored, and to what level?

@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="7223de34-5797-4f71-a4b8-27e33eb11300">
+    <name>template-global</name>
+    <documentation>
+        Standard object template. It creates an assignment to `role-target` if `description` is not null.
+    </documentation>
+    <mapping>
+        <documentation>Non-null description leads to assignment of `role-target`.</documentation>
+        <strength>strong</strength>
+        <source>
+            <path>description</path>
+        </source>
+        <expression>
+            <value>
+                <targetRef oid="7fbffbc6-e7cf-45a2-b527-e646a8c6afdd" type="RoleType"/>
+            </value>
+        </expression>
+        <target>
+            <path>assignment</path>
+            <set>
+                <condition>
+                    <script>
+                        <code>
+                            assignment?.targetRef?.oid == "7fbffbc6-e7cf-45a2-b527-e646a8c6afdd"
+                        </code>
+                    </script>
+                </condition>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code>
+                    description != null
+                </code>
+            </script>
+        </condition>
+    </mapping>
+</objectTemplate>

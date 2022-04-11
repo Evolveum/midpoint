@@ -71,19 +71,18 @@ to a file, not its content, is the actual value.
             <keyStorePassword>changeit</keyStorePassword>
             <encryptionKeyAlias>default</encryptionKeyAlias>
             <!--
-            You can use smaller cipher key size for encryption. For:
-            AES_128 "http://www.w3.org/2001/04/xmlenc#aes128-cbc";
-            AES_256 "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
-            AES_192 "http://www.w3.org/2001/04/xmlenc#aes192-cbc";
+            By default, AES 128-bit key is generated if keystore does not exist and midPoint creates it.
 
-            in element <xmlCipher></xmlCipher>
-            By default AES_128 is used. If you change key size, than
-            you must also create secret key in key store with proper key size and change encryptionKeyAlias.
+            To generate keystore before the first start with keytool use command:
+            keytool -genseckey -alias default -keystore keystore.jceks -storetype jceks -keyalg AES -keysize 256
 
-            To generate keystore with keytool use command:
-            keytool -genseckey -alias default -keystore keystore.jceks -storetype jceks -keyalg AES -keysize 128
+            Use 'midpoint' as a password for the secret key when prompted (after the keystore password).
+            Note, that only AES algorithm is supported by midPoint at this moment.
 
-            secret key password is by default 'midpoint'
+            You can also generate your own key later with the same command (and different alias).
+            Then specify its alias as a default for all new passwords in <encryptionKeyAlias>.
+            Old passwords will be fine, just don't delete the previous key.
+            See more here: https://docs.evolveum.com/midpoint/reference/security/crypto/
             -->
         </keystore>
         <!-- <profilingEnabled>true</profilingEnabled> -->

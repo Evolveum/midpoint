@@ -16,11 +16,13 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -73,6 +75,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
     private static final String ID_FORM = "form";
 
     private final List<OrgType> selectedOrgsList = new ArrayList<>();
+    private IModel<QName> orgTabsRelationModel;
 
     private static final String DOT_CLASS = AssignmentPopup.class.getName() + ".";
     protected static final String OPERATION_LOAD_ASSIGNMENT_HOLDER_SPECIFICATION = DOT_CLASS + "loadAssignmentHolderSpecification";
@@ -290,7 +293,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel) {
+                        protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel, DataTable dataTable) {
                             tabLabelPanelUpdate(target);
                         }
 
@@ -321,7 +324,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                                 private static final long serialVersionUID = 1L;
 
                                 @Override
-                                protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel) {
+                                protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel, DataTable dataTable) {
                                     selectedOrgsListUpdate(rowModel);
                                     tabLabelPanelUpdate(target);
                                 }
@@ -329,6 +332,11 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                                 @Override
                                 protected List<OrgType> getPreselectedObjects() {
                                     return selectedOrgsList;
+                                }
+
+                                @Override
+                                protected IModel<QName> createQNameModel(QName defaultRelation) {
+                                    return getOrgRelationModel(defaultRelation);
                                 }
 
                                 @Override
@@ -343,7 +351,6 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                             };
                         }
 
-                        @Override
                         public String getCount() {
                             return Integer.toString(selectedOrgsList.size());
                         }
@@ -362,7 +369,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel) {
+                        protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel, DataTable dataTable) {
                             selectedOrgsListUpdate(rowModel);
                             tabLabelPanelUpdate(target);
                         }
@@ -370,6 +377,11 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                         @Override
                         protected List<OrgType> getPreselectedObjects() {
                             return selectedOrgsList;
+                        }
+
+                        @Override
+                        protected IModel<QName> createQNameModel(QName defaultRelation) {
+                            return getOrgRelationModel(defaultRelation);
                         }
 
                         @Override
@@ -404,7 +416,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                                 private static final long serialVersionUID = 1L;
 
                                 @Override
-                                protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ServiceType>> rowModel) {
+                                protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ServiceType>> rowModel, DataTable dataTable) {
                                     tabLabelPanelUpdate(target);
                                 }
 
@@ -436,8 +448,8 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                                 private static final long serialVersionUID = 1L;
 
                                 @Override
-                                protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel) {
-                                    super.onSelectionPerformed(target, rowModel);
+                                protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel, DataTable dataTable) {
+                                    super.onSelectionPerformed(target, rowModel, dataTable);
                                     tabLabelPanelUpdate(target);
                                 }
 
@@ -456,6 +468,13 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
         }
 
         return tabs;
+    }
+
+    private IModel<QName> getOrgRelationModel(QName defaultRelation) {
+        if (orgTabsRelationModel == null) {
+            orgTabsRelationModel = Model.of(defaultRelation);
+        }
+        return orgTabsRelationModel;
     }
 
     protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {

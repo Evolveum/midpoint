@@ -9,10 +9,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.ass
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleInducementPanel;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.model.IModel;
@@ -28,5 +30,10 @@ public class PolicyRuleInducementsPanel<AR extends AbstractRoleType> extends Abs
         super(id, model, config);
     }
 
+    @Override
+    protected ObjectQuery getCustomizeQuery() {
+        return getPageBase().getPrismContext().queryFor(AssignmentType.class)
+                .exists(AssignmentType.F_POLICY_RULE).build();
+    }
 
 }

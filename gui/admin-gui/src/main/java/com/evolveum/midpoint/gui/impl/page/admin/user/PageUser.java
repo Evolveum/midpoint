@@ -15,9 +15,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
 import com.evolveum.midpoint.gui.impl.page.admin.component.UserOperationalButtonsPanel;
 
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -56,7 +53,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/userNew")
+                @Url(mountUrl = "/admin/userNew", matchUrlForSecurity = "/admin/userNew")
         },
         encoder = OnePageParameterEncoder.class,
         action = {
@@ -123,6 +120,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     @Override
     protected UserOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<UserType>> wrapperModel) {
         return new UserOperationalButtonsPanel(id, wrapperModel, getObjectDetailsModels().getDelegationsModel(), getObjectDetailsModels().getExecuteOptionsModel(), getObjectDetailsModels().isSelfProfile()) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -139,6 +137,10 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
                 PageUser.this.previewPerformed(target);
             }
 
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageUser.this.hasUnsavedChanges(target);
+            }
         };
     }
 
@@ -272,12 +274,5 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
 
             focusDelta.addModification(delta);
         }
-    }
-
-    @Override
-    protected Collection<SelectorOptions<GetOperationOptions>> getOperationOptions() {
-        return getOperationOptionsBuilder()
-                .item(FocusType.F_JPEG_PHOTO).retrieve()
-                .build();
     }
 }

@@ -1,10 +1,12 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.query.hqm;
+
+import static com.evolveum.midpoint.repo.sqlbase.SupportedDatabase.SQLSERVER;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,6 +22,7 @@ import org.hibernate.type.Type;
 
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.*;
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -29,13 +32,16 @@ public class RootHibernateQuery extends HibernateQuery {
 
     private final Map<String, QueryParameterValue> parameters = new HashMap<>();
 
+    private final SupportedDatabase databaseType;
+
     private Integer maxResults;
     private Integer firstResult;
     private ResultTransformer resultTransformer;
     private boolean distinct;
 
-    public RootHibernateQuery(JpaEntityDefinition primaryEntityDef) {
+    public RootHibernateQuery(JpaEntityDefinition primaryEntityDef, SupportedDatabase databaseType) {
         super(primaryEntityDef);
+        this.databaseType = databaseType;
     }
 
     public String addParameter(String prefix, Object value, Type type) {
@@ -109,11 +115,6 @@ public class RootHibernateQuery extends HibernateQuery {
         return query;
     }
 
-    @Override
-    public RootHibernateQuery getRootQuery() {
-        return this;
-    }
-
     public void setMaxResults(Integer size) {
         this.maxResults = size;
     }
@@ -169,11 +170,14 @@ public class RootHibernateQuery extends HibernateQuery {
     }
 
     public static final char LIKE_ESCAPE_CHAR = '!';
-    private static final String LIKE_ESCAPED_CHARS = "_%" + LIKE_ESCAPE_CHAR;
 
     public Condition createLike(String propertyPath, String value, MatchMode matchMode, boolean ignoreCase) {
-        if (StringUtils.containsAny(value, LIKE_ESCAPED_CHARS)) {
-            value = escapeLikeValue(value);
+        // []^ to cover also SQL Server, see https://stackoverflow.com/q/712580/658826
+        String charsToEscape = databaseType == SQLSERVER
+                ? "_%[]^" + LIKE_ESCAPE_CHAR
+                : "_%" + LIKE_ESCAPE_CHAR;
+        if (StringUtils.containsAny(value, charsToEscape)) {
+            value = escapeLikeValue(value, charsToEscape);
         }
         switch (matchMode) {
             case ANYWHERE:
@@ -191,10 +195,10 @@ public class RootHibernateQuery extends HibernateQuery {
         return new SimpleComparisonCondition(this, propertyPath, value, "like", ignoreCase);
     }
 
-    private String escapeLikeValue(String value) {
+    private String escapeLikeValue(String value, String charsToEscape) {
         StringBuilder sb = new StringBuilder(value);
         for (int i = 0; i < sb.length(); i++) {
-            if (LIKE_ESCAPED_CHARS.indexOf(sb.charAt(i)) == -1) {
+            if (charsToEscape.indexOf(sb.charAt(i)) == -1) {
                 continue;
             }
 

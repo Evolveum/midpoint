@@ -71,7 +71,7 @@ public class PasswordResetNotifier extends ConfirmationNotifier<PasswordResetNot
     protected String getBody(ModelEvent event, PasswordResetNotifierType generalNotifierType, String transport, Task task,
             OperationResult result) {
         UserType userType = getUser(event);
-        return "Did you request password reset? If yes, click on the link bellow \n\n"
+        return "Did you request password reset? If yes, click on the link below \n\n"
                 + createConfirmationLink(userType, generalNotifierType, result);
     }
 

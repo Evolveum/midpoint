@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<messageTemplate
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="f5d79bd9-6903-42d9-9562-2e6a38096a26">
+    <name>correlation</name>
+    <defaultContent>
+        <subjectExpression>
+            <script>
+                <language>velocity</language>
+                <code>[midPoint] Manual account linking is needed for ${event.objectName} account</code>
+            </script>
+        </subjectExpression>
+        <bodyExpression>
+            <script>
+                <language>velocity</language>
+                <code>The following ${event.objectName} account requires manual decision for linking
+it to an existing user account or import it as a new one.
+
+Resource: ${event.objectName}
+User: ${event.getFocusValue("assignment/extension/givenName")} ${event.getFocusValue("assignment/extension/familyName")} (ID: ${event.targetName})
+
+Resolve this case: ${event.workItemUrl}
+
+--
+This message was generated from the identity management system.
+If you need help, contact idm-support@university.edu</code>
+            </script>
+        </bodyExpression>
+    </defaultContent>
+</messageTemplate>

@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -43,8 +45,9 @@ public class FocusApplicablePoliciesPanel<AR extends AbstractRoleType> extends A
         applicablePoliciesContainer.setOutputMarkupId(true);
         add(applicablePoliciesContainer);
 
-        ApplicablePolicyConfigPanel applicablePolicyPanel = new ApplicablePolicyConfigPanel(ID_APPLICABLE_POLICIES_PANEL,
-                PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), FocusType.F_ASSIGNMENT));
+        ApplicablePolicyConfigPanel applicablePolicyPanel = new ApplicablePolicyConfigPanel<AR>(ID_APPLICABLE_POLICIES_PANEL,
+                PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), FocusType.F_ASSIGNMENT),
+                getObjectWrapperModel());
 
         applicablePoliciesContainer.add(applicablePolicyPanel);
     }

@@ -20,9 +20,6 @@ import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 
-/**
- * @author mederly
- */
 public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
 
     public ExistsRestriction(InterpretationContext context, ExistsFilter filter, JpaEntityDefinition baseEntityDefinition,

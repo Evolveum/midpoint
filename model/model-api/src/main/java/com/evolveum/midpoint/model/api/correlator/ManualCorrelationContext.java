@@ -10,8 +10,7 @@ package com.evolveum.midpoint.model.api.correlator;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ManualCorrelationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PotentialOwnerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerOptionType;
 
 import java.util.List;
 
@@ -23,11 +22,6 @@ import java.util.List;
 public class ManualCorrelationContext implements DebugDumpable {
 
     /**
-     * The configuration from the correlator configuration bean. (Or constructed artificially.)
-     */
-    private ManualCorrelationConfigurationType configuration;
-
-    /**
      * Was the manual correlation requested by the user code?
      */
     private boolean requested;
@@ -36,15 +30,7 @@ public class ManualCorrelationContext implements DebugDumpable {
      * Explicit list of potential matches provided by the user code.
      * TODO
      */
-    private List<PotentialOwnerType> potentialMatches;
-
-    public ManualCorrelationConfigurationType getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(ManualCorrelationConfigurationType configuration) {
-        this.configuration = configuration;
-    }
+    private List<ResourceObjectOwnerOptionType> potentialMatches;
 
     public boolean isRequested() {
         return requested;
@@ -54,11 +40,11 @@ public class ManualCorrelationContext implements DebugDumpable {
         this.requested = requested;
     }
 
-    public List<PotentialOwnerType> getPotentialMatches() {
+    public List<ResourceObjectOwnerOptionType> getPotentialMatches() {
         return potentialMatches;
     }
 
-    public void setPotentialMatches(List<PotentialOwnerType> potentialMatches) {
+    public void setPotentialMatches(List<ResourceObjectOwnerOptionType> potentialMatches) {
         this.potentialMatches = potentialMatches;
     }
 

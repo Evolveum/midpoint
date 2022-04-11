@@ -12,9 +12,6 @@ import org.apache.wicket.extensions.wizard.IWizardModel;
 import org.apache.wicket.extensions.wizard.IWizardStep;
 import org.apache.wicket.extensions.wizard.PreviousButton;
 
-/**
- * @author mederly
- */
 public class ResourceWizardPreviousButton extends PreviousButton {
 
     public ResourceWizardPreviousButton(String id, IWizard wizard) {

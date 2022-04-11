@@ -14,8 +14,6 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
  * Useful for long-running operations, like provisioning a focus object with many projections.
  *
  * EXPERIMENTAL.
- *
- * @author mederly
  */
 public interface ProgressListener {
 

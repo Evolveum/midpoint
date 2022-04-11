@@ -359,6 +359,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         return extKey(extContainer, itemName, MExtItemHolderType.EXTENSION);
     }
 
+    /** Returns extension item key (from m_ext_item table) for the specified shadow attribute. */
     protected String shadowAttributeKey(Containerable extContainer, String itemName) {
         return extKey(extContainer, itemName, MExtItemHolderType.ATTRIBUTES);
     }
@@ -573,8 +574,12 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         private final ShadowAttributesType attributesContainer;
         private final MutablePrismContainerDefinition<Containerable> attrsDefinition;
 
+        /**
+         * Creates the attribute helper for the shadow, adding attributes container to the shadow.
+         * The container can be later obtained by {@link #attributesContainer()} if/when needed.
+         */
         public ShadowAttributesHelper(ShadowType object) throws SchemaException {
-            attributesContainer = new ShadowAttributesType(prismContext);
+            attributesContainer = new ShadowAttributesType();
             // let's create the container+PCV inside the shadow object
             object.attributes(attributesContainer);
 

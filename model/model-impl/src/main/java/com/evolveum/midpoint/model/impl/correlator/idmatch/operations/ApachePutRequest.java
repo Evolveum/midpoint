@@ -7,48 +7,24 @@
 
 package com.evolveum.midpoint.model.impl.correlator.idmatch.operations;
 
-import com.evolveum.midpoint.model.impl.correlator.idmatch.data.ListResponse;
-import com.evolveum.midpoint.model.impl.correlator.idmatch.operations.auth.AuthenticationProvider;
-import org.apache.http.client.ResponseHandler;
+import java.io.UnsupportedEncodingException;
+
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 
+class ApachePutRequest extends AbstractRequest {
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-
-public class ApachePutRequest extends HttpBuilder implements ApacheApiRequest {
-
-
-    List<ListResponse> httpResponse = new ArrayList<>();
-
-    public ApachePutRequest(AuthenticationProvider authenticationProvider) {
+    ApachePutRequest(AuthenticationProvider authenticationProvider) {
         super(authenticationProvider);
     }
 
-
     @Override
-    public void doRequest(String channel, String urlSuffix, String jsonString) throws IOException {
-
-        HttpPut request = new HttpPut(channel + urlSuffix);
+    protected HttpRequestBase createRequest(String urlPrefix, String urlSuffix, String jsonString)
+            throws UnsupportedEncodingException {
+        HttpPut request = new HttpPut(urlPrefix + urlSuffix);
         request.addHeader("content-type", "application/json");
         request.setEntity(new StringEntity(jsonString));
-
-        ResponseHandler<List<ListResponse>> responseHandler = new ApacheResponseHandler();
-        setHttpResponse(httpClient().execute(request, responseHandler));
+        return request;
     }
-
-
-    @Override
-    public List<ListResponse> listResponse() {
-        return httpResponse;
-    }
-
-
-    public void setHttpResponse(List<ListResponse> httpResponse) {
-        this.httpResponse = httpResponse;
-    }
-
 }

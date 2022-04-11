@@ -24,6 +24,7 @@ import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -151,11 +152,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     public boolean isEditingFocus() {
         return editingFocus;
-    }
-
-    @Override
-    protected void createBreadcrumb() {
-        createInstanceBreadcrumb();
     }
 
     @Override
@@ -563,7 +559,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                             }
 
                             @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ArchetypeType>> rowModel) {
+                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ArchetypeType>> rowModel, DataTable dataTable) {
                                 target.add(getObjectListPanel());
                                 tabLabelPanelUpdate(target);
                             }
@@ -1233,7 +1229,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
         processAdditionalFocalObjectsForPreview(modelContextMap);
 
-        navigateToNext(new PagePreviewChanges(modelContextMap, getModelInteractionService()));
+        navigateToNext(new PagePreviewChanges(modelContextMap, getModelInteractionService(), this));
     }
 
     protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<O>, ModelContext<? extends ObjectType>> modelContextMap) {

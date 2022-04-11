@@ -274,7 +274,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                 connectorType = convertToConnectorType(connectorInfo, null);
                 localConnectorTypes.add(connectorType);
             } catch (SchemaException e) {
-                LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
+                LOGGER.error("Schema error while initializing ICF connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
             }
         }
         return localConnectorTypes;
@@ -289,7 +289,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                 ConnectorType connectorType = convertToConnectorType(connectorInfo, host);
                 connectorTypes.add(connectorType);
             } catch (SchemaException e) {
-                LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
+                LOGGER.error("Schema error while initializing ICF connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
             }
         }
         return connectorTypes;
@@ -498,7 +498,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             en = ConnectorFactoryConnIdImpl.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
         } catch (IOException ex) {
             LOGGER.debug("Error during reading content from class path");
-            // TODO return? or NPE on the while bellow?
+            // TODO return? or NPE on the while below?
         }
 
         // Find which one is ICF connector
@@ -703,7 +703,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
         // Test if it is a connector
         if (null != prop.get("ConnectorBundle-Name")) {
-            LOGGER.info("Discovered ConnId bundle in JAR: " + prop.get("ConnectorBundle-Name") + " version: "
+            LOGGER.info("Discovered ICF bundle in JAR: " + prop.get("ConnectorBundle-Name") + " version: "
                     + prop.get("ConnectorBundle-Version"));
             return true;
         }

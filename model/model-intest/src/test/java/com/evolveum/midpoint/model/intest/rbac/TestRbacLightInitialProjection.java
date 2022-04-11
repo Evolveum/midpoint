@@ -14,10 +14,6 @@ import org.springframework.test.context.ContextConfiguration;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
-/**
- * @author mederly
- *
- */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRbacLightInitialProjection extends TestRbac {

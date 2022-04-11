@@ -7,7 +7,7 @@
 
 -- @formatter:off because of terribly unreliable IDEA reformat for SQL
 -- This is the update script for the MAIN REPOSITORY, it will not work for a separate audit database.
--- It is safe to run this script repeatedly, so if you're not sure you're up to date.
+-- It is safe to run this script repeatedly, so if you're not sure, just run it to be up to date.
 -- DO NOT use explicit COMMIT commands inside the apply_change blocks - leave that to the procedure.
 -- If necessary, split your changes into multiple apply_changes calls to enforce the commit
 -- before another change - for example when adding values to the custom enum types.
@@ -75,6 +75,25 @@ CREATE INDEX m_message_template_policySituation_idx
     ON m_message_template USING gin(policysituations gin__int_ops);
 CREATE INDEX m_message_template_createTimestamp_idx ON m_message_template (createTimestamp);
 CREATE INDEX m_message_template_modifyTimestamp_idx ON m_message_template (modifyTimestamp);
+$aa$);
+
+-- MID-7487 Identity matching
+call apply_change(4, $aa$
+CREATE TYPE CorrelationSituationType AS ENUM ('UNCERTAIN', 'EXISTING_OWNER', 'NO_OWNER', 'ERROR');
+$aa$);
+
+call apply_change(5, $aa$
+ALTER TABLE m_shadow
+ADD COLUMN correlationStartTimestamp TIMESTAMPTZ,
+ADD COLUMN correlationEndTimestamp TIMESTAMPTZ,
+ADD COLUMN correlationCaseOpenTimestamp TIMESTAMPTZ,
+ADD COLUMN correlationCaseCloseTimestamp TIMESTAMPTZ,
+ADD COLUMN correlationSituation CorrelationSituationType;
+
+CREATE INDEX m_shadow_correlationStartTimestamp_idx ON m_shadow (correlationStartTimestamp);
+CREATE INDEX m_shadow_correlationEndTimestamp_idx ON m_shadow (correlationEndTimestamp);
+CREATE INDEX m_shadow_correlationCaseOpenTimestamp_idx ON m_shadow (correlationCaseOpenTimestamp);
+CREATE INDEX m_shadow_correlationCaseCloseTimestamp_idx ON m_shadow (correlationCaseCloseTimestamp);
 $aa$);
 
 -- WRITE CHANGES ABOVE ^^

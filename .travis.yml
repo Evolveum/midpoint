@@ -2,7 +2,7 @@ sudo: required
 dist: trusty
 language: java
 
-#skips default install - see script bellow
+#skips default install - see script below
 install: true
 
 cache:

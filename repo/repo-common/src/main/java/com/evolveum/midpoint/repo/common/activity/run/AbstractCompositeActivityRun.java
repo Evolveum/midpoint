@@ -75,6 +75,15 @@ public abstract class AbstractCompositeActivityRun<
     protected @NotNull ActivityRunResult runLocally(OperationResult result)
             throws ActivityRunException, CommonException {
 
+        ensureNotInWorkerTask("This composite activity cannot be run in multiple worker tasks. If you need "
+                + "the multi-node capability, use activity tailoring to specify worker tasks for individual sub-activities.");
+
+        // Note that we _allow_ workerThreads setting here. It is ignored by this run
+        // (as it is treated in iterative and custom activities only), so it does no harm.
+        // It may be even useful as a shortcut to define multithreading in child activities.
+        // Those children that don't like it (e.g. report data aggregation) have to check for
+        // it themselves.
+
         activity.initializeChildrenMapIfNeeded();
 
         logStart();

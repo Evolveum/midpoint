@@ -1,0 +1,241 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            oid="21d4788c-15eb-40cc-8ac5-3cd379362ffe">
+
+    <name>Student Information System</name>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration>
+        <icfc:configurationProperties
+                xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+            <icfccsvfile:filePath>will-be-replaced-by-test-code</icfccsvfile:filePath> <!-- resource-sis.csv -->
+            <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
+            <icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
+            <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
+            <icfccsvfile:uniqueAttribute>sisId</icfccsvfile:uniqueAttribute>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <multiplicity>
+                <!-- Each user can have more accounts in SIS. The sisId is the tag. -->
+                <maxOccurs>unbounded</maxOccurs>
+                <tag>
+                    <expression>
+                        <script>
+                            <code>basic.getIdentifierValue(projection)</code>
+                        </script>
+                    </expression>
+                </tag>
+            </multiplicity>
+            <attribute>
+                <ref>ri:sisId</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression> <!-- cannot use "source" because there's no definition for that piece of data -->
+                        <!-- Hack. This mapping should be invokable directly. -->
+                        <!-- We assume the reference ID is present. -->
+                        <path>$shadow/correlation/correlatorState/referenceId</path>
+                    </expression>
+                    <target>
+                        <path>extension/referenceId</path>
+                    </target>
+                    <evaluationPhases>
+                        <!-- Before correlation, this ID may not be known. -->
+                        <exclude>beforeCorrelation</exclude>
+                    </evaluationPhases>
+                </inbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>$shadow/attributes/ri:firstName</path>
+                    </source>
+                    <source>
+                        <path>$shadow/attributes/ri:lastName</path>
+                    </source>
+                    <source>
+                        <path>$shadow/attributes/ri:born</path>
+                    </source>
+                    <source>
+                        <path>$shadow/attributes/ri:nationalId</path>
+                    </source>
+                    <source>
+                        <path>$shadow/attributes/ri:studyProgram</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                params = new HashMap()
+                                params.put('subtype', 'sis')
+                                params.put('sourceId', input)
+                                params.put('givenName', firstName)
+                                params.put('familyName', lastName)
+                                params.put('dateOfBirth', born)
+                                params.put('nationalId', nationalId)
+                                params.put('targetName', 'program-' + studyProgram)
+                                idmatch.execute('createAssignment', params)
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>assignment</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>
+                                        //this.binding.variables.each {k,v -> log.info('eval: {} = {}', k, v)}
+                                        def sisId = basic.getIdentifierValue(shadow)
+                                        def subtype = 'sis-' + sisId
+                                        assignment.subtype.contains(subtype)
+                                    </code>
+                                </script>
+                            </condition>
+                        </set>
+                    </target>
+                </inbound>
+            </attribute>
+            <mappingsEvaluation>
+                <inbound>
+                    <defaultEvaluationPhases>
+                        <phase>clockwork</phase>
+                        <phase>beforeCorrelation</phase>
+                    </defaultEvaluationPhases>
+                </inbound>
+            </mappingsEvaluation>
+        </objectType>
+    </schemaHandling>
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <kind>account</kind>
+            <intent>default</intent>
+            <correlationDefinition>
+                <correlators>
+                    <definitions>
+                        <items>
+                            <item>
+                                <source>
+                                    <path>assignment/extension/givenName</path>
+                                </source>
+                                <target>
+                                    <path>givenName</path>
+                                </target>
+                                <target>
+                                    <qualifier>systems</qualifier>
+                                    <path>assignment/extension/givenName</path>
+                                </target>
+                            </item>
+                            <item>
+                                <source>
+                                    <path>assignment/extension/familyName</path>
+                                </source>
+                                <target>
+                                    <path>familyName</path>
+                                </target>
+                                <target>
+                                    <qualifier>systems</qualifier>
+                                    <path>assignment/extension/familyName</path>
+                                </target>
+                            </item>
+                            <item>
+                                <source>
+                                    <path>assignment/extension/dateOfBirth</path>
+                                </source>
+                                <target>
+                                    <path>extension/dateOfBirth</path>
+                                </target>
+                                <target>
+                                    <qualifier>systems</qualifier>
+                                    <path>assignment/extension/dateOfBirth</path>
+                                </target>
+                            </item>
+                            <item>
+                                <source>
+                                    <path>assignment/extension/nationalId</path>
+                                </source>
+                                <target>
+                                    <path>extension/nationalId</path>
+                                </target>
+                                <target>
+                                    <qualifier>systems</qualifier>
+                                    <path>assignment/extension/nationalId</path>
+                                </target>
+                            </item>
+                        </items>
+                    </definitions>
+                    <idMatch>
+                        <sorIdentifierPrefix>sis-</sorIdentifierPrefix>
+                        <!-- URL and credentials are ignored when dummy ID Match Service implementation is used.
+                             They are used only when running TestIdMatchCorrelationMultiAccountsReal (not part of the test suite). -->
+                        <url>http://localhost:9090/match/api/1</url>
+                        <username>administrator</username>
+                        <password><t:clearValue>5ecr3t</t:clearValue></password>
+                        <followOn>
+                            <filter>
+                                <ownerFilter>
+                                    <q:equal>
+                                        <q:path>extension/referenceId</q:path>
+                                        <expression>
+                                            <!-- TODO here will be $focus/extension/referenceId, or even extension/referenceId -->
+                                            <path>$correlatorState/referenceId</path>
+                                        </expression>
+                                    </q:equal>
+                                </ownerFilter>
+                            </filter>
+                        </followOn>
+                    </idMatch>
+                </correlators>
+                <cases/>
+            </correlationDefinition>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+
+    <business>
+        <correlatorRef oid="8d537583-d475-48c4-b23d-5e71e1ef4e2a" type="OrgType"/>
+        <correlatorActionMaxDuration>P5D</correlatorActionMaxDuration>
+    </business>
+</resource>

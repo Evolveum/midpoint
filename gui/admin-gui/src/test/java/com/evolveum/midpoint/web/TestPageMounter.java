@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
         "classpath:ctx-security.xml",
         "classpath:ctx-provisioning.xml",
         "classpath:ctx-model.xml",
+        "classpath*:ctx-cases.xml",
         "classpath*:ctx-workflow.xml" })
 public class TestPageMounter extends AbstractGuiUnitTest {
 

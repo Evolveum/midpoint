@@ -9,9 +9,6 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import java.io.Serializable;
 
-/**
- * @author mederly
- */
 public class ExecuteMappingDto implements Serializable {
 
     public static final String F_MAPPING = "mapping";

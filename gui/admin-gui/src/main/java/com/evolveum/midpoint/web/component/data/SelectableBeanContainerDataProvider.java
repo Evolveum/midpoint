@@ -17,6 +17,7 @@ import java.util.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -78,29 +79,6 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
 
     public void clearSelectedObjects() {
         selected.clear();
-    }
-
-    @Override
-    public List<SelectableBean<C>> getSelectedObjects() {
-        preprocessSelectedDataInternal();
-        List<SelectableBean<C>> ret = new ArrayList<>();
-        for (SelectableBean<C> selectable : super.getAvailableData()) {
-            if (selectable.isSelected()) {
-                (ret).add(selectable);
-            }
-        }
-        return ret;
-    }
-
-    @Override
-    public @NotNull List<C> getSelectedRealObjects() {
-        preprocessSelectedDataInternal();
-        for (SelectableBean<C> selectable : super.getAvailableData()) {
-            if (selectable.isSelected() && selectable.getValue() != null) {
-                ((Set) selected).add(selectable.getValue());
-            }
-        }
-        return new ArrayList<>(selected);
     }
 
     private void preprocessSelectedData() {
@@ -216,7 +194,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     }
 
     public SelectableBean<C> createDataObjectWrapper(C obj) {
-        SelectableBean<C> selectable = new SelectableBeanImpl<>(obj);
+        SelectableBean<C> selectable = new SelectableBeanImpl<>(Model.of(obj));
 
         for (C s : selected) {
             if (s.asPrismContainerValue().equivalent(obj.asPrismContainerValue())) {

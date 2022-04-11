@@ -20,7 +20,6 @@ import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author lazyman
- * @author mederly
  *
  * EXPERIMENTAL - to be used with PageCertDecisions until sufficiently stable
  */

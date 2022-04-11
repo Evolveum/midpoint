@@ -145,7 +145,9 @@ public class ProvenanceBuiltinMapping extends BaseBuiltinMetadataMapping {
             for (ProvenanceAcquisitionType representativeAcquisition : representativeProvenance.getAcquisition()) {
                 List<ProvenanceAcquisitionType> compatibleAcquisitions = getCompatibleAcquisitions(representativeAcquisition);
                 ProvenanceAcquisitionType earliest = compatibleAcquisitions.stream()
-                        .min(Comparator.nullsLast(Comparator.comparing(acquisition -> XmlTypeConverter.toMillisNullable(acquisition.getTimestamp()))))
+                        .min(Comparator.comparing(
+                                acquisition -> XmlTypeConverter.toMillisNullable(acquisition.getTimestamp()),
+                                Comparator.nullsLast(Comparator.naturalOrder())))
                         .orElseThrow(() -> new IllegalStateException("No earliest acquisition"));
                 resultingProvenance.getAcquisition().add(earliest.clone());
             }

@@ -133,14 +133,4 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
         return count;
     }
 
-    @Override
-    public List<PrismContainerValueWrapper<C>> getSelectedObjects() {
-        return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
-    }
-
-    @Override
-    public @NotNull List<C> getSelectedRealObjects() {
-        return getAvailableData().stream().filter(a -> a.isSelected()).map(w -> w.getRealValue()).collect(Collectors.toList());
-    }
-
 }

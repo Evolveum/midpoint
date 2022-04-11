@@ -13,7 +13,7 @@
     <parent>
         <artifactId>dist</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.5-SNAPSHOT</version>
+        <version>4.6-SNAPSHOT</version>
     </parent>
 
     <artifactId>midpoint-api</artifactId>
@@ -23,23 +23,25 @@
 
     <properties>
         <maven.test.skip>true</maven.test.skip>
+        <!-- Profile for JDK11 sets additional javadocs options for java 11 (which are removed in java 13+ -->
+        <javadoc.options></javadoc.options>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
-            <version>4.5-SNAPSHOT</version>
+            <version>4.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
-            <version>4.5-SNAPSHOT</version>
+            <version>4.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.5-SNAPSHOT</version>
+            <version>4.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.prism</groupId>
@@ -88,7 +90,7 @@
                     <quiet>false</quiet>
                     <debug>false</debug>
                     <doclint>none</doclint>
-                    <!--<additionalJOption>&#45;&#45;no-module-directories</additionalJOption>-->
+                    <additionalJOption>${javadoc.options}</additionalJOption>
 
                     <!--
                     TODO: Not usable yet, see https://github.com/asciidoctor/asciidoclet/pull/96 for the progress on JDK 11 support.
@@ -127,4 +129,15 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>active-on-jdk-11</id>
+            <activation>
+                <jdk>11</jdk>
+            </activation>
+            <properties>
+                <javadoc.options>--no-module-directories</javadoc.options>
+            </properties>
+        </profile>
+    </profiles>
 </project>
