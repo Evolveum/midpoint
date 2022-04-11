@@ -27,6 +27,8 @@
         <maven.install.skip>true</maven.install.skip>
         <!-- This enables build without -DskipTests option (e.g. full build). -->
         <maven.test.skip>true</maven.test.skip>
+        <!-- Profile for JDK11 sets additional javadocs options for java 11 (which are removed in java 13+ -->
+        <javadoc.options></javadoc.options>
     </properties>
 
     <dependencies>
@@ -68,7 +70,7 @@
                     <isOffline>true</isOffline>
                     <doctitle>midPoint Aggregate JavaDoc</doctitle>
                     <windowtitle>midPoint Aggregate JavaDoc</windowtitle>
-                    <!--<additionalJOption>&#45;&#45;no-module-directories</additionalJOption>-->
+                    <additionalJOption>${javadoc.options}</additionalJOption>
                     <doclint>none</doclint>
                     <quiet>true</quiet>
                     <debug>false</debug>
@@ -116,4 +118,16 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>active-on-jdk-11</id>
+            <activation>
+                <jdk>11</jdk>
+            </activation>
+            <properties>
+                <javadoc.options>--no-module-directories</javadoc.options>
+            </properties>
+        </profile>
+    </profiles>
 </project>
