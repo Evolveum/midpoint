@@ -19545,7 +19545,7 @@
             <xsd:enumeration value="00000000-0000-0000-0000-000000000518">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_EXECUTE_DETLAS_TASK"/>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_EXECUTE_DELTAS_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
