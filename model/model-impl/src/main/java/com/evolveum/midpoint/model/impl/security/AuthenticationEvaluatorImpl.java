@@ -107,11 +107,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
 
         if (checkCredentials(principal, authnCtx, connEnv)) {
-
-            if(AuthenticationEvaluatorUtil.checkRequiredAssignment(focusType.getAssignment(), authnCtx.getRequireAssignments())){
-                recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, null, authnCtx.getPrincipalType(), true);
-                recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials), false);
-            } else {
+            if(!AuthenticationEvaluatorUtil.checkRequiredAssignment(focusType.getAssignment(), authnCtx.getRequireAssignments())){
                 recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "not contains required assignment", authnCtx.getPrincipalType(), false);
                 recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "not contains required assignment", false);
                 throw new InternalAuthenticationServiceException("web.security.flexAuth.invalid.required.assignment");
@@ -121,8 +117,10 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch", false);
             throw new BadCredentialsException("web.security.provider.invalid");
         }
-
         checkAuthorizations(principal, connEnv, authnCtx);
+
+        recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, null, authnCtx.getPrincipalType(), true);
+        recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials), false);
         return new UsernamePasswordAuthenticationToken(principal, authnCtx.getEnteredCredential(), principal.getAuthorities());
     }
 
@@ -140,17 +138,16 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         CredentialsType credentials = focusType.getCredentials();
         CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
 
-        if (checkCredentials(principal, authnCtx, connEnv)) {
-            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "password mismatch", authnCtx.getPrincipalType(), true);
-            recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials), false);
-        } else {
+        if (!checkCredentials(principal, authnCtx, connEnv)) {
             recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "password mismatch", authnCtx.getPrincipalType(), false);
             recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch", false);
 
             throw new BadCredentialsException("web.security.provider.invalid");
         }
-
         checkAuthorizations(principal, connEnv, authnCtx);
+
+        recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, null, authnCtx.getPrincipalType(), true);
+        recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials), false);
         return focusType;
     }
 
