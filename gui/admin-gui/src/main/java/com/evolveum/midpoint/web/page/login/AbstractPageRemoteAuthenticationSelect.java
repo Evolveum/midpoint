@@ -13,6 +13,7 @@ import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.config.RemoteModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -72,6 +73,21 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
         form.add(csrfField);
+    }
+
+    @Override
+    protected IModel<String> getBodyCssClass() {
+        return null;
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return null;
+    }
+
+    @Override
+    public CorrelationService getCorrelationService() {
+        return null;
     }
 
     abstract protected Class<? extends Authentication> getSupportedAuthToken();

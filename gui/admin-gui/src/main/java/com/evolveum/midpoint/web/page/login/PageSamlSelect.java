@@ -6,15 +6,15 @@
  */
 package com.evolveum.midpoint.web.page.login;
 
-import java.io.Serializable;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.apache.wicket.model.IModel;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
+
+import java.io.Serializable;
 
 /**
  * @author skublik
@@ -23,19 +23,10 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
         @Url(mountUrl = "/saml2/select", matchUrlForSecurity = "/saml2/select")
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.SAML_2)
 public class PageSamlSelect extends AbstractPageRemoteAuthenticationSelect implements Serializable {
+
     private static final long serialVersionUID = 1L;
 
     public PageSamlSelect() {
-    }
-
-    @Override
-    protected IModel<String> getBodyCssClass() {
-        return null;
-    }
-
-    @Override
-    protected IModel<String> createPageTitleModel() {
-        return null;
     }
 
     @Override

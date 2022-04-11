@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.login;
 
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -23,16 +21,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
 import com.evolveum.midpoint.web.page.login.AbstractPageLogin;
 import com.evolveum.midpoint.web.page.login.PageSelfRegistration;
-import com.evolveum.midpoint.web.security.module.authentication.LdapModuleAuthentication;
-import com.evolveum.midpoint.web.security.module.authentication.LoginFormModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -67,18 +61,9 @@ public class PageLoginOld extends AbstractPageLogin {
     protected static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = DOT_CLASS + "loadPasswordResetPolicy";
     private static final String OPERATION_LOAD_REGISTRATION_POLICY = DOT_CLASS + "loadRegistrationPolicy";
 
-    @Override
-    protected IModel<String> getBodyCssClass() {
-        return null;
-    }
-
-    @Override
-    protected IModel<String> createPageTitleModel() {
-        return null;
-    }
     private final LoadableDetachableModel<SecurityPolicyType> securityPolicyModel;
 
-    public PageLogin() {
+    public PageLoginOld() {
 
         securityPolicyModel = new LoadableDetachableModel<>() {
             @Override
@@ -93,6 +78,16 @@ public class PageLoginOld extends AbstractPageLogin {
                 return null;
             }
         };
+    }
+
+    @Override
+    protected IModel<String> getBodyCssClass() {
+        return null;
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return null;
     }
 
     private SecurityPolicyType getSecurityPolicy() {

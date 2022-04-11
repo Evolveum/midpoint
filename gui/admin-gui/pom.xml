@@ -833,19 +833,19 @@
                 </configuration>
             </plugin>
 
-            <plugin>
+            <!--<plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
                 <version>1.12.0</version>
 
                 <executions>
                     <execution>
-                        <!-- optional: you don't really need execution ids, but it looks nice in your build log. -->
+                        &lt;!&ndash; optional: you don't really need execution ids, but it looks nice in your build log. &ndash;&gt;
                         <id>install node and npm</id>
                         <goals>
                             <goal>install-node-and-npm</goal>
                         </goals>
-                        <!-- optional: default phase is "generate-resources" -->
+                        &lt;!&ndash; optional: default phase is "generate-resources" &ndash;&gt;
                         <phase>generate-resources</phase>
                     </execution>
                     <execution>
@@ -854,15 +854,15 @@
                             <goal>npm</goal>
                         </goals>
 
-                        <!-- optional: default phase is "generate-resources" -->
+                        &lt;!&ndash; optional: default phase is "generate-resources" &ndash;&gt;
                         <phase>generate-resources</phase>
 
                         <configuration>
-                            <!-- optional: The default argument is actually
+                            &lt;!&ndash; optional: The default argument is actually
                             "install", so unless you need to run some other npm command,
                             you can remove this whole <configuration> section.
-                            -->
-                            <arguments>install ace-builds babel-loader sass-loader sass css-loader style-loader postcss-loader webpack webpack-cli expose-loader css-minimizer-webpack-plugin mini-css-extract-plugin admin-lte@^3.1 --save-dev</arguments>
+                            &ndash;&gt;
+                            <arguments>install ace-builds babel-loader sass-loader sass css-loader style-loader postcss-loader webpack webpack-cli expose-loader css-minimizer-webpack-plugin mini-css-extract-plugin admin-lte@^3.1 &#45;&#45;save-dev</arguments>
                             <workingDirectory>target</workingDirectory>
                         </configuration>
                     </execution>
@@ -872,7 +872,7 @@
                             <goal>webpack</goal>
                         </goals>
 
-                        <!-- optional: the default phase is "generate-resources" -->
+                        &lt;!&ndash; optional: the default phase is "generate-resources" &ndash;&gt;
                         <phase>generate-resources</phase>
 
                         <configuration>
@@ -885,7 +885,7 @@
                     <installDirectory>target</installDirectory>
                 </configuration>
 
-            </plugin>
+            </plugin>-->
 
         </plugins>
     </build>

@@ -6,44 +6,10 @@
  */
 package com.evolveum.midpoint.gui.api.page;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
-import com.evolveum.midpoint.util.exception.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.apache.wicket.*;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalDialog;
-import org.apache.wicket.feedback.FeedbackMessage;
-import org.apache.wicket.feedback.FeedbackMessages;
-import org.apache.wicket.injection.Injector;
-import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.protocol.http.WebSession;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.DefaultGuiConfigurationCompiler;
-import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
@@ -68,6 +34,7 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -88,27 +55,26 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.CheckedProducer;
 import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.SimpleCounter;
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
-import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -116,9 +82,36 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.wicket.*;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.feedback.FeedbackMessages;
+import org.apache.wicket.injection.Injector;
+import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.protocol.http.WebSession;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * @author lazyman
@@ -156,7 +149,7 @@ public abstract class PageCommon extends WebPage implements ModelServiceLocator 
 
     @SpringBean(name = "modelController")
     private ScriptingService scriptingService;
-//
+    //
 //    @SpringBean(name = "modelController")
 //    private ModelService modelService;
 //
@@ -165,13 +158,13 @@ public abstract class PageCommon extends WebPage implements ModelServiceLocator 
 //
     @SpringBean(name = "dashboardService")
     private DashboardService dashboardService;
-//
+    //
 //    @SpringBean(name = "modelController")
 //    private TaskService taskService;
 //
     @SpringBean(name = "modelDiagController")
     private ModelDiagnosticService modelDiagnosticService;
-//
+    //
 //    @SpringBean(name = "taskManager")
 //    private TaskManager taskManager;
 //
@@ -192,7 +185,7 @@ public abstract class PageCommon extends WebPage implements ModelServiceLocator 
 
     @SpringBean(name = "resourceValidator")
     private ResourceValidator resourceValidator;
-//
+    //
 //    @SpringBean(name = "modelController")
 //    private AccessCertificationService certificationService;
 //
@@ -201,7 +194,7 @@ public abstract class PageCommon extends WebPage implements ModelServiceLocator 
 //
     @SpringBean(name = "clock")
     private Clock clock;
-//
+    //
 //    @SpringBean
 //    private SecurityContextManager securityContextManager;
 //
@@ -210,7 +203,7 @@ public abstract class PageCommon extends WebPage implements ModelServiceLocator 
 
     @SpringBean(name = "modelObjectResolver")
     private ObjectResolver modelObjectResolver;
-//
+    //
 //    @SpringBean
 //    private LocalizationService localizationService;
 //
@@ -711,7 +704,6 @@ public abstract class PageCommon extends WebPage implements ModelServiceLocator 
                 .build();
         getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, getPageTask(), result);
     }
-
 
     private OperationResult executeResultScriptHook(OperationResult result) {
         CompiledGuiProfile adminGuiConfiguration = getCompiledGuiProfile();

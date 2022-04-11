@@ -1,0 +1,11 @@
+{
+  "name": "admin-gui",
+  "version": "4.6.0",
+  "description": "Evolveum midPoint admin-gui module npm project for css/javascript code",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

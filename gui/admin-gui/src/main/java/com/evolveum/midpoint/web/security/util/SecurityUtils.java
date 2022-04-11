@@ -10,17 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
-import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
-
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.page.error.PageError401;
-import com.evolveum.midpoint.web.page.login.*;
-
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
