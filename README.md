@@ -1,5 +1,5 @@
-MidPoint 4.5 "Nightingale"
---------------------------
+MidPoint 4.6 Development Branch
+-------------------------------
 
 General information:
 
