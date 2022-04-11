@@ -10,6 +10,7 @@
     <name>My cases</name>
     <type>CaseType</type>
     <filter>
+        <!--  TODO: Convert to Axiom Query -->
         <q:and>
             <q:ref>
                 <q:path>requestorRef</q:path>

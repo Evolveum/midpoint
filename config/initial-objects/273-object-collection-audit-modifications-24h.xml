@@ -13,6 +13,7 @@
     <name>Modification audit records in 24h</name>
     <type>AuditEventRecordType</type>
     <filter>
+        <!--  TODO: Convert to Axiom Query -->
         <q:and>
             <q:equal>
                 <q:path>eventStage</q:path>
