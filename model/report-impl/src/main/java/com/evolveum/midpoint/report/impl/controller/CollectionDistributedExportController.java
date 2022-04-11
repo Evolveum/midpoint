@@ -77,6 +77,9 @@ public class CollectionDistributedExportController<C extends Containerable> exte
      */
     public void afterBucketExecution(int bucketNumber, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
+
+        // TODO what if the task is being suspended?
+
         String data = dataWriter.getStringData();
         dataWriter.reset();
 

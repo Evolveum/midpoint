@@ -10,11 +10,8 @@ package com.evolveum.midpoint.report.impl.activity;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
@@ -65,7 +62,15 @@ final class ReportDataAggregationActivityRun
     }
 
     @Override
+    public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
+        return super.createReportingCharacteristics()
+                .skipWritingOperationExecutionRecords(true); // partial data objects are deleted anyway
+    }
+
+    @Override
     public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        ensureNoParallelism();
+
         support.beforeExecution(result);
 
         dataWriter = ReportUtils.createDataWriter(
