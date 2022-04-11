@@ -125,7 +125,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.SimpleCounter;
-import com.evolveum.midpoint.web.boot.Wro4jConfig;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
@@ -174,7 +173,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_DEBUG_BAR = "debugBar";
-    private static final String ID_CLEAR_CACHE = "clearCssCache";
     private static final String ID_DUMP_PAGE_TREE = "dumpPageTree";
     private static final String ID_CART_BUTTON = "cartButton";
     private static final String ID_CART_ITEMS_COUNT = "itemsCount";
@@ -1075,16 +1073,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         });
         add(debugBar);
 
-        AjaxButton clearCache = new AjaxButton(ID_CLEAR_CACHE, createStringResource("PageBase.clearCssCache")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                clearLessJsCache(target);
-            }
-        };
-        debugBar.add(clearCache);
-
         AjaxButton dumpPageTree = new AjaxButton(ID_DUMP_PAGE_TREE, createStringResource("PageBase.dumpPageTree")) {
             private static final long serialVersionUID = 1L;
 
@@ -1101,31 +1089,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             new PageStructureDump().dumpStructure(this, pw);
         } catch (IOException ex) {
             ex.printStackTrace();
-        }
-    }
-
-    protected void clearLessJsCache(AjaxRequestTarget target) {
-        try {
-            ArrayList<MBeanServer> servers = MBeanServerFactory.findMBeanServer(null);
-            if (servers.size() > 1) {
-                LOGGER.info("Too many mbean servers, cache won't be cleared.");
-                for (MBeanServer server : servers) {
-                    LOGGER.info(server.getDefaultDomain());
-                }
-                return;
-            }
-            MBeanServer server = servers.get(0);
-            ObjectName objectName = ObjectName.getInstance(Wro4jConfig.WRO_MBEAN_NAME + ":type=WroConfiguration");
-            server.invoke(objectName, "reloadCache", new Object[] {}, new String[] {});
-            if (target != null) {
-                target.add(PageBase.this);
-            }
-        } catch (Exception ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't clear less/js cache", ex);
-            error("Error occurred, reason: " + ex.getMessage());
-            if (target != null) {
-                target.add(getFeedbackPanel());
-            }
         }
     }
 

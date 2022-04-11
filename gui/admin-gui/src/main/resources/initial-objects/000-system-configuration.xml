@@ -18,10 +18,6 @@
     <globalSecurityPolicyRef oid="00000000-0000-0000-0000-000000000120"/>
     <logging>
         <classLogger>
-            <level>ERROR</level>
-            <package>ro.isdc.wro.extensions.processor.css.Less4jProcessor</package>
-        </classLogger>
-        <classLogger>
             <!-- disabled because INFO log during of creating new authentication filter chain -->
             <level>OFF</level>
             <package>org.springframework.security.web.DefaultSecurityFilterChain</package>
