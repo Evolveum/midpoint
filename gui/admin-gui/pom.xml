@@ -107,16 +107,6 @@
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
-            <artifactId>respond</artifactId>
-            <scope>runtime</scope> <!-- needed for javascripts for IE8 -->
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>html5shiv</artifactId>
-            <scope>runtime</scope> <!-- needed for javascripts for IE8 -->
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
             <artifactId>font-awesome</artifactId>
             <scope>runtime</scope>
         </dependency>

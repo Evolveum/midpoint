@@ -17,6 +17,7 @@
     "css-loader": "^6.7.1",
     "css-minimizer-webpack-plugin": "^3.4.1",
     "expose-loader": "^3.1.0",
+    "knockout": "^3.5.1",
     "mini-css-extract-plugin": "^2.6.0",
     "postcss-loader": "^6.2.1",
     "sass": "^1.50.0",
