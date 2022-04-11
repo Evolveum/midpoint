@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * 1. {@link #initialize(RunningTask, OperationResult)} that sets up the processes (in a particular worker task),
  * 2. {@link #beforeBucketExecution(int, OperationResult)} that starts processing of a given work bucket,
  * 3. {@link #handleDataRecord(int, Containerable, RunningTask, OperationResult)} that processes given prism object,
- * 4. {@link #afterBucketExecution(int, OperationResult)} that wraps up processing of a bucket, storing partial results
+ * 4. {@link #afterBucketExecution(int, RunningTask, OperationResult)} that wraps up processing of a bucket, storing partial results
  * to be aggregated in the follow-up activity.
  *
  * @param <C> Type of records to be processed.
@@ -75,10 +75,14 @@ public class CollectionDistributedExportController<C extends Containerable> exte
      * We have to store the data into partial report data object in the repository, to be aggregated into final
      * report afterwards.
      */
-    public void afterBucketExecution(int bucketNumber, OperationResult result)
+    public void afterBucketExecution(int bucketNumber, @NotNull RunningTask runningTask, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
 
-        // TODO what if the task is being suspended?
+        if (!runningTask.canRun()) {
+            LOGGER.warn("Not storing the (partial) resulting report for bucket #{}, as the activity is being suspended: {}",
+                    bucketNumber, report);
+            return;
+        }
 
         String data = dataWriter.getStringData();
         dataWriter.reset();

@@ -259,7 +259,7 @@ public final class ReportDataCreationActivityRun
 
     @Override
     public void afterBucketProcessing(OperationResult result) throws CommonException {
-        controller.afterBucketExecution(bucket.getSequentialNumber(), result);
+        controller.afterBucketExecution(bucket.getSequentialNumber(), getRunningTask(), result);
     }
 
     private static class SearchSpecificationHolder implements ReportDataSource<Containerable> {

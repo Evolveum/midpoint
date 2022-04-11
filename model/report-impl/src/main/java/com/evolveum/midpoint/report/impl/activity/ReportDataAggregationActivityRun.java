@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.run.*;
@@ -29,6 +30,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 final class ReportDataAggregationActivityRun
         extends SearchBasedActivityRun
@@ -53,6 +56,9 @@ final class ReportDataAggregationActivityRun
      * Data writer which completes the content of the report.
      */
     private ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter;
+
+    /** The number of bucket we expect (during collection of partial results). */
+    private int expectedSequentialNumber = 1;
 
     ReportDataAggregationActivityRun(
             @NotNull ActivityRunInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
@@ -98,9 +104,19 @@ final class ReportDataAggregationActivityRun
             @NotNull ItemProcessingRequest<ReportDataType> request, RunningTask workerTask, OperationResult result)
             throws CommonException, ActivityRunException {
         LOGGER.info("Appending data from {} (and deleting the object)", reportData);
+        checkSequentialNumber(reportData); // TODO check also the total # of buckets (after we know it at the start!)
         aggregatedData.append(reportData.getData());
         getActivityHandler().commonTaskBeans.repositoryService.deleteObject(ReportDataType.class, reportData.getOid(), result);
         return true;
+    }
+
+    private void checkSequentialNumber(@NotNull ReportDataType reportData) {
+        int sequentialNumber = Objects.requireNonNull(
+                reportData.getSequentialNumber(),
+                () -> "No sequential number in " + reportData);
+        stateCheck(sequentialNumber == expectedSequentialNumber,
+                "Expected sequential number %d but got %d", expectedSequentialNumber, sequentialNumber);
+        expectedSequentialNumber++;
     }
 
     @Override
