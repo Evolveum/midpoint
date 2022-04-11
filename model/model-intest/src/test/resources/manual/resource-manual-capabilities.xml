@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2017-2018 Evolveum and contributors
+  ~ Copyright (C) 2017-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -32,50 +32,50 @@
 
     <!-- Static schema definition -->
     <schema>
-        <!-- No cahingMetadata here MID-4472, MID-4174 -->
+        <!-- No cachingMetadata here MID-4472, MID-4174 -->
         <definition>
-             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-                     elementFormDefault="qualified"
-                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                    xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                    elementFormDefault="qualified"
+                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
                 <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
                 <xsd:complexType name="AccountObjectClass">
-                   <xsd:annotation>
-                      <xsd:appinfo>
-                         <ra:resourceObject/>
-                         <ra:identifier>tns:username</ra:identifier>
-                         <ra:displayNameAttribute>tns:username</ra:displayNameAttribute>
-                         <ra:namingAttribute>tns:username</ra:namingAttribute>
-                         <ra:kind>account</ra:kind>
-                         <ra:default/>
-                      </xsd:appinfo>
-                   </xsd:annotation>
-                   <xsd:sequence>
-                      <xsd:element minOccurs="1" name="username" type="xsd:string">
-                         <xsd:annotation>
-                            <xsd:appinfo>
-                               <a:displayName>Username</a:displayName>
-                               <a:displayOrder>110</a:displayOrder>
-                            </xsd:appinfo>
-                         </xsd:annotation>
-                      </xsd:element>
-                      <xsd:element name="fullname" type="xsd:string" minOccurs="0">
-                         <xsd:annotation>
-                            <xsd:appinfo>
-                               <a:displayOrder>200</a:displayOrder>
-                            </xsd:appinfo>
-                         </xsd:annotation>
-                      </xsd:element>
-                      <xsd:element minOccurs="0" name="description" type="xsd:string"/>
-                      <xsd:element minOccurs="0" name="status" type="xsd:string"/>
-                      <xsd:element maxOccurs="unbounded" minOccurs="0" name="interests" type="xsd:string"/>
-                   </xsd:sequence>
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <ra:resourceObject/>
+                            <ra:identifier>tns:username</ra:identifier>
+                            <ra:displayNameAttribute>tns:username</ra:displayNameAttribute>
+                            <ra:namingAttribute>tns:username</ra:namingAttribute>
+                            <ra:kind>account</ra:kind>
+                            <ra:default/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="1" name="username" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>Username</a:displayName>
+                                    <a:displayOrder>110</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="fullname" type="xsd:string" minOccurs="0">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>200</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="description" type="xsd:string"/>
+                        <xsd:element minOccurs="0" name="status" type="xsd:string"/>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="interests" type="xsd:string"/>
+                    </xsd:sequence>
                 </xsd:complexType>
-             </xsd:schema>
-          </definition>
+            </xsd:schema>
+        </definition>
     </schema>
 
     <schemaHandling>
@@ -113,7 +113,6 @@
                     <outbound/>
                 </password>
             </credentials>
-
         </objectType>
     </schemaHandling>
 
@@ -121,28 +120,28 @@
     <capabilities>
         <!-- No cahingMetadata here MID-4472, MID-4174 -->
         <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:type="c:CapabilityCollectionType">
-         <cap:read>
-            <cap:cachingOnly>true</cap:cachingOnly>
-         </cap:read>
-         <cap:create>
-            <cap:manual>true</cap:manual>
-         </cap:create>
-         <cap:update>
-            <cap:manual>true</cap:manual>
-         </cap:update>
-         <cap:addRemoveAttributeValues/>
-         <cap:delete>
-            <cap:manual>true</cap:manual>
-         </cap:delete>
-         <cap:activation>
-            <cap:status/>
-         </cap:activation>
-         <cap:credentials>
-            <cap:password/>
-         </cap:credentials>
-      </native>
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:type="c:CapabilityCollectionType">
+            <cap:read>
+                <cap:cachingOnly>true</cap:cachingOnly>
+            </cap:read>
+            <cap:create>
+                <cap:manual>true</cap:manual>
+            </cap:create>
+            <cap:update>
+                <cap:manual>true</cap:manual>
+            </cap:update>
+            <cap:addRemoveAttributeValues/>
+            <cap:delete>
+                <cap:manual>true</cap:manual>
+            </cap:delete>
+            <cap:activation>
+                <cap:status/>
+            </cap:activation>
+            <cap:credentials>
+                <cap:password/>
+            </cap:credentials>
+        </native>
         <configured>
             <cap:activation>
                 <cap:status>
@@ -159,7 +158,6 @@
         <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
         <pendingOperationRetentionPeriod>PT30M</pendingOperationRetentionPeriod>
         <deadShadowRetentionPeriod>PT2H</deadShadowRetentionPeriod>
-        <reshreshOnRead>true</reshreshOnRead>
+        <refreshOnRead>true</refreshOnRead>
     </consistency>
-
 </resource>
