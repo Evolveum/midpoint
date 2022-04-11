@@ -55,7 +55,7 @@ class ClassificationHelper {
      * Checks if the shadow needs the classification. This is to avoid e.g. needless preparation of the resource object
      * (if it's not readily available).
      */
-    public boolean needsClassification(PrismObject<ShadowType> shadow) {
+    boolean needsClassification(PrismObject<ShadowType> shadow) {
         return ShadowUtil.isNotKnown(shadow.asObjectable().getKind())
                 || ShadowUtil.isNotKnown(shadow.asObjectable().getIntent());
     }
@@ -64,7 +64,7 @@ class ClassificationHelper {
      * Classifies the current shadow, based on information from the resource object.
      * As a result, the repository is updated.
      */
-    public void classify(ProvisioningContext ctx, PrismObject<ShadowType> shadow, PrismObject<ShadowType> resourceObject,
+    void classify(ProvisioningContext ctx, PrismObject<ShadowType> shadow, PrismObject<ShadowType> resourceObject,
             OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 

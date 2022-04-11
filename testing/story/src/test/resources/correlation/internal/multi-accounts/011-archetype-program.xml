@@ -1,0 +1,40 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           oid="cc5626d8-1347-46b9-971d-f03dc129991e">
+    <name>program</name>
+    <displayName>Study Program</displayName>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <source>
+                    <path>identifier</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>'program-' + identifier</code>
+                    </script>
+                </expression>
+                <target>
+                    <path>name</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <archetypePolicy>
+        <display>
+            <label>Study program</label>
+            <pluralLabel>Study programs</pluralLabel>
+            <icon>
+                <cssClass>fa fa-graduation-cap</cssClass>
+                <color>brown</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>

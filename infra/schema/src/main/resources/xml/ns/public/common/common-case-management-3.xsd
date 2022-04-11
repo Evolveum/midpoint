@@ -65,26 +65,42 @@
                     <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Object that the case is associated with. It might be e.g. resource, if the case
-                                deals with creation of an account on that resource.
+                                Object that the case is associated with.
+
+                                For approval cases this is usually the object whose modification (or addition, or deletion)
+                                is being approved.
+
+                                For manual provisioning cases this might be the resource on which an account is to be created.
+
+                                For correlation cases this is the (full) shadow that is being correlated.
+
                                 EXPERIMENTAL. May change in future.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.7</a:since>
                                 <a:displayName>CaseType.objectRef</a:displayName>
-                                <a:composite>true</a:composite>     <!-- useful when object creation is being approved -->
+                                <a:composite>true</a:composite> <!-- useful when object creation is being approved -->
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Target that the case is associated with. It might be e.g. shadow, if the case
-                                deals with creation of an account on that resource.
+                                Target that the case is associated with.
+
+                                For approval cases related to assignments this may be the assignment target. For approval cases
+                                related to associations this may be the associated shadow (e.g. the entitlement).
+
+                                For manual provisioning cases this might be the shadow, if the case deals with the creation
+                                of an account on the resource.
+
+                                For correlation cases this is the resource from which the shadow to be correlated originates.
+
                                 EXPERIMENTAL. May change in future.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>CaseType.targetRef</a:displayName>
+                                <a:composite>true</a:composite> <!-- needed for shadows in correlation cases -->
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -191,6 +207,17 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="correlationContext" type="tns:CaseCorrelationContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Information related to correlation request that is to be resolved.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.5</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -210,7 +237,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Stage number - if process can be conceptually divided into stages. Starts at 1.
-                                Null if not applicable. (Stored in process variable "stageNumber".)
+                                Null if not applicable. Zero if the first stage hasn't been opened.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1282,9 +1309,109 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="pendingOperation" type="tns:PendingOperationType" minOccurs="0"/>
+            <xsd:element name="schema" type="tns:SimpleCaseSchemaType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to create work items for the case?
+
+                        EXPERIMENTAL. TEMPORARY.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.5</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="manualProvisioningContext" type="tns:ManualProvisioningContextType" />
 
+    <xsd:complexType name="CaseCorrelationContextType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information related to correlation request that is to be resolved.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="refreshWhenOpened" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should be the case automatically refreshed when opened in GUI?
+                        NOT IMPLEMENTED YET
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="preFocusRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object being correlated - after transformation from resource object to "partial focus object".
+
+                        TODO better name
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="schema" type="tns:SimpleCaseSchemaType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to create work items for the case?
+
+                        EXPERIMENTAL. TEMPORARY.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="correlationContext" type="tns:CaseCorrelationContextType" />
+
+    <xsd:complexType name="SimpleCaseSchemaType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Simple schema describing how work items for a case should be created.
+                Used for manual provisioning and correlation cases.
+
+                TEMPORARY.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:experimental>true</a:experimental>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="assigneeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Who should be assigned the work items that are created?
+                        It may point to user or an abstract role. Abstract roles are expanded.
+                        If more than one assignee is specified they are considered equivalent.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultAssigneeName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The name (not OID) of an assignee to be used if the resolution of the assigneeRef yields no one.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="duration" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Duration for work items being created.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 </xsd:schema>

@@ -68,7 +68,7 @@ public final class LiveSyncActivityRun
 
     @Override
     public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
-        return new ActivityReportingCharacteristics()
+        return super.createReportingCharacteristics()
                 .determineOverallSizeDefault(ActivityOverallItemCountingOptionType.NEVER)
                 .bucketCompletionLoggingDefault(NONE) // To avoid log noise.
                 .actionsExecutedStatisticsSupported(true)
@@ -176,5 +176,10 @@ public final class LiveSyncActivityRun
         boolean retryErrors = isNotFalse(
                 getRunningTask().getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS));
         return retryErrors ? STOP : CONTINUE;
+    }
+
+    @Override
+    protected String getChannelOverride() {
+        return SchemaConstants.CHANNEL_LIVE_SYNC_URI;
     }
 }

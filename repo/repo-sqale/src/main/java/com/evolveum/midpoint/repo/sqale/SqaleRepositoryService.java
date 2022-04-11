@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,7 +13,6 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Objects;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -42,6 +41,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_ConditionEntry;
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
@@ -58,7 +58,6 @@ import com.evolveum.midpoint.repo.sqale.update.AddObjectContext;
 import com.evolveum.midpoint.repo.sqale.update.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
-import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -109,6 +108,12 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     private static final Collection<SelectorOptions<GetOperationOptions>> GET_FOR_UPDATE_OPTIONS =
             SchemaService.get().getOperationOptionsBuilder().build();
 
+    private static final Collection<SelectorOptions<GetOperationOptions>> GET_FOR_REINDEX_OPTIONS =
+            SchemaService.get().getOperationOptionsBuilder()
+                    .retrieve()
+                    .raw()
+                    .build();
+
     private final SqlQueryExecutor sqlQueryExecutor;
 
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
@@ -123,12 +128,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         super(repositoryContext, sqlPerformanceMonitorsCollection);
         this.sqlQueryExecutor = new SqlQueryExecutor(repositoryContext);
-
-        // monitor initialization and registration
-        performanceMonitor = new SqlPerformanceMonitorImpl(
-                repositoryConfiguration().getPerformanceStatisticsLevel(),
-                repositoryConfiguration().getPerformanceStatisticsFile());
-        sqlPerformanceMonitorsCollection.register(performanceMonitor);
     }
 
     @Override
@@ -321,10 +320,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 object.checkConsistence(ConsistencyCheckScope.THOROUGH);
             } else {
                 object.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
-            }
-
-            if (object.getVersion() == null) {
-                object.setVersion("1");
             }
 
             return object.getOid() == null || !options.isOverwrite()
@@ -666,13 +661,16 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @NotNull JdbcSession jdbcSession,
             @NotNull Class<S> schemaType,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            @NotNull UUID oid, RepoModifyOptions options)
+            @NotNull UUID oid,
+            @Nullable RepoModifyOptions options)
             throws SchemaException, ObjectNotFoundException {
 
         QueryTableMapping<S, FlexibleRelationalPathBase<Object>, Object> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(schemaType);
         Collection<SelectorOptions<GetOperationOptions>> getOptions =
-                rootMapping.updateGetOptions(GET_FOR_UPDATE_OPTIONS, modifications);
+                rootMapping.updateGetOptions(
+                        RepoModifyOptions.isForceReindex(options) ? GET_FOR_REINDEX_OPTIONS : GET_FOR_UPDATE_OPTIONS,
+                        modifications);
 
         return prepareUpdateContext(jdbcSession, schemaType, oid, getOptions, options);
     }
@@ -1080,7 +1078,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         if (providedOrdering.size() == 1) {
             ObjectOrdering objectOrdering = providedOrdering.get(0);
             ItemPath orderByPath = objectOrdering.getOrderBy();
-            boolean asc = objectOrdering.getDirection() == OrderDirection.ASCENDING;
+            boolean asc = objectOrdering.getDirection() != OrderDirection.DESCENDING; // null => asc
             S_ConditionEntry filter = prismContext()
                     .queryFor(lastProcessedObject.getCompileTimeClass())
                     .item(orderByPath);
@@ -1833,7 +1831,11 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     }
 
     @Override
-    public void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
+    public synchronized void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
+        if (PrismUtil.realValueEquals(fullTextSearchConfiguration, fullTextSearch)) {
+            logger.trace("Ignoring full text search configuration update => the real value has not changed");
+            return;
+        }
         logger.info("Applying full text search configuration ({} entries)",
                 fullTextSearch != null ? fullTextSearch.getIndexed().size() : 0);
         fullTextSearchConfiguration = fullTextSearch;

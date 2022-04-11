@@ -59,18 +59,14 @@ public abstract class AjaxIconButton extends AjaxLink<String> {
 
         String icon = getModelObject();
         if (StringUtils.isNotEmpty(icon)) {
-            sb.append("<i class=\"").append(icon).append("\"");
-            if (showTitleAsLabel && StringUtils.isNotEmpty(title)) {
-                sb.append(" style=\"margin-right: 5px;\"");
-            }
-            sb.append("></i>");
+            sb.append("<i class=\"").append(icon).append("\"></i>");
         }
 
         if (StringUtils.isEmpty(icon)) {
             sb.append(title);
         } else {
             if (showTitleAsLabel) {
-                sb.append(title);
+                sb.append("<span class=\"operationalButtonLabel\">").append(title).append("</span>");
             }
         }
 

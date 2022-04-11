@@ -10,9 +10,6 @@ package com.evolveum.midpoint.notifications.impl.util;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpMethodType;
 import org.springframework.http.HttpMethod;
 
-/**
- * @author mederly
- */
 public class HttpUtil {
 
     // Unfortunately, this requires spring-web, so it cannot be moved e.g. into schema module.

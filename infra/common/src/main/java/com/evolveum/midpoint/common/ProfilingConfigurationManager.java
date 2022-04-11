@@ -28,9 +28,11 @@ public class ProfilingConfigurationManager {
     private static final String APPENDER_IDM_PROFILE = "MIDPOINT_PROFILE_LOG";
 
     /**
-     *  In this method, we perform the check of systemConfiguration object, searching for any data
-     *  related to profilingConfiguration
-     * */
+     * In this method, we perform the check of systemConfiguration object, searching for any data
+     * related to profilingConfiguration.
+     *
+     * @return The logging configuration, updated by profiling-related loggers (if profiling is enabled).
+     */
     public static LoggingConfigurationType checkSystemProfilingConfiguration(PrismObject<SystemConfigurationType> systemConfigurationPrism){
         if (systemConfigurationPrism == null) {
             return null;
@@ -53,6 +55,9 @@ public class ProfilingConfigurationManager {
         LoggingConfigurationType loggingConfig = systemConfig.getLogging();
 
         if (loggingConfig != null) {
+            if (loggingConfig.isImmutable()) {
+                loggingConfig = loggingConfig.clone();
+            }
             if (checkXsdBooleanValue(profilingConfig.isRequestFilter())) {
                 ClassLoggerConfigurationType requestFilterLogger = new ClassLoggerConfigurationType();
                 requestFilterLogger.setPackage(REQUEST_FILTER_LOGGER_CLASS_NAME);

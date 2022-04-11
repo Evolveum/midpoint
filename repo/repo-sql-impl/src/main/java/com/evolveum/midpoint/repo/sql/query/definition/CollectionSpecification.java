@@ -9,8 +9,6 @@ package com.evolveum.midpoint.repo.sql.query.definition;
 
 /**
  * In current version this is just a marker class - there's nothing to be said about standard collections yet.
- *
- * @author mederly
  */
 public class CollectionSpecification {
 

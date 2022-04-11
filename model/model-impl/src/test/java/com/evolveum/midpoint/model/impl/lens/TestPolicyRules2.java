@@ -45,8 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Tests some of the "new" policy rules (state, hasAssignment).
  * Moved out of TestPolicyRules to keep the tests of reasonable size.
- *
- * @author mederly
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

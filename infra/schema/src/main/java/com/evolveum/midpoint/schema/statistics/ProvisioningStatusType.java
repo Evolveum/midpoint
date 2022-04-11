@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
-/**
- * @author Pavol Mederly
- */
 public enum ProvisioningStatusType {
     SUCCESS, FAILURE
 }

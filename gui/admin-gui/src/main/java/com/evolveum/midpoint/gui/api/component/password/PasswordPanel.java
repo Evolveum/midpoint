@@ -26,6 +26,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.validation.IValidatable;
@@ -33,7 +34,7 @@ import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
@@ -47,6 +48,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.self.PageOrgSelfProfile;
@@ -54,7 +56,6 @@ import com.evolveum.midpoint.web.page.self.PageRoleSelfProfile;
 import com.evolveum.midpoint.web.page.self.PageServiceSelfProfile;
 import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -84,27 +85,24 @@ public class PasswordPanel extends InputPanel {
     private boolean passwordInputVisible;
     private static boolean clearPasswordInput = false;
     private static boolean setPasswordInput = false;
-    private final PageBase pageBase;
     private final IModel<ProtectedStringType> model;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model) {
         this(id, model, false, model == null || model.getObject() == null);
     }
 
-    public <F extends FocusType> PasswordPanel(String id, IModel<ProtectedStringType> model, PrismObject<F> object,
-            PageBase pageBase) {
-        this(id, model, false, model == null || model.getObject() == null, object, pageBase);
+    public <F extends FocusType> PasswordPanel(String id, IModel<ProtectedStringType> model, PrismObject<F> object) {
+        this(id, model, false, model == null || model.getObject() == null, object);
     }
 
-    public <F extends FocusType> PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible) {
-        this(id, model, isReadOnly, isInputVisible, null, null);
+    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible) {
+        this(id, model, isReadOnly, isInputVisible, null);
     }
 
     public <F extends FocusType> PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible,
-            PrismObject<F> object, PageBase pageBase) {
+            PrismObject<F> object) {
         super(id);
         this.passwordInputVisible = isInputVisible;
-        this.pageBase = pageBase;
         this.model = model;
         initLayout(isReadOnly, object);
     }
@@ -127,10 +125,10 @@ public class PasswordPanel extends InputPanel {
         inputContainer.setOutputMarkupId(true);
         add(inputContainer);
 
-        ValuePolicyType valuePolicy = getValuePolicy(object);
-        LoadableModel<List<StringLimitationResult>> limitationsModel = new LoadableModel<>() {
+        LoadableDetachableModel<List<StringLimitationResult>> limitationsModel = new LoadableDetachableModel<>() {
             @Override
             protected List<StringLimitationResult> load() {
+                ValuePolicyType valuePolicy = getValuePolicy(object);
                 return getLimitationsForActualPassword(valuePolicy, object);
             }
         };
@@ -151,17 +149,9 @@ public class PasswordPanel extends InputPanel {
             }
 
         };
-        password1.add(AttributeAppender.append("onfocus", "initPasswordValidation({\n"
-                + "container: $('#progress-bar-container'),\n"
-                + "hierarchy: {\n"
-                + "    '0': ['progress-bar-danger', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.veryWeak").getString() + "'],\n"
-                + "    '25': ['progress-bar-danger', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.weak").getString() + "'],\n"
-                + "    '50': ['progress-bar-warning', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.good").getString() + "'],\n"
-                + "    '75': ['progress-bar-success', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.strong").getString() + "'],\n"
-                + "    '100': ['progress-bar-success', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.veryStrong").getString() + "']\n"
-                + "}\n"
-                + "})"));
+        password1.add(AttributeAppender.append("onfocus", initPasswordValidation()));
         password1.setRequired(false);
+        password1.add(new EnableBehaviour(this::canEditPassword));
         password1.setOutputMarkupId(true);
         password1.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         inputContainer.add(password1);
@@ -169,6 +159,7 @@ public class PasswordPanel extends InputPanel {
         final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO, new PasswordModel(Model.of(new ProtectedStringType())));
         password2.setRequired(false);
         password2.setOutputMarkupId(true);
+        password2.add(new EnableBehaviour(this::canEditPassword));
         inputContainer.add(password2);
 
         password1.add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -183,19 +174,7 @@ public class PasswordPanel extends InputPanel {
             }
         });
 
-        IModel<String> password2ValidationModel = (IModel<String>) () -> {
-            String s1 = password1.getModelObject();
-            String s2 = password2.getValue();
-
-            if (StringUtils.isEmpty(s1) || StringUtils.isEmpty(s2)) {
-                return "";
-            }
-
-            if (!Objects.equals(s1, s2)) {
-                return PageBase.createStringResourceStatic(null, "passwordPanel.error").getString();
-            }
-            return "";
-        };
+        IModel<String> password2ValidationModel = () -> getPasswordMatched(password1.getModelObject(), password2.getValue());
         Label password2ValidationMessage = new Label(ID_PASSWORD_TWO_VALIDATION_MESSAGE, password2ValidationModel);
         password2ValidationMessage.setOutputMarkupId(true);
         inputContainer.add(password2ValidationMessage);
@@ -205,7 +184,7 @@ public class PasswordPanel extends InputPanel {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                limitationsModel.reset();
+//                limitationsModel.reset();
                 validationPanel.refreshItems(target);
                 updatePasswordValidation(target);
                 target.add(password2ValidationMessage);
@@ -256,9 +235,7 @@ public class PasswordPanel extends InputPanel {
         passwordRemoveLabel.setVisible(false);
         linkContainer.add(passwordRemoveLabel);
 
-        AjaxLink<Void> link = new AjaxLink<Void>(ID_CHANGE_PASSWORD_LINK) {
-            private static final long serialVersionUID = 1L;
-
+        AjaxLink<Void> link = new AjaxLink<>(ID_CHANGE_PASSWORD_LINK) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 clearPasswordInput = true;
@@ -272,8 +249,6 @@ public class PasswordPanel extends InputPanel {
             }
         };
         link.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
             @Override
             public boolean isVisible() {
                 return !isReadOnly;
@@ -285,9 +260,7 @@ public class PasswordPanel extends InputPanel {
         linkContainer.add(link);
 
         final WebMarkupContainer removeButtonContainer = new WebMarkupContainer(ID_REMOVE_BUTTON_CONTAINER);
-        AjaxLink<Void> removePassword = new AjaxLink<Void>(ID_REMOVE_PASSWORD_LINK) {
-            private static final long serialVersionUID = 1L;
-
+        AjaxLink<Void> removePassword = new AjaxLink<>(ID_REMOVE_PASSWORD_LINK) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onRemovePassword(model, target);
@@ -295,8 +268,6 @@ public class PasswordPanel extends InputPanel {
 
         };
         removePassword.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
             @Override
             public boolean isVisible() {
                 PageBase pageBase = getPageBase();
@@ -307,11 +278,8 @@ public class PasswordPanel extends InputPanel {
                         || pageBase instanceof PageRoleSelfProfile || pageBase instanceof PageServiceSelfProfile) {
                     return false;
                 }
-                if (pageBase instanceof PageAdminFocus && !((PageAdminFocus) pageBase).isLoggedInFocusPage()
-                        && model.getObject() != null) {
-                    return true;
-                }
-                return false;
+                return pageBase instanceof PageAdminFocus && !((PageAdminFocus) pageBase).isLoggedInFocusPage()
+                        && model.getObject() != null;
             }
         });
         removePassword.setBody(new ResourceModel("passwordPanel.passwordRemove"));
@@ -320,23 +288,42 @@ public class PasswordPanel extends InputPanel {
         add(removeButtonContainer);
     }
 
+    private String initPasswordValidation() {
+        return  "initPasswordValidation({\n"
+                + "container: $('#progress-bar-container'),\n"
+                + "hierarchy: {\n"
+                + "    '0': ['progress-bar-danger', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.veryWeak").getString() + "'],\n"
+                + "    '25': ['progress-bar-danger', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.weak").getString() + "'],\n"
+                + "    '50': ['progress-bar-warning', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.good").getString() + "'],\n"
+                + "    '75': ['progress-bar-success', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.strong").getString() + "'],\n"
+                + "    '100': ['progress-bar-success', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.veryStrong").getString() + "']\n"
+                + "}\n"
+                + "})";
+    }
+
+    private String getPasswordMatched(String password1, String password2) {
+        if (StringUtils.isEmpty(password1) || StringUtils.isEmpty(password2)) {
+            return "";
+        }
+
+        if (!Objects.equals(password1, password2)) {
+            return PageBase.createStringResourceStatic("passwordPanel.error").getString();
+        }
+        return "";
+    }
+
     protected <F extends FocusType> ValuePolicyType getValuePolicy(PrismObject<F> object) {
         ValuePolicyType valuePolicyType = null;
         try {
-            MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+            MidPointPrincipal user = AuthUtil.getPrincipalUser();
             if (getPageBase() != null) {
                 if (user != null) {
                     Task task = getPageBase().createSimpleTask("load value policy");
                     valuePolicyType = searchValuePolicy(object, task);
                 } else {
-                    valuePolicyType = getPageBase().getSecurityContextManager().runPrivileged(new Producer<ValuePolicyType>() {
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public ValuePolicyType run() {
-                            Task task = getPageBase().createAnonymousTask("load value policy");
-                            return searchValuePolicy(object, task);
-                        }
+                    valuePolicyType = getPageBase().getSecurityContextManager().runPrivileged((Producer<ValuePolicyType>) () -> {
+                        Task task = getPageBase().createAnonymousTask("load value policy");
+                        return searchValuePolicy(object, task);
                     });
                 }
             }
@@ -344,6 +331,10 @@ public class PasswordPanel extends InputPanel {
             LOGGER.warn("Couldn't load security policy for focus " + object, e);
         }
         return valuePolicyType;
+    }
+
+    protected boolean canEditPassword() {
+        return true;
     }
 
     private <F extends FocusType> ValuePolicyType searchValuePolicy(PrismObject<F> object, Task task) {
@@ -361,10 +352,6 @@ public class PasswordPanel extends InputPanel {
             LOGGER.warn("Couldn't load security policy for focus " + object, e);
         }
         return null;
-    }
-
-    private PageBase getPageBase() {
-        return pageBase;
     }
 
     private void onLinkClick(AjaxRequestTarget target) {

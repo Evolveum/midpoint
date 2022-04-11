@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningRequest;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -39,11 +40,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityContextManagerAware;
-import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
@@ -165,12 +167,12 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object,
-            StateReporter reporter, OperationResult parentResult) {
+            UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("addObject");
         OperationResult result = parentResult.createSubresult(OP_ADD_OBJECT);
         try {
             OperationRequested operation = new OperationRequested.Add(object.asObjectable(), getPrismContext());
-            return createAndSendRequest(operation, reporter.getTask(), result);
+            return createAndSendRequest(operation, ctx.getTask(), result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -182,13 +184,13 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     @Override
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
             ResourceObjectIdentification identification, PrismObject<ShadowType> shadow, @NotNull Collection<Operation> changes,
-            ConnectorOperationOptions options, StateReporter reporter, OperationResult parentResult) {
+            ConnectorOperationOptions options, UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("modifyObject");
         OperationResult result = parentResult.createSubresult(OP_MODIFY_OBJECT);
         try {
             OperationRequested operation =
                     new OperationRequested.Modify(identification, asObjectable(shadow), changes, options, getPrismContext());
-            return createAndSendRequest(operation, reporter.getTask(), result);
+            return createAndSendRequest(operation, ctx.getTask(), result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -198,15 +200,15 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass,
-            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
-            OperationResult parentResult) throws SchemaException {
+    public AsynchronousOperationResult deleteObject(ResourceObjectDefinition objectDefinition,
+            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
+            UcfExecutionContext ctx, OperationResult parentResult) throws SchemaException {
         InternalMonitor.recordConnectorOperation("deleteObject");
         OperationResult result = parentResult.createSubresult(OP_DELETE_OBJECT);
         try {
             OperationRequested operation =
-                    new OperationRequested.Delete(objectClass, asObjectable(shadow), identifiers, getPrismContext());
-            return createAndSendRequest(operation, reporter.getTask(), result);
+                    new OperationRequested.Delete(objectDefinition, asObjectable(shadow), identifiers, getPrismContext());
+            return createAndSendRequest(operation, ctx.getTask(), result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -342,38 +344,38 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification,
-            AttributesToReturn attributesToReturn, StateReporter reporter, OperationResult parentResult) {
+            AttributesToReturn attributesToReturn, UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         return null;
     }
 
     @Override
-    public SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            ObjectHandler handler, AttributesToReturn attributesToReturn,
-            PagedSearchCapabilityType pagedSearchConfiguration, SearchHierarchyConstraints searchHierarchyConstraints,
-            UcfFetchErrorReportingMethod ucfErrorReportingMethod,
-            StateReporter reporter, OperationResult parentResult) {
+    public SearchResultMetadata search(@NotNull ResourceObjectDefinition objectDefinition, ObjectQuery query,
+            @NotNull UcfObjectHandler handler, @Nullable AttributesToReturn attributesToReturn,
+            @Nullable PagedSearchCapabilityType pagedSearchConfiguration, @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
+            @Nullable UcfFetchErrorReportingMethod ucfErrorReportingMethod,
+            @NotNull UcfExecutionContext ctx, @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("search");
         return null;
     }
 
     @Override
-    public int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            PagedSearchCapabilityType pagedSearchConfigurationType, StateReporter reporter, OperationResult parentResult) {
+    public int count(ResourceObjectDefinition objectDefinition, ObjectQuery query,
+            PagedSearchCapabilityType pagedSearchConfigurationType, UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("count");
         return 0;
     }
 
     @Override
-    public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter,
-            OperationResult parentResult) {
+    public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation,
+            UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("executeScript");
         return null;
     }
 
     @Override
-    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, UcfSyncToken lastToken,
-            AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
+    public UcfFetchChangesResult fetchChanges(ResourceObjectDefinition objectDefinition, UcfSyncToken lastToken,
+            AttributesToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
             @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
         return null;
     }

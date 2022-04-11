@@ -6,15 +6,15 @@
  */
 package com.evolveum.midpoint.web.page.admin.orgs;
 
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
 
@@ -46,12 +46,12 @@ public class PageOrgTree extends PageAdmin {
     }
 
     private void initLayout() {
-        AbstractOrgTabPanel tabbedPanel = new AbstractOrgTabPanel(ID_ORG_PANEL, this) {
+        AbstractOrgTabPanel tabbedPanel = new AbstractOrgTabPanel(ID_ORG_PANEL) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected Panel createTreePanel(String id, Model<String> model, PageBase pageBase) {
-                return new TreeTablePanel(id, model, PageOrgTree.this);
+                return new TreeTablePanel(id, model);
             }
         };
 

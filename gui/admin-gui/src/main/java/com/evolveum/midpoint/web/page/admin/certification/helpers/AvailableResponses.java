@@ -24,8 +24,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 
 /**
  * TODO implement more cleanly
- *
- * @author mederly
  */
 public class AvailableResponses implements Serializable {
 
@@ -71,9 +69,9 @@ public class AvailableResponses implements Serializable {
 
     public String getTitle(int id) {
         if (id < responseKeys.size()) {
-            return PageBase.createStringResourceStatic(pageBase, responseKeys.get(id)).getString();
+            return PageBase.createStringResourceStatic(responseKeys.get(id)).getString();
         } else {
-            return PageBase.createStringResourceStatic(pageBase, "PageCertDecisions.menu.illegalResponse").getString();
+            return PageBase.createStringResourceStatic("PageCertDecisions.menu.illegalResponse").getString();
         }
     }
 

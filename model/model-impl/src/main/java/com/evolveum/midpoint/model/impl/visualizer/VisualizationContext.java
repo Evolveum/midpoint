@@ -13,9 +13,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author mederly
- */
 public class VisualizationContext {
 
     private boolean separateSinglevaluedContainers = true;

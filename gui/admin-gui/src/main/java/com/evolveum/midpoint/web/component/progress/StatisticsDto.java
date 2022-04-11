@@ -17,9 +17,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class StatisticsDto implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -87,7 +84,7 @@ public class StatisticsDto implements Serializable {
     }
 
     public String getLastMessage() {
-        return lastMessage != null ? lastMessage : "(" + PageBase.createStringResourceStatic(null, "StatisticsDto.getLastMessage.none").getString() + ")";
+        return lastMessage != null ? lastMessage : "(" + PageBase.createStringResourceStatic("StatisticsDto.getLastMessage.none").getString() + ")";
     }
 
     public void setLastMessage(String lastMessage) {

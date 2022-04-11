@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.home;
 
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -21,8 +21,8 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.component.box.BasicInfoBoxPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.DashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
@@ -39,7 +39,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin", matchUrlForSecurity = "/admin"),
-                @Url(mountUrl = "/admin/dashboard/info"),
+                @Url(mountUrl = "/admin/dashboard/info", matchUrlForSecurity = "/admin/dashboard/info")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminHome.AUTH_HOME_ALL_URI,

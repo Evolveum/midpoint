@@ -29,13 +29,18 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.model.IDetachable;
+import org.apache.wicket.model.LoadableDetachableModel;
+
+public class ObjectDetailsModels<O extends ObjectType> implements Serializable, IDetachable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDetailsModels.class);
 
@@ -43,14 +48,14 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
     protected static final String OPERATION_LOAD_PARENT_ORG = DOT_CLASS + "loadParentOrgs";
 
     private ModelServiceLocator modelServiceLocator;
-    private LoadableModel<PrismObject<O>> prismObjectModel;
+    private LoadableDetachableModel<PrismObject<O>> prismObjectModel;
 
     private LoadableModel<PrismObjectWrapper<O>> objectWrapperModel;
     private LoadableModel<GuiObjectDetailsPageType> detailsPageConfigurationModel;
 
-    private LoadableModel<O> summaryModel;
+    private LoadableDetachableModel<O> summaryModel;
 
-    public ObjectDetailsModels(LoadableModel<PrismObject<O>> prismObjectModel, ModelServiceLocator serviceLocator) {
+    public ObjectDetailsModels(LoadableDetachableModel<PrismObject<O>> prismObjectModel, ModelServiceLocator serviceLocator) {
         this.prismObjectModel = prismObjectModel;
         this.modelServiceLocator = serviceLocator;
 
@@ -58,7 +63,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
 
             @Override
             protected PrismObjectWrapper<O> load() {
-                PrismObject<O> prismObject = prismObjectModel.getObject();
+                PrismObject<O> prismObject = getPrismObject();//prismObjectModel.getObject();
 
                 PrismObjectWrapperFactory<O> factory = modelServiceLocator.findObjectWrapperFactory(prismObject.getDefinition());
                 Task task = modelServiceLocator.createSimpleTask("createWrapper");
@@ -72,8 +77,11 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
                 try {
                     return factory.createObjectWrapper(prismObject, isEditObject(prismObject) ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
                 } catch (SchemaException e) {
-                    //TODO:
-                    return null;
+                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot create wrapper for {} \nReason: {]", e, prismObject, e.getMessage());
+                    result.recordFatalError("Cannot create wrapper for " + prismObject + ", because: " + e.getMessage(), e);
+                    getPageBase().showResult(result);
+                    throw getPageBase().redirectBackViaRestartResponseException();
+//                    return null;
                 }
 
             }
@@ -82,11 +90,11 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
         detailsPageConfigurationModel = new LoadableModel<>(false) {
             @Override
             protected GuiObjectDetailsPageType load() {
-                return loadDetailsPageConfiguration(prismObjectModel.getObject()).clone();
+                return loadDetailsPageConfiguration(null).clone();
             }
         };
 
-        summaryModel = new LoadableModel<O>(false) {
+        summaryModel = new LoadableDetachableModel<O>() {
 
             @Override
             protected O load() {
@@ -144,11 +152,11 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
     }
 
     protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<O> prismObject) {
-        return modelServiceLocator.getCompiledGuiProfile().findObjectDetailsConfiguration(prismObject.getDefinition().getTypeName());
+        return modelServiceLocator.getCompiledGuiProfile().findObjectDetailsConfiguration(getPrismObject().getDefinition().getTypeName());
     }
 
     //TODO change summary panels to wrappers?
-    public LoadableModel<O> getSummaryModel() {
+    public LoadableDetachableModel<O> getSummaryModel() {
         return summaryModel;
     }
 
@@ -282,10 +290,10 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
 
 
     public void reset() {
-        prismObjectModel.reset();
+        prismObjectModel.detach();
         objectWrapperModel.reset();
         detailsPageConfigurationModel.reset();
-        summaryModel.reset();
+        summaryModel.detach();
     }
 
     protected ModelServiceLocator getModelServiceLocator() {
@@ -305,6 +313,9 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
     }
 
     protected PrismObject<O> getPrismObject() {
+        if (!objectWrapperModel.isLoaded()) {
+            return prismObjectModel.getObject();
+        }
         return getObjectWrapper().getObject();
     }
 
@@ -331,5 +342,13 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
         }
 
         return detailsPageConfig.getSummaryPanel();
+    }
+
+    @Override
+    public void detach() {
+        prismObjectModel.detach();
+        objectWrapperModel.detach();
+        detailsPageConfigurationModel.detach();
+        summaryModel.detach();
     }
 }

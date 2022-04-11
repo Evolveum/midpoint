@@ -37,6 +37,7 @@
             <class name="com.evolveum.midpoint.wf.impl.other.TestParallelApprovals"/>
             <class name="com.evolveum.midpoint.wf.impl.other.TestPreview"/>
             <class name="com.evolveum.midpoint.wf.impl.other.TestApprovalTaskOwner"/>
+            <class name="com.evolveum.midpoint.wf.impl.other.TestSequence"/>
         </classes>
     </test>
 </suite>

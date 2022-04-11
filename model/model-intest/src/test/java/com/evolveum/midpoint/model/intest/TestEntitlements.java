@@ -18,13 +18,15 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.*;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
@@ -37,8 +39,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -296,7 +297,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-     * Create the group directly on resource. Therefore the shadow does NOT exists.
+     * Create the group directly on resource. Therefore the shadow does NOT exist.
      */
     @Test
     public void test222AssignRoleMapmakerToWally() throws Exception {
@@ -1396,9 +1397,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     /**
      * Guybrush is assigned to a group that induces an association to a dummy group that
-     * does not exists yet.
+     * does not exist yet.
      * All the associations to groups that exist should be provisioned. The non-existed group
-     * cannot be provisionined yet. But there should be no error.
+     * cannot be provisioned yet. But there should be no error.
      */
     @Test
     public void test750PrepareGuybrushFuturePerfect() throws Exception {
@@ -2375,9 +2376,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     private PrismObject<ShadowType> getGroupShadow(DummyResourceContoller dummyResourceCtl, QName objectClass, String name, Task task,
             OperationResult result) throws Exception {
         PrismObject<ResourceType> resource = dummyResourceCtl.getResource();
-        ObjectClassComplexTypeDefinition groupDef = RefinedResourceSchema.getRefinedSchema(resource)
+        ResourceObjectClassDefinition groupDef = ResourceSchemaFactory.getCompleteSchema(resource)
                 .findObjectClassDefinition(dummyResourceCtl.getGroupObjectClass());
-        ResourceAttributeDefinition<Object> nameDef = groupDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        ResourceAttributeDefinition<?> nameDef = groupDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertNotNull("No icfs:name definition", nameDef);
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(resource.getOid(), objectClass, prismContext)
                 .and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), nameDef).eq(name)

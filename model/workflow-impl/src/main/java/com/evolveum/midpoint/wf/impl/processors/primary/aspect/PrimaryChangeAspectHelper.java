@@ -40,9 +40,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
 
-/**
- * @author mederly
- */
 @Component
 public class PrimaryChangeAspectHelper {
 

@@ -11,8 +11,10 @@ import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessModel;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
@@ -33,7 +35,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -45,7 +46,6 @@ import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -217,7 +217,7 @@ public class ProgressAwareChangesExecutorImpl implements ObjectChangeExecutor {
 
     private void configureTask(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task)
             throws SchemaException {
-        MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal user = AuthUtil.getPrincipalUser();
         if (user == null) {
             throw new RestartResponseException(PageLogin.class);
         } else {

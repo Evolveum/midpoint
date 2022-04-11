@@ -9,8 +9,6 @@ package com.evolveum.midpoint.repo.sql.data;
 
 /**
  * Just to mark the "data" package.
- *
- * @author mederly
  */
 public class Marker {
 }

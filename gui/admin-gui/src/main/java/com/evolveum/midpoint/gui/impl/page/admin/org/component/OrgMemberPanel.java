@@ -17,7 +17,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOp
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelInstances;
 import com.evolveum.midpoint.web.application.PanelType;
 
 import org.apache.cxf.common.util.CollectionUtils;
@@ -35,14 +34,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 @PanelType(name = "orgMembers")
-@PanelInstances(instances = {
-        @PanelInstance(identifier = "orgMembers", applicableForType = OrgType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 60)),
-        @PanelInstance(identifier = "orgGovernance", applicableForType = OrgType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 70))
-})
+@PanelInstance(identifier = "orgMembers", applicableForType = OrgType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 60))
+@PanelInstance(identifier = "orgGovernance", applicableForType = OrgType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 70))
 public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     private static final long serialVersionUID = 1L;
 
@@ -54,14 +51,14 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected ObjectQuery getActionQuery(QueryScope scope, @NotNull Collection<QName> relations) {
-        if (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.ONE_LEVEL) ||
-                (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)
+        if (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.ONE_LEVEL) ||
+                (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)
                         && !QueryScope.ALL.equals(scope))) {
             return super.getActionQuery(scope, relations);
         } else {
             String oid = getModelObject().getOid();
 
-            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject(), getMemberPanelStorage().getDefaultRelation());
+            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject(), getSearchBoxConfiguration().getDefaultRelation());
             ObjectQuery query = getPageBase().getPrismContext().queryFor(getSearchTypeClass())
                     .type(getSearchTypeClass())
                     .isChildOf(ref.asReferenceValue()).build();
@@ -135,7 +132,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected boolean reloadPageOnRefresh() {
-        return true;
+        return "orgTreeMembers".equals(getStorageKeyTabSuffix());
     }
 
     @Override
@@ -154,7 +151,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected @NotNull List<QName> getRelationsForRecomputeTask() {
-        if (CollectionUtils.isEmpty(getMemberPanelStorage().getSupportedRelations())) {
+        if (CollectionUtils.isEmpty(getSearchBoxConfiguration().getSupportedRelations())) {
             return Collections.singletonList(PrismConstants.Q_ANY);
         }
         return super.getRelationsForRecomputeTask();

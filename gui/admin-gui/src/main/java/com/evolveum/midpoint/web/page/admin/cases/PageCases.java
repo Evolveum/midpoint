@@ -13,8 +13,11 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -28,9 +31,8 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -249,7 +251,7 @@ public class PageCases extends PageAdmin {
         casesToStop.forEach(caseObject -> {
             Task task = createSimpleTask(OPERATION_STOP_CASE_PROCESS);
             try {
-                getWorkflowService().cancelCase(caseObject.getOid(), task, result);
+                getCaseService().cancelCase(caseObject.getOid(), task, result);
             } catch (Exception ex) {
                 LOGGER.error("Couldn't stop case process: {}", ex.getLocalizedMessage());
                 result.recordFatalError(createStringResource("PageCases.message.stopCaseProcessConfirmed.fatalError").getString(), ex);

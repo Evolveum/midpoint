@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.formatters;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
@@ -24,7 +23,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctions;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -52,7 +51,7 @@ public class ValueFormatter {
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
 
-    @Autowired protected NotificationFunctionsImpl functions;
+    @Autowired protected NotificationFunctions functions;
     @Autowired private LocalizationService localizationService;
 
     private static final Trace LOGGER = TraceManager.getTrace(ValueFormatter.class);
@@ -140,7 +139,7 @@ public class ValueFormatter {
                     sb.append(" #").append(subContainerValue.getId());
                 }
                 sb.append(":\n");
-                sb.append(valueSb.toString());
+                sb.append(valueSb);
             }
         }
     }
@@ -302,7 +301,7 @@ public class ValueFormatter {
     }
 
     public String formatUserName(ObjectReferenceType ref, OperationResult result) {
-        UserType user = (UserType) functions.getObjectType(ref, true, result);
+        UserType user = (UserType) functions.getObject(ref, true, result);
         return formatUserName(user, ref.getOid());
     }
 

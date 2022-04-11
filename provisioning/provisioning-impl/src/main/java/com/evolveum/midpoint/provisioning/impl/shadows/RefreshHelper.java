@@ -18,6 +18,8 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -47,7 +49,6 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.RefreshShadowOperation;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -94,7 +95,7 @@ class RefreshHelper {
             ExpressionEvaluationException, EncryptionException {
 
         LOGGER.trace("Refreshing {}", repoShadow);
-        ProvisioningContext ctx = ctxFactory.create(repoShadow, task, result);
+        ProvisioningContext ctx = ctxFactory.createForShadow(repoShadow, task, result);
         ctx.assertDefinition();
         shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 
@@ -256,12 +257,13 @@ class RefreshHelper {
 
                     // Apply shadow naming attribute modification
                     PrismContainer<ShadowAttributesType> shadowAttributesContainer = repoShadow.findContainer(ItemPath.create(ShadowType.F_ATTRIBUTES));
-                    ResourceAttributeContainer resourceAttributeContainer = ResourceAttributeContainer.convertFromContainer(shadowAttributesContainer, ctx.getObjectClassDefinition());
+                    ResourceAttributeContainer resourceAttributeContainer =
+                            ResourceAttributeContainer.convertFromContainer(shadowAttributesContainer, ctx.getObjectDefinitionRequired());
                     ResourceAttributeContainerDefinition resourceAttrDefinition = resourceAttributeContainer.getDefinition();
                     if(resourceAttrDefinition != null) {
 
                         // If naming attribute is present in delta...
-                        ResourceAttributeDefinition namingAttribute = resourceAttrDefinition.getNamingAttribute();
+                        ResourceAttributeDefinition<?> namingAttribute = resourceAttrDefinition.getNamingAttribute();
                         if (namingAttribute != null) {
                             if (pendingDelta.hasItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute.getItemName()))) {
 
@@ -325,8 +327,8 @@ class RefreshHelper {
         }
 
         for (ObjectDelta<ShadowType> notificationDelta: notificationDeltas) {
-            ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
-                    notificationDelta, parentResult);
+            ResourceOperationDescription operationDescription =
+                    createSuccessOperationDescription(ctx, repoShadow, notificationDelta, parentResult);
             operationListener.notifySuccess(operationDescription, task, parentResult);
         }
 
@@ -532,10 +534,10 @@ class RefreshHelper {
                 lastActivityTimestamp == null || XmlTypeConverter.isAfterInterval(lastActivityTimestamp, expirationPeriod, now)) {
             // Perish you stinking corpse!
             LOGGER.debug("Deleting dead {} because it is expired", repoShadow);
-            shadowManager.deleteShadow(ctx, repoShadow, parentResult);
-            definitionsHelper.applyDefinition(repoShadow, parentResult);
-            ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
-                    repoShadow.createDeleteDelta(), parentResult);
+            shadowManager.deleteShadow(repoShadow, task, parentResult);
+            definitionsHelper.applyDefinition(repoShadow, task, parentResult);
+            ResourceOperationDescription operationDescription =
+                    createSuccessOperationDescription(ctx, repoShadow, repoShadow.createDeleteDelta(), parentResult);
             operationListener.notifySuccess(operationDescription, task, parentResult);
             return null;
         }

@@ -17,8 +17,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Interface of the Model subsystem that provides scripting (bulk actions) operations.
- *
- * @author mederly
  */
 public interface ScriptingService {
 

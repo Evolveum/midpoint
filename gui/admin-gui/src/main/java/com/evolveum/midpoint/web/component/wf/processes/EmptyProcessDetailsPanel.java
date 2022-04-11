@@ -11,9 +11,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-/**
- * @author mederly
- */
 public class EmptyProcessDetailsPanel extends Panel {
 
     public EmptyProcessDetailsPanel(String id, IModel<ProcessInstanceDto> model) {

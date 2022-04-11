@@ -11,6 +11,10 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,9 +34,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.objecttypeselect.ObjectTypeSelectPanel;
@@ -746,10 +747,9 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             PrismObject<ResourceType> resource = getReference(construction.getResourceRef(), result);
 
             PrismContext prismContext = getPageBase().getPrismContext();
-            RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
-                    LayerType.PRESENTATION, prismContext);
-            RefinedObjectClassDefinition objectClassDefinition = refinedSchema
-                    .getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent());
+            ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource, LayerType.PRESENTATION);
+            ResourceObjectDefinition objectClassDefinition = refinedSchema
+                    .findObjectDefinition(ShadowKindType.ACCOUNT, construction.getIntent());
 
             if (objectClassDefinition == null) {
                 return attributes;

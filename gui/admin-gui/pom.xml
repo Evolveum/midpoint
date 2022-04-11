@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -49,24 +49,8 @@
             <artifactId>spring-security-saml2-service-provider</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml-saml-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml-security-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml-xmlsec-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-client</artifactId>
         </dependency>
 
         <dependency>
@@ -136,30 +120,15 @@
             <scope>runtime</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-cas</artifactId>
-        </dependency>
-
         <!-- JDBC DRIVERS -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>org.mariadb.jdbc</groupId>
-            <artifactId>mariadb-java-client</artifactId>
-            <scope>runtime</scope>
-        </dependency>
         <!--
         Following drivers are excluded in repackaging, we don't want to distribute it (or can't).
         -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
@@ -186,7 +155,6 @@
             <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-impl</artifactId>
             <version>${project.version}</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -230,17 +198,17 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>cases-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>workflow-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>certification-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>audit-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -332,6 +300,12 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>cases-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>workflow-impl</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
@@ -360,10 +334,21 @@
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>authentication-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
 
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>authentication-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -386,26 +371,12 @@
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring-aop</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-tx</artifactId>
         </dependency>
         <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
             <groupId>org.springframework</groupId>
             <artifactId>spring-aspects</artifactId>
             <scope>runtime</scope>
-        </dependency>
-
-        <!-- SPRING LDAP -->
-        <dependency>
-            <groupId>org.springframework.ldap</groupId>
-            <artifactId>spring-ldap-core</artifactId>
         </dependency>
 
         <!-- SPRING SECURITY -->
@@ -416,14 +387,6 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-ldap</artifactId>
         </dependency>
 
         <!-- WICKET DEPENDENCIES -->
@@ -549,14 +512,7 @@
             <groupId>com.github.openjson</groupId>
             <artifactId>openjson</artifactId>
         </dependency>
-        <dependency>
-            <groupId>net.shibboleth.utilities</groupId>
-            <artifactId>java-support</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk15on</artifactId>
-        </dependency>
+
 
         <!-- Messaging -->
         <dependency>
@@ -574,7 +530,6 @@
             <artifactId>artemis-commons</artifactId>
             <scope>runtime</scope>
         </dependency>
-
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -789,10 +744,6 @@
                     See truezip-maven-plugin plugin lower.
                     <excludes>
                         <exclude>
-                            <groupId>mysql</groupId>
-                            <artifactId>mysql-connector-java</artifactId>
-                        </exclude>
-                        <exclude>
                             <groupId>com.microsoft.sqlserver</groupId>
                             <artifactId>mssql-jdbc</artifactId>
                         </exclude>
@@ -848,7 +799,6 @@
                                     <include>simplefan-*.jar</include>
                                     <include>ons-*.jar</include>
                                     <include>mssql-jdbc-*.jar</include>
-                                    <include>mysql-connector-java-*.jar</include>
                                 </includes>
                             </fileset>
                         </configuration>

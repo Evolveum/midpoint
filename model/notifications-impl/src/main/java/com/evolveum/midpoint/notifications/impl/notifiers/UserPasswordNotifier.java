@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -27,7 +27,7 @@ public class UserPasswordNotifier extends AbstractGeneralNotifier<ModelEvent, Us
 
     private static final Trace LOGGER = TraceManager.getTrace(UserPasswordNotifier.class);
 
-    @Autowired private NotificationFunctionsImpl notificationsUtil;
+    @Autowired private NotificationFunctions notificationsUtil;
 
     @Override
     public Class<ModelEvent> getEventType() {
@@ -66,7 +66,7 @@ public class UserPasswordNotifier extends AbstractGeneralNotifier<ModelEvent, Us
 
     @Override
     protected String getBody(ModelEvent event, UserPasswordNotifierType configuration, String transport, Task task, OperationResult result) {
-        return "Password for user " + notificationsUtil.getObjectType(event.getRequestee(), false, result).getName()
+        return "Password for user " + notificationsUtil.getObject(event.getRequestee(), false, result).getName()
                 + " is: " + event.getFocusPassword();
     }
 

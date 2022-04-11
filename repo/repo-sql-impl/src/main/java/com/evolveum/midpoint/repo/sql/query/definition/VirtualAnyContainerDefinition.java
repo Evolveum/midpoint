@@ -12,9 +12,6 @@ import java.util.Objects;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 
-/**
- * @author mederly
- */
 public class VirtualAnyContainerDefinition extends JpaAnyContainerDefinition<VirtualAnyContainerDefinition> {
 
     /**

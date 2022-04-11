@@ -16,7 +16,6 @@ import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
 import com.evolveum.midpoint.web.component.search.SpecialSearchItem;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.behavior.AttributeAppender;
@@ -31,11 +30,11 @@ import java.util.List;
 
 public class IndirectSearchItem extends SpecialSearchItem {
 
-    private final MemberPanelStorage memberStorage;
+    private final SearchBoxConfigurationHelper searchBoxConfiguration;
 
-    public IndirectSearchItem(Search search, MemberPanelStorage memberStorage) {
+    public IndirectSearchItem(Search search, SearchBoxConfigurationHelper searchBoxConfiguration) {
         super(search);
-        this.memberStorage = memberStorage;
+        this.searchBoxConfiguration = searchBoxConfiguration;
     }
 
     @Override
@@ -45,12 +44,12 @@ public class IndirectSearchItem extends SpecialSearchItem {
 
 
     private IndirectSearchItemConfigurationType getIndirectConfig() {
-        return memberStorage.getIndirectSearchItem();
+        return searchBoxConfiguration.getDefaultIndirectConfiguration();
     }
 
     @Override
     public SearchSpecialItemPanel createSpecialSearchPanel(String id) {
-        SearchSpecialItemPanel panel = new SearchSpecialItemPanel(id, new PropertyModel(memberStorage, MemberPanelStorage.F_INDIRECT_ITEM + "." + IndirectSearchItemConfigurationType.F_INDIRECT.getLocalPart())) {
+        SearchSpecialItemPanel panel = new SearchSpecialItemPanel(id, new PropertyModel(searchBoxConfiguration, SearchBoxConfigurationHelper.F_INDIRECT_ITEM + "." + IndirectSearchItemConfigurationType.F_INDIRECT.getLocalPart())) {
             @Override
             protected WebMarkupContainer initSearchItemField(String id) {
                 List<Boolean> choices = new ArrayList<>();
@@ -70,7 +69,7 @@ public class IndirectSearchItem extends SpecialSearchItem {
                 inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
                 inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 68"
                         + "px; max-width: 400px !important;"));
-                inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> memberStorage != null && !memberStorage.isSearchScope(SearchBoxScopeType.SUBTREE)));
+                inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> searchBoxConfiguration != null && !searchBoxConfiguration.isSearchScope(SearchBoxScopeType.SUBTREE)));
                 inputPanel.setOutputMarkupId(true);
                 return inputPanel;
             }
@@ -90,6 +89,18 @@ public class IndirectSearchItem extends SpecialSearchItem {
     }
 
     protected boolean isPanelVisible() {
-        return false;
+        return searchBoxConfiguration == null
+                || (searchBoxConfiguration.getSupportedRelations() != null
+                && !searchBoxConfiguration.isSearchScope(SearchBoxScopeType.SUBTREE));
+    }
+
+    @Override
+    public boolean isApplyFilter() {
+        return !searchBoxConfiguration.isSearchScopeVisible()
+                || !searchBoxConfiguration.isSearchScope(SearchBoxScopeType.SUBTREE);
+    }
+
+    public boolean isIndirect(){
+        return searchBoxConfiguration.isIndirect();
     }
 }

@@ -14,14 +14,14 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
@@ -37,8 +37,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -603,17 +601,17 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         }
     }
 
-    protected void assertAttributeFlags(RefinedObjectClassDefinition rOcDef,
+    protected void assertAttributeFlags(ResourceObjectDefinition rOcDef,
             QName attrName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
-        RefinedAttributeDefinition<?> rAttrDef = rOcDef.findAttributeDefinition(attrName);
+        ResourceAttributeDefinition<?> rAttrDef = rOcDef.findAttributeDefinition(attrName);
         assertNotNull(rAttrDef);
         assertEquals("Wrong readability flag for " + attrName, expectedRead, rAttrDef.canRead());
         assertEquals("Wrong addition flag for " + attrName, expectedAdd, rAttrDef.canAdd());
         assertEquals("Wrong modification flag for " + attrName, expectedModify, rAttrDef.canModify());
     }
 
-    protected void assertAttributeFlags(ObjectClassComplexTypeDefinition rOcDef,
-            QName attrName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
+    protected void assertAttributeFlags(ResourceObjectClassDefinition rOcDef,
+                                        QName attrName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
         ResourceAttributeDefinition<?> rAttrDef = rOcDef.findAttributeDefinition(attrName);
         assertNotNull(rAttrDef);
         assertEquals("Wrong readability flag for " + attrName, expectedRead, rAttrDef.canRead());
@@ -1049,8 +1047,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected void assertGlobalStateUntouched() throws SchemaException {
-        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(getDummyResourceObject());
-        RefinedObjectClassDefinition rOcDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(getDummyResourceObject());
+        ResourceObjectTypeDefinition rOcDef = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_UID, true, false, false);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_NAME, true, true, true);
         assertAttributeFlags(rOcDef, new QName("location"), true, true, true);

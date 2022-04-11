@@ -11,6 +11,10 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -21,9 +25,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.services.PageService;
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
@@ -228,7 +229,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
                     for (QName relation : assignedRelations) {
                         RelationDefinitionType def = ObjectTypeUtil.findRelationDefinition(defs, relation);
                         String relationLabel;
-                        if (def == null || def.getCategory() == null || def.getDisplay().getLabel() == null){
+                        if (def == null || def.getDisplay() == null || def.getDisplay().getLabel() == null){
                             relationLabel = relation.getLocalPart();
                         } else {
                             relationLabel = createStringResource(def.getDisplay().getLabel()).getString();
@@ -299,25 +300,30 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
             OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT);
             Task task = getPageBase().createSimpleTask(OPERATION_LOAD_OBJECT);
 
-//            PageParameters parameters = new PageParameters();
-//            parameters.add(OnePageParameterEncoder.PARAMETER, assignment.getTargetRef().getOid());
-
             if (AssignmentEditorDtoType.ORG_UNIT.equals(assignment.getType())){
                 PrismObject<OrgType> object = WebModelServiceUtils.loadObject(OrgType.class, assignment.getTargetRef().getOid(),
                         getPageBase(), task, result);
-                getPageBase().navigateToNext(new PageOrgUnit(object, false,true));
+
+                navigateToDetails(new PageOrg(object));
             } else if (AssignmentEditorDtoType.ROLE.equals(assignment.getType())){
                 PrismObject<RoleType> object = WebModelServiceUtils.loadObject(RoleType.class, assignment.getTargetRef().getOid(),
                         getPageBase(), task, result);
-                getPageBase().navigateToNext(new PageRole(object, false, true));
+
+                navigateToDetails(new PageRole(object));
             } else if (AssignmentEditorDtoType.SERVICE.equals(assignment.getType())){
                 PrismObject<ServiceType> object = WebModelServiceUtils.loadObject(ServiceType.class, assignment.getTargetRef().getOid(),
                         getPageBase(), task, result);
-                getPageBase().navigateToNext(new PageService(object, false,true));
+
+                navigateToDetails(new PageService(object));
             }
         } else {
             plusIconClicked = false;
         }
+    }
+
+    private void navigateToDetails(PageFocusDetails next) {
+        next.setReadonlyOverride(true);
+        getPageBase().navigateToNext(next);
     }
 
     private boolean isMultiUserRequest(){

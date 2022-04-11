@@ -1,0 +1,9 @@
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <object xsi:type="RoleType" oid="daf12492-5387-470f-bbd8-cf21f609367c">
+        <name>LR.RSA:T/token#</name>
+    </object>
+    <object xsi:type="RoleType" oid="3ed7c747-ff1b-4b45-90c6-b158bc844e2b">
+        <name>LR.RSA:T/token@</name>
+    </object>
+</objects>

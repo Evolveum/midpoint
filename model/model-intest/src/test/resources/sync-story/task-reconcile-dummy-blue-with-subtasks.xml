@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="ed388ce5-bc16-4489-9764-8b9abec547fb"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>task-reconcile-dummy-blue-partitioned</name>
+
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>closed</executionState> <!-- running on demand by the test -->
+
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000204"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+        <distribution>
+            <subtasks/>
+        </distribution>
+    </activity>
+</task>

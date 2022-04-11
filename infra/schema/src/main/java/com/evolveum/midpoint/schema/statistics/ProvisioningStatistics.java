@@ -84,8 +84,8 @@ public class ProvisioningStatistics {
     private static void addMatchingEntries(List<ProvisioningStatisticsEntryType> sumEntries,
             List<ProvisioningStatisticsEntryType> deltaEntries) {
         for (ProvisioningStatisticsEntryType deltaEntry : deltaEntries) {
-            ProvisioningStatisticsEntryType matchingEntry = findOrCreateMatchingEntry(sumEntries, deltaEntry.getResourceRef(),
-                    deltaEntry.getObjectClass());
+            ProvisioningStatisticsEntryType matchingEntry =
+                    findOrCreateMatchingEntry(sumEntries, deltaEntry.getResourceRef(), deltaEntry.getObjectClass());
             addEntryInformation(matchingEntry, deltaEntry);
         }
     }
@@ -125,7 +125,7 @@ public class ProvisioningStatistics {
         addOperations(sum.getOperation(), delta.getOperation());
     }
 
-    static void addOperations(List<ProvisioningStatisticsOperationEntryType> sumOperations, List<ProvisioningStatisticsOperationEntryType> deltaOperations) {
+    private static void addOperations(List<ProvisioningStatisticsOperationEntryType> sumOperations, List<ProvisioningStatisticsOperationEntryType> deltaOperations) {
         for (ProvisioningStatisticsOperationEntryType deltaOperation : deltaOperations) {
             ProvisioningStatisticsOperationEntryType matchingOperation =
                     findOrCreateOperation(sumOperations, deltaOperation.getOperation(), deltaOperation.getStatus());
@@ -133,7 +133,7 @@ public class ProvisioningStatistics {
         }
     }
 
-    static ProvisioningStatisticsOperationEntryType findOrCreateOperation(
+    private static ProvisioningStatisticsOperationEntryType findOrCreateOperation(
             List<ProvisioningStatisticsOperationEntryType> operations, String operationName, OperationResultStatusType status) {
         return operations.stream()
                 .filter(op -> Objects.equals(op.getOperation(), operationName) && op.getStatus() == status)

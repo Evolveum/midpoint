@@ -47,11 +47,11 @@
             <artifactId>ucf-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>task-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.midpoint.repo</groupId>-->
+        <!--    <artifactId>task-api</artifactId>-->
+        <!--    <version>${project.version}</version>-->
+        <!--</dependency>-->
 
         <dependency>
             <groupId>commons-lang</groupId>
@@ -113,7 +113,6 @@
             <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-impl</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>

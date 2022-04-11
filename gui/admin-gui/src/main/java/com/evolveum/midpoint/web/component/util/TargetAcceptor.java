@@ -11,9 +11,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import java.io.Serializable;
 
-/**
- * @author mederly
- */
 @FunctionalInterface
 public interface TargetAcceptor extends Serializable {
     void accept(AjaxRequestTarget target);

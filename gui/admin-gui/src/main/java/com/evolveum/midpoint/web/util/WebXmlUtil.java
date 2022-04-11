@@ -19,8 +19,6 @@ import java.util.List;
 
 /**
  * Collection of brutal and ugly hacks, to be removed when prism implementation will be reviewed in 3.5.
- *
- * @author mederly
  */
 public class WebXmlUtil {
 

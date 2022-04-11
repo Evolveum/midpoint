@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -46,24 +46,32 @@ public class DataSourceFactory {
                     "SQL configuration is null, couldn't create datasource.");
         }
 
-        try {
-            if (StringUtils.isNotEmpty(configuration.getDataSource())) {
+        if (StringUtils.isNotEmpty(configuration.getDataSource())) {
+            try {
                 LOGGER.info("JNDI datasource present in configuration, looking for '{}'.",
                         configuration.getDataSource());
                 dataSource = createJndiDataSource();
-            } else {
-                LOGGER.info("Constructing default datasource with connection pooling; JDBC URL: {}"
+            } catch (Exception ex) {
+                throw new RepositoryServiceFactoryException(
+                        "Couldn't initialize datasource using datasource " + configuration.getDataSource()
+                                + ", reason: " + ex.getMessage(), ex);
+            }
+        } else {
+            String jdbcUrl = configuration.getJdbcUrl(applicationName);
+            try {
+                LOGGER.info("Constructing datasource '{}' with connection pooling; JDBC URL: {}"
                                 + "\n Using driver: {}",
-                        configuration.getJdbcUrl(applicationName), configuration.getDriverClassName());
+                        applicationName, jdbcUrl, configuration.getDriverClassName());
                 HikariConfig config = createHikariConfig(applicationName);
                 dataSource = new HikariDataSource(config);
                 internalDataSource = true;
+            } catch (Exception ex) {
+                throw new RepositoryServiceFactoryException(
+                        "Couldn't initialize datasource using JDBC URL " + jdbcUrl
+                                + ", reason: " + ex.getMessage(), ex);
             }
-            return dataSource;
-        } catch (Exception ex) {
-            throw new RepositoryServiceFactoryException(
-                    "Couldn't initialize datasource, reason: " + ex.getMessage(), ex);
         }
+        return dataSource;
     }
 
     public DataSource getDataSource() {
@@ -108,12 +116,6 @@ public class DataSourceFactory {
         TransactionIsolation ti = configuration.getTransactionIsolation();
         if (ti != null && TransactionIsolation.SNAPSHOT != ti) {
             config.setTransactionIsolation("TRANSACTION_" + ti.name());
-        }
-
-        if (configuration.isUsingMySqlCompatible()) {
-            config.addDataSourceProperty("cachePrepStmts", "true");
-            config.addDataSourceProperty("prepStmtCacheSize", "250");
-            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
         }
 
         config.setInitializationFailTimeout(configuration.getInitializationFailTimeout());

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,9 +7,6 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import java.util.*;
-
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.web.application.Url;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -21,6 +18,11 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.cases.api.AuditingConstants;
 import com.evolveum.midpoint.gui.api.component.delta.ObjectDeltaOperationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
@@ -35,19 +37,15 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordItemValueDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
@@ -60,12 +58,12 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
                 @Url(mountUrl = "/admin/auditLogDetails")
         },
         action = {
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
-                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
-                description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_AUDIT_LOG_VIEWER_URL,
-                label = "PageAuditLogViewer.auth.auditLogViewer.label",
-                description = "PageAuditLogViewer.auth.auditLogViewer.description") })
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
+                        label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL,
+                        description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_AUDIT_LOG_VIEWER_URL,
+                        label = "PageAuditLogViewer.auth.auditLogViewer.label",
+                        description = "PageAuditLogViewer.auth.auditLogViewer.description") })
 public class PageAuditLogDetails extends PageBase {
     private static final long serialVersionUID = 1L;
 
@@ -103,8 +101,6 @@ public class PageAuditLogDetails extends PageBase {
     private static final String ID_ITEM_VALUE = "itemValue";
 //    private static final String ID_HISTORY_PANEL = "historyPanel";
 
-    public static final String PARAMETER_STAGE = "stage";
-
     private static final String ID_BUTTON_BACK = "back";
 
     private static final String DOT_CLASS = PageAuditLogDetails.class.getSimpleName() + ".";
@@ -116,21 +112,22 @@ public class PageAuditLogDetails extends PageBase {
     // items that are not listed here are sorted according to their display name
     private static final List<String> EXTENSION_ITEMS_ORDER =
             Arrays.asList(
-                    WorkflowConstants.AUDIT_OBJECT,
-                    WorkflowConstants.AUDIT_TARGET,
-                    WorkflowConstants.AUDIT_ORIGINAL_ASSIGNEE,
-                    WorkflowConstants.AUDIT_CURRENT_ASSIGNEE,
-                    WorkflowConstants.AUDIT_STAGE_NUMBER,
-                    WorkflowConstants.AUDIT_STAGE_COUNT,
-                    WorkflowConstants.AUDIT_STAGE_NAME,
-                    WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME,
-                    WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER,
-                    WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME,
-                    WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME,
-                    WorkflowConstants.AUDIT_REQUESTER_COMMENT,
-                    WorkflowConstants.AUDIT_COMMENT,
-                    WorkflowConstants.AUDIT_WORK_ITEM_ID,
-                    WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID);
+                    AuditingConstants.AUDIT_OBJECT,
+                    AuditingConstants.AUDIT_TARGET,
+                    AuditingConstants.AUDIT_ORIGINAL_ASSIGNEE,
+                    AuditingConstants.AUDIT_CURRENT_ASSIGNEE,
+                    AuditingConstants.AUDIT_STAGE_NUMBER,
+                    AuditingConstants.AUDIT_STAGE_COUNT,
+                    AuditingConstants.AUDIT_STAGE_NAME,
+                    AuditingConstants.AUDIT_STAGE_DISPLAY_NAME,
+                    AuditingConstants.AUDIT_ESCALATION_LEVEL_NUMBER,
+                    AuditingConstants.AUDIT_ESCALATION_LEVEL_NAME,
+                    AuditingConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME,
+                    AuditingConstants.AUDIT_REQUESTER_COMMENT,
+                    AuditingConstants.AUDIT_COMMENT,
+                    AuditingConstants.AUDIT_WORK_ITEM_ID,
+                    AuditingConstants.AUDIT_CASE_OID,
+                    AuditingConstants.AUDIT_PROCESS_INSTANCE_ID);
 
     public PageAuditLogDetails(PageParameters params) {
         if (params != null) {
@@ -151,11 +148,10 @@ public class PageAuditLogDetails extends PageBase {
 
             @Override
             protected AuditEventRecordType load() {
-
-                Long eventIdentifier = getEventIdentifierParameter();
+                Long repoId = getRepoIdParameter();
                 S_MatchingRuleEntry filter = getPrismContext().queryFor(AuditEventRecordType.class)
                         .item(AuditEventRecordType.F_REPO_ID)
-                        .eq(eventIdentifier);
+                        .eq(repoId);
                 ObjectQuery query = filter.build();
                 Task task = createSimpleTask(OPERATION_LOAD_AUDIT_RECORD);
                 OperationResult result = task.getResult();
@@ -171,13 +167,9 @@ public class PageAuditLogDetails extends PageBase {
                 showResult(result, false);
                 if (records == null || records.size() > 1) {
                     getSession().error("Cannot load audit event record, "
-                            + (records == null ?  "no record found " : "more than one record found ")
-                            + ", identifier: " + eventIdentifier);
-                    redirectBackViaRestartResponseException();
-                }
-
-                if (records.size() > 1) {
-                    return null;
+                            + (records == null ? "no record found " : "more than one record found ")
+                            + ", identifier: " + repoId);
+                    throw restartResponseExceptionToReload();
                 }
 
                 return records.iterator().next();
@@ -185,7 +177,7 @@ public class PageAuditLogDetails extends PageBase {
         };
     }
 
-    private Long getEventIdentifierParameter() {
+    private Long getRepoIdParameter() {
         StringValue param = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         if (param == null) {
             return null;
@@ -203,60 +195,33 @@ public class PageAuditLogDetails extends PageBase {
         initLayoutBackButton();
     }
 
-//    private void initAuditLogHistoryPanel(WebMarkupContainer eventPanel) {
-//
-//        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_HISTORY_PANEL) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected ObjectQuery getCustomizeContentQuery(){
-//                return getPageBase().getPrismContext().queryFor(AuditEventRecordType.class)
-//                        .item(AuditEventRecordType.F_TASK_IDENTIFIER)
-//                        .eq(recordModel.getObject().getTaskIdentifier())
-//                        .build();
-//            }
-//
-//            @Override
-//            protected String getAuditStorageKey(String collectionNameValue) {
-//                if (StringUtils.isNotEmpty(collectionNameValue)) {
-//                    return SessionStorage.KEY_EVENT_DETAIL_AUDIT_LOG + "." + collectionNameValue;
-//                }
-//                return SessionStorage.KEY_EVENT_DETAIL_AUDIT_LOG;
-//            }
-//        };
-//        panel.setOutputMarkupId(true);
-//        panel.add(new VisibleBehaviour(() -> recordModel.getObject() != null && recordModel.getObject().getTaskIdentifier() != null));
-//        eventPanel.addOrReplace(panel);
-//    }
-
     private void initEventPanel(WebMarkupContainer eventPanel) {
 
         WebMarkupContainer eventDetailsPanel = new WebMarkupContainer(ID_EVENT_DETAILS_PANEL);
         eventDetailsPanel.setOutputMarkupId(true);
         eventPanel.addOrReplace(eventDetailsPanel);
 
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_IDENTIFIER)));
-
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_TIMESTAMP, new PropertyModel(recordModel, ID_PARAMETERS_TIMESTAMP)));
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_SESSION_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_SESSION_IDENTIFIER)));
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_TASK_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_TASK_IDENTIFIER)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_IDENTIFIER, new PropertyModel<>(recordModel, ID_PARAMETERS_EVENT_IDENTIFIER)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_TIMESTAMP, new PropertyModel<>(recordModel, ID_PARAMETERS_TIMESTAMP)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_SESSION_IDENTIFIER, new PropertyModel<>(recordModel, ID_PARAMETERS_SESSION_IDENTIFIER)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_TASK_IDENTIFIER, new PropertyModel<>(recordModel, ID_PARAMETERS_TASK_IDENTIFIER)));
         eventDetailsPanel.add(createTaskLink());
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_TASK_OID_LABEL, new PropertyModel(recordModel, "taskOID")));
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_REQUEST_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_REQUEST_IDENTIFIER)));
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_HOST_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_HOST_IDENTIFIER)));
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_NODE_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_NODE_IDENTIFIER)));
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_REMOTE_HOST_ADDRESS, new PropertyModel(recordModel, ID_PARAMETERS_REMOTE_HOST_ADDRESS)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_TASK_OID_LABEL, new PropertyModel<>(recordModel, "taskOID")));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_REQUEST_IDENTIFIER, new PropertyModel<>(recordModel, ID_PARAMETERS_REQUEST_IDENTIFIER)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_HOST_IDENTIFIER, new PropertyModel<>(recordModel, ID_PARAMETERS_HOST_IDENTIFIER)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_NODE_IDENTIFIER, new PropertyModel<>(recordModel, ID_PARAMETERS_NODE_IDENTIFIER)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_REMOTE_HOST_ADDRESS, new PropertyModel<>(recordModel, ID_PARAMETERS_REMOTE_HOST_ADDRESS)));
         eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_INITIATOR, createInitiatorRefModel()));
         eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_ATTORNEY, createAttorneyRefModel()));
         eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_TARGET, createTargetRefModel()));
         eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_TARGET_OWNER, createTargetOwnerRefModel()));
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_TYPE, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_TYPE)));
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_STAGE, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_STAGE)));
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_CHANNEL, new PropertyModel(recordModel, ID_PARAMETERS_CHANNEL)));
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_OUTCOME, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_OUTCOME)));
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_RESULT, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_RESULT)));
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_PARAMETER, new PropertyModel(recordModel, ID_PARAMETERS_PARAMETER)));
-        eventDetailsPanel.add(createLabel(ID_PARAMETERS_MESSAGE, new PropertyModel(recordModel, ID_PARAMETERS_MESSAGE)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_TYPE, new PropertyModel<>(recordModel, ID_PARAMETERS_EVENT_TYPE)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_STAGE, new PropertyModel<>(recordModel, ID_PARAMETERS_EVENT_STAGE)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_CHANNEL, new PropertyModel<>(recordModel, ID_PARAMETERS_CHANNEL)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_OUTCOME, new PropertyModel<>(recordModel, ID_PARAMETERS_EVENT_OUTCOME)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_RESULT, new PropertyModel<>(recordModel, ID_PARAMETERS_EVENT_RESULT)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_PARAMETER, new PropertyModel<>(recordModel, ID_PARAMETERS_PARAMETER)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_MESSAGE, new PropertyModel<>(recordModel, ID_PARAMETERS_MESSAGE)));
 
         ListView<AuditEventRecordItemValueDto> additionalItemsList = new ListView<>(
                 ID_ADDITIONAL_ITEM_LINE, createAdditionalItemsListModel()) {
@@ -295,6 +260,7 @@ public class PageAuditLogDetails extends PageBase {
         taskOidLink.setOutputMarkupId(true);
         return taskOidLink;
     }
+
     private IModel<String> createTargetOwnerRefModel() {
         return new ReadOnlyModel<>(() -> {
             AuditEventRecordType record = recordModel.getObject();
@@ -307,6 +273,7 @@ public class PageAuditLogDetails extends PageBase {
                     new OperationResult(OPERATION_RESOLVE_REFERENCE_NAME));
         });
     }
+
     private Label createLabel(String id, IModel<String> model) {
         Label label = new Label(id, model);
         label.setOutputMarkupId(true);
@@ -361,7 +328,8 @@ public class PageAuditLogDetails extends PageBase {
     }
 
     private IModel<String> createAttorneyRefModel() {
-        return new ReadOnlyModel<>(() -> WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getAttorneyRef(), PageAuditLogDetails.this,
+        return new ReadOnlyModel<>(() -> WebModelServiceUtils.resolveReferenceName(
+                recordModel.getObject().getAttorneyRef(), PageAuditLogDetails.this,
                 createSimpleTask(ID_PARAMETERS_EVENT_ATTORNEY),
                 new OperationResult(ID_PARAMETERS_EVENT_ATTORNEY)));
     }
@@ -409,7 +377,6 @@ public class PageAuditLogDetails extends PageBase {
                 rv.sort((a, b) -> sortItems(a, b));
                 return rv;
             }
-
 
         };
     }

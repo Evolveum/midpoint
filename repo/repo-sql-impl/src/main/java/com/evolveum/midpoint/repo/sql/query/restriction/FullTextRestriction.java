@@ -19,9 +19,6 @@ import org.hibernate.criterion.MatchMode;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class FullTextRestriction extends Restriction<FullTextFilter> {
 
     public FullTextRestriction(InterpretationContext context, FullTextFilter filter,

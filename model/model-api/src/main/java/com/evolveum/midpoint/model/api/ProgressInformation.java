@@ -18,8 +18,6 @@ import java.io.Serializable;
  * as a convenience for clients interpreting this structure we offer explicit denotation of specific events (see ActivityType).
  *
  * HIGHLY EXPERIMENTAL. Probably should be refactored (e.g. by providing strong typing via class hierarchy).
- *
- * @author mederly
  */
 public class ProgressInformation implements Serializable, DebugDumpable {
 

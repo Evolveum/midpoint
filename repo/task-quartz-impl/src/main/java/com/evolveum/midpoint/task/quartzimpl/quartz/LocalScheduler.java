@@ -126,12 +126,18 @@ public class LocalScheduler {
     }
 
     /**
+     * Puts the local Quartz scheduler into standby (paused) mode - if it's not already there.
+     *
      * Intentionally does not propagate internal exceptions.
      */
     public void pauseScheduler(OperationResult result) {
-        LOGGER.info("Putting Quartz scheduler into standby mode");
         try {
-            quartzScheduler.standby();
+            if (quartzScheduler.isInStandbyMode()) {
+                LOGGER.info("Quartz scheduler is in standby mode");
+            } else {
+                LOGGER.info("Putting Quartz scheduler into standby mode");
+                quartzScheduler.standby();
+            }
         } catch (SchedulerException e1) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't put local Quartz scheduler into standby mode", e1);
             result.recordFatalError("Couldn't put local Quartz scheduler into standby mode", e1);
@@ -213,8 +219,7 @@ public class LocalScheduler {
                 if (oid.equals(oid1)) {
                     Job job = jec.getJobInstance();
                     if (job instanceof JobExecutor) {
-                        JobExecutor jobExecutor = (JobExecutor) job;
-                        jobExecutor.sendThreadInterrupt();
+                        ((JobExecutor) job).sendThreadInterrupt();
                     }
                     break;
                 }

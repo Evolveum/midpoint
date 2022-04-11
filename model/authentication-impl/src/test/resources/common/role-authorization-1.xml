@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role oid="97984277-e809-4a86-ae9b-d5c40e09df0b" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>UI Authorization 1</name>
+    <authorization id="5002">   <!-- intentionally conflicting (MID-5002) -->
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    </authorization>
+</role>

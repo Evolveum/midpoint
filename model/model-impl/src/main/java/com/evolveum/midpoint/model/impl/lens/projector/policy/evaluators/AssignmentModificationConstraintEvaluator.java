@@ -98,11 +98,18 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
         QName relation = ctx.evaluatedAssignment.getNormalizedRelation();
+        LocalizableMessage relationMessage = relation != null ?
+                new LocalizableMessageBuilder()
+                .key("relation." + relation.getLocalPart())
+                .build()
+                : null;
+
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
                 .arg(ObjectTypeUtil.createDisplayInformation(ctx.evaluatedAssignment.getTarget(), false))
-                .arg(relation != null ? relation.getLocalPart() : null)
+                .arg(relationMessage)
                 .build();
+
         return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
     }
 
@@ -131,11 +138,15 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
                     .arg(ObjectTypeUtil.createDisplayInformation(ctx.getObject(), false))
                     .build();
         } else { //non-default relation = print relation to short message
+            LocalizableMessage relationMessage = new LocalizableMessageBuilder()
+                            .key("relation." + relation.getLocalPart())
+                            .build();
+
             builtInMessage = new LocalizableMessageBuilder()
                     .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_REL_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
                     .arg(ObjectTypeUtil.createDisplayInformation(ctx.evaluatedAssignment.getTarget(), false))
                     .arg(ObjectTypeUtil.createDisplayInformation(ctx.getObject(), false))
-                    .arg(relation.getLocalPart())
+                    .arg(relationMessage)
                     .build();
         }
         return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);

@@ -10,9 +10,6 @@ package com.evolveum.midpoint.web.component.wf;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
 import org.apache.wicket.Component;
 
-/**
- * @author mederly
- */
 public class WfGuiUtil {
 
     /**

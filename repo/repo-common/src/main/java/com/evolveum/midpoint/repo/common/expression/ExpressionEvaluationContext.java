@@ -226,6 +226,11 @@ public class ExpressionEvaluationContext {
         return additionalConvertor;
     }
 
+    /**
+     * Allows converting the raw values, possibly of various types, into the type conforming to the definition.
+     * TODO: Shouldn't convertor go into makeExpression already? Is should not change for one expression like variables.
+     *  This also causes troubles like
+     */
     public void setAdditionalConvertor(Function<Object, Object> additionalConvertor) {
         this.additionalConvertor = additionalConvertor;
     }

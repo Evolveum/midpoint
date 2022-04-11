@@ -14,9 +14,6 @@ import java.io.Serializable;
 import java.text.DateFormat;
 import java.util.Date;
 
-/**
- * @author mederly
- */
 public class WfHistoryEventDto implements Comparable<WfHistoryEventDto>, Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(WfHistoryEventDto.class);

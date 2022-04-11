@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 
+import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -40,7 +41,6 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
@@ -53,17 +53,17 @@ class SearchExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchExecutor.class);
 
-    @NotNull private final ObjectClassComplexTypeDefinition objectClassDefinition;
-    @NotNull private final PrismObjectDefinition<ShadowType> objectDefinition;
+    @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
+    @NotNull private final PrismObjectDefinition<ShadowType> prismObjectDefinition;
     @NotNull private final ObjectClass icfObjectClass;
     private final ObjectQuery query;
     private final Filter connIdFilter;
-    @NotNull private final ObjectHandler handler;
+    @NotNull private final UcfObjectHandler handler;
     private final AttributesToReturn attributesToReturn;
     private final PagedSearchCapabilityType pagedSearchConfiguration;
     private final SearchHierarchyConstraints searchHierarchyConstraints;
     private final UcfFetchErrorReportingMethod errorReportingMethod;
-    private final StateReporter reporter;
+    private final UcfExecutionContext reporter;
     @NotNull private final ConnectorInstanceConnIdImpl connectorInstance;
 
     /**
@@ -72,17 +72,22 @@ class SearchExecutor {
      */
     private final AtomicInteger objectsFetched = new AtomicInteger(0);
 
-    SearchExecutor(@NotNull ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            @NotNull ObjectHandler handler, AttributesToReturn attributesToReturn,
-            PagedSearchCapabilityType pagedSearchConfiguration, SearchHierarchyConstraints searchHierarchyConstraints,
-            UcfFetchErrorReportingMethod errorReportingMethod, StateReporter reporter,
+    SearchExecutor(
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            ObjectQuery query,
+            @NotNull UcfObjectHandler handler,
+            AttributesToReturn attributesToReturn,
+            PagedSearchCapabilityType pagedSearchConfiguration,
+            SearchHierarchyConstraints searchHierarchyConstraints,
+            UcfFetchErrorReportingMethod errorReportingMethod,
+            UcfExecutionContext reporter,
             @NotNull ConnectorInstanceConnIdImpl connectorInstance) throws SchemaException {
 
-        this.objectClassDefinition = objectClassDefinition;
-        this.objectDefinition = toShadowDefinition(objectClassDefinition);
-        this.icfObjectClass = connectorInstance.objectClassToConnId(objectClassDefinition);
+        this.resourceObjectDefinition = resourceObjectDefinition;
+        this.prismObjectDefinition = toShadowDefinition(resourceObjectDefinition);
+        this.icfObjectClass = connectorInstance.objectClassToConnId(resourceObjectDefinition);
         this.query = query;
-        this.connIdFilter = connectorInstance.convertFilterToIcf(query, objectClassDefinition);
+        this.connIdFilter = connectorInstance.convertFilterToIcf(query, resourceObjectDefinition);
         this.handler = handler;
         this.attributesToReturn = attributesToReturn;
         this.pagedSearchConfiguration = pagedSearchConfiguration;
@@ -125,7 +130,7 @@ class SearchExecutor {
     }
 
     private void setupAttributesToGet(OperationOptionsBuilder optionsBuilder) throws SchemaException {
-        connectorInstance.convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn, optionsBuilder);
+        connectorInstance.convertToIcfAttrsToGet(resourceObjectDefinition, attributesToReturn, optionsBuilder);
     }
 
     private void setupPagingAndSorting(OperationOptionsBuilder optionsBuilder) throws SchemaException {
@@ -157,8 +162,8 @@ class SearchExecutor {
             desc = "(default orderBy attribute from capability definition)";
         }
         if (orderByAttributeName != null) {
-            String orderByIcfName = connectorInstance.connIdNameMapper.convertAttributeNameToConnId(orderByAttributeName,
-                    objectClassDefinition, desc);
+            String orderByIcfName = connectorInstance.connIdNameMapper.convertAttributeNameToConnId(
+                    orderByAttributeName, resourceObjectDefinition, desc);
             optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
         }
     }
@@ -178,7 +183,7 @@ class SearchExecutor {
                 ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
                 String identifierValue;
                 if (secondaryIdentifier == null) {
-                    if (objectClassDefinition.getSecondaryIdentifiers().isEmpty()) {
+                    if (resourceObjectDefinition.getSecondaryIdentifiers().isEmpty()) {
                         // This object class obviously has __NAME__ and __UID__ the same. Primary identifier will work here.
                         identifierValue = baseContextIdentification.getPrimaryIdentifier().getRealValue(String.class);
                     } else {
@@ -187,13 +192,14 @@ class SearchExecutor {
                 } else {
                     identifierValue = secondaryIdentifier.getRealValue(String.class);
                 }
-                ObjectClass baseContextIcfObjectClass = connectorInstance.objectClassToConnId(baseContextIdentification.getObjectClassDefinition());
+                ObjectClass baseContextIcfObjectClass = connectorInstance.objectClassToConnId(
+                        baseContextIdentification.getResourceObjectDefinition());
                 QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(identifierValue));
                 optionsBuilder.setContainer(containerQualifiedUid);
             }
             SearchHierarchyScope scope = searchHierarchyConstraints.getScope();
             if (scope != null) {
-                optionsBuilder.setScope(scope.getScopeString());
+                optionsBuilder.setScope(scope.getString());
             }
         }
     }
@@ -260,7 +266,7 @@ class SearchExecutor {
     }
 
     private ConnIdOperation recordIcfOperationStart() {
-        return connectorInstance.recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
+        return connectorInstance.recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SEARCH, resourceObjectDefinition);
     }
 
     private void recordIcfOperationEnd(ConnIdOperation operation, Throwable ex) {
@@ -336,7 +342,7 @@ class SearchExecutor {
                 }
 
                 UcfObjectFound ucfObject = connectorInstance.connIdConvertor.convertToUcfObject(
-                        connectorObject, objectDefinition, false, connectorInstance.isCaseIgnoreAttributeNames(),
+                        connectorObject, prismObjectDefinition, false, connectorInstance.isCaseIgnoreAttributeNames(),
                         connectorInstance.isLegacySchema(), errorReportingMethod, result);
 
                 return handler.handle(ucfObject, result);

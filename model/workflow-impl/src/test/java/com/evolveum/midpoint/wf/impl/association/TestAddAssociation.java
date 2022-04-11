@@ -46,21 +46,20 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.wf.impl.AbstractWfTest;
 import com.evolveum.midpoint.wf.impl.WfTestHelper;
 import com.evolveum.midpoint.wf.impl.WorkflowResult;
-import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
-import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
+import com.evolveum.midpoint.cases.impl.engine.CaseEngineImpl;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpGeneralHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * @author mederly
+ * Testing approval of association "add" operation.
  */
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -72,11 +71,10 @@ public class TestAddAssociation extends AbstractWfTest {
 
     @Autowired protected Clockwork clockwork;
     @Autowired protected TaskManager taskManager;
-    @Autowired protected WorkflowManager workflowManager;
-    @Autowired protected WorkflowEngine workflowEngine;
+    @Autowired protected CaseManager caseManager;
+    @Autowired protected CaseEngineImpl caseEngine;
     @Autowired protected MiscHelper miscHelper;
     @Autowired protected PrimaryChangeProcessor primaryChangeProcessor;
-    @Autowired protected GeneralChangeProcessor generalChangeProcessor;
     @Autowired protected WfTestHelper testHelper;
     @Autowired protected PcpGeneralHelper pcpGeneralHelper;
 
@@ -449,7 +447,7 @@ public class TestAddAssociation extends AbstractWfTest {
                 logger.trace("wfContext = {}", wfContext);
 
                 boolean approve = testDetails.decideOnApproval(subcase, wfContext);
-                workflowManager.completeWorkItem(WorkItemId.of(workItem),
+                caseManager.completeWorkItem(WorkItemId.of(workItem),
                         new AbstractWorkItemOutputType(prismContext)
                                 .outcome(ApprovalUtils.toUri(approve)),
                         null, task, result);

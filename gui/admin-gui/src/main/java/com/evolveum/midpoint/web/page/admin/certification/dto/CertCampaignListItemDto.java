@@ -22,9 +22,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 
-/**
- * @author mederly
- */
 public class CertCampaignListItemDto extends Selectable {
 
     public static final String F_NAME = "name";
@@ -112,10 +109,10 @@ public class CertCampaignListItemDto extends Selectable {
 
             if (delta > 0) {
                 String key = stageLevelInfo ? "PageCertCampaigns.inForStage" : "PageCertCampaigns.inForCampaign";
-                return PageBase.createStringResourceStatic(page, key, WebComponentUtil.formatDurationWordsForLocal(delta, true, true, page)).getString();
+                return PageBase.createStringResourceStatic(key, WebComponentUtil.formatDurationWordsForLocal(delta, true, true, page)).getString();
             } else if (delta < 0) {
                 String key = stageLevelInfo ? "PageCertCampaigns.agoForStage" : "PageCertCampaigns.agoForCampaign";
-                return PageBase.createStringResourceStatic(page, key, WebComponentUtil.formatDurationWordsForLocal(-delta, true, true, page)).getString();
+                return PageBase.createStringResourceStatic(key, WebComponentUtil.formatDurationWordsForLocal(-delta, true, true, page)).getString();
             } else {
                 String key = stageLevelInfo ? "PageCertCampaigns.nowForStage" : "PageCertCampaigns.nowForCampaign";
                 return page.getString(key);

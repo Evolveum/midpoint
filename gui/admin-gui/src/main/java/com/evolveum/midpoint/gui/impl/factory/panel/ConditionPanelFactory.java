@@ -17,7 +17,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 @Component
@@ -30,14 +30,12 @@ public class ConditionPanelFactory extends AbstractGuiComponentFactory<Expressio
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ExpressionType> panelCtx) {
-        AceEditorPanel conditionPanel = new AceEditorPanel(panelCtx.getComponentId(), null, new ExpressionModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 200) {
-            @Override
-            protected boolean isResizeToMaxHeight() {
-                return false;
-            }
-        };
+        SimpleAceEditorPanel conditionPanel = new SimpleAceEditorPanel(panelCtx.getComponentId(),
+                new ExpressionModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 200);
+
         conditionPanel.getEditor().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         conditionPanel.getEditor().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+
         return conditionPanel;
     }
 

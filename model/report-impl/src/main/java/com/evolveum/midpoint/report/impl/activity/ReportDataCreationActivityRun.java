@@ -1,49 +1,47 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.report.impl.activity;
 
 import static com.evolveum.midpoint.report.impl.ReportUtils.getDirection;
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.DirectionTypeType.EXPORT;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
-import com.evolveum.midpoint.report.impl.controller.*;
-
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.ReportUtils;
+import com.evolveum.midpoint.report.impl.controller.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.Handler;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import javax.xml.datatype.XMLGregorianCalendar;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Executes parts of distributed report data creation activity:
@@ -139,13 +137,13 @@ public final class ReportDataCreationActivityRun
     }
 
     private void initializeAuditReportBucketing(OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
+            throws SchemaException {
         ObjectFilter filter = masterSearchSpecification.getQuery().getFilter();
         XMLGregorianCalendar reportFrom = null;
         XMLGregorianCalendar reportTo = null;
         if (filter != null) {
-            reportTo = getTimestampFromFilter(filter, false);
-            reportFrom = getTimestampFromFilter(filter, true);
+            reportTo = getTimestampFromFilter(filter, TimestampCondition.LESS);
+            reportFrom = getTimestampFromFilter(filter, TimestampCondition.GREATER);
         }
 
         XMLGregorianCalendar reportToRealizedTime = Objects.requireNonNull(
@@ -153,7 +151,11 @@ public final class ReportDataCreationActivityRun
                 "no realization start timestamp for " + this);
 
         ObjectQuery query = PrismContext.get().queryFor(AuditEventRecordType.class).build();
-        query.setPaging(PrismContext.get().queryFactory().createPaging(0, 1));
+
+        ObjectPaging paging = PrismContext.get().queryFactory().createPaging(0, 1);
+        paging.setOrdering(AuditEventRecordType.F_TIMESTAMP, OrderDirection.ASCENDING);
+        query.setPaging(paging);
+
         @NotNull SearchResultList<AuditEventRecordType> firstAudit = reportService.getAuditService().searchObjects(query, null, result);
         XMLGregorianCalendar reportFromFirstAuditRecords;
         if (firstAudit.size() == 1) {
@@ -175,8 +177,9 @@ public final class ReportDataCreationActivityRun
                 reportFrom, reportTo, reportToRealizedTime, reportFromFirstAuditRecords);
     }
 
-    private static XMLGregorianCalendar getTimestampFromFilter(ObjectFilter filter, boolean greaterOrLess) throws SchemaException {
-        Collection<PrismValue> values = getTimestampsFromFilter(filter, greaterOrLess);
+    private static XMLGregorianCalendar getTimestampFromFilter(
+            ObjectFilter filter, TimestampCondition timestampCondition) throws SchemaException {
+        Collection<PrismPropertyValue<XMLGregorianCalendar>> values = getTimestampsFromFilter(filter, timestampCondition);
         if (values == null || values.size() == 0) {
             return null;
         } else if (values.size() > 1) {
@@ -186,25 +189,31 @@ public final class ReportDataCreationActivityRun
         }
     }
 
-    private static <T extends PrismValue> Collection<T> getTimestampsFromFilter(ObjectFilter filter, boolean greaterOrLess) {
-        if (greaterOrLess && filter instanceof GreaterFilter
-                && AuditEventRecordType.F_TIMESTAMP.equivalent(((GreaterFilter) filter).getFullPath())) {
-            return ((GreaterFilter) filter).getValues();
-        } else if (!greaterOrLess && filter instanceof LessFilter
-                && AuditEventRecordType.F_TIMESTAMP.equivalent(((LessFilter) filter).getFullPath())) {
-            return ((LessFilter) filter).getValues();
+    private static Collection<PrismPropertyValue<XMLGregorianCalendar>> getTimestampsFromFilter(
+            ObjectFilter filter, TimestampCondition timestampCondition) {
+        if (timestampCondition == TimestampCondition.GREATER
+                && filter instanceof GreaterFilter
+                && AuditEventRecordType.F_TIMESTAMP.equivalent(((GreaterFilter<?>) filter).getFullPath())) {
+            //noinspection unchecked
+            return ((GreaterFilter<XMLGregorianCalendar>) filter).getValues();
+        } else if (timestampCondition == TimestampCondition.LESS
+                && filter instanceof LessFilter
+                && AuditEventRecordType.F_TIMESTAMP.equivalent(((LessFilter<?>) filter).getFullPath())) {
+            //noinspection unchecked
+            return ((LessFilter<XMLGregorianCalendar>) filter).getValues();
         } else if (filter instanceof AndFilter || filter instanceof OrFilter) {
-            return getTimestampsFromFilter(((NaryLogicalFilter) filter).getConditions(), greaterOrLess);
+            return getTimestampsFromFilter(((NaryLogicalFilter) filter).getConditions(), timestampCondition);
         } else if (filter instanceof TypeFilter) {
-            return getTimestampsFromFilter(((TypeFilter) filter).getFilter(), greaterOrLess);
+            return getTimestampsFromFilter(((TypeFilter) filter).getFilter(), timestampCondition);
         } else {
             return null;
         }
     }
 
-    private static <T extends PrismValue> Collection<T> getTimestampsFromFilter(List<? extends ObjectFilter> conditions, boolean greaterOrLess) {
+    private static Collection<PrismPropertyValue<XMLGregorianCalendar>> getTimestampsFromFilter(
+            List<? extends ObjectFilter> conditions, TimestampCondition timestampCondition) {
         for (ObjectFilter f : conditions) {
-            Collection<T> values = getTimestampsFromFilter(f, greaterOrLess);
+            Collection<PrismPropertyValue<XMLGregorianCalendar>> values = getTimestampsFromFilter(f, timestampCondition);
             if (values != null) {
                 return values;
             }
@@ -259,8 +268,12 @@ public final class ReportDataCreationActivityRun
         }
 
         @Override
-        public void run(Handler<Containerable> handler, OperationResult result) {
+        public void run(ObjectHandler<Containerable> handler, OperationResult result) {
             // no-op
         }
+    }
+
+    private enum TimestampCondition {
+        GREATER, LESS
     }
 }

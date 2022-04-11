@@ -9,16 +9,18 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 import java.util.Collection;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -55,7 +57,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, LoadableModel<ResourceType> summaryModel) {
+    protected Panel createSummaryPanel(String id, IModel<ResourceType> summaryModel) {
         return new ResourceSummaryPanel(id,
                 summaryModel, getSummaryPanelSpecification());
     }
@@ -74,6 +76,11 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
             @Override
             protected void savePerformed(AjaxRequestTarget target) {
                 PageResource.this.savePerformed(target);
+            }
+
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageResource.this.hasUnsavedChanges(target);
             }
         };
     }

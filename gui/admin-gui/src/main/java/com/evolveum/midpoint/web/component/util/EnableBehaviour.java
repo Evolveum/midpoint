@@ -9,9 +9,6 @@ package com.evolveum.midpoint.web.component.util;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class EnableBehaviour extends VisibleEnableBehaviour {
 
     private static final long serialVersionUID = 1L;

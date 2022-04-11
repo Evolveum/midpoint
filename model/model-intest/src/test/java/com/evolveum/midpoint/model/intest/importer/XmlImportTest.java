@@ -9,9 +9,6 @@ package com.evolveum.midpoint.model.intest.importer;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
-/**
- * @author mederly
- */
 public class XmlImportTest extends AbstractImportTest {
 
     @Override

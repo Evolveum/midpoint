@@ -13,9 +13,10 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -42,7 +43,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * TODO decide on which style of setters to keep (setters vs builder-style).
  */
 @SuppressWarnings({ "unused", "UnusedReturnValue" })
-public abstract class AbstractMappingBuilder<V extends PrismValue, D extends ItemDefinition, MBT extends AbstractMappingType, RT extends AbstractMappingBuilder<V, D, MBT, RT>> {
+public abstract class AbstractMappingBuilder<
+        V extends PrismValue,
+        D extends ItemDefinition<?>,
+        MBT extends AbstractMappingType,
+        RT extends AbstractMappingBuilder<V, D, MBT, RT>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingImpl.class);
 
@@ -72,7 +77,7 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
     private boolean profiling;
     private String contextDescription;
     private QName mappingQName;
-    private RefinedObjectClassDefinition refinedObjectClassDefinition;
+    private ResourceObjectDefinition resourceObjectDefinition;
     private ModelCommonBeans beans;
 
     public abstract AbstractMappingImpl<V, D, MBT> build();
@@ -129,7 +134,7 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
     }
 
     public RT sourceContext(ObjectDeltaObject<?> val) {
-        if (val.getDefinition() == null) {
+        if (val != null && val.getDefinition() == null) {
             throw new IllegalArgumentException("Attempt to set mapping source context without a definition");
         }
         sourceContext = val;
@@ -206,8 +211,8 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
         return typedThis();
     }
 
-    public RT refinedObjectClassDefinition(RefinedObjectClassDefinition val) {
-        refinedObjectClassDefinition = val;
+    public RT resourceObjectDefinition(ResourceObjectDefinition val) {
+        resourceObjectDefinition = val;
         return typedThis();
     }
 
@@ -311,7 +316,7 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
         return typedThis();
     }
 
-    public RT addVariableDefinition(String name, Object value, ItemDefinition definition) {
+    public RT addVariableDefinition(String name, Object value, ItemDefinition<?> definition) {
         variables.put(name, value, definition);
         return typedThis();
     }
@@ -325,6 +330,7 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
         return variables.containsKey(varName);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isApplicableToChannel(String channel) {
         return MappingImpl.isApplicableToChannel(mappingBean, channel);
     }
@@ -447,8 +453,8 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
         return mappingQName;
     }
 
-    public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
-        return refinedObjectClassDefinition;
+    public ResourceObjectDefinition getResourceObjectDefinition() {
+        return resourceObjectDefinition;
     }
     //endregion
 

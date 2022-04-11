@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -32,7 +32,6 @@ import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditRefValueMapping;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
-import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTableMetadata;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
@@ -111,13 +110,13 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
     }
 
     private SqaleRepoContext createSqaleRepoContext(
-            JdbcRepositoryConfiguration config,
+            SqaleRepositoryConfiguration config,
             DataSource dataSource,
             SchemaService schemaService) {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry();
         SqaleRepoContext repositoryContext =
                 new SqaleRepoContext(config, dataSource, schemaService, mappingRegistry);
-        repositoryContext.setQuerydslSqlListener(new SqlLogger());
+        repositoryContext.setQuerydslSqlListener(new SqlLogger(config.getSqlDurationWarningMs()));
 
         // Registered mapping needs repository context which needs registry - now we have both:
         mappingRegistry

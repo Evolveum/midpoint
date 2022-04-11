@@ -22,6 +22,8 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceType> {
 
@@ -42,7 +45,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
 
     private final LoadableModel<PrismContainerWrapper<ConnectorConfigurationType>> configurationModel;
 
-    public ResourceDetailsModel(LoadableModel<PrismObject<ResourceType>> prismObjectModel, ModelServiceLocator serviceLocator) {
+    public ResourceDetailsModel(LoadableDetachableModel<PrismObject<ResourceType>> prismObjectModel, ModelServiceLocator serviceLocator) {
         super(prismObjectModel, serviceLocator);
 
         this.configurationModel = new LoadableModel<>(true) {
@@ -120,6 +123,10 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
 //
 //
 //    }
+
+    public ResourceSchema getRefinedSchema() throws SchemaException {
+        return ResourceSchemaFactory.getCompleteSchema(getObjectWrapperModel().getObject().getObjectOld().asObjectable());
+    }
 
 
 }

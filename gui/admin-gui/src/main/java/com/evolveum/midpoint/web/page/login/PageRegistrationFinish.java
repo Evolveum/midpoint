@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.prism.Objectable;
@@ -26,9 +27,9 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -220,7 +221,7 @@ public class PageRegistrationFinish extends PageRegistrationBase {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                SecurityContextHolder.getContext().setAuthentication(null);
+                AuthUtil.clearMidpointAuthentication();
                 setResponsePage(PageLogin.class);
             }
         };

@@ -250,6 +250,8 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
 
         when();
 
+        dummyTransport.clearMessages();
+
         runExportTaskClassic(reportResource, result);
         waitForTaskCloseOrSuspend(TASK_EXPORT_CLASSIC.oid);
 
@@ -258,6 +260,8 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
         assertTask(TASK_EXPORT_CLASSIC.oid, "after")
                 .assertSuccess()
                 .display();
+
+        assertNotificationMessage(reportResource.getObjectable(), "text/html");
 
         PrismObject<ReportType> report = getObject(ReportType.class, reportResource.oid);
         List<String> lines = getLinesOfOutputFile(report);

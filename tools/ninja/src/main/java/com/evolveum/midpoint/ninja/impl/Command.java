@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,11 +7,15 @@
 package com.evolveum.midpoint.ninja.impl;
 
 import com.evolveum.midpoint.ninja.action.*;
+import com.evolveum.midpoint.ninja.action.audit.ExportAuditOptions;
+import com.evolveum.midpoint.ninja.action.audit.ExportAuditRepositoryAction;
+import com.evolveum.midpoint.ninja.action.audit.ImportAuditOptions;
+import com.evolveum.midpoint.ninja.action.audit.ImportAuditRepositoryAction;
 import com.evolveum.midpoint.ninja.action.trace.EditTraceAction;
 import com.evolveum.midpoint.ninja.opts.*;
 
 /**
- * @author Viliam Repan (lazyman)
+ * Enumeration of Ninja commands (or actions).
  */
 public enum Command {
 
@@ -25,32 +29,28 @@ public enum Command {
 
     VERIFY("verify", VerifyOptions.class, VerifyRepositoryAction.class, null),
 
-//    PASSWORD_RESET("password", PasswordResetOptions.class, PasswordResetRepositoryAction.class, null),
-//
-//    UNLOCK("unlock", UnlockOptions.class, UnlockRepositoryAction.class, null),
-//
-//    TEST("test", TestResourceOptions.class, null, TestResourceRestAction.class),
-//
     KEYS("keys", ListKeysOptions.class, ListKeysRepositoryAction.class, null),
 
+    INFO("info", Object.class, InfoRepositoryAction.class, null),
+
+    IMPORT_AUDIT("importAudit", ImportAuditOptions.class, ImportAuditRepositoryAction.class, null),
+
+    EXPORT_AUDIT("exportAudit", ExportAuditOptions.class, ExportAuditRepositoryAction.class, null),
+
     TRACE("trace", EditTraceOptions.class, EditTraceAction.class, null);
-//
-//    TRANSFORM("transform", TransformOptions.class, TransformRepositoryAction.class, null),
-//
-//    SCHEMA("schema", SchemaOptions.class, SchemaRepositoryAction.class, null);
 
     // todo reencrypt, modify, bulk, etc
 
-    private String commandName;
+    private final String commandName;
 
-    private Class options;
+    private final Class<?> options;
 
-    private Class<? extends RepositoryAction> repositoryAction;
+    private final Class<? extends RepositoryAction<?>> repositoryAction;
 
-    private Class<? extends RestAction> restAction;
+    private final Class<? extends RestAction<?>> restAction;
 
-    Command(String commandName, Class options, Class<? extends RepositoryAction> repositoryAction,
-            Class<? extends RestAction> restAction) {
+    <T> Command(String commandName, Class<T> options, Class<? extends RepositoryAction<T>> repositoryAction,
+            Class<? extends RestAction<T>> restAction) {
         this.commandName = commandName;
         this.options = options;
         this.repositoryAction = repositoryAction;
@@ -63,13 +63,13 @@ public enum Command {
 
     public Object createOptions() {
         try {
-            return options.newInstance();
+            return options.getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
         }
     }
 
-    public static RepositoryAction createRepositoryAction(String command) {
+    public static <T> RepositoryAction<T> createRepositoryAction(String command) {
         Command cmd = findCommand(command);
         if (cmd == null) {
             return null;
@@ -80,13 +80,14 @@ public enum Command {
                 return null;
             }
 
-            return cmd.repositoryAction.newInstance();
+            //noinspection unchecked
+            return (RepositoryAction<T>) cmd.repositoryAction.getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
         }
     }
 
-    public static RestAction createRestAction(String command) {
+    public static <T> RestAction<T> createRestAction(String command) {
         Command cmd = findCommand(command);
         if (cmd == null) {
             return null;
@@ -97,7 +98,8 @@ public enum Command {
                 return null;
             }
 
-            return cmd.restAction.newInstance();
+            //noinspection unchecked
+            return (RestAction<T>) cmd.restAction.getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
         }

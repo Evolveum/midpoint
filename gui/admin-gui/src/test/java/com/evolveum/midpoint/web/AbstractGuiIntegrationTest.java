@@ -17,8 +17,9 @@ import java.util.Locale;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 
 import org.apache.wicket.Component;
@@ -62,7 +63,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -170,7 +170,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
             @Override
             public Task createSimpleTask(String operationName) {
-                MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+                MidPointPrincipal user = AuthUtil.getPrincipalUser();
                 if (user == null) {
                     throw new IllegalStateException("No authenticated user");
                 }
@@ -255,6 +255,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
             @Override
             public AdminGuiConfigurationMergeManager getAdminGuiConfigurationMergeManager() {
+                return null;
+            }
+
+            @Override
+            public CorrelationService getCorrelationService() {
                 return null;
             }
         };

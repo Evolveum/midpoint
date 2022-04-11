@@ -14,22 +14,21 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
 
-import javax.xml.namespace.QName;
-
-public class SearchItemDefinition implements Serializable, Comparable<SearchItemDefinition> {
+public class SearchItemDefinition implements Serializable, Comparable<SearchItemDefinition>, DebugDumpable {
 
     public static final String F_SELECTED = "selected";
     public static final String F_NAME = "name";
     public static final String F_HELP = "help";
 
     private ItemPath path;
-    private ItemDefinition def;
+    private transient ItemDefinition def;
     private SearchItemType predefinedFilter;
     private PolyStringType displayName;
     private List allowedValues;
@@ -96,7 +95,7 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
         }
 
         if (getDef() != null && StringUtils.isNotEmpty(getDef().getDisplayName())) {
-            return PageBase.createStringResourceStatic(null, getDef().getDisplayName()).getString();
+            return PageBase.createStringResourceStatic(getDef().getDisplayName()).getString();
         }
         return WebComponentUtil.getItemDefinitionDisplayNameOrName(getDef(), null);
     }
@@ -158,5 +157,24 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
             help = help.replace("\n", "").replace("\r", "").replaceAll("^ +| +$|( )+", "$1");
         }
         return help;
+    }
+
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("Search item definition\n");
+        DebugUtil.shortDump(sb, path);
+        DebugUtil.debugDumpWithLabelLn(sb, "def", def, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "predefinedFilter", predefinedFilter, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "displayName", displayName, indent + 1);
+
+        DebugUtil.dumpObjectSizeEstimate(sb, "searchItemSize", this, indent + 1);
+        return sb.toString();
     }
 }

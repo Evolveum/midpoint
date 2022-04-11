@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2022 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div class="box box-info">
+        <table class="table table-bordered table-striped">
+            <tr>
+                <th></th>
+                <wicket:container wicket:id="headers">
+                    <th><span wicket:id="header"></span></th>
+                </wicket:container>
+            </tr>
+            <tr wicket:id="actionContainer">
+                <th>Action</th>
+                <wicket:container wicket:id="actions">
+                    <td>
+                        <a class="btn btn-primary btn-sm" wicket:id="action">
+                            <span wicket:id="actionLabel"></span>
+                        </a>
+                        <i class="fa fa-check" wicket:id="outcomeIcon"/>
+                    </td>
+                </wicket:container>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <wicket:container wicket:id="names">
+                    <td wicket:id="name"></td>
+                </wicket:container>
+            </tr>
+            <wicket:container wicket:id="rows">
+                <tr>
+                    <th><span wicket:id="attrName"></span></th>
+                    <wicket:container wicket:id="columns">
+                        <td wicket:id="column"></td>
+                    </wicket:container>
+                </tr>
+            </wicket:container>
+        </table>
+    </div>
+</wicket:panel>

@@ -22,9 +22,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REDUCE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
 
-/**
- * @author mederly
- */
 @Component
 public class AcceptedIfNotDeniedStrategy extends BaseOutcomeStrategy {
 

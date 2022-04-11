@@ -7,15 +7,20 @@
 
 package com.evolveum.midpoint.repo.common.activity.run.processing;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import static java.util.Objects.requireNonNull;
+
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.*;
-import com.evolveum.midpoint.schema.statistics.Operation;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStatistics;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingConditionEvaluator.AdditionalVariableProvider;
 import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStatistics;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
@@ -26,6 +31,7 @@ import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
+import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.task.api.ConnIdOperationsListener;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Tracer;
@@ -35,13 +41,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Responsible for the necessary general procedures before and after processing of a single item,
@@ -260,7 +259,7 @@ class ItemProcessingGatekeeper<I> {
     private void reportItemProcessed(OperationResult result) {
         if (activityRun.shouldReportItems()) {
             IterativeOperationStartInfo startInfo = operation.getStartInfo();
-            ItemProcessingRecordType record = new ItemProcessingRecordType(PrismContext.get())
+            ItemProcessingRecordType record = new ItemProcessingRecordType()
                     .sequentialNumber(request.getSequentialNumber())
                     .name(startInfo.getItem().getObjectName())
                     .displayName(startInfo.getItem().getObjectDisplayName())
@@ -506,7 +505,10 @@ class ItemProcessingGatekeeper<I> {
             liveStats.stopCollectingActionsExecuted(workerTask);
         }
 
-        activityRun.getTransientRunStatistics().update(isError(), operation.getDurationRounded());
+        activityRun.getTransientRunStatistics().update(
+                isError(),
+                operation.getDurationRounded(),
+                processingResult.getMessage());
         updateStatisticsInTasks(result);
     }
 
@@ -582,7 +584,7 @@ class ItemProcessingGatekeeper<I> {
         private ProcessingResult(@NotNull ItemProcessingOutcomeType outcome, @Nullable Throwable exception,
                 @NotNull OperationResult operationResult) {
             this.operationResult = operationResult;
-            this.outcome = new QualifiedItemProcessingOutcomeType(PrismContext.get())
+            this.outcome = new QualifiedItemProcessingOutcomeType()
                     .outcome(outcome);
             this.exception = exception;
             argCheck(outcome != ItemProcessingOutcomeType.FAILURE || exception != null,

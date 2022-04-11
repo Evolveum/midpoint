@@ -16,9 +16,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisti
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsOperationEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsType;
 
-/**
- * @author Pavol Mederly
- */
 public class ProvisioningStatisticsLineDto {
 
     public static final String F_RESOURCE_REF = "resourceRef";
@@ -52,5 +49,9 @@ public class ProvisioningStatisticsLineDto {
 
     public List<ProvisioningStatisticsOperationDto> getOperations() {
         return operations;
+    }
+
+    public QName getObjectClass() {
+        return objectClass;
     }
 }

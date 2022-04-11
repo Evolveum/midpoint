@@ -1,0 +1,15 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="75369757-ae32-48ac-86f7-7b24fc687c70">
+    <name>fred</name>
+    <assignment>
+        <targetRef oid="8d537583-d475-48c4-b23d-5e71e1ef4e2a" type="OrgType"/>
+    </assignment>
+    <fullName>Fred the Correlator</fullName>
+</user>

@@ -1,10 +1,12 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.isEscapingInvalidCharacters;
 
@@ -14,11 +16,13 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
 import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.dml.DefaultMapper;
 import com.querydsl.sql.dml.SQLInsertClause;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,13 +30,15 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.SerializationOptions;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.S_ConditionEntry;
+import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.sql.audit.AuditSqlQueryContext;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
@@ -49,6 +55,7 @@ import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -56,13 +63,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Audit service using SQL DB as a store, also allows for searching (see {@link #supportsRetrieval}).
@@ -109,8 +118,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     @Override
     public void audit(AuditEventRecord record, Task task, OperationResult result) {
         Objects.requireNonNull(record, "Audit event record must not be null.");
-        Objects.requireNonNull(task, "Task must not be null.");
 
+        // TODO convert record to AERType and call that version?
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_AUDIT, AuditEventRecord.class);
         int attempt = 1;
@@ -170,7 +179,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             insert.columns(aer.getPath(propertyName)).values(property.getValue());
         }
 
-        return insert.executeWithKey(aer.id);
+        Long returnedId = insert.executeWithKey(aer.id);
+        // If returned ID is null, it was provided. If not, it fails, something went bad.
+        return returnedId != null ? returnedId : record.getRepoId();
     }
 
     private Collection<MAuditDelta> insertAuditDeltas(
@@ -347,7 +358,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     private void insertResourceOids(
-            JdbcSession jdbcSession, long recordId, Set<String> resourceOids) {
+            JdbcSession jdbcSession, long recordId, Collection<String> resourceOids) {
         if (resourceOids.isEmpty()) {
             return;
         }
@@ -358,6 +369,225 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             insertBatch.set(qAuditResource.recordId, recordId)
                     .set(qAuditResource.resourceOid, resourceOid)
                     .addBatch();
+        }
+
+        insertBatch.setBatchToBulk(true);
+        insertBatch.execute();
+    }
+
+    @Override
+    public void audit(AuditEventRecordType record, OperationResult result) {
+        Objects.requireNonNull(record, "Audit event record must not be null.");
+
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_AUDIT, AuditEventRecordType.class);
+        int attempt = 1;
+
+        while (true) {
+            try {
+                auditAttempt(record);
+                return;
+            } catch (RuntimeException ex) {
+                attempt = baseHelper.logOperationAttempt(null, OP_AUDIT, attempt, ex, result);
+                pm.registerOperationNewAttempt(opHandle, attempt);
+            } finally {
+                pm.registerOperationFinish(opHandle, attempt);
+            }
+        }
+    }
+
+    private void auditAttempt(AuditEventRecordType record) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            try {
+                MAuditEventRecord auditRow = insertAuditEventRecord(jdbcSession, record);
+
+                insertAuditDeltas(jdbcSession, auditRow, record.getDelta());
+                insertChangedItemPaths(jdbcSession, auditRow);
+
+                insertProperties(jdbcSession, auditRow.id, record.getProperty());
+                insertReferences(jdbcSession, auditRow.id, record.getReference());
+                insertResourceOids(jdbcSession, auditRow.id, record.getResourceOid());
+                jdbcSession.commit();
+            } catch (RuntimeException ex) {
+                baseHelper.handleGeneralRuntimeException(ex, jdbcSession, null);
+            }
+        }
+    }
+
+    /**
+     * Inserts audit event record aggregate root without any subentities.
+     *
+     * @return ID of created audit event record
+     */
+    private MAuditEventRecord insertAuditEventRecord(JdbcSession jdbcSession, AuditEventRecordType record) {
+        QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.get();
+        QAuditEventRecord aer = aerMapping.defaultAlias();
+        MAuditEventRecord row = aerMapping.toRowObject(record);
+        SQLInsertClause insert = jdbcSession.newInsert(aer).populate(row);
+
+        Map<String, ColumnMetadata> customColumns = aerMapping.getExtensionColumns();
+        for (AuditEventRecordCustomColumnPropertyType property : record.getCustomColumnProperty()) {
+            String propertyName = property.getName();
+            if (!customColumns.containsKey(propertyName)) {
+                throw new IllegalArgumentException("Audit event record table doesn't"
+                        + " contains column for property " + propertyName);
+            }
+            // Like insert.set, but that one is too parameter-type-safe for our generic usage here.
+            insert.columns(aer.getPath(propertyName)).values(property.getValue());
+        }
+
+        Long returnedId = insert.executeWithKey(aer.id);
+        // If returned ID is null, it was provided. If not, it fails, something went bad.
+        row.id = returnedId != null ? returnedId : record.getRepoId();
+        return row;
+    }
+
+    private void insertAuditDeltas(
+            JdbcSession jdbcSession, MAuditEventRecord auditRow, List<ObjectDeltaOperationType> deltas) {
+        // we want to keep only unique deltas, checksum is also part of PK
+        Map<String, MAuditDelta> deltasByChecksum = new HashMap<>();
+        for (ObjectDeltaOperationType delta : deltas) {
+            if (delta == null) {
+                continue;
+            }
+
+            MAuditDelta mAuditDelta = convertDelta(delta, auditRow);
+            deltasByChecksum.put(mAuditDelta.checksum, mAuditDelta);
+        }
+
+        if (!deltasByChecksum.isEmpty()) {
+            SQLInsertClause insertBatch = jdbcSession.newInsert(
+                    QAuditDeltaMapping.get().defaultAlias());
+            for (MAuditDelta value : deltasByChecksum.values()) {
+                // NULLs are important to keep the value count consistent during the batch
+                insertBatch.populate(value, DefaultMapper.WITH_NULL_BINDINGS).addBatch();
+            }
+            insertBatch.setBatchToBulk(true);
+            insertBatch.execute();
+        }
+    }
+
+    private MAuditDelta convertDelta(ObjectDeltaOperationType deltaOperation, MAuditEventRecord auditRow) {
+        MAuditDelta mAuditDelta = new MAuditDelta();
+        mAuditDelta.recordId = auditRow.id;
+
+        try {
+            ObjectDeltaType delta = deltaOperation.getObjectDelta();
+            if (delta != null) {
+                DeltaConversionOptions options =
+                        DeltaConversionOptions.createSerializeReferenceNames();
+                options.setEscapeInvalidCharacters(isEscapingInvalidCharacters(auditConfiguration));
+                String serializedDelta = DeltaConvertor.serializeDelta(delta, options, PrismContext.LANG_XML);
+
+                // serializedDelta is transient, needed for changed items later
+                mAuditDelta.serializedDelta = serializedDelta;
+                mAuditDelta.delta = RUtil.getBytesFromSerializedForm(
+                        serializedDelta, sqlConfiguration().isUseZipAudit());
+                mAuditDelta.deltaOid = delta.getOid();
+                mAuditDelta.deltaType = MiscUtil.enumOrdinal(
+                        RUtil.getRepoEnumValue(ChangeType.toChangeType(delta.getChangeType()), RChangeType.class));
+
+                for (ItemDeltaType itemDelta : delta.getItemDelta()) {
+                    ItemPath path = itemDelta.getPath().getItemPath();
+                    CanonicalItemPath canonical =
+                            schemaService.createCanonicalItemPath(path, delta.getObjectType());
+                    for (int i = 0; i < canonical.size(); i++) {
+                        auditRow.addChangedItem(canonical.allUpToIncluding(i).asString());
+                    }
+                }
+            }
+
+            OperationResultType executionResult = deltaOperation.getExecutionResult();
+            if (executionResult != null) {
+                mAuditDelta.status = MiscUtil.enumOrdinal(
+                        RUtil.getRepoEnumValue(executionResult.getStatus(), ROperationResultStatus.class));
+                // Note that escaping invalid characters and using toString for unsupported types is safe in the
+                // context of operation result serialization.
+                String full = schemaService.createStringSerializer(PrismContext.LANG_XML)
+                        .options(SerializationOptions.createEscapeInvalidCharacters()
+                                .serializeUnsupportedTypesAsString(true))
+                        .serializeRealValue(executionResult, SchemaConstantsGenerated.C_OPERATION_RESULT);
+                mAuditDelta.fullResult = RUtil.getBytesFromSerializedForm(
+                        full, sqlConfiguration().isUseZipAudit());
+            }
+            mAuditDelta.resourceOid = deltaOperation.getResourceOid();
+            if (deltaOperation.getObjectName() != null) {
+                mAuditDelta.objectNameOrig = deltaOperation.getObjectName().getOrig();
+                mAuditDelta.objectNameNorm = deltaOperation.getObjectName().getNorm();
+            }
+            if (deltaOperation.getResourceName() != null) {
+                mAuditDelta.resourceNameOrig = deltaOperation.getResourceName().getOrig();
+                mAuditDelta.resourceNameNorm = deltaOperation.getResourceName().getNorm();
+            }
+            mAuditDelta.checksum = RUtil.computeChecksum(mAuditDelta.delta, mAuditDelta.fullResult);
+        } catch (Exception ex) {
+            throw new SystemException("Problem during audit delta conversion", ex);
+        }
+        return mAuditDelta;
+    }
+
+    private void insertChangedItemPaths(JdbcSession jdbcSession, MAuditEventRecord auditRow) {
+        if (auditRow.changedItemPaths != null && !auditRow.changedItemPaths.isEmpty()) {
+            QAuditItem qAuditItem = QAuditItemMapping.get().defaultAlias();
+            SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditItem);
+            for (String changedItemPath : auditRow.changedItemPaths) {
+                insertBatch.set(qAuditItem.recordId, auditRow.id)
+                        .set(qAuditItem.changedItemPath, changedItemPath)
+                        .addBatch();
+            }
+            insertBatch.setBatchToBulk(true);
+            insertBatch.execute();
+        }
+    }
+
+    private void insertProperties(
+            JdbcSession jdbcSession, long recordId, List<AuditEventRecordPropertyType> properties) {
+        if (properties.isEmpty()) {
+            return;
+        }
+
+        QAuditPropertyValue qAuditPropertyValue = QAuditPropertyValueMapping.get().defaultAlias();
+        SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditPropertyValue);
+        for (AuditEventRecordPropertyType propertySet : properties) {
+            for (String value : propertySet.getValue()) {
+                // id will be generated, but we're not interested in those here
+                insertBatch.set(qAuditPropertyValue.recordId, recordId)
+                        .set(qAuditPropertyValue.name, propertySet.getName())
+                        .set(qAuditPropertyValue.value, value)
+                        .addBatch();
+            }
+        }
+        if (insertBatch.getBatchCount() == 0) {
+            return; // strange, no values anywhere?
+        }
+
+        insertBatch.setBatchToBulk(true);
+        insertBatch.execute();
+    }
+
+    private void insertReferences(JdbcSession jdbcSession,
+            long recordId, List<AuditEventRecordReferenceType> references) {
+        if (references.isEmpty()) {
+            return;
+        }
+
+        QAuditRefValue qAuditRefValue = QAuditRefValueMapping.get().defaultAlias();
+        SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditRefValue);
+        for (AuditEventRecordReferenceType refSet : references) {
+            for (AuditEventRecordReferenceValueType refValue : refSet.getValue()) {
+                // id will be generated, but we're not interested in those here
+                PolyStringType targetName = refValue.getTargetName();
+                insertBatch.set(qAuditRefValue.recordId, recordId)
+                        .set(qAuditRefValue.name, refSet.getName())
+                        .set(qAuditRefValue.oid, refValue.getOid())
+                        .set(qAuditRefValue.type, RUtil.qnameToString(refValue.getType()))
+                        .set(qAuditRefValue.targetNameOrig, PolyString.getOrig(targetName))
+                        .set(qAuditRefValue.targetNameNorm, PolyString.getNorm(targetName))
+                        .addBatch();
+            }
+        }
+        if (insertBatch.getBatchCount() == 0) {
+            return; // strange, no values anywhere?
         }
 
         insertBatch.setBatchToBulk(true);
@@ -639,21 +869,12 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private String createDeleteQuery(
             String objectTable, String tempTable, ColumnMetadata idColumn) {
-        if (sqlConfiguration().isUsingMySqlCompatible()) {
-            return createDeleteQueryAsJoin(objectTable, tempTable, idColumn);
-        } else if (sqlConfiguration().isUsingPostgreSQL()) {
+        if (sqlConfiguration().isUsingPostgreSQL()) {
             return createDeleteQueryAsJoinPostgreSQL(objectTable, tempTable, idColumn);
         } else {
             // todo consider using join for other databases as well
             return createDeleteQueryAsSubquery(objectTable, tempTable, idColumn);
         }
-    }
-
-    private String createDeleteQueryAsJoin(
-            String objectTable, String tempTable, ColumnMetadata idColumn) {
-        return "DELETE FROM main, temp USING " + objectTable + " AS main"
-                + " INNER JOIN " + tempTable + " as temp"
-                + " WHERE main." + idColumn.getName() + " = temp.id";
     }
 
     private String createDeleteQueryAsJoinPostgreSQL(
@@ -737,6 +958,168 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             @NotNull AuditResultHandler handler,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult) throws SchemaException {
-        throw new UnsupportedOperationException("searchObjectsIterative not supported in old repository audit");
+        // TODO: supported for Ninja, implementation is crude rework from new repo
+//        throw new UnsupportedOperationException("searchObjectsIterative not supported in old repository audit");
+        Validate.notNull(handler, "Result handler must not be null.");
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_SEARCH_OBJECTS_ITERATIVE)
+                .addParam("type", AuditEventRecordType.class.getName())
+                .addParam("query", query)
+                .build();
+
+        try {
+            if (query == null) {
+                return new SearchResultMetadata().approxNumberOfAllResults(0);
+            }
+
+            return executeSearchObjectsIterative(query, handler, options, operationResult);
+        } catch (RepositoryException | RuntimeException e) {
+            operationResult.recordFatalError(e);
+            throw new SystemException(e);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private SearchResultMetadata executeSearchObjectsIterative(
+            ObjectQuery originalQuery,
+            AuditResultHandler handler,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult operationResult) throws SchemaException, RepositoryException {
+
+        ObjectPaging originalPaging = originalQuery != null ? originalQuery.getPaging() : null;
+        // this is total requested size of the search
+        Integer maxSize = originalPaging != null ? originalPaging.getMaxSize() : null;
+
+        List<? extends ObjectOrdering> providedOrdering = originalPaging != null
+                ? originalPaging.getOrderingInstructions()
+                : null;
+        if (providedOrdering != null && providedOrdering.size() > 1) {
+            throw new RepositoryException("searchObjectsIterative() does not support ordering"
+                    + " by multiple paths (yet): " + providedOrdering);
+        }
+
+        ObjectQuery pagedQuery = schemaService.prismContext().queryFactory().createQuery();
+        ObjectPaging paging = schemaService.prismContext().queryFactory().createPaging();
+        if (originalPaging != null && originalPaging.getOrderingInstructions() != null) {
+            originalPaging.getOrderingInstructions().forEach(o ->
+                    paging.addOrderingInstruction(o.getOrderBy(), o.getDirection()));
+        }
+        // TODO check of provided ordering
+        paging.addOrderingInstruction(AuditEventRecordType.F_REPO_ID, OrderDirection.ASCENDING);
+        pagedQuery.setPaging(paging);
+
+        int pageSize = Math.min(
+                sqlConfiguration().getIterativeSearchByPagingBatchSize(),
+                defaultIfNull(maxSize, Integer.MAX_VALUE));
+        pagedQuery.getPaging().setMaxSize(pageSize);
+
+        AuditEventRecordType lastProcessedObject = null;
+        int handledObjectsTotal = 0;
+
+        while (true) {
+            if (maxSize != null && maxSize - handledObjectsTotal < pageSize) {
+                // relevant only for the last page
+                pagedQuery.getPaging().setMaxSize(maxSize - handledObjectsTotal);
+            }
+
+            // filterAnd() is quite null safe, even for both nulls
+            ObjectFilter originalFilter = originalQuery != null ? originalQuery.getFilter() : null;
+            pagedQuery.setFilter(ObjectQueryUtil.filterAndImmutable(
+                    originalFilter, iterativeSearchCondition(lastProcessedObject, providedOrdering)));
+
+            // we don't call public searchObject to avoid subresults and query simplification
+            List<AuditEventRecordType> resultPage = searchObjects(
+                    pagedQuery, options, operationResult);
+
+            // process page results
+            for (AuditEventRecordType auditEvent : resultPage) {
+                lastProcessedObject = auditEvent;
+                if (!handler.handle(auditEvent, operationResult)) {
+                    return new SearchResultMetadata()
+                            .approxNumberOfAllResults(handledObjectsTotal + 1)
+                            .pagingCookie(lastProcessedObject.getRepoId().toString())
+                            .partialResults(true);
+                }
+                handledObjectsTotal += 1;
+
+                if (maxSize != null && handledObjectsTotal >= maxSize) {
+                    return new SearchResultMetadata()
+                            .approxNumberOfAllResults(handledObjectsTotal)
+                            .pagingCookie(lastProcessedObject.getRepoId().toString());
+                }
+            }
+
+            if (resultPage.isEmpty() || resultPage.size() < pageSize) {
+                return new SearchResultMetadata()
+                        .approxNumberOfAllResults(handledObjectsTotal)
+                        .pagingCookie(lastProcessedObject != null
+                                ? lastProcessedObject.getRepoId().toString() : null);
+            }
+        }
+    }
+
+    /**
+     * See {@code SqaleRepositoryService.iterativeSearchCondition()} for more info.
+     * This is unsupported version only for Ninja usage.
+     */
+    @Nullable
+    private ObjectFilter iterativeSearchCondition(
+            @Nullable AuditEventRecordType lastProcessedObject,
+            List<? extends ObjectOrdering> providedOrdering) {
+        if (lastProcessedObject == null) {
+            return null;
+        }
+
+        Long lastProcessedId = lastProcessedObject.getRepoId();
+        XMLGregorianCalendar lastProcessedTimestamp = lastProcessedObject.getTimestamp();
+        if (providedOrdering == null || providedOrdering.isEmpty()) {
+            return schemaService.prismContext()
+                    .queryFor(AuditEventRecordType.class)
+                    .item(AuditEventRecordType.F_REPO_ID).gt(lastProcessedId)
+                    .and()
+                    // timestamp of the next entry can be the same, we need greater-or-equal here
+                    .item(AuditEventRecordType.F_TIMESTAMP).ge(lastProcessedTimestamp)
+                    .buildFilter();
+        }
+
+        if (providedOrdering.size() == 1) {
+            ObjectOrdering objectOrdering = providedOrdering.get(0);
+            ItemPath orderByPath = objectOrdering.getOrderBy();
+            boolean asc = objectOrdering.getDirection() != OrderDirection.DESCENDING; // null => asc
+            S_ConditionEntry filter = schemaService.prismContext()
+                    .queryFor(AuditEventRecordType.class)
+                    .item(orderByPath);
+            @SuppressWarnings("unchecked")
+            Item<PrismValue, ItemDefinition<?>> item =
+                    lastProcessedObject.asPrismContainerValue().findItem(orderByPath);
+            if (item.size() > 1) {
+                throw new IllegalArgumentException(
+                        "Multi-value property for ordering is forbidden - item: " + item);
+            } else if (item.isEmpty()) {
+                // TODO what if it's nullable? is it null-first or last?
+                // See: https://www.postgresql.org/docs/13/queries-order.html
+                // "By default, null values sort as if larger than any non-null value; that is,
+                // NULLS FIRST is the default for DESC order, and NULLS LAST otherwise."
+            } else {
+                S_MatchingRuleEntry matchingRuleEntry =
+                        asc ? filter.gt(item.getRealValue()) : filter.lt(item.getRealValue());
+                filter = matchingRuleEntry.or()
+                        .block()
+                        .item(orderByPath).eq(item.getRealValue())
+                        .and()
+                        .item(AuditEventRecordType.F_REPO_ID);
+                return (asc ? filter.gt(lastProcessedId) : filter.lt(lastProcessedId))
+                        .endBlock()
+                        .buildFilter();
+            }
+        }
+
+        throw new IllegalArgumentException(
+                "Shouldn't get here with check in executeSearchObjectsIterative()");
     }
 }

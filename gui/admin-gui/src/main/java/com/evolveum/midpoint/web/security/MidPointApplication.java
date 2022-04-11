@@ -14,10 +14,16 @@ import java.util.*;
 import javax.servlet.ServletContext;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.Clock;
 
 import com.evolveum.midpoint.repo.api.*;
 
+import com.evolveum.midpoint.cases.api.CaseManager;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -28,10 +34,7 @@ import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.mapper.MountedMapper;
-import org.apache.wicket.core.util.objects.checker.CheckingObjectOutputStream;
-import org.apache.wicket.core.util.objects.checker.IObjectChecker;
-import org.apache.wicket.core.util.objects.checker.NotDetachedModelChecker;
-import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
+import org.apache.wicket.core.util.objects.checker.*;
 import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
 import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
 import org.apache.wicket.devutils.inspector.InspectorPage;
@@ -54,6 +57,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.Environment;
@@ -85,9 +89,6 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -96,7 +97,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
-import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.error.*;
 import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
@@ -107,7 +108,6 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
 import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
 import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -174,8 +174,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private SqlPerformanceMonitorsCollection performanceMonitorsCollection; // temporary
     @Autowired private RepositoryService repositoryService; // temporary
     @Autowired private CacheRegistry cacheRegistry;
-    @Autowired private WorkflowService workflowService;
-    @Autowired private WorkflowManager workflowManager;
+    @Autowired private CaseService caseService;
+    @Autowired private CaseManager caseManager;
     @Autowired private MidpointConfiguration configuration;
     @Autowired private Protector protector;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
@@ -188,6 +188,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private Clock clock;
     @Autowired private AccessCertificationService certificationService;
+    @Autowired @Qualifier("descriptorLoader") private DescriptorLoader descriptorLoader;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -201,7 +202,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     @Override
     public Class<? extends PageBase> getHomePage() {
-        if (WebModelServiceUtils.isPostAuthenticationEnabled(getTaskManager(), getModelInteractionService())) {
+        if (AuthUtil.isPostAuthenticationEnabled(getTaskManager(), getModelInteractionService())) {
             return PagePostAuthentication.class;
         }
 
@@ -300,7 +301,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         getSessionListeners().add((ISessionListener) asyncWebProcessManager);
 
         //descriptor loader, used for customization
-        new DescriptorLoader().loadData(this);
+        new PageMounter().loadData(this);
+        descriptorLoader.loadData();
 
         if (applicationContext != null) {
 
@@ -423,8 +425,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
             @Override
             protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException {
                 IObjectChecker checker1 = new MidPointObjectChecker();
-                IObjectChecker checker2 = new NotDetachedModelChecker();
+//                IObjectChecker checker2 = new NotDetachedModelChecker();
+//                IObjectChecker sessionChecker = new SessionChecker();
                 IObjectChecker checker3 = new ObjectSerializationChecker();
+
                 return new CheckingObjectOutputStream(out, checker1, checker3);
             }
         };
@@ -522,12 +526,12 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return MidPointAuthWebSession.class;
     }
 
-    public WorkflowService getWorkflowService() {
-        return workflowService;
+    public CaseService getWorkflowService() {
+        return caseService;
     }
 
-    public WorkflowManager getWorkflowManager() {
-        return workflowManager;
+    public CaseManager getWorkflowManager() {
+        return caseManager;
     }
 
     public ModelInteractionService getModelInteractionService() {
@@ -590,7 +594,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     }
 
     public Task createSimpleTask(String operation) {
-        MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal user = AuthUtil.getPrincipalUser();
         if (user == null) {
             throw new RestartResponseException(PageLogin.class);
         }

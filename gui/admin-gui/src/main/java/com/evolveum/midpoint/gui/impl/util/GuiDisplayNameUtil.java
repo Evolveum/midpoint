@@ -124,8 +124,8 @@ public class GuiDisplayNameUtil {
         String description = richHyperlink.getDescription();
         String targetUrl = richHyperlink.getTargetUrl();
         if (StringUtils.isNotEmpty(label)) {
-            return PageBase.createStringResourceStatic(null, label).getString()
-                    + (StringUtils.isNotEmpty(description) ? (" - " + PageBase.createStringResourceStatic(null, description).getString()) : "");
+            return PageBase.createStringResourceStatic(label).getString()
+                    + (StringUtils.isNotEmpty(description) ? (" - " + PageBase.createStringResourceStatic(description).getString()) : "");
         } else if (StringUtils.isNotEmpty(targetUrl)) {
             return targetUrl;
         }

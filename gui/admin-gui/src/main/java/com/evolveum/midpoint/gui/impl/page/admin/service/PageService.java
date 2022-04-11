@@ -6,25 +6,25 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.service;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/serviceNew")
+                @Url(mountUrl = "/admin/serviceNew", matchUrlForSecurity = "/admin/serviceNew")
         },
         encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
@@ -53,7 +53,7 @@ public class PageService extends PageFocusDetails<ServiceType, FocusDetailsModel
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, LoadableModel<ServiceType> summaryModel) {
+    protected Panel createSummaryPanel(String id, IModel<ServiceType> summaryModel) {
         return new ServiceSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 }

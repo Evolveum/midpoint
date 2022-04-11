@@ -113,6 +113,31 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType
+                            import org.apache.commons.lang3.StringUtils
+
+                            def task = focus as TaskType
+
+                            String name = source.name
+
+                            String description = midpoint.describeResourceObjectSet(task?.activity?.work?.getImport()?.resourceObjects)
+                            if(StringUtils.isNotEmpty(description)) {
+                                return name + ': ' + description
+                            }
+
+                            return name
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>name</path>
+                </target>
+            </mapping>
+            <mapping>
+                <strength>weak</strength>
+                <expression>
                     <value>ImportingAccounts</value>
                 </expression>
                 <target>

@@ -8,19 +8,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,6 +26,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
@@ -38,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 @PanelType(name = "resourceConnector")
 @PanelInstance(identifier = "resourceConnector", applicableForOperation = OperationTypeType.MODIFY, applicableForType = ResourceType.class,
-        display = @PanelDisplay(label = "PageResource.tab.connector.status", icon = "fa fa-plug", order = 90))
+        display = @PanelDisplay(label = "PageResource.tab.connector.status", icon = "fa fa-plug", order = 100))
 public class ResourceConnectorPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
     private static final long serialVersionUID = 1L;
 
@@ -86,22 +82,22 @@ public class ResourceConnectorPanel extends AbstractObjectMainPanel<ResourceType
             }
         };
 
-        ListView<ConnectorOperationalStatus> listview = new ListView<ConnectorOperationalStatus>(ID_CONNECTOR_LIST, statsModel) {
+        ListView<ConnectorOperationalStatus> listview = new ListView<>(ID_CONNECTOR_LIST, statsModel) {
             private static final long serialVersionUID = 1L;
 
             protected void populateItem(ListItem<ConnectorOperationalStatus> item) {
-                item.add(new Label("label", item.getModel()));
+//                item.add(new Label("label", item.getModel()));
                 IModel<ConnectorOperationalStatus> statModel = item.getModel();
-                item.add(createLabel(statModel, ID_CONNECTOR_NAME,  ConnectorOperationalStatus.F_CONNECTOR_NAME));
-                item.add(createLabel(statModel, ID_CONNECOTR_CLASS,  ConnectorOperationalStatus.F_CONNECTOR_CLASS_NAME));
-                item.add(createLabel(statModel, ID_POOL_CONFIG_MIN_SIZE,  ConnectorOperationalStatus.F_POOL_CONFIG_MIN_SIZE));
-                item.add(createLabel(statModel, ID_POOL_CONFIG_MAX_SIZE,  ConnectorOperationalStatus.F_POOL_CONFIG_MAX_SIZE));
-                item.add(createLabel(statModel, ID_POOL_CONFIG_MIN_IDLE,  ConnectorOperationalStatus.F_POOL_CONFIG_MIN_IDLE));
-                item.add(createLabel(statModel, ID_POOL_CONFIG_MAX_IDLE,  ConnectorOperationalStatus.F_POOL_CONFIG_MAX_IDLE));
-                item.add(createLabel(statModel, ID_POOL_CONFIG_WAIT_TIMEOUT,  ConnectorOperationalStatus.F_POOL_CONFIG_WAIT_TIMEOUT));
-                item.add(createLabel(statModel, ID_POOL_CONFIG_MIN_EVICTABLE_IDLE_TIME,  ConnectorOperationalStatus.F_POOL_CONFIG_MIN_EVICTABLE_IDLE_TIME));
-                item.add(createLabel(statModel, ID_POOL_STATUS_NUM_IDLE,  ConnectorOperationalStatus.F_POOL_STATUS_NUM_IDLE));
-                item.add(createLabel(statModel, ID_POOL_STATUS_NUM_ACTIVE,  ConnectorOperationalStatus.F_POOL_STATUS_NUM_ACTIVE));
+                item.add(createLabel(statModel, ID_CONNECTOR_NAME, ConnectorOperationalStatus.F_CONNECTOR_NAME));
+                item.add(createLabel(statModel, ID_CONNECOTR_CLASS, ConnectorOperationalStatus.F_CONNECTOR_CLASS_NAME));
+                item.add(createLabel(statModel, ID_POOL_CONFIG_MIN_SIZE, ConnectorOperationalStatus.F_POOL_CONFIG_MIN_SIZE));
+                item.add(createLabel(statModel, ID_POOL_CONFIG_MAX_SIZE, ConnectorOperationalStatus.F_POOL_CONFIG_MAX_SIZE));
+                item.add(createLabel(statModel, ID_POOL_CONFIG_MIN_IDLE, ConnectorOperationalStatus.F_POOL_CONFIG_MIN_IDLE));
+                item.add(createLabel(statModel, ID_POOL_CONFIG_MAX_IDLE, ConnectorOperationalStatus.F_POOL_CONFIG_MAX_IDLE));
+                item.add(createLabel(statModel, ID_POOL_CONFIG_WAIT_TIMEOUT, ConnectorOperationalStatus.F_POOL_CONFIG_WAIT_TIMEOUT));
+                item.add(createLabel(statModel, ID_POOL_CONFIG_MIN_EVICTABLE_IDLE_TIME, ConnectorOperationalStatus.F_POOL_CONFIG_MIN_EVICTABLE_IDLE_TIME));
+                item.add(createLabel(statModel, ID_POOL_STATUS_NUM_IDLE, ConnectorOperationalStatus.F_POOL_STATUS_NUM_IDLE));
+                item.add(createLabel(statModel, ID_POOL_STATUS_NUM_ACTIVE, ConnectorOperationalStatus.F_POOL_STATUS_NUM_ACTIVE));
 
             }
         };

@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -23,10 +23,10 @@ import java.util.stream.Collectors;
  * Evaluation of an association mapping in resource object construction (assigned/plain).
  */
 class AssociationEvaluation<AH extends AssignmentHolderType>
-        extends ItemEvaluation<AH, PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>, RefinedAssociationDefinition> {
+        extends ItemEvaluation<AH, PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>, ResourceAssociationDefinition> {
 
     AssociationEvaluation(ConstructionEvaluation<AH, ?> constructionEvaluation,
-            RefinedAssociationDefinition associationDefinition, MappingType mappingBean,
+            ResourceAssociationDefinition associationDefinition, MappingType mappingBean,
             OriginType originType, MappingKindType mappingKind) {
         super(constructionEvaluation, associationDefinition.getName(),
                 ShadowType.F_ASSOCIATION.append(associationDefinition.getName()),
@@ -41,7 +41,7 @@ class AssociationEvaluation<AH extends AssignmentHolderType>
     }
 
     @Override
-    RefinedObjectClassDefinition getAssociationTargetObjectClassDefinition() {
+    ResourceObjectTypeDefinition getAssociationTargetObjectClassDefinition() {
         return itemRefinedDefinition.getAssociationTarget();
     }
 

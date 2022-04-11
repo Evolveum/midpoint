@@ -1,60 +1,52 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.test;
-
-import com.evolveum.midpoint.notifications.api.NotificationManager;
-import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author mederly
- */
-@Component
-public class DummyTransport implements Transport, DebugDumpable {
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.Transport;
+import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralTransportConfigurationType;
+
+public class DummyTransport implements Transport<GeneralTransportConfigurationType>, DebugDumpable {
+
+    public static final String DEFAULT_NAME = "dummy";
 
     private static final Trace LOGGER = TraceManager.getTrace(DummyTransport.class);
 
     private static final String DOT_CLASS = DummyTransport.class.getName() + ".";
-    public static final String NAME = "dummy";
 
-    // if NotificationManager is not found, this transport will simply be disabled
-    // it is legal for modules, in which tests do not need it
-    @Autowired(required = false)
-    private NotificationManager notificationManager;
+    private final String name;
 
-    @PostConstruct
-    public void init() {
-        if (notificationManager != null) {
-            notificationManager.registerTransport(NAME, this);
-        } else {
-            LOGGER.info("NotificationManager is not available, skipping the registration.");
-        }
+    // TODO: Convert to single name transport, use multiple dummy instances for multiple names.
+    //  Using transport names with : will have no special meaning in the future (hopefully after 4.6).
+    private final Map<String, List<Message>> messages = new HashMap<>();
+
+    public DummyTransport() {
+        this(DEFAULT_NAME);
     }
 
-    private Map<String,List<Message>> messages = new HashMap<>();
+    public DummyTransport(String name) {
+        this.name = name;
+    }
 
     @Override
     public void send(Message message, String name, Event event, Task task, OperationResult parentResult) {
@@ -75,22 +67,22 @@ public class DummyTransport implements Transport, DebugDumpable {
         return messages.get(transportName);
     }
 
-    public Map<String,List<Message>> getMessages() {
+    public Map<String, List<Message>> getMessages() {
         return messages;
     }
 
     public void clearMessages() {
-        messages = new HashMap<>();
+        messages.clear();
     }
 
     @Override
-    public String getDefaultRecipientAddress(UserType recipient) {
+    public String getDefaultRecipientAddress(FocusType recipient) {
         return recipient.getEmailAddress() != null ? recipient.getEmailAddress() : "dummyAddress";
     }
 
     @Override
     public String getName() {
-        return "dummy";
+        return name;
     }
 
     @Override
@@ -104,5 +96,15 @@ public class DummyTransport implements Transport, DebugDumpable {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(")");
         return sb.toString();
+    }
+
+    @Override
+    public void configure(@NotNull GeneralTransportConfigurationType configuration, @NotNull TransportSupport transportSupport) {
+        // not called for legacy transport component
+    }
+
+    @Override
+    public GeneralTransportConfigurationType getConfiguration() {
+        return null;
     }
 }

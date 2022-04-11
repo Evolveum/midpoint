@@ -139,6 +139,10 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return specialItems;
     }
 
+    public SearchItem getCompositedSpecialItem() {
+        return compositedSpecialItems;
+    }
+
     public void setSpecialItems(List<SearchItem> specialItems) {
         this.specialItems = specialItems;
     }
@@ -507,8 +511,13 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         for (FilterSearchItem item : getFilterItems()) {
             SearchFilterParameterType functionParameter = item.getPredefinedFilter().getParameter();
             if (functionParameter != null && functionParameter.getType() != null) {
-                Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(functionParameter.getType());
-                TypedValue value = new TypedValue(item.getInput() != null ? item.getInput().getValue() : null, inputClass);
+                TypedValue value;
+                if (item.getInput() == null || item.getInput().getValue() == null) {
+                    Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(functionParameter.getType());
+                    value = new TypedValue(null, inputClass);
+                } else {
+                    value = new TypedValue(item.getInput().getValue(), item.getInput().getValue().getClass());
+                }
                 variables.put(functionParameter.getName(), value);
             }
         }
@@ -808,7 +817,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             t = t.getCause();
         }
         if (StringUtils.isBlank(sb.toString())) {
-            sb.append(PageBase.createStringResourceStatic(null, "SearchPanel.unexpectedQuery").getString());
+            sb.append(PageBase.createStringResourceStatic("SearchPanel.unexpectedQuery").getString());
         }
 
         return sb.toString();
@@ -829,10 +838,19 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("Search\n");
         DebugUtil.debugDumpWithLabelLn(sb, "advancedQuery", advancedQuery, indent + 1);
+        DebugUtil.dumpObjectSizeEstimate(sb, "advancedQuery", advancedQuery, indent + 2);
         DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "type", getTypeClass(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "allDefinitions", allDefinitions, indent + 1);
+//        DebugUtil.dumpObjectSizeEstimate(sb, "allDefinitions", allDefinitions, indent + 2);
         DebugUtil.debugDumpWithLabelLn(sb, "availableDefinitions", availableDefinitions, indent + 1);
+//        DebugUtil.dumpObjectSizeEstimate(sb, "availableDefinitions", availableDefinitions, indent + 2);
+        DebugUtil.debugDumpWithLabelLn(sb, "items", items, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "specialItems", specialItems, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "compositedSpecialItems", compositedSpecialItems, indent + 1);
+        DebugUtil.dumpObjectSizeEstimate(sb, "compositedSpecialItemsSize", compositedSpecialItems, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "objectCollectionSpecialItems", objectCollectionSearchItem, indent + 1);
+        DebugUtil.dumpObjectSizeEstimate(sb, "objectCollectionSpecialItemsSize", objectCollectionSearchItem, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "items", items, indent + 1);
         return sb.toString();
     }
@@ -883,4 +901,13 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public List<SearchBoxModeType> getAllowedSearchType() {
         return allowedSearchType;
     }
+
+//    public SearchBoxConfigurationType getSearchBoxConfig() {
+//        SearchBoxConfigurationType searchBoxConfigurationType = new SearchBoxConfigurationType();
+//        searchBoxConfigurationType.setAllowToConfigureSearchItems(canConfigure);
+//        searchBoxConfigurationType.setDefaultMode(searchType);
+//
+//        ObjectTypeSearchItemConfigurationType objectTypeSearchItemConfigurationType = new ObjectTypeSearchItemConfigurationType();
+//        searchBoxConfigurationType.setObjectTypeConfiguration();
+//    }
 }

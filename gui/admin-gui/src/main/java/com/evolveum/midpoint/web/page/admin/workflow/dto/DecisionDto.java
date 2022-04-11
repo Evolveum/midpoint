@@ -10,9 +10,9 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import java.util.stream.Collectors;
 
@@ -103,8 +103,8 @@ public class DecisionDto extends Selectable {
             }
             WorkItemEventCauseInformationType cause = completionEvent.getCause();
             if (cause != null && cause.getType() == WorkItemEventCauseTypeType.TIMED_ACTION) {
-                rv.user = PageBase.createStringResourceStatic(null,
-                            "DecisionDto." + (rv.outcome ? "approvedDueToTimeout" : "rejectedDueToTimeout")).getString();
+                rv.user = PageBase.createStringResourceStatic(
+                        "DecisionDto." + (rv.outcome ? "approvedDueToTimeout" : "rejectedDueToTimeout")).getString();
                 if (rv.comment == null) {
                     if (cause.getDisplayName() != null) {
                         rv.comment = cause.getDisplayName();
@@ -139,9 +139,9 @@ public class DecisionDto extends Selectable {
             ApprovalLevelOutcomeType outcome = ApprovalUtils.approvalLevelOutcomeFromUri(completion.getOutcome());
             if (outcome == ApprovalLevelOutcomeType.APPROVE || outcome == ApprovalLevelOutcomeType.REJECT) {
                 rv.outcome = outcome == ApprovalLevelOutcomeType.APPROVE;
-                rv.user = PageBase.createStringResourceStatic(null,
+                rv.user = PageBase.createStringResourceStatic(
                         "DecisionDto." + (rv.outcome ? "automaticallyApproved" : "automaticallyRejected")).getString();
-                rv.comment = PageBase.createStringResourceStatic(null, "DecisionDto." + reason.name()).getString();
+                rv.comment = PageBase.createStringResourceStatic("DecisionDto." + reason.name()).getString();
                 return rv;
             } else {
                 return null;            // SKIP (legal = should hide) or null (illegal)

@@ -141,5 +141,14 @@ public class ActionsExecutedPartInfoAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
+    public ActionsExecutedPartInfoAsserter<RA> assertChannels(String... uris) {
+        assertThat(getAllChannels()).as("all channels").containsExactlyInAnyOrder(uris);
+        return this;
+    }
 
+    public Collection<String> getAllChannels() {
+        return getEntries().stream()
+                .map(ObjectActionsExecutedEntryType::getChannel)
+                .collect(Collectors.toSet());
+    }
 }

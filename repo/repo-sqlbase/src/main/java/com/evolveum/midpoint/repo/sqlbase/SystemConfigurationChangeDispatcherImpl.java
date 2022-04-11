@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeEvent;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -55,6 +57,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
+    @Autowired private ApplicationEventPublisher applicationEventPublisher;
 
     private final Collection<SystemConfigurationChangeListener> listeners = ConcurrentHashMap.newKeySet();
 
@@ -123,6 +126,12 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update system configuration listener {}", t, listener);
                 lastVersionApplied = null;
             }
+        }
+
+        // Alternative Spring-event based notification, does not require registerListener().
+        if (configuration != null) {
+            // TODO: do we want to send null too? This should not happen during normal circumstances, is it any useful?
+            applicationEventPublisher.publishEvent(new SystemConfigurationChangeEvent(configuration));
         }
     }
 

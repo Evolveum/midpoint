@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.HANDLED_ERROR;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isInMaintenance;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
@@ -16,11 +16,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjec
 
 import static java.util.Objects.requireNonNull;
 
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR;
 
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.*;
 
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -30,13 +32,10 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -165,11 +164,11 @@ public class SyncTaskHelper {
             checkNotInMaintenance(resource);
         }
 
-        RefinedResourceSchema refinedResourceSchema = getRefinedResourceSchema(resource);
+        ResourceSchema refinedResourceSchema = getRefinedResourceSchema(resource);
 
-        ObjectClassComplexTypeDefinition objectClassDefinition;
+        ResourceObjectDefinition objectClassDefinition;
         try {
-            objectClassDefinition = ModelImplUtils.determineObjectClassNew(refinedResourceSchema, resourceObjectSet, task);
+            objectClassDefinition = ModelImplUtils.determineObjectDefinition(refinedResourceSchema, resourceObjectSet, task);
         } catch (SchemaException e) {
             throw new ActivityRunException("Schema error", FATAL_ERROR, PERMANENT_ERROR, e);
         }
@@ -188,11 +187,11 @@ public class SyncTaskHelper {
         String resourceOid = ShadowUtil.getResourceOid(shadow);
         ResourceType resource = getResource(resourceOid, task, opResult);
         checkNotInMaintenance(resource);
-        RefinedResourceSchema refinedSchema = getRefinedResourceSchema(resource);
+        ResourceSchema refinedSchema = getRefinedResourceSchema(resource);
 
         // TODO reconsider the algorithm used for deriving object class
-        ObjectClassComplexTypeDefinition objectClass = requireNonNull(
-                ModelImplUtils.determineObjectClass(refinedSchema, shadow.asPrismObject()),
+        ResourceObjectDefinition objectClass = requireNonNull(
+                ModelImplUtils.determineObjectDefinition(refinedSchema, shadow.asPrismObject()),
                 "No object class found for the shadow");
 
         return new ResourceObjectClass(resource, objectClass, null, null);
@@ -228,10 +227,10 @@ public class SyncTaskHelper {
         }
     }
 
-    private @NotNull RefinedResourceSchema getRefinedResourceSchema(ResourceType resource) throws ActivityRunException {
-        RefinedResourceSchema refinedSchema;
+    private @NotNull ResourceSchema getRefinedResourceSchema(ResourceType resource) throws ActivityRunException {
+        ResourceSchema refinedSchema;
         try {
-            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+            refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource, LayerType.MODEL);
         } catch (SchemaException e) {
             throw new ActivityRunException("Schema error during processing account definition", FATAL_ERROR, PERMANENT_ERROR, e);
         }
@@ -247,9 +246,11 @@ public class SyncTaskHelper {
     /**
      * This method is to be used on the activity start. So it should fail gracefully - maintenance is not a fatal error here.
      */
-    static void checkNotInMaintenance(ResourceType resource) throws ActivityRunException {
+    private static void checkNotInMaintenance(ResourceType resource) throws ActivityRunException {
         if (!skipMaintenanceCheck && isInMaintenance(resource)) {
-            throw new ActivityRunException("Resource is in maintenance", HANDLED_ERROR, TEMPORARY_ERROR);
+            // Temporary error means that the recurring task should continue (until the maintenance mode is off).
+            throw new ActivityRunException("Couldn't synchronize resource '" + resource.getName()
+                    + "', because it is in maintenance", WARNING, TEMPORARY_ERROR);
         }
     }
 

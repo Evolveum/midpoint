@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.ninja.action;
+
+import java.util.Objects;
 
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
@@ -15,17 +17,19 @@ import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
- * Created by Viliam Repan (lazyman).
+ * Base implementation class for action, that is Ninja command.
+ *
+ * @param <O> options class
  */
-public abstract class Action<T> {
+public abstract class Action<O> {
 
     protected Log log;
 
     protected NinjaContext context;
 
-    protected T options;
+    protected O options;
 
-    public void init(NinjaContext context, T options) {
+    public void init(NinjaContext context, O options) {
         this.context = context;
         this.options = options;
 
@@ -34,7 +38,8 @@ public abstract class Action<T> {
 
         this.context.setLog(log);
 
-        ConnectionOptions connection = NinjaUtils.getOptions(this.context.getJc(), ConnectionOptions.class);
+        ConnectionOptions connection = Objects.requireNonNull(
+                NinjaUtils.getOptions(this.context.getJc(), ConnectionOptions.class));
         this.context.init(connection);
     }
 

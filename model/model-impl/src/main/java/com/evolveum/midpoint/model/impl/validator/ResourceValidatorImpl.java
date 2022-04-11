@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.impl.validator;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.validator.Issue;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
@@ -22,9 +21,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -58,8 +55,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
  *  - empty correlation, correlation condition?
  *  - empty confirmation condition?
  *  - empty synchronization condition?
- *
- * @author mederly
  */
 @Component(value = "resourceValidator")
 public class ResourceValidatorImpl implements ResourceValidator {
@@ -105,7 +100,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 
         ResourceSchema resourceSchema = null;
         try {
-            resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceObject, prismContext);
+            resourceSchema = ResourceSchemaFactory.getRawSchema(resourceObject);
         } catch (Throwable t) {
             vr.add(Issue.Severity.WARNING, CAT_SCHEMA, C_NO_SCHEMA,
                     getString(CLASS_DOT + C_NO_SCHEMA, t.getMessage()),
@@ -125,6 +120,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
             checkSynchronizationDuplicateObjectTypes(ctx, synchronization);
             int i = 1;
             for (ObjectSynchronizationType objectSync : resource.getSynchronization().getObjectSynchronization()) {
+                // TODO is the path construction correct here? (meaning "i" as PCV id!)
                 checkObjectSynchronization(ctx, ItemPath.create(ResourceType.F_SYNCHRONIZATION, SynchronizationType.F_OBJECT_SYNCHRONIZATION, i), objectSync);
                 i++;
             }
@@ -146,9 +142,9 @@ public class ResourceValidatorImpl implements ResourceValidator {
     private void checkSchemaHandlingObjectType(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType) {
         checkDuplicateItems(ctx, path, objectType);
         checkObjectClass(ctx, path, objectType);
-        ObjectClassComplexTypeDefinition ocdef = null;
+        ResourceObjectDefinition ocdef = null;
         if (ctx.resourceSchema != null && objectType.getObjectClass() != null) {
-            ocdef = ctx.resourceSchema.findObjectClassDefinition(objectType.getObjectClass());
+            ocdef = ctx.resourceSchema.findDefinitionForObjectClass(objectType.getObjectClass());
             checkObjectClassDefinition(ctx, path, objectType, ocdef);
         }
         int i = 1;
@@ -231,7 +227,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
     }
 
     private void checkObjectClassDefinition(ResourceValidationContext ctx, ItemPath path,
-            ResourceObjectTypeDefinitionType objectType, ObjectClassComplexTypeDefinition ocdef) {
+            ResourceObjectTypeDefinitionType objectType, ResourceObjectDefinition ocdef) {
         if (ocdef == null) {
             ctx.validationResult.add(Issue.Severity.WARNING,
                     CAT_SCHEMA_HANDLING, C_UNKNOWN_OBJECT_CLASS,
@@ -278,13 +274,13 @@ public class ResourceValidatorImpl implements ResourceValidator {
         }
     }
 
-    private void checkSchemaHandlingAttribute(ResourceValidationContext ctx, ObjectClassComplexTypeDefinition ocdef,
+    private void checkSchemaHandlingAttribute(ResourceValidationContext ctx, ResourceObjectDefinition ocdef,
             ItemPath path,
             ResourceObjectTypeDefinitionType objectType, ResourceAttributeDefinitionType attributeDef) {
         QName ref = itemRefToName(attributeDef.getRef());
         checkSchemaHandlingItem(ctx, path, objectType, attributeDef);
         ResourceAttributeDefinition<?> rad = null;
-        // TODO rewrite using CompositeRefinedObjectClassDefinition
+        // TODO rewrite using CompositeObjectDefinition
         if (ref != null) {
             boolean caseIgnoreAttributeNames = ResourceTypeUtil.isCaseIgnoreAttributeNames(ctx.resourceObject.asObjectable());
             if (ocdef != null) {
@@ -292,7 +288,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
             }
             if (rad == null) {
                 for (QName auxOcName : objectType.getAuxiliaryObjectClass()) {
-                    ObjectClassComplexTypeDefinition auxOcDef = ctx.resourceSchema.findObjectClassDefinition(auxOcName);
+                    ResourceObjectDefinition auxOcDef = ctx.resourceSchema.findDefinitionForObjectClass(auxOcName);
                     if (auxOcDef != null) {
                         rad = auxOcDef.findAttributeDefinition(ref, caseIgnoreAttributeNames);
                         if (rad != null) {
@@ -421,7 +417,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
         }
     }
 
-    private void checkSchemaHandlingAssociation(ResourceValidationContext ctx, ObjectClassComplexTypeDefinition ocdef, ItemPath path,
+    private void checkSchemaHandlingAssociation(ResourceValidationContext ctx, ResourceObjectDefinition ocdef, ItemPath path,
             ResourceObjectTypeDefinitionType objectType, ResourceObjectAssociationType associationDef) {
         checkSchemaHandlingItem(ctx, path, objectType, associationDef);
         checkItemRef(ctx, path, objectType, associationDef, C_NO_ASSOCIATION_NAME);

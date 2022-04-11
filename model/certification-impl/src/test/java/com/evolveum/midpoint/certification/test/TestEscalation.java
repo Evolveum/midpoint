@@ -34,8 +34,6 @@ import static org.testng.AssertJUnit.assertTrue;
 /**
  * Very simple certification test.
  * Tests just the basic functionality, along with security features.
- *
- * @author mederly
  */
 @ContextConfiguration(locations = {"classpath:ctx-certification-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

@@ -1,36 +1,27 @@
 /*
- * Copyright (c) 2010-2014 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.handlers;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.impl.EventHandlerRegistry;
-import com.evolveum.midpoint.notifications.impl.helpers.CategoryFilterHelper;
-import com.evolveum.midpoint.notifications.impl.helpers.ChainHelper;
-import com.evolveum.midpoint.notifications.impl.helpers.ExpressionFilterHelper;
-import com.evolveum.midpoint.notifications.impl.helpers.FocusTypeFilterHelper;
-import com.evolveum.midpoint.notifications.impl.helpers.ForkHelper;
-import com.evolveum.midpoint.notifications.impl.helpers.KindIntentFilterHelper;
-import com.evolveum.midpoint.notifications.impl.helpers.OperationFilterHelper;
-import com.evolveum.midpoint.notifications.impl.helpers.StatusFilterHelper;
+import com.evolveum.midpoint.notifications.impl.helpers.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseEventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-
-import java.util.List;
 
 /**
  * Handles now-aggregated event type (consisting of pointers to categories, operations, statuses, chained handlers,
@@ -40,7 +31,7 @@ import java.util.List;
  * TODO should we really extend BaseHandler? E.g. should we register ourselves? (probably not)
  */
 @Component
-public class AggregatedEventHandler extends BaseHandler<Event, EventHandlerType> {
+public class AggregatedEventHandler extends BaseHandler<Event, BaseEventHandlerType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AggregatedEventHandler.class);
 
@@ -66,47 +57,50 @@ public class AggregatedEventHandler extends BaseHandler<Event, EventHandlerType>
     }
 
     @Override
-    public boolean processEvent(Event event, EventHandlerType configuration, Task task, OperationResult result)
+    public boolean processEvent(Event event, BaseEventHandlerType eventHandlerConfig, Task task, OperationResult result)
             throws SchemaException {
 
-        logStart(LOGGER, event, configuration);
+        logStart(LOGGER, event, eventHandlerConfig);
 
-        boolean shouldContinue =
-                categoryFilter.processEvent(event, configuration) &&
-                operationFilter.processEvent(event, configuration) &&
-                statusFilter.processEvent(event, configuration) &&
-                kindIntentFilter.processEvent(event, configuration) &&
-                focusTypeFilterHelper.processEvent(event, configuration) &&
-                expressionFilter.processEvent(event, configuration, task, result) &&
-                chainHelper.processEvent(event, configuration, notificationManager, task, result) &&
-                forkHelper.processEvent(event, configuration, notificationManager, task, result);
+        boolean shouldContinue = categoryFilter.processEvent(event, eventHandlerConfig)
+                && operationFilter.processEvent(event, eventHandlerConfig)
+                && statusFilter.processEvent(event, eventHandlerConfig)
+                && kindIntentFilter.processEvent(event, eventHandlerConfig)
+                && focusTypeFilterHelper.processEvent(event, eventHandlerConfig)
+                && expressionFilter.processEvent(event, eventHandlerConfig, task, result)
+                && chainHelper.processEvent(event, eventHandlerConfig, notificationManager, task, result)
+                && forkHelper.processEvent(event, eventHandlerConfig, notificationManager, task, result);
 
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleUserNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleFocalObjectNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleResourceObjectNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleWorkflowNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleCaseManagementNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getUserPasswordNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getUserRegistrationNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getPasswordResetNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getAccountActivationNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getAccountPasswordNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getGeneralNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getCustomNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleCampaignNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleCampaignStageNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleReviewerNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleTaskNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleReportNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimplePolicyRuleNotifier(), task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, configuration.getTimeValidityNotifier(), task, result);
+        if (eventHandlerConfig instanceof EventHandlerType) {
+            EventHandlerType handlerConfig = (EventHandlerType) eventHandlerConfig;
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleUserNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleFocalObjectNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleResourceObjectNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleWorkflowNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleCaseManagementNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getUserPasswordNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getUserRegistrationNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getPasswordResetNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getAccountActivationNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getAccountPasswordNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getGeneralNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getCustomNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleCampaignNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleCampaignStageNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleReviewerNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleTaskNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleReportNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimplePolicyRuleNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getTimeValidityNotifier(), task, result);
+        }
 
         logEnd(LOGGER, event, shouldContinue);
         return shouldContinue;
     }
 
-    private boolean processNotifiers(Event event, List<? extends EventHandlerType> notifiers, Task task, OperationResult result) throws SchemaException {
-        for (EventHandlerType notifier : notifiers) {
+    private boolean processNotifiers(Event event, List<? extends BaseEventHandlerType> notifiers, Task task, OperationResult result)
+            throws SchemaException {
+        for (BaseEventHandlerType notifier : notifiers) {
             boolean shouldContinue = eventHandlerRegistry.forwardToHandler(event, notifier, task, result);
             if (!shouldContinue) {
                 return false;

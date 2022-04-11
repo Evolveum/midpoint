@@ -6,80 +6,135 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import com.evolveum.midpoint.common.ResourceObjectPattern;
-import com.evolveum.midpoint.common.refinery.*;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.task.api.StateReporter;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
+ * Context for provisioning operations. Contains key information like resolved resource,
+ * object type and/or object class definitions, and so on.
+ *
  * @author semancik
  */
-public class ProvisioningContext extends StateReporter {
+public class ProvisioningContext {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningContext.class);
 
-    @NotNull private final ResourceManager resourceManager;
-    private final OperationResult parentResult; // Use only when absolutely necessary! TODO remove, it's incorrect to use it like this
+    /**
+     * Task in the context of which the current operation is executed.
+     */
+    @NotNull private final Task task;
+
+    /**
+     * Resource we work with.
+     *
+     * Before midPoint 4.5 we resolved this field lazily. However, virtually all provisioning operations
+     * require the resource to be resolved. Because the resolution process requires {@link OperationResult}
+     * and can throw a lot of exceptions, it is much simpler to require the resolution to be done beforehand.
+     */
+    @NotNull private final ResourceType resource;
+
+//    /**
+//     * Scope of our interest: single object, object type, object class, or event the whole resource.
+//     */
+//    @NotNull private final ResourceObjectsScope resourceObjectsScope;
+
+    /**
+     * Definition applicable to individual resource objects in the scope.
+     */
+    @Nullable private final ResourceObjectDefinition resourceObjectDefinition;
+
+    /**
+     * The context factory.
+     *
+     * It gives us some useful beans, as well as methods helping with spawning new sub-contexts.
+     */
+    @NotNull private final ProvisioningContextFactory contextFactory;
+
+    /**
+     * {@link GetOperationOptions} for the current `get` or `search` operation.
+     */
     private Collection<SelectorOptions<GetOperationOptions>> getOperationOptions;
 
-    private PrismObject<ShadowType> originalShadow;
-    private ResourceShadowDiscriminator shadowCoordinates;
-    private Collection<QName> additionalAuxiliaryObjectClassQNames;
-    private boolean useRefinedDefinition = true;
-    private boolean isPropagation;
+    /**
+     * Are we currently executing a propagation operation?
+     */
+    private boolean propagation;
 
-    private RefinedObjectClassDefinition objectClassDefinition;
+    /**
+     * Cached connector instances.
+     */
+    @NotNull private final Map<Class<? extends CapabilityType>, ConnectorInstance> connectorMap = new HashMap<>();
 
-    private ResourceType resource;
-    private Map<Class<? extends CapabilityType>,ConnectorInstance> connectorMap;
-    private RefinedResourceSchema refinedSchema;
+    /**
+     * Cached resource schema.
+     */
+    private ResourceSchema resourceSchema;
 
-    private String channelOverride;
+    /**
+     * Cached patterns for protected objects in given object type.
+     *
+     * TODO
+     */
+    private Collection<ResourceObjectPattern> protectedObjectPatterns;
 
-    private Collection<ResourceObjectPattern> protectedAccountPatterns;
-
-    public ProvisioningContext(@NotNull ResourceManager resourceManager, OperationResult parentResult) {
-        super(resourceManager.getLightweightIdentifierGenerator());
-        this.resourceManager = resourceManager;
-        this.parentResult = parentResult;
+    /** Creating context from scratch. */
+    ProvisioningContext(
+            @NotNull Task task,
+            @NotNull ResourceType resource,
+            @Nullable ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull ProvisioningContextFactory contextFactory) {
+        this.task = task;
+        this.resource = resource;
+        this.resourceObjectDefinition = resourceObjectDefinition;
+        this.contextFactory = contextFactory;
+        LOGGER.trace("Created {}", this);
     }
 
-    public void setResourceOid(String resourceOid) {
-        super.setResourceOid(resourceOid);
-        this.resource = null;
-        this.connectorMap = null;
-        this.refinedSchema = null;
+    /** Creating context from previous one (potentially overriding some parts). */
+    ProvisioningContext(
+            @NotNull ProvisioningContext originalCtx,
+            @NotNull Task task,
+            @Nullable ResourceObjectDefinition resourceObjectDefinition) {
+        this.task = task;
+        this.resource = originalCtx.resource;
+        this.resourceObjectDefinition = resourceObjectDefinition;
+        this.contextFactory = originalCtx.contextFactory;
+        this.connectorMap.putAll(originalCtx.connectorMap);
+        this.resourceSchema = originalCtx.resourceSchema;
+        this.getOperationOptions = originalCtx.getOperationOptions; // OK?
+        this.propagation = originalCtx.propagation;
+        // Not copying protected account patters because these are object type specific.
+        LOGGER.trace("Created/spawned {}", this);
     }
 
     public Collection<SelectorOptions<GetOperationOptions>> getGetOperationOptions() {
@@ -90,118 +145,99 @@ public class ProvisioningContext extends StateReporter {
         this.getOperationOptions = getOperationOptions;
     }
 
-    public ResourceShadowDiscriminator getShadowCoordinates() {
-        return shadowCoordinates;
-    }
-
-    public void setShadowCoordinates(ResourceShadowDiscriminator shadowCoordinates) {
-        this.shadowCoordinates = shadowCoordinates;
-    }
-
-    public PrismObject<ShadowType> getOriginalShadow() {
-        return originalShadow;
-    }
-
-    public void setOriginalShadow(PrismObject<ShadowType> originalShadow) {
-        this.originalShadow = originalShadow;
-    }
-
-    public Collection<QName> getAdditionalAuxiliaryObjectClassQNames() {
-        return additionalAuxiliaryObjectClassQNames;
-    }
-
-    public void setAdditionalAuxiliaryObjectClassQNames(Collection<QName> additionalAuxiliaryObjectClassQNames) {
-        this.additionalAuxiliaryObjectClassQNames = additionalAuxiliaryObjectClassQNames;
-    }
-
-    public boolean isUseRefinedDefinition() {
-        return useRefinedDefinition;
-    }
-
-    public void setUseRefinedDefinition(boolean useRefinedDefinition) {
-        this.useRefinedDefinition = useRefinedDefinition;
-    }
-
     public boolean isPropagation() {
-        return isPropagation;
+        return propagation;
     }
 
-    public void setPropagation(boolean isPropagation) {
-        this.isPropagation = isPropagation;
+    public void setPropagation(boolean value) {
+        this.propagation = value;
     }
 
-    public void setObjectClassDefinition(RefinedObjectClassDefinition objectClassDefinition) {
-        this.objectClassDefinition = objectClassDefinition;
-    }
-
-    public void setResource(ResourceType resource) {
-        this.resource = resource;
-    }
-
-    @NotNull public ResourceType getResource()
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-        if (resource == null) {
-            if (getResourceOid() == null) {
-                throw new SchemaException("Null resource OID "+getDesc());
-            }
-            GetOperationOptions options = GetOperationOptions.createReadOnly();
-            resource = resourceManager.getResource(getResourceOid(), options, getTask(), parentResult).asObjectable();
-            updateResourceName();
-        }
+    @NotNull public ResourceType getResource() {
         return resource;
     }
 
-    private void updateResourceName() {
-        if (resource != null && resource.getName() != null) {
-            super.setResourceName(resource.getName().getOrig());
+    public ResourceSchema getResourceSchema() throws SchemaException, ConfigurationException {
+        if (resourceSchema == null) {
+            resourceSchema = ProvisioningUtil.getResourceSchema(resource);
+        }
+        return resourceSchema;
+    }
+
+    public @Nullable ResourceObjectDefinition getObjectDefinition() {
+        return resourceObjectDefinition;
+    }
+
+    public @NotNull ResourceObjectDefinition getObjectDefinitionRequired() {
+        return Objects.requireNonNull(
+                resourceObjectDefinition,
+                () -> "No resource object definition, because the context is wildcard: " + this);
+    }
+
+    /**
+     * Returns the "raw" object class definition for the current context.
+     * (If the context is given by object type, then its OC is returned. If it's the OC itself, the OC is returned.)
+     */
+    public @NotNull ResourceObjectClassDefinition getObjectClassDefinitionRequired() {
+        return getObjectDefinitionRequired()
+                .getObjectClassDefinition();
+    }
+
+    public @NotNull QName getObjectClassNameRequired() {
+        return getObjectClassDefinitionRequired().getObjectClassName();
+    }
+
+    /**
+     * Returns the "raw" object class definition (if the context is not wildcard).
+     */
+    public @Nullable ResourceObjectClassDefinition getObjectClassDefinition() {
+        if (resourceObjectDefinition != null) {
+            return resourceObjectDefinition.getObjectClassDefinition();
+        } else {
+            return null;
         }
     }
 
-    public RefinedResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        if (refinedSchema == null) {
-            refinedSchema = ProvisioningUtil.getRefinedSchema(getResource());
+    /**
+     * Returns the object type definition, or fails if there's none (because of being wildcard or being OC-based).
+     */
+    public @NotNull ResourceObjectTypeDefinition getObjectTypeDefinitionRequired() {
+        if (resourceObjectDefinition instanceof ResourceObjectTypeDefinition) {
+            return (ResourceObjectTypeDefinition) resourceObjectDefinition;
+        } else {
+            throw new IllegalStateException("No resource object type definition in " + this);
         }
-        return refinedSchema;
     }
 
-    public RefinedObjectClassDefinition getObjectClassDefinition() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        if (objectClassDefinition == null) {
-            if (useRefinedDefinition) {
-                // This is the normal case.
-                if (originalShadow != null) {
-                    objectClassDefinition = getRefinedSchema().determineCompositeObjectClassDefinition(originalShadow, additionalAuxiliaryObjectClassQNames);
-                } else if (shadowCoordinates != null && !shadowCoordinates.isWildcard()) {
-                    objectClassDefinition = getRefinedSchema().determineCompositeObjectClassDefinition(shadowCoordinates);
-                }
-            } else {
-                // This is a special case, currently used for "baseContext" resolution in refined object class definition.
-                // Other uses might be added in the future, see e.g. MID-7470.
-                if (shadowCoordinates.getObjectClass() == null) {
-                    throw new IllegalStateException("No objectclass");
-                }
-                ObjectClassComplexTypeDefinition origObjectClassDefinition = getRefinedSchema().getOriginalResourceSchema()
-                        .findObjectClassDefinition(shadowCoordinates.getObjectClass());
-                if (origObjectClassDefinition == null) {
-                    throw new SchemaException("No object class definition for "+shadowCoordinates.getObjectClass()+" in original resource schema for "+getResource());
-                } else {
-                    // This is a pure conversion of raw object class definition to refined one.
-                    objectClassDefinition = RefinedObjectClassDefinitionImpl.parseFromSchema(origObjectClassDefinition, getResource().getOid(),
-                            "objectclass "+origObjectClassDefinition+" in "+getResource());
-                }
-            }
+    /**
+     * Returns the object type definition, if applicable. (Null otherwise.)
+     */
+    public @Nullable ResourceObjectTypeDefinition getRefinedObjectClassDefinitionIfPresent() {
+        if (resourceObjectDefinition instanceof ResourceObjectTypeDefinition) {
+            return (ResourceObjectTypeDefinition) resourceObjectDefinition;
+        } else {
+            return null;
         }
-        return objectClassDefinition;
     }
 
-    public Collection<ResourceObjectPattern> getProtectedAccountPatterns(ExpressionFactory expressionFactory, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
-        if (protectedAccountPatterns != null) {
-            return protectedAccountPatterns;
+    /**
+     * Returns evaluated protected object patterns.
+     */
+    public Collection<ResourceObjectPattern> getProtectedAccountPatterns(
+            ExpressionFactory expressionFactory, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SecurityViolationException {
+        if (protectedObjectPatterns != null) {
+            return protectedObjectPatterns;
         }
 
-        protectedAccountPatterns = new ArrayList<>();
+        protectedObjectPatterns = new ArrayList<>();
 
-        RefinedObjectClassDefinition objectClassDefinition = getObjectClassDefinition();
+        if (!isTypeBased()) {
+            return protectedObjectPatterns;
+        }
+
+        ResourceObjectTypeDefinition objectClassDefinition = getObjectTypeDefinitionRequired();
         Collection<ResourceObjectPattern> patterns = objectClassDefinition.getProtectedObjectPatterns();
         for (ResourceObjectPattern pattern : patterns) {
             ObjectFilter filter = pattern.getObjectFilter();
@@ -210,54 +246,51 @@ public class ProvisioningContext extends StateReporter {
             }
             VariablesMap variables = new VariablesMap();
             variables.put(ExpressionConstants.VAR_RESOURCE, resource, ResourceType.class);
-            variables.put(ExpressionConstants.VAR_CONFIGURATION, resourceManager.getSystemConfiguration(), SystemConfigurationType.class);
-            ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(filter, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory, getPrismContext(), "protected filter", getTask(), result);
-            pattern.addFilter(evaluatedFilter);
-            protectedAccountPatterns.add(pattern);
+            variables.put(ExpressionConstants.VAR_CONFIGURATION,
+                    getResourceManager().getSystemConfiguration(), SystemConfigurationType.class);
+            ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
+                    filter, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory,
+                    PrismContext.get(), "protected filter", getTask(), result);
+            pattern.setFilter(evaluatedFilter);
+            protectedObjectPatterns.add(pattern);
         }
 
-        return protectedAccountPatterns;
+        return protectedObjectPatterns;
     }
 
     // we don't use additionalAuxiliaryObjectClassQNames as we don't know if they are initialized correctly [med] TODO: reconsider this
-    public CompositeRefinedObjectClassDefinition computeCompositeObjectClassDefinition(@NotNull Collection<QName> auxObjectClassQNames)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        RefinedObjectClassDefinition structuralObjectClassDefinition = getObjectClassDefinition();
-        if (structuralObjectClassDefinition == null) {
-            return null;
-        }
-        Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>(auxObjectClassQNames.size());
+    public @NotNull ResourceObjectDefinition computeCompositeObjectDefinition(
+            @NotNull Collection<QName> auxObjectClassQNames)
+            throws SchemaException, ConfigurationException {
+        Collection<ResourceObjectDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>(auxObjectClassQNames.size());
         for (QName auxObjectClassQName : auxObjectClassQNames) {
-            RefinedObjectClassDefinition auxObjectClassDef = refinedSchema.getRefinedDefinition(auxObjectClassQName);
+            ResourceObjectDefinition auxObjectClassDef = getResourceSchema().findDefinitionForObjectClass(auxObjectClassQName);
             if (auxObjectClassDef == null) {
                 throw new SchemaException("Auxiliary object class " + auxObjectClassQName + " specified in " + this + " does not exist");
             }
             auxiliaryObjectClassDefinitions.add(auxObjectClassDef);
         }
-        return new CompositeRefinedObjectClassDefinitionImpl(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
+        return new CompositeObjectDefinitionImpl(
+                getObjectDefinitionRequired(),
+                auxiliaryObjectClassDefinitions);
     }
 
-    public RefinedObjectClassDefinition computeCompositeObjectClassDefinition(PrismObject<ShadowType> shadow)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        return computeCompositeObjectClassDefinition(shadow.asObjectable().getAuxiliaryObjectClass());
+    /**
+     * Returns either real composite type definition, or just object definition - if that's not possible.
+     */
+    public @NotNull ResourceObjectDefinition computeCompositeObjectDefinition(@NotNull PrismObject<ShadowType> shadow)
+            throws SchemaException, ConfigurationException {
+        return computeCompositeObjectDefinition(
+                shadow.asObjectable().getAuxiliaryObjectClass());
     }
 
     public String getChannel() {
-        Task task = getTask();
-        if (task != null && channelOverride == null) {
-            return task.getChannel();
-        } else {
-            return channelOverride;
-        }
+        return task.getChannel();
     }
 
     public <T extends CapabilityType> ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        if (connectorMap == null) {
-            connectorMap = new HashMap<>();
-        }
-
         ConnectorInstance connector = connectorMap.get(operationCapabilityClass);
         if (connector != null) {
             return connector;
@@ -269,109 +302,103 @@ public class ProvisioningContext extends StateReporter {
     }
 
     public boolean isWildcard() {
-        return shadowCoordinates == null && originalShadow == null ||
-                shadowCoordinates != null && shadowCoordinates.isWildcard();
+        return resourceObjectDefinition == null;
     }
 
     /**
-     * Creates a context for a different object class on the same resource.
+     * Creates a context for a different object type on the same resource.
+     *
+     * The returned context is based on "refined" resource type definition.
      */
-    public ProvisioningContext spawn(ShadowKindType kind, String intent) {
-        ProvisioningContext ctx = spawnSameResource();
-        ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), kind, intent, null, false);
-        return ctx;
-    }
-
-    /**
-     * Creates a context for a different object class on the same resource.
-     */
-    public ProvisioningContext spawn(QName objectClassQName, Task workerTask) {
-        ProvisioningContext child = spawn(objectClassQName);
-        child.setTask(workerTask);
-        return child;
+    public ProvisioningContext spawnForKindIntent(@NotNull ShadowKindType kind, @NotNull String intent)
+            throws SchemaException, ConfigurationException {
+        return contextFactory.spawnForKindIntent(this, kind, intent);
     }
 
     /**
      * Creates an exact copy of the context but with different task.
      */
-    public ProvisioningContext spawn(Task workerTask) {
-        ProvisioningContext child = spawnSameResource();
-        child.shadowCoordinates = shadowCoordinates; // todo clone?
-        child.setTask(workerTask);
-        return child;
-    }
-
-    public ProvisioningContext spawn(QName objectClassQName) {
-        ProvisioningContext ctx = spawnSameResource();
-        ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), null, null, null, false);
-        ctx.shadowCoordinates.setObjectClass(objectClassQName);
-        return ctx;
-    }
-
-    public ProvisioningContext spawn(PrismObject<ShadowType> shadow, Task workerTask) {
-        ProvisioningContext child = spawn(shadow);
-        child.setTask(workerTask);
-        return child;
+    public ProvisioningContext spawn(Task task) {
+        // No need to bother the factory because no population resolution is needed
+        return new ProvisioningContext(
+                this,
+                task,
+                resourceObjectDefinition);
     }
 
     /**
-     * Creates a context for a different object class on the same resource.
+     * Creates an exact copy of the context but with different task + resource object class.
      */
-    public ProvisioningContext spawn(PrismObject<ShadowType> shadow) {
-        ProvisioningContext ctx = spawnSameResource();
-        ctx.setOriginalShadow(shadow);
-        return ctx;
+    public @NotNull ProvisioningContext spawnForObjectClass(@NotNull Task task, @NotNull QName objectClassName)
+            throws SchemaException, ConfigurationException {
+        return contextFactory.spawnForObjectClass(this, task, objectClassName, false);
     }
 
-    private ProvisioningContext spawnSameResource() {
-        ProvisioningContext ctx = new ProvisioningContext(resourceManager, parentResult);
-        ctx.setTask(this.getTask());
-        ctx.setResourceOid(getResourceOid());
-        ctx.resource = this.resource;
-        ctx.updateResourceName(); // TODO eliminate this mess - check if we need StateReporter any more
-        ctx.connectorMap = this.connectorMap;
-        ctx.refinedSchema = this.refinedSchema;
-        ctx.channelOverride = this.channelOverride;
-        return ctx;
+    /**
+     * Creates an exact copy of the context but with different resource object class.
+     */
+    public @NotNull ProvisioningContext spawnForObjectClass(@NotNull QName objectClassName)
+            throws SchemaException, ConfigurationException {
+        return contextFactory.spawnForObjectClass(this, task, objectClassName, false);
     }
 
-    public void assertDefinition(String message) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        if (getObjectClassDefinition() == null) {
+    /**
+     * Creates an exact copy of the context but with different resource object class.
+     *
+     * This method looks fort the "real" raw object class definition (i.e. not a default object type
+     * definition for given object class name)
+     */
+    public @NotNull ProvisioningContext spawnForObjectClassWithRawDefinition(@NotNull QName objectClassName)
+            throws SchemaException, ConfigurationException {
+        return contextFactory.spawnForObjectClass(this, task, objectClassName, true);
+    }
+
+    /**
+     * Creates a context for a different shadow on the same resource.
+     */
+    public ProvisioningContext spawnForShadow(PrismObject<ShadowType> shadow)
+            throws SchemaException, ConfigurationException {
+        return contextFactory.spawnForShadow(this, shadow);
+    }
+
+    public void assertDefinition(String message) throws SchemaException {
+        if (resourceObjectDefinition == null) {
             throw new SchemaException(message + " " + getDesc());
         }
     }
 
-    public void assertDefinition() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+    public void assertDefinition() throws SchemaException {
         assertDefinition("Cannot locate object class definition");
     }
 
     public String getDesc() {
-        if (originalShadow != null) {
-            return "for " + originalShadow + " in " + (resource==null?("resource "+getResourceOid()):resource);
-        } else if (shadowCoordinates != null && !shadowCoordinates.isWildcard()) {
-            return "for " + shadowCoordinates + " in " + (resource==null?("resource "+getResourceOid()):resource);
+        if (resourceObjectDefinition != null) {
+            return "for " + resourceObjectDefinition + " in " + resource;
         } else {
-            return "for wildcard in " + (resource==null?("resource "+getResourceOid()):resource);
+            return "for all objects in " + resource;
         }
     }
 
-    private <T extends CapabilityType> ConnectorInstance getConnectorInstance(Class<T> operationCapabilityClass, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        OperationResult connectorResult = parentResult.createMinorSubresult(ProvisioningContext.class.getName() + ".getConnectorInstance");
+    private <T extends CapabilityType> ConnectorInstance getConnectorInstance(
+            Class<T> operationCapabilityClass, OperationResult parentResult)
+            throws CommunicationException, ConfigurationException {
+        OperationResult result =
+                parentResult.createMinorSubresult(ProvisioningContext.class.getName() + ".getConnectorInstance");
         try {
-            ConnectorInstance connector = resourceManager.getConfiguredConnectorInstance(getResource().asPrismObject(), operationCapabilityClass, false, connectorResult);
-            connectorResult.recordSuccess();
-            return connector;
+            return contextFactory.getResourceManager()
+                    .getConfiguredConnectorInstance(resource.asPrismObject(), operationCapabilityClass, false, result);
         } catch (ObjectNotFoundException | SchemaException e) {
-            connectorResult.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
+            result.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
             // Wrap those exceptions to a configuration exception. In the context of the provisioning operation we really cannot throw
             // ObjectNotFoundException exception. If we do that then the consistency code will interpret that as if the resource object
             // (shadow) is missing. But that's wrong. We do not have connector therefore we do not know anything about the shadow. We cannot
             // throw ObjectNotFoundException here.
             throw new ConfigurationException(e.getMessage(), e);
         } catch (CommunicationException | ConfigurationException | RuntimeException e) {
-            connectorResult.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
+            result.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
             throw e;
+        } finally {
+            result.close();
         }
     }
 
@@ -385,16 +412,15 @@ public class ProvisioningContext extends StateReporter {
      * TODO why we call this method "effective"? It implies that the capability is enabled. But it is not the case
      *  according to the code.
      */
-    public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        CapabilitiesType capabilitiesType = getConnectorCapabilities(capabilityClass);
-        if (capabilitiesType == null) {
+    public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
+        CapabilitiesType connectorCapabilities = getConnectorCapabilities(capabilityClass);
+        if (connectorCapabilities == null) {
             return null;
         }
-        return CapabilityUtil.getEffectiveCapability(capabilitiesType, capabilityClass);
+        return CapabilityUtil.getEffectiveCapability(connectorCapabilities, capabilityClass);
     }
 
-    public <T extends CapabilityType> boolean hasNativeCapability(Class<T> capabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public <T extends CapabilityType> boolean hasNativeCapability(Class<T> capabilityClass) {
         CapabilitiesType connectorCapabilities = getConnectorCapabilities(capabilityClass);
         if (connectorCapabilities == null) {
             return false;
@@ -402,7 +428,7 @@ public class ProvisioningContext extends StateReporter {
         return CapabilityUtil.hasNativeCapability(connectorCapabilities, capabilityClass);
     }
 
-    public <T extends  CapabilityType> boolean hasConfiguredCapability(Class<T> capabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public <T extends  CapabilityType> boolean hasConfiguredCapability(Class<T> capabilityClass) {
         CapabilitiesType connectorCapabilities = getConnectorCapabilities(capabilityClass);
         if (connectorCapabilities == null) {
             return false;
@@ -410,20 +436,14 @@ public class ProvisioningContext extends StateReporter {
         return CapabilityUtil.hasConfiguredCapability(connectorCapabilities, capabilityClass);
     }
 
-    private <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-        return resourceManager.getConnectorCapabilities(getResource(), getObjectClassDefinition(), operationCapabilityClass);
+    private <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) {
+        return getResourceManager().getConnectorCapabilities(
+                resource, getRefinedObjectClassDefinitionIfPresent(), operationCapabilityClass);
     }
 
     @Override
     public String toString() {
         return "ProvisioningContext("+getDesc()+")";
-    }
-
-    @NotNull
-    public PrismContext getPrismContext() {
-        return resourceManager.getPrismContext();
     }
 
     public ItemPath path(Object... components) {
@@ -436,56 +456,93 @@ public class ProvisioningContext extends StateReporter {
         return ProvisioningUtil.getCachingStrategy(this);
     }
 
-    public String getChannelOverride() {
-        return channelOverride;
-    }
-
-    public void setChannelOverride(String channelOverride) {
-        this.channelOverride = channelOverride;
-    }
-
     public String toHumanReadableDescription() {
-        StringBuilder sb = new StringBuilder();
-        if (shadowCoordinates != null) {
-            if (shadowCoordinates.getKind() == null) {
-                sb.append(PrettyPrinter.prettyPrint(shadowCoordinates.getObjectClass()));
-            } else {
-                sb.append(shadowCoordinates.getKind() == null ? "null" : shadowCoordinates.getKind().value());
-                sb.append(" (").append(shadowCoordinates.getIntent());
-                if (shadowCoordinates.getTag() != null) {
-                    sb.append("/").append(shadowCoordinates.getTag());
-                }
-                sb.append(")");
-            }
+        if (resourceObjectDefinition != null) {
+            return resourceObjectDefinition.getHumanReadableName() + " @" + resource;
+        } else {
+            return "all objects @" + resource;
         }
-        sb.append(" @");
-        if (resource != null) {
-            sb.append(resource);
-        } else if (shadowCoordinates != null) {
-            sb.append(shadowCoordinates.getResourceOid());
-        }
-        if (shadowCoordinates != null && shadowCoordinates.isGone()) {
-            sb.append(" GONE");
-        }
-        return sb.toString();
     }
 
-    public Object toHumanReadableDescriptionLazy() {
-        return new Object() {
-            @Override
-            public String toString() {
-                return toHumanReadableDescription();
-            }
-        };
+    public boolean isInMaintenance() {
+        return ResourceTypeUtil.isInMaintenance(resource);
     }
 
-    public boolean isInMaintenance() throws ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
-        return ResourceTypeUtil.isInMaintenance(getResource());
+    public void checkNotInMaintenance() throws MaintenanceException {
+        ResourceTypeUtil.checkNotInMaintenance(resource);
     }
 
-    public void checkNotInMaintenance() throws ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
-        ResourceTypeUtil.checkNotInMaintenance(getResource());
+    public @NotNull Task getTask() {
+        return task;
+    }
+
+    public UcfExecutionContext getUcfExecutionContext() {
+        return new UcfExecutionContext(
+                contextFactory.getLightweightIdentifierGenerator(),
+                resource,
+                task);
+    }
+
+    public boolean canRun() {
+        return !(task instanceof RunningTask) || ((RunningTask) task).canRun();
+    }
+
+    public @NotNull String getResourceOid() {
+        return Objects.requireNonNull(
+                resource.getOid());
+    }
+
+    /**
+     * Returns true if the object definition is "refined" (i.e. object type based).
+     */
+    public boolean isTypeBased() {
+        return resourceObjectDefinition instanceof ResourceObjectTypeDefinition;
+    }
+
+    public @Nullable CachingStategyType getPasswordCachingStrategy() {
+        return ProvisioningUtil.getPasswordCachingStrategy(
+                getObjectDefinitionRequired());
+    }
+
+    public void validateSchema(ShadowType shadow)
+        throws ObjectNotFoundException,
+                SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        if (ResourceTypeUtil.isValidateSchema(resource)) {
+            ShadowUtil.validateAttributeSchema(shadow, getObjectDefinition());
+        }
+    }
+
+    private @NotNull ResourceManager getResourceManager() {
+        return contextFactory.getResourceManager();
+    }
+
+    public boolean isFetchingRequested(ItemPath path) {
+        return SelectorOptions.hasToLoadPath(path, getOperationOptions, false);
+    }
+
+    public boolean isFetchingNotDisabled(ItemPath path) {
+        return SelectorOptions.hasToLoadPath(path, getOperationOptions, true);
+    }
+
+    /**
+     * Returns association definitions, or an empty list if we do not have appropriate definition available.
+     */
+    public @NotNull Collection<ResourceAssociationDefinition> getAssociationDefinitions() {
+        return resourceObjectDefinition != null ?
+                resourceObjectDefinition.getAssociationDefinitions() : List.of();
+    }
+
+    public @Nullable ResourceAttributeDefinition<?> findAttributeDefinition(QName name) throws SchemaException {
+        return resourceObjectDefinition != null ? resourceObjectDefinition.findAttributeDefinition(name) : null;
+    }
+
+    public @NotNull ResourceAttributeDefinition<?> findAttributeDefinitionRequired(QName name) throws SchemaException {
+        return getObjectDefinitionRequired().findAttributeDefinitionRequired(name);
+    }
+
+    public @NotNull ResourceAttributeDefinition<?> findAttributeDefinitionRequired(QName name, Supplier<String> contextSupplier)
+            throws SchemaException {
+        return getObjectDefinitionRequired()
+                .findAttributeDefinitionRequired(name, contextSupplier);
     }
 }

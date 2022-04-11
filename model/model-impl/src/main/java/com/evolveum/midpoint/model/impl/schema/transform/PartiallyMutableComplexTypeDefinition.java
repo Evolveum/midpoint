@@ -8,9 +8,13 @@
 package com.evolveum.midpoint.model.impl.schema.transform;
 
 import java.util.List;
+import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+
+import com.evolveum.midpoint.schema.processor.MutableRawResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -19,10 +23,7 @@ import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.MutableComplexTypeDefinition;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.SchemaMigration;
-import com.evolveum.midpoint.schema.processor.MutableObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.schema.processor.MutableResourceObjectClassDefinition;
 import com.google.common.annotations.VisibleForTesting;
 
 interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefinition {
@@ -192,11 +193,11 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
 
     }
 
-    @Override
-    default void replaceDefinition(QName itemName, ItemDefinition newDefinition) {
-        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-
-    }
+//    @Override
+//    default void replaceDefinition(@NotNull QName itemName, ItemDefinition newDefinition) {
+//        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
+//
+//    }
 
     @Override
     default void addSubstitution(ItemDefinition<?> itemDef, ItemDefinition<?> maybeSubst) {
@@ -209,7 +210,7 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
     }
 
 
-    public interface ObjectClassDefinition extends PartiallyMutableComplexTypeDefinition, MutableObjectClassComplexTypeDefinition {
+    public interface ObjectClassDefinition extends PartiallyMutableComplexTypeDefinition, MutableResourceObjectClassDefinition {
 
         @Override
         default void add(ItemDefinition<?> definition) {
@@ -217,27 +218,22 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
         }
 
         @Override
-        default void addPrimaryIdentifier(ResourceAttributeDefinition<?> identifier) {
+        default void addPrimaryIdentifierName(QName name) {
             throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
         }
 
         @Override
-        default void addSecondaryIdentifier(ResourceAttributeDefinition<?> identifier) {
+        default void addSecondaryIdentifierName(QName name) {
             throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
         }
 
         @Override
-        default void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute) {
+        default void setDescriptionAttributeName(QName name) {
             throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
         }
 
         @Override
-        default void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        default void setNamingAttribute(QName namingAttribute) {
+        default void setNamingAttributeName(QName namingAttribute) {
             throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
         }
 
@@ -252,51 +248,25 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
         }
 
         @Override
-        default void setKind(ShadowKindType kind) {
+        default void setDefaultAccountDefinition(boolean defaultAccountType) {
             throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
         }
 
         @Override
-        default void setDefaultInAKind(boolean defaultAccountType) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        default void setIntent(String intent) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        default void setDisplayNameAttribute(ResourceAttributeDefinition<?> displayName) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        default void setDisplayNameAttribute(QName displayName) {
+        default void setDisplayNameAttributeName(QName name) {
             throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
         }
 
         @Override
         @VisibleForTesting
-        default <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(QName name, QName typeName) {
+        default <X> ResourceAttributeDefinition<X> createAttributeDefinition(
+                @NotNull QName name,
+                @NotNull QName typeName,
+                @NotNull Consumer<MutableRawResourceAttributeDefinition<?>> customizer) {
             throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
         }
 
         @Override
-        @VisibleForTesting
-        default <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(String localName, QName typeName) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        @VisibleForTesting
-        default <X> ResourceAttributeDefinition<X> createAttributeDefinition(String localName, String localTypeName) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        @NotNull MutableObjectClassComplexTypeDefinition clone();
+        @NotNull MutableResourceObjectClassDefinition clone();
     }
-
-
 }

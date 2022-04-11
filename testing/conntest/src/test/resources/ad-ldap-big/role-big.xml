@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      oid="e1728102-625a-11ec-838d-d74fbfaa5d44">
+    <name>Big</name>
+    <assignment>
+        <construction>
+            <resourceRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85" type="ResourceType"/>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+        </construction>
+    </assignment>
+    <inducement>
+      <construction>
+         <resourceRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85" type="ResourceType"/>
+         <association>
+            <ref>ri:group</ref>
+            <outbound>
+               <expression>
+                  <associationTargetSearch>
+                     <filter>
+                        <q:equal>
+                           <q:path>attributes/ri:cn</q:path>
+                           <q:value>Big</q:value>
+                        </q:equal>
+                     </filter>
+                      <!-- Need this. CN is not an identifier, it is not cached in shadow -->
+                      <searchStrategy>onResource</searchStrategy>
+                  </associationTargetSearch>
+               </expression>
+            </outbound>
+         </association>
+      </construction>
+    </inducement>
+</role>

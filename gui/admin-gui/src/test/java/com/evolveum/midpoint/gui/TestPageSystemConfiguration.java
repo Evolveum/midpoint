@@ -8,13 +8,9 @@ package com.evolveum.midpoint.gui;
 
 import static org.testng.Assert.assertEquals;
 
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.*;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfigurationNew;
 
-import com.evolveum.midpoint.web.page.admin.configuration.system.*;
-
-import org.apache.wicket.Page;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -51,42 +47,22 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
     @Test
     public void test001testPageSystemConfiguration() {
-        renderPage(PageSystemConfigurationNew.class);
+        renderPage(com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
     }
 
     @Test
     public void test002testPageSystemConfigurationBasic() {
-        renderPage(PageSystemConfigurationBasic.class);
-    }
-
-    @Test
-    public void test003testPageObjectPoliciesConfiguration() {
-        renderPage(PageObjectPoliciesConfiguration.class);
-    }
-
-    @Test
-    public void test004testPageGlobalPolicyRule() {
-        renderPage(PageGlobalPolicyRule.class);
-    }
-
-    @Test
-    public void test005testPageGlobalProjectionPolicy() {
-        renderPage(PageGlobalProjectionPolicy.class);
-    }
-
-    @Test
-    public void test006testPageCleanupPolicy() {
-        renderPage(PageCleanupPolicy.class);
+        renderPage(PageSystemBasic.class);
     }
 
     @Test
     public void test007testPageNotificationConfiguration() {
-        renderPage(PageNotificationConfiguration.class);
+        renderPage(PageSystemNotification.class);
     }
 
     @Test
     public void test008testPageLogging() {
-        renderPage(PageLogging.class);
+        renderPage(PageSystemLogging.class);
     }
 
     @Test
@@ -96,12 +72,12 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
     @Test
     public void test010testPageAdminGuiConfiguration() {
-        renderPage(PageAdminGuiConfiguration.class);
+        renderPage(PageSystemAdminGui.class);
     }
 
     @Test
     public void test011testPageWorkflowConfiguration() {
-        renderPage(PageWorkflowConfiguration.class);
+        renderPage(PageSystemWorkflow.class);
     }
 
     @Test
@@ -111,12 +87,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
 
     @Test
     public void test013testPageInternalsConfiguration() {
-        renderPage(PageInternalsConfiguration.class);
-    }
-
-    @Test
-    public void test013testPageDeploymentInformation() {
-        renderPage(PageDeploymentInformation.class);
+        renderPage(PageSystemInternals.class);
     }
 
     @Test
@@ -125,33 +96,27 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
     }
 
     @Test
-    public void test016testPageInfrastructure() {
-        renderPage(PageInfrastructure.class);
-    }
-
-    @Test
-    public void test017testPageFullTextSearch() {
-        renderPage(PageFullTextSearch.class);
-    }
-
-    @Test
     public void test018testModifySystemConfig() throws Exception {
-        renderPage(PageSystemConfigurationNew.class);
+        renderPage(com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
 
         tester.executeAjaxEvent("container:additionalButtons:0:additionalButton:compositedButton", "click");
-        tester.assertRenderedPage(PageSystemConfigurationBasic.class);
+        tester.assertRenderedPage(PageSystemBasic.class);
 
-        tester.clickLink(MAIN_FORM_OLD + ":tabPanel:panel:basicSystemConfiguration:values:0:value:valueForm:valueContainer:input:propertiesLabel:showEmptyButton");
+        final String mainFormPath = "detailsView:mainForm";
+        final String descriptionPath = "mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:input:propertiesLabel:properties:1:property:values:0:value:valueForm:valueContainer:input:input";
 
-        FormTester formTester = tester.newFormTester(MAIN_FORM_OLD, false);
+        tester.clickLink(mainFormPath + ":mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:input:propertiesLabel:showEmptyButton");
+
+        FormTester formTester = tester.newFormTester(mainFormPath, false);
         String des = "new description";
-        formTester.setValue(FORM_INPUT_DESCRIPTION, des);
+        formTester.setValue(descriptionPath, des);
 
-        formTester.submit(FORM_SAVE_OLD);
+        final String saveButton = "buttons:buttons:2";
+        formTester.submit(saveButton);
 
         Thread.sleep(5000);
 
-        tester.assertRenderedPage(PageSystemConfigurationNew.class);
+        tester.assertRenderedPage(com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
 
         PrismObject<SystemConfigurationType> sysConf = getObject(SystemConfigurationType.class, "00000000-0000-0000-0000-000000000001");
         assertEquals(des, sysConf.getRealValue().getDescription());

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -21,8 +21,9 @@ import com.querydsl.core.types.dsl.StringPath;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
@@ -39,10 +40,11 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumOrdinalItemFilterPr
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -154,7 +156,6 @@ public class QAuditEventRecordMapping
     public AuditEventRecordType toSchemaObject(MAuditEventRecord row) {
         AuditEventRecordType record = mapSimpleAttributes(row);
         mapDeltas(record, row.deltas);
-        mapChangedItems(record, row.changedItemPaths);
         mapRefValues(record, row.refValues);
         mapProperties(record, row.properties);
         mapResourceOids(record, row.resourceOids);
@@ -205,17 +206,6 @@ public class QAuditEventRecordMapping
 
         for (MAuditDelta delta : deltas) {
             record.delta(QAuditDeltaMapping.get().toSchemaObject(delta));
-        }
-    }
-
-    private void mapChangedItems(AuditEventRecordType record, List<String> changedItemPaths) {
-        if (changedItemPaths == null) {
-            return;
-        }
-
-        for (String changedItemPath : changedItemPaths) {
-            ItemPath itemPath = ItemPath.create(changedItemPath);
-            record.getChangedItem().add(new ItemPathType(itemPath));
         }
     }
 
@@ -338,9 +328,68 @@ public class QAuditEventRecordMapping
         return bean;
     }
 
-    private Integer targetTypeToRepoOrdinal(PrismReferenceValue targetOwner) {
+    public MAuditEventRecord toRowObject(AuditEventRecordType record) {
+        MAuditEventRecord bean = new MAuditEventRecord();
+        bean.id = record.getRepoId(); // this better be null if we want to insert
+        bean.eventIdentifier = record.getEventIdentifier();
+        bean.timestamp = MiscUtil.asInstant(record.getTimestamp());
+        bean.channel = record.getChannel();
+        bean.eventStage = MiscUtil.enumOrdinal(RAuditEventStage.from(
+                AuditEventStage.fromSchemaValue(record.getEventStage())));
+        bean.eventType = MiscUtil.enumOrdinal(RAuditEventType.from(
+                AuditEventType.fromSchemaValue(record.getEventType())));
+        bean.hostIdentifier = record.getHostIdentifier();
+
+        ObjectReferenceType attorney = record.getAttorneyRef();
+        if (attorney != null) {
+            bean.attorneyName = attorney.getDescription();
+            bean.attorneyOid = attorney.getOid();
+        }
+
+        ObjectReferenceType initiator = record.getInitiatorRef();
+        if (initiator != null) {
+            bean.initiatorName = initiator.getDescription();
+            bean.initiatorOid = initiator.getOid();
+            bean.initiatorType = targetTypeToRepoOrdinal(initiator);
+        }
+
+        bean.message = trim(record.getMessage(), MESSAGE);
+        bean.nodeIdentifier = record.getNodeIdentifier();
+        bean.outcome = MiscUtil.enumOrdinal(ROperationResultStatus.from(
+                OperationResultStatus.parseStatusType(record.getOutcome())));
+        bean.parameter = record.getParameter();
+        bean.remoteHostAddress = record.getRemoteHostAddress();
+        bean.requestIdentifier = record.getRequestIdentifier();
+        bean.result = record.getResult();
+        bean.sessionIdentifier = record.getSessionIdentifier();
+
+        ObjectReferenceType target = record.getTargetRef();
+        if (target != null) {
+            bean.targetName = target.getDescription();
+            bean.targetOid = target.getOid();
+            bean.targetType = targetTypeToRepoOrdinal(target);
+        }
+        ObjectReferenceType targetOwner = record.getTargetOwnerRef();
+        if (targetOwner != null) {
+            bean.targetOwnerName = targetOwner.getDescription();
+            bean.targetOwnerOid = targetOwner.getOid();
+            bean.targetOwnerType = targetTypeToRepoOrdinal(targetOwner);
+        }
+        bean.taskIdentifier = record.getTaskIdentifier();
+        bean.taskOid = record.getTaskOID();
+        return bean;
+    }
+
+    private Integer targetTypeToRepoOrdinal(@NotNull PrismReferenceValue targetOwner) {
         //noinspection rawtypes
         Class objectClass = repositoryContext().qNameToSchemaClass(targetOwner.getTargetType());
+        //noinspection unchecked
+        return MiscUtil.enumOrdinal(RObjectType.getByJaxbType(objectClass));
+    }
+
+    private Integer targetTypeToRepoOrdinal(@NotNull ObjectReferenceType targetOwner) {
+        //noinspection rawtypes
+        Class objectClass = repositoryContext().qNameToSchemaClass(targetOwner.getType());
         //noinspection unchecked
         return MiscUtil.enumOrdinal(RObjectType.getByJaxbType(objectClass));
     }

@@ -92,6 +92,7 @@
             <xsd:element ref="tns:tracing" minOccurs="0"/>
             <xsd:element ref="tns:reporting" minOccurs="0"/>
             <xsd:element ref="tns:notUpdatedShadowsDuration" minOccurs="0"/>
+            <xsd:element ref="tns:updateIdMatch" minOccurs="0"/>
             <xsd:element ref="s:executeScript" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -124,6 +125,27 @@
                 <a:displayOrder>800</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="updateIdMatch" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                If true, the task should update ID Match with the current shadow/pre-focus data:
+                even for already-correlated shadows. For non-correlated shadows, the processing
+                is as usual: a query is sent to ID Match.
+
+                TEMPORARY. EXPERIMENTAL. Will be replaced by something like "synchronization options".
+                (But we are not there yet.)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.updateIdMatch</a:displayName>
+                <a:displayOrder>800</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

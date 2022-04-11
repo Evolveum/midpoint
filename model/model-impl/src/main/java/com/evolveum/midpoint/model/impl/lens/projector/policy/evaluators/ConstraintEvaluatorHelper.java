@@ -38,9 +38,6 @@ import javax.xml.bind.JAXBElement;
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInformation;
 
-/**
- * @author mederly
- */
 @Component
 public class ConstraintEvaluatorHelper {
 

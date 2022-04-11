@@ -13,16 +13,13 @@ import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.UserOperationalButtonsPanel;
-
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -45,9 +42,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
@@ -56,7 +53,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/userNew")
+                @Url(mountUrl = "/admin/userNew", matchUrlForSecurity = "/admin/userNew")
         },
         encoder = OnePageParameterEncoder.class,
         action = {
@@ -91,7 +88,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, LoadableModel<UserType> summaryModel) {
+    protected Panel createSummaryPanel(String id, IModel<UserType> summaryModel) {
         return new UserSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 
@@ -123,6 +120,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     @Override
     protected UserOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<UserType>> wrapperModel) {
         return new UserOperationalButtonsPanel(id, wrapperModel, getObjectDetailsModels().getDelegationsModel(), getObjectDetailsModels().getExecuteOptionsModel(), getObjectDetailsModels().isSelfProfile()) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -139,6 +137,10 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
                 PageUser.this.previewPerformed(target);
             }
 
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageUser.this.hasUnsavedChanges(target);
+            }
         };
     }
 
@@ -170,7 +172,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     }
 
     private ModelExecuteOptions getDelegationPreviewOptions() {
-        ModelExecuteOptions options = getExecuteChangesOptionsDto().createOptions(getPrismContext());
+        ModelExecuteOptions options = getProgressPanel().getExecuteOptions().createOptions(getPrismContext());
         options.getOrCreatePartialProcessing().setApprovals(PartialProcessingTypeType.PROCESS);
         return options;
     }
@@ -272,12 +274,5 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
 
             focusDelta.addModification(delta);
         }
-    }
-
-    @Override
-    protected Collection<SelectorOptions<GetOperationOptions>> getOperationOptions() {
-        return getOperationOptionsBuilder()
-                .item(FocusType.F_JPEG_PHOTO).retrieve()
-                .build();
     }
 }

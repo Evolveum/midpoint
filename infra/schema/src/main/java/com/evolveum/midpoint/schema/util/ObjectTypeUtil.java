@@ -341,11 +341,15 @@ public class ObjectTypeUtil {
         return ref;
     }
 
-    public static <T extends ObjectType> ObjectReferenceType createObjectRefWithFullObject(PrismObject<T> object) {
+    public static ObjectReferenceType createObjectRefWithFullObject(PrismObject<?> object) {
         return createObjectRefWithFullObject(object, PrismContext.get());
     }
 
-    public static <T extends ObjectType> ObjectReferenceType createObjectRefWithFullObject(PrismObject<T> object,
+    public static ObjectReferenceType createObjectRefWithFullObject(ObjectType object) {
+        return createObjectRefWithFullObject(object, PrismContext.get());
+    }
+
+    public static ObjectReferenceType createObjectRefWithFullObject(PrismObject<?> object,
             PrismContext prismContext) {
         if (object == null) {
             return null;
@@ -1071,6 +1075,15 @@ public class ObjectTypeUtil {
 
     public static boolean isIndestructible(@NotNull PrismObject<? extends ObjectType> object) {
         return isIndestructible(object.asObjectable());
+    }
+
+    // Currently ignoring reference definition (target type limitations)
+    public static Class<? extends ObjectType> getTargetClassFromReference(@NotNull ObjectReferenceType ref) {
+        if (ref.getType() != null) {
+            return ObjectTypes.getObjectTypeClass(ref.getType());
+        } else {
+            return ObjectType.class;
+        }
     }
 
     @FunctionalInterface

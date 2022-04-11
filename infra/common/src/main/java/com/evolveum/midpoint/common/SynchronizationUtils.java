@@ -8,21 +8,25 @@ package com.evolveum.midpoint.common;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections4.CollectionUtils;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
 import org.apache.commons.lang3.StringUtils;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -31,6 +35,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.*;
+
+import static java.util.Objects.requireNonNullElse;
 
 public class SynchronizationUtils {
 
@@ -55,11 +64,11 @@ public class SynchronizationUtils {
                 .createReplaceDelta(object.getDefinition(), propName, timestamp);
     }
 
-    public static List<PropertyDelta<?>> createSynchronizationSituationAndDescriptionDelta(PrismObject<ShadowType> shadow,
+    public static List<ItemDelta<?, ?>> createSynchronizationSituationAndDescriptionDelta(PrismObject<ShadowType> shadow,
             SynchronizationSituationType situation, String sourceChannel, boolean full, XMLGregorianCalendar timestamp)
             throws SchemaException {
 
-        List<PropertyDelta<?>> propertyDeltas = new ArrayList<>();
+        List<ItemDelta<?, ?>> propertyDeltas = new ArrayList<>();
 
         propertyDeltas.add(
                 createSynchronizationSituationDescriptionDelta(shadow, situation, timestamp, sourceChannel, full));
@@ -127,52 +136,48 @@ public class SynchronizationUtils {
         }
     }
 
+    /**
+     * Checks if the synchronization policy matches given "parameters" (object class, kind, intent).
+     */
     public static boolean isPolicyApplicable(QName objectClass, ShadowKindType kind, String intent,
-            ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource, boolean strictIntent)
+            @NotNull ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource, boolean strictIntent)
             throws SchemaException {
 
-        List<QName> policyObjectClasses = synchronizationPolicy.getObjectClass();
-        //check objectClass if match
-        if (CollectionUtils.isNotEmpty(policyObjectClasses) && objectClass != null) {
-            if (!QNameUtil.matchAny(objectClass, policyObjectClasses)) {
-                return false;
-            }
+        if (objectClassDefinedAndNotMatching(objectClass, synchronizationPolicy.getObjectClass())) {
+            return false;
         }
 
-        RefinedResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
         if (schema == null) {
             throw new SchemaException("No schema defined in resource. Possible configuration problem?");
         }
 
-        ShadowKindType policyKind = synchronizationPolicy.getKind();
-        if (policyKind == null) {
-            policyKind = ShadowKindType.ACCOUNT;
-        }
+        ShadowKindType policyKind = requireNonNullElse(synchronizationPolicy.getKind(), ACCOUNT);
 
         String policyIntent = synchronizationPolicy.getIntent();
 
-        ObjectClassComplexTypeDefinition policyObjectClass;
+        ResourceObjectDefinition policyObjectClass;
         if (StringUtils.isEmpty(policyIntent)) {
-            policyObjectClass = schema.findDefaultObjectClassDefinition(policyKind);
-            if (policyObjectClass != null) {
-                policyIntent = policyObjectClass.getIntent();
+            policyObjectClass = schema.findObjectDefinition(policyKind, null); // TODO check this
+            if (policyObjectClass instanceof ResourceObjectTypeDefinition) {
+                policyIntent = ((ResourceObjectTypeDefinition) policyObjectClass).getIntent();
             }
         } else {
-            policyObjectClass = schema.findObjectClassDefinition(policyKind, policyIntent);
+            policyObjectClass = schema.findObjectDefinition(policyKind, policyIntent);
         }
 
         if (policyObjectClass == null) {
             return false;
         }
 
-        // re-check objctClass if wasn't defined
-        if (objectClass != null && !QNameUtil.match(objectClass, policyObjectClass.getTypeName())) {
+        // re-check objectClass if wasn't defined
+        if (objectClassDefinedAndNotMatching(objectClass, List.of(policyObjectClass.getTypeName()))) {
             return false;
         }
 
         // kind
         LOGGER.trace("Comparing kinds, policy kind: {}, current kind: {}", policyKind, kind);
-        if (kind != null && kind != ShadowKindType.UNKNOWN && !policyKind.equals(kind)) {
+        if (kind != null && kind != UNKNOWN && !policyKind.equals(kind)) {
             LOGGER.trace("Kinds don't match, skipping policy {}", synchronizationPolicy);
             return false;
         }
@@ -193,6 +198,12 @@ public class SynchronizationUtils {
         }
 
         return true;
+    }
+
+    private static boolean objectClassDefinedAndNotMatching(@Nullable QName objectClass, @NotNull List<QName> policyObjectClasses) {
+        return objectClass != null &&
+                !policyObjectClasses.isEmpty() &&
+                !QNameUtil.matchAny(objectClass, policyObjectClasses);
     }
 
     public static boolean isPolicyApplicable(QName objectClass, ShadowKindType kind, String intent,

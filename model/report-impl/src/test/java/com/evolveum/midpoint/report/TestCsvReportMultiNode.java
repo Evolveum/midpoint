@@ -1,35 +1,30 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.report;
 
+import static org.testng.Assert.assertTrue;
+
 import java.io.File;
 import java.util.List;
+
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
-import com.evolveum.midpoint.util.exception.*;
-
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.testng.SkipException;
-import org.testng.annotations.Test;
-
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
-
-import static org.testng.AssertJUnit.assertTrue;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 public class TestCsvReportMultiNode extends TestCsvReport {
 
@@ -67,6 +62,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        dummyTransport.clearMessages();
+
         runExportTask(TASK_DISTRIBUTED_EXPORT_USERS, REPORT_OBJECT_COLLECTION_USERS, result);
 
         when();
@@ -81,82 +78,75 @@ public class TestCsvReportMultiNode extends TestCsvReport {
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_USERS.oid);
         basicCheckOutputFile(report, 1004, 2, null);
+
+        assertNotificationMessage(REPORT_OBJECT_COLLECTION_USERS);
     }
 
     @Test
     public void test101ExportAuditRecords() throws Exception {
-        checkSqaleRepo();
         auditTest();
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
         List<String> rows = basicCheckOutputFile(report, -1, 8, null);
-        assertTrue("Unexpected number of rows in report. Expected:1000-1010, Actual:" + rows.size(), rows.size() > 1000 && rows.size() <= 10010);
+        assertTrue(rows.size() > 1000 && rows.size() <= 1010,
+                "Unexpected number of rows in report. Expected:1000-1010, Actual:" + rows.size());
     }
 
     @Test
     public void test102ExportAuditRecordsInsideTwoTimestamps() throws Exception {
-        checkSqaleRepo();
-
         List<AuditEventRecordType> auditRecords = getAllAuditRecords(getTestTask(), getTestTask().getResult());
         SearchFilterType filter = PrismContext.get().getQueryConverter().createSearchFilterType(
                 PrismContext.get().queryFor(AuditEventRecordType.class)
                         .item(AuditEventRecordType.F_TIMESTAMP).ge(auditRecords.get(500).getTimestamp()).and()
-                        .item(AuditEventRecordType.F_TIMESTAMP).le(auditRecords.get(1300).getTimestamp()).buildFilter()
-        );
+                        .item(AuditEventRecordType.F_TIMESTAMP).le(auditRecords.get(1300).getTimestamp()).buildFilter());
+
         modifyObjectReplaceProperty(
                 ObjectCollectionType.class,
                 OBJECT_COLLECTION_ALL_AUDIT_RECORDS.oid,
                 ObjectCollectionType.F_FILTER,
                 getTestTask(),
                 getTestTask().getResult(),
-                filter
-                );
+                filter);
 
         auditTest();
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
         List<String> rows = basicCheckOutputFile(report, -1, 8, null);
-        assertTrue("Unexpected number of rows in report. Expected:800-810, Actual:" + rows.size(), rows.size() > 800 && rows.size() <= 810);
+        assertTrue(rows.size() > 800 && rows.size() <= 810,
+                "Unexpected number of rows in report. Expected:800-810, Actual:" + rows.size());
     }
 
     @Test
     public void test103ExportAuditRecordsOutsideTwoTimestamps() throws Exception {
-        checkSqaleRepo();
-
         List<AuditEventRecordType> auditRecords = getAllAuditRecords(getTestTask(), getTestTask().getResult());
         SearchFilterType filter = PrismContext.get().getQueryConverter().createSearchFilterType(
                 PrismContext.get().queryFor(AuditEventRecordType.class)
                         .item(AuditEventRecordType.F_TIMESTAMP).ge(auditRecords.get(1300).getTimestamp()).or()
-                        .item(AuditEventRecordType.F_TIMESTAMP).le(auditRecords.get(500).getTimestamp()).buildFilter()
-        );
+                        .item(AuditEventRecordType.F_TIMESTAMP).le(auditRecords.get(500).getTimestamp()).buildFilter());
+
         modifyObjectReplaceProperty(
                 ObjectCollectionType.class,
                 OBJECT_COLLECTION_ALL_AUDIT_RECORDS.oid,
                 ObjectCollectionType.F_FILTER,
                 getTestTask(),
                 getTestTask().getResult(),
-                filter
-        );
-
+                filter);
 
         auditTest();
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
         List<String> rows = basicCheckOutputFile(report, -1, 8, null);
-        assertTrue("Unexpected number of rows in report. Expected:1200-1250, Actual:" + rows.size(), rows.size() > 1200 && rows.size() <= 1250);
+        assertTrue(rows.size() > 1200 && rows.size() <= 1250,
+                "Unexpected number of rows in report. Expected:1200-1250, Actual:" + rows.size());
     }
 
-    private void checkSqaleRepo() {
-        if (!(plainRepositoryService instanceof SqaleRepositoryService)) {
-            throw new SkipException("Skipping test before it is relevant only for sqale repo");
-        }
-    }
-
-    private void auditTest() throws Exception{
+    private void auditTest() throws Exception {
         given();
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        dummyTransport.clearMessages();
 
         runExportTask(TASK_DISTRIBUTED_EXPORT_AUDIT, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN, result);
 
@@ -169,6 +159,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         assertTask(TASK_DISTRIBUTED_EXPORT_AUDIT.oid, "after")
                 .assertSuccess()
                 .display();
+
+        assertNotificationMessage(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN);
     }
 
     @Override

@@ -7,30 +7,21 @@
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.PropertyLimitations;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.prism.DeepCloneOperation;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ResourceAttributeWrapper;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
-import com.evolveum.midpoint.schema.processor.MutableResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeStorageStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author skublik
@@ -49,8 +40,8 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
         return getRefinedAttributeDefinition().isTolerant();
     }
 
-    private RefinedAttributeDefinition getRefinedAttributeDefinition() {
-        return (RefinedAttributeDefinition) getItemDefinition();
+    private ResourceAttributeDefinition<T> getRefinedAttributeDefinition() {
+        return (ResourceAttributeDefinition<T>) getItemDefinition();
     }
 
     @Override
@@ -95,11 +86,6 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public boolean isIgnored(LayerType layer) {
-        return getRefinedAttributeDefinition().isIgnored(layer);
-    }
-
-    @Override
     public ItemProcessing getProcessing() {
         return getProcessing(LayerType.PRESENTATION);
     }
@@ -115,23 +101,18 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public ResourceAttributeDefinition<T> getAttributeDefinition() {
-        return getRefinedAttributeDefinition().getAttributeDefinition();
+    public RawResourceAttributeDefinition<T> getRawAttributeDefinition() {
+        return getRefinedAttributeDefinition().getRawAttributeDefinition();
     }
 
     @Override
-    public MappingType getOutboundMappingType() {
-        return getRefinedAttributeDefinition().getOutboundMappingType();
+    public @Nullable MappingType getOutboundMappingBean() {
+        return getRefinedAttributeDefinition().getOutboundMappingBean();
     }
 
     @Override
-    public boolean hasOutboundMapping() {
-        return getRefinedAttributeDefinition().hasOutboundMapping();
-    }
-
-    @Override
-    public List<MappingType> getInboundMappingTypes() {
-        return getRefinedAttributeDefinition().getInboundMappingTypes();
+    public @NotNull List<InboundMappingType> getInboundMappingBeans() {
+        return getRefinedAttributeDefinition().getInboundMappingBeans();
     }
 
     @Override
@@ -155,46 +136,6 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public boolean isOptional() {
-        return isOptional(LayerType.PRESENTATION);
-    }
-
-    @Override
-    public boolean isOptional(LayerType layer) {
-        return getRefinedAttributeDefinition().isOptional(layer);
-    }
-
-    @Override
-    public boolean isMandatory() {
-        return isMandatory(LayerType.PRESENTATION);
-    }
-
-    @Override
-    public boolean isMandatory(LayerType layer) {
-        return getRefinedAttributeDefinition().isMandatory(layer);
-    }
-
-    @Override
-    public boolean isMultiValue() {
-        return isMultiValue(LayerType.PRESENTATION);
-    }
-
-    @Override
-    public boolean isMultiValue(LayerType layer) {
-        return getRefinedAttributeDefinition().isMultiValue(layer);
-    }
-
-    @Override
-    public boolean isSingleValue() {
-        return isSingleValue(LayerType.PRESENTATION);
-    }
-
-    @Override
-    public boolean isSingleValue(LayerType layer) {
-        return getRefinedAttributeDefinition().isSingleValue(layer);
-    }
-
-    @Override
     public boolean isExclusiveStrong() {
         return getRefinedAttributeDefinition().isExclusiveStrong();
     }
@@ -210,18 +151,18 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public AttributeStorageStrategyType getStorageStrategy() {
+    public @NotNull AttributeStorageStrategyType getStorageStrategy() {
         return getRefinedAttributeDefinition().getStorageStrategy();
     }
 
     @Override
-    public List<String> getTolerantValuePattern() {
-        return getRefinedAttributeDefinition().getTolerantValuePattern();
+    public @NotNull List<String> getTolerantValuePatterns() {
+        return getRefinedAttributeDefinition().getTolerantValuePatterns();
     }
 
     @Override
-    public List<String> getIntolerantValuePattern() {
-        return getRefinedAttributeDefinition().getIntolerantValuePattern();
+    public @NotNull List<String> getIntolerantValuePatterns() {
+        return getRefinedAttributeDefinition().getIntolerantValuePatterns();
     }
 
     @Override
@@ -231,15 +172,13 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
 
     @NotNull
     @Override
-    public RefinedAttributeDefinition<T> clone() {
+    public ResourceAttributeDefinition<T> clone() {
         return getRefinedAttributeDefinition().clone();
     }
 
     @Override
-    public RefinedAttributeDefinition<T> deepClone(
-            Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath,
-            Consumer<ItemDefinition> postCloneAction) {
-        return getRefinedAttributeDefinition().deepClone(ctdMap, onThisPath, postCloneAction);
+    public ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
+        return getRefinedAttributeDefinition().deepClone(operation);
     }
 
     @Override
@@ -250,6 +189,26 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     @Override
     public String debugDump(int indent, LayerType layer) {
         return getRefinedAttributeDefinition().debugDump(indent, layer);
+    }
+
+    @Override
+    public @NotNull ResourceAttributeDefinition<T> forLayer(@NotNull LayerType layer) {
+        return getRefinedAttributeDefinition().forLayer(layer);
+    }
+
+    @Override
+    public void setOverrideCanRead(Boolean value) {
+        getRefinedAttributeDefinition().setOverrideCanRead(value);
+    }
+
+    @Override
+    public void setOverrideCanAdd(Boolean value) {
+        getRefinedAttributeDefinition().setOverrideCanAdd(value);
+    }
+
+    @Override
+    public void setOverrideCanModify(Boolean value) {
+        getRefinedAttributeDefinition().setOverrideCanModify(value);
     }
 
     @Override
@@ -280,28 +239,18 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public Boolean getReturnedByDefault() {
+    public @NotNull MutableRawResourceAttributeDefinition<T> toMutable() {
+        return getRefinedAttributeDefinition().toMutable();
+    }
+
+    @Override
+    public Optional<ComplexTypeDefinition> structuredType() {
+        return getRefinedAttributeDefinition().structuredType();
+    }
+
+    @Override
+    public @Nullable Boolean getReturnedByDefault() {
         return getRefinedAttributeDefinition().getReturnedByDefault();
-    }
-
-    @Override
-    public boolean isReturnedByDefault() {
-        return getRefinedAttributeDefinition().isReturnedByDefault();
-    }
-
-    @Override
-    public boolean isPrimaryIdentifier(ResourceAttributeContainerDefinition objectDefinition) {
-        return getRefinedAttributeDefinition().isPrimaryIdentifier(objectDefinition);
-    }
-
-    @Override
-    public boolean isPrimaryIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
-        return getRefinedAttributeDefinition().isPrimaryIdentifier(objectDefinition);
-    }
-
-    @Override
-    public boolean isSecondaryIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
-        return getRefinedAttributeDefinition().isSecondaryIdentifier(objectDefinition);
     }
 
     @Override
@@ -315,12 +264,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public MutableResourceAttributeDefinition<T> toMutable() {
-        return getRefinedAttributeDefinition().toMutable();
-    }
-
-    @Override
-    public Optional<ComplexTypeDefinition> structuredType() {
-        return getRefinedAttributeDefinition().structuredType();
+    public @NotNull LayerType getCurrentLayer() {
+        return getRefinedAttributeDefinition().getCurrentLayer();
     }
 }

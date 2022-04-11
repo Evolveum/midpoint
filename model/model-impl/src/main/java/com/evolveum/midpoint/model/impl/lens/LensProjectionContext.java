@@ -18,7 +18,6 @@ import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
 import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
@@ -33,7 +32,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -51,9 +52,6 @@ import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -205,6 +203,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * The synchronization intent is used instead.
      */
     private SynchronizationSituationType synchronizationSituationDetected;
+
     /**
      * Synchronization situation which was the result of synchronization reaction (projector and clockwork run).
      * This is mostly for debug purposes. Projector and clockwork do not care about this (except for setting it).
@@ -251,9 +250,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     private transient Collection<ResourceObjectTypeDependencyType> dependencies;
 
-    private transient RefinedObjectClassDefinition structuralObjectClassDefinition;
-    private transient Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
-    private transient CompositeRefinedObjectClassDefinition compositeObjectClassDefinition;
+    private transient ResourceObjectDefinition structuralObjectDefinition;
+    private transient Collection<ResourceObjectDefinition> auxiliaryObjectClassDefinitions;
+    private transient CompositeObjectDefinition compositeObjectDefinition;
 
     private SecurityPolicyType projectionSecurityPolicy;
 
@@ -336,9 +335,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             } else if (ObjectDelta.isAdd(syncDelta)) {
                 return syncDelta.getObjectToAdd();
             } else if (shouldCreateObjectCurrent()) {
-                RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
+                ResourceObjectDefinition rOCD = getCompositeObjectDefinition();
                 if (rOCD != null) {
-                    return rOCD.createBlankShadow(resourceShadowDiscriminator.getTag());
+                    return rOCD.createBlankShadow(getResourceOid(), resourceShadowDiscriminator.getTag());
                 } else {
                     return null;
                 }
@@ -353,7 +352,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return (rawDefinition) -> {
             try {
                 PrismObjectDefinition<ShadowType> shadowDefinition
-                        = ShadowUtil.applyObjectClass(rawDefinition, getCompositeObjectClassDefinition());
+                        = ShadowUtil.applyObjectDefinition(rawDefinition, getCompositeObjectDefinition());
                 shadowDefinition.freeze();
                 return shadowDefinition;
             } catch (SchemaException e) {
@@ -440,13 +439,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return false;
         }
         if (rsd.getIntent() == null) {
-            try {
-                if (!getStructuralObjectClassDefinition().isDefaultInAKind()) {
-                    return false;
-                }
-            } catch (SchemaException e) {
-                throw new SystemException("Internal error: "+e.getMessage(), e);
-            }
+            // FIXME re-enable & fix this
+//            try {
+//                if (!getStructuralObjectDefinition().isDefaultForKind()) {
+//                    return false;
+//                }
+//            } catch (SchemaException e) {
+//                throw new SystemException("Internal error: "+e.getMessage(), e);
+//            }
         } else if (!rsd.getIntent().equals(resourceShadowDiscriminator.getIntent())) {
             return false;
         }
@@ -737,33 +737,30 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return ResourceTypeUtil.getResourceObjectTypeDefinitionType(resource, discr.getKind(), discr.getIntent());
     }
 
-    private ResourceSchema getResourceSchema() throws SchemaException {
-        return RefinedResourceSchemaImpl.getResourceSchema(resource, PrismContext.get());
-    }
-
-    public RefinedResourceSchema getRefinedResourceSchema() throws SchemaException {
+    public ResourceSchema getResourceSchema() throws SchemaException {
         if (resource == null) {
             return null;
         }
-        return RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, PrismContext.get());
+        return ResourceSchemaFactory.getCompleteSchema(resource, LayerType.MODEL);
     }
 
-    public RefinedObjectClassDefinition getStructuralObjectClassDefinition() throws SchemaException {
-        if (structuralObjectClassDefinition == null) {
-            RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
-            if (refinedSchema == null) {
+    public ResourceObjectDefinition getStructuralObjectDefinition() throws SchemaException {
+        if (structuralObjectDefinition == null) {
+            ResourceSchema resourceSchema = getResourceSchema();
+            if (resourceSchema == null) {
                 return null;
             }
-            structuralObjectClassDefinition =
-                    refinedSchema.getRefinedDefinition(resourceShadowDiscriminator.getKind(), resourceShadowDiscriminator.getIntent());
-            if (structuralObjectClassDefinition != null) {
-                structuralObjectClassDefinition.freeze();
+            structuralObjectDefinition =
+                    resourceSchema.findObjectDefinition(
+                            resourceShadowDiscriminator.getKind(), resourceShadowDiscriminator.getIntent());
+            if (structuralObjectDefinition != null) {
+                structuralObjectDefinition.freeze();
             }
         }
-        return structuralObjectClassDefinition;
+        return structuralObjectDefinition;
     }
 
-    public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() throws SchemaException {
+    public Collection<ResourceObjectDefinition> getAuxiliaryObjectClassDefinitions() throws SchemaException {
         if (auxiliaryObjectClassDefinitions == null) {
             refreshAuxiliaryObjectClassDefinitions();
         }
@@ -771,7 +768,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public void refreshAuxiliaryObjectClassDefinitions() throws SchemaException {
-        RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
+        ResourceSchema refinedSchema = getResourceSchema();
         if (refinedSchema == null) {
             return;
         }
@@ -780,26 +777,27 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, state.computeUnadjustedNewObject());
         auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
         for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
-            RefinedObjectClassDefinition auxiliaryObjectClassDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassQName);
+            ResourceObjectDefinition auxiliaryObjectClassDef =
+                    refinedSchema.findDefinitionForObjectClass(auxiliaryObjectClassQName);
             if (auxiliaryObjectClassDef == null) {
                 throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
             }
             auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
         }
-        compositeObjectClassDefinition = null;
+        compositeObjectDefinition = null;
     }
 
-    public CompositeRefinedObjectClassDefinition getCompositeObjectClassDefinition() throws SchemaException {
-        if (compositeObjectClassDefinition == null) {
-            RefinedObjectClassDefinition structuralObjectClassDefinition = getStructuralObjectClassDefinition();
-            if (structuralObjectClassDefinition != null) {
-                compositeObjectClassDefinition = new CompositeRefinedObjectClassDefinitionImpl(
-                        structuralObjectClassDefinition, getAuxiliaryObjectClassDefinitions());
-                compositeObjectClassDefinition.freeze();
+    public CompositeObjectDefinition getCompositeObjectDefinition() throws SchemaException {
+        if (compositeObjectDefinition == null) {
+            ResourceObjectDefinition structuralDefinition = getStructuralObjectDefinition();
+            if (structuralDefinition != null) {
+                compositeObjectDefinition = new CompositeObjectDefinitionImpl(
+                        structuralDefinition, getAuxiliaryObjectClassDefinitions());
+                compositeObjectDefinition.freeze();
             }
             state.invalidate(); // composite OCD is a parameter for current object adjuster
         }
-        return compositeObjectClassDefinition;
+        return compositeObjectDefinition;
     }
 
     private void addAuxiliaryObjectClassNames(List<QName> auxiliaryObjectClassQNames,
@@ -814,12 +812,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
-    public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attrName) throws SchemaException {
-        RefinedAttributeDefinition<T> attrDef = getStructuralObjectClassDefinition().findAttributeDefinition(attrName);
+    public ResourceAttributeDefinition<?> findAttributeDefinition(QName attrName) throws SchemaException {
+        ResourceAttributeDefinition<?> attrDef = getStructuralObjectDefinition().findAttributeDefinition(attrName);
         if (attrDef != null) {
             return attrDef;
         }
-        for (RefinedObjectClassDefinition auxOcDef: getAuxiliaryObjectClassDefinitions()) {
+        for (ResourceObjectDefinition auxOcDef: getAuxiliaryObjectClassDefinitions()) {
             attrDef = auxOcDef.findAttributeDefinition(attrName);
             if (attrDef != null) {
                 return attrDef;
@@ -901,20 +899,18 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     private ProjectionPolicyType determineObjectClassProjectionPolicy() throws SchemaException {
-        RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
+        ResourceSchema refinedSchema = getResourceSchema();
         if (refinedSchema == null) {
             return null;
         }
 
-        RefinedObjectClassDefinition objectClassDef = refinedSchema.getRefinedDefinition(resourceShadowDiscriminator.getKind(),
-                resourceShadowDiscriminator.getIntent());
+        ResourceObjectDefinition objectDef =
+                refinedSchema.findObjectDefinition(
+                        resourceShadowDiscriminator.getKind(), resourceShadowDiscriminator.getIntent());
 
-        if (objectClassDef == null) {
-            return null;
-        }
-        return objectClassDef.getProjection();
+        return objectDef != null ?
+                objectDef.getProjectionPolicy() : null;
     }
-
 
     /**
      * We sometimes need the 'object new' to exist before any real modifications are computed.
@@ -941,13 +937,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 // We need to convert modify delta to ADD
                 ObjectDelta<ShadowType> addDelta = PrismContext.get().deltaFactory().object().create(getObjectTypeClass(),
                     ChangeType.ADD);
-                RefinedObjectClassDefinition rObjectClassDef = getCompositeObjectClassDefinition();
+                ResourceObjectDefinition objectTypeDef = getCompositeObjectDefinition();
 
-                if (rObjectClassDef == null) {
+                if (objectTypeDef == null) {
                     throw new IllegalStateException("Definition for account type " + getResourceShadowDiscriminator()
                             + " not found in the context, but it should be there");
                 }
-                PrismObject<ShadowType> newAccount = rObjectClassDef.createBlankShadow(resourceShadowDiscriminator.getTag());
+                PrismObject<ShadowType> newAccount = objectTypeDef.createBlankShadow(
+                        getResourceOid(), resourceShadowDiscriminator.getTag());
                 addDelta.setObjectToAdd(newAccount);
 
                 if (origDelta != null) {
@@ -1032,13 +1029,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (attributesContainer != null) {
             ResourceType resource = getResource();
             if (resource != null) {
-                String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
                 for (ResourceAttribute<?> attribute : attributesContainer.getAttributes()) {
                     QName attrName = attribute.getElementName();
                     if (SchemaConstants.NS_ICF_SCHEMA.equals(attrName.getNamespaceURI())) {
                         continue;
                     }
-                    if (resourceNamespace.equals(attrName.getNamespaceURI())) {
+                    if (MidPointConstants.NS_RI.equals(attrName.getNamespaceURI())) {
                         continue;
                     }
                     String desc = elementDesc + " in " + this + (contextDesc == null ? "" : " in " + contextDesc);
@@ -1320,7 +1316,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("composite object class definition"), String.valueOf(compositeObjectClassDefinition), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("composite object class definition"), String.valueOf(compositeObjectDefinition), indent+1);
 
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("auxiliary object class definition"), String.valueOf(auxiliaryObjectClassDefinitions), indent+1);
@@ -1498,11 +1494,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public ResourceObjectVolatilityType getVolatility() throws SchemaException {
-        RefinedObjectClassDefinition structuralObjectClassDefinition = getStructuralObjectClassDefinition();
-        if (structuralObjectClassDefinition == null) {
-            return null;
-        }
-        return structuralObjectClassDefinition.getVolatility();
+        ResourceObjectDefinition structuralObjectClassDefinition = getStructuralObjectDefinition();
+        return structuralObjectClassDefinition != null ? structuralObjectClassDefinition.getVolatility() : null;
     }
 
     public boolean hasPendingOperations() {
@@ -1700,5 +1693,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     /** Assumes that the resource is loaded. */
     public boolean isInMaintenance() {
         return ResourceTypeUtil.isInMaintenance(resource);
+    }
+
+    /**
+     * Returns true if there is any context that depends on us.
+     * (Note that "dependency source" means the context that depends on the "dependency target". We are the target here.)
+     */
+    public boolean hasDependentContext() {
+        for (LensProjectionContext projectionContext : lensContext.getProjectionContexts()) {
+            for (ResourceObjectTypeDependencyType dependency : projectionContext.getDependencies()) {
+                if (LensUtil.areDependent(projectionContext, this, dependency)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

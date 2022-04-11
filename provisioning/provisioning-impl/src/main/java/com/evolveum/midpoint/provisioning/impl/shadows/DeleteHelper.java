@@ -83,16 +83,17 @@ class DeleteHelper {
 
         InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
-        ProvisioningContext ctx = ctxFactory.create(repoShadow, task, result);
+        ProvisioningContext ctx;
         try {
+            ctx = ctxFactory.createForShadow(repoShadow, task, result);
             ctx.assertDefinition();
         } catch (ObjectNotFoundException ex) {
             // If the force option is set, delete shadow from the repo even if the resource does not exist.
             if (ProvisioningOperationOptions.isForce(options)) {
                 result.muteLastSubresultError();
-                shadowManager.deleteShadow(ctx, repoShadow, result);
+                shadowManager.deleteShadow(repoShadow, task, result);
                 result.recordHandledError(
-                        "Resource defined in shadow does not exists. Shadow was deleted from the repository.");
+                        "Resource defined in shadow does not exist. Shadow was deleted from the repository.");
                 return null;
             } else {
                 throw ex;
@@ -249,8 +250,7 @@ class DeleteHelper {
             PrismObject<ShadowType> shadow,
             ProvisioningOperationState<AsynchronousOperationResult> opState,
             Task task,
-            OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            OperationResult parentResult) {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createDeleteDelta(shadow.getCompileTimeClass(),
                 shadow.getOid());
         ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow,

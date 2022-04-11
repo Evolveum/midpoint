@@ -95,7 +95,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             ShadowType.F_ASSOCIATION,
             ShadowType.F_ACTIVATION,
             ShadowType.F_CREDENTIALS,
-            ShadowType.F_POLICY_EXCEPTION);
+            ShadowType.F_POLICY_EXCEPTION,
+            ShadowType.F_CORRELATION);
     private static final List<ItemPath> BASIC_ORG_CONTAINERS_PATHS = Arrays.asList(
             OrgType.F_EXTENSION,
             OrgType.F_ASSIGNMENT,

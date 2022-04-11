@@ -131,14 +131,26 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_SERVICE_QNAME = new QName(NS_AUTHORIZATION_UI, "service");
     public static final String AUTZ_UI_SERVICE_URL = NS_AUTHORIZATION_UI + "#service";
 
+    public static final QName AUTZ_UI_SERVICE_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "serviceDetails");
+    public static final String AUTZ_UI_SERVICE_DETAILS_URL = NS_AUTHORIZATION_UI + "#serviceDetails";
+
     public static final QName AUTZ_UI_ARCHETYPES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "archetypesAll");
     public static final String AUTZ_UI_ARCHETYPES_ALL_URL = NS_AUTHORIZATION_UI + "#archetypesAll";
+
+    public static final QName AUTZ_UI_MESSAGE_TEMPLATES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "messageTemplatesAll");
+    public static final String AUTZ_UI_MESSAGE_TEMPLATES_ALL_URL = NS_AUTHORIZATION_UI + "#messageTemplatesAll";
 
     public static final QName AUTZ_UI_ARCHETYPES_QNAME = new QName(NS_AUTHORIZATION_UI, "archetypes");
     public static final String AUTZ_UI_ARCHETYPES_URL = NS_AUTHORIZATION_UI + "#archetypes";
 
+    public static final QName AUTZ_UI_MESSAGE_TEMPLATES_QNAME = new QName(NS_AUTHORIZATION_UI, "messageTemplates");
+    public static final String AUTZ_UI_MESSAGE_TEMPLATES_URL = NS_AUTHORIZATION_UI + "#messageTemplates";
+
     public static final QName AUTZ_UI_ARCHETYPE_QNAME = new QName(NS_AUTHORIZATION_UI, "archetype");
     public static final String AUTZ_UI_ARCHETYPE_URL = NS_AUTHORIZATION_UI + "#archetype";
+
+    public static final QName AUTZ_UI_MESSAGE_TEMPLATE_QNAME = new QName(NS_AUTHORIZATION_UI, "messageTemplate");
+    public static final String AUTZ_UI_MESSAGE_TEMPLATE_URL = NS_AUTHORIZATION_UI + "#messageTemplate";
 
     public static final QName AUTZ_UI_OBJECT_COLLECTIONS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "objectCollectionsAll");
     public static final String AUTZ_UI_OBJECT_COLLECTIONS_ALL_URL = NS_AUTHORIZATION_UI + "#objectCollectionsAll";
@@ -507,6 +519,9 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_ARCHETYPES_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "archetypesView");
     public static final String AUTZ_UI_ARCHETYPES_VIEW_URL = NS_AUTHORIZATION_UI + "#archetypesView";
+
+    public static final QName AUTZ_UI_MESSAGE_TEMPLATES_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "messageTemplatesView");
+    public static final String AUTZ_UI_MESSAGE_TEMPLATES_VIEW_URL = NS_AUTHORIZATION_UI + "#messageTemplatesView";
 
     public static final QName AUTZ_UI_CASES_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "casesView");
     public static final String AUTZ_UI_CASES_VIEW_URL = NS_AUTHORIZATION_UI + "#casesView";

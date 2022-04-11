@@ -95,6 +95,7 @@ public class Amqp091AsyncUpdateSource implements ActiveAsyncUpdateSource {
                 LOGGER.info("Opened AMQP connection = {}, channel = {}", activeConnection, activeChannel);  // todo debug
                 DeliverCallback deliverCallback = (consumerTag, message) -> {
                     try {
+                        // This runs in a thread different from the task thread!
                         messagesBeingProcessed.incrementAndGet();
                         if (state != State.OPEN) {
                             LOGGER.info("Ignoring message on {} because the state is {}", consumerTag, state);

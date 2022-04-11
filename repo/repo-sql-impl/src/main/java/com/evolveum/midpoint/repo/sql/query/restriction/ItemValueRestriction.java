@@ -31,7 +31,6 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
  * to execute the filtering) is done by subclasses of this path in the interpretInternal(..) method.
  *
  * @author lazyman
- * @author mederly
  */
 public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRestriction<T> {
 

@@ -40,8 +40,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -251,7 +251,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
     private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
         // ProtectedStringType initialPassword = null;
         PasswordPanel password = new PasswordPanel(ID_PASSWORD,
-                new PropertyModel<>(getUserModel(), "credentials.password.value"), false, true, null, this);
+                new PropertyModel<>(getUserModel(), "credentials.password.value"), false, true, null);
         password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         password.getBaseFormComponent().setRequired(true);
         staticRegistrationForm.add(password);
@@ -364,7 +364,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
             runAsChecked(() -> {
                 ObjectDelta<UserType> userDelta;
-                Task task = createSimpleTask(OPERATION_SAVE_USER);
+                Task task = createSimpleTask(OPERATION_SAVE_USER, null);
                 task.setChannel(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
                 try {
                     userDelta = prepareUserDelta(task, result);
@@ -556,5 +556,10 @@ public class PageSelfRegistration extends PageAbstractFlow {
     @Override
     protected ObjectReferenceType getCustomFormRef() {
         return getSelfRegistrationConfiguration().getFormRef();
+    }
+
+    @Override
+    public Task createSimpleTask(String operation) {
+        return createAnonymousTask(operation);
     }
 }

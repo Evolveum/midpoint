@@ -51,7 +51,7 @@ public final class ResourceObjectsReconciliationActivityRun
 
     @Override
     public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
-        return new ActivityReportingCharacteristics()
+        return super.createReportingCharacteristics()
                 .actionsExecutedStatisticsSupported(true)
                 .synchronizationStatisticsSupported(true);
     }
@@ -59,7 +59,7 @@ public final class ResourceObjectsReconciliationActivityRun
     private Synchronizer createSynchronizer() {
         return new Synchronizer(
                 resourceObjectClass.getResource(),
-                resourceObjectClass.getObjectClassDefinitionRequired(),
+                resourceObjectClass.getResourceObjectDefinitionRequired(),
                 objectsFilter,
                 getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_RECON,
@@ -99,5 +99,10 @@ public final class ResourceObjectsReconciliationActivityRun
     @VisibleForTesting
     public long getResourceReconErrors() {
         return transientRunStatistics.getErrors();
+    }
+
+    @Override
+    protected String getChannelOverride() {
+        return SchemaConstants.CHANNEL_RECON_URI;
     }
 }

@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -67,7 +68,8 @@ public class QAbstractRoleMapping<
 
         addContainerTableMapping(F_INDUCEMENT,
                 QAssignmentMapping.initInducementMapping(repositoryContext),
-                joinOn((o, a) -> o.oid.eq(a.ownerOid)));
+                joinOn((o, a) -> o.oid.eq(a.ownerOid)
+                        .and(a.containerType.eq(MContainerType.INDUCEMENT))));
     }
 
     @Override

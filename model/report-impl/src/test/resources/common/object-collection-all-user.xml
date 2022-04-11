@@ -5,10 +5,20 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<objectCollection oid="72b1f98e-f587-4b9f-b92b-72e251dbb266">
+<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="72b1f98e-f587-4b9f-b92b-72e251dbb266">
     <name>All users</name>
     <type>UserType</type>
     <filter>
-        <all/>
+        <q:equal>
+            <q:path>activation/administrativeStatus</q:path>
+            <expression>
+                <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                <script>
+                    <code>return null;</code>
+                </script>
+            </expression>
+        </q:equal>
     </filter>
 </objectCollection>

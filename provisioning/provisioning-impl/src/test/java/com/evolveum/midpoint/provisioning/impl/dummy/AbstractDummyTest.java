@@ -139,7 +139,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     protected static final QName ASSOCIATION_PRIV_NAME = new QName(RESOURCE_DUMMY_NS, "priv");
 
     protected PrismObject<ResourceType> resource;
-    protected ResourceType resourceType;
+    protected ResourceType resourceBean;
     protected static DummyResource dummyResource;
     protected static DummyResourceContoller dummyResourceCtl;
 
@@ -162,7 +162,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         InternalsConfig.encryptionChecks = false;
         provisioningService.postInit(initResult);
         resource = addResourceFromFile(getResourceDummyFile(), getDummyConnectorType(), initResult);
-        resourceType = resource.asObjectable();
+        resourceBean = resource.asObjectable();
 
         dummyResourceCtl = DummyResourceContoller.create(null);
         dummyResourceCtl.setResource(resource);

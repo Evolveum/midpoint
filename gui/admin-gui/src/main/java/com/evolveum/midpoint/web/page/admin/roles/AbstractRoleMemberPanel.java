@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
+import com.evolveum.midpoint.web.security.util.GuiAuthorizationConstants;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -80,7 +81,6 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -217,13 +217,13 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             protected SelectableBeanObjectDataProvider<AH> createProvider() {
                 SelectableBeanObjectDataProvider<AH> provider = createSelectableBeanObjectDataProvider(() -> getCustomizedQuery(getSearchModel().getObject()), null);
                 provider.setIsMemberPanel(true);
-                provider.addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleMemberPanel.this.getModelObject());
+                provider.addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject()));
                 return provider;
             }
 
             @Override
             public void refreshTable(AjaxRequestTarget target) {
-                if (getSearchModel().isLoaded() && getSearchModel().getObject()!= null
+                if (getSearchModel().isAttached() && getSearchModel().getObject()!= null
                         && getSearchModel().getObject().isTypeChanged()) {
                     clearCache();
                 }
@@ -316,7 +316,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     private <AH extends AssignmentHolderType> Class<AH> getDefaultObjectTypeClass() {
-        QName objectTypeQname = getMemberPanelStorage().getDefaultObjectType();
+        QName objectTypeQname = getSearchBoxConfiguration().getDefaultObjectTypeConfiguration().getDefaultValue();
         return ObjectTypes.getObjectTypeClass(objectTypeQname);
     }
 
@@ -331,7 +331,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             return memberPanelStorage.getSearch();
         }
 
-        Search<AH> search = SearchFactory.createSearch(createSearchTypeItem(memberPanelStorage), null, null,
+        Search<AH> search = SearchFactory.createSearch(createSearchTypeItem(getSearchBoxConfiguration()), null, null,
                 null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
         search.addCompositedSpecialItem(createMemberSearchPanel(search, memberPanelStorage));
 
@@ -341,33 +341,42 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         return search;
     }
 
-    private <AH extends AssignmentHolderType> ContainerTypeSearchItem<AH> createSearchTypeItem(MemberPanelStorage memberPanelStorage) {
-        ContainerTypeSearchItem<AH> searchTypeItem = new ContainerTypeSearchItem<>(createTypeSearchValue(memberPanelStorage.getDefaultObjectType()), getAllowedTypes());
-        searchTypeItem.setConfiguration(memberPanelStorage.getObjectTypeSearchItem());
+    private <AH extends AssignmentHolderType> ContainerTypeSearchItem<AH> createSearchTypeItem(SearchBoxConfigurationHelper memberPanelStorage) {
+        ContainerTypeSearchItem<AH> searchTypeItem = new ContainerTypeSearchItem<>(createTypeSearchValue(memberPanelStorage.getDefaultObjectTypeConfiguration().getDefaultValue()), getAllowedTypes());
+        searchTypeItem.setConfiguration(memberPanelStorage.getDefaultObjectTypeConfiguration());
         searchTypeItem.setVisible(true);
         return searchTypeItem;
     }
 
     private AbstractRoleCompositedSearchItem createMemberSearchPanel(Search search, MemberPanelStorage memberPanelStorage) {
-        return new AbstractRoleCompositedSearchItem(search, memberPanelStorage) {
+        return new AbstractRoleCompositedSearchItem(search, getSearchBoxConfiguration(), !isNotRole(), isOrg());
+//        {
+//
+//            @Override
+//            protected PrismReferenceDefinition getReferenceDefinition(ItemName refName) {
+//                return PrismContext.get().getSchemaRegistry()
+//                        .findContainerDefinitionByCompileTimeClass(AssignmentType.class)
+//                        .findReferenceDefinition(refName);
+//            }
+//
+//            @Override
+//            protected R getAbstractRoleObject() {
+//                return AbstractRoleMemberPanel.this.getModelObject();
+//            }
+//
+//        };
+    }
 
-            @Override
-            protected PrismReferenceDefinition getReferenceDefinition(ItemName refName) {
-                return PrismContext.get().getSchemaRegistry()
-                        .findContainerDefinitionByCompileTimeClass(AssignmentType.class)
-                        .findReferenceDefinition(refName);
-            }
-
-            @Override
-            protected R getAbstractRoleObject() {
-                return AbstractRoleMemberPanel.this.getModelObject();
-            }
-
-        };
+    protected SearchBoxConfigurationHelper getSearchBoxConfiguration() {
+        SearchBoxConfigurationHelper searchBoxCofig = new SearchBoxConfigurationHelper(additionalPanelConfig);
+        searchBoxCofig.setDefaultSupportedRelations(getSupportedRelations());
+        searchBoxCofig.setDefaultSupportedObjectTypes(getDefaultSupportedObjectTypes(false));
+        searchBoxCofig.setDefaultObjectType(WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType()));
+        return searchBoxCofig;
     }
 
     private <AH extends AssignmentHolderType> ObjectQuery getCustomizedQuery(Search<AH> search) {
-        MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
+        SearchBoxConfigurationHelper memberPanelStorage = getSearchBoxConfiguration();
         if (noMemberSearchItemVisible(memberPanelStorage)) {
             PrismContext prismContext = getPageBase().getPrismContext();
             return prismContext.queryFor(search.getTypeClass())
@@ -380,14 +389,14 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         return null;
     }
 
-    private boolean noMemberSearchItemVisible(MemberPanelStorage memberPanelStorage) {
+    private boolean noMemberSearchItemVisible(SearchBoxConfigurationHelper memberPanelStorage) {
         return !memberPanelStorage.isRelationVisible() && !memberPanelStorage.isIndirectVisible()
                 && (!isOrg() || !memberPanelStorage.isSearchScopeVisible())
                 && (isNotRole() || !memberPanelStorage.isTenantVisible())
                 && (isNotRole() || !memberPanelStorage.isProjectVisible());
     }
 
-    private List<QName> getRelationsForSearch(MemberPanelStorage memberPanelStorage) {
+    private List<QName> getRelationsForSearch(SearchBoxConfigurationHelper memberPanelStorage) {
         List<QName> relations = new ArrayList<>();
         if (QNameUtil.match(PrismConstants.Q_ANY, memberPanelStorage.getDefaultRelation())) {
             relations.addAll(memberPanelStorage.getSupportedRelations());
@@ -416,7 +425,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         List<DisplayableValue<Class<AH>>> ret = new ArrayList<>();
         ret.add(new SearchValue<>(getChoiceForAllTypes(), "ObjectTypes.all"));
 
-        List<QName> types = getMemberPanelStorage().getSupportedObjectTypes();
+        List<QName> types = getSearchBoxConfiguration().getSupportedObjectTypes();
         for (QName type : types) {
             ret.add(createTypeSearchValue(type));
         }
@@ -521,7 +530,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             @Override
             public void onClick(AjaxRequestTarget target) {
                 ChooseMemberPopup browser = new ChooseMemberPopup(AbstractRoleMemberPanel.this.getPageBase().getMainPopupBodyId(),
-                        getMemberPanelStorage().getRelationSearchItem(), loadMultiFunctionalButtonModel(false)) {
+                        getSearchBoxConfiguration().getDefaultRelationConfiguration(), loadMultiFunctionalButtonModel(false)) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -640,7 +649,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            MemberOperationsHelperOld.assignMembers(getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), target, getMemberPanelStorage().getRelationSearchItem(), null);
+                            MemberOperationsHelperOld.assignMembers(getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), target, getSearchBoxConfiguration().getDefaultRelationConfiguration(), null);
                         }
                     };
                 }
@@ -749,12 +758,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected List<QName> getSupportedObjectTypes() {
-                return AbstractRoleMemberPanel.this.getMemberPanelStorage().getSupportedObjectTypes();//getSupportedObjectTypes(true);
+                return AbstractRoleMemberPanel.this.getSearchBoxConfiguration().getSupportedObjectTypes();//getSupportedObjectTypes(true);
             }
 
             @Override
             protected List<QName> getSupportedRelations() {
-                return AbstractRoleMemberPanel.this.getMemberPanelStorage().getSupportedRelations();
+                return AbstractRoleMemberPanel.this.getSearchBoxConfiguration().getSupportedRelations();
             }
 
             @Override
@@ -768,7 +777,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-                unassignMembersPerformed(type, getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)
+                unassignMembersPerformed(type, getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)
                         && QueryScope.ALL.equals(scope) ? QueryScope.ALL_DIRECT : scope, relations, target);
             }
 
@@ -808,7 +817,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected IModel<String> getWarningMessageModel() {
-                if (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)) {
+                if (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)) {
                     return getPageBase().createStringResource("abstractRoleMemberPanel.unassign.warning.subtree");
                 }
                 return null;
@@ -816,7 +825,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public int getHeight() {
-                if (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)) {
+                if (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)) {
                     return 325;
                 }
                 return 230;
@@ -828,9 +837,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
     private List<QName> getDefaultRelationsForActions() {
         List<QName> defaultRelations = new ArrayList<>();
-        QName defaultRelation = AbstractRoleMemberPanel.this.getMemberPanelStorage().getDefaultRelation();
+        QName defaultRelation = AbstractRoleMemberPanel.this.getSearchBoxConfiguration().getDefaultRelation();
         if (defaultRelation != null) {
-            defaultRelations.add(AbstractRoleMemberPanel.this.getMemberPanelStorage().getDefaultRelation());
+            defaultRelations.add(AbstractRoleMemberPanel.this.getSearchBoxConfiguration().getDefaultRelation());
         } else {
             defaultRelations.add(RelationTypes.MEMBER.getRelation());
         }
@@ -840,7 +849,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     private void deleteMembersPerformed(AjaxRequestTarget target) {
         QueryScope scope = getQueryScope();
         StringResourceModel confirmModel;
-        if (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)) {
+        if (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)) {
             confirmModel = createStringResource("abstractRoleMemberPanel.deleteAllSubtreeMembersConfirmationLabel");
         } else {
             confirmModel = getMemberTable().getSelectedObjectsCount() > 0 ?
@@ -853,12 +862,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected List<QName> getSupportedObjectTypes() {
-                return AbstractRoleMemberPanel.this.getMemberPanelStorage().getSupportedObjectTypes();//getSupportedObjectTypes(true);
+                return AbstractRoleMemberPanel.this.getSearchBoxConfiguration().getSupportedObjectTypes();//getSupportedObjectTypes(true);
             }
 
             @Override
             protected List<QName> getSupportedRelations() {
-                return AbstractRoleMemberPanel.this.getMemberPanelStorage().getSupportedRelations();
+                return AbstractRoleMemberPanel.this.getSearchBoxConfiguration().getSupportedRelations();
             }
 
             @Override
@@ -903,7 +912,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     newReferences.add(relationSpec.getArchetypeRefs().get(0));
                 }
                 QName newMemberType = CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ? relationSpec.getObjectTypes().get(0) :
-                        getMemberPanelStorage().getSupportedObjectTypes().get(0); //getSupportedObjectTypes(false).get(0);
+                        getSearchBoxConfiguration().getSupportedObjectTypes().get(0); //getSupportedObjectTypes(false).get(0);
                 WebComponentUtil.initNewObjectWithReference(AbstractRoleMemberPanel.this.getPageBase(), newMemberType, newReferences);
             } catch (SchemaException e) {
                 throw new SystemException(e.getMessage(), e);
@@ -920,7 +929,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
                 @Override
                 protected List<QName> getSupportedRelations() {
-                    return AbstractRoleMemberPanel.this.getMemberPanelStorage().getSupportedRelations();
+                    return AbstractRoleMemberPanel.this.getSearchBoxConfiguration().getSupportedRelations();
                 }
 
                 @Override
@@ -1004,7 +1013,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 return createAllMemberQuery(relations);
             case ALL_DIRECT:
                 return MemberOperationsHelperOld.createDirectMemberQuery(getModelObject(), getSearchType(), relations,
-                        getMemberPanelStorage().getTenant(), getMemberPanelStorage().getProject());
+                        getSearchBoxConfiguration().getTenant(), getSearchBoxConfiguration().getProject());
             case SELECTED:
                 return MemberOperationsHelper.createSelectedObjectsQuery(getMemberTable().getSelectedRealObjects());
         }
@@ -1029,8 +1038,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             return QueryScope.SELECTED;
         }
 
-        if (getMemberPanelStorage().isIndirect()
-                || getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)) {
+        if (getSearchBoxConfiguration().isIndirect()
+                || getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)) {
             return QueryScope.ALL;
         }
 
@@ -1040,7 +1049,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     protected void recomputeMembersPerformed(AjaxRequestTarget target) {
 
         StringResourceModel confirmModel;
-        if (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)) {
+        if (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)) {
             confirmModel = createStringResource("abstractRoleMemberPanel.recomputeAllSubtreeMembersConfirmationLabel");
         } else {
             confirmModel = getMemberTable().getSelectedObjectsCount() > 0 ?
@@ -1080,7 +1089,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     protected List<QName> getRelationsForRecomputeTask() {
-        return getMemberPanelStorage().getSupportedRelations();
+        return getSearchBoxConfiguration().getSupportedRelations();
     }
 
     protected QName getSearchType(){

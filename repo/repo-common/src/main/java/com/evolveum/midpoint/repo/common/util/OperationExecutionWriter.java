@@ -159,10 +159,12 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
     private <O extends ObjectType> void executeChanges(Request<O> request,
             List<OperationExecutionType> recordsToAdd, List<OperationExecutionType> recordsToDelete, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        // Note that even recordToAdd can have a parent: e.g. if the write to primary owner fails, and we try
+        // the secondary one - the recordToAdd would be already inserted in the respective delta! Hence always cloning it.
         List<ItemDelta<?, ?>> deltas = prismContext.deltaFor(request.objectType)
                 .item(ObjectType.F_OPERATION_EXECUTION)
                 .delete(PrismContainerValue.toPcvList(CloneUtil.cloneCollectionMembers(recordsToDelete)))
-                .add(PrismContainerValue.toPcvList(recordsToAdd)) // assuming these are parent-less
+                .add(PrismContainerValue.toPcvList(CloneUtil.cloneCollectionMembers(recordsToAdd)))
                 .asItemDeltas();
         LOGGER.trace("Operation execution delta:\n{}", DebugUtil.debugDumpLazily(deltas));
         repositoryService.modifyObject(request.objectType, request.oid, deltas, result);

@@ -10,12 +10,12 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 
 /**
@@ -41,15 +41,15 @@ public abstract class Abstract389DsDnTest extends Abstract389DsTest {
 
     @Test
     public void test025SchemaDn() {
-        ResourceAttributeDefinition<String> dnDef = accountObjectClassDefinition.findAttributeDefinition("dn");
-        displayDumpable("DN defintion", dnDef);
+        ResourceAttributeDefinition<?> dnDef = accountDefinition.findAttributeDefinition("dn");
+        displayDumpable("DN definition", dnDef);
         PrismAsserts.assertDefinition(dnDef, new QName(MidPointConstants.NS_RI, "dn"), DOMUtil.XSD_STRING, 1, 1);
         assertTrue("dn read", dnDef.canRead());
         assertTrue("dn modify", dnDef.canModify());
         assertTrue("dn add", dnDef.canAdd());
 
-        assertTrue("Dn is not an identifier", accountObjectClassDefinition.getPrimaryIdentifiers().contains(dnDef));
-        assertTrue("Secodary identifiers are not empty: "+accountObjectClassDefinition.getSecondaryIdentifiers(),
-                accountObjectClassDefinition.getSecondaryIdentifiers().isEmpty());
+        assertTrue("Dn is not an identifier", accountDefinition.getPrimaryIdentifiers().contains(dnDef));
+        assertTrue("Secondary identifiers are not empty: "+ accountDefinition.getSecondaryIdentifiers(),
+                accountDefinition.getSecondaryIdentifiers().isEmpty());
     }
 }

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcherAware;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityContextManagerAware;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -180,7 +181,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 
         MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema(struct.connectorObject.getNamespace());
         // Create configuration type - the type used by the "configuration" element
-        MutablePrismContainerDefinition<?> configurationContainerDef = connectorSchema.createPropertyContainerDefinition(
+        MutablePrismContainerDefinition<?> configurationContainerDef = connectorSchema.createContainerDefinition(
                 ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
                 SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
 
@@ -247,7 +248,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
     }
 
     @Override
-    public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String instanceName,
+    public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String instanceName,
             String desc) throws ObjectNotFoundException {
         ConnectorStruct struct = getConnectorStruct(connectorType);
         Class<? extends ConnectorInstance> connectorClass = struct.connectorClass;
@@ -259,7 +260,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         }
         if (connectorInstance instanceof AbstractManagedConnectorInstance) {
             setupAbstractConnectorInstance((AbstractManagedConnectorInstance)connectorInstance, instanceName, connectorType,
-                    namespace, struct);
+                    MidPointConstants.NS_RI, struct);
         }
         if (connectorInstance instanceof RepositoryAware) {
             ((RepositoryAware)connectorInstance).setRepositoryService(repositoryService);

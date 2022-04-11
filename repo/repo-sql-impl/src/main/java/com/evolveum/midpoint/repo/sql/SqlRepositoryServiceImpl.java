@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.util.PrismUtil;
 
 import org.apache.commons.lang3.Validate;
 import org.hibernate.Session;
@@ -977,7 +979,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             return true;
         }
         ObjectPaging paging = query.getPaging();
-        return !paging.hasOrdering() && !paging.hasGrouping() && paging.getOffset() == null;
+        return !paging.hasOrdering() && paging.getOffset() == null;
     }
 
     @Nullable
@@ -1275,7 +1277,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
+    public synchronized void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
+        if (PrismUtil.realValueEquals(fullTextSearchConfiguration, fullTextSearch)) {
+            LOGGER.trace("Ignoring full text search configuration update => the real value has not changed");
+            return;
+        }
         LOGGER.info("Applying full text search configuration ({} entries)",
                 fullTextSearch != null ? fullTextSearch.getIndexed().size() : 0);
         fullTextSearchConfiguration = fullTextSearch;

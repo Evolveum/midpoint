@@ -13,10 +13,6 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-/**
- * @author mederly
- */
-
 public class DefinitionXmlPanel extends BasePanel<CertDefinitionDto> {
 
     private static final String ID_ACE_EDITOR = "aceEditor1";

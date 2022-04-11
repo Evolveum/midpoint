@@ -16,7 +16,7 @@ import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableExcepti
 
 import com.evolveum.midpoint.provisioning.util.InitializationState;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -24,8 +24,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -39,8 +37,6 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectCha
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -62,7 +58,7 @@ import static java.util.Objects.requireNonNull;
  * This means that it is connected to repository shadow, and this shadow is updated
  * with the appropriate information.
  */
-public class ShadowedChange<ROC extends ResourceObjectChange> implements InitializableMixin {
+public abstract class ShadowedChange<ROC extends ResourceObjectChange> implements InitializableMixin {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowedChange.class);
 
@@ -187,11 +183,11 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         }
     }
 
-    private void updateProvisioningContextFromRepoShadow() {
+    private void updateProvisioningContextFromRepoShadow() throws SchemaException, ConfigurationException {
         assert repoShadow != null;
         assert isDelete();
         if (context.isWildcard()) {
-            context = context.spawn(repoShadow);
+            context = context.spawnForShadow(repoShadow);
         }
     }
 
@@ -200,7 +196,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         assert !isDelete();
 
         PrismProperty<?> primaryIdentifier = resourceObjectChange.getPrimaryIdentifierRequired();
-        QName objectClass = getObjectClassDefinition().getTypeName();
+        QName objectClass = getObjectDefinition().getTypeName();
 
         repoShadow = localBeans.shadowAcquisitionHelper.acquireRepoShadow(context, primaryIdentifier, objectClass,
                 this::createResourceObjectFromChange, result);
@@ -244,13 +240,13 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
     }
 
     private PrismObject<ShadowType> createIdentifiersOnlyFakeResourceObject() throws SchemaException {
-        ObjectClassComplexTypeDefinition objectClassDefinition = getObjectClassDefinition();
-        if (objectClassDefinition == null) {
-            throw new IllegalStateException("Could not create shadow from change description. Object class is not specified.");
+        ResourceObjectDefinition objectDefinition = getObjectDefinition();
+        if (objectDefinition == null) {
+            throw new IllegalStateException("Could not create shadow from change description. Object definition is not specified.");
         }
         ShadowType fakeResourceObject = new ShadowType(beans.prismContext);
-        fakeResourceObject.setObjectClass(objectClassDefinition.getTypeName());
-        ResourceAttributeContainer attributeContainer = objectClassDefinition
+        fakeResourceObject.setObjectClass(objectDefinition.getTypeName());
+        ResourceAttributeContainer attributeContainer = objectDefinition
                 .toResourceAttributeContainerDefinition().instantiate();
         fakeResourceObject.asPrismObject().add(attributeContainer);
         for (ResourceAttribute<?> identifier : resourceObjectChange.getIdentifiers()) {
@@ -269,7 +265,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
             OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
-        PrismObject<ShadowType> minimalResourceObject = Util.minimize(resourceObject, context.getObjectClassDefinition());
+        PrismObject<ShadowType> minimalResourceObject = Util.minimize(resourceObject, context.getObjectDefinitionRequired());
         LOGGER.trace("Minimal resource object to acquire a shadow for:\n{}",
                 DebugUtil.debugDumpLazily(minimalResourceObject, 1));
         if (minimalResourceObject != null) {
@@ -366,8 +362,8 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         return resourceObjectChange.isDelete();
     }
 
-    public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
-        return resourceObjectChange.getCurrentObjectClassDefinition();
+    public ResourceObjectDefinition getObjectDefinition() {
+        return resourceObjectChange.getCurrentResourceObjectDefinition();
     }
 
     /**
@@ -376,10 +372,9 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
      * will know that it cannot use this data to update cached (index-only) attributes in repo shadow.
      */
     private void markIndexOnlyItemsAsIncomplete(PrismObject<ShadowType> resourceObject)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-        RefinedObjectClassDefinition ocDef = context.computeCompositeObjectClassDefinition(resourceObject);
-        for (RefinedAttributeDefinition<?> attrDef : ocDef.getAttributeDefinitions()) {
+            throws SchemaException, ConfigurationException {
+        ResourceObjectDefinition ocDef = context.computeCompositeObjectDefinition(resourceObject);
+        for (ResourceAttributeDefinition<?> attrDef : ocDef.getAttributeDefinitions()) {
             if (attrDef.isIndexOnly()) {
                 ItemPath path = ItemPath.create(ShadowType.F_ATTRIBUTES, attrDef.getItemName());
                 LOGGER.trace("Marking item {} as incomplete because it's index-only", path);
@@ -390,8 +385,14 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
     }
 
     private String getChannel() {
-        return ObjectUtils.defaultIfNull(context.getChannel(), SchemaConstants.CHANNEL_LIVE_SYNC_URI);
+        return ObjectUtils.defaultIfNull(context.getChannel(), getDefaultChannel());
     }
+
+    /**
+     * Default channel for given change. The usefulness of this method is questionable,
+     * as the context should have the correct channel already set.
+     */
+    protected abstract String getDefaultChannel();
 
     public Collection<ResourceAttribute<?>> getIdentifiers() {
         return resourceObjectChange.getIdentifiers();
@@ -466,21 +467,15 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
                     "Non-error & applicable change without shadowed object? %s", this);
             return null; // This is because in the description the shadowed object must be present. TODO reconsider this.
         }
-        try {
-            ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
-            if (objectDelta != null) {
-                objectDelta.setOid(shadowedObject.getOid());
-            }
-            shadowChangeDescription.setObjectDelta(objectDelta);
-            shadowChangeDescription.setResource(context.getResource().asPrismObject());
-            shadowChangeDescription.setSourceChannel(getChannel());
-            shadowChangeDescription.setShadowedResourceObject(shadowedObject);
-            return shadowChangeDescription;
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
-                ExpressionEvaluationException e) {
-            // The resource should have been already resolved. (It is the only source of exceptions.)
-            throw new SystemException("Unexpected exception while creating shadow change description", e);
+        ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
+        if (objectDelta != null) {
+            objectDelta.setOid(shadowedObject.getOid());
         }
+        shadowChangeDescription.setObjectDelta(objectDelta);
+        shadowChangeDescription.setResource(context.getResource().asPrismObject());
+        shadowChangeDescription.setSourceChannel(getChannel());
+        shadowChangeDescription.setShadowedResourceObject(shadowedObject);
+        return shadowChangeDescription;
     }
 
     public Object getPrimaryIdentifierValue() {

@@ -10,13 +10,18 @@ package com.evolveum.midpoint.model.impl.integrity.shadows;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.prism.*;
@@ -200,22 +205,26 @@ public class ShadowIntegrityCheckItemProcessor {
         if (context == null) {
             context = new ObjectTypeContext();
             context.setResource(resource);
-            RefinedResourceSchema resourceSchema;
+            ResourceSchema refinedSchema;
             try {
-                resourceSchema = RefinedResourceSchemaImpl.getRefinedSchema(context.getResource(), LayerType.MODEL, prismContext);
+                refinedSchema = ResourceSchemaFactory.getCompleteSchema(context.getResource(), LayerType.MODEL);
             } catch (SchemaException e) {
                 checkResult.recordError(
                         ShadowStatistics.CANNOT_GET_REFINED_SCHEMA, new SchemaException("Couldn't derive resource schema: " + e.getMessage(), e));
                 return;
             }
-            if (resourceSchema == null) {
+            if (refinedSchema == null) {
                 checkResult.recordError(ShadowStatistics.NO_RESOURCE_REFINED_SCHEMA, new SchemaException("No resource schema"));
                 return;
             }
-            context.setObjectClassDefinition(resourceSchema.getRefinedDefinition(kind, shadowType));
-            if (context.getObjectClassDefinition() == null) {
+            ResourceObjectDefinition objectDefinition =
+                    refinedSchema.findObjectDefinition(kind, ShadowUtil.getIntent(shadow));
+            if (objectDefinition instanceof ResourceObjectTypeDefinition) {
+                context.setObjectTypeDefinition((ResourceObjectTypeDefinition) objectDefinition);
+            } else {
                 // TODO or warning only?
-                checkResult.recordError(ShadowStatistics.NO_OBJECT_CLASS_REFINED_SCHEMA, new SchemaException("No refined object class definition for kind=" + kind + ", intent=" + intent));
+                checkResult.recordError(ShadowStatistics.NO_OBJECT_CLASS_REFINED_SCHEMA,
+                        new SchemaException("No refined object class definition for kind=" + kind + ", intent=" + intent));
                 return;
             }
             activityRun.putObjectTypeContext(key, context);
@@ -229,10 +238,10 @@ public class ShadowIntegrityCheckItemProcessor {
             return;
         }
 
-        Set<RefinedAttributeDefinition<?>> identifiers = new HashSet<>();
-        Collection<? extends RefinedAttributeDefinition<?>> primaryIdentifiers = context.getObjectClassDefinition().getPrimaryIdentifiers();
+        Set<ResourceAttributeDefinition<?>> identifiers = new HashSet<>();
+        Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = context.getObjectTypeDefinition().getPrimaryIdentifiers();
         identifiers.addAll(primaryIdentifiers);
-        identifiers.addAll(context.getObjectClassDefinition().getSecondaryIdentifiers());
+        identifiers.addAll(context.getObjectTypeDefinition().getSecondaryIdentifiers());
 
         PrismContainer<ShadowAttributesType> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer == null) {
@@ -241,7 +250,7 @@ public class ShadowIntegrityCheckItemProcessor {
             return;
         }
 
-        for (RefinedAttributeDefinition<?> identifier : identifiers) {
+        for (ResourceAttributeDefinition<?> identifier : identifiers) {
             PrismProperty<String> property = attributesContainer.getValue().findProperty(identifier.getItemName());
             if (property == null || property.size() == 0) {
                 checkResult.recordWarning(ShadowStatistics.OTHER_FAILURE, "No value for identifier " + identifier.getItemName());
@@ -312,8 +321,13 @@ public class ShadowIntegrityCheckItemProcessor {
         }
     }
 
-    private void doFixIntent(ShadowCheckResult checkResult, PrismObject<ShadowType> fetchedShadow, PrismObject<ShadowType> shadow,
-            PrismObject<ResourceType> resource, Task task, OperationResult result) throws SchemaException {
+    private void doFixIntent(
+            ShadowCheckResult checkResult,
+            PrismObject<ShadowType> fetchedShadow,
+            PrismObject<ShadowType> shadow,
+            PrismObject<ResourceType> resource,
+            Task task,
+            OperationResult result) throws SchemaException {
         PrismObject<ShadowType> fullShadow;
 
         if (!getConfiguration().checkFetch) {
@@ -369,7 +383,7 @@ public class ShadowIntegrityCheckItemProcessor {
         }
     }
 
-    private void doCheckNormalization(ShadowCheckResult checkResult, RefinedAttributeDefinition<?> identifier, String value) throws SchemaException {
+    private void doCheckNormalization(ShadowCheckResult checkResult, ResourceAttributeDefinition<?> identifier, String value) throws SchemaException {
         QName matchingRuleQName = identifier.getMatchingRuleQName();
         if (matchingRuleQName == null) {
             return;

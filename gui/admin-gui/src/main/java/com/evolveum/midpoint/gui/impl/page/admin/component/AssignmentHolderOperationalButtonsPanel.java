@@ -18,10 +18,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -38,18 +36,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -93,10 +90,14 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
             }
         };
         changeArchetype.showTitleAsLabel(true);
-        changeArchetype.add(new VisibleBehaviour(() -> !getModelObject().isReadOnly() && isEditingObject()
-                && getObjectArchetypeRef() != null)); // && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
+        changeArchetype.add(new VisibleBehaviour(() -> isChangeArchetypeButtonVisible())); // && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
         changeArchetype.add(AttributeAppender.append("class", "btn-default btn-sm"));
         repeatingView.add(changeArchetype);
+    }
+
+    protected boolean isChangeArchetypeButtonVisible() {
+        return !getModelObject().isReadOnly() && isEditingObject()
+                && getObjectArchetypeRef() != null;
     }
 
     private void changeArchetypeButtonClicked(AjaxRequestTarget target) {
@@ -141,7 +142,7 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
                             }
 
                             @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ArchetypeType>> rowModel) {
+                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ArchetypeType>> rowModel, DataTable dataTable) {
                                 target.add(getObjectListPanel());
                                 tabLabelPanelUpdate(target);
                             }
@@ -151,7 +152,7 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
                                 if (rowModel == null) {
                                     return Model.of(false);
                                 }
-                                List selectedObjects = getSelectedObjectsList();
+                                List selectedObjects = getPreselectedObjects();
                                 return Model.of(selectedObjects == null || selectedObjects.size() == 0
                                         || (rowModel.getObject() != null && rowModel.getObject().isSelected()));
                             }

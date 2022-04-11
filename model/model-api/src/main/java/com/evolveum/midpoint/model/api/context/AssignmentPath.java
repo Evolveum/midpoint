@@ -30,7 +30,6 @@ import java.util.List;
  * of previous segment (i.e. assignment).
  *
  * @author semancik
- * @author mederly
  */
 public interface AssignmentPath extends DebugDumpable, ShortDumpable, Cloneable, Serializable {
 

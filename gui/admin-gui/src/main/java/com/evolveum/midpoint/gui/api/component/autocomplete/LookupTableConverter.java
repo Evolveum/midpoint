@@ -6,7 +6,14 @@
  */
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
@@ -15,6 +22,7 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
 
+import java.util.Collection;
 import java.util.Locale;
 
 /**
@@ -25,19 +33,20 @@ public class LookupTableConverter<C> implements IConverter<C> {
 
     private static final long serialVersionUID = 1L;
     private IConverter<C> originConverter;
-    private LookupTableType lookupTable = null;
+    private String lookupTableOid;
     private FormComponent baseComponent;
     private boolean strict;
 
     public LookupTableConverter(IConverter<C> originConverter, LookupTableType lookupTable, FormComponent baseComponent, boolean strict) {
         this.originConverter = originConverter;
-        this.lookupTable = lookupTable;
+        this.lookupTableOid = lookupTable != null ? lookupTable.getOid() : null;
         this.baseComponent = baseComponent;
         this.strict = strict;
     }
 
     @Override
     public C convertToObject(String value, Locale locale) throws ConversionException {
+        LookupTableType lookupTable = getLookupTable();
         for (LookupTableRowType row : lookupTable.getRow()) {
             if (value.equals(row.getKey())
                     || value.equals(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null))) {
@@ -61,6 +70,7 @@ public class LookupTableConverter<C> implements IConverter<C> {
 
     @Override
     public String convertToString(C key, Locale arg1) {
+        LookupTableType lookupTable = getLookupTable();
         if (lookupTable != null) {
             for (LookupTableRowType row : lookupTable.getRow()) {
                 if (key.toString().equals(row.getKey())) {
@@ -70,4 +80,23 @@ public class LookupTableConverter<C> implements IConverter<C> {
         }
         return key.toString();
     }
+
+    protected LookupTableType getLookupTable() {
+        if (lookupTableOid != null) {
+            Task task = getPageBase().createSimpleTask("Load lookup table");
+            OperationResult result = task.getResult();
+            Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+                    .createLookupTableRetrieveOptions(getPageBase().getSchemaService());
+            PrismObject<LookupTableType> prismLookupTable = WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableOid, options, getPageBase(), task, result);
+            if (prismLookupTable != null) {
+                return  prismLookupTable.asObjectable();
+            }
+        }
+        return null;
+    }
+
+    private PageBase getPageBase() {
+        return (PageBase) baseComponent.getPage();
+    }
+
 }

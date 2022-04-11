@@ -131,6 +131,7 @@ somehow dumber: no shortcut in associations, expclicit duplicity checks, etc.
             <kind>entitlement</kind>
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
+            <default>true</default>
             <objectClass>ri:groupOfUniqueNames</objectClass>
             <baseContext>
                 <objectClass>ri:organizationalUnit</objectClass>
@@ -231,6 +232,13 @@ somehow dumber: no shortcut in associations, expclicit duplicity checks, etc.
                 <ref>ri:dn</ref>
                 <matchingRule>mr:distinguishedName</matchingRule>
             </attribute>
+        </objectType>
+
+        <!-- We need this for test480. It refers generic/ou type. -->
+        <objectType>
+            <kind>generic</kind>
+            <intent>ou</intent>
+            <objectClass>ri:organizationalUnit</objectClass>
         </objectType>
 
     </schemaHandling>

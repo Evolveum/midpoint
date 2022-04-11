@@ -15,7 +15,7 @@ import com.evolveum.midpoint.notifications.api.events.CertReviewEvent;
 import com.evolveum.midpoint.notifications.impl.helpers.CertHelper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;

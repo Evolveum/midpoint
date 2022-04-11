@@ -15,9 +15,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public abstract class JunctionCondition extends Condition {
 
     protected List<Condition> components = new ArrayList<>();

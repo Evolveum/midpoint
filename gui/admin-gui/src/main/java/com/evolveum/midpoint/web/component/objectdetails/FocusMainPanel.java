@@ -39,7 +39,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 
 import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.report.impl.controller.*;
+import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.task.api.RunningTask;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -25,10 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.CommonException;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Activity execution specifics for classical (i.e. not distributed) collection report export.
@@ -114,19 +112,19 @@ public final class ClassicCollectionReportExportActivityRun
     }
 
     @Override
-    public void iterateOverItemsInBucket(OperationResult result) throws CommonException {
+    public void iterateOverItemsInBucket(OperationResult gResult) throws CommonException {
         // Issue the search to audit or model/repository
         // And use the following handler to handle the results
 
         AtomicInteger sequence = new AtomicInteger(0);
 
-        Handler<Containerable> handler = record -> {
+        ObjectHandler<Containerable> handler = (record, lResult) -> {
             ItemProcessingRequest<Containerable> request =
                     ContainerableProcessingRequest.create(sequence.getAndIncrement(), record, this);
-            coordinator.submit(request, result);
+            coordinator.submit(request, lResult);
             return true;
         };
-        searchSpecificationHolder.run(handler, result);
+        searchSpecificationHolder.run(handler, gResult);
     }
 
     @Override

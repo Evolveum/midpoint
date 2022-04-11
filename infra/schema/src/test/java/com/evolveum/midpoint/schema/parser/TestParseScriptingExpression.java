@@ -27,10 +27,6 @@ import java.io.File;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
-/**
- * @author mederly
- *
- */
 public class TestParseScriptingExpression extends AbstractPropertyValueParserTest<ExpressionPipelineType> {
 
     @Override

@@ -11,25 +11,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -60,7 +64,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     private static final String ID_ASSOCIATION = "association";
 
     private LoadableModel<List<String>> intentValues;
-    private LoadableModel<List<RefinedAssociationDefinition>> associationValuesModel;
+    private LoadableModel<List<ResourceAssociationDefinition>> associationValuesModel;
 
     private static final String DOT_CLASS = ResourceTypeAssignmentPopupTabPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeAssignmentPopupTabPanel.class);
@@ -133,22 +137,22 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         associationContainer.add(new VisibleBehaviour(() -> isEntitlementAssignment()));
         parametersPanel.add(associationContainer);
 
-        DropDownChoicePanel<RefinedAssociationDefinition> associationSelector = new DropDownChoicePanel<>(ID_ASSOCIATION,
-                Model.of(), associationValuesModel, new IChoiceRenderer<RefinedAssociationDefinition>() {
+        DropDownChoicePanel<ResourceAssociationDefinition> associationSelector = new DropDownChoicePanel<>(ID_ASSOCIATION,
+                Model.of(), associationValuesModel, new IChoiceRenderer<ResourceAssociationDefinition>() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public Object getDisplayValue(RefinedAssociationDefinition refinedAssociationDefinition) {
+            public Object getDisplayValue(ResourceAssociationDefinition refinedAssociationDefinition) {
                 return WebComponentUtil.getAssociationDisplayName(refinedAssociationDefinition);
             }
 
             @Override
-            public String getIdValue(RefinedAssociationDefinition refinedAssociationDefinition, int index) {
+            public String getIdValue(ResourceAssociationDefinition refinedAssociationDefinition, int index) {
                 return Integer.toString(index);
             }
 
             @Override
-            public RefinedAssociationDefinition getObject(String id, IModel<? extends List<? extends RefinedAssociationDefinition>> choices) {
+            public ResourceAssociationDefinition getObject(String id, IModel<? extends List<? extends ResourceAssociationDefinition>> choices) {
                 return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
             }
         }, true);
@@ -180,11 +184,11 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
                     ResourceType selectedResource = selectedResources.get(0);
 
                     try {
-                        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(selectedResource.asPrismObject());
+                        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(selectedResource.asPrismObject());
                         if (refinedSchema != null) {
                             ShadowKindType kind = getKindDropDown().getBaseFormComponent().getModelObject();
-                            List<? extends RefinedObjectClassDefinition> definitions = refinedSchema.getRefinedDefinitions(kind);
-                            for (RefinedObjectClassDefinition def : definitions) {
+                            List<? extends ResourceObjectTypeDefinition> definitions = refinedSchema.getObjectTypeDefinitions(kind);
+                            for (ResourceObjectTypeDefinition def : definitions) {
                                 availableIntentValues.add(def.getIntent());
                             }
                         }
@@ -199,9 +203,9 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
                 return availableIntentValues;
             }
         };
-        associationValuesModel = new LoadableModel<List<RefinedAssociationDefinition>>() {
+        associationValuesModel = new LoadableModel<List<ResourceAssociationDefinition>>() {
             @Override
-            protected List<RefinedAssociationDefinition> load() {
+            protected List<ResourceAssociationDefinition> load() {
                 ResourceType resource = getSelectedObjectsList() != null && getSelectedObjectsList().size() > 0 ?
                         getSelectedObjectsList().get(0) : null;
                 if (resource == null) {
@@ -255,8 +259,8 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         return intentDropDown.getModel() != null ? intentDropDown.getModel().getObject() : null;
     }
 
-    private RefinedAssociationDefinition getAssociationValue() {
-        DropDownChoicePanel<RefinedAssociationDefinition> associationDropDown = getAssociationDropDown();
+    private ResourceAssociationDefinition getAssociationValue() {
+        DropDownChoicePanel<ResourceAssociationDefinition> associationDropDown = getAssociationDropDown();
         return associationDropDown != null ? associationDropDown.getModel().getObject() : null;
     }
 
@@ -268,8 +272,8 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         return (DropDownChoicePanel<ShadowKindType>) get(getPageBase().createComponentPath(ID_PARAMETERS_PANEL, ID_KIND_CONTAINER, ID_KIND));
     }
 
-    private DropDownChoicePanel<RefinedAssociationDefinition> getAssociationDropDown() {
-        return (DropDownChoicePanel<RefinedAssociationDefinition>) get(getPageBase().createComponentPath(ID_PARAMETERS_PANEL, ID_ASSOCIATION_CONTAINER, ID_ASSOCIATION));
+    private DropDownChoicePanel<ResourceAssociationDefinition> getAssociationDropDown() {
+        return (DropDownChoicePanel<ResourceAssociationDefinition>) get(getPageBase().createComponentPath(ID_PARAMETERS_PANEL, ID_ASSOCIATION_CONTAINER, ID_ASSOCIATION));
     }
 
     @Override
@@ -278,17 +282,15 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     }
 
     @Override
-    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel) {
-        target.add(getObjectListPanel());
+    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel, DataTable dataTable) {
+        TableUtil.updateRows(dataTable, target);
         target.add(getKindDropDown());
         target.add(getIntentDropDown());
     }
 
     @Override
     protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<ResourceType>> rowModel) {
-        List selectedObjects = getSelectedObjectsList();
-        return Model.of(selectedObjects == null || selectedObjects.size() == 0
-                || (rowModel != null && rowModel.getObject() != null && rowModel.getObject().isSelected()));
+        return new ReadOnlyModel<>(() -> CollectionUtils.isEmpty(getSelectedObjectsList()) || (rowModel != null && rowModel.getObject() != null && rowModel.getObject().isSelected()));
     }
 
     protected boolean isEntitlementAssignment() {

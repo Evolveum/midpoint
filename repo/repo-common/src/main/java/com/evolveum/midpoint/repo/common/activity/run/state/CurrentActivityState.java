@@ -22,6 +22,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -201,7 +203,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
                 .item(stateItemPath.append(ActivityStateType.F_ACTIVITY))
-                .add(new ActivityStateType(getPrismContext())
+                .add(new ActivityStateType()
                         .identifier(identifier)
                         .persistence(activityStateDefinition.getPersistence()))
                 .asItemDelta();
@@ -343,6 +345,17 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         return workStateComplexTypeDefinition;
     }
 
+    /**
+     * Returns the whole state as a bean, presumably cloned (because the task is running).
+     *
+     * Precondition: the state is initialized, i.e. {@link #stateItemPath} is not null.
+     */
+    @Experimental
+    public @NotNull ActivityStateType getBeanClone() {
+        stateCheck(stateItemPath != null,
+                "State item path is null, i.e. the state was not initialized yet: %s", this);
+        return activityRun.getRunningTask().getActivityStateOrClone(stateItemPath);
+    }
     //endregion
 
     //region Progress & statistics

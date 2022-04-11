@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -65,7 +67,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.server.LivesyncTokenEditorPanel;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -194,7 +195,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         }
 
         if (taskOwnerValue.getNewValue() == null || taskOwnerValue.getNewValue().isEmpty()) {
-            GuiProfiledPrincipal guiPrincipal = SecurityUtils.getPrincipalUser();
+            GuiProfiledPrincipal guiPrincipal = AuthUtil.getPrincipalUser();
             if (guiPrincipal == null) {
                 //BTW something very strange must happened
                 return;
@@ -248,7 +249,6 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
 
             @Override
             protected void onPostProcessTarget(AjaxRequestTarget target) {
-                refreshEnabled = null;
                 refresh(target);
             }
 
@@ -472,7 +472,6 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         repeatingView.add(resumePauseRefreshing);
     }
 
-    //TODO abstract
     protected boolean isRefreshEnabled() {
         if (refreshEnabled == null) {
             return WebComponentUtil.isRunningTask(getObjectType());

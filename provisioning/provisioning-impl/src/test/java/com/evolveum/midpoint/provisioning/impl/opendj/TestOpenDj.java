@@ -16,10 +16,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
+import com.evolveum.midpoint.test.PredefinedTestMethodTracing;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -35,10 +38,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -79,7 +80,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityHostType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -149,6 +150,12 @@ public class TestOpenDj extends AbstractOpenDjTest {
         return 0;
     }
 
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+//        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_PROVISIONING_LOGGING;
+    }
+
     @BeforeClass
     public void startLdap() throws Exception {
         logger.info("------------------------------------------------------------------------------");
@@ -216,20 +223,21 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
         Element xsdElement = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
-        ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceTypeRepoAfter.toString(), prismContext);
+        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resourceTypeRepoAfter.toString());
         assertNotNull("No schema after parsing", parsedSchema);
 
-        Collection<ObjectClassComplexTypeDefinition> objectClasses = parsedSchema.getObjectClassDefinitions();
+        Collection<ResourceObjectClassDefinition> objectClasses = parsedSchema.getObjectClassDefinitions();
         List<QName> objectClassesToGenerate = ResourceTypeUtil.getSchemaGenerationConstraints(resourceTypeRepoAfter);
         if (objectClassesToGenerate != null && !objectClasses.isEmpty()) {
             assertEquals("Unexpected object classes in generate schema", objectClassesToGenerate.size(), objectClasses.size());
         }
 
-        ObjectClassComplexTypeDefinition inetOrgPersonDefinition = parsedSchema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+        ResourceObjectClassDefinition inetOrgPersonDefinition =
+                parsedSchema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         assertNull("The _PASSSWORD_ attribute sneaked into schema", inetOrgPersonDefinition.findAttributeDefinition(
                 new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
         assertNull("The userPassword attribute sneaked into schema", inetOrgPersonDefinition.findAttributeDefinition(
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeRepoAfter), "userPassword")));
+                new QName(MidPointConstants.NS_RI, "userPassword")));
 
         assertShadows(1);
     }
@@ -239,12 +247,12 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, null, result);
-        resourceType = resource.asObjectable();
+        resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
+        resourceBean = resource.asObjectable();
         ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
                 resource, ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
-        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         assertNotNull("No resource schema", resourceSchema);
 
         // WHEN
@@ -260,9 +268,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
         assertEquals("Configurations not equals", configurationContainerAgain, configurationContainer);
 
-        ResourceSchema resourceSchemaAgain = RefinedResourceSchemaImpl.getResourceSchema(resourceAgain, prismContext);
+        ResourceSchema resourceSchemaAgain = ResourceSchemaFactory.getRawSchema(resourceAgain);
         assertNotNull("No resource schema (again)", resourceSchemaAgain);
-        assertEquals("Schema serial number mismatch", resourceType.getSchema().getCachingMetadata().getSerialNumber(),
+        assertEquals("Schema serial number mismatch", resourceBean.getSchema().getCachingMetadata().getSerialNumber(),
                 resourceTypeAgain.getSchema().getCachingMetadata().getSerialNumber());
         assertSame("Resource schema was not cached", resourceSchema, resourceSchemaAgain);
 
@@ -303,9 +311,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList, ScriptCapabilityType.class);
         assertNotNull("No script capability", capScript);
-        List<Host> scriptHosts = capScript.getHost();
+        List<ScriptCapabilityHostType> scriptHosts = capScript.getHost();
         assertEquals("Wrong number of script hosts", 1, scriptHosts.size());
-        Host scriptHost = scriptHosts.get(0);
+        ScriptCapabilityHostType scriptHost = scriptHosts.get(0);
         assertEquals("Wrong script host type", ProvisioningScriptHostType.CONNECTOR, scriptHost.getType());
 //        assertEquals("Wrong script host language", ....., scriptHost.getLanguage());
 
@@ -349,39 +357,43 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test006Schema() throws Exception {
         // WHEN
-        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resourceBean);
         displayDumpable("Resource schema", resourceSchema);
 
-        ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
-        assertNotNull("Account definition is missing", accountDef);
-        assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
-        assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
-        assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
-        assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
-        assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
-        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
+        ResourceObjectClassDefinition accountClassDef =
+                resourceSchema.findObjectClassDefinitionRequired(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+        assertNotNull("Account definition is missing", accountClassDef);
+        assertNotNull("Null identifiers in account", accountClassDef.getPrimaryIdentifiers());
+        assertFalse("Empty identifiers in account", accountClassDef.getPrimaryIdentifiers().isEmpty());
+        assertNotNull("Null secondary identifiers in account", accountClassDef.getSecondaryIdentifiers());
+        assertFalse("Empty secondary identifiers in account", accountClassDef.getSecondaryIdentifiers().isEmpty());
+        assertNotNull("No naming attribute in account", accountClassDef.getNamingAttribute());
+        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountClassDef.getNativeObjectClass()));
 
-        ResourceAttributeDefinition<String> idPrimaryDef = accountDef.findAttributeDefinition(getPrimaryIdentifierQName());
+        ResourceAttributeDefinition<?> idPrimaryDef =
+                accountClassDef.findAttributeDefinitionRequired(getPrimaryIdentifierQName());
         assertEquals(1, idPrimaryDef.getMaxOccurs());
         assertEquals(0, idPrimaryDef.getMinOccurs());
         assertFalse("UID has create", idPrimaryDef.canAdd());
         assertFalse("UID has update", idPrimaryDef.canModify());
         assertTrue("No UID read", idPrimaryDef.canRead());
-        assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(idPrimaryDef));
-        assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, idPrimaryDef.getFrameworkAttributeName());
+        assertTrue("UID definition not in identifiers", accountClassDef.getPrimaryIdentifiers().contains(idPrimaryDef));
+        assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName",
+                ProvisioningTestUtil.CONNID_UID_NAME, idPrimaryDef.getFrameworkAttributeName());
         assertEquals("Wrong primary identifier matching rule", PrismConstants.UUID_MATCHING_RULE_NAME, idPrimaryDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<String> idSecondaryDef = accountDef.findAttributeDefinition(getSecondaryIdentifierQName());
+        ResourceAttributeDefinition<?> idSecondaryDef =
+                accountClassDef.findAttributeDefinitionRequired(getSecondaryIdentifierQName());
         assertEquals(1, idSecondaryDef.getMaxOccurs());
         assertEquals(1, idSecondaryDef.getMinOccurs());
         assertTrue("No NAME create", idSecondaryDef.canAdd());
         assertTrue("No NAME update", idSecondaryDef.canModify());
         assertTrue("No NAME read", idSecondaryDef.canRead());
-        assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(idSecondaryDef));
+        assertTrue("NAME definition not in secondary identifiers", accountClassDef.getSecondaryIdentifiers().contains(idSecondaryDef));
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, idSecondaryDef.getFrameworkAttributeName());
         assertEquals("Wrong secondary identifier matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, idSecondaryDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
+        ResourceAttributeDefinition<?> cnDef = accountClassDef.findAttributeDefinition("cn");
         assertNotNull("No definition for cn", cnDef);
         assertEquals(-1, cnDef.getMaxOccurs());
         assertEquals(1, cnDef.getMinOccurs());
@@ -390,7 +402,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No cn read", cnDef.canRead());
         assertEquals("Wrong cn matching rule", PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME, cnDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<byte[]> jpegPhoto = accountDef.findAttributeDefinition("jpegPhoto");
+        ResourceAttributeDefinition<?> jpegPhoto = accountClassDef.findAttributeDefinition("jpegPhoto");
         assertNotNull("No definition for jpegPhoto", jpegPhoto);
         assertEquals(-1, jpegPhoto.getMaxOccurs());
         assertEquals(0, jpegPhoto.getMinOccurs());
@@ -399,7 +411,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No jpegPhoto read", jpegPhoto.canRead());
         assertNull("Wrong jpegPhoto matching rule", jpegPhoto.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<String> dsDef = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
+        ResourceAttributeDefinition<?> dsDef = accountClassDef.findAttributeDefinition("ds-pwp-account-disabled");
         assertNotNull("No definition for ds-pwp-account-disabled", dsDef);
         assertEquals(1, dsDef.getMaxOccurs());
         assertEquals(0, dsDef.getMinOccurs());
@@ -409,7 +421,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // TODO: MID-2358
 //        assertTrue("ds-pwp-account-disabled is NOT operational", dsDef.isOperational());
 
-        ResourceAttributeDefinition<String> memberOfDef = accountDef.findAttributeDefinition("isMemberOf");
+        ResourceAttributeDefinition<?> memberOfDef = accountClassDef.findAttributeDefinition("isMemberOf");
         assertNotNull("No definition for isMemberOf", memberOfDef);
         assertEquals(-1, memberOfDef.getMaxOccurs());
         assertEquals(0, memberOfDef.getMinOccurs());
@@ -418,7 +430,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No isMemberOf read", memberOfDef.canRead());
         assertEquals("Wrong isMemberOf matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, memberOfDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<String> labeledUriDef = accountDef.findAttributeDefinition("labeledURI");
+        ResourceAttributeDefinition<?> labeledUriDef = accountClassDef.findAttributeDefinition("labeledURI");
         assertNotNull("No definition for labeledUri", labeledUriDef);
         assertEquals(-1, labeledUriDef.getMaxOccurs());
         assertEquals(0, labeledUriDef.getMinOccurs());
@@ -427,7 +439,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No labeledUri read", labeledUriDef.canRead());
         assertNull("Wrong labeledUri matching rule", labeledUriDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<String> secretaryDef = accountDef.findAttributeDefinition("secretary");
+        ResourceAttributeDefinition<?> secretaryDef = accountClassDef.findAttributeDefinition("secretary");
         assertNotNull("No definition for secretary", secretaryDef);
         assertEquals(-1, secretaryDef.getMaxOccurs());
         assertEquals(0, secretaryDef.getMinOccurs());
@@ -436,7 +448,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No secretary read", secretaryDef.canRead());
         assertEquals("Wrong secretary matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, secretaryDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<String> createTimestampDef = accountDef.findAttributeDefinition("createTimestamp");
+        ResourceAttributeDefinition<?> createTimestampDef = accountClassDef.findAttributeDefinition("createTimestamp");
         assertNotNull("No definition for createTimestamp", createTimestampDef);
         assertTimestampType("createTimestamp", createTimestampDef);
         assertEquals(1, createTimestampDef.getMaxOccurs());
@@ -447,7 +459,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNull("Wrong createTimestamp matching rule", createTimestampDef.getMatchingRuleQName());
 
         // MID-5210
-        ResourceAttributeDefinition<String> descriptionDef = accountDef.findAttributeDefinition(ATTRIBUTE_DESCRIPTION_NAME);
+        ResourceAttributeDefinition<?> descriptionDef = accountClassDef.findAttributeDefinition(ATTRIBUTE_DESCRIPTION_NAME);
         assertNotNull("No definition for description", descriptionDef);
         assertPolyStringType("description", descriptionDef);
         assertEquals(-1, descriptionDef.getMaxOccurs());
@@ -458,18 +470,19 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNull("Wrong description matching rule", descriptionDef.getMatchingRuleQName());
 
         assertNull("The _PASSSWORD_ attribute sneaked into schema",
-                accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+                accountClassDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 
         assertNull("The userPassword attribute sneaked into schema",
-                accountDef.findAttributeDefinition(new QName(accountDef.getTypeName().getNamespaceURI(), "userPassword")));
+                accountClassDef.findAttributeDefinition(new QName(accountClassDef.getTypeName().getNamespaceURI(), "userPassword")));
 
         assertNull("The objectClass attribute sneaked into schema",
-                accountDef.findAttributeDefinition(new QName(accountDef.getTypeName().getNamespaceURI(), "objectClass")));
+                accountClassDef.findAttributeDefinition(new QName(accountClassDef.getTypeName().getNamespaceURI(), "objectClass")));
 
         assertNull("The objectclass attribute sneaked into schema",
-                accountDef.findAttributeDefinition(new QName(accountDef.getTypeName().getNamespaceURI(), "objectclass")));
+                accountClassDef.findAttributeDefinition(new QName(accountClassDef.getTypeName().getNamespaceURI(), "objectclass")));
 
-        ObjectClassComplexTypeDefinition posixAccountDef = resourceSchema.findObjectClassDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
+        ResourceObjectClassDefinition posixAccountDef =
+                resourceSchema.findObjectClassDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
         assertNotNull("posixAccount definition is missing", posixAccountDef);
         assertNotNull("Null identifiers in posixAccount", posixAccountDef.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in posixAccount", posixAccountDef.getPrimaryIdentifiers().isEmpty());
@@ -479,31 +492,33 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertFalse("No nativeObjectClass in posixAccount", StringUtils.isEmpty(posixAccountDef.getNativeObjectClass()));
         assertTrue("posixAccount is not auxiliary", posixAccountDef.isAuxiliary());
 
-        ResourceAttributeDefinition<String> posixIdPrimaryDef = posixAccountDef.findAttributeDefinition(getPrimaryIdentifierQName());
+        ResourceAttributeDefinition<?> posixIdPrimaryDef = posixAccountDef.findAttributeDefinition(getPrimaryIdentifierQName());
         assertEquals(1, posixIdPrimaryDef.getMaxOccurs());
         assertEquals(0, posixIdPrimaryDef.getMinOccurs());
         assertFalse("UID has create", posixIdPrimaryDef.canAdd());
         assertFalse("UID has update", posixIdPrimaryDef.canModify());
         assertTrue("No UID read", posixIdPrimaryDef.canRead());
-        assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(posixIdPrimaryDef));
+        assertTrue("UID definition not in identifiers", accountClassDef.getPrimaryIdentifiers().contains(posixIdPrimaryDef));
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, posixIdPrimaryDef.getFrameworkAttributeName());
 
-        ResourceAttributeDefinition<String> posixIdSecondaryDef = posixAccountDef.findAttributeDefinition(getSecondaryIdentifierQName());
+        ResourceAttributeDefinition<?> posixIdSecondaryDef = posixAccountDef.findAttributeDefinition(getSecondaryIdentifierQName());
         assertEquals(1, posixIdSecondaryDef.getMaxOccurs());
         assertEquals(1, posixIdSecondaryDef.getMinOccurs());
         assertTrue("No NAME create", posixIdSecondaryDef.canAdd());
         assertTrue("No NAME update", posixIdSecondaryDef.canModify());
         assertTrue("No NAME read", posixIdSecondaryDef.canRead());
-        assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(posixIdSecondaryDef));
+        assertTrue("NAME definition not in secondary identifiers", accountClassDef.getSecondaryIdentifiers().contains(posixIdSecondaryDef));
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, posixIdSecondaryDef.getFrameworkAttributeName());
 
-        ObjectClassComplexTypeDefinition normalDef = resourceSchema.findObjectClassDefinition(new QName(RESOURCE_NS, "normalTestingObjectClass"));
+        ResourceObjectClassDefinition normalDef =
+                resourceSchema.findObjectClassDefinition(new QName(RESOURCE_NS, "normalTestingObjectClass"));
         displayDumpable("normalTestingObjectClass object class def", normalDef);
         assertNotNull("No definition for normalTestingObjectClass", normalDef);
         assertNotNull("The cn attribute missing in normalTestingObjectClass",
                 normalDef.findAttributeDefinition(new QName(normalDef.getTypeName().getNamespaceURI(), "cn")));
 
-        ObjectClassComplexTypeDefinition hybridDef = resourceSchema.findObjectClassDefinition(new QName(RESOURCE_NS, "hybridTestingObjectClass"));
+        ResourceObjectClassDefinition hybridDef =
+                resourceSchema.findObjectClassDefinition(new QName(RESOURCE_NS, "hybridTestingObjectClass"));
         displayDumpable("Hybrid object class def", hybridDef);
         assertNotNull("No definition for hybridTestingObjectClass", hybridDef);
         assertNotNull("The cn attribute missing in hybridTestingObjectClass",
@@ -511,7 +526,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNotNull("The uuidIdentifiedAttribute attribute missing in hybridTestingObjectClass",
                 hybridDef.findAttributeDefinition(new QName(hybridDef.getTypeName().getNamespaceURI(), "uuidIdentifiedAttribute")));
 
-        ObjectClassComplexTypeDefinition uuidDef = resourceSchema.findObjectClassDefinition(new QName(RESOURCE_NS, "uuidIdentifiedObjectClass"));
+        ResourceObjectClassDefinition uuidDef =
+                resourceSchema.findObjectClassDefinition(new QName(RESOURCE_NS, "uuidIdentifiedObjectClass"));
         displayDumpable("uuidIdentifiedObjectClass object class def", uuidDef);
         assertNotNull("No definition for uuidIdentifiedObjectClass", uuidDef);
         assertNotNull("The uuidIdentifiedAttribute attribute missing in uuidIdentifiedObjectClass",
@@ -533,25 +549,26 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // GIVEN
 
         // WHEN
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType, prismContext);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resourceBean);
         displayDumpable("Refined schema", refinedSchema);
 
         // Check whether it is reusing the existing schema and not parsing it
         // all over again
         // Not equals() but == ... we want to really know if exactly the same
         // object instance is returned
-        assertSame("Broken caching", refinedSchema, RefinedResourceSchemaImpl.getRefinedSchema(resourceType, prismContext));
+        assertSame("Broken caching", refinedSchema, ResourceSchemaFactory.getCompleteSchema(resourceBean));
 
-        RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition accountDef = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         assertNotNull("Account definition is missing", accountDef);
         assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
         assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
         assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
         assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
-        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
+        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(
+                accountDef.getObjectClassDefinition().getNativeObjectClass()));
 
-        RefinedAttributeDefinition<String> idPrimaryDef = accountDef.findAttributeDefinition(getPrimaryIdentifierQName());
+        ResourceAttributeDefinition<?> idPrimaryDef = accountDef.findAttributeDefinition(getPrimaryIdentifierQName());
         assertEquals(1, idPrimaryDef.getMaxOccurs());
         assertEquals(0, idPrimaryDef.getMinOccurs());
         assertFalse("UID has create", idPrimaryDef.canAdd());
@@ -560,7 +577,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(idPrimaryDef));
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, idPrimaryDef.getFrameworkAttributeName());
 
-        RefinedAttributeDefinition<String> idSecondaryDef = accountDef.findAttributeDefinition(getSecondaryIdentifierQName());
+        ResourceAttributeDefinition<?> idSecondaryDef = accountDef.findAttributeDefinition(getSecondaryIdentifierQName());
         assertEquals(1, idSecondaryDef.getMaxOccurs());
         assertEquals(1, idSecondaryDef.getMinOccurs());
         assertTrue("No NAME create", idSecondaryDef.canAdd());
@@ -570,7 +587,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Wrong NAME matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, idSecondaryDef.getMatchingRuleQName());
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, idSecondaryDef.getFrameworkAttributeName());
 
-        RefinedAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
+        ResourceAttributeDefinition<?> cnDef = accountDef.findAttributeDefinition("cn");
         assertNotNull("No definition for cn", cnDef);
         assertEquals(-1, cnDef.getMaxOccurs());
         assertEquals(1, cnDef.getMinOccurs());
@@ -578,7 +595,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No cn update", cnDef.canModify());
         assertTrue("No cn read", cnDef.canRead());
 
-        ResourceAttributeDefinition<String> memberOfDef = accountDef.findAttributeDefinition("isMemberOf");
+        ResourceAttributeDefinition<?> memberOfDef = accountDef.findAttributeDefinition("isMemberOf");
         assertNotNull("No definition for isMemberOf", memberOfDef);
         assertEquals(-1, memberOfDef.getMaxOccurs());
         assertEquals(0, memberOfDef.getMinOccurs());
@@ -587,7 +604,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No isMemberOf read", memberOfDef.canRead());
         assertEquals("Wrong isMemberOf matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, memberOfDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<String> secretaryDef = accountDef.findAttributeDefinition("secretary");
+        ResourceAttributeDefinition<?> secretaryDef = accountDef.findAttributeDefinition("secretary");
         assertNotNull("No definition for secretary", secretaryDef);
         assertEquals(-1, secretaryDef.getMaxOccurs());
         assertEquals(0, secretaryDef.getMinOccurs());
@@ -596,7 +613,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No secretary read", secretaryDef.canRead());
         assertEquals("Wrong secretary matching rule", PrismConstants.XML_MATCHING_RULE_NAME, secretaryDef.getMatchingRuleQName());
 
-        RefinedAttributeDefinition<String> dsDef = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
+        ResourceAttributeDefinition<?> dsDef = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
         assertNotNull("No definition for cn", dsDef);
         assertEquals(1, dsDef.getMaxOccurs());
         assertEquals(0, dsDef.getMinOccurs());
@@ -610,35 +627,56 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNull("The _PASSSWORD_ attribute sneaked into schema",
                 accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 
-        RefinedObjectClassDefinition posixAccountDef = refinedSchema.getRefinedDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
-        assertNotNull("posixAccount definition is missing", posixAccountDef);
-        assertNotNull("Null identifiers in posixAccount", posixAccountDef.getPrimaryIdentifiers());
-        assertFalse("Empty identifiers in posixAccount", posixAccountDef.getPrimaryIdentifiers().isEmpty());
-        assertNotNull("Null secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers());
-        assertFalse("Empty secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers().isEmpty());
-        assertNotNull("No naming attribute in posixAccount", posixAccountDef.getNamingAttribute());
-        assertFalse("No nativeObjectClass in posixAccount", StringUtils.isEmpty(posixAccountDef.getNativeObjectClass()));
-        assertTrue("posixAccount is not auxiliary", posixAccountDef.isAuxiliary());
+        ResourceObjectClassDefinition posixAccountObjectClassDef =
+                refinedSchema.findObjectClassDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
+        assertNotNull("posixAccount definition is missing", posixAccountObjectClassDef);
+        assertNotNull("Null identifiers in posixAccount", posixAccountObjectClassDef.getPrimaryIdentifiers());
+        assertFalse("Empty identifiers in posixAccount", posixAccountObjectClassDef.getPrimaryIdentifiers().isEmpty());
+        assertNotNull("Null secondary identifiers in posixAccount", posixAccountObjectClassDef.getSecondaryIdentifiers());
+        assertFalse("Empty secondary identifiers in posixAccount", posixAccountObjectClassDef.getSecondaryIdentifiers().isEmpty());
+        assertNotNull("No naming attribute in posixAccount", posixAccountObjectClassDef.getNamingAttribute());
+        assertFalse("No nativeObjectClass in posixAccount",
+                StringUtils.isEmpty(posixAccountObjectClassDef.getObjectClassDefinition().getNativeObjectClass()));
+        assertTrue("posixAccount is not auxiliary", posixAccountObjectClassDef.getObjectClassDefinition().isAuxiliary());
 
-        RefinedAttributeDefinition<String> posixIdPrimaryDef = posixAccountDef.findAttributeDefinition(getPrimaryIdentifierQName());
+        ResourceAttributeDefinition<?> posixIdPrimaryDef =
+                posixAccountObjectClassDef.findAttributeDefinitionRequired(getPrimaryIdentifierQName());
         assertEquals(1, posixIdPrimaryDef.getMaxOccurs());
         assertEquals(0, posixIdPrimaryDef.getMinOccurs());
         assertFalse("UID has create", posixIdPrimaryDef.canAdd());
         assertFalse("UID has update", posixIdPrimaryDef.canModify());
         assertTrue("No UID read", posixIdPrimaryDef.canRead());
-        assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(posixIdPrimaryDef));
-        assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, posixIdPrimaryDef.getFrameworkAttributeName());
+        assertTrue("UID definition not in identifiers",
+                removeRefinedParts(accountDef.getPrimaryIdentifiers())
+                        .contains(posixIdPrimaryDef));
+        assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName",
+                ProvisioningTestUtil.CONNID_UID_NAME, posixIdPrimaryDef.getFrameworkAttributeName());
 
-        RefinedAttributeDefinition<String> posixIdSecondaryDef = posixAccountDef.findAttributeDefinition(getSecondaryIdentifierQName());
+        ResourceAttributeDefinition<?> posixIdSecondaryDef = posixAccountObjectClassDef.findAttributeDefinition(getSecondaryIdentifierQName());
         assertEquals(1, posixIdSecondaryDef.getMaxOccurs());
         assertEquals(1, posixIdSecondaryDef.getMinOccurs());
         assertTrue("No NAME create", posixIdSecondaryDef.canAdd());
         assertTrue("No NAME update", posixIdSecondaryDef.canModify());
         assertTrue("No NAME read", posixIdSecondaryDef.canRead());
-        assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(posixIdSecondaryDef));
-        assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, posixIdSecondaryDef.getFrameworkAttributeName());
+        assertTrue("NAME definition not in secondary identifiers",
+                removeRefinedParts(accountDef.getSecondaryIdentifiers())
+                        .contains(posixIdSecondaryDef));
+        assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName",
+                ProvisioningTestUtil.CONNID_NAME_NAME, posixIdSecondaryDef.getFrameworkAttributeName());
 
         assertShadows(1);
+    }
+
+    /**
+     * Removes the "refined" part (customization bean) from each resource attribute definition.
+     * Used to compare definitions from resource object type vs. resource object class.
+     */
+    private Collection<? extends ResourceAttributeDefinition<?>> removeRefinedParts(
+            Collection<? extends ResourceAttributeDefinition<?>> definitions) {
+        return definitions.stream()
+                .map(def -> ResourceAttributeDefinitionImpl.create(
+                        def.getRawAttributeDefinition()))
+                .collect(Collectors.toList());
     }
 
     @Test
@@ -876,7 +914,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         // THEN
         then();
-        ShadowType objType = null;
 
         try {
             provisioningService.getObject(ShadowType.class, ACCOUNT_SPARROW_OID, null, task, result);
@@ -886,8 +923,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         }
 
         try {
-            objType = getShadowRepo(ACCOUNT_SPARROW_OID).asObjectable();
-            // objType = container.getObject();
+            getShadowRepo(ACCOUNT_SPARROW_OID).asObjectable();
             Assert.fail("Expected exception, but haven't got one.");
         } catch (ObjectNotFoundException ex) {
             displayExpectedException(ex);
@@ -914,8 +950,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
 
-        ItemPath icfNamePath = ItemPath.create(
-                ShadowType.F_ATTRIBUTES, getSecondaryIdentifierQName());
+        ItemPath icfNamePath = ItemPath.create(ShadowType.F_ATTRIBUTES, getSecondaryIdentifierQName());
         PrismPropertyDefinition icfNameDef = object
                 .asPrismObject().getDefinition().findPropertyDefinition(icfNamePath);
         ItemDelta renameDelta = prismContext.deltaFactory().property()
@@ -1317,6 +1352,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertApproxNumberOfAllResults(searchMetadata, null);
     }
 
+    @Override
     protected void assertShadows(int expectedCount) throws SchemaException {
         OperationResult result = new OperationResult(TestOpenDj.class.getName() + ".assertShadows");
         int actualCount = repositoryService.countObjects(ShadowType.class, null, null, result);
@@ -1340,7 +1376,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         System.out.println(SchemaDebugUtil.prettyPrint(object));
         System.out.println(object.asPrismObject().debugDump());
 
-        String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+        String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
         assertEquals(ACCOUNT_DISABLE_SIMULATED_OID, addedObjectOid);
 
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(
@@ -1355,14 +1391,15 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         // THEN
         then();
-        ShadowType accountType = provisioningService.getObject(ShadowType.class,
-                ACCOUNT_DISABLE_SIMULATED_OID, null, taskManager.createTaskInstance(), result).asObjectable();
+        ShadowType accountAfter = provisioningService.getObject(ShadowType.class,
+                ACCOUNT_DISABLE_SIMULATED_OID, null, task, result).asObjectable();
 
-        display("Object after change", accountType);
+        display("Object after change", accountAfter);
 
-        assertEquals("The account was not disabled in the shadow", ActivationStatusType.DISABLED, accountType.getActivation().getAdministrativeStatus());
+        assertEquals("The account was not disabled in the shadow",
+                ActivationStatusType.DISABLED, accountAfter.getActivation().getAdministrativeStatus());
 
-        String uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());
+        String uid = ShadowUtil.getSingleStringAttributeValue(accountAfter, getPrimaryIdentifierQName());
         assertNotNull(uid);
 
         // Check if object was modified in LDAP
@@ -1383,7 +1420,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         XMLGregorianCalendar repoDisableTimestamp = repoActivation.getDisableTimestamp();
         assertNotNull("No activation disableTimestamp in repo", repoDisableTimestamp);
         assertEquals("Wrong activation disableTimestamp in repo",
-                XmlTypeConverter.createXMLGregorianCalendar(2001, 2, 3, 4, 5, 6), repoDisableTimestamp);
+                XmlTypeConverter.createXMLGregorianCalendar(2001, 2, 3, 4, 5, 6),
+                repoDisableTimestamp);
     }
 
     @Test
@@ -1771,7 +1809,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_OPENDJ_OID)
                 .and().item(ShadowType.F_KIND).eq(ShadowKindType.ENTITLEMENT)
                 .and().item(ShadowType.F_INTENT).eq("unlimitedGroup")
-                .and().item(PATH_CN, getAccountAttributeDefinition(QNAME_CN)).eq("Will Turner")
+                .and().item(PATH_CN, getAccountAttributeDefinitionRequired(QNAME_CN)).eq("Will Turner")
                 .build();
 
         when();
@@ -2218,7 +2256,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // WHEN
         when();
         List<PrismObject<ShadowType>> objListType =
-                provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+                provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
         then();
@@ -2560,7 +2598,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = deltaFor(ShadowType.class)
-                .item(PATH_DN, getAccountAttributeDefinition(QNAME_DN))
+                .item(PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
                 .replace("uid=morgan,ou=People,dc=example,dc=com")
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
 
@@ -2593,14 +2631,14 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> rotDelta = deltaFor(ShadowType.class)
-                .item(PATH_DN, getAccountAttributeDefinition(QNAME_DN))
+                .item(PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
                 .replace("uid=morgan-rotten,ou=People,dc=example,dc=com")
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
         repositoryService.modifyObject(ShadowType.class, ACCOUNT_MORGAN_OID, rotDelta.getModifications(), result);
 
         // This is no-op on resource. (The DN on resource has not changed.)
         ObjectDelta<ShadowType> delta = deltaFor(ShadowType.class)
-                .item(PATH_DN, getAccountAttributeDefinition(QNAME_DN))
+                .item(PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
                 .replace("uid=morgan,ou=People,dc=example,dc=com")
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
 
@@ -2691,7 +2729,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
-                ShadowKindType.ENTITLEMENT, "ldapGroup", prismContext);
+                ShadowKindType.ENTITLEMENT, "ldapGroup");
         displayDumpable("query", query);
 
         // WHEN
@@ -2715,7 +2753,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
-                ShadowKindType.ENTITLEMENT, "specialGroup", prismContext);
+                ShadowKindType.ENTITLEMENT, "specialGroup");
         displayDumpable("query", query);
 
         // WHEN
@@ -2780,7 +2818,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
-                ShadowKindType.ENTITLEMENT, "ldapGroup", prismContext);
+                ShadowKindType.ENTITLEMENT, "ldapGroup");
         displayDumpable("query", query);
 
         // WHEN
@@ -2804,7 +2842,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
-                ShadowKindType.ENTITLEMENT, "specialGroup", prismContext);
+                ShadowKindType.ENTITLEMENT, "specialGroup");
         displayDumpable("query", query);
 
         // WHEN
@@ -2840,7 +2878,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
-                ShadowKindType.GENERIC, "ou-people", prismContext);
+                ShadowKindType.GENERIC, "ou-people");
         displayDumpable("query", query);
 
         // WHEN
@@ -3447,9 +3485,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OpenDJController.assertAttributeLang(entry, ATTRIBUTE_DESCRIPTION_NAME, expectedOrigValue, params);
     }
 
-    private <T> ResourceAttributeDefinition<T> getAccountAttributeDefinition(QName attrName) throws SchemaException {
-        return RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext)
-                .findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS)
-                .findAttributeDefinition(attrName);
+    private <T> ResourceAttributeDefinition<T> getAccountAttributeDefinitionRequired(QName attrName) throws SchemaException {
+        //noinspection unchecked
+        return (ResourceAttributeDefinition<T>)
+                ResourceSchemaFactory.getRawSchema(resourceBean)
+                        .findObjectClassDefinitionRequired(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS)
+                        .findAttributeDefinitionRequired(attrName);
     }
 }

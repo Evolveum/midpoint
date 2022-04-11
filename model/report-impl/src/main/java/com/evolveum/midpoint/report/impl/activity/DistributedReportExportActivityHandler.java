@@ -99,7 +99,7 @@ public class DistributedReportExportActivityHandler
                 (context, result) -> new ReportDataAggregationActivityRun(context),
                 null,
                 (i) -> "data-aggregation",
-                ActivityStateDefinition.normal(),
+                ActivityStateDefinition.normal(ReportExportWorkStateType.COMPLEX_TYPE),
                 parentActivity));
         return children;
     }

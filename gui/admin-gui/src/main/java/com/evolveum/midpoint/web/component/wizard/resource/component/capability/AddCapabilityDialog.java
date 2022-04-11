@@ -100,7 +100,7 @@ public class AddCapabilityDialog extends ModalWindow {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return PageBase.createStringResourceStatic(this, resourceKey, objects);
+        return PageBase.createStringResourceStatic(resourceKey, objects);
     }
 
     private void initLayout(WebMarkupContainer container){

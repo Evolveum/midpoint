@@ -98,6 +98,10 @@ public class ObjectQueryUtil {
         return prismContext.queryFactory().createQuery(createResourceAndObjectClassFilter(resourceOid, objectClass, prismContext));
     }
 
+    public static @NotNull ObjectQuery createResourceAndObjectClassQuery(String resourceOid, QName objectClass) {
+        return createResourceAndObjectClassQuery(resourceOid, objectClass, PrismContext.get());
+    }
+
     public static ObjectFilter createResourceAndObjectClassFilter(String resourceOid, QName objectClass, PrismContext prismContext) {
         Validate.notNull(resourceOid, "Resource where to search must not be null.");
         Validate.notNull(objectClass, "Object class to search must not be null.");
@@ -116,9 +120,10 @@ public class ObjectQueryUtil {
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClass);
     }
 
-    public static @NotNull ObjectQuery createResourceAndKindIntent(String resourceOid, ShadowKindType kind, String intent, PrismContext prismContext) throws SchemaException {
-        return prismContext.queryFactory().createQuery(
-                createResourceAndKindIntentFilter(resourceOid, kind, intent, prismContext));
+    public static @NotNull ObjectQuery createResourceAndKindIntent(String resourceOid, ShadowKindType kind, String intent)
+            throws SchemaException {
+        return PrismContext.get().queryFactory().createQuery(
+                createResourceAndKindIntentFilter(resourceOid, kind, intent, PrismContext.get()));
     }
 
     public static ObjectQuery createResourceAndKind(String resourceOid, ShadowKindType kind, PrismContext prismContext) throws SchemaException {
@@ -575,8 +580,13 @@ public class ObjectQueryUtil {
         return propertyValue != null ? propertyValue.getValue() : null;
     }
 
-    public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter,
-            PrismContext prismContext) throws SchemaException {
+    @Deprecated // replace by a version without prismContext
+    public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter, PrismContext prismContext) throws SchemaException {
+        return getCoordinates(filter);
+    }
+
+    public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter) throws SchemaException {
+        PrismContext prismContext = PrismContext.get();
         String resourceOid = getResourceOidFromFilter(filter, prismContext);
         QName objectClass = getPropertyRealValueFromFilter(filter, ShadowType.F_OBJECT_CLASS, prismContext);
         ShadowKindType kind = getKindFromFilter(filter, prismContext);

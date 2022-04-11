@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.Abstract
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
 
@@ -42,7 +43,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -300,6 +300,20 @@ public class MemberOperationsHelper {
     }
 
     /**
+     * Creates reference values pointing to given target with given relations.
+     *
+     * @param relations The relations. Must be at least one, otherwise the resulting list (to be used in a query, presumably)
+     * will be empty, making the query wrong.
+     */
+    public static @NotNull List<PrismReferenceValue> createReferenceValuesList(@NotNull ObjectReferenceType targetObjectRef,
+            @NotNull Collection<QName> relations) {
+        argCheck(!relations.isEmpty(), "At least one relation must be specified");
+        return relations.stream()
+                .map(relation -> targetObjectRef.relation(relation).asReferenceValue().clone())
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Creates a query covering all selected objects (converts list of objects to a multivalued "OID" query).
      */
     public static @NotNull ObjectQuery createSelectedObjectsQuery(@NotNull List<? extends ObjectType> selectedObjects) {
@@ -448,7 +462,7 @@ public class MemberOperationsHelper {
 
         Task task = pageBase.createSimpleTask(taskSpec.operationName);
         task.setName(taskSpec.taskName);
-        MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal owner = AuthUtil.getPrincipalUser();
         task.setOwner(owner.getFocus().asPrismObject());
         task.setInitiallyRunnable();
         task.setThreadStopAction(ThreadStopActionType.RESTART);

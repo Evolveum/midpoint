@@ -9,7 +9,11 @@ package com.evolveum.midpoint.web.page.error;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -23,10 +27,9 @@ import org.apache.wicket.request.http.WebResponse;
 import org.springframework.http.HttpStatus;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -135,6 +138,7 @@ public class PageError extends PageBase {
                 backPerformed(target);
             }
         };
+        back.add(new VisibleBehaviour(() -> PageError.this.getBreadcrumbs().size() > 1));
         add(back);
 
         AjaxButton home = new AjaxButton(ID_HOME, createStringResource("PageError.button.home")) {
@@ -151,7 +155,7 @@ public class PageError extends PageBase {
         form.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return SecurityUtils.getPrincipalUser() != null;
+                return AuthUtil.getPrincipalUser() != null;
             }
         });
         add(form);
@@ -201,11 +205,16 @@ public class PageError extends PageBase {
     }
 
     private String getUrlForLogout() {
-        ModuleAuthentication moduleAuthentication = SecurityUtils.getAuthenticatedModule();
+        ModuleAuthentication moduleAuthentication = AuthUtil.getAuthenticatedModule();
 
         if (moduleAuthentication == null) {
             return SecurityUtils.DEFAULT_LOGOUT_PATH;
         }
-        return SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), moduleAuthentication);
+        return SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), moduleAuthentication.getPrefix());
+    }
+
+    @Override
+    protected void createBreadcrumb() {
+        //don't create breadcrumb for error page
     }
 }

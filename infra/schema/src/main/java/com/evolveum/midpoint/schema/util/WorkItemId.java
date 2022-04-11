@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.jetbrains.annotations.NotNull;
 

@@ -15,6 +15,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -120,7 +123,11 @@ public class PageTasks extends PageAdmin {
             @Override
             public IModel<ObjectReferenceType> extractDataModel(IModel<SelectableBean<TaskType>> rowModel) {
                 SelectableBean<TaskType> bean = rowModel.getObject();
-                return Model.of(bean.getValue().getObjectRef());
+                ObjectReferenceType objectRef = bean.getValue().getObjectRef();
+                if (objectRef != null) {
+                    objectRef.asReferenceValue().clearParent();
+                }
+                return Model.of(objectRef);
 
             }
         });
@@ -219,7 +226,7 @@ public class PageTasks extends PageAdmin {
         List<Object> localizationObjects = new ArrayList<>();
         String key = TaskTypeUtil.createScheduledToRunAgain(taskModel.getObject().getValue(), localizationObjects);
 
-        return PageBase.createStringResourceStatic(this, key, localizationObjects.isEmpty() ? null : localizationObjects.toArray())
+        return PageBase.createStringResourceStatic(key, localizationObjects.isEmpty() ? null : localizationObjects.toArray())
                 .getString();
     }
 

@@ -55,7 +55,6 @@ import static org.testng.AssertJUnit.assertTrue;
  * Tests readReplaceMode feature (along with the attribute modification priorities).
  *
  * @author Radovan Semancik
- * @author Pavol Mederly
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -81,7 +80,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         super.initSystem(initTask, initResult);
         InternalMonitor.setTrace(InternalOperationClasses.CONNECTOR_OPERATIONS, true);
         // in order to have schema available here
-        resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, taskManager.createTaskInstance(), initResult).asObjectable();
+        resourceBean = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, taskManager.createTaskInstance(), initResult).asObjectable();
     }
 
     // copied from TestDummy
@@ -176,22 +175,22 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
                 ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Master Will Turner");
         PropertyDelta<String> weaponDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeWeaponPath());
         weaponDelta.setDefinition(
-                getAttributeDefinition(resourceType,
-                        ShadowKindType.ACCOUNT, null,
+                getAttributeDefinitionRequired(resourceBean,
+                        ShadowKindType.ACCOUNT,
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
         weaponDelta.setRealValuesToReplace("Gun");
         objectDelta.addModification(weaponDelta);
         PropertyDelta<Integer> lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
         lootDelta.setDefinition(
-                getAttributeDefinition(resourceType,
-                        ShadowKindType.ACCOUNT, null,
+                getAttributeDefinitionRequired(resourceBean,
+                        ShadowKindType.ACCOUNT,
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
         lootDelta.setRealValuesToReplace(43);
         objectDelta.addModification(lootDelta);
         PropertyDelta<String> titleDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
         titleDelta.setDefinition(
-                getAttributeDefinition(resourceType,
-                        ShadowKindType.ACCOUNT, null,
+                getAttributeDefinitionRequired(resourceBean,
+                        ShadowKindType.ACCOUNT,
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
         titleDelta.setRealValuesToReplace("Pirate Master");
         objectDelta.addModification(titleDelta);
@@ -272,8 +271,8 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         // read replace attribute, priority 0
         PropertyDelta<String> weaponDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeWeaponPath());
         weaponDelta.setDefinition(
-                getAttributeDefinition(resourceType,
-                        ShadowKindType.ACCOUNT, null,
+                getAttributeDefinitionRequired(resourceBean,
+                        ShadowKindType.ACCOUNT,
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
         weaponDelta.addRealValuesToAdd("Sword");
         weaponDelta.addRealValuesToDelete("GUN");            // case-insensitive treatment should work here
@@ -281,8 +280,8 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         // read replace attribute, priority 1
         PropertyDelta<Integer> lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
         lootDelta.setDefinition(
-                getAttributeDefinition(resourceType,
-                        ShadowKindType.ACCOUNT, null,
+                getAttributeDefinitionRequired(resourceBean,
+                        ShadowKindType.ACCOUNT,
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
         lootDelta.addRealValuesToAdd(44);
         lootDelta.addRealValuesToDelete(43);
@@ -290,8 +289,8 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         // NOT a read-replace attribute
         PropertyDelta<String> titleDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
         titleDelta.setDefinition(
-                getAttributeDefinition(resourceType,
-                        ShadowKindType.ACCOUNT, null,
+                getAttributeDefinitionRequired(resourceBean,
+                        ShadowKindType.ACCOUNT,
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
         titleDelta.addRealValuesToAdd("Pirate Great Master");
         titleDelta.addRealValuesToDelete("Pirate Master");
@@ -299,8 +298,8 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         // read replace attribute
         PropertyDelta<String> drinkDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
         drinkDelta.setDefinition(
-                getAttributeDefinition(resourceType,
-                        ShadowKindType.ACCOUNT, null,
+                getAttributeDefinitionRequired(resourceBean,
+                        ShadowKindType.ACCOUNT,
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
         drinkDelta.addRealValuesToAdd("orange juice");
         objectDelta.addModification(drinkDelta);

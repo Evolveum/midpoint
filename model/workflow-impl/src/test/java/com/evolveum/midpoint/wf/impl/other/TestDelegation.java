@@ -11,8 +11,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -30,9 +30,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDeleg
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.REPLACE_ASSIGNEES;
 import static org.testng.AssertJUnit.assertEquals;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestDelegation extends AbstractWfTestPolicy {
@@ -102,7 +99,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
             WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
                     .delegate(ort(USER_GIRTH_OID))
                     .method(ADD_ASSIGNEES);
-            workflowService.delegateWorkItem(workItemId, request, task, result);
+            caseService.delegateWorkItem(workItemId, request, task, result);
             fail("delegate succeeded even if it shouldn't");
         } catch (SecurityViolationException e) {
             // ok
@@ -123,7 +120,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
                 .delegate(ort(USER_GIRTH_OID))
                 .method(ADD_ASSIGNEES)
                 .comment("check this");
-        workflowService.delegateWorkItem(workItemId, request, task, result);
+        caseService.delegateWorkItem(workItemId, request, task, result);
 
         result.computeStatus();
         assertSuccess(result);
@@ -154,7 +151,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
         WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
                 .delegate(ort(USER_KEEN_OID))
                 .method(REPLACE_ASSIGNEES);
-        workflowService.delegateWorkItem(workItemId, request, task, result);
+        caseService.delegateWorkItem(workItemId, request, task, result);
 
         result.computeStatus();
         assertSuccess(result);
@@ -182,7 +179,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 
         WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
                 .method(REPLACE_ASSIGNEES);
-        workflowService.delegateWorkItem(workItemId, request, task, result);
+        caseService.delegateWorkItem(workItemId, request, task, result);
 
         result.computeStatus();
         assertSuccess(result);

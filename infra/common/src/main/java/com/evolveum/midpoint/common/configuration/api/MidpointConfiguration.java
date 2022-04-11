@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -20,6 +20,9 @@ public interface MidpointConfiguration {
     String MIDPOINT_LOGGING_ALT_PREFIX_PROPERTY = "midpoint.logging.alt.prefix";
 
     String USER_HOME_PROPERTY = "user.home";
+
+    /** Property for config file name override; if empty, default value is used. */
+    String MIDPOINT_CONFIG_FILE_PROPERTY = "midpoint.configFile";
 
     // Other commonly-used configuration properties
     String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
@@ -42,6 +45,7 @@ public interface MidpointConfiguration {
     String WEB_APP_CONFIGURATION = "midpoint.webApplication";
     String WORKFLOW_CONFIGURATION = "midpoint.workflow";
     String INTERNALS_CONFIGURATION = "midpoint.internals";
+
     /**
      * Reference to midpoint-system.properties generated in system-init component.
      * It is generated during the build.
@@ -51,7 +55,7 @@ public interface MidpointConfiguration {
     String MIDPOINT_SYSTEM_PROPERTIES_BASE_PATH = "midpoint-system";
 
     /**
-     * @return midPoint home directory. Currently it is the same value as in "midpoint.home" system property.
+     * @return midPoint home directory. Currently, it is the same value as in "midpoint.home" system property.
      */
     String getMidpointHome();
 

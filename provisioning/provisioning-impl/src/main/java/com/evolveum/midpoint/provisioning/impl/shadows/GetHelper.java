@@ -109,9 +109,10 @@ class GetHelper {
             throw new IllegalArgumentException("Provided OID is not equal to OID of repository shadow");
         }
 
-        ProvisioningContext ctx = ctxFactory.create(repoShadow, task, parentResult);
-        ctx.setGetOperationOptions(options);
+        ProvisioningContext ctx;
         try {
+            ctx = ctxFactory.createForShadow(repoShadow, task, parentResult);
+            ctx.setGetOperationOptions(options);
             ctx.assertDefinition();
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException | CommunicationException | ExpressionEvaluationException e) {
             if (isRaw(rootOptions)) {
@@ -119,7 +120,7 @@ class GetHelper {
                 //TODO maybe change assertDefinition to consider rawOption?
                 parentResult.computeStatusIfUnknown();
                 parentResult.muteError();
-                shadowCaretaker.updateShadowState(ctx, repoShadow);
+                shadowCaretaker.updateShadowStateInEmergency(repoShadow);
                 return repoShadow;
             }
             throw e;
@@ -194,6 +195,7 @@ class GetHelper {
             Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repoShadow);
             if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
                 if (ProvisioningUtil.hasPendingAddOperation(repoShadow) ||
+                        ProvisioningUtil.hasPendingDeleteOperation(repoShadow) ||
                         ShadowUtil.isDead(repoShadow.asObjectable())) {
                     if (ProvisioningUtil.isFuturePointInTime(options)) {
                         // Get of uncreated or dead shadow, we want to see future state (how the shadow WILL look like).
@@ -230,7 +232,7 @@ class GetHelper {
 
             try {
 
-                resourceObject = resourceObjectConverter.getResourceObject(ctx, identifiers, repoShadow.getOid(), true, parentResult);
+                resourceObject = resourceObjectConverter.getResourceObject(ctx, identifiers, repoShadow, true, parentResult);
 
             } catch (ObjectNotFoundException e) {
                 // This may be OK, e.g. for connectors that have running async add operation.
@@ -264,7 +266,7 @@ class GetHelper {
             // in repo shadow, therefore the following 2 lines..
             resourceObject.asObjectable().setKind(repoShadow.asObjectable().getKind());
             resourceObject.asObjectable().setIntent(repoShadow.asObjectable().getIntent());
-            ProvisioningContext shadowCtx = ctx.spawn(resourceObject);
+            ProvisioningContext shadowCtx = ctx.spawnForShadow(resourceObject);
 
             String operationCtx = "getting " + repoShadow + " was successful.";
 

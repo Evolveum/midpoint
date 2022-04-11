@@ -14,23 +14,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.deleg.ResourceObjectDefinitionDelegator;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutableComplexTypeDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.deleg.ComplexTypeDefinitionDelegator;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
-import com.evolveum.midpoint.schema.processor.MutableObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.deleg.ObjectClassTypeDefinitionDelegator;
+import com.evolveum.midpoint.schema.processor.MutableResourceObjectClassDefinition;
 
 public class TransformableComplexTypeDefinition implements ComplexTypeDefinitionDelegator, PartiallyMutableComplexTypeDefinition {
 
@@ -39,7 +42,7 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
     private static final TransformableItemDefinition REMOVED = new Removed();
     private final Map<QName,ItemDefinition<?>> overrides = new HashMap<>();
 
-    private DelegatedItem<ComplexTypeDefinition> delegate;
+    protected DelegatedItem<ComplexTypeDefinition> delegate;
     private transient List<ItemDefinition<?>> definitionsCache;
 
     public TransformableComplexTypeDefinition(ComplexTypeDefinition delegate) {
@@ -47,7 +50,7 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         if (schemaDef == delegate) {
             this.delegate = new DelegatedItem.StaticComplexType(delegate);
         } else {
-            this.delegate = new DelegatedItem.FullySerializable<ComplexTypeDefinition>(delegate);
+            this.delegate = new DelegatedItem.FullySerializable<>(delegate);
         }
     }
 
@@ -57,8 +60,8 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
     }
 
     public static TransformableComplexTypeDefinition from(ComplexTypeDefinition complexTypeDefinition) {
-        if (complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
-            return new ObjectClass(complexTypeDefinition);
+        if (complexTypeDefinition instanceof com.evolveum.midpoint.schema.processor.ResourceObjectDefinition) {
+            return new TrResourceObjectDefinition(complexTypeDefinition);
         }
         if (complexTypeDefinition != null) {
             return new TransformableComplexTypeDefinition(complexTypeDefinition);
@@ -68,7 +71,7 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
 
     @SuppressWarnings("rawtypes")
     @Override
-    public <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name) {
+    public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(@NotNull QName name) {
         return overriden(ComplexTypeDefinitionDelegator.super.findLocalItemDefinition(name));
     }
 
@@ -85,16 +88,15 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         return (ID) overriden;
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
-    public <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
+    public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
             boolean caseInsensitive) {
         return overriden(ComplexTypeDefinitionDelegator.super.findLocalItemDefinition(name, clazz, caseInsensitive));
     }
 
     @SuppressWarnings("rawtypes")
     @Override
-    public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
+    public <ID extends ItemDefinition<?>> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
         // FIXME: Implement proper
         var firstChild = overriden(ComplexTypeDefinitionDelegator.super.findItemDefinition(path));
         if (firstChild == null) {
@@ -108,14 +110,13 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
 
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path) {
+    public <ID extends ItemDefinition<?>> ID findItemDefinition(@NotNull ItemPath path) {
+        //noinspection unchecked
         return (ID) findItemDefinition(path, ItemDefinition.class);
     }
 
     @SuppressWarnings("rawtypes")
-    @Override
     public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest,
             @NotNull Class<ID> clazz) {
 
@@ -172,7 +173,7 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
     }
 
     @Override
-    public ComplexTypeDefinition clone() {
+    public @NotNull ComplexTypeDefinition clone() {
         throw new UnsupportedOperationException();
     }
 
@@ -186,31 +187,19 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         // NOOP for now
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
-    public @NotNull ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap,
-            Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
-        if (ctdMap != null) {
-            ComplexTypeDefinition clone = ctdMap.get(this.getTypeName());
-            if (clone != null) {
-                return clone; // already cloned
-            }
-        }
-        ComplexTypeDefinition cloneInParent = onThisPath.get(this.getTypeName());
-        if (cloneInParent != null) {
-            return cloneInParent;
-        }
-        var copy = copy();
-        if (ctdMap != null) {
-            ctdMap.put(this.getTypeName(), copy);
-        }
-        onThisPath.put(this.getTypeName(), copy);
-        for (Entry<QName, ItemDefinition<?>> entry : overrides.entrySet()) {
-            ItemDefinition<?> item = entry.getValue().deepClone(ctdMap, onThisPath, postCloneAction);
-            copy.overrides.put(entry.getKey(), item);
-        }
-        onThisPath.remove(this.getTypeName());
-        return copy;
+    public @NotNull ComplexTypeDefinition deepClone(
+            @NotNull DeepCloneOperation operation) {
+        return operation.execute(
+                this,
+                this::copy,
+                copy -> {
+                    for (Entry<QName, ItemDefinition<?>> entry : overrides.entrySet()) {
+                        ItemDefinition<?> item = entry.getValue().deepClone(operation);
+                        ((TransformableComplexTypeDefinition) copy).overrides.put(entry.getKey(), item);
+                        // TODO what about "post action" ?
+                    }
+                });
     }
 
     @Override
@@ -227,7 +216,7 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
      */
     @SuppressWarnings("rawtypes")
     @Override
-    public void replaceDefinition(QName name, ItemDefinition definition) {
+    public void replaceDefinition(@NotNull QName name, ItemDefinition definition) {
         overrides.put(name, definition);
     }
 
@@ -261,41 +250,64 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         }
     }
 
-    public static class ObjectClass extends TransformableComplexTypeDefinition
-            implements ObjectClassTypeDefinitionDelegator, PartiallyMutableComplexTypeDefinition.ObjectClassDefinition {
+    public static class TrResourceObjectDefinition extends TransformableComplexTypeDefinition
+            implements ResourceObjectDefinitionDelegator, PartiallyMutableComplexTypeDefinition.ObjectClassDefinition {
 
         private static final long serialVersionUID = 1L;
 
-        public ObjectClass(ComplexTypeDefinition delegate) {
+        public TrResourceObjectDefinition(ComplexTypeDefinition delegate) {
             super(delegate);
         }
 
         @Override
-        public ObjectClassComplexTypeDefinition delegate() {
-            return (ObjectClassComplexTypeDefinition) super.delegate();
+        public ResourceObjectDefinition delegate() {
+            return (ResourceObjectDefinition) super.delegate();
         }
 
         @Override
-        public MutableObjectClassComplexTypeDefinition clone() {
+        public String getNativeObjectClass() {
+            return null;
+        }
+
+        @Override
+        public boolean isAuxiliary() {
+            return false;
+        }
+
+        @Override
+        public boolean isDefaultAccountDefinition() {
+            return false;
+        }
+
+        @Override
+        public @NotNull MutableResourceObjectClassDefinition clone() {
             return copy();
         }
 
         @Override
-        public ObjectClass copy() {
-            return new ObjectClass(this);
+        public TrResourceObjectDefinition copy() {
+            return new TrResourceObjectDefinition(this);
         }
 
         @Override
-        public MutableObjectClassComplexTypeDefinition toMutable() {
+        public MutableResourceObjectClassDefinition toMutable() {
             return this;
         }
 
         @Override
-        public @NotNull ObjectClassComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap,
-                Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
-            return (ObjectClassComplexTypeDefinition) super.deepClone(ctdMap, onThisPath, postCloneAction);
+        public @NotNull ResourceObjectClassDefinition deepClone(@NotNull DeepCloneOperation operation) {
+            return (ResourceObjectClassDefinition) super.deepClone(operation);
         }
 
+        @Override
+        public @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+            return ResourceObjectDefinitionDelegator.super.createShadowSearchQuery(resourceOid);
+        }
+
+        @Override
+        public ResourceAttributeContainer instantiate(ItemName elementName) {
+            return ResourceObjectDefinitionDelegator.super.instantiate(elementName);
+        }
     }
 
     @SuppressWarnings("rawtypes")
@@ -326,6 +338,12 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         @Override
         protected TransformableItemDefinition copy() {
             return this;
+        }
+
+        // TODO why is this needed?
+        @Override
+        public boolean canBeDefinitionOf(Item item) {
+            return false;
         }
     }
 

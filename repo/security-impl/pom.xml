@@ -36,17 +36,17 @@
             <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-impl</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.5-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-api</artifactId>
-            <version>4.5-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
@@ -57,7 +57,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>
-            <version>4.5-SNAPSHOT</version>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -82,7 +82,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
-            <version>4.5-SNAPSHOT</version>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -103,7 +103,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl</artifactId>
-            <version>4.5-SNAPSHOT</version>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -120,25 +120,20 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-test-util</artifactId>
-            <version>4.5-SNAPSHOT</version>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>system-init</artifactId>
-            <version>4.5-SNAPSHOT</version>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-log-impl</artifactId>
-            <version>4.5-SNAPSHOT</version>
+            <version>${project.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>model-api</artifactId>
-            <version>4.5-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>

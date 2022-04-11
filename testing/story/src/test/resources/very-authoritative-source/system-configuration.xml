@@ -1,0 +1,56 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="00000000-0000-0000-0000-000000000001">
+    <name>SystemConfiguration</name>
+    <indestructible>true</indestructible>
+    <defaultObjectPolicyConfiguration>
+        <objectTemplateRef oid="7223de34-5797-4f71-a4b8-27e33eb11300" />
+        <type>UserType</type>
+    </defaultObjectPolicyConfiguration>
+    <internals>
+        <tracing>
+            <profile>
+                <name>functional-model-logging</name>
+                <displayName>Functional tracing (with model logging)</displayName>
+                <visible>true</visible>
+                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
+                <createRepoObject>true</createRepoObject>
+                <compressOutput>true</compressOutput>
+                <collectLogEntries>true</collectLogEntries>
+                <loggingOverride>
+                    <levelOverride>
+                        <logger>com.evolveum.midpoint.model</logger>
+                        <level>TRACE</level>
+                    </levelOverride>
+                </loggingOverride>
+                <tracingTypeProfile>
+                    <level>normal</level>
+                </tracingTypeProfile>
+            </profile>
+            <profile>
+                <name>minimal-model-logging</name>
+                <displayName>Minimal tracing w/ logging</displayName>
+                <visible>true</visible>
+                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
+                <createRepoObject>true</createRepoObject>
+                <compressOutput>true</compressOutput>
+                <collectLogEntries>true</collectLogEntries>
+                <loggingOverride>
+                    <levelOverride>
+                        <logger>com.evolveum.midpoint.model</logger>
+                        <level>TRACE</level>
+                    </levelOverride>
+                </loggingOverride>
+                <tracingTypeProfile>
+                    <level>minimal</level>
+                </tracingTypeProfile>
+            </profile>
+        </tracing>
+    </internals>
+</systemConfiguration>

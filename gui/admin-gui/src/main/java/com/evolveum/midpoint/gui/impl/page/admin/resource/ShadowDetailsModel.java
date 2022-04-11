@@ -14,14 +14,16 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.apache.wicket.model.LoadableDetachableModel;
+
 public class ShadowDetailsModel extends ObjectDetailsModels<ShadowType> {
 
-    public ShadowDetailsModel(LoadableModel<PrismObject<ShadowType>> prismObjectModel, ModelServiceLocator serviceLocator) {
+    public ShadowDetailsModel(LoadableDetachableModel<PrismObject<ShadowType>> prismObjectModel, ModelServiceLocator serviceLocator) {
         super(prismObjectModel, serviceLocator);
     }
 
     protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<ShadowType> prismObject) {
-        return getModelServiceLocator().getCompiledGuiProfile().findShadowDetailsConfiguration(createResourceShadowDiscriminator(prismObject.asObjectable()));
+        return getModelServiceLocator().getCompiledGuiProfile().findShadowDetailsConfiguration(createResourceShadowDiscriminator(getPrismObject().asObjectable()));
     }
 
     private ResourceShadowDiscriminator createResourceShadowDiscriminator(ShadowType shadow) {

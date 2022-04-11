@@ -66,10 +66,12 @@ class CloseHelper {
             }
         }
 
+        // TODO Clean up the result before updating (summarize, remove minor operations - maybe deeply?) - see e.g. MID-7830
         // Update result and result status in prism.
         task.setResult(taskResult);
     }
 
+    /** Executes close operation in the repository task object, i.e. with no regards of Quartz. */
     private void closeInTask(TaskQuartzImpl task, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         LOGGER.trace("Closing task in repository: {}", task);

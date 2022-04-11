@@ -14,7 +14,6 @@ import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.P
 
 import java.util.Objects;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
@@ -175,8 +174,10 @@ public abstract class IterativeActivityRun<
 
         LOGGER.trace("{}: Starting with local coordinator task {}", shortName, getRunningTask());
 
+        String originalChannel = getRunningTask().getChannel();
         try {
             enableGlobalConnIdOperationsListener();
+            overrideTaskChannelIfNeeded();
 
             transientRunStatistics.recordRunStart(getStartTimestampRequired());
 
@@ -196,8 +197,25 @@ public abstract class IterativeActivityRun<
 
         } finally {
             disableGlobalConnIdOperationsListener();
+            cancelTaskChannelOverride(originalChannel);
             getActivityState().getConnIdOperationsReport().flush(getRunningTask(), result);
         }
+    }
+
+    private void cancelTaskChannelOverride(String originalChannel) {
+        getRunningTask().setChannel(originalChannel);
+    }
+
+    private void overrideTaskChannelIfNeeded() {
+        String channelOverride = getChannelOverride();
+        if (channelOverride != null) {
+            getRunningTask().setChannel(channelOverride);
+        }
+    }
+
+    /** Channel URI that should be set into the task during this activity run. (If not null.) */
+    protected @Nullable String getChannelOverride() {
+        return null;
     }
 
     /**
@@ -228,6 +246,8 @@ public abstract class IterativeActivityRun<
                 }
 
                 complete = processOrAnalyzeOrSkipSingleBucket(result);
+                pruneResult(result);
+
                 if (!complete) {
                     break;
                 }
@@ -242,6 +262,33 @@ public abstract class IterativeActivityRun<
                     releaseAllBucketsWhenWorker(result);
                 }
             }
+        }
+    }
+
+    /**
+     * Keeps the result of reasonable size:
+     *
+     * 1. removes successful minor subresults
+     * 2. summarizes operations (if there is a lot of buckets - see MID-7830)
+     *
+     * We catch all exceptions here, because we don't want the task to fail on these checks.
+     * We also want to execute the summarization even if the cleanup fails.
+     */
+    private void pruneResult(OperationResult result) {
+        try {
+            // We cannot clean up the current (root) result, as it is not closed yet. So we do that on subresults.
+            // (This means that minor subresult of the current root result will survive, but let's them be.
+            // Hopefully they will be eliminated later e.g. when the result is finally stored into the task.)
+            result.getSubresults().forEach(
+                    OperationResult::cleanupResultDeeply);
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't clean up the operation result in {}", e, this);
+        }
+
+        try {
+            result.summarize();
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't summarize the operation result in {}", e, this);
         }
     }
 
@@ -454,7 +501,9 @@ public abstract class IterativeActivityRun<
             // TODO In the future we should distinguish between permanent and temporary errors here.
             return ActivityRunResult.exception(FATAL_ERROR, PERMANENT_ERROR, stoppingException);
         } else if (transientRunStatistics.getErrors() > 0) {
-            return ActivityRunResult.finished(PARTIAL_ERROR);
+            return ActivityRunResult
+                    .finished(PARTIAL_ERROR)
+                    .message(transientRunStatistics.getLastErrorMessage());
         } else {
             return ActivityRunResult.success();
         }
@@ -682,8 +731,19 @@ public abstract class IterativeActivityRun<
             throws SchemaException, ObjectNotFoundException{
         RunningTask coordinatorTask = getRunningTask();
 
-        coordinatorTask.updateOperationStatsInTaskPrism(updateThreadLocalStatistics);
+        coordinatorTask.updateOperationStatsInTaskPrism(
+                updateThreadLocalStatistics && canUpdateThreadLocalStatistics());
         coordinatorTask.storeStatisticsIntoRepositoryIfTimePassed(getActivityStatUpdater(), result);
+    }
+
+    /**
+     * Returns true if it's safe to update TL statistics in coordinator. Normally, it is so.
+     * A notable exception is asynchronous update using AMQP (an experimental feature for now).
+     * The reason is that the message handling occurs in a thread different from the task thread.
+     * See MID-7464.
+     */
+    protected boolean canUpdateThreadLocalStatistics() {
+        return true;
     }
 
     private Runnable getActivityStatUpdater() {
@@ -742,7 +802,7 @@ public abstract class IterativeActivityRun<
     private void reportBucketCompleted(BucketProcessingRecord processingRecord, OperationResult result) {
         if (shouldReportBuckets()) {
             activityState.getBucketsReport().recordBucketCompleted(
-                    new BucketProcessingRecordType(PrismContext.get())
+                    new BucketProcessingRecordType()
                             .sequentialNumber(bucket.getSequentialNumber())
                             .content(bucket.getContent())
                             .size(processingRecord.getTotalSize())
@@ -759,7 +819,7 @@ public abstract class IterativeActivityRun<
     private void reportBucketAnalyzed(Integer size, OperationResult result) {
         if (shouldReportBuckets()) {
             activityState.getBucketsReport().recordBucketCompleted(
-                    new BucketProcessingRecordType(PrismContext.get())
+                    new BucketProcessingRecordType()
                             .sequentialNumber(bucket.getSequentialNumber())
                             .content(bucket.getContent())
                             .size(size),

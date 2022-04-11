@@ -7,31 +7,35 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import java.util.*;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.Page;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortableTreeProvider;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortableTreeProvider;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.util.*;
 
 /**
  * @author lazyman
@@ -48,24 +52,18 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
 
     private Component component;
     private IModel<String> rootOid;
-    private TreeSelectableBean<OrgType> root;
-    private List<OrgType> selectedOrgs = new ArrayList<>();
 
     private long offset;
     private long count;
-    private OrgType selected;
 
     private Map<String, TreeSelectableBean<OrgType>> availableData;
 
-    public OrgTreeProvider(Component component, IModel<String> rootOid, List<OrgType> selectedOrgs) {
+    public OrgTreeProvider(Component component, IModel<String> rootOid) {
         this.component = component;
         this.rootOid = rootOid;
-        if (selectedOrgs != null) {
-            this.selectedOrgs.addAll(selectedOrgs);
-        }
     }
 
-    public Map<String, TreeSelectableBean<OrgType>> getAvailableData() {
+    private Map<String, TreeSelectableBean<OrgType>> getAvailableData() {
         if (availableData == null){
             availableData = new HashMap<>();
         }
@@ -73,6 +71,16 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
     }
 
     private PageBase getPageBase() {
+        if (component instanceof PageBase) {
+            return (PageBase) component;
+        }
+        if (component == null) {
+            return null;
+        }
+        Page page = component.findParent(Page.class);
+        if (page == null) {
+            return null;
+        }
         return WebComponentUtil.getPageBase(component);
     }
 
@@ -94,7 +102,7 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
 
         String nodeOid = null;
         if (node != null) {
-            nodeOid =node.getValue().getOid();
+            nodeOid = node.getValue().getOid();
         } else {
             nodeOid = rootOid.getObject();
         }
@@ -155,7 +163,7 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
                 LOGGER.debug("Found {} sub-orgs.", orgs.size());
                 children = new ArrayList<>();
                 for (PrismObject<OrgType> org : orgs) {
-                    children.add(createObjectWrapper(node, org));
+                    children.add(createObjectWrapper(node, org, null));
                 }
                 childrenCache.put(nodeOid, children);
             } catch (CommonException|RuntimeException ex) {
@@ -199,7 +207,7 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
         return null;
     }
 
-    private TreeSelectableBean<OrgType> createObjectWrapper(TreeSelectableBean<OrgType> parent, PrismObject<OrgType> unit) {
+    private TreeSelectableBean<OrgType> createObjectWrapper(TreeSelectableBean<OrgType> parent, PrismObject<OrgType> unit, Collection<SelectorOptions<GetOperationOptions>> options) {
         if (unit == null) {
             return null;
         }
@@ -212,28 +220,46 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
             parentOrgRef.asReferenceValue().setObject(parent.getValue().asPrismObject());
             org.getParentOrgRef().add(parentOrgRef);
         }
-        TreeSelectableBean<OrgType> orgDto = new TreeSelectableBean<>(org);
+        SelectableObjectModel<OrgType> orgModel = new SelectableObjectModel<OrgType>(unit.asObjectable(), options) {
+
+            @Override
+            protected OrgType load() {
+                if (getPageBase() == null) {
+                    return null;
+                }
+                Task task = getPageBase().createSimpleTask("Load org");
+                OperationResult result = task.getResult();
+                PrismObject<OrgType> org = WebModelServiceUtils.loadObject(getType(), getOid(), getOptions(), getPageBase(), task, result);
+                if (org == null) {
+                    return null;
+                }
+
+                OrgType orgType = org.asObjectable();
+                return orgType;
+            }
+        };
+
+
+        TreeSelectableBean<OrgType> orgDto = new TreeSelectableBean<>(orgModel);
         return orgDto;
     }
 
 
     @Override
     public Iterator<TreeSelectableBean<OrgType>> getRoots() {
-        OperationResult result = null;
-        if (root == null) {
-            Task task = getPageBase().createSimpleTask(LOAD_ORG_UNIT);
-            result = task.getResult();
-            LOGGER.debug("Getting roots for: " + rootOid.getObject());
+        Task task = getPageBase().createSimpleTask(LOAD_ORG_UNIT);
+        OperationResult result = task.getResult();
+        LOGGER.debug("Getting roots for: " + rootOid.getObject());
 
-            PrismObject<OrgType> object = WebModelServiceUtils.loadObject(OrgType.class, rootOid.getObject(),
-                    WebModelServiceUtils.createOptionsForParentOrgRefs(getPageBase().getOperationOptionsBuilder()), getPageBase(), task, result);
-            result.computeStatus();
+        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createOptionsForParentOrgRefs(getPageBase().getOperationOptionsBuilder());
+        PrismObject<OrgType> object = WebModelServiceUtils.loadObject(OrgType.class, rootOid.getObject(),
+                options, getPageBase(), task, result);
+        result.computeStatus();
 
-            root = createObjectWrapper(null, object);
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("\n{}", result.debugDump());
-                LOGGER.debug("Finished roots loading.");
-            }
+        TreeSelectableBean<OrgType> root = createObjectWrapper(null, object, options);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("\n{}", result.debugDump());
+            LOGGER.debug("Finished roots loading.");
         }
 
         if (WebComponentUtil.showResultInPage(result)) {
@@ -261,16 +287,6 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
         return new Model<>(object);
     }
 
-    public List<OrgType> getSelectedObjects(){
-        List<OrgType> selectedOrgs = new ArrayList<>();
-        for (TreeSelectableBean<OrgType> selected : getAvailableData().values()){
-            if (selected.isSelected() && selected.getValue() != null) {
-                selectedOrgs.add(selected.getValue());
-            }
-        }
-        return selectedOrgs;
-    }
-
     public long getOffset() {
         return offset;
     }
@@ -287,7 +303,9 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
         this.count = count;
     }
 
-    public void setSelected(OrgType selected) {
-        this.selected = selected;
+    @Override
+    public void detach() {
+        getAvailableData().clear();
+        super.detach();
     }
 }

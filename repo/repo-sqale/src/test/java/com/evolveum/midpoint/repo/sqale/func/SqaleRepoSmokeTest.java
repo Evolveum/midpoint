@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,19 +12,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase.DEFAULT_SCHEMA_NAME;
 
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Queue;
-import java.util.UUID;
+import java.util.*;
 
 import org.testng.Assert;
 import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
@@ -41,9 +42,15 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlRecorder;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.test.NullTaskImpl;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -52,6 +59,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Each test method is completely self-contained.
  */
 public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
+
+    public static final byte[] JPEG_PHOTO = { 0, 1, 2 }; // not really a JPEG, of course
 
     @AfterMethod
     public void methodCleanup() {
@@ -100,12 +109,12 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         long baseCount = count(new QOrgClosure());
 
         and("user belonging to org hierarchy");
-        OrgType orgRoot = new OrgType(prismContext).name("orgRoot" + getTestNumber());
+        OrgType orgRoot = new OrgType().name("orgRoot" + getTestNumber());
         String rootOid = repositoryService.addObject(orgRoot.asPrismObject(), null, result);
-        OrgType org = new OrgType(prismContext).name("org" + getTestNumber())
+        OrgType org = new OrgType().name("org" + getTestNumber())
                 .parentOrgRef(rootOid, OrgType.COMPLEX_TYPE);
         String orgOid = repositoryService.addObject(org.asPrismObject(), null, result);
-        UserType user = new UserType(prismContext).name("user" + getTestNumber())
+        UserType user = new UserType().name("user" + getTestNumber())
                 .parentOrgRef(orgOid, OrgType.COMPLEX_TYPE);
         repositoryService.addObject(user.asPrismObject(), null, result);
 
@@ -134,12 +143,12 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         long baseCount = count(new QOrgClosure());
 
         given("user belonging to org hierarchy");
-        OrgType orgRoot = new OrgType(prismContext).name("orgRoot" + getTestNumber());
+        OrgType orgRoot = new OrgType().name("orgRoot" + getTestNumber());
         String rootOid = repositoryService.addObject(orgRoot.asPrismObject(), null, result);
-        OrgType org = new OrgType(prismContext).name("org" + getTestNumber())
+        OrgType org = new OrgType().name("org" + getTestNumber())
                 .parentOrgRef(rootOid, OrgType.COMPLEX_TYPE);
         String orgOid = repositoryService.addObject(org.asPrismObject(), null, result);
-        UserType user = new UserType(prismContext).name("user" + getTestNumber())
+        UserType user = new UserType().name("user" + getTestNumber())
                 .parentOrgRef(orgOid, OrgType.COMPLEX_TYPE);
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
         assertThat(count(new QOrgClosure())).isEqualTo(baseCount); // not refreshed yet
@@ -167,7 +176,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         clearPerformanceMonitor();
 
         when("correct object is added to the repository");
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("user" + getTestNumber());
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
 
@@ -184,7 +193,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("existing user");
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("user" + getTestNumber());
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
 
@@ -208,7 +217,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("existing user and cleared performance information");
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("user" + getTestNumber());
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
         SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
@@ -257,7 +266,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("existing user");
-        UserType user = new UserType(prismContext).name("user" + getTestNumber());
+        UserType user = new UserType().name("user" + getTestNumber());
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
 
         expect("getObject called with right OID with wrong object type throws");
@@ -274,7 +283,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("existing user and cleared performance information");
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("user" + getTestNumber());
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
         SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
@@ -308,15 +317,15 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         when("user with photo is persisted");
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("user" + getTestNumber())
-                .jpegPhoto(new byte[] { 0, 1, 2 });
+                .jpegPhoto(JPEG_PHOTO);
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
         assertThatOperationResult(result).isSuccess();
 
         then("photo is stored in row, but not in fullObject");
         MUser row = selectObjectByOid(QUser.class, UUID.fromString(userOid));
-        assertThat(row.photo).isEqualTo(new byte[] { 0, 1, 2 });
+        assertThat(row.photo).isEqualTo(JPEG_PHOTO);
         UserType fullObjectUser = parseFullObject(row.fullObject);
         assertThat(fullObjectUser.getJpegPhoto()).isNull();
 
@@ -332,7 +341,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         UserType userWithPhoto =
                 repositoryService.getObject(UserType.class, userOid, photoOptions, result)
                         .asObjectable();
-        assertThat(userWithPhoto.getJpegPhoto()).isEqualTo(new byte[] { 0, 1, 2 });
+        assertThat(userWithPhoto.getJpegPhoto()).isEqualTo(JPEG_PHOTO);
         assertThat(userWithPhoto.asPrismObject().findProperty(FocusType.F_JPEG_PHOTO).isIncomplete()).isFalse();
     }
 
@@ -342,7 +351,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("user without photo");
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("user" + getTestNumber());
         String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
 
@@ -350,14 +359,37 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         //noinspection PrimitiveArrayArgumentToVarargsMethod
         repositoryService.modifyObject(UserType.class, userOid,
                 prismContext.deltaFor(UserType.class)
-                        .item(UserType.F_JPEG_PHOTO).add(new byte[] { 0, 1, 2 })
+                        .item(UserType.F_JPEG_PHOTO).add(JPEG_PHOTO)
                         .asObjectDelta(userOid).getModifications(),
                 result);
         assertThatOperationResult(result).isSuccess();
 
         then("photo is stored in row, but not in fullObject");
         MUser row = selectObjectByOid(QUser.class, UUID.fromString(userOid));
-        assertThat(row.photo).isEqualTo(new byte[] { 0, 1, 2 });
+        assertThat(row.photo).isEqualTo(JPEG_PHOTO);
+        UserType fullObjectUser = parseFullObject(row.fullObject);
+        assertThat(fullObjectUser.getJpegPhoto()).isNull();
+    }
+
+    @Test
+    public void test222PhotoPersistenceReindex()
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+
+        given("user with photo");
+        UserType user = new UserType()
+                .name("user" + getTestNumber())
+                .jpegPhoto(JPEG_PHOTO);
+        String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
+
+        when("user is reindexed");
+        repositoryService.modifyObject(UserType.class, userOid,
+                List.of(), RepoModifyOptions.createForceReindex(), result);
+        assertThatOperationResult(result).isSuccess();
+
+        then("photo is still in row, but not in fullObject");
+        MUser row = selectObjectByOid(QUser.class, UUID.fromString(userOid));
+        assertThat(row.photo).isEqualTo(JPEG_PHOTO);
         UserType fullObjectUser = parseFullObject(row.fullObject);
         assertThat(fullObjectUser.getJpegPhoto()).isNull();
     }
@@ -367,7 +399,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("a task (or any object actually) without diag info");
-        TaskType task = new TaskType(prismContext)
+        TaskType task = new TaskType()
                 .name("task" + getTestNumber());
         String taskOid = repositoryService.addObject(task.asPrismObject(), null, result);
         PrismObject<TaskType> taskFromDb =
@@ -403,7 +435,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         // INSERT + UPDATE
         queryRecorder.clearBufferAndStartRecording();
         String oid = repositoryService.addObject(
-                new UserType(prismContext).name("user" + getTestNumber()).asPrismObject(),
+                new UserType().name("user" + getTestNumber()).asPrismObject(),
                 null, result);
 
         // These assertions are quite implementation dependent, obviously.
@@ -446,8 +478,8 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         given("some objects are in the repository");
         String name = "user" + getTestNumber();
         repositoryService.addObject(
-                new UserType(prismContext).name(name)
-                        .activation(new ActivationType(prismContext).administrativeStatus(ActivationStatusType.ENABLED))
+                new UserType().name(name)
+                        .activation(new ActivationType().administrativeStatus(ActivationStatusType.ENABLED))
                         .asPrismObject(),
                 null, result);
         queryRecorder.clearBufferAndStartRecording();
@@ -503,6 +535,110 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                         + " limit ?");
 
         assertThat(queryRecorder.getQueryBuffer()).isEmpty();
+    }
+
+    @Test
+    public void test600AuditRecord() {
+        given("audit event record");
+        AuditEventRecord record = new AuditEventRecord(AuditEventType.ADD_OBJECT, AuditEventStage.EXECUTION);
+        OperationResult result = createOperationResult();
+
+        when("saving the event record");
+        auditService.audit(record, NullTaskImpl.INSTANCE, result);
+
+        then("operation is success and record ID is assigned");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(record.getRepoId()).isNotNull();
+    }
+
+    @Test
+    public void test601AuditRecordIgnoresProvidedId() {
+        given("audit event record with repoId");
+        AuditEventRecord record = new AuditEventRecord(AuditEventType.ADD_OBJECT, AuditEventStage.EXECUTION);
+        record.setRepoId(-47L);
+        OperationResult result = createOperationResult();
+
+        when("saving the event record");
+        auditService.audit(record, NullTaskImpl.INSTANCE, result);
+
+        then("operation is success and record ID is assigned, disregarding the provided one");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(record.getRepoId()).isNotNull()
+                .isNotEqualTo(-47L);
+    }
+
+    @Test
+    public void test610AuditForImportRespectsProvidedId() {
+        given("audit event record with ID");
+        clearAudit();
+        // NOTE: AERType is used here, not AER for which the repoId is ignored by the service
+        AuditEventRecordType record = new AuditEventRecordType()
+                .eventType(AuditEventTypeType.ADD_OBJECT)
+                .eventStage(AuditEventStageType.EXECUTION)
+                .repoId(-47L)
+                .timestamp(MiscUtil.asXMLGregorianCalendar(1L));
+        OperationResult result = createOperationResult();
+
+        when("saving the event record");
+        auditService.audit(record, result);
+
+        then("operation is success and the provided record ID is used");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(record.getRepoId()).isEqualTo(-47L);
+    }
+
+    @Test
+    public void test611AuditForImportRespectsProvidedIdEvenDuplicateForDifferentTimestamp() {
+        given("audit event record with assigned already taken ID");
+        clearAudit();
+        AuditEventRecordType record = new AuditEventRecordType()
+                .eventType(AuditEventTypeType.ADD_OBJECT)
+                .eventStage(AuditEventStageType.EXECUTION)
+                .repoId(-1L)
+                .timestamp(MiscUtil.asXMLGregorianCalendar(1L));
+        OperationResult result = createOperationResult();
+        auditService.audit(record, result);
+        assertThat(record.getRepoId()).isEqualTo(-1L);
+
+        record = new AuditEventRecordType()
+                .eventType(AuditEventTypeType.MODIFY_OBJECT)
+                .eventStage(AuditEventStageType.EXECUTION)
+                .repoId(-1L)
+                .timestamp(MiscUtil.asXMLGregorianCalendar(2L)); // timestamp must be different
+
+        when("saving the event record with taken ID");
+        auditService.audit(record, result);
+
+        then("operation is success and the provided record ID is reused");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(record.getRepoId()).isEqualTo(-1L);
+    }
+
+    @Test
+    public void test612AuditForImportWithNonUniqueIdAndTimestampFails() {
+        given("audit event record with assigned already taken ID");
+        clearAudit();
+        AuditEventRecordType record = new AuditEventRecordType()
+                .eventType(AuditEventTypeType.ADD_OBJECT)
+                .eventStage(AuditEventStageType.EXECUTION)
+                .repoId(-1L)
+                .timestamp(MiscUtil.asXMLGregorianCalendar(1L));
+        OperationResult result = createOperationResult();
+        auditService.audit(record, result);
+        assertThat(record.getRepoId()).isEqualTo(-1L);
+
+        AuditEventRecordType record2 = new AuditEventRecordType()
+                .eventType(AuditEventTypeType.MODIFY_OBJECT)
+                .eventStage(AuditEventStageType.EXECUTION)
+                .repoId(-1L)
+                .timestamp(MiscUtil.asXMLGregorianCalendar(1L));
+
+        expect("saving the event record throws");
+        assertThatThrownBy(() -> auditService.audit(record2, result))
+                .isInstanceOf(SystemException.class)
+                .hasRootCauseInstanceOf(org.postgresql.util.PSQLException.class);
+
+        assertThatOperationResult(result).isFatalError();
     }
 
     // region low-level tests

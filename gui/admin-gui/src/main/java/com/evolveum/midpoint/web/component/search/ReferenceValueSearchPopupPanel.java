@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -207,6 +208,12 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
 
         if (ref == null) {
             return;
+        }
+        if (getModelObject().getOid() != null && PolyStringUtils.isEmpty(ref.getTargetName()) && ref.getObject() == null){
+            ref.setOid(getModelObject().getOid());
+        }
+        if (PolyStringUtils.isEmpty(ref.getTargetName())) {
+            ref.setTargetName(null);
         }
         ReferenceValueSearchPopupPanel.this.getModel().setObject(ref);
         target.add(midpointForm.get(ID_OID));

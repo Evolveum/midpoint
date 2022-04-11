@@ -31,8 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Search expression evaluator dealing with shadows - requires specific invalidation strategies.
- *
- * @author Pavol Mederly
  */
 public class AssociationSearchExpressionEvaluatorCache
         extends AbstractSearchExpressionEvaluatorCache<

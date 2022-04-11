@@ -15,7 +15,6 @@ import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.SceneItem;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.web.security.factory.channel.AbstractChannelFactory;
 
 import org.apache.wicket.Component;
 import org.jetbrains.annotations.NotNull;
@@ -26,9 +25,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class SceneDto implements Serializable {
 
     public static final java.lang.String F_CHANGE_TYPE = "changeType";
@@ -84,8 +80,8 @@ public class SceneDto implements Serializable {
             Collator collator = WebComponentUtil.getCollator();
             Comparator<? super SceneItemDto> comparator =
                     (s1, s2) -> {
-                        String name1 = PageBase.createStringResourceStatic(null, s1.getName()).getString();
-                        String name2 = PageBase.createStringResourceStatic(null, s2.getName()).getString();
+                        String name1 = PageBase.createStringResourceStatic(s1.getName()).getString();
+                        String name2 = PageBase.createStringResourceStatic(s2.getName()).getString();
                         return collator.compare(name1, name2);
                     };
             itemsClone.sort(comparator);
@@ -112,7 +108,7 @@ public class SceneDto implements Serializable {
 
     private String resolve(String name, Component component, boolean namesAreResourceKeys) {
         if (namesAreResourceKeys) {
-            return PageBase.createStringResourceStatic(component, name).getString();
+            return PageBase.createStringResourceStatic(name).getString();
         } else {
             return name;
         }

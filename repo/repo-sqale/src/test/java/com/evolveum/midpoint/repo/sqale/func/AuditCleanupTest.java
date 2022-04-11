@@ -12,11 +12,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 import com.querydsl.core.types.dsl.NumberExpression;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
@@ -37,8 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @SuppressWarnings("unchecked")
 public class AuditCleanupTest extends SqaleRepoBaseTest {
-
-    @Autowired private AuditService auditService;
 
     /**
      * Prepares `count` audit records with timestamp starting with specified value
@@ -73,6 +69,7 @@ public class AuditCleanupTest extends SqaleRepoBaseTest {
         }
     }
 
+    // These tests rely on uninterrupted ID series, but cleanup works even with holes
     @Test
     public void test100CleanupByCount() throws SchemaException {
         given("audit has 100 records");
@@ -92,6 +89,40 @@ public class AuditCleanupTest extends SqaleRepoBaseTest {
         long minId = selectMinMaxId(qae, qae.id.min());
         // top IDs are left, that is the newest records
         assertThat(maxId - minId).isEqualTo(recordsToLeave - 1);
+    }
+
+    @Test
+    public void test101CleanupByHighCount() throws SchemaException {
+        given("audit has 100 records");
+        OperationResult operationResult = createOperationResult();
+        prepareAuditRecords(System.currentTimeMillis(), 100, operationResult);
+        QAuditEventRecord qae = QAuditEventRecordMapping.get().defaultAlias();
+
+        when("audit cleanup is called to leave 150 records");
+        int recordsToLeave = 150;
+        auditService.cleanupAudit(new CleanupPolicyType()
+                .maxRecords(recordsToLeave), operationResult);
+
+        then("operation is success and nothing is deleted");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertCount(qae, 100); // original count
+    }
+
+    @Test
+    public void test102CleanupByZeroCount() throws SchemaException {
+        given("audit has 100 records");
+        OperationResult operationResult = createOperationResult();
+        prepareAuditRecords(System.currentTimeMillis(), 100, operationResult);
+        QAuditEventRecord qae = QAuditEventRecordMapping.get().defaultAlias();
+
+        when("audit cleanup is called to leave 0 records");
+        int recordsToLeave = 0;
+        auditService.cleanupAudit(new CleanupPolicyType()
+                .maxRecords(recordsToLeave), operationResult);
+
+        then("operation is success and everything is deleted");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertCount(qae, 0);
     }
 
     @Test

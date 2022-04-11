@@ -9,13 +9,13 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import java.util.List;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -64,9 +64,7 @@ class Util {
     }
 
     static ResourceOperationDescription createSuccessOperationDescription(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadowType, ObjectDelta<? extends ShadowType> delta, OperationResult parentResult)
-                    throws ObjectNotFoundException, SchemaException, CommunicationException,
-                    ConfigurationException, ExpressionEvaluationException {
+            PrismObject<ShadowType> shadowType, ObjectDelta<? extends ShadowType> delta, OperationResult parentResult) {
         ResourceOperationDescription operationDescription = new ResourceOperationDescription();
         operationDescription.setCurrentShadow(shadowType);
         operationDescription.setResource(ctx.getResource().asPrismObject());
@@ -111,13 +109,13 @@ class Util {
         return sb.toString();
     }
 
-    static PrismObject<ShadowType> minimize(PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition ocDef) {
+    static PrismObject<ShadowType> minimize(PrismObject<ShadowType> resourceObject, ResourceObjectDefinition objDef) {
         if (resourceObject == null) {
             return null;
         }
         PrismObject<ShadowType> minimized = resourceObject.clone();
-        ShadowUtil.removeAllAttributesExceptPrimaryIdentifier(minimized, ocDef);
-        if (ShadowUtil.hasPrimaryIdentifier(minimized, ocDef)) {
+        ShadowUtil.removeAllAttributesExceptPrimaryIdentifier(minimized, objDef);
+        if (ShadowUtil.hasPrimaryIdentifier(minimized, objDef)) {
             return minimized;
         } else {
             return null;

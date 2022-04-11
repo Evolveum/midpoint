@@ -63,14 +63,14 @@ public class ProjectionValueMetadataCreator {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private SecurityContextManager securityContextManager;
 
-    <V extends PrismValue, D extends ItemDefinition>
+    public <V extends PrismValue, D extends ItemDefinition>
     void setValueMetadata(@NotNull Item<V, D> resourceObjectItem, @NotNull LensProjectionContext projectionCtx,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         apply(resourceObjectItem.getValues(), () -> createMetadata(projectionCtx, resourceObjectItem, env, result), resourceObjectItem::getPath);
     }
 
-    <D extends ItemDefinition, V extends PrismValue>
+    public <D extends ItemDefinition, V extends PrismValue>
     void setValueMetadata(@NotNull ItemDelta<V, D> itemDelta, @NotNull LensProjectionContext projectionCtx,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {

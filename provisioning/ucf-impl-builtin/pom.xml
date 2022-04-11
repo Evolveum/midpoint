@@ -41,7 +41,6 @@
             <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-impl</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -126,8 +125,8 @@
             <artifactId>artemis-commons</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-jms_2.0_spec</artifactId>
+            <groupId>jakarta.jms</groupId>
+            <artifactId>jakarta.jms-api</artifactId>
         </dependency>
 
         <!-- Testing dependencies -->

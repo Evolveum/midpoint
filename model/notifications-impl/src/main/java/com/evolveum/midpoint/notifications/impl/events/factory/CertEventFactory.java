@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.events.factory;
 
 import java.util.List;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.notifications.api.events.CertCampaignEvent;
 import com.evolveum.midpoint.notifications.api.events.CertCampaignStageEvent;
 import com.evolveum.midpoint.notifications.api.events.CertReviewEvent;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.notifications.impl.SimpleObjectRefImpl;
 import com.evolveum.midpoint.notifications.impl.events.AccessCertificationEventImpl;
 import com.evolveum.midpoint.notifications.impl.events.CertCampaignEventImpl;
@@ -39,9 +37,6 @@ public class CertEventFactory {
     @Autowired
     private LightweightIdentifierGenerator idGenerator;
 
-    @Autowired
-    private NotificationFunctionsImpl notificationsUtil;
-
     public CertCampaignEvent createOnCampaignStartEvent(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         CertCampaignEventImpl event = new CertCampaignEventImpl(idGenerator, campaign, EventOperationType.ADD);
         fillInEvent(campaign, task, event, result);
@@ -49,20 +44,20 @@ public class CertEventFactory {
     }
 
     private void fillInEvent(AccessCertificationCampaignType campaign, Task task, AccessCertificationEventImpl event, OperationResult result) {
-        event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, campaign.getOwnerRef()));
+        event.setRequestee(new SimpleObjectRefImpl(campaign.getOwnerRef()));
         if (task != null) {
             PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
-            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, taskOwner));
+            event.setRequester(new SimpleObjectRefImpl(taskOwner));
             event.setChannel(task.getChannel());
         }
     }
 
     private void fillInReviewerRelatedEvent(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
             Task task, CertReviewEventImpl event, OperationResult result) {
-        event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, reviewerOrDeputyRef));
+        event.setRequestee(new SimpleObjectRefImpl(reviewerOrDeputyRef));
         PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
-        event.setRequester(new SimpleObjectRefImpl(notificationsUtil, taskOwner));
-        event.setActualReviewer(new SimpleObjectRefImpl(notificationsUtil, actualReviewerRef));
+        event.setRequester(new SimpleObjectRefImpl(taskOwner));
+        event.setActualReviewer(new SimpleObjectRefImpl(actualReviewerRef));
     }
 
     public CertCampaignEvent createOnCampaignEndEvent(AccessCertificationCampaignType campaign, Task task, OperationResult result) {

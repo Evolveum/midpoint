@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<xsd:schema elementFormDefault="qualified"
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/test/correlation"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/correlation"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+
+    <xsd:complexType name="UserExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:UserType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <!-- this is to auto-create pre-focus objects in TestCorrelators -->
+            <xsd:element name="dateOfBirth" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="nationalId" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="CorrelationExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:CompositeCorrelatorType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="dummy" type="tns:DummyCorrelatorType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DummyCorrelatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of a dummy correlator.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractCorrelatorType">
+                <xsd:sequence>
+                    <!-- Nothing here. The correlator is configured using the test Java code. -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="dummyCorrelator" type="tns:DummyCorrelatorType"/>
+
+</xsd:schema>

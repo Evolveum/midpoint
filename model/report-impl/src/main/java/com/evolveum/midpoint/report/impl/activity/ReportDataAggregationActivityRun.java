@@ -77,7 +77,7 @@ final class ReportDataAggregationActivityRun
     public SearchSpecification<ReportDataType> createCustomSearchSpecification(OperationResult result) {
         // FIXME When parent OID is indexed, the query can be improved
         // FIXME Also when sequenceNumber is indexed, we'll sort on it
-        String prefix = String.format("Partial report data for [%s]", support.getGlobalReportDataRef().getOid());
+        String prefix = String.format("Partial report data for %s", support.getGlobalReportDataRef().getOid());
         return new SearchSpecification<>(
                 ReportDataType.class,
                 PrismContext.get().queryFor(ReportDataType.class)

@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.Objects;
 import java.util.*;
 import javax.xml.namespace.QName;
 
@@ -26,9 +25,6 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
@@ -40,6 +36,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTasksPanel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
@@ -52,9 +49,11 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -84,7 +83,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel.Operation;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -166,25 +164,33 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         return objectClass;
     }
 
-    public RefinedObjectClassDefinition getDefinitionByKind() throws SchemaException {
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl
-                .getRefinedSchema(resourceModel.getObject(), getPageBase().getPrismContext());
+    public ResourceObjectDefinition getDefinitionByKind() throws SchemaException {
+        ResourceSchema refinedSchema = getRefinedSchema();
         if (refinedSchema == null) {
             warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
             return null;
         }
-        return refinedSchema.getRefinedDefinition(getKind(), getIntent());
+        String intent = getIntent();
+        if (ShadowUtil.isKnown(intent)) {
+            return refinedSchema.findObjectDefinition(getKind(), intent);
+        } else {
+            // TODO: Can be intent unknown or null here? If so, what should we do with that?
+            return refinedSchema.findObjectDefinition(getKind(), null);
+        }
     }
 
-    public RefinedObjectClassDefinition getDefinitionByObjectClass() throws SchemaException {
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl
-                .getRefinedSchema(resourceModel.getObject(), getPageBase().getPrismContext());
+    public ResourceObjectDefinition getDefinitionByObjectClass() throws SchemaException {
+        ResourceSchema refinedSchema = getRefinedSchema();
         if (refinedSchema == null) {
             warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
             return null;
         }
-        return refinedSchema.getRefinedDefinition(getObjectClass());
+        return refinedSchema.findDefinitionForObjectClass(getObjectClass());
 
+    }
+
+    protected ResourceSchema getRefinedSchema() throws SchemaException {
+        return ResourceSchemaFactory.getCompleteSchema(resourceModel.getObject());
     }
 
     private UserProfileStorage.TableId getTableId() {
@@ -373,7 +379,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(archetypeOid);
+                        newTaskPerformed(target, archetypeOid);
                     }
                 };
             }
@@ -391,68 +397,19 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     }
 
-    private void newTaskPerformed(String archetypeOid) {
-        TaskType taskType = new TaskType(getPageBase().getPrismContext());
+    private void newTaskPerformed(AjaxRequestTarget target, String archetypeOid) {
+        List<ObjectReferenceType> archetypeRef = Arrays.asList(
+                new ObjectReferenceType()
+                        .oid(archetypeOid)
+                        .type(ArchetypeType.COMPLEX_TYPE));
+        try {
+            TaskType newTask = ResourceTasksPanel.createResourceTask(getPrismContext(), getResourceModel().getObject(), archetypeRef);
 
-        if (SystemObjectsType.ARCHETYPE_IMPORT_TASK.value().equals(archetypeOid)) {
-            createImportTask(taskType);
-        } else if (SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value().equals(archetypeOid)) {
-            createReconciliationTask(taskType);
-        } else if (SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value().equals(archetypeOid)) {
-            createLiveSyncTask(taskType);
+            WebComponentUtil.initNewObjectWithReference(getPageBase(), newTask, archetypeRef);
+        } catch (SchemaException ex) {
+            getPageBase().getFeedbackMessages().error(ResourceContentPanel.this, ex.getUserFriendlyMessage());
+            target.add(getPageBase().getFeedbackPanel());
         }
-
-
-        if (StringUtils.isNotEmpty(archetypeOid)) {
-            taskType.getAssignment().add(ObjectTypeUtil.createAssignmentTo(archetypeOid, ObjectTypes.ARCHETYPE, getPrismContext()));
-        }
-        taskType.setOwnerRef(ObjectTypeUtil.createObjectRef(SecurityUtils.getPrincipalUser().getOid(), ObjectTypes.USER));
-        taskType.setObjectRef(
-                ObjectTypeUtil.createObjectRef(
-                        getResourceType()));
-
-        WebComponentUtil.dispatchToObjectDetailsPage(taskType.asPrismObject(), this);
-    }
-
-    private ResourceType getResourceType() {
-        return getResourceModel().getObject().asObjectable();
-    }
-
-    private void createImportTask(TaskType task) {
-        ImportWorkDefinitionType importWorkDefinitionType = new ImportWorkDefinitionType(getPrismContext());
-        importWorkDefinitionType.setResourceObjects(createResourceSet());
-
-        prepareActivityDefinition(task).setImport(importWorkDefinitionType);
-    }
-
-    private void createReconciliationTask(TaskType task) {
-        ReconciliationWorkDefinitionType reconciliationWorkDefinitionType = new ReconciliationWorkDefinitionType(getPrismContext());
-        reconciliationWorkDefinitionType.setResourceObjects(createResourceSet());
-
-        prepareActivityDefinition(task).setReconciliation(reconciliationWorkDefinitionType);
-    }
-
-    private void createLiveSyncTask(TaskType task) {
-        LiveSyncWorkDefinitionType liveSyncWorkDefinitionType = new LiveSyncWorkDefinitionType(getPrismContext());
-        liveSyncWorkDefinitionType.setResourceObjects(createResourceSet());
-
-        prepareActivityDefinition(task).setLiveSynchronization(liveSyncWorkDefinitionType);
-    }
-
-    private WorkDefinitionsType prepareActivityDefinition(TaskType taskType) {
-        ActivityDefinitionType activityDefinitionType = new ActivityDefinitionType(getPrismContext());
-        taskType.setActivity(activityDefinitionType);
-        WorkDefinitionsType workDefinitionsType = new WorkDefinitionsType();
-        activityDefinitionType.setWork(workDefinitionsType);
-        return workDefinitionsType;
-    }
-
-    private ResourceObjectSetType createResourceSet() {
-        ResourceObjectSetType resourceSet = new ResourceObjectSetType(getPrismContext());
-        resourceSet.setResourceRef(ObjectTypeUtil.createObjectRef(getResourceType(), getPrismContext()));
-        resourceSet.setIntent(getIntent());
-        resourceSet.setKind(getKind());
-        return resourceSet;
     }
 
     private ObjectQuery createInTaskOidQuery(List<TaskType> tasksList) {
@@ -512,7 +469,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                     QName objectClass = getObjectClass();
                     if (Objects.isNull(objectClass)) {
                         LOGGER.trace("Trying to determine objectClass for kind: {}, intent: {}", getKind(), getIntent());
-                        RefinedObjectClassDefinition objectClassDef = null;
+                        ResourceObjectDefinition objectClassDef = null;
                         try {
                             objectClassDef = getDefinitionByKind();
                         } catch (SchemaException e) {
@@ -530,8 +487,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                         tasksForKind.add(task.asObjectable());
                     }
 
-                }
-                else {
+                } else {
                     String taskIntentValue = resourceSet.getIntent();
                     if (StringUtils.isNotEmpty(getIntent())) {
                         if (getKind() == taskKindValue && getIntent().equals(taskIntentValue)) {
@@ -562,17 +518,9 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                         objectClass, getPageBase().getPrismContext());
             }
 
-            RefinedObjectClassDefinition rOcDef = getDefinitionByKind();
+            ResourceObjectDefinition rOcDef = getDefinitionByKind();
             if (rOcDef != null) {
-                if (rOcDef.getKind() != null) {
-                    baseQuery = ObjectQueryUtil.createResourceAndKindIntent(
-                            resourceModel.getObject().getOid(), rOcDef.getKind(), rOcDef.getIntent(),
-                            getPageBase().getPrismContext());
-                } else {
-                    baseQuery = ObjectQueryUtil.createResourceAndObjectClassQuery(
-                            resourceModel.getObject().getOid(), rOcDef.getTypeName(),
-                            getPageBase().getPrismContext());
-                }
+                baseQuery = rOcDef.createShadowSearchQuery(resourceModel.getObject().getOid());
             }
         } catch (SchemaException ex) {
             LoggingUtils.logUnexpectedException(LOGGER,
@@ -1020,7 +968,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                     | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError(
                         getPageBase().createStringResource(
-                                "ResourceContentPanel.message.updateResourceObjectStatusPerformed.partialError", status, shadow)
+                                        "ResourceContentPanel.message.updateResourceObjectStatusPerformed.partialError", status, shadow)
                                 .getString(),
                         e);
                 LOGGER.error("Could not update status (to {}) for {}, using option {}",

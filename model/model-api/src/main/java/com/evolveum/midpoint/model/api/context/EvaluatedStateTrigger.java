@@ -14,9 +14,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKind
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StatePolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class EvaluatedStateTrigger extends EvaluatedPolicyRuleTrigger<StatePolicyConstraintType> {
 
     public EvaluatedStateTrigger(@NotNull PolicyConstraintKindType kind, @NotNull StatePolicyConstraintType constraint,

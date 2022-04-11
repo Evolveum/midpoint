@@ -27,4 +27,15 @@
         </appender>
     </logging>
 
+    <notificationConfiguration>
+        <handler>
+            <simpleReportNotifier>
+                <recipientExpression>
+                    <value>dummy@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:reports</transport>
+            </simpleReportNotifier>
+        </handler>
+    </notificationConfiguration>
+
 </systemConfiguration>

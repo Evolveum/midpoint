@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.report;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
@@ -19,21 +20,25 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.ReportSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.ReportObjectsListPanel;
@@ -55,6 +60,8 @@ import java.util.Collection;
                 label = "PageReport.auth.report.label",
                 description = "PageReport.auth.report.description") })
 public class PageReport extends PageAssignmentHolderDetails<ReportType, AssignmentHolderDetailsModel<ReportType>> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(PageReport.class);
 
     private static final String ID_TABLE_CONTAINER = "tableContainer";
     private static final String ID_TABLE_BOX = "tableBox";
@@ -83,7 +90,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, LoadableModel<ReportType> summaryModel) {
+    protected Panel createSummaryPanel(String id, IModel<ReportType> summaryModel) {
         return new ReportSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 
@@ -124,6 +131,11 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
             @Override
             protected void savePerformed(AjaxRequestTarget target) {
                 PageReport.this.savePerformed(target);
+            }
+
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageReport.this.hasUnsavedChanges(target);
             }
         };
     }
@@ -181,11 +193,14 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
     }
 
     private PrismObject<ReportType> getReport(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
-        if (getModelObjectType().getOid() != null) {
-            return getModelPrismObject();
+        try {
+            if (getModelObjectType().getOid() != null) {
+                return getModelWrapperObject().getObjectApplyDelta();
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't apply deltas to report.", e);
         }
         return (PrismObject<ReportType>) executedDeltas.iterator().next().getObjectDelta().getObjectToAdd();
-
     }
 
     private void runReport(PrismObject<ReportType> report, PrismContainer<ReportParameterType> reportParam) {
@@ -198,6 +213,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
         } finally {
             saveAndRunResult.computeStatusIfUnknown();
             saveAndRunResult.setBackgroundTaskOid(task.getOid());
+            showResult(saveAndRunResult);
             redirectBack();
         }
     }

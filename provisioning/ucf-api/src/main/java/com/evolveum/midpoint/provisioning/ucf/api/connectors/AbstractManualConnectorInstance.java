@@ -10,22 +10,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationQueryable;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
-import com.evolveum.midpoint.task.api.StateReporter;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -47,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabili
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Common abstract superclass for all manual connectors. There are connectors that do not
@@ -73,12 +69,12 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     protected abstract String createTicketAdd(PrismObject<? extends ShadowType> object, Task task, OperationResult result) throws CommunicationException,
                 GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException;
 
-    protected abstract String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
+    protected abstract String createTicketModify(ResourceObjectDefinition objectDefinition,
             PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
             Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, ObjectAlreadyExistsException, ConfigurationException;
 
-    protected abstract String createTicketDelete(ObjectClassComplexTypeDefinition objectClass,
+    protected abstract String createTicketDelete(ResourceObjectDefinition objectDefinition,
             PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid,
             Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, ConfigurationException;
@@ -86,7 +82,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     @Override
     public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(
             PrismObject<? extends ShadowType> object,
-            StateReporter reporter, OperationResult parentResult) throws CommunicationException,
+            UcfExecutionContext ctx, OperationResult parentResult) throws CommunicationException,
             GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_ADD);
@@ -98,7 +94,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
         try {
 
-            ticketIdentifier = createTicketAdd(object, reporter.getTask(), result);
+            ticketIdentifier = createTicketAdd(object, ctx.getTask(), result);
 
         } catch (CommunicationException | GenericFrameworkException | SchemaException |
                 ObjectAlreadyExistsException | ConfigurationException | RuntimeException | Error e) {
@@ -122,7 +118,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
-            StateReporter reporter, OperationResult parentResult)
+            UcfExecutionContext ctx, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 
@@ -136,11 +132,11 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
         try {
 
             ticketIdentifier = createTicketModify(
-                    identification.getObjectClassDefinition(),
+                    identification.getResourceObjectDefinition(),
                     shadow, identification.getAllIdentifiers(),
-                    reporter.getResourceOid(),
+                    ctx.getResourceOid(),
                     changes,
-                    reporter.getTask(),
+                    ctx.getTask(),
                     result);
 
         } catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
@@ -160,10 +156,10 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 
     @Override
-    public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass,
+    public AsynchronousOperationResult deleteObject(ResourceObjectDefinition objectDefinition,
             PrismObject<ShadowType> shadow,
-            Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
-            OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
+            Collection<? extends ResourceAttribute<?>> identifiers,
+            UcfExecutionContext ctx, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
             GenericFrameworkException, SchemaException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_DELETE);
@@ -175,7 +171,13 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
         try {
 
-            ticketIdentifier = createTicketDelete(objectClass, shadow, identifiers, reporter.getResourceOid(), reporter.getTask(), result);
+            ticketIdentifier = createTicketDelete(
+                    objectDefinition,
+                    shadow,
+                    identifiers,
+                    ctx.getResourceOid(),
+                    ctx.getTask(),
+                    result);
 
         } catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
                 ConfigurationException | RuntimeException | Error e) {
@@ -234,7 +236,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn,
-            StateReporter reporter, OperationResult parentResult) {
+            UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         // Read operations are not supported. We cannot really manually read the content of an off-line resource.
         return null;
@@ -242,22 +244,21 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public SearchResultMetadata search(
-            ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            ObjectHandler handler, AttributesToReturn attributesToReturn,
-            PagedSearchCapabilityType pagedSearchConfiguration,
-            SearchHierarchyConstraints searchHierarchyConstraints,
-            UcfFetchErrorReportingMethod errorReportingMethod,
-            StateReporter reporter,
-            OperationResult parentResult) {
+            @NotNull ResourceObjectDefinition objectDefinition, ObjectQuery query,
+            @NotNull UcfObjectHandler handler, @Nullable AttributesToReturn attributesToReturn,
+            @Nullable PagedSearchCapabilityType pagedSearchConfiguration,
+            @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
+            @Nullable UcfFetchErrorReportingMethod errorReportingMethod,
+            @NotNull UcfExecutionContext ctx, @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("search");
         // Read operations are not supported. We cannot really manually read the content of an off-line resource.
         return null;
     }
 
     @Override
-    public int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            PagedSearchCapabilityType pagedSearchConfigurationType, StateReporter reporter,
-            OperationResult parentResult) {
+    public int count(ResourceObjectDefinition objectDefinition, ObjectQuery query,
+            PagedSearchCapabilityType pagedSearchConfigurationType,
+            UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("count");
         // Read operations are not supported. We cannot really manually read the content of an off-line resource.
         return 0;
@@ -278,16 +279,16 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     }
 
     @Override
-    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, UcfSyncToken lastToken,
-            AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
-            @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
+    public UcfFetchChangesResult fetchChanges(ResourceObjectDefinition objectDefinition, UcfSyncToken lastToken,
+                                              AttributesToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
+                                              @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
         // not supported
         return null;
     }
 
     @Override
-    public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter,
-            OperationResult parentResult) {
+    public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation,
+            UcfExecutionContext ctx, OperationResult parentResult) {
         // not supported
         return null;
     }

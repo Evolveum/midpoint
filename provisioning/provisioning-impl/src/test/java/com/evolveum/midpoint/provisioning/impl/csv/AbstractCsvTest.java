@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -21,7 +23,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -30,10 +31,6 @@ import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTe
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -42,8 +39,8 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityHostType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
 
 /**
  * The test of Provisioning service on the API level. The test is using CSV resource.
@@ -164,7 +161,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-        ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceBefore.toString(), prismContext);
+        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resourceBefore.toString());
         assertNotNull("No schema after parsing", parsedSchema);
 
         // schema will be checked in next test
@@ -196,15 +193,15 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
     public void test005ParsedSchema() throws Exception {
         // THEN
         // The returned type should have the schema pre-parsed
-        assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
+        assertTrue(ResourceSchemaFactory.hasParsedSchema(resourceType));
 
         // Also test if the utility method returns the same thing
-        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resourceType);
 
         displayDumpable("Parsed resource schema", resourceSchema);
         assertNotNull("No resource schema", resourceSchema);
 
-        ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_CSV_ACCOUNT_OBJECTCLASS);
+        ResourceObjectClassDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_CSV_ACCOUNT_OBJECTCLASS);
         assertNotNull("Account definition is missing", accountDef);
         assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
@@ -213,32 +210,35 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
         assertAccountDefinition(accountDef);
 
-        ResourceAttributeDefinition<String> icfsNameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        ResourceAttributeDefinition<?> icfsNameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertNull("ICFS NAME definition sneaked in", icfsNameDef);
 
-        ResourceAttributeDefinition<String> icfsUidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
+        ResourceAttributeDefinition<?> icfsUidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
         assertNull("ICFS UID definition sneaked in", icfsUidDef);
 
         // Check whether it is reusing the existing schema and not parsing it all over again
         // Not equals() but == ... we want to really know if exactly the same
         // object instance is returned
-        assertSame("Broken caching", resourceSchema, RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
+        assertSame("Broken caching", resourceSchema, ResourceSchemaFactory.getRawSchema(resourceType));
 
     }
 
-    protected abstract void assertAccountDefinition(ObjectClassComplexTypeDefinition accountDef);
+    protected abstract void assertAccountDefinition(ResourceObjectClassDefinition accountDef);
 
     @Test
     public void test006Capabilities() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         // WHEN
-        ResourceType resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();
+        ResourceType resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, task, result)
+                .asObjectable();
 
         // THEN
-        display("Resource from provisioninig", resource);
-        displayValue("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
+        display("Resource from provisioning", resource);
+        displayValue("Resource from provisioning (XML)",
+                PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 
         CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
         List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
@@ -250,7 +250,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
         ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList, ScriptCapabilityType.class);
         assertNotNull("No script capability", capScript);
-        List<Host> scriptHosts = capScript.getHost();
+        List<ScriptCapabilityHostType> scriptHosts = capScript.getHost();
         assertEquals("Wrong number of script hosts", 2, scriptHosts.size());
         assertScriptHost(capScript, ProvisioningScriptHostType.CONNECTOR);
         assertScriptHost(capScript, ProvisioningScriptHostType.RESOURCE);
@@ -263,7 +263,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
     }
 
     private void assertScriptHost(ScriptCapabilityType capScript, ProvisioningScriptHostType expectedHostType) {
-        for (Host host : capScript.getHost()) {
+        for (ScriptCapabilityHostType host : capScript.getHost()) {
             if (host.getType() == expectedHostType) {
                 return;
             }

@@ -140,7 +140,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         AssertJUnit.assertNotNull("Cannot generate connector schema", connectorSchema);
         displayDumpable("Connector schema", connectorSchema);
 
-        cc = factory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
+        cc = factory.createConnectorInstance(connectorType,
                 "OpenDJ resource",
                 "description of OpenDJ connector instance");
 
@@ -187,28 +187,32 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
     @Test
     public void test020ResourceSchemaSanity() {
-        QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
-        ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
+        QName objectClassQname = OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME;
+        ResourceObjectClassDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
         assertNotNull("No object class definition " + objectClassQname, accountDefinition);
         assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isEmpty());
         assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isIgnored());
 
-        Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getPrimaryIdentifiers();
+        Collection<? extends ResourceAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
         assertNotNull("Null identifiers for " + objectClassQname, identifiers);
         assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
 
-        ResourceAttributeDefinition<String> idPrimaryDef = accountDefinition.findAttributeDefinition(
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME));
+        ResourceAttributeDefinition<?> idPrimaryDef = accountDefinition.findAttributeDefinition(
+                new QName(MidPointConstants.NS_RI, OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME));
         assertNotNull("No definition for attribute " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME, idPrimaryDef);
-        assertTrue("Attribute " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " in not an identifier", idPrimaryDef.isPrimaryIdentifier(accountDefinition));
+        assertTrue("Attribute " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " in not an identifier",
+                accountDefinition.isPrimaryIdentifier(
+                        idPrimaryDef.getItemName()));
         assertTrue("Attribute " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " in not in identifiers list", identifiers.contains(idPrimaryDef));
         assertEquals("Attribute " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " has wrong native name", OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME, idPrimaryDef.getNativeAttributeName());
         assertEquals("Attribute " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " has wrong framework name", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());
 
-        ResourceAttributeDefinition<String> idSecondaryDef = accountDefinition.findAttributeDefinition(
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME));
+        ResourceAttributeDefinition<?> idSecondaryDef =
+                accountDefinition.findAttributeDefinition(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
         assertNotNull("No definition for attribute " + SchemaConstants.ICFS_NAME, idSecondaryDef);
-        assertTrue("Attribute " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " in not secondary identifier", idSecondaryDef.isSecondaryIdentifier(accountDefinition));
+        assertTrue("Attribute " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " in not secondary identifier",
+                accountDefinition.isSecondaryIdentifier(
+                        idSecondaryDef.getItemName()));
         assertFalse("Attribute " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " in in identifiers list and it should NOT be", identifiers.contains(idSecondaryDef));
         assertTrue("Attribute " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " in not in secomdary identifiers list", accountDefinition.getSecondaryIdentifiers().contains(idSecondaryDef));
         assertEquals("Attribute " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " has wrong native name", OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME, idSecondaryDef.getNativeAttributeName());
@@ -222,31 +226,37 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
             throws Exception {
         OperationResult result = new OperationResult(this.getClass().getName() + ".testAdd");
 
-        QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
-        ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
+        QName objectClassQname = OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME;
+        ResourceObjectClassDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
         assertNotNull("No object class definition " + objectClassQname, accountDefinition);
         ResourceAttributeContainer resourceObject = accountDefinition.instantiate(ShadowType.F_ATTRIBUTES);
 
-        ResourceAttributeDefinition<String> attributeDefinition = accountDefinition
-                .findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME));
+        //noinspection unchecked
+        ResourceAttributeDefinition<String> attributeDefinition =
+                (ResourceAttributeDefinition<String>)
+                        accountDefinition.findAttributeDefinitionRequired(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
         ResourceAttribute<String> attribute = attributeDefinition.instantiate();
         attribute.setRealValue("uid=" + name + ",ou=people,dc=example,dc=com");
         resourceObject.add(attribute);
 
-        attributeDefinition = accountDefinition
-                .findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "sn"));
+        //noinspection unchecked
+        attributeDefinition = (ResourceAttributeDefinition<String>)
+                accountDefinition.findAttributeDefinitionRequired(new QName(MidPointConstants.NS_RI, "sn"));
         attribute = attributeDefinition.instantiate();
         attribute.setRealValue(familyName);
         resourceObject.add(attribute);
 
-        attributeDefinition = accountDefinition
-                .findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"));
+        //noinspection unchecked
+        attributeDefinition = (ResourceAttributeDefinition<String>)
+                accountDefinition.findAttributeDefinitionRequired(new QName(MidPointConstants.NS_RI, "cn"));
         attribute = attributeDefinition.instantiate();
         attribute.setRealValue(givenName + " " + familyName);
         resourceObject.add(attribute);
 
-        attributeDefinition = accountDefinition.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
-                "givenName"));
+        //noinspection unchecked
+        attributeDefinition = (ResourceAttributeDefinition<String>)
+                accountDefinition.findAttributeDefinitionRequired(
+                        new QName(MidPointConstants.NS_RI, "givenName"));
         attribute = attributeDefinition.instantiate();
         attribute.setRealValue(givenName);
         resourceObject.add(attribute);
@@ -254,8 +264,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 
         AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> ret = cc.addObject(shadow, null, result);
-        Collection<ResourceAttribute<?>> resourceAttributes = ret.getReturnValue();
-        return resourceAttributes;
+        return ret.getReturnValue();
     }
 
     @Test
@@ -273,7 +282,8 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
             }
         }
 
-        ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
+        ResourceObjectClassDefinition accountDefinition =
+                resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
 
         cc.deleteObject(accountDefinition, null, identifiers, null, result);
 
@@ -281,8 +291,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
                 accountDefinition, identifiers);
         PrismObject<ShadowType> resObj = null;
         try {
-            resObj = cc.fetchObject(identification, null, null,
-                    result);
+            resObj = cc.fetchObject(identification, null, null, result);
             Assert.fail();
         } catch (ObjectNotFoundException ex) {
             AssertJUnit.assertNull(resObj);
@@ -303,7 +312,8 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         changes.add(createAddAttributeChange("street", "Wall Street"));
         changes.add(createDeleteAttributeChange("givenName", "John"));
 
-        ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
+        ResourceObjectClassDefinition accountDefinition =
+                resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
         ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
                 accountDefinition, identifiers);
 
@@ -312,14 +322,14 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         PrismObject<ShadowType> shadow = cc.fetchObject(identification, null, null, result);
         ResourceAttributeContainer resObj = ShadowUtil.getAttributesContainer(shadow);
 
-        AssertJUnit.assertNull(resObj.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "givenName")));
+        AssertJUnit.assertNull(resObj.findAttribute(new QName(MidPointConstants.NS_RI, "givenName")));
 
         String addedEmployeeNumber = resObj
-                .findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "employeeNumber")).getValue(String.class)
+                .findAttribute(new QName(MidPointConstants.NS_RI, "employeeNumber")).getValue(String.class)
                 .getValue();
-        String changedSn = resObj.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "sn"))
+        String changedSn = resObj.findAttribute(new QName(MidPointConstants.NS_RI, "sn"))
                 .getValues(String.class).iterator().next().getValue();
-        String addedStreet = resObj.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "street"))
+        String addedStreet = resObj.findAttribute(new QName(MidPointConstants.NS_RI, "street"))
                 .getValues(String.class).iterator().next().getValue();
 
         System.out.println("changed employee number: " + addedEmployeeNumber);
@@ -335,7 +345,8 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
     @Test
     public void test200FetchChanges() throws Exception {
         OperationResult result = createOperationResult();
-        ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
+        ResourceObjectClassDefinition accountDefinition =
+                resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
         UcfSyncToken lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
 
         System.out.println("Property:");
@@ -354,40 +365,43 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         AssertJUnit.assertEquals(0, changes.size());
     }
 
-    private PrismProperty createProperty(String propertyName, String propertyValue) {
-        ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME));
+    private PrismProperty createProperty(String propertyName, String propertyValue) throws SchemaException {
+        ResourceObjectClassDefinition accountDefinition =
+                resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
         ResourceAttributeDefinition propertyDef = accountDefinition.findAttributeDefinition(new QName(
-                ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
+                MidPointConstants.NS_RI, propertyName));
         ResourceAttribute property = propertyDef.instantiate();
         property.setRealValue(propertyValue);
         return property;
     }
 
-    private PropertyModificationOperation createReplaceAttributeChange(String propertyName, String propertyValue) {
+    private PropertyModificationOperation createReplaceAttributeChange(String propertyName, String propertyValue)
+            throws SchemaException {
         PrismProperty<?> property = createProperty(propertyName, propertyValue);
         ItemPath propertyPath = ItemPath.create(ShadowType.F_ATTRIBUTES,
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
+                new QName(MidPointConstants.NS_RI, propertyName));
         PropertyDelta delta = prismContext.deltaFactory().property().create(propertyPath, property.getDefinition());
         delta.setRealValuesToReplace(propertyValue);
         PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
         return attributeModification;
     }
 
-    private PropertyModificationOperation createAddAttributeChange(String propertyName, String propertyValue) {
+    private PropertyModificationOperation createAddAttributeChange(String propertyName, String propertyValue)
+            throws SchemaException {
         PrismProperty<?> property = createProperty(propertyName, propertyValue);
         ItemPath propertyPath = ItemPath.create(ShadowType.F_ATTRIBUTES,
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
+                new QName(MidPointConstants.NS_RI, propertyName));
         PropertyDelta delta = prismContext.deltaFactory().property().create(propertyPath, property.getDefinition());
         delta.addRealValuesToAdd(propertyValue);
         PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
         return attributeModification;
     }
 
-    private PropertyModificationOperation createDeleteAttributeChange(String propertyName, String propertyValue) {
+    private PropertyModificationOperation createDeleteAttributeChange(String propertyName, String propertyValue)
+            throws SchemaException {
         PrismProperty<?> property = createProperty(propertyName, propertyValue);
         ItemPath propertyPath = ItemPath.create(ShadowType.F_ATTRIBUTES,
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
+                new QName(MidPointConstants.NS_RI, propertyName));
         PropertyDelta delta = prismContext.deltaFactory().property().create(propertyPath, property.getDefinition());
         delta.addRealValuesToDelete(propertyValue);
         PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
@@ -425,7 +439,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         OperationResult result = new OperationResult(contextName());
 
         ConnectorInstance badConnector = factory.createConnectorInstance(connectorType,
-                ResourceTypeUtil.getResourceNamespace(badResourceType), "bad resource", "bad resource description");
+                "bad resource", "bad resource description");
         badConnector.configure(badResourceType.getConnectorConfiguration().asPrismContainerValue(), null, result);
 
         // WHEN
@@ -468,15 +482,14 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         System.out
                 .println("-------------------------------------------------------------------------------------");
 
-        ObjectClassComplexTypeDefinition accountDefinition = resourceSchema
-                .findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME));
-        AssertJUnit.assertNotNull(accountDefinition);
+        ResourceObjectClassDefinition accountDefinition = resourceSchema
+                .findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
 
         AssertJUnit.assertFalse("No identifiers for account object class ", accountDefinition
                 .getPrimaryIdentifiers().isEmpty());
 
         PrismPropertyDefinition<?> uidDefinition = accountDefinition.findAttributeDefinition(
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+                new QName(MidPointConstants.NS_RI,
                         OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME));
         AssertJUnit.assertNotNull(uidDefinition);
 
@@ -527,7 +540,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         // Add a testing object
         cc.addObject(shadow, null, addResult);
 
-        ObjectClassComplexTypeDefinition accountDefinition = resourceObject.getDefinition().getComplexTypeDefinition();
+        ResourceObjectDefinition accountDefinition = resourceObject.getDefinition().getComplexTypeDefinition();
 
         Collection<ResourceAttribute<?>> identifiers = resourceObject.getPrimaryIdentifiers();
         // Determine object class from the schema
@@ -551,10 +564,13 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
     public void test510Search() throws Exception {
         // GIVEN
 
-        ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
+        UcfExecutionContext ctx = createExecutionContext(resourceType);
+
+        ResourceObjectClassDefinition accountDefinition =
+                resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
         // Determine object class from the schema
 
-        ObjectHandler handler = (ucfObject, result) -> {
+        UcfObjectHandler handler = (ucfObject, result) -> {
             displayDumpable("Search: found", ucfObject);
             return true;
         };
@@ -562,7 +578,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         OperationResult result = createOperationResult();
 
         // WHEN
-        cc.search(accountDefinition, null, handler, null, null, null, null, null, result);
+        cc.search(accountDefinition, null, handler, null, null, null, null, ctx, result);
 
         // THEN
 
@@ -622,7 +638,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         // be empty
         assertNull(passwordBefore);
 
-        ObjectClassComplexTypeDefinition accountDefinition = resourceObject.getDefinition().getComplexTypeDefinition();
+        ResourceObjectDefinition accountDefinition = resourceObject.getDefinition().getComplexTypeDefinition();
 
         Collection<ResourceAttribute<?>> identifiers = resourceObject.getPrimaryIdentifiers();
         // Determine object class from the schema
@@ -669,24 +685,29 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
     private ResourceAttributeContainer createResourceObject(String dn, String sn, String cn) throws SchemaException {
         // Account type is hardcoded now
-        ObjectClassComplexTypeDefinition accountDefinition = resourceSchema
-                .findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME));
+        ResourceObjectClassDefinition accountDefinition = resourceSchema
+                .findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
         // Determine identifier from the schema
         ResourceAttributeContainer resourceObject = accountDefinition.instantiate(ShadowType.F_ATTRIBUTES);
 
-        ResourceAttributeDefinition road = accountDefinition.findAttributeDefinition(
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "sn"));
-        ResourceAttribute roa = road.instantiate();
+        //noinspection unchecked
+        ResourceAttributeDefinition<String> road =
+                (ResourceAttributeDefinition<String>)
+                        accountDefinition.findAttributeDefinitionRequired(new QName(MidPointConstants.NS_RI, "sn"));
+        ResourceAttribute<String> roa = road.instantiate();
         roa.setRealValue(sn);
         resourceObject.add(roa);
 
-        road = accountDefinition.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"));
+        //noinspection unchecked
+        road = (ResourceAttributeDefinition<String>)
+                accountDefinition.findAttributeDefinitionRequired(new QName(MidPointConstants.NS_RI, "cn"));
         roa = road.instantiate();
         roa.setRealValue(cn);
         resourceObject.add(roa);
 
-        road = accountDefinition.findAttributeDefinition(
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME));
+        //noinspection unchecked
+        road = (ResourceAttributeDefinition<String>)
+                accountDefinition.findAttributeDefinitionRequired(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
         roa = road.instantiate();
         roa.setRealValue(dn);
         resourceObject.add(roa);

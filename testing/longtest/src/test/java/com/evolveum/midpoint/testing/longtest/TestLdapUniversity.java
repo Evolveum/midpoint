@@ -44,9 +44,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author Pavol Mederly
- */
 @ContextConfiguration(locations = { "classpath:ctx-longtest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapUniversity extends AbstractModelIntegrationTest {

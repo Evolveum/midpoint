@@ -17,8 +17,6 @@ import java.util.stream.Collectors;
  *
  * Because there can be lots of modifications that could take literally hours to execute (sometimes blocking DB as described
  * e.g. in MID-4611), they are divided into smaller batches.
- *
- * @author mederly
  */
 public class ModificationsToExecute {
 

@@ -23,9 +23,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
-/**
- * @author mederly
- */
 @Component
 public class AccCertGeneralHelper {
 

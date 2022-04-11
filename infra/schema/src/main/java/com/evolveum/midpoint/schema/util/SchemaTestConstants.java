@@ -8,7 +8,10 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Constants for use in tests. DO NOT USE IN "MAIN" CODE. This is placed in "main" just for convenience, so the
@@ -33,7 +36,10 @@ public class SchemaTestConstants {
     public static final ItemPath ICFS_NAME_PATH_PARTS = ItemPath.create(ShadowType.F_ATTRIBUTES, ICFS_NAME);
 
     public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
+    public static final QName ACCOUNT_OBJECT_CLASS_NAME = new QName(MidPointConstants.NS_RI, ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+
     public static final String GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
+    public static final QName GROUP_OBJECT_CLASS_NAME = new QName(MidPointConstants.NS_RI, GROUP_OBJECT_CLASS_LOCAL_NAME);
 
     // Extension schema loaded at runtime from the schema/src/test/resource/schema dir
     public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
@@ -47,4 +53,8 @@ public class SchemaTestConstants {
     public static final ItemName EXTENSION_LONG_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "longType");
     public static final ItemName EXTENSION_DATE_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "dateType");
     public static final ItemName EXTENSION_SHIP_ELEMENT = new ItemName(NS_EXTENSION, "ship");
+
+    private static final String DUMMY_CORRELATOR_NS = "http://midpoint.evolveum.com/xml/ns/test/correlation";
+    public static final ItemName DUMMY_CORRELATOR_CONFIGURATION_ITEM_NAME = new ItemName(
+            DUMMY_CORRELATOR_NS, "dummy");
 }

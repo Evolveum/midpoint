@@ -43,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author lskublik
@@ -54,6 +55,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     private final IModel<ReportType> report;
     private CompiledObjectCollectionView view;
+    private CompiledObjectCollectionView guiView;
     private Map<String, Object> variables = new HashMap<>();
     private ObjectListStorage pageStorage;
 
@@ -78,15 +80,17 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
         try {
             Task task = getPageBase().createSimpleTask("create compiled view");
             view = getPageBase().getReportManager().createCompiledView(getReport().getObjectCollection(), true, task, task.getResult());
+            guiView = getPageBase().getCompiledGuiProfile().findObjectCollectionView(
+                    view.getContainerType() == null ? ObjectType.COMPLEX_TYPE : view.getContainerType(), null);
         } catch (Exception e) {
             LOGGER.debug("Couldn't create compiled view for report " + getReport(), e);
         }
-        if (checkViewAfterInicialize()) {
+        if (checkViewAfterInitialize()) {
             checkView();
         }
     }
 
-    protected boolean checkViewAfterInicialize() {
+    protected boolean checkViewAfterInitialize() {
         return false;
     }
 
@@ -168,6 +172,16 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
             }
 
             @Override
+            protected boolean isUseObjectCounting() {
+                return !isDisableCounting();
+            }
+
+            @Override
+            public boolean isOrderingDisabled() {
+                return isDisableSorting();
+            }
+
+            @Override
             public ObjectQuery getQuery() {
                 //fake query because of we need paging in method createDataObjectWrappers
                 return getPrismContext().queryFor(ObjectType.class).build();
@@ -192,6 +206,33 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
             }
         }
         return provider;
+    }
+
+    @Override
+    public List<C> getSelectedRealObjects() {
+        return getSelectedObjects().stream().map(o -> o.getValue()).collect(Collectors.toList());
+    }
+
+    private boolean isDisableCounting() {
+        Boolean disableCounting = null;
+        if (view != null) {
+            disableCounting =view.isDisableCounting();
+        }
+        if (disableCounting == null && guiView != null) {
+            disableCounting = guiView.isDisableCounting();
+        }
+        return Boolean.TRUE.equals(disableCounting);
+    }
+
+    private boolean isDisableSorting() {
+        Boolean disableSorting = null;
+        if (view != null) {
+            disableSorting =view.isDisableSorting();
+        }
+        if (disableSorting == null && guiView != null) {
+            disableSorting = guiView.isDisableSorting();
+        }
+        return Boolean.TRUE.equals(disableSorting);
     }
 
     private void processVariables(VariablesMap variablesMap) {
@@ -324,7 +365,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     public void checkView() {
         if (!hasView()) {
-            getSession().warn(PageBase.createStringResourceStatic(null, "ReportObjectsListPanel.message.defineType").getString());
+            getSession().warn(PageBase.createStringResourceStatic("ReportObjectsListPanel.message.defineType").getString());
         }
     }
 
@@ -332,5 +373,10 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     public void resetTable(AjaxRequestTarget target) {
         initView();
         super.resetTable(target);
+    }
+
+    @Override
+    protected String getStringValueForObject(ObjectType object) {
+        return super.getStringValueForObject(object) + " (" + object.getOid() + ")";
     }
 }

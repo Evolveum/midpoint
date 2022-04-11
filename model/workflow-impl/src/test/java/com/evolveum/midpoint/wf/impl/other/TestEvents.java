@@ -10,7 +10,7 @@ package com.evolveum.midpoint.wf.impl.other;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -25,8 +25,6 @@ import java.io.File;
 
 /**
  * Unfinished. Not included in standard tests.
- *
- * @author mederly
  */
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

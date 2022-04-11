@@ -7,14 +7,16 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
@@ -25,8 +27,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
-import com.evolveum.midpoint.web.page.admin.reports.component.ImportReportPopupPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -50,8 +50,8 @@ import java.util.List;
         },
         action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
-                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
-                description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+                label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL,
+                description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_URL,
                 label = "PageReports.auth.reports.label",
                 description = "PageReports.auth.reports.description")})

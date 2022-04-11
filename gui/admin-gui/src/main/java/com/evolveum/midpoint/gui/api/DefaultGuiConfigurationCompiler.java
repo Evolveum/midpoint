@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Evolveum and contributors
+ * Copyright (c) 2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,16 +7,7 @@
 
 package com.evolveum.midpoint.gui.api;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
+import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -27,44 +18,44 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+
 @Component
 public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(DefaultGuiConfigurationCompiler.class);
 
     @Autowired private GuiProfileCompilerRegistry registry;
     @Autowired private PrismContext prismContext;
     @Autowired private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
 
-    @SuppressWarnings("SpellCheckingInspection")
-//    private static final String[] PANEL_PACKAGES_TO_SCAN = {
-//            "com.evolveum.midpoint.gui.impl.page.admin",
-//            "com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component",
-//            "com.evolveum.midpoint.gui.impl.page.admin.archetype.component",
-//            "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component",
-//            "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment",
-//            "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.inducement",
-//            "com.evolveum.midpoint.gui.impl.page.admin.cases.component",
-//            "com.evolveum.midpoint.gui.impl.page.admin.component",
-//            "com.evolveum.midpoint.gui.impl.page.admin.focus.component",
-//            "com.evolveum.midpoint.gui.impl.page.admin.objectcollection.component",
-//            "com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.component",
-//            "com.evolveum.midpoint.gui.impl.page.admin.org.component",
-//            "com.evolveum.midpoint.gui.impl.page.admin.report.component",
-//            "com.evolveum.midpoint.gui.impl.page.admin.resource.component",
-//            "com.evolveum.midpoint.gui.impl.page.admin.task.component",
-//            "com.evolveum.midpoint.gui.impl.page.admin.user.component",
-//            "com.evolveum.midpoint.web.component.assignment",  //Assignments
-//            "com.evolveum.midpoint.web.component.objectdetails" //Old panels
-//    };
+    @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
+
+    private static final String COLLECTION_PACKAGES_KEY = "collectionPackages";
 
     private static final String[] COLLECTION_PACKAGES_TO_SCAN = {
             "com.evolveum.midpoint.web.page.admin.archetype",
@@ -79,43 +70,80 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.web.page.admin.users"
     };
 
-    private final Map<String, Class<? extends Panel>> panelsMap = new HashMap<>();
+    private static final Map<Object, Collection<Class<?>>> SCANNED_CLASSES_MAP = new HashMap<>();
 
-    private final Map<String, SimpleCounter> countersMap = new HashMap<>();
+    private static final Map<String, Class<? extends Panel>> PANELS_MAP = new HashMap<>();
+
+    private static final Map<String, SimpleCounter> COUNTERS_MAP = new HashMap<>();
 
     private Boolean experimentalFeaturesEnabled = false;
-    private Collection<Class<?>> panelInstanceClasses;
-    private Collection<Class<?>> panelTypeClasses;
-    private Collection<Class<?>> collectionClasses;
 
-    @Override
+    private static synchronized Collection<Class<?>> getClassesForAnnotation(Class<? extends Annotation> annotation, String additionalPackagesToScan) {
+        Collection<Class<?>> result = SCANNED_CLASSES_MAP.get(annotation);
+        if (result != null) {
+            return result;
+        }
+
+        result = ClassPathUtil.scanClasses(annotation,
+                StringUtils.joinWith(",", ClassPathUtil.DEFAULT_PACKAGE_TO_SCAN, additionalPackagesToScan));
+
+        result = Collections.unmodifiableCollection(result);
+
+        SCANNED_CLASSES_MAP.put(annotation, result);
+
+        return result;
+    }
+
+    private static synchronized Collection<Class<?>> getCollectionClasses() {
+        Collection<Class<?>> result = SCANNED_CLASSES_MAP.get(COLLECTION_PACKAGES_KEY);
+        if (result != null) {
+            return result;
+        }
+
+        result = ClassPathUtil.listClasses(COLLECTION_PACKAGES_TO_SCAN);
+
+        result = Collections.unmodifiableCollection(result);
+
+        SCANNED_CLASSES_MAP.put(COLLECTION_PACKAGES_KEY, result);
+
+        return result;
+    }
+
+    private Collection<Class<?>> getPanelInstanceClasses() {
+        Collection<Class<?>> result = new HashSet<>();
+        result.addAll(getClassesForAnnotation(PanelInstance.class, additionalPackagesToScan));
+        result.addAll(getClassesForAnnotation(PanelInstances.class, additionalPackagesToScan));
+
+        return Collections.unmodifiableCollection(result);
+    }
+
+    private Collection<Class<?>> getPanelTypeClasses() {
+        return getClassesForAnnotation(PanelType.class, additionalPackagesToScan);
+    }
+
     @PostConstruct
-    public void register() {
+    public void init() {
+        fillInPanelsMap();
+        fillInCountersMap();
+
         registry.registerCompiler(this);
     }
 
     public Class<? extends Panel> findPanel(String identifier) {
-        return panelsMap.get(identifier);
+        return PANELS_MAP.get(identifier);
     }
 
-    public SimpleCounter findCounter(String idenifier) {
-        return countersMap.get(idenifier);
+    public SimpleCounter findCounter(String identifier) {
+        return COUNTERS_MAP.get(identifier);
     }
 
     @Override
     public void postProcess(CompiledGuiProfile compiledGuiProfile) {
         experimentalFeaturesEnabled = compiledGuiProfile.isEnableExperimentalFeatures();
 
-        collectPanelInstanceClasses();
-        collectPanelTypeClasses();
-
-        fillInPanelsMap();
-        fillInCountersMap();
-
         compileDefaultDetailsPages(compiledGuiProfile);
         mergeCollectionViewsWithDefault(compiledGuiProfile);
         processShadowPanels(compiledGuiProfile);
-
     }
 
     private void compileDefaultDetailsPages(CompiledGuiProfile compiledGuiProfile) {
@@ -136,7 +164,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     }
 
     private void mergeCollectionViewsWithDefault(CompiledGuiProfile compiledGuiProfile) {
-        Collection<Class<?>> classes = collectCollectionClasses();
+        Collection<Class<?>> classes = getCollectionClasses();
         List<CompiledObjectCollectionView> defaultCollectionViews = compileDefaultCollectionViews(classes);
 
         for (CompiledObjectCollectionView defaultCollectionView : defaultCollectionViews) {
@@ -179,22 +207,42 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return compiledObjectCollectionViews;
     }
 
+    private List<PanelInstance> getPanelInstancesAnnotations(Class<?> clazz) {
+        List<PanelInstance> instances = new ArrayList<>();
+        if (clazz == null) {
+            return instances;
+        }
+
+        PanelInstance i = clazz.getAnnotation(PanelInstance.class);
+        if (i != null) {
+            instances.add(i);
+        }
+
+        PanelInstances pis = clazz.getAnnotation(PanelInstances.class);
+        if (pis != null) {
+            instances.addAll(Arrays.asList(pis.value()));
+        }
+
+        return instances;
+    }
+
     private void processShadowPanels(CompiledGuiProfile compiledGuiProfile) {
         List<ContainerPanelConfigurationType> shadowPanels = new ArrayList<>();
-        for (Class<?> clazz : panelInstanceClasses) {
-            PanelInstance instance = clazz.getAnnotation(PanelInstance.class);
-            if (instance == null) {
-                continue;
-            }
-            if (!instance.applicableForType().equals(ShadowType.class)) {
-                continue;
-            }
+        for (Class<?> clazz : getPanelInstanceClasses()) {
+            for (PanelInstance instance : getPanelInstancesAnnotations(clazz)) {
+                if (instance == null) {
+                    continue;
+                }
+                if (!instance.applicableForType().equals(ShadowType.class)) {
+                    continue;
+                }
 
-            if (compiledGuiProfile.getObjectDetails() == null) {
-                compiledGuiProfile.setObjectDetails(new GuiObjectDetailsSetType());
+                if (compiledGuiProfile.getObjectDetails() == null) {
+                    compiledGuiProfile.setObjectDetails(new GuiObjectDetailsSetType());
+                }
+                ContainerPanelConfigurationType shadowPanel = compileContainerPanelConfiguration(clazz, ShadowType.class, instance);
+                shadowPanels.add(shadowPanel);
             }
-            ContainerPanelConfigurationType shadowPanel = compileContainerPanelConfiguration(clazz, ShadowType.class, instance);
-            shadowPanels.add(shadowPanel);
         }
 
         if (compiledGuiProfile.getObjectDetails() == null) {
@@ -212,17 +260,17 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         }
     }
 
-    private void fillInPanelsMap() {
-        if (!panelsMap.isEmpty()) {
+    private synchronized void fillInPanelsMap() {
+        if (!PANELS_MAP.isEmpty()) {
             return;
         }
-        for (Class<?> clazz : panelTypeClasses) {
+        for (Class<?> clazz : getPanelTypeClasses()) {
             PanelType panelType = clazz.getAnnotation(PanelType.class);
             if (isNotPanelTypeDefinition(clazz, panelType)) {
                 continue;
             }
             //noinspection unchecked
-            panelsMap.put(panelType.name(), (Class<? extends Panel>) clazz);
+            PANELS_MAP.put(panelType.name(), (Class<? extends Panel>) clazz);
         }
     }
 
@@ -239,144 +287,150 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return false;
     }
 
-    private void fillInCountersMap() {
-        if (!countersMap.isEmpty()) {
+    private synchronized void fillInCountersMap() {
+        if (!COUNTERS_MAP.isEmpty()) {
             return;
         }
-        for (Class<?> clazz : panelInstanceClasses) {
+
+        for (Class<?> clazz : getPanelInstanceClasses()) {
             Counter counterDefinition = clazz.getAnnotation(Counter.class);
             if (counterDefinition != null) {
                 Class<? extends SimpleCounter> counterProvider = counterDefinition.provider();
                 try {
                     PanelInstance panelInstance = clazz.getAnnotation(PanelInstance.class);
                     if (panelInstance != null) {
-                        countersMap.put(panelInstance.identifier(), counterProvider.getDeclaredConstructor().newInstance());
+                        COUNTERS_MAP.put(panelInstance.identifier(), counterProvider.getDeclaredConstructor().newInstance());
                     }
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                     //TODO log at least
                 }
             }
         }
-
     }
 
     private GuiObjectDetailsSetType compileDefaultGuiObjectDetailsSetType() {
-        GuiObjectDetailsSetType guiObjectDetailsSetType = new GuiObjectDetailsSetType();
-        for (ObjectTypes objectType : ObjectTypes.values()) {
-            GuiObjectDetailsPageType detailsPageType = compileDefaultGuiObjectDetailsPage(objectType);
-            if (QNameUtil.match(detailsPageType.getType(), ShadowType.COMPLEX_TYPE)) {
-                continue;
-            }
-            guiObjectDetailsSetType.getObjectDetailsPage().add(detailsPageType);
+        GuiObjectDetailsSetType detailsSet = new GuiObjectDetailsSetType();
+
+        // create defaults for all subclasses of ObjectType
+        for (ObjectTypes type : ObjectTypes.values()) {
+            addDetails(detailsSet, type.getClassDefinition());
         }
-        return guiObjectDetailsSetType;
+
+        // add all other Containerable types for which we found and cached panels on classpath
+        Set<Class<? extends Containerable>> containerables = findSupportedContainerables();
+        for (Class<? extends Containerable> clazz : containerables) {
+            addDetails(detailsSet, clazz);
+        }
+
+        return detailsSet;
     }
 
-    private GuiObjectDetailsPageType compileDefaultGuiObjectDetailsPage(ObjectTypes objectType) {
+    private Set<Class<? extends Containerable>> findSupportedContainerables() {
+        Set<Class<? extends Containerable>> containerables = new HashSet<>();
+
+        for (Class<?> clazz : getPanelInstanceClasses()) {
+            List<PanelInstance> pis = getPanelInstancesAnnotations(clazz);
+            pis.forEach(pi -> addSupportedContainerable(containerables, pi));
+        }
+
+        return containerables;
+    }
+
+    private void addSupportedContainerable(Set<Class<? extends Containerable>> containerables, PanelInstance pi) {
+        if (pi == null || pi.applicableForType() == null) {
+            return;
+        }
+        if (ObjectType.class.isAssignableFrom(pi.applicableForType())) {
+            return;
+        }
+
+        containerables.add(pi.applicableForType());
+    }
+
+    private void addDetails(GuiObjectDetailsSetType detailsSet, Class<? extends Containerable> type) {
+        GuiObjectDetailsPageType details = compileDefaultGuiObjectDetailsPage(type);
+        if (details == null) {
+            return;
+        }
+
+        if (QNameUtil.match(details.getType(), ShadowType.COMPLEX_TYPE)) {
+            return;
+        }
+
+        detailsSet.getObjectDetailsPage().add(details);
+    }
+
+    private GuiObjectDetailsPageType compileDefaultGuiObjectDetailsPage(Class<? extends Containerable> containerable) {
+        QName type;
+        try {
+            type = GuiImplUtil.getContainerableTypeName(containerable);
+        } catch (Exception ex) {
+            return null;
+        }
+
+        if (type == null) {
+            return null;
+        }
+
         GuiObjectDetailsPageType detailsPageType = new GuiObjectDetailsPageType();
-        detailsPageType.setType(objectType.getTypeQName());
-        detailsPageType.getPanel().addAll(getPanelsFor(objectType.getClassDefinition()));
+        detailsPageType.setType(type);
+        detailsPageType.getPanel().addAll(getPanelsFor(containerable));
         return detailsPageType;
     }
 
-    private List<ContainerPanelConfigurationType> getPanelsFor(Class<? extends ObjectType> objectType) {
+    private List<ContainerPanelConfigurationType> getPanelsFor(Class<? extends Containerable> containerable) {
         List<ContainerPanelConfigurationType> panels = new ArrayList<>();
-        for (Class<?> clazz : panelInstanceClasses) {
-            PanelInstances panelInstances = clazz.getAnnotation(PanelInstances.class);
-            if (panelInstances != null) {
-                for (PanelInstance panelInstance : panelInstances.instances()) {
-                    if (isNotApplicableFor(objectType, panelInstance)) {
-                        continue;
-                    }
 
-                    if (isSubPanel(panelInstance)) {
-                        continue;
-                    }
-                    ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, panelInstance);
-                    panels.add(config);
-                }
-            } else {
-                PanelInstance panelInstance = clazz.getAnnotation(PanelInstance.class);
-                if (isNotApplicableFor(objectType, panelInstance)) {
-                    continue;
-                }
-
-                if (isSubPanel(panelInstance)) {
-                    continue;
-                }
-                ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, panelInstance);
-                panels.add(config);
-            }
+        for (Class<?> clazz : getPanelInstanceClasses()) {
+            List<PanelInstance> pis = getPanelInstancesAnnotations(clazz);
+            pis.forEach(pi -> addPanelsFor(panels, containerable, clazz, pi));
         }
 
         MiscSchemaUtil.sortDetailsPanels(panels);
+
         return panels;
     }
 
-    private void collectPanelInstanceClasses() {
-        if (panelInstanceClasses == null) {
-            panelInstanceClasses = collectClasses(PanelInstance.class);
-            panelInstanceClasses.addAll(collectClasses(PanelInstances.class));
+    private void addPanelsFor(List<ContainerPanelConfigurationType> panels, Class<? extends Containerable> c, Class<?> clazz, PanelInstance pi) {
+        if (isNotApplicableFor(c, pi)) {
+            return;
         }
+
+        if (isSubPanel(pi)) {
+            return;
+        }
+
+        ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, c, pi);
+
+        panels.add(config);
     }
 
-    private void collectPanelTypeClasses() {
-        if (panelTypeClasses == null) {
-            panelTypeClasses = collectClasses(PanelType.class);
-        }
-    }
-
-    private Collection<Class<?>> collectClasses(Class<? extends Annotation> annotationClass) {
-        return ClassPathUtil.scanClasses(annotationClass);
-    }
-
-    private Collection<Class<?>> collectCollectionClasses() {
-        if (collectionClasses == null) {
-            collectionClasses = collectClasses(COLLECTION_PACKAGES_TO_SCAN);
-        }
-        return collectionClasses;
-    }
-
-    private Set<Class<?>> collectClasses(String[] packagesToScan) {
-        Set<Class<?>> allClasses = new HashSet<>();
-        for (String packageToScan : packagesToScan) {
-            Set<Class<?>> classes = ClassPathUtil.listClasses(packageToScan);
-            allClasses.addAll(classes);
-        }
-        return allClasses;
-    }
-
-    private boolean isNotApplicableFor(Class<? extends ObjectType> objectType, PanelInstance panelInstance) {
-        if (panelInstance == null) {
-            return true;
-        }
-        if (panelInstance.applicableForType() == null) {
+    private boolean isNotApplicableFor(Class<? extends Containerable> containerable, PanelInstance pi) {
+        if (pi == null || Containerable.class.equals(pi.applicableForType())) {
+            // if there's no applicableForType defined, it shouldn't be applicable
             return true;
         }
 
-        if (ObjectType.class.equals(panelInstance.applicableForType())) {
+        boolean applicable = pi.applicableForType().isAssignableFrom(containerable);
+        if (!applicable) {
             return true;
         }
 
-        if (panelInstance.excludeTypes() != null && panelInstance.excludeTypes().length > 0) {
-            return Arrays.asList(panelInstance.excludeTypes()).contains(objectType);
-        }
-
-        return !panelInstance.applicableForType().isAssignableFrom(objectType);
+        return Arrays.asList(pi.excludeTypes()).contains(containerable);
     }
 
     private boolean isSubPanel(PanelInstance panelInstance) {
         return !panelInstance.childOf().equals(Panel.class);
     }
 
-    private ContainerPanelConfigurationType compileContainerPanelConfiguration(Class<?> clazz, Class<? extends ObjectType> objectType, PanelInstance panelInstance) {
+    private ContainerPanelConfigurationType compileContainerPanelConfiguration(Class<?> clazz, Class<? extends Containerable> containerable, PanelInstance panelInstance) {
         ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
         config.setIdentifier(panelInstance.identifier());
 
         addPanelTypeConfiguration(clazz, config);
         compileDisplay(panelInstance, config);
 
-        List<ContainerPanelConfigurationType> children = processChildren(objectType, clazz);
+        List<ContainerPanelConfigurationType> children = processChildren(containerable, clazz);
         config.getPanel().addAll(children);
 
         if (panelInstance.defaultPanel()) {
@@ -387,7 +441,39 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             config.setApplicableForOperation(panelInstance.applicableForOperation()[0]);
         }
 
+        createDefaultVirtualContainer(config, panelInstance.containerPath(), panelInstance.expanded());
+        if (panelInstance.hiddenContainers().length > 0) {
+            for (String path : panelInstance.hiddenContainers()) {
+                VirtualContainersSpecificationType c = new VirtualContainersSpecificationType();
+                c.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                ItemPathType itemPath = prismContext.itemPathParser().asItemPathType(path);
+                c.setPath(itemPath);
+                config.getContainer().add(c);
+            }
+        }
+
+        if (StringUtils.isNotEmpty(panelInstance.type())) {
+            config.setType(QNameUtil.uriToQName(panelInstance.type(), SchemaConstantsGenerated.NS_COMMON));
+        }
+
         return config;
+    }
+
+    private void createDefaultVirtualContainer(ContainerPanelConfigurationType config, String path, Boolean expanded) {
+        if (StringUtils.isEmpty(path)) {
+            return;
+        }
+
+        VirtualContainersSpecificationType container = new VirtualContainersSpecificationType();
+        if ("empty".equals(path)) {
+            container.setPath(new ItemPathType(ItemPath.EMPTY_PATH));
+        } else {
+            ItemPathType itemPath = prismContext.itemPathParser().asItemPathType(path);
+            container.setPath(itemPath);
+        }
+        container.setDisplayOrder(10);
+        container.setExpanded(expanded);
+        config.getContainer().add(container);
     }
 
     private void addPanelTypeConfiguration(Class<?> clazz, ContainerPanelConfigurationType config) {
@@ -402,26 +488,11 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                 config.setType(def.getTypeName());
             }
         }
-        compileDefaultContainerSpecification(panelType, config);
+        createDefaultVirtualContainer(config, panelType.defaultContainerPath(), null);
 
         if (panelType.experimental() && BooleanUtils.isNotTrue(experimentalFeaturesEnabled)) {
             config.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
         }
-    }
-
-    private void compileDefaultContainerSpecification(PanelType panelType, ContainerPanelConfigurationType config) {
-        if (panelType.defaultContainerPath().isBlank()) {
-            return;
-        }
-        VirtualContainersSpecificationType defaultContainer = new VirtualContainersSpecificationType();
-        if ("empty".equals(panelType.defaultContainerPath())) {
-            defaultContainer.setPath(new ItemPathType(ItemPath.EMPTY_PATH));
-        } else {
-            ItemPathType path = prismContext.itemPathParser().asItemPathType(panelType.defaultContainerPath());
-            defaultContainer.setPath(path);
-        }
-        defaultContainer.setDisplayOrder(10);
-        config.getContainer().add(defaultContainer);
     }
 
     private void compileDisplay(PanelInstance panelInstance, ContainerPanelConfigurationType config) {
@@ -432,26 +503,28 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         }
     }
 
-    private List<ContainerPanelConfigurationType> processChildren(Class<? extends ObjectType> objectType, Class<?> parentClass) {
+    private List<ContainerPanelConfigurationType> processChildren(Class<? extends Containerable> containerable, Class<?> parentClass) {
         List<ContainerPanelConfigurationType> configs = new ArrayList<>();
-//        Set<Class<?>> classes = collectClasses();
-        for (Class<?> clazz : panelInstanceClasses) {
-            PanelInstance panelInstance = clazz.getAnnotation(PanelInstance.class);
-            if (isNotApplicableFor(objectType, panelInstance)) {
-                continue;
-            }
-            if (!isSubPanel(panelInstance)) {
-                continue;
-            }
+        for (Class<?> clazz : getPanelInstanceClasses()) {
+            for (PanelInstance panelInstance : getPanelInstancesAnnotations(clazz)) {
+                if (isNotApplicableFor(containerable, panelInstance)) {
+                    continue;
+                }
+                if (!isSubPanel(panelInstance)) {
+                    continue;
+                }
 
-            if (!panelInstance.childOf().equals(parentClass)) {
-                continue;
-            }
+                if (!panelInstance.childOf().equals(parentClass)) {
+                    continue;
+                }
 
-            ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, panelInstance);
-            configs.add(config);
+                ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, containerable, panelInstance);
+                configs.add(config);
+            }
         }
+
         MiscSchemaUtil.sortDetailsPanels(configs);
+
         return configs;
     }
 

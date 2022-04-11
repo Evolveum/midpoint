@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl;
 
 import java.util.Map;
@@ -19,24 +18,22 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseEventHandlerType;
 
-/**
- *
- */
 @Component
 public class EventHandlerRegistry {
 
     private static final Trace LOGGER = TraceManager.getTrace(EventHandlerRegistry.class);
 
-    private Map<Class<? extends EventHandlerType>, EventHandler<?, ?>> handlers = new ConcurrentHashMap<>();
+    private final Map<Class<? extends BaseEventHandlerType>, EventHandler<?, ?>> handlers = new ConcurrentHashMap<>();
 
-    public <C extends EventHandlerType, E extends Event> void registerEventHandler(Class<? extends C> configType, EventHandler<E, C> handler) {
+    public <C extends BaseEventHandlerType, E extends Event> void registerEventHandler(
+            Class<? extends C> configType, EventHandler<E, C> handler) {
         LOGGER.trace("Registering event handler {} for config type {}", handler, configType);
         handlers.put(configType, handler);
     }
 
-    public boolean forwardToHandler(Event event, EventHandlerType configuration, Task task, OperationResult result) throws SchemaException {
+    public boolean forwardToHandler(Event event, BaseEventHandlerType configuration, Task task, OperationResult result) throws SchemaException {
         EventHandler<?, ?> handler = handlers.get(configuration.getClass());
         if (handler == null) {
             throw new IllegalStateException("Unknown handler for " + configuration);

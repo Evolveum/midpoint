@@ -146,7 +146,7 @@ public class ACAttributeDto implements Serializable {
         }
 
         List evaluators = expression.getExpressionEvaluator();
-        List<JAXBElement<RawType>> collection = StaticExpressionUtil.serializeValueElements(property, null);
+        List<JAXBElement<RawType>> collection = StaticExpressionUtil.serializeValueElements(property);
         ObjectFactory of = new ObjectFactory();
         for (JAXBElement<RawType> evaluator : collection) {
             evaluators.add(evaluator);

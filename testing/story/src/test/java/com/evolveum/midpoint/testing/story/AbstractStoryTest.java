@@ -79,6 +79,9 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME = "firstname";
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME = "lastname";
 
+    protected static final TestResource<ArchetypeType> ARCHETYPE_CORRELATION_CASE =
+            new TestResource<>(COMMON_DIR, "archetype-correlation-case.xml", SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value());
+
     protected MatchingRule<String> caseIgnoreMatchingRule;
 
     @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
@@ -97,6 +100,8 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
             throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
                     "looks like the previous test haven't cleaned it up", e);
         }
+
+        repoAdd(ARCHETYPE_CORRELATION_CASE, initResult);
 
         // User administrator
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);

@@ -80,14 +80,12 @@ public class TracingOutputCreator {
             }
         }
         NodeType localNode = taskManager.getLocalNode();
-        if (localNode != null) {
-            NodeType selectedNodeInformation = new NodeType(prismContext);
-            selectedNodeInformation.setName(localNode.getName());
-            selectedNodeInformation.setNodeIdentifier(localNode.getNodeIdentifier());
-            selectedNodeInformation.setBuild(CloneUtil.clone(localNode.getBuild()));
-            selectedNodeInformation.setClustered(localNode.isClustered());
-            environment.setNodeRef(ObjectTypeUtil.createObjectRefWithFullObject(selectedNodeInformation, prismContext));
-        }
+        NodeType selectedNodeInformation = new NodeType();
+        selectedNodeInformation.setName(localNode.getName());
+        selectedNodeInformation.setNodeIdentifier(localNode.getNodeIdentifier());
+        selectedNodeInformation.setBuild(CloneUtil.clone(localNode.getBuild()));
+        selectedNodeInformation.setClustered(localNode.isClustered());
+        environment.setNodeRef(ObjectTypeUtil.createObjectRefWithFullObject(selectedNodeInformation, prismContext));
         TaskType taskClone = task.getRawTaskObjectClone().asObjectable();
         taskClone.asPrismObject().removeProperty(TaskType.F_RESULT); // There are some issues with incomplete="true" flag
         environment.setTaskRef(ObjectTypeUtil.createObjectRefWithFullObject(taskClone, prismContext));

@@ -12,5 +12,5 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PanelInstances {
 
-    PanelInstance[] instances() default {};
+    PanelInstance[] value() default {};
 }

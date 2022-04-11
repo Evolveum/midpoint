@@ -101,8 +101,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Each role has an authorization, GUI config, constructions, focus mappings, focus policy rules and target policy rules.
  *
  * Each assignment and each role can be selectively enabled/disabled (via activation) and has its condition matched (none/old/new/old+new).
- *
- * @author mederly
  */
 @SuppressWarnings({ "FieldCanBeLocal", "SameParameterValue", "DefaultAnnotationParam", "SimplifiedTestNGAssertion" })
 public class TestAssignmentProcessor2 extends AbstractLensTest {

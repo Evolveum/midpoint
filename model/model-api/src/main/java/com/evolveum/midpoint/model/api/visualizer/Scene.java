@@ -18,9 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public interface Scene extends Serializable, DebugDumpable {
 
     Name getName();

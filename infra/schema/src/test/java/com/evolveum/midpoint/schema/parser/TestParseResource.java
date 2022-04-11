@@ -23,21 +23,20 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.TestConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaParser;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
+
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.Collection;
@@ -154,7 +153,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
     private void parseResourceSchema(PrismObject<ResourceType> resource) throws SchemaException {
         Element schemaElement = resource.asObjectable().getSchema().getDefinition().getSchema();
-        ResourceSchemaImpl.parse(schemaElement, getTestNameShort(), getPrismContext());
+        ResourceSchemaParser.parse(schemaElement, getTestNameShort());
         System.out.println("Schema parsed OK");
     }
 
@@ -200,7 +199,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
         XmlSchemaType defType = (XmlSchemaType) reparsedSchemaContainer.getValue().asContainerable();
         Element reparsedXsdSchemaElement = defType.getDefinition().getSchema();
-        ResourceSchema reparsedSchema = ResourceSchemaImpl.parse(reparsedXsdSchemaElement, "reparsed schema", prismContext);
+        ResourceSchema reparsedSchema = ResourceSchemaParser.parse(reparsedXsdSchemaElement, "reparsed schema");
 
     }
 
@@ -489,7 +488,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         }
 
         if (!isSimple) {
-            PrismProperty<SynchronizationType> synchronizationProp = resource.findProperty(ResourceType.F_SYNCHRONIZATION);
+            PrismContainer<SynchronizationType> synchronizationProp = resource.findContainer(ResourceType.F_SYNCHRONIZATION);
             SynchronizationType synchronizationType = synchronizationProp.getRealValue();
             ObjectSynchronizationType objectSynchronizationType = synchronizationType.getObjectSynchronization().get(0);
             List<ConditionalSearchFilterType> correlations = objectSynchronizationType.getCorrelation();
@@ -528,7 +527,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
     private void assertResourceJaxb(ResourceType resourceType, boolean isSimple) throws SchemaException {
         assertEquals("Wrong oid (JAXB)", TestConstants.RESOURCE_OID, resourceType.getOid());
         assertEquals("Wrong name (JAXB)", PrismTestUtil.createPolyStringType("Embedded Test OpenDJ"), resourceType.getName());
-        assertEquals("Wrong namespace (JAXB)", MidPointConstants.NS_RI, ResourceTypeUtil.getResourceNamespace(resourceType));
+        assertEquals("Wrong namespace (JAXB)", MidPointConstants.NS_RI, MidPointConstants.NS_RI);
 
         ObjectReferenceType connectorRef = resourceType.getConnectorRef();
         assertNotNull("No connectorRef (JAXB)", connectorRef);

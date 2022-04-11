@@ -10,6 +10,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 
@@ -25,8 +26,9 @@ import com.evolveum.midpoint.web.component.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -143,12 +145,14 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     private CompositedIcon createCompositedIcon(CompiledObjectCollectionView collectionView) {
-        DisplayType additionalButtonDisplayType = GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
+        DisplayType display = GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
         CompositedIconBuilder builder = new CompositedIconBuilder();
 
-        builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                    .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
-                    .setTitle(WebComponentUtil.getTranslatedPolyString(additionalButtonDisplayType.getTooltip()));
+        PolyStringType tooltip = display != null ? display.getTooltip() : null;
+
+        builder.setBasicIcon(WebComponentUtil.getIconCssClass(display), IconCssStyle.IN_ROW_STYLE)
+                    .appendColorHtmlValue(WebComponentUtil.getIconColor(display))
+                    .setTitle(WebComponentUtil.getTranslatedPolyString(tooltip));
 //                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
         return builder.build();
@@ -180,7 +184,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(newObjectButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(WebComponentUtil.getIconColor(newObjectButtonDisplayType));
         CompiledObjectCollectionView view = getObjectCollectionView();
-        if (ObjectCollectionViewUtil.isArchetypedCollectionView(view)) {
+        if (isCollectionViewPanelForCompiledView() && GuiDisplayTypeUtil.existsIconDisplay(view)
+                && GuiDisplayTypeUtil.containsDifferentIcon(newObjectButtonDisplayType, GuiStyleConstants.CLASS_ADD_NEW_OBJECT)) {
             IconType plusIcon = new IconType();
             plusIcon.setCssClass(GuiStyleConstants.CLASS_ADD_NEW_OBJECT);
             plusIcon.setColor("green");
@@ -197,7 +202,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 if (isCollectionViewPanelForCompiledView()) {
                     CompiledObjectCollectionView collectionView = getObjectCollectionView();
                     //HACK TODO clenup and think about generic mechanism for this
-                    if (!isViewForObjectCollectionType(collectionView, "00000000-0000-0000-0002-000000000007", ObjectCollectionType.COMPLEX_TYPE)) {
+                    if (isCollectionViewWithoutMorePossibleNewType(collectionView)) {
                         newObjectPerformed(target, null, collectionView);
                         return;
                     }
@@ -225,6 +230,10 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectEnabled));
         createNewObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         return createNewObjectButton;
+    }
+
+    protected boolean isCollectionViewWithoutMorePossibleNewType(CompiledObjectCollectionView collectionView) {
+        return true;
     }
 
     protected boolean showNewObjectCreationPopup() {
@@ -293,16 +302,12 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     private DisplayType getNewObjectButtonStandardDisplayType() {
         if (isCollectionViewPanelForCompiledView()) {
-
             CompiledObjectCollectionView view = getObjectCollectionView();
-            if (ObjectCollectionViewUtil.isArchetypedCollectionView(view)) {
-                return GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(view, getPageBase());
-            }
+            return GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(view, getPageBase());
          }
 
         String title = getTitleForNewObjectButton();
-        return GuiDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
-                title);
+        return GuiDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", title);
     }
 
     protected String getTitleForNewObjectButton() {
@@ -459,7 +464,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     protected boolean isCreateNewObjectEnabled() {
-        return true;
+        return !isCollectionViewPanel() || getObjectCollectionView().isApplicableForOperation(OperationTypeType.ADD);
     }
 
     @NotNull
@@ -470,27 +475,27 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return getAllApplicableArchetypeViews();
     }
 
-    private void deleteConfirmedPerformed(AjaxRequestTarget target, O objectToDelete) {
-        List<O> objects = isAnythingSelected(target, objectToDelete);
+    private void deleteConfirmedPerformed(AjaxRequestTarget target, IModel<SelectableBean<O>> objectToDelete) {
+        List<SelectableBean<O>> objects = isAnythingSelected(target, objectToDelete);
 
         if (objects.isEmpty()) {
             return;
         }
 
         OperationResult result = new OperationResult(objects.size() == 1 ? OPERATION_DELETE_OBJECT: OPERATION_DELETE_OBJECTS);
-        for (O object : objects) {
+        for (SelectableBean<O> object : objects) {
             OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
             try {
                 Task task = getPageBase().createSimpleTask(OPERATION_DELETE_OBJECT);
 
-                ObjectDelta delta = getPrismContext().deltaFactory().object().create(objectToDelete.getClass(), ChangeType.DELETE);
-                delta.setOid(object.getOid());
+                ObjectDelta delta = getPrismContext().deltaFactory().object().create(object.getValue().getClass(), ChangeType.DELETE);
+                delta.setOid(object.getValue().getOid());
 
                 ExecuteChangeOptionsDto executeOptions = getExecuteOptions();
                 ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
                 LOGGER.debug("Using options {}.", executeOptions);
-                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), options, task,
-                        subResult);
+                getPageBase().getModelService()
+                        .executeChanges(MiscUtil.createCollection(delta), options, task, subResult);
                 subResult.computeStatus();
             } catch (Exception ex) {
                 subResult.recomputeStatus();
@@ -514,21 +519,35 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     /**
      * This method check selection in table. If selectedObject != null than it
      * returns only this object.
+     * @return
      */
-    public List<O> isAnythingSelected(AjaxRequestTarget target, O selectedObject) {
-        List<O> users;
+    public List<SelectableBean<O>> isAnythingSelected(AjaxRequestTarget target, IModel<SelectableBean<O>> selectedObject) {
+        List<SelectableBean<O>>  selectedObjects;
         if (selectedObject != null) {
-            users = new ArrayList<>();
-            users.add(selectedObject);
+            selectedObjects = new ArrayList<>();
+            selectedObjects.add(selectedObject.getObject());
         } else {
-            users = getSelectedRealObjects();
-            if (users.isEmpty() && StringUtils.isNotEmpty(getNothingSelectedMessage())) {
-                warn(getNothingSelectedMessage());
-                target.add(getFeedbackPanel());
-            }
+            selectedObjects = TableUtil.getSelectedModels(getTable().getDataTable());
+//            if (users.isEmpty() && StringUtils.isNotEmpty(getNothingSelectedMessage())) {
+//                warn(getNothingSelectedMessage());
+//                target.add(getFeedbackPanel());
+//            }
         }
-
-        return users;
+        return selectedObjects;
+//        List<SelectableObjectModel<UserType>>  users;
+//        if (selectedObject != null) {
+//            users = new ArrayList<>();
+//            users.add(selectedObject);
+//        } else {
+//            users = (List<SelectableObjectModel<UserType>>) TableUtil.getSelectedModels(getTable().getDataTable());
+//            if (users.isEmpty() && StringUtils.isNotEmpty(getNothingSelectedMessage())) {
+//                warn(getNothingSelectedMessage());
+//                target.add(getFeedbackPanel());
+//            }
+//        }
+//
+//        return users;
+//        return new ArrayList<>();
     }
 
     protected String getNothingSelectedMessage() {
@@ -537,20 +556,20 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     public IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
         if (action.getRowModel() == null) {
-            return createStringResource(getConfirmMessageKeyForSingleObject(),
+            return createStringResource(getConfirmMessageKeyForMultiObject(),
                     actionName, getSelectedObjectsCount() );
         } else {
-            return createStringResource(getConfirmMessageKeyForMultiObject(),
-                    actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
+            return createStringResource(getConfirmMessageKeyForSingleObject(),
+                    actionName, ((ObjectType)((SelectableBean<?>)action.getRowModel().getObject()).getValue()).getName());
         }
     }
 
-    protected String getConfirmMessageKeyForSingleObject() {
-        return null;
+    protected String getConfirmMessageKeyForMultiObject() {
+        throw new UnsupportedOperationException("getConfirmMessageKeyForMultiObject() not implemented for " + getClass());
     }
 
-    protected String getConfirmMessageKeyForMultiObject() {
-        return null;
+    protected String getConfirmMessageKeyForSingleObject() {
+        throw new UnsupportedOperationException("getConfirmMessageKeyForSingleObject() not implemented for " + getClass());
     }
 
     public InlineMenuItem createDeleteInlineMenu() {
@@ -562,12 +581,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 return new ColumnMenuAction<SelectableBean<O>>() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            deleteConfirmedPerformed(target, null);
-                        } else {
-                            SelectableBean<O> rowDto = getRowModel().getObject();
-                            deleteConfirmedPerformed(target, rowDto.getValue());
-                        }
+                        deleteConfirmedPerformed(target, getRowModel());
                     }
                 };
             }

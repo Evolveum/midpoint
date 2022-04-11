@@ -17,9 +17,6 @@ import org.apache.commons.lang.Validate;
 
 import java.util.List;
 
-/**
- * @author Pavol Mederly
- */
 public class AssociationSearchQueryResult extends QueryResult<PrismContainerValue<ShadowAssociationType>> {
 
     private String resourceOid;

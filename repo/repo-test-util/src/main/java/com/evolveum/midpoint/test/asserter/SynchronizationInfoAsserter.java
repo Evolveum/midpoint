@@ -36,15 +36,21 @@ public class SynchronizationInfoAsserter<RA> extends AbstractAsserter<RA> {
             SynchronizationExclusionReasonType exclusionReason, int success, int error, int skip) {
         SynchronizationSituationTransitionType matching = SyncSituationUtil.findMatchingTransition(information, onProcessingStart,
                 onSyncStart, onSyncEnd, exclusionReason);
+        String transition = onProcessingStart + "->" + onSyncStart + "->" + onSyncEnd + " (" + exclusionReason + ")";
         if (matching == null) {
             if (success != 0 || error != 0 || skip != 0) {
-                fail("Expected transition for " + onProcessingStart + "->" + onSyncStart + "->" + onSyncEnd + " (" +
-                        exclusionReason + ") was not found in " + information);
+                fail("Expected transition for " + transition + " was not found in " + information);
             }
         } else {
-            assertThat(getSuccessCount(matching.getCounter())).isEqualTo(success);
-            assertThat(getFailureCount(matching.getCounter())).isEqualTo(error);
-            assertThat(getSkipCount(matching.getCounter())).isEqualTo(skip);
+            assertThat(getSuccessCount(matching.getCounter()))
+                    .as("Expected success count for " + transition)
+                    .isEqualTo(success);
+            assertThat(getFailureCount(matching.getCounter()))
+                    .as("Expected failure count for " + transition)
+                    .isEqualTo(error);
+            assertThat(getSkipCount(matching.getCounter()))
+                    .as("Expected skip count for " + transition)
+                    .isEqualTo(skip);
         }
         return this;
     }

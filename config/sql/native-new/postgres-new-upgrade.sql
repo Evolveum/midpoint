@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,7 +7,95 @@
 
 -- @formatter:off because of terribly unreliable IDEA reformat for SQL
 -- This is the update script for the MAIN REPOSITORY, it will not work for a separate audit database.
--- It is safe to run this script repeatedly, so if you're not sure you're up to date.
+-- It is safe to run this script repeatedly, so if you're not sure, just run it to be up to date.
+-- DO NOT use explicit COMMIT commands inside the apply_change blocks - leave that to the procedure.
+-- If necessary, split your changes into multiple apply_changes calls to enforce the commit
+-- before another change - for example when adding values to the custom enum types.
 
--- Initializing the last change number used in postgres-new-upgrade.sql.
-call apply_change(0, $$ SELECT 1 $$, true);
+-- SCHEMA-COMMIT is a Git commit which should be used to initialize the DB for testing changes below it.
+-- Check out that commit and initialize a fresh DB with postgres-new-audit.sql to test upgrades.
+
+-- SCHEMA-COMMIT 4.4: commit 69e8c29b
+
+-- changes for 4.4.1
+
+-- adding trigger to mark org closure for refresh when org is inserted/deleted
+call apply_change(1, $aa$
+-- The trigger that flags the view for refresh after m_org changes.
+CREATE OR REPLACE FUNCTION mark_org_closure_for_refresh_org()
+    RETURNS trigger
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO m_global_metadata VALUES ('orgClosureRefreshNeeded', 'true')
+    ON CONFLICT (name) DO UPDATE SET value = 'true';
+
+    -- after trigger returns null
+    RETURN NULL;
+END $$;
+
+-- Update is not necessary, it does not change relations between orgs.
+-- If it does, it is handled by trigger on m_ref_object_parent_org.
+CREATE TRIGGER m_org_mark_refresh_tr
+    AFTER INSERT OR DELETE ON m_org
+    FOR EACH ROW EXECUTE FUNCTION mark_org_closure_for_refresh_org();
+CREATE TRIGGER m_org_mark_refresh_trunc_tr
+    AFTER TRUNCATE ON m_org
+    FOR EACH STATEMENT EXECUTE FUNCTION mark_org_closure_for_refresh_org();
+$aa$);
+
+-- SCHEMA-COMMIT 4.4.1: commit de18c14f
+
+-- changes for 4.5
+
+-- MID-7484
+-- We add the new enum value in separate change, because it must be committed before it is used.
+call apply_change(2, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MESSAGE_TEMPLATE' AFTER 'LOOKUP_TABLE';
+$aa$);
+
+call apply_change(3, $aa$
+CREATE TABLE m_message_template (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('MESSAGE_TEMPLATE') STORED
+        CHECK (objectType = 'MESSAGE_TEMPLATE')
+)
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_message_template_oid_insert_tr BEFORE INSERT ON m_message_template
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_message_template_update_tr BEFORE UPDATE ON m_message_template
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_message_template_oid_delete_tr AFTER DELETE ON m_message_template
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+CREATE INDEX m_message_template_nameOrig_idx ON m_message_template (nameOrig);
+CREATE UNIQUE INDEX m_message_template_nameNorm_key ON m_message_template (nameNorm);
+CREATE INDEX m_message_template_policySituation_idx
+    ON m_message_template USING gin(policysituations gin__int_ops);
+CREATE INDEX m_message_template_createTimestamp_idx ON m_message_template (createTimestamp);
+CREATE INDEX m_message_template_modifyTimestamp_idx ON m_message_template (modifyTimestamp);
+$aa$);
+
+-- MID-7487 Identity matching
+call apply_change(4, $aa$
+CREATE TYPE CorrelationSituationType AS ENUM ('UNCERTAIN', 'EXISTING_OWNER', 'NO_OWNER', 'ERROR');
+$aa$);
+
+call apply_change(5, $aa$
+ALTER TABLE m_shadow
+ADD COLUMN correlationStartTimestamp TIMESTAMPTZ,
+ADD COLUMN correlationEndTimestamp TIMESTAMPTZ,
+ADD COLUMN correlationCaseOpenTimestamp TIMESTAMPTZ,
+ADD COLUMN correlationCaseCloseTimestamp TIMESTAMPTZ,
+ADD COLUMN correlationSituation CorrelationSituationType;
+
+CREATE INDEX m_shadow_correlationStartTimestamp_idx ON m_shadow (correlationStartTimestamp);
+CREATE INDEX m_shadow_correlationEndTimestamp_idx ON m_shadow (correlationEndTimestamp);
+CREATE INDEX m_shadow_correlationCaseOpenTimestamp_idx ON m_shadow (correlationCaseOpenTimestamp);
+CREATE INDEX m_shadow_correlationCaseCloseTimestamp_idx ON m_shadow (correlationCaseCloseTimestamp);
+$aa$);
+
+-- WRITE CHANGES ABOVE ^^
+-- IMPORTANT: update apply_change number at the end of postgres-new.sql
+-- to match the number used in the last change here!

@@ -13,6 +13,10 @@ import java.util.List;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 
+import com.evolveum.midpoint.web.session.ObjectListStorage;
+
+import com.evolveum.midpoint.web.session.PageStorage;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -34,6 +38,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     private static final long serialVersionUID = 1L;
 
     private boolean multiselect;
+    private ObjectListStorage storage;
 
     /**
      * @param defaultType specifies type of the object that will be selected by default
@@ -58,13 +63,13 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
                 @Override
                 protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<O>> rowModel, IModel<Boolean> selected) {
                     super.onUpdateRow(target, table, rowModel, selected);
-                    onUpdateCheckbox(target, rowModel);
+                    onUpdateCheckbox(target, rowModel, table);
                 }
 
                 @Override
                 protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
                     super.onUpdateHeader(target, selected, table);
-                    onUpdateCheckbox(target, null);
+                    onUpdateCheckbox(target, null, table);
                 }
 
                 @Override
@@ -112,8 +117,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends O>> objectsSupplier) {
     }
 
-    protected void onUpdateCheckbox(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
-
+    protected void onUpdateCheckbox(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel, DataTable table) {
     }
 
     protected IModel<Boolean> getCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel) {
@@ -122,6 +126,14 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 
     protected String getStorageKey() {
         return null;
+    }
+
+    @Override
+    public PageStorage getPageStorage() {
+        if (storage == null) {
+            storage = new ObjectListStorage();
+        }
+        return storage;
     }
 
     public boolean isMultiselect() {

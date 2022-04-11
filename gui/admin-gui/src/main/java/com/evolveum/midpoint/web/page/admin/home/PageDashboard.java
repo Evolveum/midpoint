@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -29,10 +30,15 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 public abstract class PageDashboard extends PageAdminHome {
     private static final long serialVersionUID = 1L;
 
-    private final Model<PrismObject<? extends FocusType>> principalModel = new Model<>();
+    private final LoadableDetachableModel<PrismObject<? extends FocusType>> principalModel;
 
     public PageDashboard() {
-        principalModel.setObject(loadFocusSelf());
+        principalModel = new LoadableDetachableModel<>() {
+            @Override
+            protected PrismObject<? extends FocusType> load() {
+                return loadFocusSelf();
+            }
+        };
         setTimeZone();
     }
 
@@ -155,38 +161,10 @@ public abstract class PageDashboard extends PageAdminHome {
             String icon, String keyPrefix, OperationResult result, Task task) {
     }
 
-    protected String formatPercentage(int totalItems, int actualItems) {
-        float percentage = (totalItems==0 ? 0 : actualItems*100.0f/totalItems);
-        String format = "%.0f";
 
-        if(percentage < 100.0f && percentage % 10 != 0 && ((percentage % 10) % 1) != 0) {
-            format = "%.1f";
-        }
-        return String.format(format, percentage);
-    }
-
-    protected void customizationPercentageInfoBoxTypeModel(InfoBoxType infoBoxType, String bgColor, String icon, String keyPrefix,
-            int totalItems, int actualItems, boolean zeroIsGood) {
-    }
-
-    protected Model<InfoBoxType> getPercentageInfoBoxTypeModel(String bgColor, String icon, String keyPrefix,
-            int totalItems, int actualItems, boolean zeroIsGood) {
-        InfoBoxType infoBoxType = new InfoBoxType(bgColor, icon,
-                getString(keyPrefix +".label"));
-
-        infoBoxType.setNumber(formatPercentage(totalItems, actualItems) + " %" + " " + getString(keyPrefix + ".number"));
-
-        int progress = 0;
-        if (totalItems != 0) {
-            progress = actualItems * 100 / totalItems;
-        }
-        infoBoxType.setProgress(progress);
-
-        StringBuilder descSb = new StringBuilder();
-        descSb.append(totalItems).append(" ").append(getString(keyPrefix + ".total"));
-        infoBoxType.setDescription(descSb.toString());
-        customizationPercentageInfoBoxTypeModel(infoBoxType, bgColor, icon, keyPrefix, totalItems, actualItems, zeroIsGood);
-
-        return new Model<>(infoBoxType);
+    @Override
+    protected void onDetach() {
+        principalModel.detach();
+        super.onDetach();
     }
 }

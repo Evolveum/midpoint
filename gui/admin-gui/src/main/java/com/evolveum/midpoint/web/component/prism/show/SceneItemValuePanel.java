@@ -31,7 +31,6 @@ import javax.xml.namespace.QName;
 
 /**
  * TODO make this parametric (along with SceneItemValue)
- * @author mederly
  */
 public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 
@@ -158,7 +157,11 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
                     WebComponentUtil.getDisplayNameOrName(((Objectable)val.getSourceValue()).asPrismObject());
                 }
             }
-            return getModelObject() != null ? getModelObject().getText() : null;
+            String textValue = getModelObject() != null ? getModelObject().getText() : null;
+            if (textValue != null && textValue.isEmpty()) {
+                textValue = createStringResource("SceneItemLinePanel.emptyLabel").getString();
+            }
+            return textValue;
         }
     }
 }

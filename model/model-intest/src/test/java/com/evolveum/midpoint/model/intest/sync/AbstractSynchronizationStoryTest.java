@@ -6,20 +6,30 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import static com.evolveum.midpoint.model.intest.sync.AbstractSynchronizationStoryTest.Color.*;
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME;
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
+import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestTask;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,61 +42,55 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * Tests the synchronization among three dummy resources: default, green, and blue.
+ *
+ * Exists in live-sync and reconciliation versions.
+ */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractSynchronizationStoryTest extends AbstractInitializedModelIntegrationTest {
 
-    protected static final String ACCOUNT_WALLY_DUMMY_USERNAME = "wally";
-    protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
+    static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "sync-story");
+
+    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_SYNC = new TestResource<>(
+            TEST_DIR, "user-template-sync.xml", "10000000-0000-0000-0000-000000000333");
+
+    private static final String ACCOUNT_WALLY_DUMMY_USERNAME = "wally";
+    private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
     private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
     private static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
 
     private static final String ACCOUNT_PROTECTED_SYSTEM = "system";
-    // Intetionally null
-    private static final String RESOURCE_DUMMY_DEFAULT_NAME = null;
 
-    protected static String userWallyOid;
+    private static String userWallyOid;
 
-    protected boolean alwaysCheckTimestamp = false;
-    protected long timeBeforeSync;
+    boolean alwaysCheckTimestamp;
+
+    private long timeBeforeSync;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        repoAdd(USER_TEMPLATE_SYNC, initResult);
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-    }
-
-    @Override
-    protected ConflictResolutionActionType getDefaultConflictResolutionAction() {
-        return ConflictResolutionActionType.NONE; // too many conflicts in these scenarios
-    }
-
-    protected abstract void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException;
-
-    protected abstract String getSyncTaskOid(PrismObject<ResourceType> resource);
-
-    protected int getWaitTimeout() {
-        return DEFAULT_TASK_WAIT_TIMEOUT;
     }
 
     protected int getNumberOfExtraDummyUsers() {
@@ -97,17 +101,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         return false;
     }
 
+    /**
+     * Mancomb is added on green resource. User should be created and linked.
+     */
     @Test
-    public void test100ImportSyncTaskDummyGreen() throws Exception {
-        when();
-        importSyncTask(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
-
-        then();
-        waitForSyncTaskStart(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
-    }
-
-    @Test
-    public void test110AddDummyGreenAccountMancomb() throws Exception {
+    public void test110AddGreenAccountMancomb() throws Exception {
         given();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -119,21 +117,25 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         account.setEnabled(true);
         account.setValidFrom(ACCOUNT_MANCOMB_VALID_FROM_DATE);
         account.setValidTo(ACCOUNT_MANCOMB_VALID_TO_DATE);
-        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
+        account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
 
-        when();
-        getDummyResource(RESOURCE_DUMMY_GREEN_NAME).addAccount(account);
+        when("mancomb account is added on dummy green");
+        getGreenResource()
+                .addAccount(account);
 
-        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
+        and("green sync is run");
+        runSyncTasks(GREEN);
 
         then();
-        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
+        dumpSyncTaskTrees(GREEN);
+
+        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getGreenResourceObject());
         display("Account mancomb", accountMancomb);
         assertNotNull("No mancomb account shadow", accountMancomb);
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_GREEN_OID,
                 accountMancomb.asObjectable().getResourceRef().getOid());
-        assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED);
+        assertShadowOperationalData(accountMancomb);
         assertValidFrom(accountMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
         assertValidTo(accountMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
 
@@ -149,29 +151,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
         assertUsers(7);
 
-        String syncTaskOid = getSyncTaskOid(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
-        PrismObject<TaskType> syncTaskTree = getTaskTree(syncTaskOid);
-        OperationStatsType stats = TaskOperationStatsUtil.getOperationStatsFromTree(syncTaskTree.asObjectable(), prismContext);
-        displayValue("sync task stats", TaskOperationStatsUtil.format(stats));
-        if (isReconciliation()) {
-            // Checking MID-6532 implementation (if multi-part tasks)
-            // TODO check for other kinds of sync tasks, improve asserts
-            ProvisioningStatisticsType provisioningStatistics = stats.getEnvironmentalPerformanceInformation().getProvisioningStatistics();
-            assertThat(provisioningStatistics.getEntry()).hasSize(1);
-            assertThat(provisioningStatistics.getEntry().get(0).getResourceRef().getOid()).isEqualTo(RESOURCE_DUMMY_GREEN_OID);
-            assertThat(getOrig(provisioningStatistics.getEntry().get(0).getResourceRef().getTargetName())).isEqualTo("Dummy Resource Green");
-            assertThat(provisioningStatistics.getEntry().get(0).getOperation()).isNotEmpty(); // search and sometimes get
-
-            // MID-6930: We should process exactly 1 item even for partitioned reconciliation:
-            // mancomb must not be processed in the 3rd part!
-            assertPerformance(syncTaskOid, "progress")
-                    .display()
-                    .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID)
-                        .assertItemsProcessed(1)
-                    .end()
-                    .child(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_ID)
-                        .assertItemsProcessed(0);
-        }
+        assertTaskStatistics();
 
         // notifications
         displayAllNotifications();
@@ -179,39 +159,53 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         notificationManager.setDisabled(true);
     }
 
-    protected abstract String getExpectedChannel();
+    private void assertTaskStatistics() throws CommonException {
+        String syncTaskOid = getGreenSyncTask().oid;
+        PrismObject<TaskType> syncTaskTree = getTaskTree(syncTaskOid);
+        OperationStatsType stats = TaskOperationStatsUtil.getOperationStatsFromTree(syncTaskTree.asObjectable(), prismContext);
+        displayValue("sync task stats", TaskOperationStatsUtil.format(stats));
 
-    @Test
-    public void test200ImportSyncTaskDummyBlue() throws Exception {
-        when();
-        importSyncTask(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
+        ProvisioningStatisticsType provisioningStatistics = stats.getEnvironmentalPerformanceInformation().getProvisioningStatistics();
+        assertThat(provisioningStatistics.getEntry()).hasSize(1);
+        assertThat(provisioningStatistics.getEntry().get(0).getResourceRef().getOid()).isEqualTo(RESOURCE_DUMMY_GREEN_OID);
+        assertThat(getOrig(provisioningStatistics.getEntry().get(0).getResourceRef().getTargetName())).isEqualTo("Dummy Resource Green");
+        assertThat(provisioningStatistics.getEntry().get(0).getOperation()).isNotEmpty(); // search and sometimes get
 
-        then();
-        waitForSyncTaskStart(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
+        if (isReconciliation()) {
+            // MID-6930: We should process exactly 1 item even for partitioned reconciliation:
+            // mancomb must not be processed in the 3rd part!
+            // @formatter:off
+            assertPerformance(syncTaskOid, "progress")
+                    .display()
+                    .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID)
+                        .assertItemsProcessed(1)
+                    .end()
+                    .child(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_ID)
+                        .assertItemsProcessed(0);
+            // @formatter:on
+        }
     }
+
+    protected abstract String getExpectedChannel();
 
     /**
      * Add wally to the green dummy resource. User should be created and linked.
      */
     @Test
-    public void test210AddDummyGreenAccountWally() throws Exception {
+    public void test210AddGreenAccountWally() throws Exception {
         given();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
-        prepareNotifications();
 
-        when();
-        getDummyResourceController(RESOURCE_DUMMY_GREEN_NAME).addAccount(ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", "Scabb Island");
+        when("Wally is added on green resource");
+        getGreenController()
+                .addAccount(ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", "Scabb Island");
 
-        // Wait for sync task to pick up the change
-        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
+        and("green task is run");
+        runSyncTasks(GREEN);
 
         then();
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
-
-        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), getDummyResource(RESOURCE_DUMMY_GREEN_NAME), "green", "Wally Feed");
-        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
+        PrismObject<ShadowType> accountWallyGreen = checkGreenWallyAccount("Wally Feed");
+        assertShadowOperationalData(accountWallyGreen);
 
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -223,43 +217,31 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertUsers(8);
 
         assertLinked(userWally, accountWallyGreen);
-
-        // notifications
-        notificationManager.setDisabled(true);
     }
 
     /**
      * Add wally also to the blue dummy resource. User should be linked to this account.
      */
     @Test
-    public void test220AddDummyBlueAccountWally() throws Exception {
+    public void test220AddBlueAccountWally() throws Exception {
         given();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
-        prepareNotifications();
 
-        when();
-        getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).addAccount(ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", "Scabb Island");
+        when("wally is added to blue resource");
+        getBlueController()
+                .addAccount(ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", "Scabb Island");
 
-        // Wait for sync task to pick up the change
-        // However, blue is not authoritative regarding creating new users, so wally will not be created at this time
-        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
-
-        // Make sure that the "kickback" sync cycle of the other resource runs to completion
-        // We want to check the state after it gets stable
-        // and it could spoil the next test
-        waitForSyncActivityCompleted(RESOURCE_DUMMY_GREEN_NAME, RESOURCE_DUMMY_BLUE_NAME);
+        and("sync tasks are run");
+        // Note that blue is not authoritative regarding creating new users.
+        // Also, make sure that the "kickback" sync cycle of the other resource runs to completion.
+        runSyncTasks(BLUE, GREEN, BLUE);
 
         then();
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
+        PrismObject<ShadowType> accountWallyGreen = checkGreenWallyAccount("Wally Feed");
+        assertShadowOperationalData(accountWallyGreen);
 
-        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), getDummyResource(RESOURCE_DUMMY_GREEN_NAME), "green", "Wally Feed");
-        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME),
-                getDummyResource(RESOURCE_DUMMY_BLUE_NAME), "blue", "Wally Feed");
-        assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
+        PrismObject<ShadowType> accountWallyBlue = checkBlueWallyAccount("Wally Feed");
+        assertShadowOperationalData(accountWallyBlue);
 
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -271,17 +253,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyBlue);
 
         assertUsers(8);
-
-        // notifications
-        notificationManager.setDisabled(true);
-//        checkDummyTransportMessages("accountPasswordNotifier", 0);
-//        checkDummyTransportMessages("userPasswordNotifier", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);        // account itself is not added (only the shadow is!)
-//        checkDummyTransportMessages("simpleUserNotifier", 1);
-//        checkDummyTransportMessages("simpleUserNotifier-ADD", 1);
-
     }
 
     /**
@@ -289,21 +260,16 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
      * Similar to the previous test but blue resource has a slightly different correlation expression.
      */
     @Test
-    public void test315AddDummyBlueAccountMancomb() throws Exception {
+    public void test315AddBlueAccountMancomb() throws Exception {
         given();
         rememberTimeBeforeSync();
-        prepareNotifications();
 
-        when();
-        getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).addAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME, "Mancomb Seepgood", "Melee Island");
+        when("mancomb is added to blue");
+        getBlueController()
+                .addAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME, "Mancomb Seepgood", "Melee Island");
 
-        // Wait for sync task to pick up the change
-        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
-
-        // Make sure that the "kickback" sync cycle of the other resource runs to completion
-        // We want to check the state after it gets stable
-        // and it could spoil the next test
-        waitForSyncActivityCompleted(RESOURCE_DUMMY_GREEN_NAME, RESOURCE_DUMMY_BLUE_NAME);
+        and("sync tasks are run");
+        runSyncTasks(BLUE, GREEN, BLUE);
 
         then();
         // The checks are simplified here because the developer has a lazy mood :-)
@@ -319,43 +285,13 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertAccount(userMancomb, RESOURCE_DUMMY_GREEN_OID);
 
         assertUsers(8);
-
-        // notifications
-        notificationManager.setDisabled(true);
-//        checkDummyTransportMessages("userPasswordNotifier", 1);                     // previously non-existing password is generated
-//        checkDummyTransportMessages("accountPasswordNotifier", 1);                  // password is then set on the account
-//        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 2);            // changes on green & blue (induced)
-//        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);        // account itself is not added (only the shadow is!)
-//        checkDummyTransportMessages("simpleUserNotifier", 1);
-//        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-
     }
 
     /**
-     * Import sync task for default dummy resource as well. This does not do much as we will no be manipulating
-     * the default dummy account directly. Just make sure that it does not do anything bad.
+     * Wally gets the default account - directly by modifying the user
      */
     @Test
-    public void test350ImportSyncTaskDummyDefault() throws Exception {
-        when();
-        importSyncTask(getDummyResourceObject());
-
-        then();
-        waitForSyncTaskStart(getDummyResourceObject());
-
-        // Dummy resource has some extra users that may be created in recon, so let's give it a chance to do it now
-        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject());
-
-        assertUsers(8 + getNumberOfExtraDummyUsers());
-    }
-
-    /**
-     * Import sync task for default dummy resource as well. This does not do much as we will no be manipulating
-     * the default dummy account directly. Just make sure that it does not do anything bad.
-     */
-    @Test
-    public void test360ModifyUserAddDummyDefaultAccount() throws Exception {
+    public void test360AddDefaultAccountWallyByUserModification() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -367,26 +303,24 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         ObjectDelta<UserType> userDelta = createModifyUserAddAccount(userWally.getOid(), getDummyResourceObject());
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(userDelta);
 
-        when();
+        when("default account for wally is added to the user");
         modelService.executeChanges(deltas, null, task, result);
 
+        and("sync tasks are run, checking they do not break anything");
+        // We don't expect these tasks doing anything useful (because we modified the user directly).
+        // We just check they don't break anything.
+        runSyncTasks(DEFAULT, BLUE, GREEN);
+
         then();
-        dumpSyncTaskTree(getDummyResourceObject(), result);
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
+        PrismObject<ShadowType> accountWallyDefault = checkWallyAccount(
+                getDummyResourceObject(), getDummyResource(), "default", "Wally Feed");
+        assertShadowOperationalData(accountWallyDefault);
 
-        // Make sure we have steady state
-        waitForSyncActivityCompleted(RESOURCE_DUMMY_DEFAULT_NAME, RESOURCE_DUMMY_GREEN_NAME, RESOURCE_DUMMY_BLUE_NAME);
+        PrismObject<ShadowType> accountWallyBlue = checkBlueWallyAccount("Wally Feed");
+        if (alwaysCheckTimestamp) { assertShadowOperationalData(accountWallyBlue); }
 
-        PrismObject<ShadowType> accountWallyDefault = checkWallyAccount(getDummyResourceObject(), getDummyResource(),
-                "default", "Wally Feed");
-        assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME),
-                getDummyResource(RESOURCE_DUMMY_BLUE_NAME), "blue", "Wally Feed");
-        if (alwaysCheckTimestamp) { assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED); }
-        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), getDummyResource(RESOURCE_DUMMY_GREEN_NAME),
-                "green", "Wally Feed");
-        if (alwaysCheckTimestamp) { assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED); }
+        PrismObject<ShadowType> accountWallyGreen = checkGreenWallyAccount("Wally Feed");
+        if (alwaysCheckTimestamp) { assertShadowOperationalData(accountWallyGreen); }
 
         userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -402,63 +336,63 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     }
 
     /**
-     * Change fullname on the green account. There is an inbound mapping to the user so it should propagate.
-     * There is also outbound mapping from the user to dummy account, therefore it should propagate there as well.
+     * Sets the special user template for the green resource.
      */
     @Test
-    public void test370ModifyDummyGreenAccountWally() throws Exception {
+    public void test365AssumeUserTemplateForGreenResource() throws CommonException {
+        assumeUserTemplate(
+                USER_TEMPLATE_SYNC.oid,
+                getGreenResourceObject().asObjectable(),
+                getTestOperationResult());
+    }
+
+    /**
+     * Change wally's full name on the green account. There is an inbound mapping to the user so it should propagate.
+     * There is also outbound mapping from the user to dummy account, therefore it should propagate there as well.
+     * (But see the comment in the test.)
+     */
+    @Test
+    public void test370ModifyFullNameOnGreenAccountWally() throws Exception {
         given();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        repoAddObjectFromFile(USER_TEMPLATE_SYNC_FILENAME, result);
-        assumeUserTemplate(USER_TEMPLATE_SYNC_OID, getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME).asObjectable(), "default account type", result);
-
         rememberTimeBeforeSync();
-        prepareNotifications();
 
-        DummyAccount wallyDummyAccount = getDummyResource(RESOURCE_DUMMY_GREEN_NAME).getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+        when("wally is changed on green");
+        getGreenResource()
+                .getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME)
+                .replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Wally B. Feed");
 
-        when();
-        wallyDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Wally B. Feed");
-
-        // Wait for sync task to pick up the change
-        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
-
-        // Make sure that the "kickback" sync cycle of the other resource runs to completion
-        // We want to check the state after it gets stable
-        // and it could spoil the next test
-
-        // Make sure we have steady state
-        waitForSyncActivityCompleted(RESOURCE_DUMMY_DEFAULT_NAME, RESOURCE_DUMMY_GREEN_NAME, RESOURCE_DUMMY_BLUE_NAME);
+        and("blue and green sync tasks are run");
+        runSyncTasks(BLUE, GREEN);
 
         then();
-        dumpSyncTaskTree(getDummyResourceObject(), result);
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
-
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
         assertNotNull("User wally disappeared", userWally);
-        assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally B. Feed", null, "Wally B. Feed from Sync");
+        assertUser(
+                userWally,
+                userWallyOid,
+                ACCOUNT_WALLY_DUMMY_USERNAME,
+                "Wally B. Feed",
+                null,
+                "Wally B. Feed from Sync");
 
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME),
-                getDummyResource(RESOURCE_DUMMY_BLUE_NAME), "blue", "Wally Feed");
-        if (alwaysCheckTimestamp) { assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED); }
-        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), getDummyResource(RESOURCE_DUMMY_GREEN_NAME), "green", "Wally B. Feed");
-        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
+        PrismObject<ShadowType> accountWallyBlue = checkBlueWallyAccount("Wally Feed");
+        if (alwaysCheckTimestamp) { assertShadowOperationalData(accountWallyBlue); }
+
+        PrismObject<ShadowType> accountWallyGreen = checkGreenWallyAccount("Wally B. Feed");
+        assertShadowOperationalData(accountWallyGreen);
+
         PrismObject<ShadowType> accountWallyDefault;
-        // See MID-2518
+
         if (isReconciliation()) {
-
-            // Can be iether "Wally Feed" or "Wally B. Feed". Both are correct. Depends on he order of recon
-            // task execution.
-            accountWallyDefault = checkWallyAccount(getDummyResourceObject(), getDummyResource(), "default", null);
-
+            // The analysis described in MID-2518 is still valid:
+            // - If we run the sync tasks like "blue then green", the full name on the default resource is not changed.
+            // - If "green then blue", the full name is changed during the green sync task execution.
+            accountWallyDefault = checkDefaultWallyAccount(null);
         } else {
-            accountWallyDefault = checkWallyAccount(getDummyResourceObject(), getDummyResource(), "default", "Wally B. Feed");
+            accountWallyDefault = checkDefaultWallyAccount("Wally B. Feed");
         }
-        assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
+        assertShadowOperationalData(accountWallyDefault);
 
         assertLiveLinks(userWally, 3);
 
@@ -467,71 +401,57 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyDefault);
 
         assertUsers(8 + getNumberOfExtraDummyUsers());
-
-        // notifications
-        notificationManager.setDisabled(true);
-//        checkDummyTransportMessages("accountPasswordNotifier", 0);
-//        checkDummyTransportMessages("userPasswordNotifier", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
-//        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
-//        checkDummyTransportMessagesAtLeast("simpleUserNotifier", 1);                // actually I dont understand why sometimes is here 1, sometimes 2 messages (has to do something with mapping username->familyname)
-//        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-
     }
 
     /**
-     * Change user fullname. Fullname has normal mapping on default dummy.
+     * Change wally's user full name. Full name has normal mapping on default dummy.
      * See if the change propagates correctly. Also see that there are no side-effects.
      */
     @Test
-    public void test380ModifyUserWallyFullName() throws Exception {
+    public void test380ModifyFullNameOnUserWally() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
-        prepareNotifications();
 
-        getDummyResource(RESOURCE_DUMMY_GREEN_NAME).getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
-
-        when();
+        when("Wally's full name is modified in user object");
         modifyUserReplace(userWallyOid, UserType.F_FULL_NAME, task, result, PrismTestUtil.createPolyString("Bloodnose"));
 
-        // Wait for sync tasks to pick up the change and have some chance to screw things
+        and("sync tasks are run - will they screw things up?");
+        runSyncTasks(DEFAULT, BLUE, GREEN, GREEN);
 
-        waitForSyncActivityCompleted(RESOURCE_DUMMY_DEFAULT_NAME, RESOURCE_DUMMY_GREEN_NAME, RESOURCE_DUMMY_BLUE_NAME);
-
-
-        // Run green recon twice here. If the recon already searched for current state of the
+        // Note that we run green recon twice here. If the recon already searched for current state of the
         // wally account, the old value ("Wally B. Feed") is stored in the memory. Even if we rewrite
         // the account state by this operation the value already read into memory will be used instead
         // and it will be propagated to other resources. The next recon run should fix it in the user.
         // But as the mapping to default dummy is normal, the recon will not fix it on the resource.
-        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
 
         then();
-        dumpSyncTaskTree(getDummyResourceObject(), result);
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
-
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
         assertNotNull("User wally disappeared", userWally);
-        assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Bloodnose", null, "Bloodnose from Sync");
+        assertUser(
+                userWally,
+                userWallyOid,
+                ACCOUNT_WALLY_DUMMY_USERNAME,
+                "Bloodnose",
+                null,
+                "Bloodnose from Sync");
 
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME),
-                getDummyResource(RESOURCE_DUMMY_BLUE_NAME), "blue", "Wally Feed");
-        if (alwaysCheckTimestamp) { assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED); }
-        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), getDummyResource(RESOURCE_DUMMY_GREEN_NAME), "green", "Bloodnose");
-        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
+        PrismObject<ShadowType> accountWallyBlue = checkBlueWallyAccount("Wally Feed");
+        if (alwaysCheckTimestamp) { assertShadowOperationalData(accountWallyBlue); }
+
+        PrismObject<ShadowType> accountWallyGreen = checkGreenWallyAccount("Bloodnose");
+        assertShadowOperationalData(accountWallyGreen);
 
         PrismObject<ShadowType> accountWallyDefault = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, getDummyResourceObject());
-        String fullNameDummyAttribute = IntegrationTestTools.getAttributeValue(accountWallyDefault.asObjectable(),
-                new QName(ResourceTypeUtil.getResourceNamespace(getDummyResourceObject()), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
+        String fullNameDummyAttribute = IntegrationTestTools.getAttributeValue(
+                accountWallyDefault.asObjectable(),
+                new QName(MidPointConstants.NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
         if (!"Bloodnose".equals(fullNameDummyAttribute) && !"Wally B. Feed".equals(fullNameDummyAttribute)) {
             AssertJUnit.fail("Wrong full name on default dummy resource: " + fullNameDummyAttribute);
         }
-        assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
+        assertShadowOperationalData(accountWallyDefault);
 
         assertLiveLinks(userWally, 3);
 
@@ -540,8 +460,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyDefault);
 
         assertUsers(8 + getNumberOfExtraDummyUsers());
-
-        notificationManager.setDisabled(true);
     }
 
     /**
@@ -549,54 +467,45 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
      * See if the change propagates correctly. Also see that there are no side-effects.
      */
     @Test
-    public void test382ModifyUserWallyLocality() throws Exception {
+    public void test382ModifyLocalityOnUserWally() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
-        prepareNotifications();
-
-        getDummyResource(RESOURCE_DUMMY_GREEN_NAME).getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
 
         when();
         modifyUserReplace(userWallyOid, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Plunder island"));
 
-        // Wait for sync tasks to pick up the change and have some chance to screw things
-        waitForSyncActivityCompleted(RESOURCE_DUMMY_DEFAULT_NAME, RESOURCE_DUMMY_GREEN_NAME, RESOURCE_DUMMY_BLUE_NAME);
+        and("sync tasks are run - will they screw things up?");
+        runSyncTasks(DEFAULT, BLUE, GREEN, GREEN);
 
-
-        // Run green recon twice here. If the recon already searched for current state of the
+        // Note we run green recon twice here. If the recon already searched for current state of the
         // wally account, the old value is stored in the memory. Even if we rewrite
         // the account state by this operation the value already read into memory will be used instead
         // and it will be propagated to other resources. The next recon run should fix it.
         // Both in user and on the resource.
-        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
 
         then();
-        dumpSyncTaskTree(getDummyResourceObject(), result);
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
-
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
         assertNotNull("User wally disappeared", userWally);
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Bloodnose", null, "Bloodnose from Sync");
         PrismAsserts.assertPropertyValue(userWally, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Plunder island"));
 
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME),
-                getDummyResource(RESOURCE_DUMMY_BLUE_NAME), "blue", "Wally Feed");
-        if (alwaysCheckTimestamp) { assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED); }
-        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), getDummyResource(RESOURCE_DUMMY_GREEN_NAME), "green", "Bloodnose");
-        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
+        PrismObject<ShadowType> accountWallyBlue = checkBlueWallyAccount("Wally Feed");
+        if (alwaysCheckTimestamp) { assertShadowOperationalData(accountWallyBlue); }
+
+        PrismObject<ShadowType> accountWallyGreen = checkGreenWallyAccount("Bloodnose");
+        assertShadowOperationalData(accountWallyGreen);
 
         PrismObject<ShadowType> accountWallyDefault = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, getDummyResourceObject());
         String fullNameDummyAttribute = IntegrationTestTools.getAttributeValue(accountWallyDefault.asObjectable(),
-                new QName(ResourceTypeUtil.getResourceNamespace(getDummyResourceObject()), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
+                new QName(ResourceTypeUtil.getResourceNamespace(getDummyResourceObject()), DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
         if (!"Bloodnose".equals(fullNameDummyAttribute) && !"Wally B. Feed".equals(fullNameDummyAttribute)) {
             AssertJUnit.fail("Wrong full name on default dummy resource: " + fullNameDummyAttribute);
         }
-        assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
-        assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
+        assertShadowOperationalData(accountWallyDefault);
+        assertShadowOperationalData(accountWallyDefault);
 
         assertDummyAccountAttribute(RESOURCE_DUMMY_GREEN_NAME, ACCOUNT_WALLY_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Plunder island");
@@ -612,47 +521,38 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyDefault);
 
         assertUsers(8 + getNumberOfExtraDummyUsers());
-
-        notificationManager.setDisabled(true);
     }
 
     /**
-     * Delete default dummy account.
+     * Delete default dummy account of wally.
+     *
      * Dummy resource has unlinkAccount sync reaction for deleted situation. The account should be unlinked
      * but the user and other accounts should remain as they were.
      */
     @Test
-    public void test400DeleteDummyDefaultAccount() throws Exception {
+    public void test400DeleteDefaultAccountWally() throws Exception {
         given();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
-        prepareNotifications();
 
         when();
         getDummyResource().deleteAccountByName(ACCOUNT_WALLY_DUMMY_USERNAME);
 
         displayValue("Dummy (default) resource", getDummyResource().debugDump());
 
-        // Make sure we have steady state
-        waitForSyncActivityCompleted(RESOURCE_DUMMY_DEFAULT_NAME, RESOURCE_DUMMY_GREEN_NAME, RESOURCE_DUMMY_BLUE_NAME);
-
+        and("sync tasks are run");
+        runSyncTasks(DEFAULT, BLUE, GREEN);
 
         then();
-        dumpSyncTaskTree(getDummyResourceObject(), result);
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
-
         assertNoDummyAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
         assertShadow(ACCOUNT_WALLY_DUMMY_USERNAME, getDummyResourceObject())
                 .assertTombstone()
                 .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
 
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME),
-                getDummyResource(RESOURCE_DUMMY_BLUE_NAME), "blue", "Wally Feed");
-        if (alwaysCheckTimestamp) { assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED); }
-        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), getDummyResource(RESOURCE_DUMMY_GREEN_NAME), "green", "Bloodnose");
-        if (alwaysCheckTimestamp) { assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED); }
+        PrismObject<ShadowType> accountWallyBlue = checkBlueWallyAccount("Wally Feed");
+        if (alwaysCheckTimestamp) { assertShadowOperationalData(accountWallyBlue); }
+
+        PrismObject<ShadowType> accountWallyGreen = checkGreenWallyAccount("Bloodnose");
+        if (alwaysCheckTimestamp) { assertShadowOperationalData(accountWallyGreen); }
 
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -664,45 +564,37 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyBlue);
 
         assertUsers(8 + getNumberOfExtraDummyUsers());
-
-        // notifications
-        notificationManager.setDisabled(true);
-//        checkDummyTransportMessages("accountPasswordNotifier", 0);
-//        checkDummyTransportMessages("userPasswordNotifier", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
-//        checkDummyTransportMessages("simpleUserNotifier", 0);
-//        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-
     }
 
     /**
-     * Delete green dummy account.
+     * Delete green dummy account of wally.
+     *
      * Green dummy resource has deleteUser sync reaction for deleted situation. This should delete the user
      * and all other accounts.
+     *
      * MID-4522
      */
     @Test
-    public void test410DeleteDummyGreenAccount() throws Exception {
+    public void test410DeleteGreenAccountWally() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        prepareNotifications();
 
         when();
-        getDummyResource(RESOURCE_DUMMY_GREEN_NAME).deleteAccountByName(ACCOUNT_WALLY_DUMMY_USERNAME);
+        getGreenResource().deleteAccountByName(ACCOUNT_WALLY_DUMMY_USERNAME);
 
-        // Make sure we have steady state
-        var syncWaiter = new SyncWaiter();
-        OperationResult takResultBlue = syncWaiter.waitForSyncActivityCompleted(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
-        syncWaiter.waitForSync(RESOURCE_DUMMY_DEFAULT_NAME, RESOURCE_DUMMY_GREEN_NAME);
+        and("sync tasks are run");
+        runSyncTasks(DEFAULT);
+        if (isReconciliation()) {
+            // Reconciliation finds here that green account is missing, runs the discovery,
+            // and this produces an error (because the user is deleted during the discovery).
+            runSyncTasksErrorsOk(BLUE);
+        } else {
+            runSyncTasks(BLUE);
+        }
+        runSyncTasks(GREEN);
 
         then();
-        dumpSyncTaskTree(getDummyResourceObject(), result);
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
-        dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
-
         assertNoDummyAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
         assertShadow(ACCOUNT_WALLY_DUMMY_USERNAME, getDummyResourceObject())
                 .assertTombstone()
@@ -718,70 +610,29 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNull("User wally is not gone", userWally);
 
         assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_WALLY_DUMMY_USERNAME);
-
-        // Interesting things can happen here. Like this:
-        //
-        // Recon blue:  Search on resource, remember results in connector, sending them one
-        //              by one to midpoint. But recon task is slow, it will not send wally
-        //              account yet.
-        // Recon green: Search on resource, got wally as the first result, sending to model,
-        //              model deletes user and blue account.
-        // Recon blue:  It finally gets to send wally account to the model. But the original
-        //              shadow is gone. So, provisioning creates a new shadow. And it is right.
-        //              the object just came from the connector and therefore provisioning
-        //              thinks that it is fresh and it has been re-created.
-        //
-        // We have nothing simple to do about this. And really, we do not care much because
-        // it is not really a problem. It is rare and the next recon run should fix it anyway.
-        // It will not cause any real harm on target resource. It may do some (even quite nasty)
-        // churn on source+target resource. But source+target is a dangerous lifestyle anyway.
-        //
-        // So, if that happens we will just wait for the next recon run and check that it
-        // sorts it out.
-
-        ObjectQuery wallyBlueAccountsQuery = createAccountShadowQuery(ACCOUNT_WALLY_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
-        List<PrismObject<ShadowType>> wallyBlueAccounts = repositoryService.searchObjects(ShadowType.class, wallyBlueAccountsQuery, null, result);
-        if (!wallyBlueAccounts.isEmpty()) {
-            waitForSyncTaskNextRun(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
-        }
-
         assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
 
         assertUsers(7 + getNumberOfExtraDummyUsers());
-
-        if (isReconciliation()) {
-            if (takResultBlue.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
-                // Blue resource recon may fail. The user may be deleted before the blue
-                // recon task finishes. If the result (user, accounts) is OK then tolerate this error.
-            } else if (isError(takResultBlue, true)) {
-                assert false : "Blue resource synchronization has failed";
-            }
-        } else if (isError(takResultBlue, true)) {
-            assert false : "Blue resource synchronization has failed";
-        }
-
-        // notifications
-        notificationManager.setDisabled(true);
     }
 
+    /**
+     * Re-adds wally green account.
+     */
     @Test
-    public void test510AddDummyGreenAccountWallyUserTemplate() throws Exception {
+    public void test510AddGreenAccountWally() throws Exception {
         given();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
 
-        assumeUserTemplate(USER_TEMPLATE_SYNC_OID, getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME).asObjectable(), null, result);
-
         when();
-        getDummyResourceController(RESOURCE_DUMMY_GREEN_NAME).addAccount(ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", "Scabb Island");
+        getGreenController()
+                .addAccount(ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", "Scabb Island");
 
-        // Wait for sync task to pick up the change
-        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
+        and("green sync task is run");
+        runSyncTasks(GREEN);
 
         then();
-        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), getDummyResource(RESOURCE_DUMMY_GREEN_NAME), "green", "Wally Feed");
-        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
+        PrismObject<ShadowType> accountWallyGreen = checkGreenWallyAccount("Wally Feed");
+        assertShadowOperationalData(accountWallyGreen);
 
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -801,23 +652,23 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     public void test600AddDummyGreenAccountCalypso() throws Exception {
         given();
         rememberTimeBeforeSync();
-        prepareNotifications();
 
         // Preconditions
         assertUsers(8 + getNumberOfExtraDummyUsers());
 
         DummyAccount account = new DummyAccount(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         account.setEnabled(true);
-        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Calypso");
+        account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Calypso");
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "The Seven Seas");
 
-        when();
-        getDummyResource(RESOURCE_DUMMY_GREEN_NAME).addAccount(account);
+        when("calypso green account is added");
+        getGreenResource().addAccount(account);
 
-        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
+        and("green sync task is run");
+        runSyncTasks(GREEN);
 
         then();
-        PrismObject<ShadowType> accountShadow = findAccountByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
+        PrismObject<ShadowType> accountShadow = findAccountByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME, getGreenResourceObject());
         display("Account calypso", accountShadow);
         assertNotNull("No calypso account shadow", accountShadow);
         assertEquals("Wrong resourceRef in calypso account", RESOURCE_DUMMY_GREEN_OID,
@@ -839,22 +690,22 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     public void test601AddDummyGreenAccountSystem() throws Exception {
         given();
         rememberTimeBeforeSync();
-        prepareNotifications();
 
         // Preconditions
         assertUsers(8 + getNumberOfExtraDummyUsers());
 
         DummyAccount account = new DummyAccount(ACCOUNT_PROTECTED_SYSTEM);
         account.setEnabled(true);
-        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "System Account");
+        account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "System Account");
 
         when();
-        getDummyResource(RESOURCE_DUMMY_GREEN_NAME).addAccount(account);
+        getGreenResource().addAccount(account);
 
-        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
+        and("green sync task is run");
+        runSyncTasks(GREEN);
 
         then();
-        PrismObject<ShadowType> accountShadow = findAccountByUsername(ACCOUNT_PROTECTED_SYSTEM, getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
+        PrismObject<ShadowType> accountShadow = findAccountByUsername(ACCOUNT_PROTECTED_SYSTEM, getGreenResourceObject());
         display("Account system", accountShadow);
         assertNotNull("No system account shadow", accountShadow);
         assertEquals("Wrong resourceRef in system account", RESOURCE_DUMMY_GREEN_OID,
@@ -875,28 +726,28 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     public void test700AddDummyGreenAccountXjojo() throws Exception {
         given();
         rememberTimeBeforeSync();
-        prepareNotifications();
 
         // Preconditions
         assertUsers(8 + getNumberOfExtraDummyUsers());
 
         DummyAccount account = new DummyAccount("Xjojo");
         account.setEnabled(true);
-        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Jojo the Monkey");
+        account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Jojo the Monkey");
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Scabb Island");
 
-        when();
-        getDummyResource(RESOURCE_DUMMY_GREEN_NAME).addAccount(account);
+        when("Xjojo is added on green");
+        getGreenResource().addAccount(account);
 
-        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
+        and("green sync task is run");
+        runSyncTasks(GREEN);
 
         then();
-        PrismObject<ShadowType> accountAfter = findAccountByUsername("Xjojo", getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
+        PrismObject<ShadowType> accountAfter = findAccountByUsername("Xjojo", getGreenResourceObject());
         display("Account after", accountAfter);
         assertNotNull("No account shadow", accountAfter);
         assertEquals("Wrong resourceRef in account shadow", RESOURCE_DUMMY_GREEN_OID,
                 accountAfter.asObjectable().getResourceRef().getOid());
-        assertShadowOperationalData(accountAfter, SynchronizationSituationType.LINKED);
+        assertShadowOperationalData(accountAfter);
         assertShadowKindIntent(accountAfter, ShadowKindType.ACCOUNT, "admin");
 
         PrismObject<UserType> userAfter = findUserByUsername("jojo");
@@ -909,96 +760,70 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
         assertUsers(9 + getNumberOfExtraDummyUsers());
 
-        String syncTaskOid = getSyncTaskOid(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
-        PrismObject<TaskType> syncTaskTree = getTaskTree(syncTaskOid);
+        PrismObject<TaskType> syncTaskTree = getTaskTree(getGreenSyncTask().oid);
         OperationStatsType stats = TaskOperationStatsUtil.getOperationStatsFromTree(syncTaskTree.asObjectable(), prismContext);
         displayValue("sync task stats", TaskOperationStatsUtil.format(stats));
-
-        // notifications
-        notificationManager.setDisabled(true);
     }
 
-    private void assumeUserTemplate(String templateOid, ResourceType resource, String syncConfigName, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        SynchronizationType resourceSync = resource.getSynchronization();
-        resourceSync.getObjectSynchronization().get(0).setObjectTemplateRef(ObjectTypeUtil.createObjectRef(templateOid, ObjectTypes.OBJECT_TEMPLATE));
+    private void assumeUserTemplate(String templateOid, ResourceType resource, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
-        Collection<? extends ItemDelta<?, ?>> refDelta = prismContext.deltaFactory().property()
-                .createModificationReplacePropertyCollection(ResourceType.F_SYNCHRONIZATION, resource.asPrismObject().getDefinition(), resourceSync);
-        repositoryService.modifyObject(ResourceType.class, resource.getOid(), refDelta, result);
+        repositoryService.modifyObject(
+                ResourceType.class,
+                resource.getOid(),
+                deltaFor(ResourceType.class)
+                        .item(ResourceType.F_SYNCHRONIZATION,
+                                SynchronizationType.F_OBJECT_SYNCHRONIZATION,
+                                resource.getSynchronization().getObjectSynchronization().get(0).getId(), // TODO stop assuming the order!
+                                ObjectSynchronizationType.F_OBJECT_TEMPLATE_REF)
+                        .replace(
+                                ObjectTypeUtil.createObjectRef(templateOid, ObjectTypes.OBJECT_TEMPLATE))
+                        .asItemDeltas(),
+                result);
 
         ResourceType res = repositoryService.getObject(ResourceType.class, resource.getOid(), null, result).asObjectable();
         assertNotNull(res);
         assertNotNull("Synchronization is not specified", res.getSynchronization());
-        ObjectSynchronizationType ost = determineSynchronization(res, UserType.class, syncConfigName);
+        ObjectSynchronizationType ost = determineSynchronization(res, UserType.class, "default account type");
         assertNotNull("object sync type is not specified", ost);
         assertNotNull("user template not specified", ost.getObjectTemplateRef());
         assertEquals("Wrong user template in resource", templateOid, ost.getObjectTemplateRef().getOid());
 
     }
 
-    protected void waitForSyncTaskStart(PrismObject<ResourceType> resource) throws Exception {
-        waitForTaskStart(getSyncTaskOid(resource), false, getWaitTimeout());
+    @SuppressWarnings("SameParameterValue")
+    private @NotNull PrismObject<ShadowType> checkBlueWallyAccount(String expectedFullName)
+            throws CommonException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException,
+            InterruptedException {
+        return checkWallyAccount(
+                getBlueResourceObject(), getBlueResource(), "blue", expectedFullName);
     }
 
-    protected class SyncWaiter {
-
-        private final long afterTime = System.currentTimeMillis();
-
-        public SyncWaiter waitForSync(PrismObject<ResourceType> resource) throws CommonException {
-            waitForSyncActivityCompleted(resource);
-            return this;
-        }
-
-        public SyncWaiter waitForSync(String... names) throws CommonException {
-            for (String name : names) {
-                waitForSyncActivityCompleted(getDummyResourceObject(name));
-            }
-            return this;
-        }
-
-
-        public OperationResult waitForSyncActivityCompleted(PrismObject<ResourceType> resource) throws CommonException {
-            return waitForTaskActivityCompleted(getSyncTaskOid(resource), afterTime, createOperationResult("wait"), getWaitTimeout());
-        }
+    private @NotNull PrismObject<ShadowType> checkGreenWallyAccount(String expectedFullName)
+            throws CommonException, ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException,
+            ConnectException {
+        return checkWallyAccount(
+                getGreenResourceObject(), getGreenResource(), "green", expectedFullName);
     }
 
-    protected OperationResult waitForSyncTaskNextRunAssertSuccess(PrismObject<ResourceType> resource) throws Exception {
-        String taskOid = getSyncTaskOid(resource);
-        var taskResult = waitForSyncTaskNextRun(resource);
-        if (isError(taskResult, false)) {
-            assert false : "Error in task " + taskOid + ": " + TestUtil.getErrorMessage(taskResult) + "\n\n" + taskResult.debugDump();
-        }
-        return taskResult;
+    private @NotNull PrismObject<ShadowType> checkDefaultWallyAccount(String expectedFullName)
+            throws CommonException, ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException,
+            ConnectException {
+        return checkWallyAccount(
+                getDummyResourceObject(), getDummyResource(), "default", expectedFullName);
     }
 
-    protected void waitForSyncActivityCompleted(String... resourceNames) throws CommonException {
-        new SyncWaiter().waitForSync(resourceNames);
-    }
-
-    protected void dumpSyncTaskTree(PrismObject<ResourceType> resource, OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
-        String oid = getSyncTaskOid(resource);
-        dumpTaskTree(oid, result);
-    }
-
-    protected OperationResult waitForSyncTaskNextRun(PrismObject<ResourceType> resource) throws Exception {
-        return waitForTaskActivityCompleted(getSyncTaskOid(resource), System.currentTimeMillis(), createOperationResult("wait"), getWaitTimeout());
-    }
-
-    private PrismObject<ShadowType> checkWallyAccount(PrismObject<ResourceType> resource, DummyResource dummy, String resourceDesc,
-            String expectedFullName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, ExpressionEvaluationException, InterruptedException {
-        return checkWallyAccount(resource, dummy, resourceDesc, expectedFullName, null, null);
-    }
-
-    private PrismObject<ShadowType> checkWallyAccount(PrismObject<ResourceType> resource, DummyResource dummy, String resourceDesc,
-            String expectedFullName, String shipName, String quote) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, ExpressionEvaluationException, InterruptedException {
+    private PrismObject<ShadowType> checkWallyAccount(
+            PrismObject<ResourceType> resource, DummyResource dummy, String resourceDesc, String expectedFullName)
+            throws CommonException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException,
+            InterruptedException {
         PrismObject<ShadowType> accountShadowWally = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resource);
         display("Account shadow wally (" + resourceDesc + ")", accountShadowWally);
         assertEquals("Wrong resourceRef in wally account (" + resourceDesc + ")", resource.getOid(),
                 accountShadowWally.asObjectable().getResourceRef().getOid());
         if (expectedFullName != null) {
             IntegrationTestTools.assertAttribute(accountShadowWally.asObjectable(), resource.asObjectable(),
-                    DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, expectedFullName);
+                    DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, expectedFullName);
         }
 
         DummyAccount dummyAccount = dummy.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
@@ -1006,28 +831,80 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNotNull("No dummy account (" + resourceDesc + ")", dummyAccount);
         if (expectedFullName != null) {
             assertEquals("Wrong dummy account fullname (" + resourceDesc + ")", expectedFullName,
-                    dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
-        }
-
-        if (shipName != null) {
-            assertEquals("Wrong dummy account shipName (" + resourceDesc + ")", shipName,
-                    dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
-        }
-
-        if (quote != null) {
-            assertEquals("Wrong dummy account quote (" + resourceDesc + ")", quote,
-                    dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME));
+                    dummyAccount.getAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
         }
 
         return accountShadowWally;
     }
 
-    protected void rememberTimeBeforeSync() {
+    void rememberTimeBeforeSync() {
         timeBeforeSync = System.currentTimeMillis();
     }
 
-    protected void assertShadowOperationalData(PrismObject<ShadowType> shadow, SynchronizationSituationType expectedSituation) {
-        super.assertShadowOperationalData(shadow, expectedSituation, timeBeforeSync);
+    private void assertShadowOperationalData(PrismObject<ShadowType> shadow) {
+        assertShadowOperationalData(shadow, SynchronizationSituationType.LINKED, timeBeforeSync);
     }
 
+    private DummyResource getBlueResource() {
+        return getDummyResource(RESOURCE_DUMMY_BLUE_NAME);
+    }
+
+    DummyResource getGreenResource() {
+        return getDummyResource(RESOURCE_DUMMY_GREEN_NAME);
+    }
+
+    private PrismObject<ResourceType> getBlueResourceObject() {
+        return getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME);
+    }
+
+    private PrismObject<ResourceType> getGreenResourceObject() {
+        return getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME);
+    }
+
+    private DummyResourceContoller getBlueController() {
+        return getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME);
+    }
+
+    private DummyResourceContoller getGreenController() {
+        return getDummyResourceController(RESOURCE_DUMMY_GREEN_NAME);
+    }
+
+    private TestTask getGreenSyncTask() {
+        return getSyncTask(GREEN);
+    }
+
+    /**
+     * @return Map providing a synchronization task for each resource color.
+     */
+    protected abstract Map<Color, TestTask> getTaskMap();
+
+    protected TestTask getSyncTask(Color whichOne) {
+        return MiscUtil.requireNonNull(
+                getTaskMap().get(whichOne),
+                () -> new IllegalStateException("No sync task for " + whichOne));
+    }
+
+    void runSyncTasks(Color... whichOnes) throws CommonException {
+        for (Color resourceColor : whichOnes) {
+            getSyncTask(resourceColor)
+                    .rerun(getTestOperationResult());
+        }
+    }
+
+    private void runSyncTasksErrorsOk(Color... whichOnes) throws CommonException {
+        for (Color resourceColor : whichOnes) {
+            getSyncTask(resourceColor)
+                    .rerunErrorsOk(getTestOperationResult());
+        }
+    }
+
+    private void dumpSyncTaskTrees(Color... whichOnes) throws SchemaException, ObjectNotFoundException {
+        for (Color resourceColor : whichOnes) {
+            dumpTaskTree(getSyncTask(resourceColor).oid, getTestOperationResult());
+        }
+    }
+
+    enum Color {
+        DEFAULT, BLUE, GREEN
+    }
 }

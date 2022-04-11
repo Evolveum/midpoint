@@ -16,7 +16,6 @@ import java.io.Serializable;
 
 /**
  * TODO is this right approach?
- * @author mederly
  */
 public class LocalizableMessageModel implements Serializable, IModel<String> {
 

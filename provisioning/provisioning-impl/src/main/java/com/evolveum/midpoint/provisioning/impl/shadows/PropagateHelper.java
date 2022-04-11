@@ -105,7 +105,7 @@ class PropagateHelper {
         for (PendingOperationType pendingOperation: sortedOperations) {
             ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
             ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
-            definitionsHelper.applyDefinition(pendingDelta, shadow.asObjectable(), result);
+            definitionsHelper.applyDefinition(pendingDelta, shadow.asObjectable(), task, result);
             if (operationDelta == null) {
                 operationDelta = pendingDelta;
             } else {
@@ -114,7 +114,7 @@ class PropagateHelper {
         }
         assert operationDelta != null; // there is at least one pending operation
 
-        ProvisioningContext ctx = ctxFactory.create(shadow, task, result);
+        ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, result);
         ctx.setPropagation(true);
         shadowCaretaker.applyAttributesDefinition(ctx, shadow);
         shadowCaretaker.applyAttributesDefinition(ctx, operationDelta);

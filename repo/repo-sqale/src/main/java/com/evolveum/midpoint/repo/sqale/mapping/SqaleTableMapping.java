@@ -539,7 +539,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
-    protected S resolveNames(S object, JdbcSession session, Collection<SelectorOptions<GetOperationOptions>> options) {
+    protected <O> O resolveNames(O object, JdbcSession session, Collection<SelectorOptions<GetOperationOptions>> options) {
         // TODO: Performance: This could be transaction shared object
         return ReferenceNameResolver.from(options).resolve(object, session);
     }

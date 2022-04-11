@@ -18,8 +18,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  * For the difference between task start/finish and task thread
  * start/finish, please see
  * https://docs.evolveum.com/midpoint/reference/tasks/task-manager/#task-execution-a-bit-of-terminology.
- *
- * @author mederly
  */
 public interface TaskListener {
 

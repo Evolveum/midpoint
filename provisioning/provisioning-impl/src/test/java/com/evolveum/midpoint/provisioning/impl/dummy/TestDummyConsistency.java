@@ -12,6 +12,7 @@ import java.io.File;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.test.PredefinedTestMethodTracing;
 import com.evolveum.midpoint.test.TestResource;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -80,6 +81,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+//        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_PROVISIONING_LOGGING;
     }
 
     @Override
@@ -96,8 +98,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         testResourceAssertSuccess(RESOURCE_DUMMY_OID, task);
 
-        resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
-        resourceType = resource.asObjectable();
+        resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        resourceBean = resource.asObjectable();
         assertSuccess(result);
         rememberSteadyResources();
     }

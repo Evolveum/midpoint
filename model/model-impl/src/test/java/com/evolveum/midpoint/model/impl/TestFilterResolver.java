@@ -12,7 +12,6 @@ import static org.testng.Assert.assertNotNull;
 import java.io.File;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -21,11 +20,8 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -33,7 +29,7 @@ public class TestFilterResolver extends AbstractInternalModelIntegrationTest {
 
     protected static final File TEST_DIR = new File("src/test/resources/common");
 
-    private static final String RESOURCE_DUMMY_DEPENDECY_FILTER_OID = "10000000-0000-0000-dep0-000000000004";
+    private static final String RESOURCE_DUMMY_DEPENDENCY_FILTER_OID = "10000000-0000-0000-dep0-000000000004";
     private static final File RESOURCE_DUMMY_DEPENDENCY_FILTER_FILE = new File(TEST_DIR, "resource-dummy-dependency-filter.xml");
 
     @Test
@@ -43,7 +39,7 @@ public class TestFilterResolver extends AbstractInternalModelIntegrationTest {
 
         // THEN
         PrismObject<ResourceType> resourceDummyResolvedFilter = getObject(ResourceType.class,
-                RESOURCE_DUMMY_DEPENDECY_FILTER_OID);
+                RESOURCE_DUMMY_DEPENDENCY_FILTER_OID);
         assertNotNull(resourceDummyResolvedFilter, "Something unexpected happened. No resource found");
 
         PrismContainer<ResourceObjectTypeDefinitionType> objectType = resourceDummyResolvedFilter.findContainer(
@@ -58,7 +54,5 @@ public class TestFilterResolver extends AbstractInternalModelIntegrationTest {
         ObjectReferenceType dependencyRef = resourceDependency.getResourceRef();
         assertNotNull(dependencyRef, "No dependency reference found in the resource, something is wrong");
         assertEquals(dependencyRef.getOid(), RESOURCE_DUMMY_OID, "Unexpected oid in resolved reference.");
-
-
     }
 }

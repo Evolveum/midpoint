@@ -62,7 +62,6 @@
                     <artifactId>jaxb-api</artifactId>
                 </exclusion>
             </exclusions>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -248,6 +247,12 @@
             <artifactId>system-init</artifactId>
             <version>4.5-SNAPSHOT</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>authentication-api</artifactId>
+            <version>4.5-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

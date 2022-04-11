@@ -18,8 +18,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Tests for mistakenly adding new empty items (PP, PR, PC) into PCVs.
- *
- * @author mederly
  */
 public class TestEmptyItems extends AbstractSchemaTest {
 

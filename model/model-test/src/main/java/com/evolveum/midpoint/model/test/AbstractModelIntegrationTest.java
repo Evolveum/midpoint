@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,7 +14,6 @@ import static org.testng.AssertJUnit.*;
 import static com.evolveum.midpoint.prism.PrismObject.asObjectableList;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.F_TIMESTAMP;
 
 import java.io.File;
@@ -23,23 +22,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
-import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskHandler;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-
-import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,13 +55,16 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.*;
-import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -83,6 +78,7 @@ import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.test.asserter.*;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.TransportService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.*;
@@ -103,20 +99,23 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingManager;
+import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
+import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskHandler;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ProvisioningStatistics;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -125,8 +124,6 @@ import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskDebugUtil;
-import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerDefinitionAsserter;
@@ -151,7 +148,7 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
  *
  * @author Radovan Semancik
  */
-public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest {
+public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest implements ResourceTester {
 
     protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
     protected static final String CONNECTOR_DUMMY_VERSION = "2.0";
@@ -201,7 +198,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected HookRegistry hookRegistry;
     @Autowired protected Clock clock;
     @Autowired protected SchemaService schemaService;
-    @Autowired protected DummyTransport dummyTransport;
     @Autowired protected SecurityEnforcer securityEnforcer;
     @Autowired protected SecurityContextManager securityContextManager;
     @Autowired protected MidpointFunctions libraryMidpointFunctions;
@@ -212,7 +208,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected ObjectResolver modelObjectResolver;
 
     @Autowired(required = false)
+    protected TransportService transportService;
+
+    @Autowired(required = false)
     protected NotificationManager notificationManager;
+
+    protected final DummyTransport dummyTransport = new DummyTransport();
 
     @Autowired(required = false)
     protected GuiProfiledPrincipalManager focusProfileService;
@@ -236,9 +237,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         InternalsConfig.setAvoidLoggingChange(isAvoidLoggingChange());
         // Make sure the checks are turned on
         InternalsConfig.turnOnAllChecks();
-        // By default, notifications are turned off because of performance implications. Individual tests turn them on for themselves.
+        // By default, notifications are turned off because of performance implications.
+        // Individual tests turn them on for themselves.
         if (notificationManager != null) {
             notificationManager.setDisabled(true);
+        }
+        if (transportService != null) {
+            transportService.registerTransport(dummyTransport);
         }
 
         // This is generally useful in tests, to avoid long waiting for bucketed tasks.
@@ -287,7 +292,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     public DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
         resource.controller = dummyResourceCollection.initDummyResource(resource.name, resource.file, resource.oid,
                 resource.controllerInitLambda, task, result);
+        resource.reload(result); // To have schema, etc
         return resource.controller;
+    }
+
+    protected void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result)
+            throws Exception {
+        resource.controller = dummyResourceCollection.initDummyResource(
+                resource.name, resource.file, resource.oid, resource.controllerInitLambda, task, result);
+        assertSuccess(
+                modelService.testResource(resource.controller.getResource().getOid(), task));
+        resource.reload(result); // To have schema, etc
     }
 
     protected DummyResourceContoller initDummyResource(String name, File resourceFile, String resourceOid,
@@ -448,7 +463,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      * This is not the real thing. It is just for the tests.
      */
     protected void applyResourceSchema(ShadowType accountType, ResourceType resourceType) throws SchemaException {
-        IntegrationTestTools.applyResourceSchema(accountType, resourceType, prismContext);
+        IntegrationTestTools.applyResourceSchema(accountType, resourceType);
     }
 
     protected void assertUsers(int expectedNumberOfUsers)
@@ -494,7 +509,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Task task = createPlainTask("getObjectCount");
         OperationResult result = task.getResult();
         List<PrismObject<O>> users = modelService.searchObjects(type, query, null, task, result);
-        if (verbose) { display(type.getSimpleName() + "s", users); }
+        if (verbose) {display(type.getSimpleName() + "s", users);}
         return users.size();
     }
 
@@ -513,7 +528,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
             return true;
         }, null, task, result);
-        if (verbose) { displayValue(type.getSimpleName() + "s", count.getValue()); }
+        if (verbose) {displayValue(type.getSimpleName() + "s", count.getValue());}
         assertEquals("Unexpected number of " + type.getSimpleName() + "s", expectedNumberOfObjects, count.getValue());
     }
 
@@ -1820,14 +1835,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
-        assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
-        // TODO any assert about this unused variable?
-        ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectDefinition accountDef = schema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, null);
+        assertThat(accountDef.getPrimaryIdentifiers())
+                .as("primary identifiers")
+                .hasSize(1);
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
-                .item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassDefinition().getTypeName())
+                .item(ShadowType.F_OBJECT_CLASS).eq(accountDef.getObjectClassDefinition().getTypeName())
                 .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
                 .build();
         return modelService.searchObjects(ShadowType.class, query, null, task, result);
@@ -1959,8 +1973,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rOcDef = rSchema.getRefinedDefinition(kind, intent);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectDefinition rOcDef = rSchema.findObjectDefinitionRequired(kind, intent);
         ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
         List<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, options, task, result);
         if (shadows.isEmpty()) {
@@ -1973,11 +1987,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Override
     protected ObjectQuery createAccountShadowQuery(
             String username, PrismObject<ResourceType> resource) throws SchemaException {
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectTypeDefinition rAccount = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        Collection<? extends ResourceAttributeDefinition<?>> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
-        ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
+        ResourceAttributeDefinition<?> identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getItemName()).eq(username)
@@ -2747,12 +2761,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resource.getOid());
         shadowType.setResourceRef(resourceRef);
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectTypeDefinition objectClassDefinition = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         shadowType.setObjectClass(objectClassDefinition.getTypeName());
         shadowType.setKind(ShadowKindType.ACCOUNT);
         ResourceAttributeContainer attrCont = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-        RefinedAttributeDefinition idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
+        ResourceAttributeDefinition<?> idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
         ResourceAttribute icfsNameAttr = idSecondaryDef.instantiate();
         icfsNameAttr.setRealValue(name);
         attrCont.add(icfsNameAttr);
@@ -3021,7 +3035,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
             QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
         assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, false);
-        IntegrationTestTools.assertProvisioningShadow(accountShadow, RefinedAttributeDefinition.class, objectClass);
+        IntegrationTestTools.assertProvisioningShadow(accountShadow, ResourceAttributeDefinition.class, objectClass);
     }
 
     protected ObjectDelta<UserType> createModifyUserAddDummyAccount(String userOid, String dummyResourceName) throws SchemaException {
@@ -3037,13 +3051,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resource.getOid());
         account.asObjectable().setResourceRef(resourceRef);
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rocd;
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectDefinition rocd;
         if (StringUtils.isNotBlank(intent)) {
-            rocd = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, intent);
+            rocd = refinedSchema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, intent);
             account.asObjectable().setIntent(intent);
         } else {
-            rocd = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+            // TODO or findObjectDefinitionRequired as well?
+            rocd = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         }
         account.asObjectable().setObjectClass(rocd.getObjectClassDefinition().getTypeName());
         account.asObjectable().setKind(ShadowKindType.ACCOUNT);
@@ -3167,7 +3182,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public boolean check() throws CommonException {
                 Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
                 OperationResult result = freshTask.getResult();
-                if (verbose) { display("Task checked (result=" + result + ")", freshTask); }
+                if (verbose) {display("Task checked (result=" + result + ")", freshTask);}
                 assert !isError(result, checkSubresult) : "Error in " + freshTask + ": " + TestUtil.getErrorMessage(result);
                 if (isUnknown(result, checkSubresult)) {
                     return false;
@@ -3203,7 +3218,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public boolean check() throws CommonException {
                 Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
                 OperationResult result = freshTask.getResult();
-                if (verbose) { display("Check result", result); }
+                if (verbose) {display("Check result", result);}
                 assert !isError(result, checkSubresult) : "Error in " + freshTask + ": " + TestUtil.getErrorMessage(result);
                 return !isUnknown(result, checkSubresult) &&
                         !java.util.Objects.equals(freshTask.getLastRunStartTimestamp(), origLastRunStartTimestamp);
@@ -3256,29 +3271,33 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return waitForTaskNextRun(taskOid, checkSubresult, timeout, false);
     }
 
-    protected OperationResult waitForTaskActivityCompleted(final String taskOid,  long startedAfter, OperationResult waitResult, long timeout) throws CommonException {
+    protected OperationResult waitForTaskActivityCompleted(final String taskOid, long startedAfter, OperationResult waitResult, long timeout) throws CommonException {
         final Holder<OperationResult> taskResultHolder = new Holder<>();
         waitForTaskStatusUpdated(taskOid, "Waiting for task " + taskOid, new Checker() {
-                @Override
-                public boolean check() throws CommonException {
-                    var task = taskManager.getTaskWithResult(taskOid, waitResult);
-                    var activity = task.getActivitiesStateOrClone().getActivity();
-                    if (activity == null) {
-                        return false;
-                    }
-                    var activityStart = XmlTypeConverter.toMillis(activity.getRealizationStartTimestamp());
-                    var activityEnd = XmlTypeConverter.toMillis(activity.getRealizationEndTimestamp());
-                    if (activityStart > startedAfter &&  activityEnd > activityStart) {
-                        taskResultHolder.setValue(task.getResult());
-                        return true;
-                    }
+            @Override
+            public boolean check() throws CommonException {
+                var task = taskManager.getTaskWithResult(taskOid, waitResult);
+                var activitiesState = task.getActivitiesStateOrClone();
+                if (activitiesState == null) {
                     return false;
                 }
-
-                @Override
-                public void timeout() {
-                    assert false : "Timeouted while waiting for task " + taskOid + " activity to complete.";
+                var activity = activitiesState.getActivity();
+                if (activity == null) {
+                    return false;
                 }
+                var activityStart = XmlTypeConverter.toMillis(activity.getRealizationStartTimestamp());
+                var activityEnd = XmlTypeConverter.toMillis(activity.getRealizationEndTimestamp());
+                if (activityStart > startedAfter && activityEnd > activityStart) {
+                    taskResultHolder.setValue(task.getResult());
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public void timeout() {
+                assert false : "Timeouted while waiting for task " + taskOid + " activity to complete.";
+            }
         }, timeout, 0);
         return taskResultHolder.getValue();
     }
@@ -3319,7 +3338,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public boolean check() throws CommonException {
                 Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
                 OperationResult taskResult = freshTask.getResult();
-                if (verbose) { display("Check result", taskResult); }
+                if (verbose) {display("Check result", taskResult);}
                 taskResultHolder.setValue(taskResult);
                 if (isError(taskResult, checkSubresult)) {
                     return true;
@@ -3371,11 +3390,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     // We assume the task is runnable/running.
+    // Uses heartbeat method to determine the progress; so the progress may not be reflected in the repo after returning
+    // from this method.
     @Experimental
     protected Task waitForTaskProgress(String taskOid, long progressToReach, int timeout, OperationResult waitResult) throws Exception {
         return waitForTaskProgress(taskOid, progressToReach, null, timeout, (int) DEFAULT_TASK_SLEEP_TIME, waitResult);
     }
 
+    // Uses heartbeat method to determine the progress; so the progress may not be reflected in the repo after returning
+    // from this method.
     @Experimental
     protected Task waitForTaskProgress(String taskOid, long progressToReach, CheckedProducer<Boolean> extraTest,
             int timeout, int sleepTime, OperationResult waitResult) throws Exception {
@@ -3416,134 +3439,172 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return freshTask;
     }
 
-    // BEWARE of race conditions: if the task starts "by itself", lastRunFinishTimestamp can be updated before waiting starts
-    protected OperationResult waitForTaskTreeNextFinishedRun(String rootTaskOid, int timeout) throws Exception {
-        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskTreeNextFinishedRun");
-        Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult, true);
+    protected void runTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
+        OperationResult result = getTestOperationResult();
+        Task origRootTask = taskManager.getTask(rootTaskOid, null, result);
+        restartTask(rootTaskOid, result);
+        waitForRootActivityCompletion(
+                rootTaskOid,
+                origRootTask.getRootActivityCompletionTimestamp(),
+                timeout);
     }
 
-    protected OperationResult runTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
-        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".runTaskTreeAndWaitForFinish");
-        Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
-        restartTask(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult, true);
-    }
-
-    protected OperationResult resumeTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
+    protected void resumeTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".runTaskTreeAndWaitForFinish");
         Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
         taskManager.resumeTaskTree(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult, false);
+        waitForRootActivityCompletion(
+                rootTaskOid,
+                origRootTask.getRootActivityCompletionTimestamp(),
+                timeout);
     }
 
-    // a bit experimental
-    protected OperationResult waitForTaskTreeNextFinishedRun(TaskType origRootTask, int timeout, OperationResult waitResult,
-            boolean checkRootTaskLastStartTimestamp) throws Exception {
-        long origLastRunStartTimestamp = XmlTypeConverter.toMillis(origRootTask.getLastRunStartTimestamp());
-        long origLastRunFinishTimestamp = XmlTypeConverter.toMillis(origRootTask.getLastRunFinishTimestamp());
+    /**
+     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, int)}.
+     *
+     * To be used on tasks that are scheduled to be run in regular intervals. (So it needs not be absolutely precise:
+     * if the task realization completes between the method is started and the current completion timestamp is determined,
+     * it's no problem: the task will be started again in the near future.)
+     *
+     * @return root task in the moment of completion
+     */
+    protected Task waitForNextRootActivityCompletion(@NotNull String rootTaskOid, int timeout) throws CommonException {
+        OperationResult result = getTestOperationResult();
+        XMLGregorianCalendar currentCompletionTimestamp = taskManager.getTaskWithResult(rootTaskOid, result)
+                        .getRootActivityCompletionTimestamp();
+        return waitForRootActivityCompletion(rootTaskOid, currentCompletionTimestamp, timeout);
+    }
 
-        long start = System.currentTimeMillis();
-        AtomicBoolean triggered = new AtomicBoolean(false);
-        OperationResult aggregateResult = new OperationResult("aggregate");
+    /**
+     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, int)}.
+     *
+     * To be used on tasks that were _not_ executed before. I.e. we are happy with any task completion.
+     */
+    protected void waitForRootActivityCompletion(@NotNull String rootTaskOid, int timeout) throws CommonException {
+        waitForRootActivityCompletion(rootTaskOid, null, timeout);
+    }
+
+    /**
+     * Waits for the completion of the root activity realization. Useful for task trees.
+     *
+     * Stops also if there's a failed/suspended activity - see {@link #findSuspendedActivity(Task)}.
+     * This is to account for suspended multi-node tasks like `TestThresholdsStoryReconExecuteMultinode`.
+     *
+     * TODO reconcile with {@link #waitForTaskActivityCompleted(String, long, OperationResult, long)}
+     *
+     * @param lastKnownCompletionTimestamp The completion we know about - and are _not_ interested in. If null,
+     * we are interested in any completion.
+     */
+    protected Task waitForRootActivityCompletion(
+            @NotNull String rootTaskOid,
+            @Nullable XMLGregorianCalendar lastKnownCompletionTimestamp,
+            int timeout) throws CommonException {
+        OperationResult waitResult = getTestOperationResult();
+        Task freshRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
+        argCheck(freshRootTask.getParent() == null, "Non-root task: %s", freshRootTask);
         Checker checker = () -> {
-            Task freshRootTask = taskManager.getTaskWithResult(origRootTask.getOid(), waitResult);
 
-            displayValue("task tree", TaskDebugUtil.dumpTaskTree(freshRootTask, waitResult));
+            // This is just to display the progress (we don't have the completion timestamp there)
+            assertProgress(rootTaskOid, "waiting for activity completion")
+                    .display();
 
-            long waiting = (System.currentTimeMillis() - start) / 1000;
-            String description =
-                    freshRootTask.getName().getOrig() + " [es:" + freshRootTask.getExecutionState() + ", rs:" +
-                            freshRootTask.getResultStatus() + ", p:" + freshRootTask.getLegacyProgress() + ", n:" +
-                            freshRootTask.getNode() + "] (waiting for: " + waiting + " seconds)";
-            // was the whole task tree refreshed at least once after we were called?
-            long lastRunStartTimestamp = or0(freshRootTask.getLastRunStartTimestamp());
-            long lastRunFinishTimestamp = or0(freshRootTask.getLastRunFinishTimestamp());
+            // Now do the real check now
+            freshRootTask.refresh(waitResult);
+            var rootState = freshRootTask.getActivityStateOrClone(ActivityPath.empty());
 
-            if (!triggered.get() &&
-                    checkRootTaskLastStartTimestamp &&
-                    (lastRunStartTimestamp == origLastRunStartTimestamp
-                            || lastRunFinishTimestamp == origLastRunFinishTimestamp
-                            || lastRunStartTimestamp >= lastRunFinishTimestamp)) {
-                display("Current root task run has not been completed yet: " + description
-                        + "\n  lastRunStartTimestamp=" + lastRunStartTimestamp
-                        + ", origLastRunStartTimestamp=" + origLastRunStartTimestamp
-                        + ", lastRunFinishTimestamp=" + lastRunFinishTimestamp
-                        + ", origLastRunFinishTimestamp=" + origLastRunFinishTimestamp);
-                return false;
-            }
-            triggered.set(true);
-
-            aggregateResult.getSubresults().clear();
-            // TODO: Could Subtasks be from previous runs?
-            // TODO: Could we miss runs where all subtasks are completed?
-            List<? extends Task> allSubtasks = freshRootTask.listSubtasksDeeply(waitResult);
-            for (Task subtask : allSubtasks) {
-                try {
-                    subtask.refresh(waitResult); // quick hack to get operation results
-                } catch (ObjectNotFoundException e) {
-                    logger.warn("Task {} does not exist any more", subtask);
-                }
-            }
-            if (!checkRootTaskLastStartTimestamp && allSubtasks.isEmpty()) {
-                display("No subtasks yet (?) => continuing waiting: " + description);
-                return false;
+            if (verbose) {
+                displayValueAsXml("overview", freshRootTask.getActivityTreeStateOverviewOrClone());
             }
 
-            List<? extends Task> subtasks = TaskUtil.getLeafTasks(allSubtasks);
-            Task failedTask = null;
-            for (Task subtask : subtasks) {
-                /*
-                var subtaskStartTime = or0(subtask.getLastRunStartTimestamp());
-                if (subtaskStartTime < lastRunStartTimestamp) {
-                    display("Subtask was started before we started waiting: " + description, subtask);
-                    return false;
-                }
-                */
-
-                if (subtask.getSchedulingState() == TaskSchedulingStateType.READY) {
-                    display("Found ready subtasks during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                if (subtask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
-                    display("Found waiting subtasks during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                OperationResult subtaskResult = subtask.getResult();
-                if (subtaskResult == null) {
-                    display("No subtask operation result during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                if (subtaskResult.getStatus() == OperationResultStatus.IN_PROGRESS) {
-                    display("Found 'in_progress' subtask operation result during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                if (subtaskResult.getStatus() == OperationResultStatus.UNKNOWN) {
-                    display("Found 'unknown' subtask operation result during waiting => continuing waiting: " + description, subtask);
-                    return false;
-                }
-                aggregateResult.addSubresult(subtaskResult);
-                if (subtaskResult.isError()) {
-                    failedTask = subtask;
-                }
-            }
-            if (failedTask != null) {
-                display("Found 'error' subtask operation result during waiting => done waiting: " + description, failedTask);
+            if (rootState != null
+                    && rootState.getRealizationState() == ActivityRealizationStateType.COMPLETE
+                    && isDifferent(lastKnownCompletionTimestamp, rootState.getRealizationEndTimestamp())) {
                 return true;
             }
-            if (freshRootTask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
-                display("Found WAITING root task during wait for next finished run => continuing waiting: " + description);
-                return false;
+
+            ActivityStateOverviewType suspended = findSuspendedActivity(freshRootTask);
+            if (suspended != null) {
+                displayValueAsXml("Suspended activity -> not waiting anymore", suspended);
+                return true;
             }
-            return true; // all executive subtasks are closed
+
+            // The task lives: let's continue waiting
+            return false;
         };
 
-        IntegrationTestTools.waitFor("Waiting for task tree " + origRootTask + " next finished run", checker, timeout, DEFAULT_TASK_TREE_SLEEP_TIME);
-        Task freshTask = taskManager.getTaskWithResult(origRootTask.getOid(), waitResult);
-        logger.debug("Final root task:\n{}", freshTask.debugDump());
-        aggregateResult.computeStatusIfUnknown();
+        IntegrationTestTools.waitFor("Waiting for task tree " + freshRootTask + " next finished run",
+                checker, timeout, DEFAULT_TASK_TREE_SLEEP_TIME);
+        // We must NOT update the task. It should be in the "completed" state. (Because the task may be recurring,
+        // so updating could get the state from a subsequent run.)
+        logger.debug("Final root task:\n{}", freshRootTask.debugDump());
         stabilize(); // TODO needed?
-        return aggregateResult;
+        return freshRootTask;
+    }
+
+    /**
+     * Finds an activity that:
+     *
+     * - is in progress,
+     * - has at least one worker task,
+     * - all of the workers are marked as "not running", at least one of them is marked as failed, and is suspended.
+     *
+     * This is to avoid waiting for multi-node tasks that will never complete.
+     *
+     * It is ugly and not 100% reliable: in theory, the failure may be expected, and the current state may be transient.
+     * But it's probably the best we can do now.
+     */
+    private @Nullable ActivityStateOverviewType findSuspendedActivity(Task task) throws SchemaException, ObjectNotFoundException {
+        ActivityStateOverviewType root = task.getActivityTreeStateOverviewOrClone();
+        return root != null ? findSuspendedActivity(root) : null;
+    }
+
+    private @Nullable ActivityStateOverviewType findSuspendedActivity(@NotNull ActivityStateOverviewType activityStateOverview)
+            throws SchemaException, ObjectNotFoundException {
+        if (activityStateOverview.getRealizationState() != ActivitySimplifiedRealizationStateType.IN_PROGRESS) {
+            return null; // Not started or complete
+        }
+        if (isSuspended(activityStateOverview)) {
+            return activityStateOverview;
+        }
+        for (ActivityStateOverviewType child : activityStateOverview.getActivity()) {
+            ActivityStateOverviewType suspendedInChild = findSuspendedActivity(child);
+            if (suspendedInChild != null) {
+                return suspendedInChild;
+            }
+        }
+        return null;
+    }
+
+    private boolean isSuspended(ActivityStateOverviewType activityStateOverview) throws SchemaException, ObjectNotFoundException {
+        List<ActivityTaskStateOverviewType> tasks = activityStateOverview.getTask();
+        if (tasks.isEmpty()) {
+            return false;
+        }
+        if (tasks.stream().anyMatch(task -> task.getExecutionState() != ActivityTaskExecutionStateType.NOT_RUNNING)) {
+            return false;
+        }
+        for (ActivityTaskStateOverviewType task : tasks) {
+            if (isSuspended(task)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isSuspended(ActivityTaskStateOverviewType taskInfo) throws SchemaException, ObjectNotFoundException {
+        if (taskInfo.getResultStatus() != OperationResultStatusType.FATAL_ERROR) {
+            return false;
+        }
+        if (taskInfo.getTaskRef() == null || taskInfo.getTaskRef().getOid() == null) {
+            return false; // shouldn't occur
+        }
+        Task task = taskManager.getTaskPlain(taskInfo.getTaskRef().getOid(), getTestOperationResult());
+        return task.getExecutionState() == TaskExecutionStateType.SUSPENDED;
+    }
+
+    private boolean isDifferent(@Nullable XMLGregorianCalendar lastKnownTimestamp, XMLGregorianCalendar realTimestamp) {
+        return lastKnownTimestamp == null
+                || !lastKnownTimestamp.equals(realTimestamp);
     }
 
     public void waitForCaseClose(CaseType aCase) throws Exception {
@@ -3556,7 +3617,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @Override
             public boolean check() throws CommonException {
                 CaseType currentCase = repositoryService.getObject(CaseType.class, aCase.getOid(), null, waitResult).asObjectable();
-                if (verbose) { AbstractIntegrationTest.display("Case", currentCase); }
+                if (verbose) {AbstractIntegrationTest.display("Case", currentCase);}
                 return SchemaConstants.CASE_STATE_CLOSED.equals(currentCase.getState());
             }
 
@@ -4062,6 +4123,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         fail("Notifier " + name + " message body " + expectedBody + " not found");
     }
 
+    protected void assertHasDummyTransportMessageContaining(String name, String expectedBodySubstring) {
+        List<Message> messages = dummyTransport.getMessages("dummy:" + name);
+        assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
+        for (Message message : messages) {
+            if (message.getBody() != null && message.getBody().contains(expectedBodySubstring)) {
+                return;
+            }
+        }
+        fail("Notifier " + name + " message body containing '" + expectedBodySubstring + "' not found");
+    }
+
     protected void displayAllNotifications() {
         for (java.util.Map.Entry<String, List<Message>> entry : dummyTransport.getMessages().entrySet()) {
             List<Message> messages = entry.getValue();
@@ -4427,12 +4499,46 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected Authentication createMpAuthentication(Authentication authentication) {
         MidpointAuthentication mpAuthentication = new MidpointAuthentication(SecurityPolicyUtil.createDefaultSequence());
-        ModuleAuthentication moduleAuthentication = new ModuleAuthentication(AuthenticationModuleNameConstants.LOGIN_FORM);
-        moduleAuthentication.setAuthentication(authentication);
-        moduleAuthentication.setNameOfModule(SecurityPolicyUtil.DEFAULT_MODULE_NAME);
-        moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
-        moduleAuthentication.setPrefix(ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
-                + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_NAME + "/");
+        ModuleAuthentication moduleAuthentication = new ModuleAuthentication() {
+            @Override
+            public String getNameOfModule() {
+                return SecurityPolicyUtil.DEFAULT_MODULE_NAME;
+            }
+
+            @Override
+            public String getNameOfModuleType() {
+                return AuthenticationModuleNameConstants.LOGIN_FORM;
+            }
+
+            @Override
+            public AuthenticationModuleState getState() {
+                return AuthenticationModuleState.SUCCESSFULLY;
+            }
+
+            @Override
+            public void setState(AuthenticationModuleState state) {
+            }
+
+            @Override
+            public Authentication getAuthentication() {
+                return authentication;
+            }
+
+            @Override
+            public void setAuthentication(Authentication authentication) {
+            }
+
+            @Override
+            public String getPrefix() {
+                return ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
+                        + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_NAME + "/";
+            }
+
+            @Override
+            public QName getFocusType() {
+                return null;
+            }
+        };
         mpAuthentication.addAuthentications(moduleAuthentication);
         mpAuthentication.setPrincipal(authentication.getPrincipal());
         return mpAuthentication;
@@ -5802,6 +5908,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return asserter;
     }
 
+    protected UserAsserter<Void> assertUser(UserType user, String message) {
+        return assertUser(user.asPrismObject(), message);
+    }
+
     protected UserAsserter<Void> assertUser(PrismObject<UserType> user, String message) {
         UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
         initializeAsserter(asserter);
@@ -5931,6 +6041,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected CaseAsserter<Void> assertCaseAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return assertCase(oid, "after")
+                .display();
+    }
+
+    protected CaseAsserter<Void> assertCaseAfter(CaseType aCase) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return assertCase(aCase, "after")
                 .display();
     }
 
@@ -6656,5 +6771,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 ActivityReportUtil.getReportDataOid(taskAfter.getActivityState(), path,
                         ActivityReportsType.F_BUCKETS, taskManager.getNodeId()),
                 () -> "no bucket report data in " + taskAfter + " (activity path " + path.toDebugName() + ")");
+    }
+
+    public ProvisioningService getProvisioningService() {
+        return provisioningService;
+    }
+
+    @Override
+    public OperationResult testResource(@NotNull String oid, @NotNull Task task) throws ObjectNotFoundException {
+        return modelService.testResource(oid, task);
     }
 }

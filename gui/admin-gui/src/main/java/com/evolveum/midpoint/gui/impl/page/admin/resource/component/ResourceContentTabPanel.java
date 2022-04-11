@@ -6,15 +6,17 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -25,17 +27,12 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -127,22 +124,23 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
         mainForm.addOrReplace(initTable(getObjectWrapperModel()));
         add(mainForm);
 
-        AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT,
-            new PropertyModel<>(resourceContentSearch, "intent"), String.class, false, null) {
+        AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<>(ID_INTENT,
+                new PropertyModel<>(resourceContentSearch, "intent"), String.class, false) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public Iterator<String> getIterator(String input) {
-                RefinedResourceSchema refinedSchema = null;
+                ResourceSchema refinedSchema;
                 try {
-                    refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(getObjectWrapper().getObject(),
-                            getPageBase().getPrismContext());
-
+                    refinedSchema = ResourceSchemaFactory.getCompleteSchema(getObjectWrapper().getObject());
+                    if (refinedSchema != null) {
+                        return refinedSchema.getIntentsForKind(getKind()).iterator();
+                    } else {
+                        return Collections.emptyIterator();
+                    }
                 } catch (SchemaException e) {
-                    return new ArrayList<String>().iterator();
+                    return Collections.emptyIterator();
                 }
-                return RefinedResourceSchemaImpl.getIntentsForKind(refinedSchema, getKind()).iterator();
-
             }
 
         };
@@ -175,18 +173,24 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
             @Override
             public String getObject() {
-                RefinedObjectClassDefinition ocDef;
+                ResourceObjectDefinition ocDef;
                 try {
-                    RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl
-                            .getRefinedSchema(getObjectWrapper().getObject(), getPageBase().getPrismContext());
+                    ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(getObjectWrapper().getObject());
                     if (refinedSchema == null) {
                         return "NO SCHEMA DEFINED";
                     }
-                    ocDef = refinedSchema.getRefinedDefinition(getKind(), getIntent());
+                    String intent = getIntent();
+                    if (ShadowUtil.isKnown(intent)) {
+                        ocDef = refinedSchema.findObjectDefinition(getKind(), intent);
+                    } else {
+                        // TODO: Can be intent unknown or null here? If so, what should we do with that?
+                        ocDef = refinedSchema.findObjectDefinition(getKind(), null);
+                    }
                     if (ocDef != null) {
                         return ocDef.getObjectClassDefinition().getTypeName().getLocalPart();
                     }
                 } catch (SchemaException e) {
+                    // TODO?
                 }
 
                 return "NOT FOUND";
@@ -283,20 +287,15 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
     }
 
     private List<QName> createObjectClassChoices(IModel<PrismObjectWrapper<ResourceType>> model) {
-        RefinedResourceSchema refinedSchema;
+        ResourceSchema refinedSchema;
         try {
-            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(model.getObject().getObject(),
-                    getPageBase().getPrismContext());
+            refinedSchema = ResourceSchemaFactory.getCompleteSchema(model.getObject().getObject());
         } catch (SchemaException e) {
             warn("Could not determine defined object classes for resource");
             return new ArrayList<>();
         }
-        Collection<ObjectClassComplexTypeDefinition> defs = refinedSchema.getObjectClassDefinitions();
-        List<QName> objectClasses = new ArrayList<>(defs.size());
-        for (ObjectClassComplexTypeDefinition def : defs) {
-            objectClasses.add(def.getTypeName());
-        }
-        return objectClasses;
+        return refinedSchema != null ?
+                new ArrayList<>(refinedSchema.getObjectClassNames()) : List.of();
     }
 
     private ResourceContentPanel initTable(IModel<PrismObjectWrapper<ResourceType>> model) {
@@ -311,7 +310,16 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
         ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, loadResourceModel(),
-                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration());
+                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration()){
+            @Override
+            protected ResourceSchema getRefinedSchema() throws SchemaException {
+                try {
+                    return super.getRefinedSchema();
+                } catch (SchemaException e) {
+                    return getObjectDetailsModels().getRefinedSchema();
+                }
+            }
+        };
         resourceContent.setOutputMarkupId(true);
         return resourceContent;
 
@@ -321,7 +329,16 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
         ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, loadResourceModel(),
-                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration());
+                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration()){
+            @Override
+            protected ResourceSchema getRefinedSchema() throws SchemaException {
+                try {
+                    return super.getRefinedSchema();
+                } catch (SchemaException e) {
+                    return getObjectDetailsModels().getRefinedSchema();
+                }
+            }
+        };
         repositoryContent.setOutputMarkupId(true);
         return repositoryContent;
     }

@@ -10,14 +10,21 @@ package com.evolveum.midpoint.test;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Representation of any prism object in tests.
@@ -25,11 +32,13 @@ import java.io.IOException;
 @Experimental
 public class TestResource<T extends ObjectType> {
 
-    public final File file;
-    public final String oid;
+    @NotNull public final File dir;
+    @NotNull public final File file;
+    @NotNull public final String oid;
     public PrismObject<T> object;
 
-    public TestResource(File dir, String fileName, String oid) {
+    public TestResource(@NotNull File dir, @NotNull String fileName, @NotNull String oid) {
+        this.dir = dir;
         this.file = new File(dir, fileName);
         this.oid = oid;
     }
@@ -40,6 +49,10 @@ public class TestResource<T extends ObjectType> {
 
     public T getObjectable() {
         return object.asObjectable();
+    }
+
+    public PrismObject<T> getObject() {
+        return object;
     }
 
     public Class<T> getObjectClass() {
@@ -65,5 +78,21 @@ public class TestResource<T extends ObjectType> {
         }
         //noinspection unchecked
         return (Class<T>) object.asObjectable().getClass();
+    }
+
+    public void importObject(Task task, OperationResult result) throws CommonException, IOException {
+        if (object == null) {
+            read();
+        }
+        TestSpringBeans.getObjectImporter()
+                .importObject(object, task, result);
+    }
+
+    /**
+     * Reloads the object from the repository.
+     */
+    public void reload(OperationResult result) throws SchemaException, IOException, ObjectNotFoundException {
+        object = TestSpringBeans.getCacheRepositoryService()
+                .getObject(getType(), oid, null, result);
     }
 }

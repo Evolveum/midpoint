@@ -1,16 +1,13 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +33,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -58,7 +56,7 @@ public class AccountOperationListener implements ResourceOperationListener {
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
 
-    @Autowired private NotificationFunctionsImpl notificationsUtil;
+    @Autowired private NotificationFunctions notificationsUtil;
 
     @PostConstruct
     public void init() {
@@ -152,24 +150,25 @@ public class AccountOperationListener implements ResourceOperationListener {
     }
 
     @NotNull
-    private ResourceObjectEventImpl createRequest(OperationStatus status,
+    private ResourceObjectEventImpl createRequest(
+            OperationStatus status,
             ResourceOperationDescription operationDescription,
             Task task,
             OperationResult result) {
 
-        ResourceObjectEventImpl event = new ResourceObjectEventImpl(lightweightIdentifierGenerator,
-                operationDescription, status);
+        ResourceObjectEventImpl event = new ResourceObjectEventImpl(
+                lightweightIdentifierGenerator, operationDescription, status);
 
         String accountOid = operationDescription.getObjectDelta().getOid();
 
         PrismObject<UserType> user = findRequestee(accountOid, task, result);
         if (user != null) {
-            event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, user.asObjectable()));
+            event.setRequestee(new SimpleObjectRefImpl(user.asObjectable()));
         }   // otherwise, appropriate messages were already logged
 
         PrismObject<? extends FocusType> taskOwner = task != null ? task.getOwner(result) : null;
         if (taskOwner != null) {
-            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, taskOwner));
+            event.setRequester(new SimpleObjectRefImpl(taskOwner));
         } else {
             LOGGER.warn("No owner for task {}, therefore no requester will be set for event {}", task, event.getId());
         }

@@ -31,9 +31,6 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = {"classpath:ctx-certification-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestRoleInducementCertification extends AbstractCertificationTest {

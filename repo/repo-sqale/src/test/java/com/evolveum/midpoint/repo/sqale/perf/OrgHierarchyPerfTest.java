@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -61,7 +61,7 @@ public class OrgHierarchyPerfTest extends SqaleRepoBaseTest {
         for (int i = 1; i <= orgs; i++) {
             // names use only chars that are preserved by normalization to avoid collision
             String name = parent != null ? parent.getName() + "x" + i : "org" + i;
-            OrgType org = new OrgType(prismContext).name(name);
+            OrgType org = new OrgType().name(name);
             if (parent != null) {
                 org.parentOrgRef(parent.getOid(), OrgType.COMPLEX_TYPE);
             }
@@ -76,7 +76,7 @@ public class OrgHierarchyPerfTest extends SqaleRepoBaseTest {
         int users = RANDOM.nextInt(maxCountPerLevel) + 1;
         for (int i = 1; i <= users; i++) {
             repositoryService.addObject(
-                    new UserType(prismContext).name("user" + parent.getName() + "v" + i)
+                    new UserType().name("user" + parent.getName() + "v" + i)
                             .metadata(new MetadataType()
                                     .createChannel("create-channel")
                                     .createTimestamp(MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis())))

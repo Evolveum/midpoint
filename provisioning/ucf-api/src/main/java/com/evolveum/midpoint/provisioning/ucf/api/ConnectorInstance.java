@@ -12,20 +12,16 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
-import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -50,6 +46,13 @@ import javax.xml.namespace.QName;
  * actual state on resource. The connectors are not supposed to cache any
  * information. Therefore the methods do not follow get/set java convention
  * as the data are not regular javabean properties.
+ *
+ * TODO Reconsider if object class definitions passed to the methods here should be class/type scoped,
+ *  or strictly class scoped. It seems to be more logical to keep them class-only, but the current implementation
+ *  puts those definitions to objects returned e.g. from the search operation. And later we could have problems,
+ *  if there are ROCD instead of ROTD. So let's keep this "universal" i.e. "class or type".
+ *  We also need the "refined" definition e.g. because of determining attributes-to-get.
+ *  We also need to know "refined" identifiers.
  *
  * @see ConnectorFactory
  *
@@ -133,7 +136,7 @@ public interface ConnectorInstance {
      *
      * @see PrismSchema
      *
-     * @return Up-to-date resource schema.
+     * @return Up-to-date resource schema. Only raw information should be there, no refinements.
      * @throws CommunicationException error in communication to the resource
      *                - nothing was fetched.
      */
@@ -164,7 +167,7 @@ public interface ConnectorInstance {
      * @throws SchemaException error converting object from native (connector) format
      */
     PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification,
-            AttributesToReturn attributesToReturn, StateReporter reporter, OperationResult parentResult)
+            AttributesToReturn attributesToReturn, UcfExecutionContext ctx, OperationResult parentResult)
         throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
         SecurityViolationException, ConfigurationException;
 
@@ -186,7 +189,7 @@ public interface ConnectorInstance {
      * if the method is FETCH_RESULT, the handler must be ready to process also incomplete/malformed objects (flagged
      * by appropriate fetchResult).
      *
-     * @param objectClassDefinition Definition of the object class of the objects being searched for.
+     * @param objectDefinition Definition of the object class of the objects being searched for. May be class or type scoped.
      * @param query Object query to be used.
      * @param handler Handler that is called for each object found.
      * @param attributesToReturn Attributes that are to be returned; TODO describe exact semantics
@@ -195,16 +198,21 @@ public interface ConnectorInstance {
      * @param errorReportingMethod How should errors during processing individual objects be reported.
      *                             If EXCEPTION (the default), an appropriate exception is thrown.
      *                             If FETCH_RESULT, the error is reported within the shadow affected.
-     *
      * @throws SchemaException if the search couldn't be executed because of a problem with the schema; or there is a schema
      *                         problem with an object returned (and error reporting method is EXCEPTION).
      * @throws ObjectNotFoundException if something from the search parameters refers non-existent object,
      *                                 e.g. if search base points to an non-existent object.
      */
-    SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            ObjectHandler handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfiguration,
-            SearchHierarchyConstraints searchHierarchyConstraints, UcfFetchErrorReportingMethod errorReportingMethod,
-            StateReporter reporter, OperationResult parentResult)
+    SearchResultMetadata search(
+            @NotNull ResourceObjectDefinition objectDefinition,
+            @Nullable ObjectQuery query,
+            @NotNull UcfObjectHandler handler,
+            @Nullable AttributesToReturn attributesToReturn,
+            @Nullable PagedSearchCapabilityType pagedSearchConfiguration,
+            @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
+            @Nullable UcfFetchErrorReportingMethod errorReportingMethod,
+            @NotNull UcfExecutionContext ctx,
+            @NotNull OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException,
                     ObjectNotFoundException;
 
@@ -216,8 +224,8 @@ public interface ConnectorInstance {
      *
      * If paging is not available, it throws an exception.
      */
-    int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            PagedSearchCapabilityType pagedSearchConfigurationType, StateReporter reporter, OperationResult parentResult)
+    int count(ResourceObjectDefinition objectDefinition, ObjectQuery query,
+            PagedSearchCapabilityType pagedSearchConfigurationType, UcfExecutionContext ctx, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, UnsupportedOperationException;
 
     /**
@@ -241,8 +249,10 @@ public interface ConnectorInstance {
      * @return created object attributes. May be null.
      * @throws ObjectAlreadyExistsException object already exists on the resource
      */
-    AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object, StateReporter reporter, OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException;
+    AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(
+            PrismObject<? extends ShadowType> object, UcfExecutionContext ctx, OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
+            ConfigurationException, SecurityViolationException, PolicyViolationException;
 
     /**
      * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
@@ -270,16 +280,17 @@ public interface ConnectorInstance {
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
-            StateReporter reporter, OperationResult parentResult)
+            UcfExecutionContext ctx, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ConfigurationException;
 
-    AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, PrismObject<ShadowType> shadow,
-            Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter, OperationResult parentResult)
+    AsynchronousOperationResult deleteObject(ResourceObjectDefinition objectDefinition, PrismObject<ShadowType> shadow,
+            Collection<? extends ResourceAttribute<?>> identifiers, UcfExecutionContext ctx, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException;
 
-    Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter, OperationResult parentResult)
+    Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, UcfExecutionContext ctx,
+            OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException;
 
     /**
@@ -288,7 +299,10 @@ public interface ConnectorInstance {
      * is immediately called with this token, nothing should be returned
      * (Figuratively speaking, neglecting concurrent resource modifications).
      */
-    default UcfSyncToken fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, StateReporter reporter, OperationResult parentResult)
+    default UcfSyncToken fetchCurrentToken(
+            ResourceObjectDefinition objectDefinition,
+            UcfExecutionContext ctx,
+            OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException {
         return null;
     }
@@ -296,8 +310,8 @@ public interface ConnectorInstance {
     /**
      * Token may be null. That means "from the beginning of history".
      */
-    UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, UcfSyncToken lastToken,
-            AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
+    UcfFetchChangesResult fetchChanges(ResourceObjectDefinition objectDefinition, UcfSyncToken lastToken,
+            AttributesToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
             @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
             ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException;
@@ -334,7 +348,9 @@ public interface ConnectorInstance {
      *
      * @throws IllegalStateException If another listener is already present (or was successfully started in parallel).
      */
-    default void listenForChanges(@NotNull UcfAsyncUpdateChangeListener changeListener, @NotNull Supplier<Boolean> canRunSupplier,
+    default void listenForChanges(
+            @NotNull UcfAsyncUpdateChangeListener changeListener,
+            @NotNull Supplier<Boolean> canRunSupplier,
             @NotNull OperationResult parentResult) throws SchemaException {
         throw new UnsupportedOperationException();
     }

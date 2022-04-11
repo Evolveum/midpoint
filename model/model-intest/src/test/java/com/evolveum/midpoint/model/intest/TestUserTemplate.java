@@ -61,16 +61,16 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/object-template");
 
-    protected static final File ROLE_RASTAMAN_FILE = new File(TEST_DIR, "role-rastaman.xml");
-    protected static final String ROLE_RASTAMAN_OID = "81ac6b8c-225c-11e6-ab0f-87a169c85cca";
+    private static final File ROLE_RASTAMAN_FILE = new File(TEST_DIR, "role-rastaman.xml");
+    private static final String ROLE_RASTAMAN_OID = "81ac6b8c-225c-11e6-ab0f-87a169c85cca";
 
-    protected static final File USER_TEMPLATE_MAROONED_FILE = new File(TEST_DIR, "user-template-marooned.xml");
-    protected static final String USER_TEMPLATE_MAROONED_OID = "766215e8-5f1e-11e6-94bb-c3b21af53235";
+    private static final File USER_TEMPLATE_MAROONED_FILE = new File(TEST_DIR, "user-template-marooned.xml");
+    private static final String USER_TEMPLATE_MAROONED_OID = "766215e8-5f1e-11e6-94bb-c3b21af53235";
 
-    protected static final File USER_TEMPLATE_USELESS_FILE = new File(TEST_DIR, "user-template-useless.xml");
-    protected static final String USER_TEMPLATE_USELESS_OID = "29b2936a-d1f6-4942-8e44-9ba44fc27423";
+    private static final File USER_TEMPLATE_USELESS_FILE = new File(TEST_DIR, "user-template-useless.xml");
+    private static final String USER_TEMPLATE_USELESS_OID = "29b2936a-d1f6-4942-8e44-9ba44fc27423";
 
-    protected static final TestResource<?> USER_TEMPLATE_MID_5892 = new TestResource<>(
+    private static final TestResource<?> USER_TEMPLATE_MID_5892 = new TestResource<>(
             TEST_DIR, "user-template-mid-5892.xml", "064993c0-34b4-4440-9331-e909fc923504");
     private static final TestResource<?> USER_TEMPLATE_MID_6045 = new TestResource<>(
             TEST_DIR, "user-template-mid-6045.xml", "f3dbd582-11dc-473f-8b51-a30be5cbd5ce");
@@ -122,6 +122,13 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MID_6045, USER_TEMPLATE_MID_6045.oid, initResult);
     }
 
+    @Override
+    protected ConflictResolutionActionType getDefaultConflictResolutionAction() {
+        // This test can incur harmless conflicts (e.g. when trigger scanner touches an object
+        // that is being recomputed at the same time).
+        return ConflictResolutionActionType.NONE;
+    }
+
     protected int getNumberOfRoles() {
         return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
     }
@@ -156,6 +163,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertRoles(getNumberOfRoles());
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertObjectTemplate(List<ObjectPolicyConfigurationType> defaultObjectPolicyConfigurations,
             QName objectType, String subtype, String userTemplateOid) {
         for (ObjectPolicyConfigurationType objectPolicyConfiguration : defaultObjectPolicyConfigurations) {
@@ -950,11 +958,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 dummyAuditService.getExecutionDelta(0, ChangeType.MODIFY, UserType.class);
         assertEquals("unexpected number of modifications in audited delta",
                 10, objectDeltaOperation.getObjectDelta().getModifications().size()); // givenName + badLuck + modifyTimestamp
-        PropertyDelta badLuckDelta = objectDeltaOperation.getObjectDelta().findPropertyDelta(
+        PropertyDelta<?> badLuckDelta = objectDeltaOperation.getObjectDelta().findPropertyDelta(
                 ItemPath.create(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
         assertNotNull("badLuck delta was not found", badLuckDelta);
-        //noinspection unchecked
-        List<PrismValue> oldValues = (List<PrismValue>) badLuckDelta.getEstimatedOldValues();
+        List<? extends PrismValue> oldValues = (List<? extends PrismValue>) badLuckDelta.getEstimatedOldValues();
         assertNotNull("badLuck delta has null estimatedOldValues field", oldValues);
         ItemFactory factory = prismContext.itemFactory();
         PrismAsserts.assertEqualsCollectionUnordered("badLuck delta has wrong estimatedOldValues",
@@ -3545,7 +3552,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test980DeleteUserGivenName")
                 .givenName("jim")
                 .subtype(SUBTYPE_MID_5892)
@@ -3584,7 +3591,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         XMLGregorianCalendar firstTriggerTime = XmlTypeConverter.fromNow("PT20M");
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test990SpecialTimedMapping")
                 .givenName("jim")
                 .subtype(SUBTYPE_MID_6045)

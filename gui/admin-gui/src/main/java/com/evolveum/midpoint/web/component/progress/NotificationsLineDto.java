@@ -16,9 +16,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Pavol Mederly
- */
 public class NotificationsLineDto implements Serializable {
 
     public static final String F_TRANSPORT = "transport";

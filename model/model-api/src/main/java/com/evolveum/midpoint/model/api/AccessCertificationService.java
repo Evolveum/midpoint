@@ -31,8 +31,6 @@ import java.util.List;
  * filling-in certification forms, etc.
  *
  * EXPERIMENTAL.
- *
- * @author mederly
  */
 public interface AccessCertificationService {
 

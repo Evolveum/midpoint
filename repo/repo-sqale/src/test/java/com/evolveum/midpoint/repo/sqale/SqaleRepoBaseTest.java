@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -73,6 +74,8 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     @Autowired protected PrismContext prismContext;
     @Autowired protected RelationRegistry relationRegistry;
 
+    @Autowired protected AuditService auditService;
+
     protected SqlRecorder queryRecorder;
 
     @BeforeClass
@@ -85,6 +88,10 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
+    /**
+     * Database cleanup for Sqale tests only.
+     * Check TestSqaleRepositoryBeanConfig.clearDatabase(SqaleRepoContext) for integration tests.
+     */
     private void clearDatabase() {
         try (JdbcSession jdbcSession = startTransaction()) {
             // object delete cascades to sub-rows of the "object aggregate"
@@ -93,6 +100,8 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             // truncate does not run ON DELETE trigger, many refs/container tables are not cleaned
             jdbcSession.executeStatement("TRUNCATE m_object_oid CASCADE;");
             // but after truncating m_object_oid it cleans all the tables
+
+            // audit is cleaned on-demand using clearAudit()
 
             /*
             Truncates are much faster than this delete probably because it works row by row:
@@ -350,6 +359,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         return extKey(extContainer, itemName, MExtItemHolderType.EXTENSION);
     }
 
+    /** Returns extension item key (from m_ext_item table) for the specified shadow attribute. */
     protected String shadowAttributeKey(Containerable extContainer, String itemName) {
         return extKey(extContainer, itemName, MExtItemHolderType.ATTRIBUTES);
     }
@@ -564,8 +574,12 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         private final ShadowAttributesType attributesContainer;
         private final MutablePrismContainerDefinition<Containerable> attrsDefinition;
 
+        /**
+         * Creates the attribute helper for the shadow, adding attributes container to the shadow.
+         * The container can be later obtained by {@link #attributesContainer()} if/when needed.
+         */
         public ShadowAttributesHelper(ShadowType object) throws SchemaException {
-            attributesContainer = new ShadowAttributesType(prismContext);
+            attributesContainer = new ShadowAttributesType();
             // let's create the container+PCV inside the shadow object
             object.attributes(attributesContainer);
 

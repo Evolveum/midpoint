@@ -11,6 +11,7 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectAsy
 
 import com.evolveum.midpoint.schema.AcknowledgementSink;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.jetbrains.annotations.NotNull;
@@ -31,5 +32,10 @@ public class ShadowedAsyncChange
     @Override
     public void acknowledge(boolean release, OperationResult result) {
         resourceObjectChange.acknowledge(release, result);
+    }
+
+    @Override
+    protected String getDefaultChannel() {
+        return SchemaConstants.CHANNEL_ASYNC_UPDATE_URI;
     }
 }

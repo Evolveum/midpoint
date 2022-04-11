@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.AbstractRepoCommonTest;
 import com.evolveum.midpoint.repo.common.activity.handlers.NoOpActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
@@ -128,7 +129,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
     private void createRoles(OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
         for (int i = 0; i < ROLES; i++) {
-            RoleType role = new RoleType(prismContext)
+            RoleType role = new RoleType()
                     .name(String.format(ROLE_NAME_PATTERN, i));
             repositoryService.addObject(role.asPrismObject(), null, result);
         }

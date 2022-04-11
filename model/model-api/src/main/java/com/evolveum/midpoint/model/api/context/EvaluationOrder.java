@@ -22,7 +22,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType
 
 /**
  * @author semancik
- * @author mederly
  */
 public interface EvaluationOrder extends DebugDumpable, ShortDumpable, Cloneable, Serializable {
 

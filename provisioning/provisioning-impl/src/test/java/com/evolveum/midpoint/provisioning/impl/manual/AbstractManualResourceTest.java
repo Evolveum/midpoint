@@ -17,13 +17,14 @@ import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -37,10 +38,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -234,7 +231,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-        ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceBefore.toString(), prismContext);
+        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resourceBefore.toString());
         assertNotNull("No schema after parsing", parsedSchema);
 
         // schema will be checked in next test
@@ -245,10 +242,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     @Test
     public void test004Configuration() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         // WHEN
-        resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result);
+        resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, task, result);
         resourceType = resource.asObjectable();
 
         PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
@@ -270,19 +268,19 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         // THEN
         // The returned type should have the schema pre-parsed
-        assertTrue(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
+        assertTrue(ResourceSchemaFactory.hasParsedSchema(resourceType));
 
         // Also test if the utility method returns the same thing
-        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resourceType);
 
         displayDumpable("Parsed resource schema", resourceSchema);
 
         // Check whether it is reusing the existing schema and not parsing it all over again
         // Not equals() but == ... we want to really know if exactly the same
         // object instance is returned
-        assertSame("Broken caching", resourceSchema, RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
+        assertSame("Broken caching", resourceSchema, ResourceSchemaFactory.getRawSchema(resourceType));
 
-        ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
+        ResourceObjectClassDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
         assertNotNull("Account definition is missing", accountDef);
         assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
@@ -290,7 +288,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         assertEquals("Unexpected number of definitions", getNumberOfAccountAttributeDefinitions(), accountDef.getDefinitions().size());
 
-        ResourceAttributeDefinition<String> usernameDef = accountDef.findAttributeDefinition(ATTR_USERNAME);
+        ResourceAttributeDefinition<?> usernameDef = accountDef.findAttributeDefinition(ATTR_USERNAME);
         assertNotNull("No definition for username", usernameDef);
         assertEquals(1, usernameDef.getMaxOccurs());
         assertEquals(1, usernameDef.getMinOccurs());
@@ -298,7 +296,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertTrue("No username update", usernameDef.canModify());
         assertTrue("No username read", usernameDef.canRead());
 
-        ResourceAttributeDefinition<String> fullnameDef = accountDef.findAttributeDefinition(ATTR_FULLNAME);
+        ResourceAttributeDefinition<?> fullnameDef = accountDef.findAttributeDefinition(ATTR_FULLNAME);
         assertNotNull("No definition for fullname", fullnameDef);
         assertEquals(1, fullnameDef.getMaxOccurs());
         assertEquals(0, fullnameDef.getMinOccurs());
@@ -314,10 +312,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     @Test
     public void test006Capabilities() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         // WHEN
-        ResourceType resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();
+        ResourceType resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, task, result).asObjectable();
 
         // THEN
         display("Resource from provisioninig", resource);
@@ -1369,7 +1368,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
     }
 
-    @Test
+    @Test(enabled = false) // This no longer works as the work item creation is now done in cases-impl module
     public void test231CaseHasExpectedNumbersOfWorkItemsWithExpectedAssignees() throws Exception {
         // GIVEN
         Task task = getTestTask();

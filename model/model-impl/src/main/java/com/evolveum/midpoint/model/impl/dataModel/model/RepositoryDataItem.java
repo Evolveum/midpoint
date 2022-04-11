@@ -14,9 +14,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
-/**
- * @author mederly
- */
 public class RepositoryDataItem extends DataItem {
 
     @NotNull protected final QName typeName;

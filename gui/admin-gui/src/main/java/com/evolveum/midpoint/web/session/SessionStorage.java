@@ -1,21 +1,16 @@
 /*
-<<<<<<< HEAD
- * Copyright (c) 2010-2017 Evolveum and contributors
-=======
- * Copyright (C) 2010-2020 Evolveum and contributors
->>>>>>> origin/pre-devel-4.3
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.session;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.session.ContainerTabStorage;
 import com.evolveum.midpoint.gui.impl.session.WorkItemsStorage;
@@ -23,10 +18,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -74,12 +66,6 @@ public class SessionStorage implements Serializable, DebugDumpable {
     private static final String KEY_CERT_DECISIONS = "certDecisions";
 
     /**
-     * Contains state for first level menu items. Key is menu label text, value if true then
-     * menu is expanded, if false menu is minimized.
-     */
-//    private Map<String, Boolean> mainMenuState = new HashMap<>();
-
-    /**
      * Store session information for user preferences about paging size in midPoint GUI
      */
     private UserProfileStorage userProfile;
@@ -90,8 +76,11 @@ public class SessionStorage implements Serializable, DebugDumpable {
     private Map<String, PageStorage> pageStorageMap = new HashMap<>();
     private Map<String, ObjectDetailsStorage> detailsStorageMap = new HashMap<>();
 
+    /**
+     * Contains state for the first level menu items.
+     * Key is menu label text, value if true then menu is expanded, if false menu is minimized.
+     */
     private Map<String, Boolean> mainMenuState = new HashMap<>();
-
 
     public Map<String, PageStorage> getPageStorageMap() {
         return pageStorageMap;
@@ -150,13 +139,10 @@ public class SessionStorage implements Serializable, DebugDumpable {
         if (pageStorageMap.get(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG) == null) {
             pageStorageMap.put(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG, new AuditLogStorage());
         }
-        return (AuditLogStorage)pageStorageMap.get(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG);
+        return (AuditLogStorage) pageStorageMap.get(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG);
     }
 
     public void setObjectHistoryAuditLog(QName objectType, AuditLogStorage storage) {
-        if (pageStorageMap.containsKey(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG)) {
-            pageStorageMap.remove(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG);
-        }
         pageStorageMap.put(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG, storage);
     }
 
@@ -229,10 +215,11 @@ public class SessionStorage implements Serializable, DebugDumpable {
     }
 
     public PageStorage initPageStorage(String key) {
-        PageStorage pageStorage = null;
         if (key == null) {
-            return pageStorage;
+            return null;
         }
+
+        PageStorage pageStorage = null;
         if (key.startsWith(KEY_OBJECT_LIST)) {
             pageStorage = new ObjectListStorage();
         } else if (key.startsWith(KEY_ORG_MEMBER_PANEL)
@@ -250,7 +237,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
                 || KEY_GLOBAL_POLICY_RULES_TAB.equals(key)
                 || KEY_LOGGING_TAB_APPENDER_TABLE.equals(key)
                 || KEY_LOGGING_TAB_LOGGER_TABLE.equals(key)
-                || KEY_FOCUS_PROJECTION_TABLE.equals(key)){
+                || KEY_FOCUS_PROJECTION_TABLE.equals(key)) {
             pageStorage = getContainerTabStorage(key);
         } else if (KEY_AUDIT_LOG.equals(key)
                 || key.startsWith(KEY_OBJECT_HISTORY_AUDIT_LOG)) {
@@ -263,21 +250,29 @@ public class SessionStorage implements Serializable, DebugDumpable {
         //TODO: fixme
     }
 
-    public MemberPanelStorage initMemberStorage(String storageKey, SearchBoxConfigurationHelper searchBoxCofig) {
+    public MemberPanelStorage initMemberStorage(String storageKey, SearchBoxConfigurationHelper searchBoxConfig) {
         PageStorage pageStorage = initPageStorage(storageKey);
         if (!(pageStorage instanceof MemberPanelStorage)) {
             return null;
         }
         MemberPanelStorage storage = (MemberPanelStorage) pageStorage;
 
-        storage.setIndirectSearchItem(searchBoxCofig.getDefaultIndirectConfiguration());
-        storage.setRelationSearchItem(searchBoxCofig.getDefaultRelationConfiguration());
-        storage.setScopeSearchItem(searchBoxCofig.getDefaultSearchScopeConfiguration());
-        storage.setObjectTypeSearchItem(searchBoxCofig.getDefaultObjectTypeConfiguration());
-        storage.setTenantSearchItem(searchBoxCofig.getDefaultTenantConfiguration());
-        storage.setProjectSearchItem(searchBoxCofig.getDefaultProjectConfiguration());
+//        storage.setIndirectSearchItem(searchBoxConfig.getDefaultIndirectConfiguration());
+//        storage.setRelationSearchItem(searchBoxConfig.getDefaultRelationConfiguration());
+//        storage.setScopeSearchItem(searchBoxConfig.getDefaultSearchScopeConfiguration());
+//        storage.setObjectTypeSearchItem(searchBoxConfig.getDefaultObjectTypeConfiguration());
+//        storage.setTenantSearchItem(searchBoxConfig.getDefaultTenantConfiguration());
+//        storage.setProjectSearchItem(searchBoxConfig.getDefaultProjectConfiguration());
 
         return storage;
+    }
+
+    public MemberPanelStorage initMemberStorage(String storageKey) {
+        PageStorage pageStorage = initPageStorage(storageKey);
+        if (!(pageStorage instanceof MemberPanelStorage)) {
+            return null;
+        }
+        return (MemberPanelStorage) pageStorage;
     }
 
     public void setUserProfile(UserProfileStorage profile) {

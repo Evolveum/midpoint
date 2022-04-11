@@ -27,7 +27,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
@@ -49,10 +48,7 @@ public class ModelHelper {
     @Autowired private LocalizationService localizationService;
     @Autowired private PrismContext prismContext;
     @Autowired private MiscHelper miscHelper;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     private static final String APPROVING_AND_EXECUTING_KEY = "ApprovingAndExecuting.";
     private static final String CREATION_OF_KEY = "CreationOf";
@@ -66,9 +62,13 @@ public class ModelHelper {
      * @param contextForRootCase model context that should be put into the root task (might be different from the modelContext)
      * @return the job creation instruction
      */
-    public StartInstruction createInstructionForRoot(ChangeProcessor changeProcessor, @NotNull ModelInvocationContext<?> ctx,
-            ModelContext<?> contextForRootCase, OperationResult result) throws SchemaException {
-        StartInstruction instruction = StartInstruction.create(changeProcessor, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
+    public StartInstruction createInstructionForRoot(
+            ChangeProcessor changeProcessor,
+            @NotNull ModelInvocationContext<?> ctx,
+            ModelContext<?> contextForRootCase,
+            OperationResult result) throws SchemaException {
+        StartInstruction instruction =
+                StartInstruction.create(changeProcessor, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
         instruction.setModelContext(contextForRootCase);
 
         LocalizableMessage rootCaseName = determineRootCaseName(ctx);
@@ -121,18 +121,16 @@ public class ModelHelper {
      * Puts a reference to the workflow root task to the model task.
      *
      * @param rootInstruction instruction to use
-     * @param task (potential) parent task
      * @return reference to a newly created job
      */
-    public CaseType addRoot(StartInstruction rootInstruction, Task task, OperationResult result)
+    public CaseType addRoot(StartInstruction rootInstruction, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
-        CaseType rootCase = addCase(rootInstruction, task, result);
+        CaseType rootCase = addCase(rootInstruction, result);
         result.setCaseOid(rootCase.getOid());
-        //wfTaskUtil.setRootTaskOidImmediate(task, rootCase.getOid(), result);
         return rootCase;
     }
 
-    public void logJobsBeforeStart(CaseType rootCase, Task task, OperationResult result)
+    public void logJobsBeforeStart(CaseType rootCase, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         if (!LOGGER.isTraceEnabled()) {
             return;
@@ -147,12 +145,12 @@ public class ModelHelper {
             CaseType child = children.get(i);
             sb.append("Child job #").append(i).append(":\n").append(dumpCase(child));
         }
-        LOGGER.trace("\n{}", sb.toString());
+        LOGGER.trace("\n{}", sb);
     }
 
     private static final boolean USE_DEBUG_DUMP = false;
 
-    public String dumpCase(CaseType aCase) {
+    private String dumpCase(CaseType aCase) {
         if (USE_DEBUG_DUMP) {
             return aCase.asPrismObject().debugDump(1);
         } else {
@@ -165,16 +163,15 @@ public class ModelHelper {
     }
 
     /**
-     * TODO
+     * Creates a case in repository.
      *
      * @param instruction the wf task creation instruction
      */
-    public CaseType addCase(StartInstruction instruction, Task task, OperationResult result)
+    public CaseType addCase(StartInstruction instruction, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
         LOGGER.trace("Processing start instruction:\n{}", instruction.debugDumpLazily());
         CaseType aCase = instruction.getCase();
         repositoryService.addObject(aCase.asPrismObject(), null, result);
         return aCase;
     }
-
 }

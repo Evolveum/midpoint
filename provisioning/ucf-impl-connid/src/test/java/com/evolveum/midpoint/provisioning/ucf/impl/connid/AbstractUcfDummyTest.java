@@ -9,6 +9,11 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 import java.io.File;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+
+import com.evolveum.midpoint.task.api.test.NullTaskImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
@@ -59,11 +64,9 @@ public abstract class AbstractUcfDummyTest extends AbstractSpringTest
     protected static DummyResource dummyResource;
     protected static DummyResourceContoller dummyResourceCtl;
 
-    @Autowired
-    protected ConnectorFactory connectorFactoryIcfImpl;
-
-    @Autowired
-    protected PrismContext prismContext;
+    @Autowired protected ConnectorFactory connectorFactoryIcfImpl;
+    @Autowired protected PrismContext prismContext;
+    @Autowired protected LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
     @BeforeClass
     public void setup() throws Exception {
@@ -103,5 +106,13 @@ public abstract class AbstractUcfDummyTest extends AbstractSpringTest
 
     public void displayValue(String title, Object value) {
         PrismTestUtil.display(title, value);
+    }
+
+    protected UcfExecutionContext createExecutionContext() {
+        return createExecutionContext(resourceType);
+    }
+
+    protected UcfExecutionContext createExecutionContext(ResourceType resource) {
+        return new UcfExecutionContext(lightweightIdentifierGenerator, resource, NullTaskImpl.INSTANCE);
     }
 }

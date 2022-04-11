@@ -10,6 +10,8 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
 import com.evolveum.midpoint.schema.AcknowledgementSink;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectLiveSyncChange;
@@ -26,5 +28,10 @@ public class ShadowedLiveSyncChange extends ShadowedChange<ResourceObjectLiveSyn
 
     public LiveSyncToken getToken() {
         return resourceObjectChange.getToken();
+    }
+
+    @Override
+    protected String getDefaultChannel() {
+        return SchemaConstants.CHANNEL_LIVE_SYNC_URI;
     }
 }

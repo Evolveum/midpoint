@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
+
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-
-import static java.util.Collections.*;
-
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
@@ -31,23 +31,20 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.prism.path.ItemName;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.CaseService;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.expr.OptimizingTriggerCreator;
@@ -55,13 +52,14 @@ import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.expr.triggerSetter.OptimizingTriggerCreatorImpl;
 import com.evolveum.midpoint.model.impl.expr.triggerSetter.TriggerCreatorGlobalState;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.schema.messaging.MessageWrapper;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils;
@@ -71,6 +69,8 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -79,10 +79,10 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.messaging.MessageWrapper;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
@@ -126,7 +126,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private Protector protector;
     @Autowired private OrgStructFunctionsImpl orgStructFunctions;
     @Autowired private LinkedObjectsFunctions linkedObjectsFunctions;
-    @Autowired private WorkflowService workflowService;
+    @Autowired private CaseService caseService;
     @Autowired private ConstantsManager constantsManager;
     @Autowired private LocalizationService localizationService;
     @Autowired private ExpressionFactory expressionFactory;
@@ -136,6 +136,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private TriggerCreatorGlobalState triggerCreatorGlobalState;
     @Autowired private TaskManager taskManager;
     @Autowired private SchemaService schemaService;
+    @Autowired private CorrelationCaseManager correlationCaseManager;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -593,7 +594,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + "countAccounts");
-        QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
+        QName attributeQName = new QName(MidPointConstants.NS_RI, attributeName);
         return countAccounts(resourceType, attributeQName, attributeValue, getCurrentTask(), result);
     }
 
@@ -698,7 +699,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             SecurityViolationException, ExpressionEvaluationException {
         Validate.notEmpty(attributeName, "Empty attribute name");
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + "isUniqueAccountValue");
-        QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
+        QName attributeQName = new QName(MidPointConstants.NS_RI, attributeName);
         return isUniqueAccountValue(resourceType, shadowType, attributeQName, attributeValue, getCurrentTask(), result);
     }
 
@@ -738,9 +739,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     private <T> ObjectQuery createAttributeQuery(ResourceType resourceType, QName attributeName, T attributeValue) throws SchemaException {
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
-        RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
+        ResourceObjectTypeDefinition rAccountDef = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceAttributeDefinition<?> attrDef = rAccountDef.findAttributeDefinition(attributeName);
         if (attrDef == null) {
             throw new SchemaException("No attribute '" + attributeName + "' in " + rAccountDef);
         }
@@ -772,21 +773,24 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public <V extends PrismValue, D extends ItemDefinition> Mapping<V, D> getMapping() {
+    public <V extends PrismValue, D extends ItemDefinition<?>> Mapping<V, D> getMapping() {
         return ModelExpressionThreadLocalHolder.getMapping();
     }
 
     @Override
     public Task getCurrentTask() {
-        Task rv = ModelExpressionThreadLocalHolder.getCurrentTask();
-        if (rv == null) {
-            // fallback (MID-4130): but maybe we should instead make sure ModelExpressionThreadLocalHolder is set up correctly
-            ScriptExpressionEvaluationContext ctx = ScriptExpressionEvaluationContext.getThreadLocal();
-            if (ctx != null) {
-                rv = ctx.getTask();
-            }
+        Task fromModelHolder = ModelExpressionThreadLocalHolder.getCurrentTask();
+        if (fromModelHolder != null) {
+            return fromModelHolder;
         }
-        return rv;
+
+        // fallback (MID-4130): but maybe we should instead make sure ModelExpressionThreadLocalHolder is set up correctly
+        ScriptExpressionEvaluationContext ctx = ScriptExpressionEvaluationContext.getThreadLocal();
+        if (ctx != null) {
+            return ctx.getTask();
+        }
+
+        return null;
     }
 
     @Override
@@ -1448,8 +1452,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public WorkflowService getWorkflowService() {
-        return workflowService;
+    public CaseService getWorkflowService() {
+        return caseService;
     }
 
     @Override
@@ -1483,11 +1487,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (securityPolicy != null && securityPolicy.getAuthentication() != null
                 && securityPolicy.getAuthentication().getSequence() != null && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
             SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
-            if (selfRegistrationPolicy != null && selfRegistrationPolicy.getAdditionalAuthenticationName() != null) {
-                String resetPasswordSequenceName = selfRegistrationPolicy.getAdditionalAuthenticationName();
-                String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
-                if (prefix != null) {
-                    return createTokenConfirmationLink(prefix, userType);
+            if (selfRegistrationPolicy != null) {
+                String resetPasswordSequenceName = selfRegistrationPolicy.getAdditionalAuthenticationSequence() == null ? selfRegistrationPolicy.getAdditionalAuthenticationName() : selfRegistrationPolicy.getAdditionalAuthenticationSequence();
+                if (resetPasswordSequenceName != null) {
+                    String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
+                    if (prefix != null) {
+                        return createTokenConfirmationLink(prefix, userType);
+                    }
                 }
             }
         }
@@ -1511,6 +1517,16 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    public @Nullable String createWorkItemCompletionLink(@NotNull WorkItemId workItemId) {
+        String publicHttpUrlPattern = getPublicHttpUrlPattern();
+        if (publicHttpUrlPattern == null || publicHttpUrlPattern.isBlank()) {
+            return null;
+        } else {
+            return publicHttpUrlPattern + SchemaConstants.WORK_ITEM_URL_PREFIX + workItemId.caseOid + ":" + workItemId.id;
+        }
+    }
+
+    @Override
     public String createAccountActivationLink(UserType userType) {
         return createBaseConfirmationLink(SchemaConstants.ACCOUNT_ACTIVATION_PREFIX, userType.getOid());
     }
@@ -1519,6 +1535,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return getPublicHttpUrlPattern() + prefix + "?" + SchemaConstants.USER_ID + "=" + userType.getName().getOrig();
     }
 
+    @SuppressWarnings("SameParameterValue")
     private String createBaseConfirmationLink(String prefix, String oid) {
         return getPublicHttpUrlPattern() + prefix + "?" + SchemaConstants.USER_ID + "=" + oid;
     }
@@ -1593,11 +1610,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         String publicHttpUrlPattern = SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfiguration, host);
         if (StringUtils.isBlank(publicHttpUrlPattern)) {
-            LOGGER.error("No patern defined. It can break link generation.");
+            LOGGER.error("No pattern defined. It can break link generation.");
         }
 
         return publicHttpUrlPattern;
-
     }
 
     private String getNonce(UserType user) {
@@ -1627,6 +1643,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public ShadowType resolveEntitlement(ShadowAssociationType shadowAssociationType) {
+        if (shadowAssociationType == null) {
+            LOGGER.trace("No association");
+            return null;
+        }
         ObjectReferenceType shadowRef = shadowAssociationType.getShadowRef();
         if (shadowRef == null) {
             LOGGER.trace("No shadowRef in association {}", shadowAssociationType);
@@ -1835,9 +1855,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         discriminator.setKind(kind);
         discriminator.setIntent(intent);
 
-        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), null,
-                resource.asPrismObject(), getCurrentTask().getChannel(), beans,
-                getCurrentTask(), null);
+        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(
+                shadow.asPrismObject(),
+                null,
+                resource.asPrismObject(),
+                getCurrentTask().getChannel(),
+                beans,
+                getCurrentTask(),
+                null);
 
         ObjectSynchronizationType applicablePolicy = null;
 
@@ -1893,32 +1918,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     // MID-5243
-    @Override
-    public <O extends ObjectType> boolean hasArchetype(O object, String archetypeOid) {
-        if (object == null) {
-            return false;
-        }
-        if (!(object instanceof AssignmentHolderType)) {
-            return archetypeOid == null;
-        }
-        List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType) object).getArchetypeRef();
-        if (archetypeOid == null) {
-            return archetypeRefs.isEmpty();
-        }
-        for (ObjectReferenceType archetypeRef : archetypeRefs) {
-            if (archetypeOid.equals(archetypeRef.getOid())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // MID-5243
-    @Override
-    @Deprecated
     /**
      * DEPRECATED use getArchetypes(object)
      */
+    @Override
+    @Deprecated
     public <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException, ConfigurationException {
         List<PrismObject<ArchetypeType>> archetypes = archetypeManager.determineArchetypes((PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
         PrismObject<ArchetypeType> archetypeType = ArchetypeTypeUtil.getStructuralArchetype(archetypes);
@@ -1928,23 +1932,25 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return archetypeType.asObjectable();
     }
 
-    public <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException, ConfigurationException {
+    @NotNull public <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException, ConfigurationException {
         if (!(object instanceof AssignmentHolderType)) {
-            return null;
+            return List.of();
         }
         //noinspection unchecked
-        List<PrismObject<ArchetypeType>> archetype = archetypeManager.determineArchetypes((PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
+        List<PrismObject<ArchetypeType>> archetype =
+                archetypeManager.determineArchetypes(
+                        (PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
         return archetype.stream()
                 .map(arch -> arch.asObjectable())
                 .collect(Collectors.toList());
     }
 
     // MID-5243
-    @Override
-    @Deprecated
     /**
      * DEPRECATED use getArchetypeOids(object)
      */
+    @Override
+    @Deprecated
     public <O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException {
         if (!(object instanceof AssignmentHolderType)) {
             return null;
@@ -1958,14 +1964,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @NotNull
-    public <O extends ObjectType> List<String> getArchetypeOids(O object) throws SchemaException, ConfigurationException {
+    public <O extends ObjectType> List<String> getArchetypeOids(O object) {
         if (!(object instanceof AssignmentHolderType)) {
-            return null;
+            return List.of();
         }
         //noinspection unchecked
         List<ObjectReferenceType> archetypeRef = archetypeManager.determineArchetypeRefs((PrismObject<? extends AssignmentHolderType>) object.asPrismObject());
         return archetypeRef.stream()
-                .map(ref -> ref.getOid())
+                .map(AbstractReferencable::getOid)
                 .collect(Collectors.toList());
     }
 
@@ -2018,20 +2024,21 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     public <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, QName objectClassName,
             QName attributeName) throws SchemaException {
-        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         if (resourceSchema == null) {
             throw new SchemaException("No resource schema in " + resource);
         }
-        ObjectClassComplexTypeDefinition ocDef = resourceSchema.findObjectClassDefinition(objectClassName);
+        ResourceObjectDefinition ocDef = resourceSchema.findDefinitionForObjectClass(objectClassName);
         if (ocDef == null) {
             throw new SchemaException("No definition of object class " + objectClassName + " in " + resource);
         }
-        ResourceAttributeDefinition<T> attrDef = ocDef.findAttributeDefinition(attributeName);
+        ResourceAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(attributeName);
         if (attrDef == null) {
             throw new SchemaException("No definition of attribute " + attributeName + " in object class " + objectClassName
                     + " in " + resource);
         }
-        return attrDef;
+        //noinspection unchecked
+        return (ResourceAttributeDefinition<T>) attrDef;
     }
 
     @NotNull
@@ -2165,5 +2172,52 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     public <T> T getExtensionOptionRealValue(String localName, Class<T> type) {
         return ModelExecuteOptions.getExtensionItemRealValue(getModelContext().getOptions(), new ItemName(localName), type);
+    }
+
+    @Override
+    public @Nullable CaseType getCorrelationCaseForShadow(@Nullable ShadowType shadow) throws SchemaException {
+        if (shadow == null) {
+            return null;
+        } else {
+            return correlationCaseManager.findCorrelationCase(shadow, false, getCurrentResult());
+        }
+    }
+
+    @Override
+    public String describeResourceObjectSet(ResourceObjectSetType set)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+
+        if (set == null) {
+            return null;
+        }
+
+        ObjectReferenceType ref = set.getResourceRef();
+        if (ref == null) {
+            return null;
+        }
+
+        ObjectType resource = resolveReferenceInternal(ref, true);
+        if (resource == null) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(resource.getName().getOrig());
+
+        if (set.getObjectclass() != null) {
+            sb.append(" for ");
+            sb.append(set.getObjectclass().getLocalPart());
+        }
+
+        ShadowKindType kind = set.getKind();
+        if (kind != null || set.getIntent() != null) {
+            sb.append(" (");
+            sb.append(kind != null ? kind.value() : "");
+            sb.append("/");
+            sb.append(set.getIntent());
+            sb.append(")");
+        }
+
+        return sb.toString();
     }
 }

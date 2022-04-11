@@ -19,8 +19,6 @@ import static org.testng.AssertJUnit.assertFalse;
 
 /**
  * MID-4407
- *
- * @author mederly
  */
 @ContextConfiguration(locations = {"../../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

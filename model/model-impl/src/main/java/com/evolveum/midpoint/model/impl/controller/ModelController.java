@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.hasArchetype;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -17,6 +19,10 @@ import java.util.Objects;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
+
+import com.evolveum.midpoint.cases.api.CaseManager;
 
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +47,7 @@ import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceLauncher;
-import com.evolveum.midpoint.model.impl.util.AuditHelper;
+import com.evolveum.midpoint.model.common.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -87,8 +93,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
@@ -115,7 +120,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Use its interfaces instead.
  */
 @Component
-public class ModelController implements ModelService, TaskService, WorkflowService, ScriptingService, AccessCertificationService {
+public class ModelController implements ModelService, TaskService, CaseService, ScriptingService, AccessCertificationService {
 
     // Constants for OperationResult
     public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
@@ -150,9 +155,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
+    @Autowired private CorrelationCaseManager correlationCaseManager;
 
     @Autowired(required = false)                        // not required in all circumstances
-    private WorkflowManager workflowManager;
+    private CaseManager caseManager;
 
     @Autowired(required = false)                        // not required in all circumstances
     private CertificationManager certificationManager;
@@ -161,11 +167,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return objectResolver;
     }
 
-    private WorkflowManager getWorkflowManagerChecked() {
-        if (workflowManager == null) {
-            throw new SystemException("Workflow manager not present");
+    private CaseManager getCaseManagerChecked() {
+        if (caseManager == null) {
+            throw new SystemException("Case manager not present");
         }
-        return workflowManager;
+        return caseManager;
     }
 
     private CertificationManager getCertificationManagerChecked() {
@@ -2309,10 +2315,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     //endregion
 
-    //region Workflow-related operations
+    //region Case-related operations
+    // TODO move this method to more appropriate place
     @Override
-    public void completeWorkItem(WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output,
-            ObjectDelta additionalDelta, Task task, OperationResult parentResult)
+    public void completeWorkItem(
+            @NotNull WorkItemId workItemId,
+            @NotNull AbstractWorkItemOutputType output,
+            @Nullable ObjectDelta<?> additionalDelta,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         AbstractWorkItemOutputType outputToUse;
@@ -2329,41 +2340,47 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         } else {
             outputToUse = output;
         }
-        getWorkflowManagerChecked().completeWorkItem(workItemId, outputToUse, null, task, parentResult);
+        getCaseManagerChecked().completeWorkItem(workItemId, outputToUse, null, task, parentResult);
+    }
+
+    // TODO move this method to more appropriate place
+    @Override
+    public void completeWorkItem(
+            @NotNull WorkItemId workItemId,
+            @NotNull AbstractWorkItemOutputType output,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        getCaseManagerChecked().completeWorkItem(workItemId, output, null, task, parentResult);
     }
 
     @Override
-    public void completeWorkItem(@NotNull WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output, @NotNull Task task, @NotNull OperationResult parentResult)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getWorkflowManagerChecked().completeWorkItem(workItemId, output, null, task, parentResult);
-    }
-
-    @Override
-    public void cancelCase(String caseOid, Task task, OperationResult parentResult) throws SchemaException,
+    public void cancelCase(@NotNull String caseOid, @NotNull Task task, @NotNull OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, ObjectAlreadyExistsException {
-        getWorkflowManagerChecked().cancelCase(caseOid, task, parentResult);
+        getCaseManagerChecked().cancelCase(caseOid, task, parentResult);
     }
 
     @Override
-    public void claimWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
+    public void claimWorkItem(@NotNull WorkItemId workItemId, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        getWorkflowManagerChecked().claimWorkItem(workItemId, task, parentResult);
+        getCaseManagerChecked().claimWorkItem(workItemId, task, parentResult);
     }
 
     @Override
-    public void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
+    public void releaseWorkItem(@NotNull WorkItemId workItemId, @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        getWorkflowManagerChecked().releaseWorkItem(workItemId, task, parentResult);
+        getCaseManagerChecked().releaseWorkItem(workItemId, task, parentResult);
     }
 
     @Override
-    public void delegateWorkItem(WorkItemId workItemId, WorkItemDelegationRequestType delegationRequest,
-            Task task, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException,
+    public void delegateWorkItem(@NotNull WorkItemId workItemId, @NotNull WorkItemDelegationRequestType delegationRequest,
+            @NotNull Task task, @NotNull OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getWorkflowManagerChecked().delegateWorkItem(workItemId, delegationRequest, task, parentResult);
+        getCaseManagerChecked().delegateWorkItem(workItemId, delegationRequest, task, parentResult);
     }
 
     //endregion
@@ -2670,7 +2687,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
         for (PrismPropertyValue<PolyString> pval : ((PrismProperty<PolyString>) visitable).getValues()) {
             PolyString polyString = pval.getValue();
-            if (polyString.getOrig() == null) {
+            if (polyString != null && polyString.getOrig() == null) {
                 String orig = localizationService.translate(polyString);
                 LOGGER.trace("PPPP1: Filling out orig value of polyString {}: {}", polyString, orig);
                 polyString.setComputedOrig(orig);

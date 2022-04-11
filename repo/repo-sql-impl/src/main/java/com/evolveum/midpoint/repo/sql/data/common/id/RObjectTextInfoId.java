@@ -10,9 +10,6 @@ package com.evolveum.midpoint.repo.sql.data.common.id;
 import java.io.Serializable;
 import java.util.Objects;
 
-/**
- * @author mederly
- */
 public class RObjectTextInfoId implements Serializable {
 
     private String ownerOid;

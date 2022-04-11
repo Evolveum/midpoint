@@ -12,7 +12,6 @@ import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
@@ -28,6 +27,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -63,14 +64,14 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     // Useful definitions.
 
     /**
-     * The rOCD for the resource object.
+     * The object type or object class definition for the resource object.
      */
-    private RefinedObjectClassDefinition refinedObjectClassDefinition;
+    private ResourceObjectDefinition resourceObjectDefinition;
 
     /**
      * Auxiliary OCDs mentioned in the construction bean OR all auxiliary OCDs from rOCD.
      */
-    private final List<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>();
+    private final List<ResourceObjectDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>();
 
     /**
      * Definition for associations.
@@ -144,7 +145,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     private PrismValueDeltaSetTriple<PrismPropertyValue<String>> evaluateTagTriple(Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
-        ResourceObjectMultiplicityType multiplicity = refinedObjectClassDefinition.getMultiplicity();
+        ResourceObjectMultiplicityType multiplicity = resourceObjectDefinition.getObjectMultiplicity();
         if (!RefinedDefinitionUtil.isMultiaccount(multiplicity)) {
             return null;
         }
@@ -183,7 +184,25 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     }
 
     private EC createEvaluatedConstruction(String tag) {
-        ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(getResourceOid(), refinedObjectClassDefinition.getKind(), refinedObjectClassDefinition.getIntent(), tag, false);
+        ResourceObjectDefinition typeOrClassDef = getResourceObjectDefinitionRequired();
+        ResourceShadowDiscriminator rsd;
+        if (typeOrClassDef instanceof ResourceObjectTypeDefinition) {
+            // this is the usual case
+            ResourceObjectTypeDefinition typeDef = (ResourceObjectTypeDefinition) this.resourceObjectDefinition;
+            rsd = new ResourceShadowDiscriminator(getResourceOid(), typeDef.getKind(), typeDef.getIntent(), tag, false);
+        } else if (typeOrClassDef instanceof ResourceObjectClassDefinition) {
+            // very strange, let's check if we can go with the default account definition (see TestAssignmentErrors.test100-101)
+            ResourceObjectClassDefinition classDef = (ResourceObjectClassDefinition) typeOrClassDef;
+            if (classDef.isDefaultAccountDefinition()) {
+                rsd = new ResourceShadowDiscriminator(
+                        getResourceOid(), ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, tag, false);
+            } else {
+                throw new IllegalStateException("Construction " + this + " cannot be evaluated because of missing type definition"
+                        + " for " + typeOrClassDef);
+            }
+        } else {
+            throw new AssertionError(resourceObjectDefinition);
+        }
         return createEvaluatedConstruction(rsd);
     }
 
@@ -215,7 +234,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
      */
     <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> initializeMappingBuilder(
             MappingBuilder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
-            RefinedObjectClassDefinition assocTargetObjectClassDefinition) throws SchemaException {
+            ResourceObjectTypeDefinition assocTargetObjectClassDefinition) throws SchemaException {
 
         if (!builder.isApplicableToChannel(lensContext.getChannel())) {
             LOGGER.trace("Skipping outbound mapping for {} because the channel does not match", implicitTargetPath);
@@ -232,7 +251,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
                 .defaultTargetPath(implicitTargetPath)
                 .originType(originType)
                 .originObject(source)
-                .refinedObjectClassDefinition(getRefinedObjectClassDefinition())
+                .resourceObjectDefinition(getResourceObjectDefinition())
                 .rootNode(focusOdoAbsolute)
                 .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdoAbsolute)
                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdoAbsolute)
@@ -245,7 +264,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
 
         if (assocTargetObjectClassDefinition != null) {
             builder = builder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
-                    assocTargetObjectClassDefinition, RefinedObjectClassDefinition.class);
+                    assocTargetObjectClassDefinition, ResourceObjectTypeDefinition.class);
         }
         builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, getResource(), ResourceType.class);
         builder = LensUtil.addAssignmentPathVariables(builder, getAssignmentPathVariables(), PrismContext.get());
@@ -291,7 +310,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpLabel(sb, this.getClass().getSimpleName(), indent);
-        if (refinedObjectClassDefinition == null) {
+        if (resourceObjectDefinition == null) {
             sb.append(" (no object class definition)");
             if (constructionBean != null && constructionBean.getResourceRef() != null) { // should be always the case
                 sb.append("\n");
@@ -304,7 +323,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
                 sb.append(constructionBean.getIntent());
             }
         } else {
-            sb.append(refinedObjectClassDefinition.getShadowDiscriminator());
+            sb.append(resourceObjectDefinition);
         }
         if (constructionBean != null && constructionBean.getStrength() == ConstructionStrengthType.WEAK) {
             sb.append(" weak");
@@ -316,7 +335,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         if (auxiliaryObjectClassDefinitions.isEmpty()) {
             sb.append(" (empty)");
         } else {
-            for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+            for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
                 sb.append("\n");
                 DebugUtil.indentDebugDump(sb, indent + 2);
                 sb.append(auxiliaryObjectClassDefinition.getTypeName());
@@ -348,10 +367,10 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Construction(");
-        if (refinedObjectClassDefinition == null) {
+        if (resourceObjectDefinition == null) {
             sb.append(constructionBean);
         } else {
-            sb.append(refinedObjectClassDefinition.getShadowDiscriminator());
+            sb.append(resourceObjectDefinition);
         }
         sb.append(" in ").append(getSource());
         if (isValid()) {
@@ -429,46 +448,36 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
 
     protected abstract void initializeDefinitions() throws SchemaException;
 
-    public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
-        return refinedObjectClassDefinition;
+    public ResourceObjectDefinition getResourceObjectDefinition() {
+        return resourceObjectDefinition;
     }
 
-    protected void setRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
-        this.refinedObjectClassDefinition = refinedObjectClassDefinition;
+    public @NotNull ResourceObjectDefinition getResourceObjectDefinitionRequired() {
+        return Objects.requireNonNull(resourceObjectDefinition, () -> "no resource object definition in " + this);
     }
 
-    public List<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
+    protected void setResourceObjectDefinition(ResourceObjectDefinition resourceObjectDefinition) {
+        this.resourceObjectDefinition = resourceObjectDefinition;
+    }
+
+    public List<ResourceObjectDefinition> getAuxiliaryObjectClassDefinitions() {
         return auxiliaryObjectClassDefinitions;
     }
 
-    protected void addAuxiliaryObjectClassDefinition(RefinedObjectClassDefinition auxiliaryObjectClassDefinition) {
+    protected void addAuxiliaryObjectClassDefinition(ResourceObjectDefinition auxiliaryObjectClassDefinition) {
         auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDefinition);
     }
 
-    public ShadowKindType getKind() {
-        if (refinedObjectClassDefinition == null) {
-            throw new IllegalStateException("Kind can only be fetched from evaluated Construction");
-        }
-        return refinedObjectClassDefinition.getKind();
-    }
-
-    public String getIntent() {
-        if (refinedObjectClassDefinition == null) {
-            throw new IllegalStateException("Intent can only be fetched from evaluated Construction");
-        }
-        return refinedObjectClassDefinition.getIntent();
-    }
-
-    public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attributeName) {
-        if (refinedObjectClassDefinition == null) {
+    public ResourceAttributeDefinition<?> findAttributeDefinition(QName attributeName) {
+        if (resourceObjectDefinition == null) {
             throw new IllegalStateException("Construction " + this + " was not evaluated:\n" + this.debugDump());
         }
-        RefinedAttributeDefinition<T> attrDef = refinedObjectClassDefinition.findAttributeDefinition(attributeName);
+        ResourceAttributeDefinition<?> attrDef = resourceObjectDefinition.findAttributeDefinition(attributeName);
         if (attrDef != null) {
             return attrDef;
         }
-        for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
-            RefinedAttributeDefinition<T> auxAttrDef = auxiliaryObjectClassDefinition.findAttributeDefinition(attributeName);
+        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+            ResourceAttributeDefinition<?> auxAttrDef = auxiliaryObjectClassDefinition.findAttributeDefinition(attributeName);
             if (auxAttrDef != null) {
                 return auxAttrDef;
             }
@@ -476,16 +485,16 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         return null;
     }
 
-    public RefinedAssociationDefinition findAssociationDefinition(QName associationName) {
-        if (refinedObjectClassDefinition == null) {
+    public ResourceAssociationDefinition findAssociationDefinition(QName associationName) {
+        if (resourceObjectDefinition == null) {
             throw new IllegalStateException("Construction " + this + " was not evaluated:\n" + this.debugDump());
         }
-        RefinedAssociationDefinition assocDef = refinedObjectClassDefinition.findAssociationDefinition(associationName);
+        ResourceAssociationDefinition assocDef = resourceObjectDefinition.findAssociationDefinition(associationName);
         if (assocDef != null) {
             return assocDef;
         }
-        for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
-            RefinedAssociationDefinition auxAssocDef = auxiliaryObjectClassDefinition.findAssociationDefinition(associationName);
+        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+            ResourceAssociationDefinition auxAssocDef = auxiliaryObjectClassDefinition.findAssociationDefinition(associationName);
             if (auxAssocDef != null) {
                 return auxAssocDef;
             }

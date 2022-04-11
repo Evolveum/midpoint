@@ -300,7 +300,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 allRequests.addAll(evaluatedAssignment.getFocusMappingEvaluationRequests());
             }
 
-            MappingSetEvaluation.TripleCustomizer<?, ?> customizer = (triple, abstractRequest) -> {
+            FocalMappingSetEvaluation.TripleCustomizer<?, ?> customizer = (triple, abstractRequest) -> {
                 if (triple == null) {
                     return null;
                 }
@@ -350,7 +350,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 return rv;
             };
 
-            MappingSetEvaluation.EvaluatedMappingConsumer mappingConsumer = (mapping, abstractRequest) -> {
+            FocalMappingSetEvaluation.EvaluatedMappingConsumer mappingConsumer = (mapping, abstractRequest) -> {
                 AssignedFocusMappingEvaluationRequest request = (AssignedFocusMappingEvaluationRequest) abstractRequest;
                 request.getEvaluatedAssignment().addFocusMapping(mapping);
             };
@@ -361,7 +361,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     "focus mappings in assignments of " + focusContext.getHumanReadableName(),
                     now, task);
 
-            MappingSetEvaluation<AH, AH> mappingSetEvaluation = new MappingSetEvaluationBuilder<AH, AH>()
+            FocalMappingSetEvaluation<AH, AH> mappingSetEvaluation = new FocalMappingSetEvaluationBuilder<AH, AH>()
                     .context(context)
                     .evaluationRequests(allRequests)
                     .phase(null)
@@ -754,7 +754,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                         if (projectionContext.isExists()) {
                             LOGGER.trace("Projection {} legal: exists in NONE policy", desc);
                         } else {
-                            LOGGER.trace("Projection {} illegal: does not exists in NONE policy", desc);
+                            LOGGER.trace("Projection {} illegal: does not exist in NONE policy", desc);
                         }
                         // Everything that exists was legal and is legal. Nothing really changes.
                         projectionContext.setLegal(projectionContext.isExists());

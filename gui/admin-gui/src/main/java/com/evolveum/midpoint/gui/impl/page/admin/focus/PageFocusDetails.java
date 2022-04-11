@@ -12,7 +12,13 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
@@ -45,7 +51,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -54,10 +59,14 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
     private static final Trace LOGGER = TraceManager.getTrace(PageFocusDetails.class);
 
     private static final String ID_PROGRESS_PANEL_FRAGMENT = "progressPanelFragment";
+
     private static final String ID_PROGRESS_PANEL = "progressPanel";
 
     private boolean saveOnConfigure;
+
     protected boolean previewRequested;
+
+    private Boolean readonlyOverride;
 
     public PageFocusDetails() {
         super();
@@ -86,6 +95,10 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         }
     }
 
+    public void setReadonlyOverride(Boolean readonlyOverride) {
+        this.readonlyOverride = readonlyOverride;
+    }
+
     public void setSaveOnConfigure(boolean saveOnConfigure) {
         this.saveOnConfigure = saveOnConfigure;
     }
@@ -106,9 +119,15 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
             protected void refresh(AjaxRequestTarget target) {
                 PageFocusDetails.this.refresh(target);
             }
+
             @Override
             protected void savePerformed(AjaxRequestTarget target) {
                 PageFocusDetails.this.savePerformed(target);
+            }
+
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageFocusDetails.this.hasUnsavedChanges(target);
             }
 
             @Override
@@ -199,9 +218,14 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
     @Override
     protected FDM createObjectDetailsModels(PrismObject<F> object) {
-        return (FDM) new FocusDetailsModels<>(createPrismObjectModel(object), this);
-    }
+        return (FDM) new FocusDetailsModels<>(createPrismObjectModel(object), this) {
 
+            @Override
+            protected boolean isReadonly() {
+                return readonlyOverride != null ? readonlyOverride : super.isReadonly();
+            }
+        };
+    }
 
     @Override
     public ProgressPanel startAndGetProgressPanel(AjaxRequestTarget target, OperationResult result) {
@@ -265,7 +289,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
     }
 
     private void setTimezoneIfNeeded(OperationResult result) {
-        if (result.isSuccess() && getDelta() != null && SecurityUtils.getPrincipalUser().getOid().equals(getDelta().getOid())) {
+        if (result.isSuccess() && getDelta() != null && AuthUtil.getPrincipalUser().getOid().equals(getDelta().getOid())) {
             Session.get().setLocale(WebComponentUtil.getLocale());
             LOGGER.debug("Using {} as locale", getLocale());
             WebSession.get().getClientInfo().getProperties().
@@ -288,7 +312,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         DetailsFragment detailsFragment = createDetailsFragment();
         replace(detailsFragment);
         target.add(detailsFragment);
-        navigateToNext(new PageFocusPreviewChanges(modelContextMap));
+        navigateToNext(new PageFocusPreviewChanges(modelContextMap, this));
     }
 
     protected void collectObjectsForPreview(Map<PrismObject<F>, ModelContext<? extends ObjectType>> modelContextMap) {
@@ -301,5 +325,12 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         DetailsFragment detailsFragment = createDetailsFragment();
         replace(detailsFragment);
         target.add(detailsFragment);
+    }
+
+    @Override
+    protected Collection<SelectorOptions<GetOperationOptions>> getOperationOptions() {
+        return getOperationOptionsBuilder()
+                .item(FocusType.F_JPEG_PHOTO).retrieve()
+                .build();
     }
 }

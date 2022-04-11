@@ -10,9 +10,6 @@ package com.evolveum.midpoint.model.impl.dataModel.model;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class AdHocDataItem extends DataItem {
 
     @NotNull private final ItemPath itemPath;

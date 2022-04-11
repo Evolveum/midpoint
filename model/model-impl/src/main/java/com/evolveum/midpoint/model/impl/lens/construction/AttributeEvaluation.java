@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
@@ -24,10 +24,10 @@ import java.util.Collections;
  * Evaluation of an attribute mapping in resource object construction (assigned/plain).
  */
 class AttributeEvaluation<AH extends AssignmentHolderType>
-        extends ItemEvaluation<AH, PrismPropertyValue<?>, PrismPropertyDefinition<?>, RefinedAttributeDefinition<?>> {
+        extends ItemEvaluation<AH, PrismPropertyValue<?>, PrismPropertyDefinition<?>, ResourceAttributeDefinition<?>> {
 
     AttributeEvaluation(ConstructionEvaluation<AH, ?> constructionEvaluation,
-            RefinedAttributeDefinition<?> refinedAttributeDefinition, MappingType mappingBean,
+            ResourceAttributeDefinition<?> refinedAttributeDefinition, MappingType mappingBean,
             OriginType origin, MappingKindType mappingKind) {
         super(constructionEvaluation, refinedAttributeDefinition.getItemName(),
                 ShadowType.F_ATTRIBUTES.append(refinedAttributeDefinition.getItemName()),
@@ -41,7 +41,7 @@ class AttributeEvaluation<AH extends AssignmentHolderType>
     }
 
     @Override
-    RefinedObjectClassDefinition getAssociationTargetObjectClassDefinition() {
+    ResourceObjectTypeDefinition getAssociationTargetObjectClassDefinition() {
         return null;
     }
 

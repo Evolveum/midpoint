@@ -6,72 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
-import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PolyStringUtils;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelInstances;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
-import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
-import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeAndRelationDialogPanel;
-import com.evolveum.midpoint.web.component.dialog.ConfigureTaskConfirmationPanel;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchValue;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
-import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
-import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
-import com.evolveum.midpoint.web.session.MemberPanelStorage;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.*;
+import javax.xml.namespace.QName;
 
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.midpoint.web.component.search.*;
+
+import com.evolveum.midpoint.web.page.admin.roles.IndirectSearchItem;
+
+import com.evolveum.midpoint.web.page.admin.roles.ScopeSearchItem;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -91,28 +33,82 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
-import java.util.*;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
+import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeAndRelationDialogPanel;
+import com.evolveum.midpoint.web.component.dialog.ConfigureTaskConfirmationPanel;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
+import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
+import com.evolveum.midpoint.web.security.util.GuiAuthorizationConstants;
+import com.evolveum.midpoint.web.session.MemberPanelStorage;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @PanelType(name = "members")
-@PanelInstances(instances = {
-        @PanelInstance(identifier = "roleMembers",
-                applicableForType = RoleType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 80)),
-        @PanelInstance(identifier = "roleGovernance",
-                applicableForType = RoleType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90)),
-        @PanelInstance(identifier = "serviceMembers",
-                applicableForType = ServiceType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 80)),
-        @PanelInstance(identifier = "serviceGovernance",
-                applicableForType = ServiceType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90))
-})
+@PanelInstance(identifier = "roleMembers",
+        applicableForType = RoleType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 80))
+@PanelInstance(identifier = "roleGovernance",
+        applicableForType = RoleType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90))
+@PanelInstance(identifier = "serviceMembers",
+        applicableForType = ServiceType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 80))
+@PanelInstance(identifier = "serviceGovernance",
+        applicableForType = ServiceType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90))
 @PanelDisplay(label = "Members", order = 60)
 public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends AbstractObjectMainPanel<R, FocusDetailsModels<R>> {
 
@@ -133,6 +129,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     protected static final String ID_MEMBER_TABLE = "memberTable";
 
     private SearchBoxConfigurationType additionalPanelConfig;
+    private SearchBoxConfigurationHelper searchBoxConfiguration;
 
     private static final Map<QName, Map<String, String>> AUTHORIZATIONS = new HashMap<>();
     private static final Map<QName, UserProfileStorage.TableId> TABLES_ID = new HashMap<>();
@@ -234,13 +231,13 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             @Override
             protected SelectableBeanObjectDataProvider<AH> createProvider() {
                 SelectableBeanObjectDataProvider<AH> provider = createSelectableBeanObjectDataProvider(() -> getCustomizedQuery(getSearchModel().getObject()), null);
-                provider.addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleMemberPanel.this.getModelObject());
+                provider.addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject()));
                 return provider;
             }
 
             @Override
             public void refreshTable(AjaxRequestTarget target) {
-                if (getSearchModel().isLoaded() && getSearchModel().getObject()!= null
+                if (getSearchModel().isAttached() && getSearchModel().getObject()!= null
                         && getSearchModel().getObject().isTypeChanged()) {
                     clearCache();
                 }
@@ -372,7 +369,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     private <AH extends AssignmentHolderType> Class<AH> getDefaultObjectTypeClass() {
-        QName objectTypeQname = getMemberPanelStorage().getDefaultObjectType();
+        QName objectTypeQname = getSearchBoxConfiguration().getDefaultObjectTypeConfiguration().getDefaultValue();
         return ObjectTypes.getObjectTypeClass(objectTypeQname);
     }
 
@@ -387,43 +384,31 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             return memberPanelStorage.getSearch();
         }
 
-        Search<AH> search = SearchFactory.createSearch(createSearchTypeItem(memberPanelStorage), null, null,
+        SearchBoxConfigurationHelper searchBoxConfig = getSearchBoxConfiguration();
+        Search<AH> search = SearchFactory.createSearch(createSearchTypeItem(searchBoxConfig), null, null,
                 null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
-        search.addCompositedSpecialItem(createMemberSearchPanel(search, memberPanelStorage));
+        search.addCompositedSpecialItem(createMemberSearchPanel(search, searchBoxConfig));
 
         if (additionalPanelConfig != null){
             search.setCanConfigure(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
         }
+        memberPanelStorage.setSearch(search);
         return search;
     }
 
-    private <AH extends AssignmentHolderType> ContainerTypeSearchItem<AH> createSearchTypeItem(MemberPanelStorage memberPanelStorage) {
-        ContainerTypeSearchItem<AH> searchTypeItem = new ContainerTypeSearchItem<>(createTypeSearchValue(memberPanelStorage.getDefaultObjectType()), getAllowedTypes());
-        searchTypeItem.setConfiguration(memberPanelStorage.getObjectTypeSearchItem());
+    private <AH extends AssignmentHolderType> ContainerTypeSearchItem<AH> createSearchTypeItem(SearchBoxConfigurationHelper searchBoxConfigurationHelper) {
+        ContainerTypeSearchItem<AH> searchTypeItem = new ContainerTypeSearchItem<>(createTypeSearchValue(searchBoxConfigurationHelper.getDefaultObjectTypeConfiguration().getDefaultValue()), getAllowedTypes());
+        searchTypeItem.setConfiguration(searchBoxConfigurationHelper.getDefaultObjectTypeConfiguration());
         searchTypeItem.setVisible(true);
         return searchTypeItem;
     }
 
-    private AbstractRoleCompositedSearchItem createMemberSearchPanel(Search search, MemberPanelStorage memberPanelStorage) {
-        return new AbstractRoleCompositedSearchItem(search, memberPanelStorage) {
-
-            @Override
-            protected PrismReferenceDefinition getReferenceDefinition(ItemName refName) {
-                return PrismContext.get().getSchemaRegistry()
-                        .findContainerDefinitionByCompileTimeClass(AssignmentType.class)
-                        .findReferenceDefinition(refName);
-            }
-
-            @Override
-            protected R getAbstractRoleObject() {
-                return AbstractRoleMemberPanel.this.getModelObject();
-            }
-
-        };
+    private AbstractRoleCompositedSearchItem createMemberSearchPanel(Search search, SearchBoxConfigurationHelper searchBoxConfig) {
+        return new AbstractRoleCompositedSearchItem(search, searchBoxConfig, !isNotRole(), isOrg());
     }
 
     private <AH extends AssignmentHolderType> ObjectQuery getCustomizedQuery(Search<AH> search) {
-        MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
+        SearchBoxConfigurationHelper memberPanelStorage = getSearchBoxConfiguration();
         if (noMemberSearchItemVisible(memberPanelStorage)) {
             PrismContext prismContext = getPageBase().getPrismContext();
             return prismContext.queryFor(search.getTypeClass())
@@ -436,14 +421,14 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return null;
     }
 
-    private boolean noMemberSearchItemVisible(MemberPanelStorage memberPanelStorage) {
+    private boolean noMemberSearchItemVisible(SearchBoxConfigurationHelper memberPanelStorage) {
         return !memberPanelStorage.isRelationVisible() && !memberPanelStorage.isIndirectVisible()
                 && (!isOrg() || !memberPanelStorage.isSearchScopeVisible())
                 && (isNotRole() || !memberPanelStorage.isTenantVisible())
                 && (isNotRole() || !memberPanelStorage.isProjectVisible());
     }
 
-    private List<QName> getRelationsForSearch(MemberPanelStorage memberPanelStorage) {
+    private List<QName> getRelationsForSearch(SearchBoxConfigurationHelper memberPanelStorage) {
         List<QName> relations = new ArrayList<>();
         if (QNameUtil.match(PrismConstants.Q_ANY, memberPanelStorage.getDefaultRelation())) {
             relations.addAll(memberPanelStorage.getSupportedRelations());
@@ -471,7 +456,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         List<DisplayableValue<Class<AH>>> ret = new ArrayList<>();
         ret.add(new SearchValue<>(getChoiceForAllTypes(), "ObjectTypes.all"));
 
-        List<QName> types = getMemberPanelStorage().getSupportedObjectTypes();
+        List<QName> types = getSearchBoxConfiguration().getSupportedObjectTypes();
         for (QName type : types) {
             ret.add(createTypeSearchValue(type));
         }
@@ -576,7 +561,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             @Override
             public void onClick(AjaxRequestTarget target) {
                 ChooseMemberPopup browser = new ChooseMemberPopup(AbstractRoleMemberPanel.this.getPageBase().getMainPopupBodyId(),
-                        getMemberPanelStorage().getRelationSearchItem(), loadMultiFunctionalButtonModel(false)) {
+                        getSearchBoxConfiguration().getDefaultRelationConfiguration(), loadMultiFunctionalButtonModel(false)) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -696,7 +681,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                         @Override
                         public void onClick(AjaxRequestTarget target) {
                             MemberOperationsGuiHelper.assignMembers(getPageBase(), AbstractRoleMemberPanel.this.getModelObject(),
-                                    target, getMemberPanelStorage().getRelationSearchItem(), null);
+                                    target, getSearchBoxConfiguration().getDefaultRelationConfiguration(), null);
                         }
                     };
                 }
@@ -832,12 +817,12 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             protected List<QName> getSupportedObjectTypes() {
-                return AbstractRoleMemberPanel.this.getMemberPanelStorage().getSupportedObjectTypes();//getSupportedObjectTypes(true);
+                return AbstractRoleMemberPanel.this.getSearchBoxConfiguration().getSupportedObjectTypes();//getSupportedObjectTypes(true);
             }
 
             @Override
             protected List<QName> getSupportedRelations() {
-                return AbstractRoleMemberPanel.this.getMemberPanelStorage().getSupportedRelations();
+                return AbstractRoleMemberPanel.this.getSearchBoxConfiguration().getSupportedRelations();
             }
 
             @Override
@@ -851,7 +836,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
 
             protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-                unassignMembersPerformed(type, getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)
+                unassignMembersPerformed(type, getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)
                         && QueryScope.ALL.equals(scope) ? QueryScope.ALL_DIRECT : scope, relations, target);
             }
 
@@ -890,7 +875,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             protected IModel<String> getWarningMessageModel() {
-                if (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)) {
+                if (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)) {
                     return getPageBase().createStringResource("abstractRoleMemberPanel.unassign.warning.subtree");
                 }
                 return null;
@@ -898,7 +883,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             public int getHeight() {
-                if (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)) {
+                if (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)) {
                     return 325;
                 }
                 return 230;
@@ -910,9 +895,9 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     private List<QName> getDefaultRelationsForActions() {
         List<QName> defaultRelations = new ArrayList<>();
-        QName defaultRelation = AbstractRoleMemberPanel.this.getMemberPanelStorage().getDefaultRelation();
+        QName defaultRelation = AbstractRoleMemberPanel.this.getSearchBoxConfiguration().getDefaultRelation();
         if (defaultRelation != null) {
-            defaultRelations.add(AbstractRoleMemberPanel.this.getMemberPanelStorage().getDefaultRelation());
+            defaultRelations.add(AbstractRoleMemberPanel.this.getSearchBoxConfiguration().getDefaultRelation());
         } else {
             defaultRelations.add(RelationTypes.MEMBER.getRelation());
         }
@@ -922,7 +907,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     private void deleteMembersPerformed(AjaxRequestTarget target) {
         QueryScope scope = getQueryScope();
         StringResourceModel confirmModel;
-        if (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)) {
+        if (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)) {
             confirmModel = createStringResource("abstractRoleMemberPanel.deleteAllSubtreeMembersConfirmationLabel");
         } else {
             confirmModel = getMemberTable().getSelectedObjectsCount() > 0 ?
@@ -935,12 +920,12 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             protected List<QName> getSupportedObjectTypes() {
-                return AbstractRoleMemberPanel.this.getMemberPanelStorage().getSupportedObjectTypes();//getSupportedObjectTypes(true);
+                return AbstractRoleMemberPanel.this.getSearchBoxConfiguration().getSupportedObjectTypes();//getSupportedObjectTypes(true);
             }
 
             @Override
             protected List<QName> getSupportedRelations() {
-                return AbstractRoleMemberPanel.this.getMemberPanelStorage().getSupportedRelations();
+                return AbstractRoleMemberPanel.this.getSearchBoxConfiguration().getSupportedRelations();
             }
 
             @Override
@@ -985,7 +970,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                     newReferences.add(relationSpec.getArchetypeRefs().get(0));
                 }
                 QName newMemberType = CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ? relationSpec.getObjectTypes().get(0) :
-                        getMemberPanelStorage().getSupportedObjectTypes().get(0); //getSupportedObjectTypes(false).get(0);
+                        getSearchBoxConfiguration().getSupportedObjectTypes().get(0); //getSupportedObjectTypes(false).get(0);
                 WebComponentUtil.initNewObjectWithReference(AbstractRoleMemberPanel.this.getPageBase(), newMemberType, newReferences);
             } catch (SchemaException e) {
                 throw new SystemException(e.getMessage(), e);
@@ -1002,7 +987,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
                 @Override
                 protected List<QName> getSupportedRelations() {
-                    return AbstractRoleMemberPanel.this.getMemberPanelStorage().getSupportedRelations();
+                    return AbstractRoleMemberPanel.this.getSearchBoxConfiguration().getSupportedRelations();
                 }
 
                 @Override
@@ -1095,8 +1080,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                         getModelObject(),
                         getSearchType(),
                         relations,
-                        getMemberPanelStorage().getTenant(),
-                        getMemberPanelStorage().getProject());
+                        getSearchBoxConfiguration().getTenant(),
+                        getSearchBoxConfiguration().getProject());
             case SELECTED:
                 return MemberOperationsHelper.createSelectedObjectsQuery(
                         getMemberTable().getSelectedRealObjects());
@@ -1117,6 +1102,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return (MainObjectListPanel<FocusType>) get(getPageBase().createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
     }
 
+    private Search<FocusType> getSearch() {
+        return getMemberTable().getSearchModel().getObject();
+    }
+
     protected QueryScope getQueryScope() {
         // TODO if all selected objects have OIDs we can eliminate getOids call
         if (CollectionUtils.isNotEmpty(
@@ -1124,18 +1113,45 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             return QueryScope.SELECTED;
         }
 
-        if (getMemberPanelStorage().isIndirect()
-                || getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)) {
+        if (isIndirect() || isSubtreeScope()) {
             return QueryScope.ALL;
         }
 
         return QueryScope.ALL_DIRECT;
     }
 
+    private boolean isSubtreeScope() {
+        Search<FocusType> search = getSearch();
+        SearchItem compositedItem = search.getCompositedSpecialItem();
+        if (compositedItem instanceof AbstractRoleCompositedSearchItem ) {
+            List<SearchItem> items = ((AbstractRoleCompositedSearchItem) compositedItem).getSearchItems();
+            for (SearchItem item : items) {
+                if (item instanceof ScopeSearchItem) {
+                    return SearchBoxScopeType.SUBTREE.equals(((ScopeSearchItem) item).getScopeType());
+                }
+            }
+        }
+        return getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE);
+    }
+
+    private boolean isIndirect() {
+        Search<FocusType> search = getSearch();
+        SearchItem compositedItem = search.getCompositedSpecialItem();
+        if (compositedItem instanceof AbstractRoleCompositedSearchItem ) {
+            List<SearchItem> items = ((AbstractRoleCompositedSearchItem)compositedItem).getSearchItems();
+            for (SearchItem item : items) {
+                if (item instanceof IndirectSearchItem) {
+                    return ((IndirectSearchItem) item).isIndirect();
+                }
+            }
+        }
+        return getSearchBoxConfiguration().isIndirect();
+    }
+
     protected void recomputeMembersPerformed(AjaxRequestTarget target) {
 
         StringResourceModel confirmModel;
-        if (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)) {
+        if (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)) {
             confirmModel = createStringResource("abstractRoleMemberPanel.recomputeAllSubtreeMembersConfirmationLabel");
         } else {
             confirmModel = getMemberTable().getSelectedObjectsCount() > 0 ?
@@ -1181,7 +1197,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected @NotNull List<QName> getRelationsForRecomputeTask() {
-        return getMemberPanelStorage().getSupportedRelations();
+        return getSearchBoxConfiguration().getSupportedRelations();
     }
 
     protected @NotNull QName getSearchType() {
@@ -1211,13 +1227,29 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
         PageStorage storage = getPageStorage(storageKey);
         if (storage == null) {
-            SearchBoxConfigurationHelper searchBoxCofig = new SearchBoxConfigurationHelper(additionalPanelConfig);
-            searchBoxCofig.setDefaultSupportedRelations(getSupportedRelations());
-            searchBoxCofig.setDefaultSupportedObjectTypes(getDefaultSupportedObjectTypes(false));
-            searchBoxCofig.setDefaultObjectType(WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType()));
-            storage = getSessionStorage().initMemberStorage(storageKey, searchBoxCofig);
+            storage = getSessionStorage().initMemberStorage(storageKey);
         }
         return (MemberPanelStorage) storage;
+    }
+
+    protected SearchBoxConfigurationHelper getSearchBoxConfiguration() {
+        if (searchBoxConfiguration != null) {
+            return searchBoxConfiguration;
+        }
+        searchBoxConfiguration = new SearchBoxConfigurationHelper(additionalPanelConfig);
+        searchBoxConfiguration.setDefaultSupportedRelations(getSupportedRelations());
+        searchBoxConfiguration.setDefaultSupportedObjectTypes(getDefaultSupportedObjectTypes(false));
+        searchBoxConfiguration.setDefaultObjectType(WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType()));
+
+//        MemberPanelStorage storage = (MemberPanelStorage) pageStorage;
+//
+//        storage.setIndirectSearchItem(searchBoxCofig.getDefaultIndirectConfiguration());
+//        storage.setRelationSearchItem(searchBoxCofig.getDefaultRelationConfiguration());
+//        storage.setScopeSearchItem(searchBoxCofig.getDefaultSearchScopeConfiguration());
+//        storage.setObjectTypeSearchItem(searchBoxCofig.getDefaultObjectTypeConfiguration());
+//        storage.setTenantSearchItem(searchBoxCofig.getDefaultTenantConfiguration());
+//        storage.setProjectSearchItem(searchBoxCofig.getDefaultProjectConfiguration());
+        return searchBoxConfiguration;
     }
 
     private PageStorage getPageStorage(String storageKey) {

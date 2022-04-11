@@ -48,7 +48,7 @@ public final class ImportActivityRun
 
     @Override
     public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
-        return new ActivityReportingCharacteristics()
+        return super.createReportingCharacteristics()
                 .actionsExecutedStatisticsSupported(true)
                 .synchronizationStatisticsSupported(true);
     }
@@ -70,7 +70,7 @@ public final class ImportActivityRun
     private Synchronizer createSynchronizer() {
         return new Synchronizer(
                 resourceObjectClass.getResource(),
-                resourceObjectClass.getObjectClassDefinitionRequired(),
+                resourceObjectClass.getResourceObjectDefinitionRequired(),
                 resourceObjectClass.getObjectFilter(),
                 getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_IMPORT,
@@ -106,5 +106,10 @@ public final class ImportActivityRun
 
     private @NotNull ModelBeans getModelBeans() {
         return getActivityHandler().getModelBeans();
+    }
+
+    @Override
+    protected String getChannelOverride() {
+        return SchemaConstants.CHANNEL_IMPORT_URI;
     }
 }

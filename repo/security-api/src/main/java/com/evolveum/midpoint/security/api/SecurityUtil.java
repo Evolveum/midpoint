@@ -362,6 +362,15 @@ public class SecurityUtil {
         return (MidPointPrincipal) principalObject;
     }
 
+    /**
+     * Returns the principal, insisting on that it exists.
+     */
+    public static MidPointPrincipal getPrincipalRequired() throws SecurityViolationException {
+        return MiscUtil.requireNonNull(
+                getPrincipal(),
+                () -> new SecurityViolationException("No logged-in user"));
+    }
+
     public static String getPrincipalOidIfAuthenticated() {
         Authentication authentication = getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {

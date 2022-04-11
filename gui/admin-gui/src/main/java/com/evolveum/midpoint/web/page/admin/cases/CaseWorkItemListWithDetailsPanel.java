@@ -9,12 +9,11 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -27,10 +26,9 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
@@ -97,8 +95,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
             @Override
             protected void afterActionFinished(AjaxRequestTarget target) {
                 Breadcrumb previousBreadcrumb = getPageBase().getPreviousBreadcrumb();
-                if (previousBreadcrumb instanceof BreadcrumbPageInstance &&
-                        ((BreadcrumbPageInstance) previousBreadcrumb).getPage() instanceof PageCaseWorkItem) {
+                if (previousBreadcrumb != null && previousBreadcrumb.getPageClass().isAssignableFrom(PageCaseWorkItem.class)) {
                     getPageBase().redirectBack(3);
                 } else {
                     getPageBase().redirectBack();

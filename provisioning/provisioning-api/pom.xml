@@ -41,11 +41,11 @@
             <artifactId>schema</artifactId>
              <version>${project.version}</version>
         </dependency>
-         <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>common</artifactId>
-             <version>${project.version}</version>
-        </dependency>
+        <!-- <dependency>-->
+        <!--    <groupId>com.evolveum.midpoint.infra</groupId>-->
+        <!--    <artifactId>common</artifactId>-->
+        <!--     <version>${project.version}</version>-->
+        <!--</dependency>-->
         <!--<dependency>-->
         <!--    <groupId>com.evolveum.midpoint.repo</groupId>-->
         <!--    <artifactId>repo-api</artifactId>-->

@@ -8,7 +8,15 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
+
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+
+import com.evolveum.midpoint.web.component.util.SelectableRow;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -96,49 +104,40 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
                     BaseSortableDataProvider.class.getName(), provider.getClass().getName());
         }
 
+        List<IModel<T>> objects = TableUtil.getAvailableData(table);
         //update selected flag in model dto objects based on select all header state
-        BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) provider;
-        List<T> objects = baseProvider.getAvailableData();
-        for (T object : objects) {
-            if (object instanceof Selectable) {
-                Selectable selectable = (Selectable) object;
-                selectable.setSelected(selected);
-            } else if (object instanceof PrismContainerValueWrapper){
-                PrismContainerValueWrapper valueWrapper = (PrismContainerValueWrapper) object;
-                valueWrapper.setSelected(selected);
+        for (IModel<T> object : objects) {
+            T modelObject = object.getObject();
+
+            if (modelObject instanceof SelectableRow) {
+                ((SelectableRow<?>) modelObject).setSelected(selected);
+            } else if (modelObject instanceof SelectableObjectModel) {  //TODO is this needed?
+                ((SelectableObjectModel<?>) object).setSelected(selected);
             }
         }
 
-        table.visitChildren(SelectableDataTable.SelectableRowItem.class, new IVisitor<SelectableDataTable.SelectableRowItem, Void>() {
-
-            @Override
-            public void component(SelectableDataTable.SelectableRowItem row, IVisit<Void> visit) {
-                if (row.getOutputMarkupId()) {
-                    //we skip rows that doesn't have outputMarkupId set to true (it would fail)
-                    target.add(row);
-                }
-            }
-        });
-
+        TableUtil.updateRows(table, target);
     }
 
     public boolean shouldBeHeaderSelected(DataTable table) {
         boolean selectedAll = true;
-
-        BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) table.getDataProvider();
-        List<T> objects = baseProvider.getAvailableData();
+        List<IModel<T>> objects = TableUtil.getAvailableData(table);
         if (objects == null || objects.isEmpty()) {
             return false;
         }
 
-        for (T object : objects) {
+        for (IModel<T> object : objects) {
             selectedAll &= isTableRowSelected(object);
         }
 
         return selectedAll;
     }
 
-    protected boolean isTableRowSelected(T object){
+    protected boolean isTableRowSelected(IModel<T> model){
+        if (model instanceof SelectableObjectModel) {
+            return ((SelectableObjectModel<?>) model).isSelected();
+        }
+        T object = model.getObject();
         if (object instanceof Selectable) {
             Selectable selectable = (Selectable) object;
             return selectable.isSelected();

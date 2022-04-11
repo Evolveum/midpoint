@@ -11,6 +11,8 @@ import static org.springframework.http.ResponseEntity.status;
 import java.net.URI;
 import javax.servlet.http.HttpServletRequest;
 
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +27,6 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -132,6 +133,12 @@ public class AbstractRestController {
     }
 
     protected ResponseEntity<?> handleExceptionNoLog(OperationResult result, Throwable t) {
+        if (result.isEmpty()) {
+            result.recordFatalError("Unknown exception occurred", t);
+        } else {
+            result.computeStatus();
+        }
+
         return createErrorResponseBuilder(result, t);
     }
 
@@ -207,7 +214,7 @@ public class AbstractRestController {
         }
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
-        record.setInitiator(user, prismContext);
+        record.setInitiator(user);
         record.setParameter(name);
 
         record.setChannel(SchemaConstants.CHANNEL_REST_URI);

@@ -9,7 +9,14 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.common.ArchetypeManager;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -17,27 +24,26 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+//TODO: rework, predefined values are no more stored in prism property wrapper. rather, the oid is stored and dynamic lookup tables are loaded in concrete panel
 
 @Component
 public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<String> {
 
-    @Override
+    @Autowired private ArchetypeManager archetypeManager;
+
     protected LookupTableType getPredefinedValues(PrismProperty<String> item, WrapperContext ctx) {
         PrismObject<?> prismObject = getParent(ctx);
         if (prismObject == null || !TaskType.class.equals(prismObject.getCompileTimeClass())) {
-            return super.getPredefinedValues(item, ctx);
+            return null;
         }
 
-        LookupTableType parentLookup = super.getPredefinedValues(item, ctx);
-        if (parentLookup != null) {
-            return parentLookup;
-        }
+//        LookupTableType parentLookup = super.getPredefinedValues(item, ctx);
+//        if (parentLookup != null) {
+//            return parentLookup;
+//        }
 
         TaskType task = (TaskType) prismObject.asObjectable();
         Collection<AssignmentType> assignmentTypes = task.getAssignment()
@@ -52,7 +58,12 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
             AssignmentType archetypeAssignment = assignmentTypes.iterator().next();
             handlers = getTaskManager().getHandlerUrisForArchetype(archetypeAssignment.getTargetRef().getOid(), true);
         } else {
-            throw new UnsupportedOperationException("More than 1 archetype, this is not supported");
+            try {
+                PrismObject<ArchetypeType> archetype = archetypeManager.determineStructuralArchetype(task.asPrismObject(), ctx.getResult());
+                handlers = getTaskManager().getHandlerUrisForArchetype(archetype.getOid(), true);
+            } catch (SchemaException e) {
+                throw new UnsupportedOperationException("More than 1 structural archetype, this is not supported", e);
+            }
         }
         LookupTableType lookupTableType = new LookupTableType(getPrismContext());
 

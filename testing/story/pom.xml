@@ -73,8 +73,9 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>workflow-api</artifactId>
+            <artifactId>cases-impl</artifactId>
             <version>4.5-SNAPSHOT</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
@@ -161,6 +162,10 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
@@ -285,6 +290,7 @@
             <artifactId>api-all</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Needed for import test, used for resource, not for repository -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -316,8 +322,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-jms_2.0_spec</artifactId>
+            <groupId>jakarta.jms</groupId>
+            <artifactId>jakarta.jms-api</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

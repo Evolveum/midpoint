@@ -10,6 +10,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;

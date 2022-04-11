@@ -1,13 +1,10 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.schemacheck;
-
-import static com.evolveum.midpoint.repo.sqlbase.SupportedDatabase.MARIADB;
-import static com.evolveum.midpoint.repo.sqlbase.SupportedDatabase.MYSQL;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -31,13 +28,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Determines the action that should be done against the database (none, stop, warn, create, upgrade)
- * <p>
+ *
  * Takes the following input:
  * - information about the database schema state (tables existence/non-existence, declared schema version)
  * - repository configuration (namely actions for missing/upgradeable/incompatible schemas)
- * <p>
- * TODOs (issues to consider)
- * - check if db variant is applicable (e.g. upgrading "plain" mysql using "utf8mb4" variant and vice versa)
  */
 @Component
 class SchemaActionComputer {
@@ -46,7 +40,7 @@ class SchemaActionComputer {
      * For database schema versioning please see
      * <a href="https://docs.evolveum.com/midpoint/reference/repository/database-schema-versioning/">wiki page about DB versioning</a>.
      */
-    public static final String REQUIRED_DATABASE_SCHEMA_VERSION = "4.4";
+    public static final String REQUIRED_DATABASE_SCHEMA_VERSION = "4.5";
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaActionComputer.class);
 
@@ -63,7 +57,8 @@ class SchemaActionComputer {
                     new ImmutablePair<>("3.9", "4.0"),
                     new ImmutablePair<>("4.0", "4.2"),
                     new ImmutablePair<>("4.2", "4.3"),
-                    new ImmutablePair<>("4.3", "4.4")));
+                    new ImmutablePair<>("4.3", "4.4"),
+                    new ImmutablePair<>("4.4", "4.5")));
 
     enum State {
         COMPATIBLE, NO_TABLES, AUTOMATICALLY_UPGRADEABLE, MANUALLY_UPGRADEABLE, INCOMPATIBLE
@@ -302,9 +297,6 @@ class SchemaActionComputer {
         SupportedDatabase database = repositoryConfiguration.getDatabaseType();
         if (database == null) {
             throw new SystemException("Couldn't create/upgrade DB schema because database kind is not known");
-        }
-        if (database == MARIADB) {
-            return MYSQL;
         }
         return database;
     }

@@ -8,12 +8,12 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -33,7 +33,7 @@ public class ValueMatcher<T> {
         this.matchingRule = matchingRule;
     }
 
-    public static <T> ValueMatcher<T> createMatcher(RefinedAttributeDefinition rAttrDef, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+    public static <T> ValueMatcher<T> createMatcher(ResourceAttributeDefinition<?> rAttrDef, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         QName matchingRuleQName = rAttrDef.getMatchingRuleQName();
         MatchingRule<T> matchingRule;
         try {

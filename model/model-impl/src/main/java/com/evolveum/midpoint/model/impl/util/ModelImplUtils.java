@@ -7,8 +7,6 @@
 package com.evolveum.midpoint.model.impl.util;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
@@ -23,7 +21,6 @@ import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.sync.tasks.SynchronizationObjectsFilterImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -45,7 +42,8 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -472,7 +470,7 @@ public class ModelImplUtils {
     }
 
     @VisibleForTesting
-    public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task)
+    public static ResourceObjectDefinition determineObjectDefinition(ResourceSchema refinedSchema, Task task)
             throws SchemaException {
         QName objectclass = getTaskExtensionPropertyValue(task, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
         ShadowKindType kind = getTaskExtensionPropertyValue(task, SchemaConstants.MODEL_EXTENSION_KIND);
@@ -481,7 +479,7 @@ public class ModelImplUtils {
         return determineObjectClassInternal(refinedSchema, objectclass, kind, intent, task);
     }
 
-    public static ObjectClassComplexTypeDefinition determineObjectClassNew(@NotNull RefinedResourceSchema refinedSchema,
+    public static ResourceObjectDefinition determineObjectDefinition(@NotNull ResourceSchema refinedSchema,
             @NotNull ResourceObjectSetType resourceObjectSet, Object source)
             throws SchemaException {
         return determineObjectClassInternal(
@@ -501,41 +499,41 @@ public class ModelImplUtils {
         }
     }
 
-    public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, PrismObject<ShadowType> shadow) throws SchemaException {
+    public static ResourceObjectDefinition determineObjectDefinition(ResourceSchema refinedSchema, PrismObject<ShadowType> shadow) throws SchemaException {
         ShadowType s = shadow.asObjectable();
         return determineObjectClassInternal(refinedSchema, s.getObjectClass(), s.getKind(), s.getIntent(), s);
     }
 
-    private static ObjectClassComplexTypeDefinition determineObjectClassInternal(
-            RefinedResourceSchema refinedSchema, QName objectclass, ShadowKindType kind, String intent, Object source)
+    private static ResourceObjectDefinition determineObjectClassInternal(
+            ResourceSchema resourceSchema, QName objectclass, ShadowKindType kind, String intent, Object source)
             throws SchemaException {
 
         if (kind == null && intent == null && objectclass != null) {
             // Return generic object class definition from resource schema. No kind/intent means that we want
             // to process all kinds and intents in the object class.
-            ObjectClassComplexTypeDefinition objectClassDefinition =
-                    refinedSchema.getOriginalResourceSchema().findObjectClassDefinition(objectclass);
+            ResourceObjectDefinition objectClassDefinition =
+                    resourceSchema.findDefinitionForObjectClass(objectclass);
             if (objectClassDefinition == null) {
                 throw new SchemaException("No object class "+objectclass+" in the schema for "+source);
             }
             return objectClassDefinition;
         }
 
-        RefinedObjectClassDefinition refinedObjectClassDefinition;
+        ResourceObjectDefinition resourceObjectDefinition;
 
         if (kind != null) {
-            refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
+            resourceObjectDefinition = resourceSchema.findObjectDefinition(kind, intent);
             LOGGER.trace("Determined refined object class {} by using kind={}, intent={}",
-                    refinedObjectClassDefinition, kind, intent);
+                    resourceObjectDefinition, kind, intent);
         } else if (objectclass != null) {
-            refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(objectclass);
-            LOGGER.trace("Determined refined object class {} by using objectClass={}", refinedObjectClassDefinition, objectclass);
+            resourceObjectDefinition = resourceSchema.findDefinitionForObjectClass(objectclass);
+            LOGGER.trace("Determined refined object class {} by using objectClass={}", resourceObjectDefinition, objectclass);
         } else {
-            refinedObjectClassDefinition = null;
+            resourceObjectDefinition = null;
             LOGGER.debug("No kind or objectclass specified in {}, assuming null object class", source);
         }
 
-        return refinedObjectClassDefinition;
+        return resourceObjectDefinition;
     }
 
     public static void encrypt(Collection<ObjectDelta<? extends ObjectType>> deltas, Protector protector, ModelExecuteOptions options,
@@ -633,6 +631,11 @@ public class ModelImplUtils {
         return variables;
     }
 
+    public static VariablesMap getDefaultVariablesMap(
+            ObjectType focus, ShadowType shadow, ResourceType resource, SystemConfigurationType configuration) {
+        return getDefaultVariablesMap(focus, shadow, resource, configuration, PrismContext.get());
+    }
+
     public static VariablesMap getDefaultVariablesMap(ObjectType focusType,
             ShadowType shadowType, ResourceType resourceType, SystemConfigurationType configurationType,
             PrismContext prismContext) {
@@ -698,10 +701,11 @@ public class ModelImplUtils {
         }
 
         // Legacy. And convenience/understandability.
-        if (focus == null || focus.canRepresent(UserType.class) || (discr != null && discr.getKind() == ShadowKindType.ACCOUNT)) {
-            variables.put(ExpressionConstants.VAR_USER, focus, focusDef);
-            variables.put(ExpressionConstants.VAR_ACCOUNT, shadow, shadowDef);
-        }
+        // Let us use these variables even for non-account/non-user scenarios. This have been working for ages.
+        // During development of 4.5 it was "fixed" (so it no longer works for non-users), but actually this broke
+        // many tests. So re-enabling it back, although now it's not 100% logical. But convenient.
+        variables.put(ExpressionConstants.VAR_USER, focus, focusDef);
+        variables.put(ExpressionConstants.VAR_ACCOUNT, shadow, shadowDef);
 
         variables.put(ExpressionConstants.VAR_FOCUS, focus, focusDef);
         variables.put(ExpressionConstants.VAR_SHADOW, shadow, shadowDef);
@@ -788,11 +792,12 @@ public class ModelImplUtils {
     public static <V extends PrismValue, F extends ObjectType> List<V> evaluateScript(
                 ScriptExpression scriptExpression, LensContext<F> lensContext, VariablesMap variables, boolean useNew, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        ExpressionEnvironment<F,?,?> env = new ExpressionEnvironment<>();
-        env.setLensContext(lensContext);
-        env.setCurrentResult(parentResult);
-        env.setCurrentTask(task);
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
+        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
+                new ExpressionEnvironment.ExpressionEnvironmentBuilder<F, PrismValue, ItemDefinition<?>>()
+                        .lensContext(lensContext)
+                        .currentResult(parentResult)
+                        .currentTask(task)
+                        .build());
 
         try {
             ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();

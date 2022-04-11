@@ -1966,6 +1966,20 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="propagation" type="tns:PropagationWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Executes the propagation activity.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="multiPropagation" type="tns:MultiPropagationWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Executes the multi-propagation activity.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
             </xsd:choice>
             <xsd:element name="extension" type="tns:ExtensionType" minOccurs="0">
                 <xsd:annotation>
@@ -4144,7 +4158,7 @@
     <xsd:complexType name="NumericIntervalWorkBucketContentType">
         <xsd:annotation>
             <xsd:documentation>
-                Work bucket content defined as a interval of numeric values of discriminator item.
+                Work bucket content defined as an interval of numeric values of discriminator item.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>

@@ -43,8 +43,8 @@ public class ValueOperation extends Operation {
         if (valueFilter.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
             try {
                 QName propName = valueFilter.getDefinition().getItemName();
-                String icfName = icfNameMapper.convertAttributeNameToConnId(propName, getInterpreter()
-                        .getObjectClassDefinition(), "(attribute in the filter)");
+                String icfName = icfNameMapper.convertAttributeNameToConnId(
+                        propName, getInterpreter().getObjectDefinition(), "(attribute in the filter)");
 
                 if (objectFilter instanceof EqualFilter) {
                     EqualFilter<T> eq = (EqualFilter<T>) objectFilter;

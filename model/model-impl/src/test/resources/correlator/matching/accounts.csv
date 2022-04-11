@@ -1,0 +1,21 @@
+# The file contains 5 data columns (`uid`, `givenName`, `familyName`, `dateOfBirth`, and `nationalId`.
+# Note that `uid` has to be a pure integer. The accounts are processed in the order of their `uid`.
+#
+# The `test` column describes the expected identity of the account:
+#
+# - `new` means a new identity should be assigned (e.g. new user in higher-level tests, or
+# new reference ID in lower-level ones)
+# - `=N` means the account corresponds to the same identity as previously processed account with uid `N`;
+# - `?A,B,C:N` means that the correlator/matcher should provide options corresponding to accounts with `uid`
+# values of `A`, `B`, `C` (can be any positive number of them) and the operator will select the account
+# with `uid` of `N`
+# - `?A,B,C:new` means the same, but the operator will select "new person" as the response
+#
+
+uid  | givenName      | familyName      | dateOfBirth     | nationalId    | test            | _note
+1    | Ian            | Smith           | 2004-02-06      | 0402061328    | new             |
+2    | Mary           | Smith           | 2006-04-10      | 0604101993    | new             |
+3    | Jan            | Smith           | 2004-02-06      | 0402061328    | =1              | same as 1 but with different given name
+4    | Ian            | Smith           | 2004-02-06      | 040206----    | ?1,4:1          | same as 1 but with trimmed national ID (same person)
+5    | Ian            | Smith           | 2004-02-06      | 0402068231    | ?1,4,5:new      | same as 1 but with different national ID (another person)
+6    | Ian            | Smith           | 2004-02-06      | 0402068230    | ?1,4,5,6:5      | can be 1 or 5 (names+DoB) but he's 5, due to typo in nat. ID

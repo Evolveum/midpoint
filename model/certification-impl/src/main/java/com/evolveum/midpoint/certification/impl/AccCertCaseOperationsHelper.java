@@ -17,9 +17,10 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseRelatedUtils;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
@@ -49,8 +50,6 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Logic for certification operations like decision recording, case creation or advancement.
- *
- * @author mederly
  */
 @Component
 public class AccCertCaseOperationsHelper {
@@ -161,7 +160,7 @@ public class AccCertCaseOperationsHelper {
             WorkItemDelegationMethodType method = getDelegationMethod(delegateAction);
             List<ObjectReferenceType> newAssignees = new ArrayList<>();
             List<ObjectReferenceType> delegatedTo = new ArrayList<>();
-            ApprovalContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem.getAssigneeRef());
+            CaseRelatedUtils.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem.getAssigneeRef());
             //noinspection ConstantConditions
             WorkItemDelegationEventType event = ApprovalContextUtil
                     .createDelegationEvent(null, assigneesBefore, delegatedTo, method, causeInformation, prismContext);
@@ -245,7 +244,7 @@ public class AccCertCaseOperationsHelper {
             }
             List<ObjectReferenceType> delegates = computeDelegateTo(escalateAction, workItem, aCase, workItemCampaign, task, result);
 
-            int escalationLevel = ApprovalContextUtil.getEscalationLevelNumber(workItem);
+            int escalationLevel = WorkItemTypeUtil.getEscalationLevelNumber(workItem);
             if (escalationLevel + 1 != newStageEscalationLevelNumber) {
                 throw new IllegalStateException("Different escalation level numbers for certification cases: work item level ("
                         + newEscalationLevel + ") is different from the stage level (" + newStageEscalationLevelNumber + ")");
@@ -256,7 +255,7 @@ public class AccCertCaseOperationsHelper {
             WorkItemDelegationMethodType method = getDelegationMethod(escalateAction);
             List<ObjectReferenceType> newAssignees = new ArrayList<>();
             List<ObjectReferenceType> delegatedTo = new ArrayList<>();
-            ApprovalContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem.getAssigneeRef());
+            CaseRelatedUtils.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem.getAssigneeRef());
             WorkItemDelegationEventType event = ApprovalContextUtil
                     .createDelegationEvent(newEscalationLevel, assigneesBefore, delegatedTo, method, causeInformation, prismContext);
             event.setTimestamp(now);

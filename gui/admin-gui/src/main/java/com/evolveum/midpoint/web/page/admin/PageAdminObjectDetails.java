@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -23,6 +24,7 @@ import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -48,7 +50,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -84,7 +85,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguratio
 import com.evolveum.midpoint.web.page.admin.server.OperationalButtonsPanel;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
@@ -152,11 +152,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     public boolean isEditingFocus() {
         return editingFocus;
-    }
-
-    @Override
-    protected void createBreadcrumb() {
-        createInstanceBreadcrumb();
     }
 
     @Override
@@ -564,7 +559,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                             }
 
                             @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ArchetypeType>> rowModel) {
+                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ArchetypeType>> rowModel, DataTable dataTable) {
                                 target.add(getObjectListPanel());
                                 tabLabelPanelUpdate(target);
                             }
@@ -1180,7 +1175,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             finishPreviewProcessing(target, result);
             return;
         }
-        if (result.isSuccess() && getDelta() != null && SecurityUtils.getPrincipalUser().getOid().equals(getDelta().getOid())) {
+        if (result.isSuccess() && getDelta() != null && AuthUtil.getPrincipalUser().getOid().equals(getDelta().getOid())) {
             Session.get().setLocale(WebComponentUtil.getLocale());
             LOGGER.debug("Using {} as locale", getLocale());
             WebSession.get().getClientInfo().getProperties().
@@ -1234,7 +1229,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
         processAdditionalFocalObjectsForPreview(modelContextMap);
 
-        navigateToNext(new PagePreviewChanges(modelContextMap, getModelInteractionService()));
+        navigateToNext(new PagePreviewChanges(modelContextMap, getModelInteractionService(), this));
     }
 
     protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<O>, ModelContext<? extends ObjectType>> modelContextMap) {

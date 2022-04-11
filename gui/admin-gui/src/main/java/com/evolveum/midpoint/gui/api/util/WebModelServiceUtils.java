@@ -6,22 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.util;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
-
-import java.util.*;
-import java.util.Objects;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.page.PageCommon;
-import com.evolveum.midpoint.web.page.error.PageError;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.apache.wicket.RestartResponseException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -49,10 +34,21 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.wicket.RestartResponseException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
+import java.util.*;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
 /**
  * Utility class that contains methods that interact with ModelService and other
@@ -75,8 +71,6 @@ public class WebModelServiceUtils {
     private static final String OPERATION_COUNT_OBJECT = DOT_CLASS + "countObjects";
     private static final String OPERATION_ASSUME_POWER_OF_ATTORNEY = DOT_CLASS + "assumePowerOfAttorney";
     private static final String OPERATION_DROP_POWER_OF_ATTORNEY = DOT_CLASS + "dropPowerOfAttorney";
-    private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
-    private static final String OPERATION_LOAD_FLOW_POLICY = DOT_CLASS + "loadFlowPolicy";
 
     public static String resolveReferenceName(Referencable ref, PageCommon page) {
         return resolveReferenceName(ref, page, false);
@@ -295,7 +289,7 @@ public class WebModelServiceUtils {
             page.showResult(subResult);
         }
         if (object == null && !allowNotFound) {
-            throw new RestartResponseException(PageError.class);
+            page.redirectToNotFoundPage();
         }
         LOGGER.debug("Loaded {} with result {}", object, subResult);
 
@@ -544,7 +538,7 @@ public class WebModelServiceUtils {
     }
 
     public static FocusType getLoggedInFocus() {
-        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal principal = AuthUtil.getPrincipalUser();
         Validate.notNull(principal, "No principal");
         if (principal.getFocus() == null) {
             throw new IllegalArgumentException("No focus in principal: " + principal);
@@ -553,7 +547,7 @@ public class WebModelServiceUtils {
     }
 
     public static String getLoggedInFocusOid() {
-        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal principal = AuthUtil.getPrincipalUser();
         Validate.notNull(principal, "No principal");
         if (principal.getOid() == null) {
             throw new IllegalArgumentException("No OID in principal: " + principal);
@@ -562,7 +556,7 @@ public class WebModelServiceUtils {
     }
 
     public static TimeZone getTimezone() {
-        GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
 
         if (principal == null) {
             return null;
@@ -598,7 +592,7 @@ public class WebModelServiceUtils {
         Task task = manager.createTaskInstance(operation);
 
         if (owner == null) {
-            MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+            MidPointPrincipal user = AuthUtil.getPrincipalUser();
             if (user == null) {
                 throw new RestartResponseException(PageLogin.class);
             } else {
@@ -731,33 +725,6 @@ public class WebModelServiceUtils {
         Locale locale = page.getLocale();
 
         return service.translate(result.getUserFriendlyMessage(), locale);
-    }
-
-    public static boolean isPostAuthenticationEnabled(TaskManager taskManager, ModelInteractionService modelInteractionService) {
-        MidPointPrincipal midpointPrincipal = SecurityUtils.getPrincipalUser();
-        if (midpointPrincipal != null) {
-            FocusType focus = midpointPrincipal.getFocus();
-            Task task = taskManager.createTaskInstance(OPERATION_LOAD_FLOW_POLICY);
-            OperationResult parentResult = new OperationResult(OPERATION_LOAD_FLOW_POLICY);
-            RegistrationsPolicyType registrationPolicyType;
-            try {
-                registrationPolicyType = modelInteractionService.getFlowPolicy(focus.asPrismObject(), task, parentResult);
-                if (registrationPolicyType == null) {
-                    return false;
-                }
-                SelfRegistrationPolicyType postAuthenticationPolicy = registrationPolicyType.getPostAuthentication();
-                if (postAuthenticationPolicy == null) {
-                    return false;
-                }
-                String requiredLifecycleState = postAuthenticationPolicy.getRequiredLifecycleState();
-                if (StringUtils.isNotBlank(requiredLifecycleState) && requiredLifecycleState.equals(focus.getLifecycleState())) {
-                    return true;
-                }
-            } catch (CommonException e) {
-                LoggingUtils.logException(LOGGER, "Cannot determine post authentication policies", e);
-            }
-        }
-        return false;
     }
 
     public static PrismObject<SystemConfigurationType> loadSystemConfigurationAsPrismObject(PageCommon pageBase, Task task, OperationResult result) {

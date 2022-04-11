@@ -11,8 +11,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * A bit experimental.
- *
- * @author mederly
  */
 public interface ConflictWatcher {
 

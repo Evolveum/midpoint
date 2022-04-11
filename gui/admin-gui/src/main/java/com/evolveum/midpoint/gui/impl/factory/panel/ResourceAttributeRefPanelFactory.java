@@ -14,12 +14,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+
 import org.apache.wicket.model.IModel;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -27,7 +36,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ConstructionValueWrapper;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -114,18 +122,26 @@ public class ResourceAttributeRefPanelFactory
         ConstructionValueWrapper constructionWrapper = (ConstructionValueWrapper) itemWrapper;
 
         try {
-            RefinedResourceSchema schema = constructionWrapper.getResourceSchema();
+            Task task = ctx.getPageBase().createSimpleTask("Load resource");
+            OperationResult result = task.getResult();
+            PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class,
+                    constructionWrapper.getResourceOid(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch()),
+                    ctx.getPageBase(), task, result);
+            ResourceSchema schema = constructionWrapper.getRefinedSchema(resource);
             if (schema == null) {
                 return new ArrayList<>();
             }
-            RefinedObjectClassDefinition rOcd = schema.getRefinedDefinition(constructionWrapper.getKind(), constructionWrapper.getIntent());
+            ResourceObjectDefinition rOcd =
+                    schema.findObjectDefinition(constructionWrapper.getKind(), constructionWrapper.getIntent(resource));
             if (rOcd == null) {
                 return Collections.emptyList();
             }
 
             if (ConstructionType.F_ASSOCIATION.equivalent(attributeWrapper.getItemName())) {
-                Collection<RefinedAssociationDefinition> associationDefs = rOcd.getAssociationDefinitions();
-                return associationDefs.stream().map(association -> association.getName()).collect(Collectors.toList());
+                Collection<ResourceAssociationDefinition> associationDefs = rOcd.getAssociationDefinitions();
+                return associationDefs.stream()
+                        .map(ResourceAssociationDefinition::getName)
+                        .collect(Collectors.toList());
             }
 
             Collection<? extends ResourceAttributeDefinition<?>> attrDefs = rOcd.getAttributeDefinitions();

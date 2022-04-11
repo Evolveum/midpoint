@@ -11,12 +11,12 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationBehavioralDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -56,7 +57,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
 
     @Override
     public IModel<PersonalInfoDto> createModel() {
-        return new LoadableModel<PersonalInfoDto>(false) {
+        return new LoadableDetachableModel<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -68,7 +69,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     }
 
     private PersonalInfoDto loadPersonalInfo() {
-        FocusType focus = SecurityUtils.getPrincipalUser().getFocus();
+        FocusType focus = AuthUtil.getPrincipalUser().getFocus();
         AuthenticationBehavioralDataType behaviour = focus.getBehavior() != null ? focus.getBehavior().getAuthentication() : null;
         PersonalInfoDto dto = new PersonalInfoDto();
         if (behaviour != null) {
@@ -99,7 +100,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     }
 
     protected void initLayout() {
-        DateLabelComponent lastLoginDate = new DateLabelComponent(ID_LAST_LOGIN_DATE, new IModel<Date>() {
+        DateLabelComponent lastLoginDate = new DateLabelComponent(ID_LAST_LOGIN_DATE, new IModel<>() {
 
             private static final long serialVersionUID = 1L;
 

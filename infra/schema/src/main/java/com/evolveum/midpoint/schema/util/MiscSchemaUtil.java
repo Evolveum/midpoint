@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,12 +7,9 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.util.*;
-import java.util.Objects;
+import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +22,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -34,7 +33,9 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -237,13 +238,18 @@ public class MiscSchemaUtil {
         return rval;
     }
 
-    public static PropertyLimitationsType getLimitationsType(
-            List<PropertyLimitationsType> limitationsTypes, LayerType layer) throws SchemaException {
-        if (limitationsTypes == null) {
+    /**
+     * Selects appropriate limitations definition (for a given layer) from a list of definitions.
+     *
+     * If given layer of `null`, selects a definition that has no layers provided.
+     */
+    public static PropertyLimitationsType getLimitationsForLayer(
+            List<PropertyLimitationsType> definitions, LayerType layer) throws SchemaException {
+        if (definitions == null) {
             return null;
         }
         PropertyLimitationsType found = null;
-        for (PropertyLimitationsType limitType : limitationsTypes) {
+        for (PropertyLimitationsType limitType : definitions) {
             if (contains(limitType.getLayer(), layer)) {
                 if (found == null) {
                     found = limitType;
@@ -441,9 +447,6 @@ public class MiscSchemaUtil {
         if (existPaging.getMaxSize() == null) {
             existPaging.setMaxSize(newPaging.getMaxSize());
         }
-        if (existPaging.getGroupBy() == null) {
-            existPaging.setGroupBy(newPaging.getGroupBy());
-        }
         if (existPaging.getOffset() == null) {
             existPaging.setOffset(newPaging.getOffset());
         }
@@ -453,6 +456,19 @@ public class MiscSchemaUtil {
         if (existPaging.getOrderDirection() == null) {
             existPaging.setOrderDirection(newPaging.getOrderDirection());
         }
+    }
+
+    public static void mergeColumns(List<GuiObjectColumnType> existingColumns, List<GuiObjectColumnType> newColumns) {
+        newColumns.forEach(newColumn -> {
+            Optional<GuiObjectColumnType> matchesColumn = existingColumns.stream().filter(
+                    existingColumn -> existingColumn.getName().equals(newColumn.getName())).findFirst();
+            if (matchesColumn.isPresent()){
+                existingColumns.remove(matchesColumn.get());
+                existingColumns.add(newColumn);
+            } else {
+                existingColumns.add(newColumn);
+            }
+        });
     }
 
     /*

@@ -548,10 +548,6 @@ public class SchemaHandlingStep extends WizardStep {
         associationsTooltip.add(new InfoTooltipBehavior());
         editor.add(associationsTooltip);
 
-        Label assignmentPolicyRefTooltip = new Label(ID_T_ASSIGNMENT_POLICY_REF);
-        assignmentPolicyRefTooltip.add(new InfoTooltipBehavior());
-        editor.add(assignmentPolicyRefTooltip);
-
         Label iterationTooltip = new Label(ID_T_ITERATION);
         iterationTooltip.add(AttributeAppender.append("title", createStringResource("SchemaHandlingStep.tooltip.iteration",
                 WebComponentUtil.getMidpointCustomSystemName(getPageBase(), "midpoint.default.system.name"))));
@@ -571,8 +567,8 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(credentialsTooltip);
     }
 
-    private String formatItemInfo(ResourceItemDefinitionType item, ItemPathType ref, String displayName, List<MappingType> inbounds,
-            MappingType outbound) {
+    private String formatItemInfo(ResourceItemDefinitionType item, ItemPathType ref, String displayName,
+            List<? extends MappingType> inbounds, MappingType outbound) {
         StringBuilder sb = new StringBuilder();
         if (ref != null && !ref.getItemPath().isEmpty()) {
             QName name = ref.getItemPath().asSingleName();
@@ -824,6 +820,9 @@ public class SchemaHandlingStep extends WizardStep {
     @Override
     public void applyState() {
         parentPage.refreshIssues(null);
+
+        removeEmptyContainers(resourceModel.getObject());
+
         if (parentPage.isReadOnly() || !isComplete()) {
             return;
         }
@@ -840,8 +839,6 @@ public class SchemaHandlingStep extends WizardStep {
         ModelService modelService = parentPage.getModelService();
         ObjectDelta delta;
         boolean saved = false;
-
-        removeEmptyContainers(newResource);
 
         try {
             oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), parentPage, task, result);
@@ -956,7 +953,7 @@ public class SchemaHandlingStep extends WizardStep {
                 objectType.getAttribute().addAll(newAttributeList);
 
                 for (ResourceAttributeDefinitionType attr : objectType.getAttribute()) {
-                    List<MappingType> newInbounds = clearEmptyMappings(attr.getInbound());
+                    List<InboundMappingType> newInbounds = clearEmptyMappings(attr.getInbound());
                     attr.getInbound().clear();
                     attr.getInbound().addAll(newInbounds);
                 }
@@ -973,7 +970,7 @@ public class SchemaHandlingStep extends WizardStep {
                 objectType.getAssociation().addAll(newAssociationList);
 
                 for (ResourceObjectAssociationType association : objectType.getAssociation()) {
-                    List<MappingType> newInbounds = clearEmptyMappings(association.getInbound());
+                    List<InboundMappingType> newInbounds = clearEmptyMappings(association.getInbound());
                     association.getInbound().clear();
                     association.getInbound().addAll(newInbounds);
                 }
@@ -1012,10 +1009,10 @@ public class SchemaHandlingStep extends WizardStep {
         list.addAll(newList);
     }
 
-    private List<MappingType> clearEmptyMappings(List<MappingType> list) {
-        List<MappingType> newList = new ArrayList<>();
+    private <MT extends MappingType> List<MT> clearEmptyMappings(List<MT> list) {
+        List<MT> newList = new ArrayList<>();
 
-        for (MappingType mapping : list) {
+        for (MT mapping : list) {
             if (!WizardUtil.isEmptyMapping(mapping)) {
                 newList.add(mapping);
             }

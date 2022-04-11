@@ -13,9 +13,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @author mederly
- */
 public class SystemConfigurationTypeUtil {
 
     public static boolean isExperimentalCodeEnabled(SystemConfigurationType config) {

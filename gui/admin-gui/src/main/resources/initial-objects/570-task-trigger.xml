@@ -13,6 +13,9 @@
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000529" type="ArchetypeType" />
     </assignment>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000531" type="ArchetypeType" />
+    </assignment>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionState>runnable</executionState>
 

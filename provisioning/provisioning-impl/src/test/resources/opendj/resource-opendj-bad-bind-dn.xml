@@ -121,6 +121,7 @@
         <objectType>
             <kind>entitlement</kind>
             <intent>ldapGroup</intent>
+            <default>true</default>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
             <attribute>

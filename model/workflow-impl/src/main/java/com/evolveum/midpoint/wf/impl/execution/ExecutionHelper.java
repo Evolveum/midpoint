@@ -7,6 +7,22 @@
 
 package com.evolveum.midpoint.wf.impl.execution;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.xml.datatype.Duration;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.cases.impl.engine.helpers.TriggerHelper;
+import com.evolveum.midpoint.cases.impl.engine.helpers.WorkItemHelper;
+import com.evolveum.midpoint.cases.impl.helpers.AuthorizationHelper;
+import com.evolveum.midpoint.cases.impl.helpers.CaseMiscHelper;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -20,37 +36,19 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.access.AuthorizationHelper;
-import com.evolveum.midpoint.wf.impl.engine.helpers.WfAuditHelper;
-import com.evolveum.midpoint.wf.impl.engine.helpers.NotificationHelper;
-import com.evolveum.midpoint.wf.impl.engine.helpers.TriggerHelper;
-import com.evolveum.midpoint.wf.impl.engine.helpers.WorkItemHelper;
 import com.evolveum.midpoint.wf.impl.processes.common.ExpressionEvaluationHelper;
 import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
-import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-/**
- */
 @Component
 public class ExecutionHelper {
 
@@ -62,11 +60,9 @@ public class ExecutionHelper {
     public RepositoryService repositoryService;
     @Autowired public PrismContext prismContext;
     @Autowired private TaskManager taskManager;
-    @Autowired public WfAuditHelper wfAuditHelper;
-    @Autowired public NotificationHelper notificationHelper;
     @Autowired public StageComputeHelper stageComputeHelper;
     @Autowired public PrimaryChangeProcessor primaryChangeProcessor;   // todo
-    @Autowired public MiscHelper miscHelper;
+    @Autowired public CaseMiscHelper miscHelper;
     @Autowired public TriggerHelper triggerHelper;
     @Autowired public ExpressionEvaluationHelper expressionEvaluationHelper;
     @Autowired public WorkItemHelper workItemHelper;
@@ -77,14 +73,8 @@ public class ExecutionHelper {
     private static final String DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION = "$approval-task-group$:";
     private static final long DEFAULT_SERIALIZATION_RETRY_TIME = 10000L;
 
-    public void closeCaseInRepository(CaseType aCase, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(CaseType.class)
-                .item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
-                .item(CaseType.F_CLOSE_TIMESTAMP).replace(clock.currentTimeXMLGregorianCalendar())
-                .asItemDeltas();
-        repositoryService.modifyObject(CaseType.class, aCase.getOid(), modifications, result);
-        LOGGER.debug("Marked case {} as closed", aCase);
+    public void closeCaseInRepository(CaseType aCase, OperationResult result) throws ObjectNotFoundException {
+        miscHelper.closeCaseInRepository(aCase, result);
     }
 
     /**
@@ -93,7 +83,7 @@ public class ExecutionHelper {
      * 2) if we can close the parent (root)
      */
     public void checkDependentCases(String rootOid, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, PreconditionViolationException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         CaseType rootCase = repositoryService.getObject(CaseType.class, rootOid, null, result).asObjectable();
         if (CaseTypeUtil.isClosed(rootCase)) {
             return;
@@ -131,7 +121,12 @@ public class ExecutionHelper {
                 LOGGER.trace("prerequisite OIDs = {}; intersection with open OIDs = {}", prerequisiteOids, openPrerequisites);
                 if (openPrerequisites.isEmpty()) {
                     LOGGER.trace("All prerequisites are fulfilled, going to release the task {}", waitingTask);
-                    taskManager.unpauseTask(taskManager.createTaskInstance(waitingTask, result), result);
+                    try {
+                        taskManager.unpauseTask(taskManager.createTaskInstance(waitingTask, result), result);
+                    } catch (PreconditionViolationException e) {
+                        LoggingUtils.logException(LOGGER, "Race condition when unpausing the task. "
+                                + "It may or may not be unpaused now. Continuing.", e);
+                    }
                 } else {
                     LOGGER.trace("...task is not released and continues waiting for those cases");
                 }

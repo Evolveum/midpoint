@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -68,6 +65,7 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.AssignmentListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.session.GenericPageStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -86,6 +84,10 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config) {
         super(id, AssignmentType.class, config);
+        this.model = model;
+    }
+
+    protected void setModel(IModel<PrismContainerWrapper<AssignmentType>> model) {
         this.model = model;
     }
 
@@ -156,6 +158,20 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                 AbstractAssignmentTypePanel.this.itemDetailsPerformed(target, rowModel);
             }
         };
+    }
+
+    @Override
+    protected PageStorage getPageStorage(String storageKey) {
+        Map<String, PageStorage> storage = getSession().getSessionStorage().getPageStorageMap();
+        PageStorage pageStorage = storage.get(storageKey);
+        if (pageStorage != null) {
+            return pageStorage;
+        }
+
+        pageStorage = new GenericPageStorage();
+        storage.put(storageKey, pageStorage);
+
+        return pageStorage;
     }
 
     private String loadValuesForNameColumn(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {

@@ -26,6 +26,7 @@ public enum GuiChannel {
     INIT(Channel.INIT, "fa fa-plug"),
     USER(Channel.USER, "fa fa-keyboard-o"),
     SELF_REGISTRATION(Channel.SELF_REGISTRATION, "fa fa-file-text-o"),
+    SELF_SERVICE(Channel.SELF_SERVICE, "fa fa-keyboard-o"),
     RESET_PASSWORD(Channel.RESET_PASSWORD, "fa fa-shield"),
     IMPORT(Channel.IMPORT, "fa fa-upload"),
     ASYNC_UPDATE(Channel.ASYNC_UPDATE, "fa fa-gears");

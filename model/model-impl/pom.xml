@@ -44,6 +44,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.axiom</groupId>
+            <artifactId>axiom</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-impl</artifactId>
             <version>${project.version}</version>
@@ -53,7 +58,6 @@
                     <artifactId>jaxb-api</artifactId>
                 </exclusion>
             </exclusions>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -117,7 +121,7 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>workflow-api</artifactId>
+            <artifactId>cases-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -138,6 +142,11 @@
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>notifications-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>authentication-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -170,10 +179,6 @@
             <artifactId>javax.ws.rs-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.wss4j</groupId>
-            <artifactId>wss4j-ws-security-common</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.jvnet.jaxb2_commons</groupId>
             <artifactId>jaxb2-basics-runtime</artifactId>
         </dependency>
@@ -190,20 +195,8 @@
             <artifactId>spring-context</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.ldap</groupId>
-            <artifactId>spring-ldap-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-ldap</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
@@ -240,6 +233,23 @@
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.openjson</groupId>
+            <artifactId>openjson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
         </dependency>
 
         <!-- Test -->
@@ -370,6 +380,11 @@
         <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
             <groupId>org.springframework</groupId>
             <artifactId>spring-aop</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

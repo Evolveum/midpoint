@@ -1,11 +1,14 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl;
+
+import com.evolveum.midpoint.notifications.impl.util.ApplicationContextHolder;
+
+import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -13,7 +16,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.commons.lang.Validate;
 
 /**
  * TODO change to ObjectReferenceType
@@ -22,27 +24,23 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
 
     private String oid;
     private ObjectType objectType;
-    private NotificationFunctionsImpl functions;        // used to resolve object refs
 
-    SimpleObjectRefImpl(NotificationFunctionsImpl functions, ObjectType objectType) {
+    public SimpleObjectRefImpl(ObjectType objectType) {
         this.oid = objectType.getOid();
         this.objectType = objectType;
-        this.functions = functions;
     }
 
-    public SimpleObjectRefImpl(NotificationFunctionsImpl functions, PrismObject<?> object) {
+    public SimpleObjectRefImpl(PrismObject<?> object) {
         this.oid = object.getOid();
         this.objectType = (ObjectType) object.asObjectable();
-        this.functions = functions;
     }
 
-    public SimpleObjectRefImpl(NotificationFunctionsImpl functions, ObjectReferenceType ref) {
+    public SimpleObjectRefImpl(ObjectReferenceType ref) {
         Validate.notNull(ref);
         this.oid = ref.getOid();
         if (ref.asReferenceValue().getObject() != null) {
             this.objectType = (ObjectType) ref.asReferenceValue().getObject().asObjectable();
         }
-        this.functions = functions;
     }
 
     public String getOid() {
@@ -63,7 +61,15 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
 
     @Override
     public ObjectType resolveObjectType(OperationResult result, boolean allowNotFound) {
-        return functions.getObjectType(this, allowNotFound, result);
+        ObjectType object = getFunctions().getObject(this, allowNotFound, result);
+        if (object != null) {
+            objectType = object;
+        }
+        return object;
+    }
+
+    private NotificationFunctions getFunctions() {
+        return ApplicationContextHolder.getBean(NotificationFunctions.class);
     }
 
     @Override
@@ -79,8 +85,8 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
                 '}';
     }
 
-    public static SimpleObjectRef create(NotificationFunctionsImpl functions, ObjectReferenceType ref) {
-        return ref != null ? new SimpleObjectRefImpl(functions, ref) : null;
+    public static SimpleObjectRef create(ObjectReferenceType ref) {
+        return ref != null ? new SimpleObjectRefImpl(ref) : null;
     }
 
     @Override

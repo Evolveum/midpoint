@@ -4,17 +4,14 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.deleg.ContainerDefinitionDelegator;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public interface AttributeContainerDefinitionDelegator extends ContainerDefinitionDelegator<ShadowAttributesType>, ResourceAttributeContainerDefinition {
@@ -23,27 +20,27 @@ public interface AttributeContainerDefinitionDelegator extends ContainerDefiniti
     ResourceAttributeContainerDefinition delegate();
 
     @Override
-    default Collection<? extends ResourceAttributeDefinition> getPrimaryIdentifiers() {
+    default Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers() {
         return delegate().getPrimaryIdentifiers();
     }
 
     @Override
-    default Collection<? extends ResourceAttributeDefinition> getSecondaryIdentifiers() {
+    default Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers() {
         return delegate().getSecondaryIdentifiers();
     }
 
     @Override
-    default Collection<? extends ResourceAttributeDefinition> getAllIdentifiers() {
+    default Collection<? extends ResourceAttributeDefinition<?>> getAllIdentifiers() {
         return delegate().getAllIdentifiers();
     }
 
     @Override
-    default ResourceAttributeDefinition getDescriptionAttribute() {
+    default ResourceAttributeDefinition<?> getDescriptionAttribute() {
         return delegate().getDescriptionAttribute();
     }
 
     @Override
-    default ResourceAttributeDefinition getNamingAttribute() {
+    default ResourceAttributeDefinition<?> getNamingAttribute() {
         return delegate().getNamingAttribute();
     }
 
@@ -53,22 +50,12 @@ public interface AttributeContainerDefinitionDelegator extends ContainerDefiniti
     }
 
     @Override
-    default boolean isDefaultInAKind() {
-        return delegate().isDefaultInAKind();
+    default boolean isDefaultAccountDefinition() {
+        return delegate().isDefaultAccountDefinition();
     }
 
     @Override
-    default String getIntent() {
-        return delegate().getIntent();
-    }
-
-    @Override
-    default ShadowKindType getKind() {
-        return delegate().getKind();
-    }
-
-    @Override
-    default ResourceAttributeDefinition getDisplayNameAttribute() {
+    default ResourceAttributeDefinition<?> getDisplayNameAttribute() {
         return delegate().getDisplayNameAttribute();
     }
 
@@ -78,17 +65,17 @@ public interface AttributeContainerDefinitionDelegator extends ContainerDefiniti
     }
 
     @Override
-    default ResourceAttributeDefinition findAttributeDefinition(ItemPath elementPath) {
+    default ResourceAttributeDefinition<?> findAttributeDefinition(ItemPath elementPath) {
         return delegate().findAttributeDefinition(elementPath);
     }
 
     @Override
-    default ResourceAttributeDefinition findAttributeDefinition(String elementLocalname) {
-        return delegate().findAttributeDefinition(elementLocalname);
+    default ResourceAttributeDefinition<?> findAttributeDefinition(String localName) {
+        return delegate().findAttributeDefinition(localName);
     }
 
     @Override
-    default List<? extends ResourceAttributeDefinition> getAttributeDefinitions() {
+    default List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
         return delegate().getAttributeDefinitions();
     }
 
@@ -108,12 +95,12 @@ public interface AttributeContainerDefinitionDelegator extends ContainerDefiniti
     }
 
     @Override
-    default List<? extends ResourceAttributeDefinition> getDefinitions() {
+    default @NotNull List<? extends ResourceAttributeDefinition<?>> getDefinitions() {
         return delegate().getDefinitions();
     }
 
     @Override
-    default ObjectClassComplexTypeDefinition getComplexTypeDefinition() {
+    default ResourceObjectDefinition getComplexTypeDefinition() {
         return delegate().getComplexTypeDefinition();
     }
 

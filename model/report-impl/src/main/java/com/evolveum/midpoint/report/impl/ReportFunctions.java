@@ -21,7 +21,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.WorkflowConstants;
+import com.evolveum.midpoint.cases.api.AuditingConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -89,6 +89,10 @@ public class ReportFunctions {
     public <O extends ObjectType> List<PrismObject<O>> resolveLinkRefs(Collection<ObjectReferenceType> refs, Class<O> type) {
 
         List<PrismObject<O>> objects = new ArrayList<>();
+
+        if (refs == null) {
+            return objects;
+        }
 
         for (ObjectReferenceType ref : refs) {
             Class<O> clazz = getClassForType(ref.getType());
@@ -230,7 +234,9 @@ public class ReportFunctions {
         Map<String, List<AuditEventRecordType>> workflows = auditEvents.stream().collect(Collectors.groupingBy(event -> {
             List<String> processInstanceIds = new ArrayList<>();
             event.getProperty().stream()
-                    .filter(property -> WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID.equals(property.getName()))
+                    .filter(property ->
+                            AuditingConstants.AUDIT_PROCESS_INSTANCE_ID.equals(property.getName())
+                                    || AuditingConstants.AUDIT_CASE_OID.equals(property.getName()))
                     .findFirst().ifPresent(property -> processInstanceIds.addAll(property.getValue()));
 
             Iterator<String> it = processInstanceIds.iterator();

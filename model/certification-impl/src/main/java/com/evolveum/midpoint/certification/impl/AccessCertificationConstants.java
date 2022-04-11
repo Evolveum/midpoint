@@ -9,9 +9,6 @@ package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
-/**
- * @author mederly
- */
 @SuppressWarnings("WeakerAccess")
 public class AccessCertificationConstants {
 

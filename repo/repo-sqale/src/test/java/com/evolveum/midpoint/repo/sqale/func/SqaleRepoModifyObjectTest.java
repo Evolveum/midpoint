@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -64,6 +64,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -77,9 +78,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     private static final long CAMPAIGN_1_CASE_2_ID = 55L;
 
     private String user1Oid; // typical object
-    private String task1Oid; // task has more attribute type variability
+    private String task1Oid; // task has more item type variability
     private String shadow1Oid; // ditto
-    private String service1Oid; // object with integer attribute
+    private String service1Oid; // object with integer item
     private String accessCertificationCampaign1Oid;
     private UUID accCertCampaign1Case2ObjectOid;
 
@@ -88,20 +89,20 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         user1Oid = repositoryService.addObject(
-                new UserType(prismContext).name("user-1").asPrismObject(),
+                new UserType().name("user-1").asPrismObject(),
                 null, result);
         task1Oid = repositoryService.addObject(
-                new TaskType(prismContext).name("task-1").asPrismObject(),
+                new TaskType().name("task-1").asPrismObject(),
                 null, result);
         shadow1Oid = repositoryService.addObject(
-                new ShadowType(prismContext).name("shadow-1").asPrismObject(),
+                new ShadowType().name("shadow-1").asPrismObject(),
                 null, result);
         service1Oid = repositoryService.addObject(
-                new ServiceType(prismContext).name("service-1").asPrismObject(),
+                new ServiceType().name("service-1").asPrismObject(),
                 null, result);
         // This also indirectly tests ability to create a minimal object (mandatory fields only).
         accessCertificationCampaign1Oid = repositoryService.addObject(
-                new AccessCertificationCampaignType(prismContext)
+                new AccessCertificationCampaignType()
                         .name("campaign-1")
                         .ownerRef(user1Oid, UserType.COMPLEX_TYPE)
                         // TODO: campaignIteration
@@ -115,7 +116,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
     // region various types of simple items
     @Test
-    public void test100ChangeStringAttribute()
+    public void test100ChangeStringItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -149,7 +150,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
      * This behavior is likely to change.
      */
     @Test
-    public void test101ChangeStringAttributeWithPreviousValueUsingAddModification()
+    public void test101ChangeStringItemWithPreviousValueUsingAddModification()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -178,7 +179,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test102DeleteStringAttribute()
+    public void test102DeleteStringItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -319,7 +320,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test110ChangeInstantAttribute()
+    public void test110ChangeInstantItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
@@ -356,7 +357,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     */
 
     @Test
-    public void test111DeleteInstantAttribute()
+    public void test111DeleteInstantItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -388,7 +389,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test115ChangeIntegerAttribute()
+    public void test115ChangeIntegerItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MService originalRow = selectObjectByOid(QService.class, service1Oid);
@@ -419,7 +420,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test116DeleteIntegerAttribute()
+    public void test116DeleteIntegerItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -452,7 +453,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test120ChangeBooleanAttribute()
+    public void test120ChangeBooleanItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -486,7 +487,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test121DeleteBooleanAttribute()
+    public void test121DeleteBooleanItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -595,7 +596,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test130ChangePolyStringAttribute()
+    public void test130ChangePolyStringItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -634,7 +635,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test131DeletePolyStringAttribute()
+    public void test131DeletePolyStringItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -739,7 +740,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test140ChangeReferenceAttribute()
+    public void test140ChangeReferenceItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
@@ -780,7 +781,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test141DeleteReferenceAttribute()
+    public void test141DeleteReferenceItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -814,7 +815,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test143ChangeCachedUriAttribute()
+    public void test143ChangeCachedUriItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
@@ -843,7 +844,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test144DeleteCachedUriAttribute()
+    public void test144DeleteCachedUriItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -875,7 +876,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test146ChangeEnumAttribute()
+    public void test146ChangeEnumItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
@@ -904,7 +905,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test147DeleteEnumAttribute()
+    public void test147DeleteEnumItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -941,7 +942,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta adding a pending operation for shadow 1");
         ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
-                .item(ShadowType.F_PENDING_OPERATION).add(new PendingOperationType(prismContext)
+                .item(ShadowType.F_PENDING_OPERATION).add(new PendingOperationType()
                         .requestTimestamp(MiscUtil.asXMLGregorianCalendar(1L)))
                 .asObjectDelta(shadow1Oid);
 
@@ -1198,7 +1199,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                                 .oid(refTargetOid2.toString()).relation(refRelation2),
                         new ObjectReferenceType() // nonexistent anyway
                                 .oid(refTargetOid3.toString()).relation(refRelation2),
-                        // like add bellow, the deletion will be "narrowed" out and ignored
+                        // like add below, the deletion will be "narrowed" out and ignored
                         new ObjectReferenceType()
                                 .oid(refTargetOid3.toString()).relation(refRelation1))
                 .add(new ObjectReferenceType().oid(refTargetOid3.toString())
@@ -1490,7 +1491,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         // Container tests are in 3xx category, but let's focus on policy situations.
         given("delta adding assignment with policy situations");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT).add(new AssignmentType(prismContext)
+                .item(UserType.F_ASSIGNMENT).add(new AssignmentType()
                         .policySituation("policy-situation-1")
                         .policySituation("policy-situation-2"))
                 .asObjectDelta(user1Oid);
@@ -1717,7 +1718,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("connector with non-null connector host");
         String oid = repositoryService.addObject(
-                new ConnectorType(prismContext)
+                new ConnectorType()
                         .name("conn-1")
                         .connectorBundle("com.connector.package")
                         .connectorType("ConnectorTypeClass")
@@ -1746,7 +1747,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
     // region nested (embedded) single-value containers (e.g. metadata)
     @Test
-    public void test200ChangeNestedMetadataAttributeWithAddModification()
+    public void test200ChangeNestedMetadataItemWithAddModification()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
@@ -1776,7 +1777,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test201DeleteNestedMetadataAttribute()
+    public void test201DeleteNestedMetadataItem()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -1810,7 +1811,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test202ChangeNestedMetadataAttributeWithReplaceModification()
+    public void test202ChangeNestedMetadataItemWithReplaceModification()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -2168,8 +2169,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta adding whole credential/password container user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD)
-                .replace(new PasswordType(prismContext)
-                        .metadata(new MetadataType(prismContext)
+                .replace(new PasswordType()
+                        .metadata(new MetadataType()
                                 .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(1L))))
                 .asObjectDelta(user1Oid);
 
@@ -2202,9 +2203,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta adding whole credential/password container user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(FocusType.F_CREDENTIALS)
-                .replace(new CredentialsType(prismContext)
-                        .password(new PasswordType(prismContext)
-                                .metadata(new MetadataType(prismContext)
+                .replace(new CredentialsType()
+                        .password(new PasswordType()
+                                .metadata(new MetadataType()
                                         .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L)))))
                 .asObjectDelta(user1Oid);
 
@@ -2242,7 +2243,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID roleOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .replace(new AssignmentType(prismContext)
+                .replace(new AssignmentType()
                         .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)) // default relation
                 .asObjectDelta(user1Oid);
 
@@ -2324,7 +2325,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID resourceOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .add(new AssignmentType()
                                 .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)
                                 .metadata(new MetadataType()
                                         .createChannel("create-channel")
@@ -2333,7 +2334,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                                         .createApproverRef(UUID.randomUUID().toString(),
                                                 UserType.COMPLEX_TYPE))
                                 .order(48),
-                        new AssignmentType(prismContext)
+                        new AssignmentType()
                                 .construction(new ConstructionType()
                                         .resourceRef(resourceOid.toString(),
                                                 ResourceType.COMPLEX_TYPE))
@@ -2493,7 +2494,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta deleting assignments without CID by equality for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .delete(new AssignmentType(prismContext).order(50))
+                .delete(new AssignmentType().order(50))
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -2534,7 +2535,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID roleOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .add(new AssignmentType()
                         .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE))
                 .asObjectDelta(user1Oid);
         repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
@@ -2559,7 +2560,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test308RepeatedContainerAdditionWithDifferentOperationalAttrsDoesNotAddDuplicates()
+    public void test308RepeatedContainerAdditionWithDifferentOperationalItemsDoesNotAddDuplicates()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
@@ -2569,9 +2570,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID roleOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .add(new AssignmentType()
                         .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)
-                        .metadata(new MetadataType(prismContext)
+                        .metadata(new MetadataType()
                                 .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L))))
                 .asObjectDelta(user1Oid);
         repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
@@ -2579,12 +2580,12 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(count(a, a.ownerOid.eq(UUID.fromString(user1Oid))))
                 .isEqualTo(origAssignmentCount + 1);
 
-        when("add delta with similar container with only operational attributes different");
+        when("add delta with similar container with only operational items different");
         delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .add(new AssignmentType()
                         .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)
-                        .metadata(new MetadataType(prismContext)
+                        .metadata(new MetadataType()
                                 .createTimestamp(MiscUtil.asXMLGregorianCalendar(2L))))
                 .asObjectDelta(user1Oid);
         repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
@@ -2614,7 +2615,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta adding assignments with free CID for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .add(new AssignmentType()
                         .id(originalRow.containerIdSeq)
                         .order(1))
                 .asObjectDelta(user1Oid);
@@ -2655,7 +2656,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta deleting assignments using CID for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .delete(new AssignmentType(prismContext)
+                .delete(new AssignmentType()
                         .id(originalRow.containerIdSeq - 1)) // last added assignment
                 .asObjectDelta(user1Oid);
 
@@ -2695,7 +2696,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta adding assignments with used but now free CID for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .add(new AssignmentType()
                         .id(originalRow.containerIdSeq - 1)
                         .order(1))
                 .asObjectDelta(user1Oid);
@@ -2779,7 +2780,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThatThrownBy(
                 () -> prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT, 5).add(
-                                new AssignmentType(prismContext).order(5))
+                                new AssignmentType().order(5))
                         .asObjectDelta(user1Oid))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid delta path assignment/5."
@@ -2792,7 +2793,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThatThrownBy(
                 () -> prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT, 5).replace(
-                                new AssignmentType(prismContext).order(5))
+                                new AssignmentType().order(5))
                         .asObjectDelta(user1Oid))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid delta path assignment/5."
@@ -2824,7 +2825,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta adding case for campaign 1");
         UUID targetOid = UUID.randomUUID();
-        AccessCertificationCaseType caseBefore = new AccessCertificationCaseType(prismContext)
+        AccessCertificationCaseType caseBefore = new AccessCertificationCaseType()
                 .stageNumber(3)
                 .iteration(4)
                 .targetRef(targetOid.toString(), RoleType.COMPLEX_TYPE);
@@ -2881,7 +2882,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta adding case for campaign 1");
         accCertCampaign1Case2ObjectOid = UUID.randomUUID();
-        AccessCertificationCaseType caseBefore = new AccessCertificationCaseType(prismContext)
+        AccessCertificationCaseType caseBefore = new AccessCertificationCaseType()
                 .id(CAMPAIGN_1_CASE_2_ID)
                 .stageNumber(5)
                 .iteration(7)
@@ -3264,7 +3265,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta adding extension container value");
-        ExtensionType extension = new ExtensionType(prismContext);
+        ExtensionType extension = new ExtensionType();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(FocusType.F_EXTENSION).add(extension)
                 .asObjectDelta(user1Oid);
@@ -3469,7 +3470,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         // This does not say anything about ability to do the same on the model level
         OperationResult result = createOperationResult();
 
-        given("delta with user specific attribute change");
+        given("delta with user specific item change");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_EMAIL_ADDRESS).add("new905@email.com")
                 .asObjectDelta(user1Oid);
@@ -3534,8 +3535,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
         given("Full object was modified in database");
         clearPerformanceMonitor();
-        when("object is modified in the repository");
 
+        when("object is modified in the repository");
         RepoModifyOptions options = RepoModifyOptions.createForceReindex();
         repositoryService.modifyObject(UserType.class, user1Oid, Collections.emptyList(), options, result);
 
@@ -3549,19 +3550,17 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();
 
-        UserType user = new UserType(prismContext).name("corrupted")
+        given("user existing in the repository");
+        UserType user = new UserType().name("corrupted")
                 .beginAssignment()
                 .policySituation("kept")
                 .<UserType>end()
                 .beginAssignment()
                 .policySituation("removed")
                 .end();
-
-        String oid = repositoryService.addObject(user.asPrismObject(),
-                null, result);
+        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
 
         when("full object is modified in the database (indices are desynced from full object)");
-
         user = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
         user.getAssignment().remove(1); // remove removed
         user.beginAssignment().policySituation("added");
@@ -3579,8 +3578,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertPolicySituationFound("removed", 1, result);
         assertPolicySituationFound("added", 0, result);
 
-        given("object is reindexed");
-
+        and("object is reindexed");
         RepoModifyOptions options = RepoModifyOptions.createForceReindex();
         repositoryService.modifyObject(UserType.class, oid, Collections.emptyList(), options, result);
 
@@ -3606,11 +3604,11 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("user existing in the repository");
         String name = "user" + getTestNumber();
-        UserType user = new UserType(prismContext).name(name)
+        UserType user = new UserType().name(name)
                 .emailAddress(name + "@goodmail.com")
                 .subtype("subtype-1")
                 .subtype("subtype-2")
-                .assignment(new AssignmentType(prismContext)
+                .assignment(new AssignmentType()
                         .order(1));
         String oid = repositoryService.addObject(user.asPrismObject(), null, result);
 
@@ -3693,7 +3691,41 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test990ChangeOfNonPersistedAttributeWorksOk()
+    public void test955ReindexOfShadowWithAttributes() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("delta adding an attributes container for for shadow 1");
+        ShadowType shadow = new ShadowType()
+                .name("shadow-" + getTestName());
+        ShadowAttributesType attributesContainer = new ShadowAttributesHelper(shadow)
+                .set(new QName("https://example.com/p", "string-mv"), DOMUtil.XSD_STRING,
+                        "string-value1", "string-value2")
+                .attributesContainer();
+        String oid = repositoryService.addObject(shadow.asPrismObject(), null, result);
+
+        when("reindex is called");
+        repositoryService.modifyObject(
+                ShadowType.class, oid, List.of(), RepoModifyOptions.createForceReindex(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) still has attributes");
+        ShadowType shadowObject = repositoryService.getObject(ShadowType.class, oid, null, result)
+                .asObjectable();
+        assertThat(shadowObject.getAttributes()).isNotNull();
+
+        and("externalized attributes are also preserved");
+        MShadow row = selectObjectByOid(QShadow.class, oid);
+        assertThat(row.attributes).isNotNull();
+        Map<String, Object> attributeMap = Jsonb.toMap(row.attributes);
+        assertThat(attributeMap).containsEntry(
+                shadowAttributeKey(attributesContainer, "string-mv"),
+                List.of("string-value1", "string-value2"));
+    }
+
+    @Test
+    public void test990ChangeOfNonPersistedItemWorksOk()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);

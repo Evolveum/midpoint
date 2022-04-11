@@ -15,11 +15,14 @@ import java.util.List;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -37,7 +40,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
@@ -50,7 +52,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * methods that depend on model-impl functionality - but without importing various objects at initialization time.
  *
  * @author semancik
- * @author mederly
  */
 public class AbstractModelImplementationIntegrationTest extends AbstractModelIntegrationTest {
 
@@ -252,10 +253,12 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
     protected <T> ObjectDelta<ShadowType> createAccountDelta(LensProjectionContext accCtx, String accountOid,
             String attributeLocalName, T... propertyValues) throws SchemaException {
         ResourceType resourceType = accCtx.getResource();
-        QName attrQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeLocalName);
+        QName attrQName = new QName(MidPointConstants.NS_RI, attributeLocalName);
         ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName);
-        RefinedObjectClassDefinition refinedAccountDefinition = accCtx.getCompositeObjectClassDefinition();
-        RefinedAttributeDefinition<T> attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
+        ResourceObjectDefinition refinedAccountDefinition = accCtx.getCompositeObjectDefinition();
+        //noinspection unchecked
+        ResourceAttributeDefinition<T> attrDef =
+                (ResourceAttributeDefinition<T>) refinedAccountDefinition.findAttributeDefinition(attrQName);
         assertNotNull("No definition of attribute " + attrQName + " in account def " + refinedAccountDefinition, attrDef);
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountOid);

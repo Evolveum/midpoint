@@ -71,7 +71,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
 
     @SuppressWarnings("unchecked")
     public Class<T> getTypeClass() {
-        Class<T> clazz = unwrapWrapperModel().getTypeClass();
+        Class<T> clazz = (Class<T>) unwrapWrapperModel().getTypeClass();
         if (clazz == null) {
             clazz = PrismContext.get().getSchemaRegistry().determineClassForType(unwrapWrapperModel().getTypeName());
         }

@@ -48,7 +48,7 @@ public abstract class BaseDeprecatedPanel<T> extends Panel {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return PageBase.createStringResourceStatic(this, resourceKey, objects);
+        return PageBase.createStringResourceStatic(resourceKey, objects);
     }
 
     public StringResourceModel createStringResource(Enum<?> e) {

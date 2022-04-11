@@ -228,7 +228,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
     @Test
     public void test310SearchLdapAccounts() throws Exception {
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
-                ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
+                ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
 
         // WHEN
         when();
@@ -305,7 +305,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
     @Test
     public void test322SearchLdapAccounts() throws Exception {
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
-                ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
+                ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
 
         // WHEN
         when();

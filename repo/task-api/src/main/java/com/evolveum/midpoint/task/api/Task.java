@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
@@ -18,6 +19,8 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -57,7 +60,6 @@ import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.A
  * (so the method uses OperationResult as parameter, and can throw relevant exceptions as well).
  *
  * @author Radovan Semancik
- * @author Pavol Mederly
  */
 public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener {
 
@@ -830,6 +832,18 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     /** TODO */
     ActivityStateType getActivityStateOrClone(ItemPath path);
+
+    /** Returns the activity state for given activity path. Assumes local execution! */
+    default @Nullable ActivityStateType getActivityStateOrClone(@NotNull ActivityPath activityPath) {
+        // We may improve the efficiency by cloning only the relevant part of activities state.
+        return ActivityStateUtil.getActivityState(getActivitiesStateOrClone(), activityPath);
+    }
+
+    /** Returns the completion timestamp of the root activity. Assumes being executed on the root task. */
+    default @Nullable XMLGregorianCalendar getRootActivityCompletionTimestamp() {
+        ActivityStateType rootActivityState = getActivityStateOrClone(ActivityPath.empty());
+        return rootActivityState != null ? rootActivityState.getRealizationEndTimestamp() : null;
+    }
     //endregion
 
     //region Activities
@@ -856,7 +870,7 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
      */
     TaskActivityStateType getActivitiesStateOrClone();
 
-    default ActivityStateOverviewType getActivityTreeStateOverviewOrClone() {
+    default @Nullable ActivityStateOverviewType getActivityTreeStateOverviewOrClone() {
         return getPropertyRealValueOrClone(ACTIVITY_TREE_STATE_OVERVIEW_PATH, ActivityStateOverviewType.class);
     }
     //endregion

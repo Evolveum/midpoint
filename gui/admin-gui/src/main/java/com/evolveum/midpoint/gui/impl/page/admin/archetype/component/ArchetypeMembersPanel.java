@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.archetype.component;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel;
@@ -15,29 +22,19 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsMo
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelInstances;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 @PanelType(name = "archetypeMembers")
-@PanelInstances(instances = {
-        @PanelInstance(identifier = "archetypeMembers",
-                applicableForType = ArchetypeType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 80)),
-        @PanelInstance(identifier = "archetypeGovernance",
-                applicableForType = ArchetypeType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90))
-})
+@PanelInstance(identifier = "archetypeMembers",
+        applicableForType = ArchetypeType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 80))
+@PanelInstance(identifier = "archetypeGovernance",
+        applicableForType = ArchetypeType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90))
 public class ArchetypeMembersPanel extends AbstractRoleMemberPanel<ArchetypeType> {
 
     public ArchetypeMembersPanel(String id, FocusDetailsModels model, ContainerPanelConfigurationType config) {

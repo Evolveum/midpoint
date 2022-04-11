@@ -10,9 +10,6 @@ package com.evolveum.midpoint.model.impl.dataModel.dot;
 import com.evolveum.midpoint.model.impl.dataModel.model.AdHocDataItem;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class DotAdHocDataItem implements DotDataItem {
 
     @NotNull private final AdHocDataItem dataItem;

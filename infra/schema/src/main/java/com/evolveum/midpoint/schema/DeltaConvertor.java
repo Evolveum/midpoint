@@ -89,8 +89,8 @@ public class DeltaConvertor {
      */
     @NotNull
     public static <T extends Objectable> ObjectDelta<T> createObjectDelta(
-            @NotNull ObjectDeltaType objectDeltaBean, PrismContext prismContext) throws SchemaException {
-        argCheck(prismContext != null, "No prismContext in DeltaConvertor.createObjectDelta call");
+            @NotNull ObjectDeltaType objectDeltaBean, PrismContext prismContext1) throws SchemaException {
+        PrismContext prismContext = PrismContext.get();
         QName objectTypeName =
                 requireNonNull(objectDeltaBean.getObjectType(),
                         () -> "No objectType specified");
@@ -252,6 +252,12 @@ public class DeltaConvertor {
             @NotNull String language)
             throws SchemaException {
         ObjectDeltaType objectDeltaType = toObjectDeltaType(delta, options);
+        return serializeDelta(objectDeltaType, options, language);
+    }
+
+    public static String serializeDelta(
+            ObjectDeltaType objectDeltaType, DeltaConversionOptions options, @NotNull String language)
+            throws SchemaException {
         SerializationOptions serializationOptions = new SerializationOptions()
                 .skipTransient(true)
                 .skipWhitespaces(true)

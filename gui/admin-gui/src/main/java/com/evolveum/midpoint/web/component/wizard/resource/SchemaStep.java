@@ -21,7 +21,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
@@ -87,7 +86,7 @@ public class SchemaStep extends WizardStep {
     }
 
     private IModel<String> createStringModel(String resourceKey) {
-        return PageBase.createStringResourceStatic(this, resourceKey);
+        return PageBase.createStringResourceStatic(resourceKey);
     }
 
     private IModel<String> createXmlEditorModel() {

@@ -34,8 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * QK, QR - customized query keys / values
  *
  * After refactoring, this class contains almost nothing ;) Consider removing it altogether.
- *
- * @author Pavol Mederly
  */
 public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValue, RV extends PrismObject, QK extends QueryKey, QR extends QueryResult> extends
         AbstractThreadLocalCache {

@@ -31,7 +31,7 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
 
     private static final long serialVersionUID = 1L;
 
-    private LookupTableType predefinedValues;
+    private String predefinedValuesOid;
 
     public PrismPropertyWrapperImpl(PrismContainerValueWrapper<?> parent, PrismProperty<T> item, ItemStatus status) {
         super(parent, item, status);
@@ -48,12 +48,6 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     }
 
     @Override
-    @Deprecated
-    public QName getValueType() {
-        return getItemDefinition().getValueType();
-    }
-
-    @Override
     public Boolean isIndexed() {
         return getItemDefinition().isIndexed();
     }
@@ -65,7 +59,7 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
 
 
     @Override
-    public PropertyDelta<T> createEmptyDelta(ItemPath path) {
+    public @NotNull PropertyDelta<T> createEmptyDelta(ItemPath path) {
         return getItemDefinition().createEmptyDelta(path);
     }
 
@@ -93,12 +87,13 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     }
 
     @Override
-    public LookupTableType getPredefinedValues() {
-        return predefinedValues;
+    public String getPredefinedValuesOid() {
+        return predefinedValuesOid;
     }
 
-    public void setPredefinedValues(LookupTableType predefinedValues) {
-        this.predefinedValues = predefinedValues;
+    @Override
+    public void setPredefinedValuesOid(String predefinedValuesOid) {
+        this.predefinedValuesOid = predefinedValuesOid;
     }
 
     @Override
@@ -116,6 +111,7 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
         return allEmpty;
     }
 
+    @SuppressWarnings("unchecked")
     public PrismPropertyDefinition<T> getItemDefinition() {
         return super.getItemDefinition();
     }
@@ -142,8 +138,21 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
         // TODO
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected PrismPropertyValue<T> createNewEmptyValue(ModelServiceLocator locator) {
         return locator.getPrismContext().itemFactory().createPropertyValue();
+    }
+
+    @Override
+    public Class<T> getTypeClassIfKnown() {
+        //noinspection unchecked
+        return (Class<T>) super.getTypeClassIfKnown();
+    }
+
+    @Override
+    public Class<T> getTypeClass() {
+        //noinspection unchecked
+        return (Class<T>) super.getTypeClass();
     }
 }

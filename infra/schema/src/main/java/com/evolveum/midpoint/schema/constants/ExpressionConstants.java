@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -155,6 +155,7 @@ public class ExpressionConstants {
     public static final String VAR_MESSAGE_TEXT = "messageText";
     public static final String VAR_ENCODED_MESSAGE_TEXT = "encodedMessageText";
     public static final String VAR_MESSAGE = "message";
+    public static final String VAR_RECIPIENT = "recipient";
     public static final String VAR_TEXT_FORMATTER = "textFormatter";
     public static final String VAR_NOTIFICATION_FUNCTIONS = "notificationFunctions";
 
@@ -173,4 +174,8 @@ public class ExpressionConstants {
     public static final String VAR_REQUEST = "request";
     public static final String VAR_ITEM = "item";
     public static final String VAR_BUCKET = "bucket";
+
+    public static final String VAR_SYNCHRONIZATION_CONTEXT = "synchronizationContext";
+    public static final String VAR_CORRELATION_CONTEXT = "correlationContext";
+    public static final String VAR_CORRELATOR_STATE = "correlatorState";
 }

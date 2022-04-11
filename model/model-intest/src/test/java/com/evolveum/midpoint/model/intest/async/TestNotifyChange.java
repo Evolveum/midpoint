@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.intest.async;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
@@ -19,6 +18,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -34,6 +34,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
+
+import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME;
 
 /**
  *  Tests model.notifyChange using manually constructed ResourceObjectShadowChangeDescriptionType objects.
@@ -281,9 +283,10 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
 
         // GIVEN
 
-        ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resourceDummyGrouper, prismContext);
+        ResourceSchema schema = ResourceSchemaFactory.getRawSchema(resourceDummyGrouper);
         assert schema != null;
-        ResourceAttributeDefinition<String> privilegeDefinition = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT)
+        ResourceAttributeDefinition<?> privilegeDefinition =
+                schema.findObjectClassDefinitionRequired(ACCOUNT_OBJECT_CLASS_NAME)
                 .findAttributeDefinition(DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME);
         ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME), privilegeDefinition)

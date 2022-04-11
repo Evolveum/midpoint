@@ -11,8 +11,6 @@ import java.io.Serializable;
 
 /**
  * ID for second-level container (container within container within object).
- *
- * @author mederly
  */
 public class RL2ContainerId implements Serializable {
 

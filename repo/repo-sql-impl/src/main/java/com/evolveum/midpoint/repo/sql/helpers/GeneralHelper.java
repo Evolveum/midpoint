@@ -13,9 +13,6 @@ import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.springframework.stereotype.Component;
 
-/**
- * @author mederly
- */
 @Component
 public class GeneralHelper {
 

@@ -6,11 +6,20 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -20,9 +29,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -46,6 +52,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
+/**
+ * Context of the synchronization operation. It is created in the early stages of {@link ResourceObjectShadowChangeDescription}
+ * progressing in {@link SynchronizationServiceImpl}.
+ *
+ * @param <F> Type of the matching focus object
+ */
 public class SynchronizationContext<F extends FocusType> implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
@@ -66,14 +80,32 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
      */
     private final ObjectDelta<ShadowType> resourceObjectDelta;
 
-    private PrismObject<ResourceType> resource;
+    /**
+     * The resource. It is updated in {@link #checkNotInMaintenance(OperationResult)}. But it's never null.
+     */
+    @NotNull private PrismObject<ResourceType> resource;
+
+    /** Current system configuration */
     private PrismObject<SystemConfigurationType> systemConfiguration;
-    private String channel;
+
+    private final String channel;
+
     private ExpressionProfile expressionProfile;
 
     private final Task task;
 
     private ObjectSynchronizationType objectSynchronization;
+
+    /**
+     * Preliminary focus object - a result pre pre-mappings execution.
+     *
+     * Lazily created on the first getter call.
+     */
+    private F preFocus;
+
+    /**
+     * Lazily evaluated on the first getter call.
+     */
     private Class<F> focusClass;
 
     /** Owner that was found to be linked (in repo) to the shadow being synchronized. */
@@ -85,8 +117,17 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     /** Situation determined by the sorter or the synchronization service. */
     private SynchronizationSituationType situation;
 
+    /**
+     * Correlation context - in case the correlation was run.
+     * For some correlators it contains the correlation state (to be stored in the shadow).
+     */
+    private CorrelationContext correlationContext;
+
     private String intent;
     private String tag;
+
+    /** Definition of corresponding object type (currently found by kind+intent). Lazily evaluated. TODO reconsider. */
+    private ResourceObjectTypeDefinition objectTypeDefinition;
 
     private boolean reactionEvaluated = false;
     private SynchronizationReactionType reaction;
@@ -101,9 +142,21 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     @Experimental
     private final String itemProcessingIdentifier;
 
-    public SynchronizationContext(@NotNull PrismObject<ShadowType> shadowedResourceObject,
-            ObjectDelta<ShadowType> resourceObjectDelta, PrismObject<ResourceType> resource, String channel,
-            ModelBeans beans, Task task, String itemProcessingIdentifier) {
+    /**
+     * Deltas that should be written to the shadow along with other sync metadata.
+     *
+     * They are already applied to the shadow - immediately as they are added to the list.
+     */
+    @NotNull private final List<ItemDelta<?, ?>> pendingShadowDeltas = new ArrayList<>();
+
+    public SynchronizationContext(
+            @NotNull PrismObject<ShadowType> shadowedResourceObject,
+            ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull PrismObject<ResourceType> resource,
+            String channel,
+            ModelBeans beans,
+            Task task,
+            String itemProcessingIdentifier) {
         this.shadowedResourceObject = shadowedResourceObject;
         this.resourceObjectDelta = resourceObjectDelta;
         this.resource = resource;
@@ -142,10 +195,30 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         }
 
         if (intent == null) {
-            RefinedResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-            intent = schema.findDefaultObjectClassDefinition(getKind()).getIntent();
+            ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
+            ResourceObjectDefinition def = schema.findObjectDefinition(getKind(), null);
+            if (def instanceof ResourceObjectTypeDefinition) {
+                intent = ((ResourceObjectTypeDefinition) def).getIntent(); // TODO ???
+            }
         }
         return intent;
+    }
+
+    public CorrelationContext getCorrelationContext() {
+        return correlationContext;
+    }
+
+    public void setCorrelationContext(CorrelationContext correlationContext) {
+        this.correlationContext = correlationContext;
+    }
+
+    // TODO reconsider
+    public @NotNull ResourceObjectTypeDefinition getObjectTypeDefinition() throws SchemaException, ConfigurationException {
+        if (objectTypeDefinition == null) {
+            objectTypeDefinition = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable())
+                    .findObjectTypeDefinitionRequired(getKind(), getIntent());
+        }
+        return objectTypeDefinition;
     }
 
     public String getTag() {
@@ -162,6 +235,27 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     public ExpressionType getConfirmation() {
         return objectSynchronization.getConfirmation();
+    }
+
+    public @NotNull CompositeCorrelatorType getCorrelators() {
+        CorrelationDefinitionType correlationDefinition = objectSynchronization.getCorrelationDefinition();
+        CompositeCorrelatorType correlators = correlationDefinition != null ? correlationDefinition.getCorrelators() : null;
+        if (correlators != null) {
+            return correlators;
+        } else if (objectSynchronization.getCorrelation().isEmpty()) {
+            LOGGER.debug("No correlation information present. Will always find no owner. In: {}", this);
+            return new CompositeCorrelatorType()
+                    .beginNone().end();
+        } else {
+            CompositeCorrelatorType composite =
+                    new CompositeCorrelatorType()
+                            .beginFilter()
+                            .confirmation(CloneUtil.clone(objectSynchronization.getConfirmation()))
+                            .end();
+            composite.getFilter().get(0).getOwnerFilter().addAll(
+                    CloneUtil.cloneCollectionMembers(objectSynchronization.getCorrelation()));
+            return composite;
+        }
     }
 
     public ObjectReferenceType getObjectTemplateRef() {
@@ -303,11 +397,15 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return shadowedResourceObject;
     }
 
-    public PrismObject<ResourceType> getResource() {
+    public @Nullable ObjectDelta<ShadowType> getResourceObjectDelta() {
+        return resourceObjectDelta;
+    }
+
+    public @NotNull PrismObject<ResourceType> getResource() {
         return resource;
     }
 
-    public Class<F> getFocusClass() throws SchemaException {
+    public @NotNull Class<F> getFocusClass() throws SchemaException {
 
         if (focusClass != null) {
             return focusClass;
@@ -327,8 +425,23 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         if (objectType == null) {
             throw new SchemaException("Unknown focus type " + focusTypeQName + " in synchronization policy in " + resource);
         }
-        this.focusClass = objectType.getClassDefinition();
+
+        focusClass = objectType.getClassDefinition();
         return focusClass;
+    }
+
+    public @NotNull F getPreFocus() throws SchemaException {
+        if (preFocus != null) {
+            return preFocus;
+        }
+        preFocus = prismContext.createObjectable(
+                getFocusClass());
+        return preFocus;
+    }
+
+    public @NotNull PrismObject<F> getPreFocusAsPrismObject() throws SchemaException {
+        //noinspection unchecked
+        return (PrismObject<F>) preFocus.asPrismObject();
     }
 
     public F getLinkedOwner() {
@@ -376,16 +489,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return channel;
     }
 
-    public void setResource(PrismObject<ResourceType> resource) {
-        this.resource = resource;
-    }
-
     public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
         this.systemConfiguration = systemConfiguration;
-    }
-
-    public void setChannel(String channel) {
-        this.channel = channel;
     }
 
     public ExpressionProfile getExpressionProfile() {
@@ -408,6 +513,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return shadowExistsInRepo;
     }
 
+    @SuppressWarnings("SameParameterValue")
     void setShadowExistsInRepo(boolean shadowExistsInRepo) {
         this.shadowExistsInRepo = shadowExistsInRepo;
     }
@@ -424,9 +530,21 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return itemProcessingIdentifier;
     }
 
-    RefinedObjectClassDefinition findRefinedObjectClassDefinition() throws SchemaException {
-        RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        return refinedResourceSchema.getRefinedDefinition(getKind(), getIntent());
+    ResourceObjectTypeDefinition findObjectTypeDefinition() throws SchemaException {
+        ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ShadowKindType kind = getKind();
+
+        // FIXME this hacking
+        String intent = getIntent();
+        if (kind == null || kind == ShadowKindType.UNKNOWN) {
+            return null; // nothing to look for
+        }
+        if (SchemaConstants.INTENT_UNKNOWN.equals(intent)) {
+            intent = null;
+        }
+
+        // FIXME the cast
+        return (ResourceObjectTypeDefinition) refinedResourceSchema.findObjectDefinition(kind, intent);
     }
 
     @Override
@@ -455,6 +573,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         DebugUtil.debugDumpWithLabelToStringLn(sb, "expressionProfile", expressionProfile, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "objectSynchronization", objectSynchronization, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "focusClass", focusClass, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "preFocus", preFocus, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "currentOwner", linkedOwner, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "correlatedOwner", correlatedOwner, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "situation", situation, indent + 1);
@@ -462,6 +581,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         DebugUtil.debugDumpWithLabelToStringLn(sb, "tag", tag, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "reaction", reaction, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowExistsInRepo", shadowExistsInRepo, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "pendingShadowDeltas", pendingShadowDeltas, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "forceIntentChange", forceIntentChange, indent + 1);
         return sb.toString();
     }
@@ -484,5 +604,48 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     @VisibleForTesting
     public static void setSkipMaintenanceCheck(boolean skipMaintenanceCheck) {
         SynchronizationContext.skipMaintenanceCheck = skipMaintenanceCheck;
+    }
+
+    @Nullable CorrelationDefinitionType getCorrelationDefinitionBean() {
+        return objectSynchronization != null ? objectSynchronization.getCorrelationDefinition() : null;
+    }
+
+    @NotNull List<ItemDelta<?, ?>> getPendingShadowDeltas() {
+        return pendingShadowDeltas;
+    }
+
+    void clearPendingShadowDeltas() {
+        pendingShadowDeltas.clear();
+    }
+
+    void addShadowDeltas(@NotNull Collection<ItemDelta<?, ?>> deltas) throws SchemaException {
+        for (ItemDelta<?, ?> delta : deltas) {
+            pendingShadowDeltas.add(delta);
+            delta.applyTo(shadowedResourceObject);
+        }
+    }
+
+    /**
+     * Should we update correlators' state? (With or without re-correlation, at least for the time being.)
+     *
+     * Currently a temporary implementation based on checking id-match related flag in task extension.
+     */
+    public boolean isCorrelatorsUpdateRequested() {
+        return Boolean.TRUE.equals(
+                task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_UPDATE_ID_MATCH));
+    }
+
+    /**
+     * Are we updating the correlators' state and ignoring the (potentially updated) correlation result?
+     *
+     * This is a temporary response to the question of what we have to do if the correlator comes
+     * to a conclusion different from the original one: we ignore it.
+     */
+    boolean isUpdatingCorrelatorsOnly() {
+        return isCorrelatorsUpdateRequested() && getLinkedOwner() != null;
+    }
+
+    public SystemConfigurationType getSystemConfigurationBean() {
+        return asObjectable(systemConfiguration);
     }
 }

@@ -16,8 +16,6 @@ import java.util.List;
  *
  * EXPERIMENTAL
  *
- * @author mederly
- *
  */
 public class ModelCompareOptions implements Serializable, Cloneable {
 

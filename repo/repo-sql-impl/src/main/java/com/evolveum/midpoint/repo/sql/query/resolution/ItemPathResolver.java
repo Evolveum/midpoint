@@ -34,8 +34,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 /**
  * Responsible for resolving item paths - i.e. translating them into JPA paths along with creation of necessary joins.
  * Contains also methods that try to find proper specific entity definition when only general one (e.g. RObject) is provided.
- *
- * @author mederly
  */
 public class ItemPathResolver {
 

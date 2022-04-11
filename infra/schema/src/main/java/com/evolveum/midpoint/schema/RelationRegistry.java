@@ -20,8 +20,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 
 /**
  * A component that holds current definition of object relations.
- *
- * @author mederly
  */
 public interface RelationRegistry {
 

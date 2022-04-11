@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,12 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -45,6 +41,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowCorrelationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -90,6 +87,17 @@ public class QShadowMapping
         addItemMapping(F_SYNCHRONIZATION_TIMESTAMP,
                 timestampMapper(q -> q.synchronizationTimestamp));
         addExtensionMapping(F_ATTRIBUTES, MExtItemHolderType.ATTRIBUTES, q -> q.attributes);
+        addNestedMapping(F_CORRELATION, ShadowCorrelationStateType.class)
+                .addItemMapping(ShadowCorrelationStateType.F_CORRELATION_START_TIMESTAMP,
+                        timestampMapper(q -> q.correlationStartTimestamp))
+                .addItemMapping(ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP,
+                        timestampMapper(q -> q.correlationEndTimestamp))
+                .addItemMapping(ShadowCorrelationStateType.F_CORRELATION_CASE_OPEN_TIMESTAMP,
+                        timestampMapper(q -> q.correlationCaseOpenTimestamp))
+                .addItemMapping(ShadowCorrelationStateType.F_CORRELATION_CASE_CLOSE_TIMESTAMP,
+                        timestampMapper(q -> q.correlationCaseCloseTimestamp))
+                .addItemMapping(ShadowCorrelationStateType.F_SITUATION,
+                        enumMapper(q -> q.correlationSituation));
 
         // Item mapping to update the count, relation resolver for query with EXISTS filter.
         addItemMapping(F_PENDING_OPERATION, new SqaleItemSqlMapper<>(
@@ -130,6 +138,14 @@ public class QShadowMapping
         row.synchronizationSituation = shadow.getSynchronizationSituation();
         row.synchronizationTimestamp = MiscUtil.asInstant(shadow.getSynchronizationTimestamp());
         row.attributes = processExtensions(shadow.getAttributes(), MExtItemHolderType.ATTRIBUTES);
+        ShadowCorrelationStateType correlation = shadow.getCorrelation();
+        if (correlation != null) {
+            row.correlationStartTimestamp = MiscUtil.asInstant(correlation.getCorrelationStartTimestamp());
+            row.correlationEndTimestamp = MiscUtil.asInstant(correlation.getCorrelationEndTimestamp());
+            row.correlationCaseOpenTimestamp = MiscUtil.asInstant(correlation.getCorrelationCaseOpenTimestamp());
+            row.correlationCaseCloseTimestamp = MiscUtil.asInstant(correlation.getCorrelationCaseCloseTimestamp());
+            row.correlationSituation = correlation.getSituation();
+        }
         return row;
     }
 
@@ -143,8 +159,8 @@ public class QShadowMapping
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         if (GetOperationOptions.isRaw(rootOptions)) {
             // If raw=true, we populate attributes with types cached in repository
-            applyShadowAttributesDefinitions(shadowType);
-            //return shadowType;
+            Jsonb rowAttributes = row.get(entityPath.attributes);
+            applyShadowAttributesDefinitions(shadowType, rowAttributes);
         }
 
         List<SelectorOptions<GetOperationOptions>> retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
@@ -152,8 +168,9 @@ public class QShadowMapping
             return shadowType;
         }
 
-        addIndexOnlyAttributes(shadowType, row, entityPath, retrieveOptions);
-
+        if (loadIndexOnly(retrieveOptions)) {
+            addIndexOnlyAttributes(shadowType, row, entityPath, retrieveOptions);
+        }
         return shadowType;
     }
 
@@ -203,7 +220,6 @@ public class QShadowMapping
         }
     }
 
-
     @Override
     public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(
             Collection<SelectorOptions<GetOperationOptions>> options,
@@ -223,13 +239,12 @@ public class QShadowMapping
         return ret;
     }
 
-
-
     @Override
     public @NotNull Path<?>[] selectExpressions(QShadow entity,
             Collection<SelectorOptions<GetOperationOptions>> options) {
         var retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
-        if (loadIndexOnly(retrieveOptions)) {
+        boolean isRaw = GetOperationOptions.isRaw(SelectorOptions.findRootOptions(options));
+        if (isRaw || loadIndexOnly(retrieveOptions)) {
             return new Path[] { entity.oid, entity.fullObject, entity.attributes };
         }
         return new Path[] { entity.oid, entity.fullObject };
@@ -251,20 +266,38 @@ public class QShadowMapping
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private void applyShadowAttributesDefinitions(ShadowType shadowType) throws SchemaException {
+    private void applyShadowAttributesDefinitions(ShadowType shadowType, Jsonb rowAttributes) throws SchemaException {
+        Map<QName, MExtItem> definitions = definitionsFrom(rowAttributes);
+
         if (shadowType.getAttributes() == null) {
             return;
         }
-        PrismContainerValue<?> attributesOld = shadowType.getAttributes().asPrismContainerValue();
+        PrismContainerValue<?> attributes = shadowType.getAttributes().asPrismContainerValue();
 
-        for (Item<?, ?> attribute : attributesOld.getItems()) {
+        for (Item<?, ?> attribute : attributes.getItems()) {
             ItemName itemName = attribute.getElementName();
-            MExtItem itemInfo = repositoryContext().getExtensionItem(
-                    MExtItem.itemNameKey(attribute.getElementName(), MExtItemHolderType.ATTRIBUTES));
+            MExtItem itemInfo = definitions.get(itemName);
             if (itemInfo != null && attribute.getDefinition() == null) {
                 ((Item) attribute).applyDefinition(definitionFrom(itemName, itemInfo, false), true);
             }
         }
+    }
+
+    private Map<QName, MExtItem> definitionsFrom(Jsonb rowAttributes) {
+        Map<QName, MExtItem> definitions = new HashMap<>();
+        if (rowAttributes == null) {
+            return definitions;
+        }
+        Map<String, Object> attributes = Jsonb.toMap(rowAttributes);
+
+        for (String id : attributes.keySet()) {
+            var extItem = repositoryContext().getExtensionItem(Integer.valueOf(id));
+            if (extItem != null) {
+                QName key = QNameUtil.uriToQName(extItem.itemName);
+                definitions.put(key, extItem);
+            }
+        }
+        return definitions;
     }
 
     private ItemDefinition<?> definitionFrom(QName name, MExtItem itemInfo, boolean indexOnly) {

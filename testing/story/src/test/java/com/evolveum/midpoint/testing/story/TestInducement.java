@@ -34,23 +34,23 @@ public class TestInducement extends AbstractStoryTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "inducement");
 
-    public static final File ROLE_ROLE1_FILE = new File(TEST_DIR, "role-role1.xml");
-    public static final String ROLE_ROLE1_OID = "10000000-0000-0000-0000-100000000001";
+    private static final File ROLE_ROLE1_FILE = new File(TEST_DIR, "role-role1.xml");
+    private static final String ROLE_ROLE1_OID = "10000000-0000-0000-0000-100000000001";
 
-    public static final File ROLE_ROLE2_FILE = new File(TEST_DIR, "role-role2.xml");
-    public static final String ROLE_ROLE2_OID = "10000000-0000-0000-0000-100000000002";
+    private static final File ROLE_ROLE2_FILE = new File(TEST_DIR, "role-role2.xml");
+    private static final String ROLE_ROLE2_OID = "10000000-0000-0000-0000-100000000002";
 
-    public static final File ROLE_ROLE3_FILE = new File(TEST_DIR, "role-role3.xml");
-    public static final String ROLE_ROLE3_OID = "10000000-0000-0000-0000-100000000003";
+    private static final File ROLE_ROLE3_FILE = new File(TEST_DIR, "role-role3.xml");
+    private static final String ROLE_ROLE3_OID = "10000000-0000-0000-0000-100000000003";
 
-    public static final File ROLE_LOCK_FILE = new File(TEST_DIR, "role-lock.xml");
-    public static final String ROLE_LOCK_OID = "10000000-0000-0000-0000-10000000lock";
+    private static final File ROLE_LOCK_FILE = new File(TEST_DIR, "role-lock.xml");
+    private static final String ROLE_LOCK_OID = "277ea8e2-7530-4fd8-95f3-7e7ed842bf2c";
 
-    public static final File ROLE_PROCESSOR_FILE = new File(TEST_DIR, "role-processor.xml");
-    public static final String ROLE_PROCESSOR_OID = "10000000-0000-0000-0000-100processor";
+    private static final File ROLE_PROCESSOR_FILE = new File(TEST_DIR, "role-processor.xml");
+    private static final String ROLE_PROCESSOR_OID = "7ac43094-d012-4078-b9c3-2a319b8beb02";
 
-    public static final File USER_SIMPLE_FILE = new File(TEST_DIR, "user-simple.xml");
-    public static final String USER_SIMPLE_OID = "10000000-0000-0000-0001-100000simple";
+    private static final File USER_SIMPLE_FILE = new File(TEST_DIR, "user-simple.xml");
+    private static final String USER_SIMPLE_OID = "b2faca26-3a54-4668-ad15-0316857817e1";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

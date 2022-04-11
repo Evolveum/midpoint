@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 /**
  * SQL repository context adding support for QName cache.
@@ -68,13 +69,15 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(AuditEventStageType.class));
         querydslConfig.register(new EnumAsObjectType<>(AuditEventTypeType.class));
         querydslConfig.register(new EnumAsObjectType<>(AvailabilityStatusType.class));
-        querydslConfig.register(new EnumAsObjectType<>(ChangeType.class));
+        querydslConfig.register(new EnumAsObjectType<>(ChangeType.class)); // used in old audit
+        querydslConfig.register(new EnumAsObjectType<>(ChangeTypeType.class));
+        querydslConfig.register(new EnumAsObjectType<>(CorrelationSituationType.class));
+        querydslConfig.register(new EnumAsObjectType<>(LockoutStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(MContainerType.class));
         querydslConfig.register(new EnumAsObjectType<>(MExtItemHolderType.class));
         querydslConfig.register(new EnumAsObjectType<>(MExtItemCardinality.class));
         querydslConfig.register(new EnumAsObjectType<>(MObjectType.class));
         querydslConfig.register(new EnumAsObjectType<>(MReferenceType.class));
-        querydslConfig.register(new EnumAsObjectType<>(LockoutStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(NodeOperationalStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationExecutionRecordTypeType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationResultStatusType.class));
@@ -155,10 +158,6 @@ public class SqaleRepoContext extends SqlRepoContext {
 
     public @NotNull MExtItem resolveExtensionItem(@NotNull MExtItem.Key extItemKey) {
         return extItemCache.resolveExtensionItem(extItemKey);
-    }
-
-    public @Nullable MExtItem getExtensionItem(@NotNull MExtItem.ItemNameKey extItemKey) {
-        return extItemCache.getExtensionItem(extItemKey);
     }
 
     public @Nullable MExtItem getExtensionItem(Integer id) {

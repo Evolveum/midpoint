@@ -6,13 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
 import org.apache.commons.lang3.StringUtils;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -25,29 +30,26 @@ public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<Con
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionValueWrapper.class);
 
-    private PrismObject<ResourceType> resource;
-    private transient RefinedResourceSchema resourceSchema;
+    private String resourceOid;
+//    private transient ResourceSchema refinedSchema;
 
     public ConstructionValueWrapper(PrismContainerWrapper<ConstructionType> parent, PrismContainerValue<ConstructionType> pcv, ValueStatus status) {
         super(parent, pcv, status);
     }
 
-    public PrismObject<ResourceType> getResource() {
-        return resource;
+    public void setResourceOid(String resourceOid) {
+        this.resourceOid = resourceOid;
     }
 
-    public void setResource(PrismObject<ResourceType> resource) {
-        this.resource = resource;
+    public String getResourceOid() {
+        return resourceOid;
     }
 
-    public RefinedResourceSchema getResourceSchema() throws SchemaException {
-        if (resourceSchema == null) {
-            if (resource != null) {
-                resourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
-            }
+    public ResourceSchema getRefinedSchema(PrismObject<ResourceType> resource) throws SchemaException {
+        if (resource != null) {
+            return ResourceSchemaFactory.getCompleteSchema(resource);
         }
-
-        return resourceSchema;
+        return null;
     }
 
     public ShadowKindType getKind() {
@@ -58,14 +60,14 @@ public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<Con
         return kind;
     }
 
-    public String getIntent() {
+    public String getIntent(PrismObject<ResourceType> resource) {
         String intent = getNewValue().asContainerable().getIntent();
         if (StringUtils.isBlank(intent)) {
-            ObjectClassComplexTypeDefinition def;
+            ResourceObjectDefinition def;
             try {
-                def = findDefaultObjectClassDefinition();
-                if (def != null) {
-                    intent = def.getIntent();
+                def = findDefaultObjectClassDefinition(resource);
+                if (def instanceof ResourceObjectTypeDefinition) {
+                    intent = ((ResourceObjectTypeDefinition) def).getIntent();
                 }
             } catch (SchemaException e) {
                 LOGGER.error("Cannot get default object class definition, {}", e.getMessage(), e);
@@ -76,13 +78,13 @@ public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<Con
         return intent;
     }
 
-    private ObjectClassComplexTypeDefinition findDefaultObjectClassDefinition() throws SchemaException {
-        RefinedResourceSchema schema = getResourceSchema();
+    private ResourceObjectDefinition findDefaultObjectClassDefinition(PrismObject<ResourceType> resource) throws SchemaException {
+        ResourceSchema schema = getRefinedSchema(resource);
         if (schema == null) {
             return null;
         }
 
-        return schema.findDefaultObjectClassDefinition(getKind());
+        return schema.findObjectDefinition(getKind(), null);
     }
 
 }

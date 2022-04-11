@@ -16,6 +16,8 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -24,7 +26,6 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -37,10 +38,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -206,7 +203,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .familyName(USER_WILL_FAMILY_NAME)
                 .fullName(USER_WILL_FULL_NAME)
                 .beginActivation().administrativeStatus(ActivationStatusType.ENABLED).<UserType>end()
-                .beginCredentials().beginPassword().beginValue().setClearValue(USER_WILL_PASSWORD_OLD);
+                .beginCredentials().beginPassword().setValue(new ProtectedStringType().clearValue(USER_WILL_PASSWORD_OLD));
         return user;
     }
 
@@ -310,7 +307,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertNotNull("No serialNumber", schemaCachingMetadata.getSerialNumber());
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-        ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceBefore.toString(), prismContext);
+        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resourceBefore.toString());
         assertNotNull("No schema after parsing", parsedSchema);
 
         CapabilitiesType capabilitiesRepoAfter = resourceTypeRepoAfter.getCapabilities();
@@ -318,7 +315,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         AssertJUnit.assertNotNull("Native capabilities missing after test connection.", capabilitiesRepoAfter.getNative());
         AssertJUnit.assertNotNull("Capabilities caching metadata missing after test connection.", capabilitiesRepoAfter.getCachingMetadata());
 
-        ResourceType resourceModelAfter = modelService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();
+        ResourceType resourceModelAfter = modelService
+                .getObject(ResourceType.class, getResourceOid(), null, task, result)
+                .asObjectable();
 
         rememberSteadyResources();
 
@@ -337,10 +336,11 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test014Configuration() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        resource = modelService.getObject(ResourceType.class, getResourceOid(), null, null, result);
+        resource = modelService.getObject(ResourceType.class, getResourceOid(), null, task, result);
         resourceType = resource.asObjectable();
 
         PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
@@ -359,19 +359,20 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         // THEN
         // The returned type should have the schema pre-parsed
-        assertTrue(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
+        assertTrue(ResourceSchemaFactory.hasParsedSchema(resourceType));
 
         // Also test if the utility method returns the same thing
-        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resourceType);
 
         displayDumpable("Parsed resource schema", resourceSchema);
 
         // Check whether it is reusing the existing schema and not parsing it all over again
         // Not equals() but == ... we want to really know if exactly the same
         // object instance is returned
-        assertSame("Broken caching", resourceSchema, RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
+        assertSame("Broken caching", resourceSchema, ResourceSchemaFactory.getRawSchema(resourceType));
 
-        ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
+        ResourceObjectClassDefinition accountDef =
+                resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
         assertNotNull("Account definition is missing", accountDef);
         assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
@@ -379,7 +380,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         assertEquals("Unexpected number of definitions", getNumberOfAccountAttributeDefinitions(), accountDef.getDefinitions().size());
 
-        ResourceAttributeDefinition<String> usernameDef = accountDef.findAttributeDefinition(ATTR_USERNAME);
+        ResourceAttributeDefinition<?> usernameDef = accountDef.findAttributeDefinition(ATTR_USERNAME);
         assertNotNull("No definition for username", usernameDef);
         assertEquals(1, usernameDef.getMaxOccurs());
         assertEquals(1, usernameDef.getMinOccurs());
@@ -387,7 +388,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertTrue("No username update", usernameDef.canModify());
         assertTrue("No username read", usernameDef.canRead());
 
-        ResourceAttributeDefinition<String> fullnameDef = accountDef.findAttributeDefinition(ATTR_FULLNAME);
+        ResourceAttributeDefinition<?> fullnameDef = accountDef.findAttributeDefinition(ATTR_FULLNAME);
         assertNotNull("No definition for fullname", fullnameDef);
         assertEquals(1, fullnameDef.getMaxOccurs());
         assertEquals(0, fullnameDef.getMinOccurs());
@@ -405,10 +406,13 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
     public void testCapabilities() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        ResourceType resource = modelService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();
+        ResourceType resource = modelService
+                .getObject(ResourceType.class, getResourceOid(), null, task, result)
+                .asObjectable();
 
         // THEN
         display("Resource from model", resource);
@@ -539,7 +543,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(getResourceOid(), ShadowKindType.ACCOUNT, null, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(getResourceOid(), ShadowKindType.ACCOUNT, null);
 
         // WHEN
         when();
@@ -571,10 +575,11 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertNotNull("No schema caching metadata retrievalTimestamp", schemaCachingMetadata.getRetrievalTimestamp());
         assertNotNull("No schema caching metadata serialNumber", schemaCachingMetadata.getSerialNumber());
 
-        ResourceType resourceModelAfter = modelService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();
+        ResourceType resourceModelAfter =
+                modelService.getObject(ResourceType.class, getResourceOid(), null, task, result).asObjectable();
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-        ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceModelAfter.toString(), prismContext);
+        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resourceModelAfter.toString());
         assertNotNull("No schema after parsing", parsedSchema);
         CapabilitiesType capabilitiesRepoAfter = resourceTypeRepoAfter.getCapabilities();
         AssertJUnit.assertNotNull("Capabilities missing after test connection.", capabilitiesRepoAfter);

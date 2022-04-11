@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.gui.api.Validatable;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.Behavior;
@@ -57,6 +59,11 @@ public abstract class InputPanel extends Panel implements Validatable {
     public void required(boolean required) {
         this.required = required;
     }
+
+    public PageBase getPageBase() {
+        return (PageBase) getPage();
+    }
+
 
     //    @Override
 //    protected void onConfigure() {

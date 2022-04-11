@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -111,4 +112,6 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     void setSequenceCounter(String sequenceOid, long counter);
 
     String getTaskTreeOid(Task task, OperationResult result);
+
+    ExpressionProfile getPrivilegedExpressionProfile();
 }

@@ -6,20 +6,23 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectIdentifiersType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectIdentityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -27,184 +30,168 @@ import org.jetbrains.annotations.NotNull;
 public class ResourceObjectIdentification implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private final ObjectClassComplexTypeDefinition objectClassDefinition;
-    private final Collection<? extends ResourceAttribute<?>> primaryIdentifiers;
-    private final Collection<? extends ResourceAttribute<?>> secondaryIdentifiers;
+    private final ResourceObjectDefinition resourceObjectDefinition;
+    @NotNull private final Collection<? extends ResourceAttribute<?>> primaryIdentifiers;
+    @NotNull private final Collection<? extends ResourceAttribute<?>> secondaryIdentifiers;
     // TODO: identification strategy
 
-    public ResourceObjectIdentification(ObjectClassComplexTypeDefinition objectClassDefinition,
+    public ResourceObjectIdentification(
+            ResourceObjectDefinition resourceObjectDefinition,
             Collection<? extends ResourceAttribute<?>> primaryIdentifiers,
             Collection<? extends ResourceAttribute<?>> secondaryIdentifiers) {
-        this.objectClassDefinition = objectClassDefinition;
-        this.primaryIdentifiers = primaryIdentifiers;
-        this.secondaryIdentifiers = secondaryIdentifiers;
+        this.resourceObjectDefinition = resourceObjectDefinition;
+        this.primaryIdentifiers = MiscUtil.emptyIfNull(primaryIdentifiers);
+        this.secondaryIdentifiers = MiscUtil.emptyIfNull(secondaryIdentifiers);
     }
 
-    public Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
+    public @NotNull Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
         return primaryIdentifiers;
     }
 
     public <T> ResourceAttribute<T> getPrimaryIdentifier() throws SchemaException {
-        if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
-            return null;
-        }
-        if (primaryIdentifiers.size() > 1) {
-            throw new SchemaException("More than one primary identifier in "+this);
-        }
         //noinspection unchecked
-        return (ResourceAttribute<T>) primaryIdentifiers.iterator().next();
+        return (ResourceAttribute<T>)
+                MiscUtil.extractSingleton(
+                        primaryIdentifiers,
+                        () -> new SchemaException("More than one primary identifier in " + this));
     }
 
-    public Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiers() {
+    public @NotNull Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiers() {
         return secondaryIdentifiers;
     }
 
     public <T> ResourceAttribute<T> getSecondaryIdentifier() throws SchemaException {
-        if (secondaryIdentifiers == null || secondaryIdentifiers.isEmpty()) {
-            return null;
-        }
-        if (secondaryIdentifiers.size() > 1) {
-            throw new SchemaException("More than one secondary identifier in "+this);
-        }
         //noinspection unchecked
-        return (ResourceAttribute<T>) secondaryIdentifiers.iterator().next();
+        return (ResourceAttribute<T>)
+                MiscUtil.extractSingleton(
+                        secondaryIdentifiers,
+                        () -> new SchemaException("More than one secondary identifier in " + this));
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    /**
+     * Returned collection should be never modified!
+     */
     public Collection<? extends ResourceAttribute<?>> getAllIdentifiers() {
-        if (primaryIdentifiers == null) {
-            return secondaryIdentifiers;
-        }
-        if (secondaryIdentifiers == null) {
-            return primaryIdentifiers;
-        }
-        List allIdentifiers = new ArrayList<>(primaryIdentifiers.size() + secondaryIdentifiers.size());
-        allIdentifiers.addAll(primaryIdentifiers);
-        allIdentifiers.addAll(secondaryIdentifiers);
-        return allIdentifiers;
+        return MiscUtil.concat(primaryIdentifiers, secondaryIdentifiers);
     }
 
-    public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
-        return objectClassDefinition;
+    public ResourceObjectDefinition getResourceObjectDefinition() {
+        return resourceObjectDefinition;
     }
 
-    public static ResourceObjectIdentification create(ObjectClassComplexTypeDefinition objectClassDefinition,
+    public static ResourceObjectIdentification create(ResourceObjectDefinition objectDefinition,
             Collection<? extends ResourceAttribute<?>> allIdentifiers) throws SchemaException {
         if (allIdentifiers == null) {
             throw new IllegalArgumentException("Cannot create ResourceObjectIdentification with null identifiers");
         }
-        Collection<? extends ResourceAttribute<?>> primaryIdentifiers =  null;
+        Collection<? extends ResourceAttribute<?>> primaryIdentifiers = null;
         Collection<? extends ResourceAttribute<?>> secondaryIdentifiers = null;
         for (ResourceAttribute<?> identifier: allIdentifiers) {
-            if (objectClassDefinition.isPrimaryIdentifier(identifier.getElementName())) {
+            if (objectDefinition.isPrimaryIdentifier(identifier.getElementName())) {
                 if (primaryIdentifiers == null) {
                     primaryIdentifiers = new ArrayList<>();
                 }
-                //noinspection unchecked
+                //noinspection unchecked,rawtypes
                 ((Collection)primaryIdentifiers).add(identifier);
-            } else if (objectClassDefinition.isSecondaryIdentifier(identifier.getElementName())) {
+            } else if (objectDefinition.isSecondaryIdentifier(identifier.getElementName())) {
                 if (secondaryIdentifiers == null) {
                     secondaryIdentifiers = new ArrayList<>();
                 }
-                //noinspection unchecked
+                //noinspection unchecked,rawtypes
                 ((Collection)secondaryIdentifiers).add(identifier);
             } else {
-                throw new SchemaException("Attribute "+identifier+" is neither primary not secondary identifier in object class "+objectClassDefinition);
+                throw new SchemaException("Attribute "+identifier+" is neither primary not secondary identifier in object class "+objectDefinition);
             }
         }
-        return new ResourceObjectIdentification(objectClassDefinition, primaryIdentifiers, secondaryIdentifiers);
+        return new ResourceObjectIdentification(objectDefinition, primaryIdentifiers, secondaryIdentifiers);
     }
 
-    public static ResourceObjectIdentification createFromAttributes(ObjectClassComplexTypeDefinition objectClassDefinition,
-            Collection<? extends ResourceAttribute<?>> attributes) {
-        Collection<? extends ResourceAttribute<?>> primaryIdentifiers =  null;
+    public static ResourceObjectIdentification createFromAttributes(
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull Collection<? extends ResourceAttribute<?>> attributes) {
+        Collection<? extends ResourceAttribute<?>> primaryIdentifiers = null;
         Collection<? extends ResourceAttribute<?>> secondaryIdentifiers = null;
-        for (ResourceAttribute<?> identifier: attributes) {
-            if (objectClassDefinition.isPrimaryIdentifier(identifier.getElementName())) {
+        for (ResourceAttribute<?> identifier : attributes) {
+            if (resourceObjectDefinition.isPrimaryIdentifier(identifier.getElementName())) {
                 if (primaryIdentifiers == null) {
                     primaryIdentifiers = new ArrayList<>();
                 }
-                //noinspection unchecked
+                //noinspection unchecked,rawtypes
                 ((Collection)primaryIdentifiers).add(identifier);
-            } else if (objectClassDefinition.isSecondaryIdentifier(identifier.getElementName())) {
+            } else if (resourceObjectDefinition.isSecondaryIdentifier(identifier.getElementName())) {
                 if (secondaryIdentifiers == null) {
                     secondaryIdentifiers = new ArrayList<>();
                 }
-                //noinspection unchecked
+                //noinspection unchecked,rawtypes
                 ((Collection)secondaryIdentifiers).add(identifier);
             }
         }
-        return new ResourceObjectIdentification(objectClassDefinition, primaryIdentifiers, secondaryIdentifiers);
+        return new ResourceObjectIdentification(resourceObjectDefinition, primaryIdentifiers, secondaryIdentifiers);
     }
 
-    public static ResourceObjectIdentification createFromShadow(ObjectClassComplexTypeDefinition objectClassDefinition,
-            ShadowType shadowType) {
-        return createFromAttributes(objectClassDefinition, ShadowUtil.getAttributes(shadowType));
+    public static ResourceObjectIdentification createFromShadow(
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull ShadowType shadow) {
+        return createFromAttributes(resourceObjectDefinition, ShadowUtil.getAttributes(shadow));
     }
 
-    public void validatePrimaryIdenfiers() {
-        if (!hasPrimaryIdentifiers()) {
-            throw new IllegalStateException("No primary identifiers in " + this);
-        }
+    public void validatePrimaryIdentifiers() {
+        stateCheck(hasPrimaryIdentifiers(), "No primary identifiers in %s", this);
     }
 
     public boolean hasPrimaryIdentifiers() {
-        return primaryIdentifiers != null && !primaryIdentifiers.isEmpty();
+        return !primaryIdentifiers.isEmpty();
     }
 
+    /**
+     * TODO Or should we compare only relevant parts of the definition? And compare identifiers in unordered way?
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ResourceObjectIdentification that = (ResourceObjectIdentification) o;
+        return Objects.equals(resourceObjectDefinition, that.resourceObjectDefinition)
+                && primaryIdentifiers.equals(that.primaryIdentifiers);
+    }
+
+    /**
+     * TODO Or should we compare only relevant parts of the definition? And compare identifiers in unordered way?
+     */
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((primaryIdentifiers == null) ? 0 : primaryIdentifiers.hashCode());
-        result = prime * result + ((objectClassDefinition == null) ? 0 : objectClassDefinition.hashCode());
-        return result;
-    }
-
-    @SuppressWarnings("RedundantIfStatement")
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-        ResourceObjectIdentification other = (ResourceObjectIdentification) obj;
-        if (primaryIdentifiers == null) {
-            if (other.primaryIdentifiers != null) return false;
-        } else if (!primaryIdentifiers.equals(other.primaryIdentifiers)) {
-            return false;
-        }
-        if (objectClassDefinition == null) {
-            if (other.objectClassDefinition != null) return false;
-        } else if (!objectClassDefinition.equals(other.objectClassDefinition)) {
-            return false;
-        }
-        return true;
+        return Objects.hash(resourceObjectDefinition, primaryIdentifiers);
     }
 
     @Override
     public String toString() {
-        return "ResourceObjectIdentification(" + PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName())
+        return "ResourceObjectIdentification(" + PrettyPrinter.prettyPrint(resourceObjectDefinition.getTypeName())
                 + ": primary=" + primaryIdentifiers + ", secondary=" + secondaryIdentifiers + ")";
     }
 
     @NotNull
-    public ResourceObjectIdentityType asBean(PrismContext prismContext) throws SchemaException {
-        ResourceObjectIdentityType bean = new ResourceObjectIdentityType(prismContext);
-        if (objectClassDefinition != null) {
-            bean.setObjectClass(objectClassDefinition.getTypeName());
+    public ResourceObjectIdentityType asBean() throws SchemaException {
+        ResourceObjectIdentityType bean = new ResourceObjectIdentityType(PrismContext.get());
+        if (resourceObjectDefinition != null) {
+            bean.setObjectClass(resourceObjectDefinition.getTypeName());
         }
-        bean.setPrimaryIdentifiers(getIdentifiersAsBean(primaryIdentifiers, prismContext));
-        bean.setSecondaryIdentifiers(getIdentifiersAsBean(secondaryIdentifiers, prismContext));
+        bean.setPrimaryIdentifiers(getIdentifiersAsBean(primaryIdentifiers));
+        bean.setSecondaryIdentifiers(getIdentifiersAsBean(secondaryIdentifiers));
         return bean;
     }
 
-    private ResourceObjectIdentifiersType getIdentifiersAsBean(Collection<? extends ResourceAttribute<?>> identifiers,
-            PrismContext prismContext) throws SchemaException {
+    private ResourceObjectIdentifiersType getIdentifiersAsBean(Collection<? extends ResourceAttribute<?>> identifiers)
+            throws SchemaException {
         if (identifiers.isEmpty()) {
             return null;
         }
-        ResourceObjectIdentifiersType identifiersBean = new ResourceObjectIdentifiersType(prismContext);
+        ResourceObjectIdentifiersType identifiersBean = new ResourceObjectIdentifiersType(PrismContext.get());
         for (ResourceAttribute<?> identifier : identifiers) {
+            //noinspection unchecked
             identifiersBean.asPrismContainerValue().add(identifier.clone());
         }
         return identifiersBean;

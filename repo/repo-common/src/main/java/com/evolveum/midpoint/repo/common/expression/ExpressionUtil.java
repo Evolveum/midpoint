@@ -1,23 +1,15 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.common.expression;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
-import com.evolveum.midpoint.util.QNameUtil;
 
 import groovy.lang.GString;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +32,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.AccessDecision;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
@@ -53,6 +47,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -120,7 +115,7 @@ public class ExpressionUtil {
         }
     }
 
-    private static <I> Object treatAdditionalConvertor(Function<Object, Object> additionalConvertor, Object inputVal) {
+    private static Object treatAdditionalConvertor(Function<Object, Object> additionalConvertor, Object inputVal) {
         if (additionalConvertor != null) {
             return additionalConvertor.apply(inputVal);
         } else {
@@ -159,7 +154,7 @@ public class ExpressionUtil {
                 .resolve(result);
     }
 
-    public static <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(
+    public static <V extends PrismValue> Collection<V> computeTargetValues(
             VariableBindingDefinitionType target,
             TypedValue defaultTargetContext, VariablesMap variables, ObjectResolver objectResolver, String contextDesc,
             PrismContext prismContext, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -233,8 +228,8 @@ public class ExpressionUtil {
                 // TODO should we attempt to convert Item to a list of PrismValues?
                 return typedValue;
             }
-        } else if (value instanceof Collection && !((Collection)value).isEmpty()
-                && ((Collection)value).iterator().next() instanceof PrismValue) {
+        } else if (value instanceof Collection && !((Collection) value).isEmpty()
+                && ((Collection) value).iterator().next() instanceof PrismValue) {
             if (valueVariableMode == ValueVariableModeType.REAL_VALUE) {
                 return convertPrismValuesToRealValue(typedValue);
             } else {
@@ -319,7 +314,7 @@ public class ExpressionUtil {
             return typedValue;
         }
         List realValues = new ArrayList();
-        ((Collection)collection).forEach(value -> realValues.add(convertPrismValueToRealValue(value)));
+        ((Collection) collection).forEach(value -> realValues.add(convertPrismValueToRealValue(value)));
         typedValue.setValue(realValues);
         return typedValue;
     }
@@ -328,6 +323,7 @@ public class ExpressionUtil {
         typedValue.setValue(convertPrismValueToRealValue(typedValue.getValue()));
         return typedValue;
     }
+
     private static Object convertPrismValueToRealValue(Object value) {
         if (value instanceof PrismContainerValue<?>) {
             PrismContainerValue<?> cval = ((PrismContainerValue<?>) value);
@@ -781,27 +777,6 @@ public class ExpressionUtil {
 
     }
 
-    private static <V extends PrismValue> V evaluateExpression(VariablesMap variables,
-            PrismContext prismContext, ExpressionType expressionType, ExpressionProfile expressionProfile, ObjectFilter filter,
-            ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-        // TODO refactor after new query engine is implemented
-        ItemDefinition outputDefinition = null;
-        if (filter instanceof ValueFilter) {
-            outputDefinition = ((ValueFilter) filter).getDefinition();
-        }
-
-        if (outputDefinition == null) {
-            outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
-                    DOMUtil.XSD_STRING);
-        }
-
-        //noinspection unchecked
-        return (V) evaluateExpression(variables, outputDefinition, expressionType, expressionProfile, expressionFactory, shortDesc,
-                task, parentResult);
-    }
-
     public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(Collection<Source<?, ?>> sources,
             VariablesMap variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
@@ -898,11 +873,10 @@ public class ExpressionUtil {
             ExpressionType expressionType, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc, Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ItemDefinition outputDefinition = expressionFactory.getPrismContext().definitionFactory().createPropertyDefinition(
+        ItemDefinition<?> outputDefinition = expressionFactory.getPrismContext().definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
         outputDefinition.freeze();
-        //noinspection unchecked
-        return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType, expressionProfile,
+        return evaluateExpression(variables, outputDefinition, expressionType, expressionProfile,
                 expressionFactory, shortDesc, task, parentResult);
     }
 
@@ -1148,7 +1122,7 @@ public class ExpressionUtil {
                 } catch (SchemaException e) {
                     throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
                 }
-                return (V) ((PrismContainerValue) value);
+                return (V) value;
 
             } else {
                 throw new ExpressionEvaluationException("Expected Containerable or PrismContainerValue as expression output, got " + value.getClass());
@@ -1232,4 +1206,23 @@ public class ExpressionUtil {
         }
     }
 
+    /**
+     * Post-condition: the result does not contain null values
+     */
+    public static <T> @NotNull Set<T> getUniqueNonNullRealValues(
+            @Nullable PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple) {
+        if (outputTriple == null) {
+            return Set.of();
+        }
+        Set<T> realValues = new HashSet<>();
+        for (PrismPropertyValue<T> nonNegativeValue : outputTriple.getNonNegativeValues()) {
+            if (nonNegativeValue != null) {
+                T realValue = nonNegativeValue.getRealValue();
+                if (realValue != null) {
+                    realValues.add(realValue);
+                }
+            }
+        }
+        return realValues;
+    }
 }

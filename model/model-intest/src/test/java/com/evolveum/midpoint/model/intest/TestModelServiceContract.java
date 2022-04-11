@@ -23,6 +23,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -34,7 +35,6 @@ import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.common.StaticExpressionUtil;
-import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.*;
@@ -425,13 +425,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // get weapon attribute definition
         PrismObject<ResourceType> dummyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
-        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(dummyResource, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(dummyResource);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
 
         QName accountObjectClassQName = dummyResourceCtl.getAccountObjectClassQName();
-        ObjectClassComplexTypeDefinition accountObjectClassDefinition = resourceSchema.findObjectClassDefinition(accountObjectClassQName);
+        ResourceObjectClassDefinition accountObjectClassDefinition =
+                resourceSchema.findObjectClassDefinition(accountObjectClassQName);
         QName weaponQName = dummyResourceCtl.getAttributeWeaponQName();
-        ResourceAttributeDefinition<String> weaponDefinition = accountObjectClassDefinition.findAttributeDefinition(weaponQName);
+        ResourceAttributeDefinition<?> weaponDefinition = accountObjectClassDefinition.findAttributeDefinition(weaponQName);
 
         ObjectQuery q = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
@@ -2251,7 +2252,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
-        ShadowDiscriminatorObjectDelta<ShadowType> accountDelta = RefineryObjectFactory.createShadowDiscriminatorModificationReplaceProperty(ShadowType.class,
+        ShadowCoordinatesQualifiedObjectDelta<ShadowType> accountDelta = RefineryObjectFactory.createShadowDiscriminatorModificationReplaceProperty(ShadowType.class,
                 RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Cpt. Jack Sparrow");
         accountDelta.addModificationAddProperty(
                 dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME),
@@ -2334,11 +2335,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         PrismObject<ResourceType> dummyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(dummyResource, prismContext);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(dummyResource);
         // This explicitly parses the schema, therefore ...
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
 
-        RefinedObjectClassDefinition accountDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String) null);
+        ResourceObjectTypeDefinition accountDefinition =
+                refinedSchema.findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, null);
         PrismPropertyDefinition gossipDefinition = accountDefinition.findPropertyDefinition(new ItemName(
                 "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3",
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME));
@@ -2360,7 +2362,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         property.addRealValue("q");
 
         List evaluators = expression.getExpressionEvaluator();
-        Collection<JAXBElement<RawType>> collection = StaticExpressionUtil.serializeValueElements(property, null);
+        Collection<JAXBElement<RawType>> collection = StaticExpressionUtil.serializeValueElements(property);
         ObjectFactory of = new ObjectFactory();
         for (JAXBElement<RawType> obj : collection) {
             //noinspection unchecked
@@ -3307,6 +3309,32 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertCustomColumn("foo", "test");
+    }
+
+    /**
+     * Tests the sanity of transformed schema. Currently there is a specific problem
+     * with looking up container definitions pretending they are properties. See
+     * also `TestSchemaRegistry.testMismatchedDefinitionLookup`.
+     *
+     * See MID-7690.
+     *
+     * This test is in this class because I've found no suitable test class in model-impl module.
+     */
+    @Test()
+    public void test500MismatchedDefinitionLookupInTransformedSchema() throws CommonException {
+        given("obtaining ResourceType definition via model-api");
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<ResourceType> resource =
+                modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        PrismObjectDefinition<ResourceType> objectDefinition = resource.getDefinition();
+
+        when("looking up a definition for 'synchronization' (now container) assuming it's a property");
+        PrismPropertyDefinition<?> propDef = objectDefinition.findPropertyDefinition(ResourceType.F_SYNCHRONIZATION);
+
+        then("asserting it's null");
+        assertThat(propDef).as("definition of property 'synchronization'").isNull();
     }
 
     private String addTestRole(Task task, OperationResult result) throws CommonException {

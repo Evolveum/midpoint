@@ -49,7 +49,6 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
     private boolean selectable;
     private String treeTitleKey = "";
-    List<OrgType> preselecteOrgsList = new ArrayList<>();
     private List<OrgTreeFolderContent> contentPannels = new ArrayList<OrgTreeFolderContent>();
 
 
@@ -64,12 +63,14 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
     public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, ModelServiceLocator serviceLocator, String treeTitleKey,
                         List<OrgType> preselecteOrgsList) {
         super(id, rootOid);
-
         this.treeTitleKey = treeTitleKey;
         this.selectable = selectable;
-        if (preselecteOrgsList != null){
-            this.preselecteOrgsList.addAll(preselecteOrgsList);
-        }
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
         selected = new LoadableModel<TreeSelectableBean<OrgType>>() {
             private static final long serialVersionUID = 1L;
 
@@ -98,22 +99,22 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
             }
         };
 
-        initLayout(serviceLocator);
+        initLayout();
     }
 
     public TreeSelectableBean<OrgType> getSelected() {
         return selected.getObject();
     }
 
+    public IModel<TreeSelectableBean<OrgType>> getSelectedOrgModel() {
+        return selected;
+    }
+
     public void setSelected(TreeSelectableBean<OrgType> org) {
         selected.setObject(org);
     }
 
-    public List<OrgType> getSelectedOrgs() {
-        return ((OrgTreeProvider) getTree().getProvider()).getSelectedObjects();
-    }
-
-    private void initLayout(ModelServiceLocator serviceLocator) {
+    private void initLayout() {
         WebMarkupContainer treeHeader = new WebMarkupContainer(ID_TREE_HEADER);
         treeHeader.setOutputMarkupId(true);
         add(treeHeader);
@@ -147,7 +148,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
         treeMenu.setOutputMarkupPlaceholderTag(true);
         treeHeader.add(treeMenu);
 
-        ISortableTreeProvider provider = new OrgTreeProvider(this, getModel(), preselecteOrgsList) {
+        ISortableTreeProvider provider = new OrgTreeProvider(this, getModel()) {
 
             @Override
             protected ObjectFilter getCustomFilter(){
@@ -219,7 +220,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
                     @Override
                     protected IModel<List<InlineMenuItem>> createInlineMenuItemsModel() {
-                        return new ReadOnlyModel<>(() -> createTreeChildrenMenuInternal(model.getObject(), serviceLocator.getCompiledGuiProfile()));
+                        return new ReadOnlyModel<>(() -> createTreeChildrenMenuInternal(model.getObject(), getPageBase().getCompiledGuiProfile()));
                     }
                 };
                 contentPannels.add(contentPannel);

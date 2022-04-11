@@ -41,11 +41,6 @@ public abstract class AccessCertificationEventImpl extends BaseEventImpl impleme
     }
 
     @Override
-    public boolean isRelatedToItem(ItemPath itemPath) {
-        return false; // not supported for this kind of events
-    }
-
-    @Override
     public boolean isStatusType(EventStatusType eventStatus) {
         return false;
     }

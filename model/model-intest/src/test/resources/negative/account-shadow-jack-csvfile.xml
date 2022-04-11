@@ -15,6 +15,7 @@
     <name>jack</name>
     <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3bbbb"/>
     <objectClass>ri:AccountObjectClass</objectClass>
+    <kind>account</kind>
     <intent>default</intent>
     <attributes>
         <ri:username>jack</ri:username>

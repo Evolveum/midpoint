@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -36,6 +36,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRowMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNodeMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.notification.QMessageTemplateMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QOperationExecutionMapping;
@@ -113,7 +114,8 @@ public class SqaleRepositoryBeanConfig {
 
         // logger on com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger
         // DEBUG = show query, TRACE = add parameter values too (bindings)
-        repositoryContext.setQuerydslSqlListener(new SqlLogger());
+        repositoryContext.setQuerydslSqlListener(
+                new SqlLogger(repositoryConfiguration.getSqlDurationWarningMs()));
 
         // Registered mapping needs repository context which needs registry. Now we can fill it.
         // Mappings are ordered alphabetically here, mappings without schema type are at the end.
@@ -153,6 +155,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(LookupTableType.COMPLEX_TYPE, QLookupTableMapping.init(repositoryContext))
                 .register(LookupTableRowType.COMPLEX_TYPE,
                         QLookupTableRowMapping.init(repositoryContext))
+                .register(MessageTemplateType.COMPLEX_TYPE, QMessageTemplateMapping.init(repositoryContext))
                 .register(NodeType.COMPLEX_TYPE, QNodeMapping.init(repositoryContext))
                 .register(ObjectType.COMPLEX_TYPE,
                         QObjectMapping.initObjectMapping(repositoryContext))

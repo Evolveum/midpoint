@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -52,7 +52,7 @@ public class ExpressionUtil {
         XPATH("http://www.w3.org/TR/xpath/"),
         JAVASCRIPT("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript");
 
-        protected String language;
+        private final String language;
 
         Language(String language) {
             this.language = language;
@@ -65,16 +65,6 @@ public class ExpressionUtil {
 
     public static final QName SHADOW_REF_KEY = new QName(SchemaConstants.NS_C, "shadowRef");
     private static final QName SHADOW_OID_KEY = new QName("oid");
-    private static final QName SHADOW_TYPE_KEY = new QName("type");
-
-    public static final String SCRIPT_START_NS = "<c:script xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\">";
-    public static final String SCRIPT_END_NS = "</c:script>";
-    public static final String CODE_START_NS = "<c:code>";
-    public static final String CODE_END_NS = "</c:code>";
-    public static final String VALUE_START_NS = "<c:value xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\">";
-    public static final String VALUE_END_NS = "</c:value>";
-    public static final String PATH_START_NS = "<c:path xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\">";
-    public static final String PATH_END_NS = "</c:path>";
 
     public static final String EXPRESSION_SCRIPT = "<script>\n" +
             "    <code>\n" +
@@ -177,25 +167,6 @@ public class ExpressionUtil {
         }
     }
 
-    public static String addNamespaces(String expression, ExpressionEvaluatorType type) {
-        String newExpression = expression;
-
-        if (ExpressionEvaluatorType.PATH.equals(type)) {
-            newExpression = newExpression.replaceAll("<path>", PATH_START_NS);
-            newExpression = newExpression.replaceAll("</path>", PATH_END_NS);
-        } else if (ExpressionEvaluatorType.LITERAL.equals(type)) {
-            newExpression = newExpression.replaceAll("<value>", VALUE_START_NS);
-            newExpression = newExpression.replaceAll("</value>", VALUE_END_NS);
-        } else if (ExpressionEvaluatorType.SCRIPT.equals(type)) {
-            newExpression = newExpression.replaceAll("<code>", CODE_START_NS);
-            newExpression = newExpression.replaceAll("</code>", CODE_END_NS);
-            newExpression = newExpression.replaceAll("<script>", SCRIPT_START_NS);
-            newExpression = newExpression.replaceAll("</script>", SCRIPT_END_NS);
-        }
-
-        return newExpression;
-    }
-
     public static String loadExpression(ExpressionType expression, PrismContext prismContext, Trace LOGGER) {
         if (expression == null || expression.getExpressionEvaluator().isEmpty()) {
             return "";
@@ -205,7 +176,7 @@ public class ExpressionUtil {
             return serializeEvaluators(evaluators, prismContext);
         } catch (SchemaException e) {
             //TODO - how can we show this error to user?
-            LoggingUtils.logUnexpectedException(LOGGER, "Could not load expressions from mapping.", e, e.getStackTrace());
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not load expressions from mapping.", e);
             return e.getMessage();
         }
     }
@@ -239,24 +210,8 @@ public class ExpressionUtil {
         return expression == null || expression.getExpressionEvaluator().isEmpty();
     }
 
-    public static boolean isShadowRefNotEmpty(ExpressionType expression, PrismContext prismContext) {
-        List<ObjectReferenceType> shadowRefValueList = getShadowRefValue(expression, prismContext);
-        return !isEmpty(expression) && shadowRefValueList != null && shadowRefValueList.size() > 0;
-    }
-
-    public static boolean isAssociationTargetSearchNotEmpty(ExpressionType expression) {
-        String path = getTargetSearchExpPathValue(expression);
-        String value = getTargetSearchExpValue(expression);
-        return StringUtils.isNotEmpty(path) && StringUtils.isNotEmpty(value);
-    }
-
     public static boolean isLiteralExpressionValueNotEmpty(ExpressionType expression) throws SchemaException {
-        List<String> values = getLiteralExpressionValues(expression);
-        return values != null && values.size() > 0;
-    }
-
-    public static boolean areAllExpressionValuesEmpty(ExpressionType expression, PrismContext prismContext) throws SchemaException {
-        return !isShadowRefNotEmpty(expression, prismContext) && !isLiteralExpressionValueNotEmpty(expression) && !isAssociationTargetSearchNotEmpty(expression);
+        return getLiteralExpressionValues(expression).size() > 0;
     }
 
     public static void parseExpressionEvaluators(String xml, ExpressionType expressionObject, PrismContext context) throws SchemaException {
@@ -284,7 +239,7 @@ public class ExpressionUtil {
         }
     }
 
-    public static JAXBElement findFirstEvaluatorByName(ExpressionType expression, QName elementName) {
+    public static JAXBElement<?> findFirstEvaluatorByName(ExpressionType expression, QName elementName) {
         if (isEmpty(expression) || elementName == null) {
             return null;
         }
@@ -296,8 +251,8 @@ public class ExpressionUtil {
         return null;
     }
 
-    public static List<JAXBElement> findAllEvaluatorsByName(ExpressionType expression, QName elementName) {
-        List<JAXBElement> elements = new ArrayList<>();
+    public static @NotNull List<JAXBElement<?>> findAllEvaluatorsByName(ExpressionType expression, QName elementName) {
+        List<JAXBElement<?>> elements = new ArrayList<>();
         if (isEmpty(expression) || elementName == null) {
             return elements;
         }
@@ -313,25 +268,20 @@ public class ExpressionUtil {
         if (isEmpty(expression) || elementName == null) {
             return;
         }
-        Iterator<JAXBElement<?>> it = expression.getExpressionEvaluator().iterator();
-        while (it.hasNext()) {
-            JAXBElement<?> element = it.next();
-            if (element != null && element.getName().equals(elementName)) {
-                it.remove();
-            }
-        }
+        expression.getExpressionEvaluator().removeIf(
+                element -> element != null && element.getName().equals(elementName));
     }
 
     public static void removeShadowRefEvaluatorValue(ExpressionType expression, String shadowRefOid, PrismContext prismContext) {
         if (expression == null || StringUtils.isEmpty(shadowRefOid)) {
             return;
         }
-        List<JAXBElement> elementList = findAllEvaluatorsByName(expression, SchemaConstants.C_VALUE);
+        List<JAXBElement<?>> elementList = findAllEvaluatorsByName(expression, SchemaConstants.C_VALUE);
         if (CollectionUtils.isEmpty(elementList)) {
             return;
         }
         boolean removePerformed = false;
-        Iterator<JAXBElement> elementIterator = elementList.iterator();
+        Iterator<JAXBElement<?>> elementIterator = elementList.iterator();
         while (elementIterator.hasNext()) {
             JAXBElement element = elementIterator.next();
             if (element != null && element.getValue() instanceof RawType) {
@@ -346,7 +296,7 @@ public class ExpressionUtil {
                             }
                         }
                     } catch (SchemaException e) {
-                        LoggingUtils.logExceptionAsWarning(LOGGER, "Could not remove association value", e, e.getStackTrace());
+                        LoggingUtils.logExceptionAsWarning(LOGGER, "Could not remove association value", e);
                     }
                 } else {
                     XNode node = raw.getXnode();
@@ -376,14 +326,7 @@ public class ExpressionUtil {
             }
         }
         expression.getExpressionEvaluator().clear();
-        expression.getExpressionEvaluator().addAll((Collection) elementList);
-    }
-
-    public static void clearExpressionEvaluator(ExpressionType expression) {
-        if (expression == null) {
-            return;
-        }
-        expression.getExpressionEvaluator().clear();
+        expression.getExpressionEvaluator().addAll(elementList);
     }
 
     private static String getShadowRefNodeOid(MapXNode shadowRefNode) {
@@ -396,8 +339,10 @@ public class ExpressionUtil {
         return "";
     }
 
-    public static JAXBElement createAssociationTargetSearchElement(PrismContext prismContext) {
-        JAXBElement evaluator = new JAXBElement(SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH, JAXBElement.GlobalScope.class,
+    public static JAXBElement<?> createAssociationTargetSearchElement(PrismContext prismContext) {
+        JAXBElement<Object> evaluator = new JAXBElement<>(
+                SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH,
+                Object.class,
                 new JAXBElement.GlobalScope());
         SearchObjectExpressionEvaluatorType searchObjectExpressionEvaluatorType = new SearchObjectExpressionEvaluatorType();
 
@@ -448,7 +393,7 @@ public class ExpressionUtil {
     public static void updateAssociationTargetSearchValue(ExpressionType expression, String newPath, String newValue,
             PrismContext prismContext) throws SchemaException {
         SearchObjectExpressionEvaluatorType associationTargetSearchType = new SearchObjectExpressionEvaluatorType();
-        EqualFilter pathFilter = prismContext.queryFactory().createEqual(ItemPath.create(newPath), null, null, prismContext, newValue);
+        EqualFilter<?> pathFilter = prismContext.queryFactory().createEqual(ItemPath.create(newPath), null, null, prismContext, newValue);
 
         SearchFilterType filterType = prismContext.getQueryConverter().createSearchFilterType(pathFilter);
         associationTargetSearchType.setFilter(filterType);
@@ -475,16 +420,17 @@ public class ExpressionUtil {
         if (expression == null) {
             return false;
         }
-        JAXBElement element = ExpressionUtil.findFirstEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
+        JAXBElement<?> element = ExpressionUtil.findFirstEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
         if (element == null) {
             return false;
         }
         if (element.getValue() instanceof RawType) {
             RawType raw = (RawType) element.getValue();
             PrismValue prismValue = raw.getAlreadyParsedValue();
-            if (prismValue != null && prismValue instanceof PrismContainerValue &&
-                    ((PrismContainerValue) prismValue).getComplexTypeDefinition() != null &&
-                    ShadowAssociationType.class.equals(((PrismContainerValue) prismValue).getComplexTypeDefinition().getCompileTimeClass())) {
+            if (prismValue instanceof PrismContainerValue
+                    && ((PrismContainerValue<?>) prismValue).getComplexTypeDefinition() != null
+                    && ShadowAssociationType.class.equals(
+                    ((PrismContainerValue<?>) prismValue).getComplexTypeDefinition().getCompileTimeClass())) {
                 return true;
             }
         } else if (element.getValue() instanceof ShadowAssociationType) {
@@ -537,24 +483,22 @@ public class ExpressionUtil {
         }
     }
 
-    public static List<String> getLiteralExpressionValues(ExpressionType expression) throws SchemaException {
+    public static @NotNull List<String> getLiteralExpressionValues(ExpressionType expression) throws SchemaException {
         List<String> values = new ArrayList<>();
-        List<JAXBElement> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_VALUE);
-        if (elements != null) {
-            for (JAXBElement element : elements) {
-                if (element.getValue() instanceof RawType) {
-                    RawType raw = (RawType) element.getValue();
-                    if (raw != null) {
-                        if (raw.getXnode() != null && raw.getXnode() instanceof PrimitiveXNode) {
-                            PrimitiveXNode valueNode = (PrimitiveXNode) raw.getXnode();
-                            if (valueNode != null && valueNode.getValue() != null) {
-                                values.add(valueNode.getValue().toString());
-                            } else if (valueNode.getValueParser() != null) {
-                                values.add(valueNode.getValueParser().getStringValue());
-                            }
-                        } else if (raw.getParsedRealValue(String.class) != null) {
-                            values.add(raw.getParsedRealValue(String.class));
+        List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_VALUE);
+        for (JAXBElement<?> element : elements) {
+            if (element.getValue() instanceof RawType) {
+                RawType raw = (RawType) element.getValue();
+                if (raw != null) {
+                    if (raw.getXnode() != null && raw.getXnode() instanceof PrimitiveXNode) {
+                        PrimitiveXNode<?> valueNode = (PrimitiveXNode<?>) raw.getXnode();
+                        if (valueNode != null && valueNode.getValue() != null) {
+                            values.add(valueNode.getValue().toString());
+                        } else if (valueNode.getValueParser() != null) {
+                            values.add(valueNode.getValueParser().getStringValue());
                         }
+                    } else if (raw.getParsedRealValue(String.class) != null) {
+                        values.add(raw.getParsedRealValue(String.class));
                     }
                 }
             }

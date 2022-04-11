@@ -11,11 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.OriginType;
@@ -58,10 +60,10 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
     protected List<AttributeEvaluation<AH>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) {
         List<AttributeEvaluation<AH>> attributesToEvaluate = new ArrayList<>();
 
-        RefinedObjectClassDefinition refinedObjectClassDefinition = construction.getRefinedObjectClassDefinition();
+        ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
 
-        for (RefinedAttributeDefinition<?> refinedAttributeDefinition : refinedObjectClassDefinition.getAttributeDefinitions()) {
-            MappingType outboundMappingBean = refinedAttributeDefinition.getOutboundMappingType();
+        for (ResourceAttributeDefinition<?> refinedAttributeDefinition : objectDefinition.getAttributeDefinitions()) {
+            MappingType outboundMappingBean = refinedAttributeDefinition.getOutboundMappingBean();
             if (outboundMappingBean == null) {
                 continue;
             }
@@ -82,8 +84,8 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
     protected List<AssociationEvaluation<AH>> getAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) {
         List<AssociationEvaluation<AH>> associationsToEvaluate = new ArrayList<>();
 
-        RefinedObjectClassDefinition refinedObjectClassDefinition = construction.getRefinedObjectClassDefinition();
-        for (RefinedAssociationDefinition associationDefinition : refinedObjectClassDefinition.getAssociationDefinitions()) {
+        ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
+        for (ResourceAssociationDefinition associationDefinition : objectDefinition.getAssociationDefinitions()) {
             MappingType outboundMappingBean = associationDefinition.getOutboundMappingType();
             if (outboundMappingBean == null) {
                 continue;

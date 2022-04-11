@@ -7,33 +7,20 @@
 
 package com.evolveum.midpoint.model.impl.schema.transform;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-
+import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutablePrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.deleg.ContainerDefinitionDelegator;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.deleg.AttributeContainerDefinitionDelegator;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
@@ -56,8 +43,6 @@ public class TransformableContainerDefinition<C extends Containerable>
         super(delegate);
         complexTypeDefinition = TransformableComplexTypeDefinition.from(typeDef);
     }
-
-
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public static <C extends Containerable> TransformableContainerDefinition<C> of(PrismContainerDefinition<C> originalItem) {
@@ -82,17 +67,14 @@ public class TransformableContainerDefinition<C extends Containerable>
         return delegate().getTypeClass();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path) {
-        return (ID) findItemDefinition(path, ItemDefinition.class);
-    }
-
-    @Override
-    public <T extends ItemDefinition> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
+    public <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
         for (;;) {
-            if (path.isEmpty() && clazz.isInstance(this)) {
-                return clazz.cast(this);
+            if (path.isEmpty()) {
+                if (clazz.isInstance(this)) {
+                    return clazz.cast(this);
+                }
+                return null;
             }
             @Nullable
             Object first = path.first();
@@ -112,19 +94,7 @@ public class TransformableContainerDefinition<C extends Containerable>
         }
     }
 
-
-    @Override
-    public <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
-            boolean caseInsensitive) {
-        if (complexTypeDefinition != null) {
-            return complexTypeDefinition.findLocalItemDefinition(name, clazz, caseInsensitive);
-        } else {
-            return null;    // xsd:any and similar dynamic definitions
-        }
-    }
-
-    @Override
-    public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest,
+    private <ID extends ItemDefinition<?>> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest,
             @NotNull Class<ID> clazz) {
         if (complexTypeDefinition != null) {
             return complexTypeDefinition.findNamedItemDefinition(firstName, rest, clazz);
@@ -138,33 +108,6 @@ public class TransformableContainerDefinition<C extends Containerable>
     }
 
     @Override
-    public <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name) {
-        return (ID) findLocalItemDefinition(name, ItemDefinition.class, false);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> PrismPropertyDefinition<T> findPropertyDefinition(@NotNull ItemPath path) {
-        return findItemDefinition(path, PrismPropertyDefinition.class);
-    }
-
-    @Override
-    public PrismReferenceDefinition findReferenceDefinition(@NotNull ItemName name) {
-        return findLocalItemDefinition(name, PrismReferenceDefinition.class, false);
-    }
-
-    @Override
-    public PrismReferenceDefinition findReferenceDefinition(@NotNull ItemPath path) {
-        return findItemDefinition(path, PrismReferenceDefinition.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(@NotNull String name) {
-        return findItemDefinition(new ItemName(name), PrismContainerDefinition.class);
-    }
-
-    @Override
     public Class<C> getCompileTimeClass() {
         return delegate().getCompileTimeClass();
     }
@@ -173,6 +116,7 @@ public class TransformableContainerDefinition<C extends Containerable>
     public TransformableComplexTypeDefinition getComplexTypeDefinition() {
         return complexTypeDefinition;
     }
+
     @Override
     public boolean isEmpty() {
         if (complexTypeDefinition == null) {
@@ -182,17 +126,7 @@ public class TransformableContainerDefinition<C extends Containerable>
     }
 
     @Override
-    public String getDefaultNamespace() {
-        return delegate().getDefaultNamespace();
-    }
-
-    @Override
-    public List<String> getIgnoredNamespaces() {
-        return delegate().getIgnoredNamespaces();
-    }
-
-    @Override
-    public List<? extends ItemDefinition> getDefinitions() {
+    public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
         if (complexTypeDefinition != null) {
             return complexTypeDefinition.getDefinitions();
         }
@@ -200,23 +134,18 @@ public class TransformableContainerDefinition<C extends Containerable>
     }
 
     @Override
-    public boolean isCompletelyDefined() {
-        return delegate().isCompletelyDefined();
-    }
-
-    @Override
-    public List<PrismPropertyDefinition> getPropertyDefinitions() {
-        List<PrismPropertyDefinition> props = new ArrayList<>();
+    public List<PrismPropertyDefinition<?>> getPropertyDefinitions() {
+        List<PrismPropertyDefinition<?>> props = new ArrayList<>();
         for (ItemDefinition<?> def : complexTypeDefinition.getDefinitions()) {
             if (def instanceof PrismPropertyDefinition) {
-                props.add((PrismPropertyDefinition) def);
+                props.add((PrismPropertyDefinition<?>) def);
             }
         }
         return props;
     }
 
     @Override
-    public ContainerDelta<C> createEmptyDelta(ItemPath path) {
+    public @NotNull ContainerDelta<C> createEmptyDelta(ItemPath path) {
         return delegate().createEmptyDelta(path);
     }
 
@@ -226,16 +155,10 @@ public class TransformableContainerDefinition<C extends Containerable>
     }
 
     @Override
-    public ItemDefinition<PrismContainer<C>> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
-        return deepClone(new HashMap<>(), new HashMap<>(), postCloneAction);
-    }
-
-    @Override
-    public ItemDefinition<PrismContainer<C>> deepClone(Map<QName, ComplexTypeDefinition> ctdMap,
-            Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
+    public ItemDefinition<PrismContainer<C>> deepClone(@NotNull DeepCloneOperation operation) {
         ComplexTypeDefinition ctd = getComplexTypeDefinition();
         if (ctd != null) {
-            ctd = ctd.deepClone(ctdMap, onThisPath, postCloneAction);
+            ctd = ctd.deepClone(operation);
         }
         return copy(ctd);
     }
@@ -245,14 +168,14 @@ public class TransformableContainerDefinition<C extends Containerable>
     }
 
     @Override
-    public PrismContainerDefinition<C> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
+    public PrismContainerDefinition<C> cloneWithReplacedDefinition(QName itemName, ItemDefinition<?> newDefinition) {
         TransformableComplexTypeDefinition typeDefCopy = complexTypeDefinition.copy();
         typeDefCopy.replaceDefinition(itemName, newDefinition);
         return copy(typeDefCopy);
     }
 
     @Override
-    public void replaceDefinition(QName itemName, ItemDefinition newDefinition) {
+    public void replaceDefinition(QName itemName, ItemDefinition<?> newDefinition) {
         complexTypeDefinition.replaceDefinition(itemName, newDefinition);
     }
 
@@ -274,7 +197,7 @@ public class TransformableContainerDefinition<C extends Containerable>
     }
 
     @Override
-    public PrismContainer<C> instantiate() throws SchemaException {
+    public @NotNull PrismContainer<C> instantiate() throws SchemaException {
         return instantiate(getItemName());
     }
 
@@ -329,18 +252,20 @@ public class TransformableContainerDefinition<C extends Containerable>
         }
 
         @Override
-        public List<? extends ResourceAttributeDefinition> getDefinitions() {
+        public @NotNull List<? extends ResourceAttributeDefinition<?>> getDefinitions() {
             // FIXME: Later
-            return (List) super.getDefinitions();
+            //noinspection unchecked
+            return (List<? extends ResourceAttributeDefinition<?>>) super.getDefinitions();
         }
 
         @Override
-        public TransformableComplexTypeDefinition.ObjectClass getComplexTypeDefinition() {
-            return (TransformableComplexTypeDefinition.ObjectClass) super.getComplexTypeDefinition();
+        public TransformableComplexTypeDefinition.TrResourceObjectDefinition getComplexTypeDefinition() {
+            return (TransformableComplexTypeDefinition.TrResourceObjectDefinition) super.getComplexTypeDefinition();
         }
 
         @Override
-        public PrismContainerDefinition<ShadowAttributesType> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
+        public PrismContainerDefinition<ShadowAttributesType> cloneWithReplacedDefinition(
+                QName itemName, ItemDefinition<?> newDefinition) {
             TransformableComplexTypeDefinition typeDefCopy = complexTypeDefinition.copy();
             typeDefCopy.replaceDefinition(itemName, newDefinition);
             return new AttributeContainer(this, typeDefCopy);
@@ -352,7 +277,7 @@ public class TransformableContainerDefinition<C extends Containerable>
         }
 
         @Override
-        public ResourceAttributeContainer instantiate() {
+        public @NotNull ResourceAttributeContainer instantiate() {
             return instantiate(getItemName());
         }
 

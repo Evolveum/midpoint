@@ -73,5 +73,8 @@ public class ScopeSearchItem extends SpecialSearchItem {
         };
     }
 
+    public SearchBoxScopeType getScopeType(){
+        return getScopeConfig().getDefaultValue();
+    }
 
 }

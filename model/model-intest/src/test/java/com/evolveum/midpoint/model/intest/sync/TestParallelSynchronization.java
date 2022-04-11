@@ -8,8 +8,6 @@ package com.evolveum.midpoint.model.intest.sync;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -18,6 +16,7 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -167,7 +166,7 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
         displayDumpable("Dummy resource azure", dummyResourceSteelBlue);
 
         // WHEN
-        ResourceSchema resourceSchemaAzure = RefinedResourceSchemaImpl.getResourceSchema(resourceDummySteelBlueType, prismContext);
+        ResourceSchema resourceSchemaAzure = ResourceSchemaFactory.getRawSchema(resourceDummySteelBlueType);
 
         displayDumpable("Dummy azure resource schema", resourceSchemaAzure);
 
@@ -178,7 +177,7 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
     @Test
     public void test002SanityAzureRefined() throws Exception {
         // WHEN
-        RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummySteelBlueType, prismContext);
+        ResourceSchema refinedSchemaAzure = ResourceSchemaFactory.getCompleteSchema(resourceDummySteelBlueType);
 
         displayDumpable("Dummy azure refined schema", refinedSchemaAzure);
 
@@ -217,7 +216,7 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
         if (DISTRIBUTION == Distribution.MULTITHREADED) {
             waitForTaskFinish(getSyncTaskOid(), true, 600000);
         } else {
-            waitForTaskTreeNextFinishedRun(getSyncTaskOid(), 600000);
+            waitForRootActivityCompletion(getSyncTaskOid(), 600000);
         }
 
         // THEN

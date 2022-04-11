@@ -652,7 +652,7 @@ public class OperationResult
      * @return true if the result is acceptable for further processing.
      */
     public boolean isAcceptable() {
-        return (status != OperationResultStatus.FATAL_ERROR);
+        return status != OperationResultStatus.FATAL_ERROR;
     }
 
     public boolean isUnknown() {
@@ -664,8 +664,7 @@ public class OperationResult
     }
 
     public boolean isError() {
-        return status == OperationResultStatus.FATAL_ERROR ||
-                status == OperationResultStatus.PARTIAL_ERROR;
+        return status != null && status.isError();
     }
 
     public boolean isFatalError() {
@@ -2194,16 +2193,7 @@ public class OperationResult
         }
 
         if (cause != null) {
-            DebugUtil.indentDebugDump(sb, indent + 2);
-            sb.append("[cause]");
-            sb.append(cause.getClass().getSimpleName());
-            sb.append(":");
-            sb.append(cause.getMessage());
-            sb.append("\n");
-            if (printStackTrace) {
-                dumpStackTrace(sb, cause.getStackTrace(), indent + 4);
-                dumpInnerCauses(sb, cause.getCause(), indent + 3);
-            }
+            DebugUtil.dumpThrowable(sb, "[cause]", cause, indent + 2, printStackTrace);
         }
 
         for (OperationResult sub : getSubresults()) {
@@ -2222,28 +2212,6 @@ public class OperationResult
             return values.iterator().next();
         }
         return values.toString();
-    }
-
-    private void dumpInnerCauses(StringBuilder sb, Throwable innerCause, int indent) {
-        if (innerCause == null) {
-            return;
-        }
-        DebugUtil.indentDebugDump(sb, indent);
-        sb.append("Caused by ");
-        sb.append(innerCause.getClass().getName());
-        sb.append(": ");
-        sb.append(innerCause.getMessage());
-        sb.append("\n");
-        dumpStackTrace(sb, innerCause.getStackTrace(), indent + 1);
-        dumpInnerCauses(sb, innerCause.getCause(), indent);
-    }
-
-    private static void dumpStackTrace(StringBuilder sb, StackTraceElement[] stackTrace, int indent) {
-        for (StackTraceElement stackTraceElement : stackTrace) {
-            DebugUtil.indentDebugDump(sb, indent);
-            sb.append(stackTraceElement.toString());
-            sb.append("\n");
-        }
     }
 
     @Override

@@ -11,6 +11,11 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -42,5 +47,23 @@ public class ReportSupportUtil {
             }
         }
         return exportDir;
+    }
+
+    /**
+     * TODO review this method; looks a bit hacked
+     */
+    public static @NotNull String getContentType(ReportDataType reportData) {
+        String type;
+        String filePath = reportData.getFilePath();
+        FileFormatTypeType fileFormat = reportData.getFileFormat();
+        if (fileFormat != null) {
+            type = fileFormat.value().toLowerCase();
+        } else {
+            type = FilenameUtils.getExtension(filePath);
+        }
+        if (StringUtils.isBlank(type)) {
+            type = "plain";
+        }
+        return "text/" + type;
     }
 }

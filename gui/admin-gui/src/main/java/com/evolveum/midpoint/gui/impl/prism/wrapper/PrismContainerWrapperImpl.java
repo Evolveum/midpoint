@@ -9,14 +9,11 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -75,27 +72,17 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     }
 
     @Override
-    public String getDefaultNamespace() {
-        return getItemDefinition().getDefaultNamespace();
-    }
-
-    @Override
-    public List<String> getIgnoredNamespaces() {
-        return getItemDefinition().getIgnoredNamespaces();
-    }
-
-    @Override
-    public List<? extends ItemDefinition> getDefinitions() {
+    public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
         return getItemDefinition().getDefinitions();
     }
 
     @Override
-    public List<PrismPropertyDefinition> getPropertyDefinitions() {
+    public List<PrismPropertyDefinition<?>> getPropertyDefinitions() {
         return getItemDefinition().getPropertyDefinitions();
     }
 
     @Override
-    public ContainerDelta<C> createEmptyDelta(ItemPath path) {
+    public @NotNull ContainerDelta<C> createEmptyDelta(ItemPath path) {
         return getItemDefinition().createEmptyDelta(path);
     }
 
@@ -128,16 +115,6 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     @Override
     public MutablePrismContainerDefinition<C> toMutable() {
         return getItemDefinition().toMutable();
-    }
-
-    @Override
-    public <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive) {
-        return getItemDefinition().findLocalItemDefinition(name, clazz, caseInsensitive);
-    }
-
-    @Override
-    public <ID extends ItemDefinition> ID findNamedItemDefinition(QName firstName, ItemPath rest, Class<ID> clazz) {
-        return getItemDefinition().findNamedItemDefinition(firstName, rest, clazz);
     }
 
     //TODO : unify with PrismContainerImpl findContainer();
@@ -356,10 +333,6 @@ public class PrismContainerWrapperImpl<C extends Containerable>
         // TODO
     }
 
-    public boolean isCompletelyDefined() {
-        return getItemDefinition().isCompletelyDefined();
-    }
-
     @Override
     protected PrismContainerValue<C> createNewEmptyValue(ModelServiceLocator locator) {
         return createValue();
@@ -393,5 +366,17 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     @Override
     public void setIdentifier(String identifier) {
         this.identifier = identifier;
+    }
+
+    @Override
+    public Class<C> getTypeClassIfKnown() {
+        //noinspection unchecked
+        return (Class<C>) super.getTypeClassIfKnown();
+    }
+
+    @Override
+    public Class<C> getTypeClass() {
+        //noinspection unchecked
+        return (Class<C>) super.getTypeClass();
     }
 }

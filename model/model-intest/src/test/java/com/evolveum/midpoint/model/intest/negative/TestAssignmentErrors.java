@@ -16,6 +16,12 @@ import java.util.Collection;
 import java.util.Iterator;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -24,10 +30,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -83,25 +85,24 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
         // WHEN
         PrismObject<ResourceType> resourceWhite = getObject(ResourceType.class, RESOURCE_DUMMY_WHITE_OID);
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceWhite, prismContext);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resourceWhite);
         displayDumpable("Refined schema", refinedSchema);
 
-        RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectDefinition accountDef = refinedSchema.findObjectDefinition(ShadowKindType.ACCOUNT, null);
+        // This is an object class definition, as this resource has no schema handling defined
         assertNotNull("Account definition is missing", accountDef);
         assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
         assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
         assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
         assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
-        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
+        assertFalse("No nativeObjectClass in account",
+                StringUtils.isEmpty(accountDef.getObjectClassDefinition().getNativeObjectClass()));
 
-        assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountDef.getKind());
-        assertTrue("Account definition in not default", accountDef.isDefaultInAKind());
-        assertEquals("Wrong intent in account definition", SchemaConstants.INTENT_DEFAULT, accountDef.getIntent());
         assertFalse("Account definition is deprecated", accountDef.isDeprecated());
-        assertFalse("Account definition in auxiliary", accountDef.isAuxiliary());
+        assertFalse("Account definition in auxiliary", accountDef.getObjectClassDefinition().isAuxiliary());
 
-        RefinedAttributeDefinition uidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
+        ResourceAttributeDefinition<?> uidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
         assertEquals(1, uidDef.getMaxOccurs());
         assertEquals(0, uidDef.getMinOccurs());
         assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
@@ -110,7 +111,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertTrue("No UID read", uidDef.canRead());
         assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
 
-        RefinedAttributeDefinition nameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        ResourceAttributeDefinition<?> nameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertEquals(1, nameDef.getMaxOccurs());
         assertEquals(1, nameDef.getMinOccurs());
         assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
@@ -119,7 +120,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertTrue("No NAME read", nameDef.canRead());
         assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
 
-        RefinedAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
+        ResourceAttributeDefinition<?> fullnameDef = accountDef.findAttributeDefinition("fullname");
         assertNotNull("No definition for fullname", fullnameDef);
         assertEquals(1, fullnameDef.getMaxOccurs());
         assertEquals(1, fullnameDef.getMinOccurs());

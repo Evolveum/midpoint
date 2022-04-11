@@ -20,9 +20,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -67,9 +67,6 @@ import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHel
 import static com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.*;
 
-/**
- * @author mederly
- */
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/certification/campaign", matchUrlForSecurity = "/admin/certification/campaign")

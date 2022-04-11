@@ -285,8 +285,8 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         this.remoteHostAddress = remoteHostAddress;
     }
 
-    public void setInitiator(PrismObject<? extends FocusType> initiator, PrismContext prismContext) {
-        this.initiatorRef = createRefValueWithDescription(initiator, prismContext);
+    public void setInitiator(PrismObject<? extends FocusType> initiator) {
+        this.initiatorRef = createRefValueWithDescription(initiator);
     }
 
     /**
@@ -307,9 +307,9 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         this.initiatorRef = initiator;
     }
 
-    public void setAttorney(PrismObject<? extends FocusType> attorney, PrismContext prismContext) {
+    public void setAttorney(PrismObject<? extends FocusType> attorney) {
         this.attorneyRef = attorney != null
-                ? createRefValueWithDescription(attorney, prismContext)
+                ? createRefValueWithDescription(attorney)
                 : null;
     }
 
@@ -341,16 +341,15 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         this.targetRef = target;
     }
 
-    public void setTarget(PrismObject<?> target, PrismContext prismContext) {
+    public void setTarget(PrismObject<?> target) {
         this.targetRef = target != null
-                ? createRefValueWithDescription(target, prismContext)
+                ? createRefValueWithDescription(target)
                 : null;
     }
 
-    public void setTargetOwner(
-            PrismObject<? extends FocusType> targetOwner, PrismContext prismContext) {
+    public void setTargetOwner(PrismObject<? extends FocusType> targetOwner) {
         this.targetOwnerRef = targetOwner != null
-                ? createRefValueWithDescription(targetOwner, prismContext)
+                ? createRefValueWithDescription(targetOwner)
                 : null;
     }
 
@@ -365,13 +364,12 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         this.targetOwnerRef = targetOwnerRef;
     }
 
-    private @Nullable PrismReferenceValue createRefValueWithDescription(
-            @Nullable PrismObject<?> object, @NotNull PrismContext prismContext) {
+    private @Nullable PrismReferenceValue createRefValueWithDescription(@Nullable PrismObject<?> object) {
         if (object == null) {
             return null;
         }
 
-        PrismReferenceValue refValue = prismContext.itemFactory().createReferenceValue(object);
+        PrismReferenceValue refValue = PrismContext.get().itemFactory().createReferenceValue(object);
         refValue.setDescription(object.getBusinessDisplayName());
         return refValue;
     }
@@ -531,35 +529,31 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         ObjectDeltaOperation.checkConsistence(deltas);
     }
 
-    @Deprecated // should go away with the old audit listRecord
-    public AuditEventRecordType createAuditEventRecordType() {
-        return createAuditEventRecordType(false);
-    }
-
+    // TODO: currently unused (2021), but if audit(AERType) will be reused as part of audit(AER) it can still be useful
     public AuditEventRecordType createAuditEventRecordType(boolean tolerateInconsistencies) {
-        AuditEventRecordType auditRecordType = new AuditEventRecordType();
-        auditRecordType.setRepoId(repoId);
-        auditRecordType.setChannel(channel);
-        auditRecordType.setEventIdentifier(eventIdentifier);
-        auditRecordType.setEventStage(AuditEventStage.toSchemaValue(eventStage));
-        auditRecordType.setEventType(AuditEventType.toSchemaValue(eventType));
-        auditRecordType.setHostIdentifier(hostIdentifier);
-        auditRecordType.setRemoteHostAddress(remoteHostAddress);
-        auditRecordType.setNodeIdentifier(nodeIdentifier);
-        auditRecordType.setInitiatorRef(ObjectTypeUtil.createObjectRef(initiatorRef, true));
-        auditRecordType.setAttorneyRef(ObjectTypeUtil.createObjectRef(attorneyRef, true));
-        auditRecordType.setMessage(message);
-        auditRecordType.setOutcome(OperationResultStatus.createStatusType(outcome));
-        auditRecordType.setParameter(parameter);
-        auditRecordType.setResult(result);
-        auditRecordType.setSessionIdentifier(sessionIdentifier);
-        auditRecordType.setTargetOwnerRef(ObjectTypeUtil.createObjectRef(targetOwnerRef, true));
-        auditRecordType.setTargetRef(ObjectTypeUtil.createObjectRef(targetRef, true));
-        auditRecordType.setRequestIdentifier(requestIdentifier);
-        auditRecordType.setTaskIdentifier(taskIdentifier);
-        auditRecordType.setTaskOID(taskOid);
-        auditRecordType.getResourceOid().addAll(resourceOids);
-        auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
+        AuditEventRecordType auditRecord = new AuditEventRecordType();
+        auditRecord.setRepoId(repoId);
+        auditRecord.setChannel(channel);
+        auditRecord.setEventIdentifier(eventIdentifier);
+        auditRecord.setEventStage(AuditEventStage.toSchemaValue(eventStage));
+        auditRecord.setEventType(AuditEventType.toSchemaValue(eventType));
+        auditRecord.setHostIdentifier(hostIdentifier);
+        auditRecord.setRemoteHostAddress(remoteHostAddress);
+        auditRecord.setNodeIdentifier(nodeIdentifier);
+        auditRecord.setInitiatorRef(ObjectTypeUtil.createObjectRef(initiatorRef, true));
+        auditRecord.setAttorneyRef(ObjectTypeUtil.createObjectRef(attorneyRef, true));
+        auditRecord.setMessage(message);
+        auditRecord.setOutcome(OperationResultStatus.createStatusType(outcome));
+        auditRecord.setParameter(parameter);
+        auditRecord.setResult(result);
+        auditRecord.setSessionIdentifier(sessionIdentifier);
+        auditRecord.setTargetOwnerRef(ObjectTypeUtil.createObjectRef(targetOwnerRef, true));
+        auditRecord.setTargetRef(ObjectTypeUtil.createObjectRef(targetRef, true));
+        auditRecord.setRequestIdentifier(requestIdentifier);
+        auditRecord.setTaskIdentifier(taskIdentifier);
+        auditRecord.setTaskOID(taskOid);
+        auditRecord.getResourceOid().addAll(resourceOids);
+        auditRecord.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
         for (ObjectDeltaOperation<?> delta : deltas) {
             ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
             try {
@@ -569,7 +563,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
                 // used only in GUI and reports, so we are safe here.
                 options.setEscapeInvalidCharacters(true);
                 DeltaConvertor.toObjectDeltaOperationType(delta, odo, options);
-                auditRecordType.getDelta().add(odo);
+                auditRecord.getDelta().add(odo);
             } catch (Exception e) {
                 if (tolerateInconsistencies) {
                     if (delta.getExecutionResult() != null) {
@@ -589,24 +583,24 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
             AuditEventRecordPropertyType propertyType = new AuditEventRecordPropertyType();
             propertyType.setName(propertyEntry.getKey());
             propertyType.getValue().addAll(propertyEntry.getValue());
-            auditRecordType.getProperty().add(propertyType);
+            auditRecord.getProperty().add(propertyType);
         }
         for (Map.Entry<String, Set<AuditReferenceValue>> referenceEntry : references.entrySet()) {
             AuditEventRecordReferenceType referenceType = new AuditEventRecordReferenceType();
             referenceType.setName(referenceEntry.getKey());
             referenceEntry.getValue().forEach(v -> referenceType.getValue().add(v.toXml()));
-            auditRecordType.getReference().add(referenceType);
+            auditRecord.getReference().add(referenceType);
         }
 
         for (Map.Entry<String, String> customColumnEntry : customColumnProperty.entrySet()) {
             AuditEventRecordCustomColumnPropertyType customColumn = new AuditEventRecordCustomColumnPropertyType();
             customColumn.setName(customColumnEntry.getKey());
             customColumn.setValue(customColumnEntry.getValue());
-            auditRecordType.getCustomColumnProperty().add(customColumn);
+            auditRecord.getCustomColumnProperty().add(customColumn);
         }
 
         // TODO MID-5531 convert custom properties too? What about other than string types?
-        return auditRecordType;
+        return auditRecord;
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod") // it's wrong, but intended
@@ -741,7 +735,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         }
     }
 
-    private static void adopt(ItemDeltaType itemDelta, PrismContext prismContext) throws SchemaException {
+    private static void adopt(ItemDeltaType itemDelta, PrismContext prismContext) {
         for (RawType value : itemDelta.getValue()) {
             if (value != null) {
                 value.revive(prismContext);
@@ -754,9 +748,8 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         }
     }
 
-    public void setInitiatorAndLoginParameter(
-            PrismObject<? extends FocusType> initiator, PrismContext prismContext) {
-        setInitiator(initiator, prismContext);
+    public void setInitiatorAndLoginParameter(PrismObject<? extends FocusType> initiator) {
+        setInitiator(initiator);
         String parameter = null;
         if (initiator != null) {
             PolyStringType name = initiator.asObjectable().getName();

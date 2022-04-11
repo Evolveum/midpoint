@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.dataModel.model;
 
-/**
- * @author mederly
- */
 public abstract class DataItem {
 
 }

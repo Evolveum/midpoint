@@ -17,6 +17,13 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
 
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.checkerframework.checker.units.qual.C;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+import java.lang.reflect.Field;
+
 /**
  * Class for misc GUI util methods (impl).
  *
@@ -82,4 +89,11 @@ public class GuiImplUtil {
         return null;
     }
 
+    public static <C extends Containerable> QName getContainerableTypeName(@NotNull Class<C> containerable) throws IllegalAccessException, NoSuchFieldException {
+        Field field = FieldUtils.getField(containerable, "COMPLEX_TYPE");
+        if (field == null) {
+            throw new NoSuchFieldException("Field COMPLEX_TYPE not found in " + containerable.getName());
+        }
+        return (QName) field.get(containerable);
+    }
 }

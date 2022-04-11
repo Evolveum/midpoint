@@ -13,13 +13,13 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.test.SearchAssertion;
 import com.evolveum.midpoint.prism.*;
@@ -39,7 +39,6 @@ import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -256,7 +255,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertVisibleUsers(1);
         assertSearch(OrgType.class, null, 0);
         assertSearch(RoleType.class, null, 0);
-        // The search with ObjectClass is important. It is a very different case
+        // The search with ResourceObjectClass is important. It is a very different case
         // than searching just for UserType
         assertSearch(ObjectType.class, null, 2);        // user + campaign (case1 is skipped)
 
@@ -308,7 +307,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertVisibleUsers(1);
         assertSearch(OrgType.class, null, 0);
         assertSearch(RoleType.class, null, 0);
-        // The search with ObjectClass is important. It is a very different case
+        // The search with ResourceObjectClass is important. It is a very different case
         // than searching just for UserType
         assertSearch(ObjectType.class, null, 1);        // user (case2 is not shown as case clause is skipped)
 
@@ -360,7 +359,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertVisibleUsers(1);
         assertSearch(OrgType.class, null, 0);
         assertSearch(RoleType.class, null, 0);
-        // The search with ObjectClass is important. It is a very different case
+        // The search with ResourceObjectClass is important. It is a very different case
         // than searching just for UserType
         assertSearch(ObjectType.class, null, 1);        // user (case2 is skipped)
 
@@ -416,7 +415,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
             assertVisibleUsers(1);
             assertSearch(OrgType.class, null, 0);
             assertSearch(RoleType.class, null, 0);
-            // The search with ObjectClass is important. It is a very different case
+            // The search with ResourceObjectClass is important. It is a very different case
             // than searching just for UserType
             assertSearch(ObjectType.class, null, 1);        // user (case2 is skipped)
 
@@ -479,7 +478,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
             assertVisibleUsers(1);
             assertSearch(OrgType.class, null, 0);
             assertSearch(RoleType.class, null, 0);
-            // The search with ObjectClass is important. It is a very different case
+            // The search with ResourceObjectClass is important. It is a very different case
             // than searching just for UserType
             assertSearch(ObjectType.class, null, 1);        // user
 
@@ -1266,7 +1265,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertDeleteDeny();
 
         assertSearch(OrgType.class, null, 1);
-        // The search wit ObjectClass is important. It is a very different case
+        // The search wit ResourceObjectClass is important. It is a very different case
         // than searching just for UserType or OrgType
         assertSearch(ObjectType.class, null, 1);
 
@@ -1798,7 +1797,9 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         display("Jack's shadow", shadow);
 
         Task task = getTestTask();
-        RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, getDummyResourceObject(), null, task, task.getResult());
+        ResourceObjectDefinition rOcDef =
+                modelInteractionService.getEditObjectClassDefinition(
+                        shadow, getDummyResourceObject(), null, task, task.getResult());
         displayDumpable("Refined objectclass def", rOcDef);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_UID, true, false, false);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_NAME, true, true, true);
@@ -1863,7 +1864,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, getDummyResourceObject(), null, task, result);
+        ResourceObjectDefinition rOcDef =
+                modelInteractionService.getEditObjectClassDefinition(shadow, getDummyResourceObject(), null, task, result);
         displayDumpable("Refined objectclass def", rOcDef);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_UID, true, false, false);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_NAME, true, false, false);
@@ -1920,7 +1922,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, getDummyResourceObject(), null, task, result);
+        ResourceObjectDefinition rOcDef =
+                modelInteractionService.getEditObjectClassDefinition(shadow, getDummyResourceObject(), null, task, result);
         displayDumpable("Refined objectclass def", rOcDef);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_UID, true, false, false);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_NAME, true, false, false);
@@ -1985,7 +1988,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         shadow.applyDefinition(rOcDef, true);
 
         ResourceAttributeContainer resourceAttributeCOntainer = ShadowUtil.getAttributesContainer(shadow);
-        ObjectClassComplexTypeDefinition containerDef = resourceAttributeCOntainer.getDefinition().getComplexTypeDefinition();
+        ResourceObjectDefinition containerDef = resourceAttributeCOntainer.getDefinition().getComplexTypeDefinition();
 
         Item attr = resourceAttributeCOntainer.findItem(new ItemName("weapon"));
         ItemDefinition attrDf = attr.getDefinition();

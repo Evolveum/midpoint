@@ -1,28 +1,29 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.events;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.notifications.api.events.TaskEvent;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
 
 public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
 
     @NotNull private final Task task;
-    @Nullable private final TaskRunResult taskRunResult;            // nullable only if operationType == ADD
-    @NotNull private final EventOperationType operationType;        // only ADD or DELETE
+    @Nullable private final TaskRunResult taskRunResult; // nullable only if operationType == ADD
+    @NotNull private final EventOperationType operationType; // only ADD or DELETE
 
     public TaskEventImpl(LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull Task task, @Nullable TaskRunResult runResult,
             @NotNull EventOperationType operationType, String channel) {
@@ -83,21 +84,33 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
             return eventStatus == EventStatusType.SUCCESS || eventStatus == EventStatusType.ALSO_SUCCESS || eventStatus == EventStatusType.IN_PROGRESS;
         }
 
-        switch (eventStatus) {
+        return statusMatches(eventStatus, status);
+    }
+
+    /**
+     * Returns if the real status of the event matches the value against which we are filtering.
+     *
+     * TODO reconsider this method
+     *
+     * @param filtering Status against which we are filtering (or, generally, what we are asking about)
+     * @param real Status of the specific event.
+     */
+    private boolean statusMatches(@NotNull EventStatusType filtering, @NotNull OperationResultStatus real) {
+        switch (filtering) {
             case SUCCESS:
             case ALSO_SUCCESS:
-                return status == OperationResultStatus.SUCCESS ||
-                        status == OperationResultStatus.HANDLED_ERROR ||
-                        status == OperationResultStatus.WARNING;
+                return real == OperationResultStatus.SUCCESS ||
+                        real == OperationResultStatus.HANDLED_ERROR ||
+                        real == OperationResultStatus.WARNING;
             case IN_PROGRESS:
-                return false;
+                return false; // OK?
             case FAILURE:
-                return status == OperationResultStatus.FATAL_ERROR ||
-                    status == OperationResultStatus.PARTIAL_ERROR;
+                return real == OperationResultStatus.FATAL_ERROR ||
+                        real == OperationResultStatus.PARTIAL_ERROR;
             case ONLY_FAILURE:
-                return status == OperationResultStatus.FATAL_ERROR;
+                return real == OperationResultStatus.FATAL_ERROR;
             default:
-                throw new IllegalStateException("Invalid eventStatusType: " + eventStatus);
+                throw new IllegalStateException("Invalid eventStatusType: " + filtering);
         }
     }
 
@@ -109,11 +122,6 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
     @Override
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.TASK_EVENT;
-    }
-
-    @Override
-    public boolean isRelatedToItem(ItemPath itemPath) {
-        return false;
     }
 
     @Override
@@ -140,7 +148,8 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
 
     @Override
     public long getProgress() {
-        return taskRunResult != null && taskRunResult.getProgress() != null ? taskRunResult.getProgress() : task.getLegacyProgress();
+        return taskRunResult != null && taskRunResult.getProgress() != null ?
+                taskRunResult.getProgress() : task.getLegacyProgress();
     }
 
     @Override
@@ -151,5 +160,13 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "taskRunResult", taskRunResult, indent + 1);
         DebugUtil.debugDumpWithLabelToString(sb, "operationType", operationType, indent + 1);
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return toStringPrefix() +
+                ", task=" + getTask() +
+                ", operationResultStatus=" + getOperationResultStatus() +
+                '}';
     }
 }

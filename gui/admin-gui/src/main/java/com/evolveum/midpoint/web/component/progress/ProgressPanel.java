@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -21,10 +26,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.HttpConnectionInformation;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
@@ -69,9 +69,6 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.R
 import static com.evolveum.midpoint.schema.util.task.work.SpecificWorkDefinitionUtil.createNonIterativeChangeExecutionDef;
 import static com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto.ResourceOperationResult;
 
-/**
- * @author mederly
- */
 public class ProgressPanel extends BasePanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProgressPanel.class);
@@ -445,7 +442,7 @@ public class ProgressPanel extends BasePanel {
         ProgressReporter reporter = reporterModel.getProcessData();
         try {
             TaskManager taskManager = page.getTaskManager();
-            MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+            MidPointPrincipal user = AuthUtil.getPrincipalUser();
             if (user == null) {
                 throw new RestartResponseException(PageLogin.class);
             } else {

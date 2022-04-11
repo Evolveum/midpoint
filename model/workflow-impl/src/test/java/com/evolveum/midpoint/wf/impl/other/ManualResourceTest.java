@@ -38,13 +38,11 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.AbstractWfTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * This is an adaptation of model-intest manual resource test(s) aimed to verify workflow-related aspects
  * (e.g. completion, auditing, notifications) of manual provisioning cases.
- *
- * @author Radovan Semancik
- * @author mederly
  */
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -116,7 +114,7 @@ public class ManualResourceTest extends AbstractWfTest {
                 .familyName(USER_WILL_FAMILY_NAME)
                 .fullName(USER_WILL_FULL_NAME)
                 .beginActivation().administrativeStatus(ActivationStatusType.ENABLED).<UserType>end()
-                .beginCredentials().beginPassword().beginValue().setClearValue(USER_WILL_PASSWORD_OLD);
+                .beginCredentials().beginPassword().value(new ProtectedStringType().clearValue(USER_WILL_PASSWORD_OLD));
         return user;
     }
 
@@ -216,7 +214,7 @@ public class ManualResourceTest extends AbstractWfTest {
 
         assertTrue("no admin work item", adminWorkItem.isPresent());
 
-        workflowManager.completeWorkItem(WorkItemId.of(adminWorkItem.get()),
+        caseManager.completeWorkItem(WorkItemId.of(adminWorkItem.get()),
                 new AbstractWorkItemOutputType(prismContext)
                         .outcome(OperationResultStatusType.SUCCESS.value()),
                 null, task, result);

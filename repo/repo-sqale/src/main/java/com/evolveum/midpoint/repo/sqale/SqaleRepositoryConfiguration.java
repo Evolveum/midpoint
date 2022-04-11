@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -29,6 +29,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
  */
 public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration {
 
+    private static final String PROPERTY_SQL_DURATION_WARNING_MS = "sqlDurationWarningMs";
+
     private static final String DEFAULT_DRIVER = "org.postgresql.Driver";
     private static final SupportedDatabase DEFAULT_DATABASE = SupportedDatabase.POSTGRESQL;
     private static final String DEFAULT_JDBC_URL = "jdbc:postgresql://localhost:5432/midpoint";
@@ -57,6 +59,8 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     private static final int DEFAULT_ITERATIVE_SEARCH_PAGE_SIZE = 100;
 
+    private static final int DEFAULT_SQL_DURATION_WARNING_MS = 0; // 0 or less means no warning
+
     @NotNull private final Configuration configuration;
 
     // either dataSource or JDBC URL must be set
@@ -82,6 +86,8 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     private int iterativeSearchByPagingBatchSize;
     private boolean createMissingCustomColumns;
+
+    private long sqlDurationWarningMs; // 0 or less means no warning
 
     // Provided with configuration node "midpoint.repository".
     public SqaleRepositoryConfiguration(@NotNull Configuration configuration) {
@@ -133,6 +139,9 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
                 PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE, DEFAULT_ITERATIVE_SEARCH_PAGE_SIZE);
         createMissingCustomColumns =
                 configuration.getBoolean(PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
+
+        sqlDurationWarningMs = configuration.getLong(
+                PROPERTY_SQL_DURATION_WARNING_MS, DEFAULT_SQL_DURATION_WARNING_MS);
 
         validateConfiguration();
     }
@@ -290,6 +299,14 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     @Override
     public boolean isCreateMissingCustomColumns() {
         return createMissingCustomColumns;
+    }
+
+    /**
+     * Returns threshold duration for SQL, after which it should be logged on warning level.
+     * Value of 0 or less means that this warning is disabled.
+     */
+    public long getSqlDurationWarningMs() {
+        return sqlDurationWarningMs;
     }
 
     /**

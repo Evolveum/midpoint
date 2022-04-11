@@ -10,8 +10,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.schema.*;
 
@@ -32,7 +34,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -75,6 +76,8 @@ public class GuiProfileCompiler {
     private RepositoryService repositoryService;
 
     @Autowired private GuiProfileCompilerRegistry guiProfileCompilerRegistry;
+
+    @Autowired private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
 
     public void compileFocusProfile(GuiProfiledPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
@@ -435,8 +438,18 @@ public class GuiProfileCompiler {
     }
 
     private void joinObjectDetails(GuiObjectDetailsSetType objectDetailsSet, GuiObjectDetailsPageType newObjectDetails) {
-        objectDetailsSet.getObjectDetailsPage().removeIf(currentDetails -> isTheSameObjectType(currentDetails, newObjectDetails));
-        objectDetailsSet.getObjectDetailsPage().add(newObjectDetails.clone());
+        AtomicBoolean merged = new AtomicBoolean(false);
+        objectDetailsSet.getObjectDetailsPage().forEach(currentDetails -> {
+            if(isTheSameObjectType(currentDetails, newObjectDetails)){
+                objectDetailsSet.getObjectDetailsPage().remove(currentDetails);
+                objectDetailsSet.getObjectDetailsPage().add(
+                        adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(currentDetails, newObjectDetails));
+                merged.set(true);
+            }
+        });
+        if (!merged.get()) {
+            objectDetailsSet.getObjectDetailsPage().add(newObjectDetails.clone());
+        }
     }
 
     private boolean isTheSameObjectType(AbstractObjectTypeConfigurationType oldConf, AbstractObjectTypeConfigurationType newConf) {

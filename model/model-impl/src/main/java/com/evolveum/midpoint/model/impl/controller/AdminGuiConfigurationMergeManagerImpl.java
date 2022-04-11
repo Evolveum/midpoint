@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -105,46 +106,96 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         SummaryPanelSpecificationType mergedSummaryPanel = mergeSummaryPanels(mergedDetailsPage.getSummaryPanel(), compiledPageType.getSummaryPanel());
         mergedDetailsPage.setSummaryPanel(mergedSummaryPanel);
 
+        if (compiledPageType.getSaveMethod() != null) {
+            mergedDetailsPage.saveMethod(compiledPageType.getSaveMethod());
+        }
+
+        if (mergedDetailsPage.getForms() == null) {
+            mergedDetailsPage.forms(compiledPageType.getForms());
+        } else if (compiledPageType.getForms() != null) {
+            mergeFormObject(mergedDetailsPage.getForms(), compiledPageType.getForms());
+        }
+
+        if (mergedDetailsPage.getRoleRelation() == null) {
+            mergedDetailsPage.roleRelation(mergedDetailsPage.getRoleRelation());
+        } else if (mergedDetailsPage.getRoleRelation() != null) {
+            mergeRoleRelation(mergedDetailsPage.getRoleRelation(), mergedDetailsPage.getRoleRelation());
+        }
+
         return mergedDetailsPage;
     }
 
-    private SummaryPanelSpecificationType mergeSummaryPanels(SummaryPanelSpecificationType defaultSummaryPanelConfiguration, SummaryPanelSpecificationType compiledSummaryPanelConfiguration) {
-        if (compiledSummaryPanelConfiguration == null) {
-            return defaultSummaryPanelConfiguration;
+    private static void mergeRoleRelation(RoleRelationObjectSpecificationType currentRoleRelation, RoleRelationObjectSpecificationType newRoleRelation) {
+        if (newRoleRelation.getObjectRelation() != null) {
+            currentRoleRelation.objectRelation(newRoleRelation.getObjectRelation());
         }
 
-        if (defaultSummaryPanelConfiguration == null) {
-            return compiledSummaryPanelConfiguration;
+        if (!newRoleRelation.getSubjectRelation().isEmpty()) {
+            newRoleRelation.getSubjectRelation().forEach(
+                    newSubject -> currentRoleRelation.getSubjectRelation().removeIf(
+                            currentSubject -> QNameUtil.match(currentSubject, newSubject)
+                    )
+            );
+            currentRoleRelation.getSubjectRelation().addAll(newRoleRelation.getSubjectRelation());
         }
 
-        SummaryPanelSpecificationType mergedSummaryPanel = defaultSummaryPanelConfiguration.cloneWithoutId();
-        GuiFlexibleLabelType mergedIdentifier = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getIdentifier(), compiledSummaryPanelConfiguration.getIdentifier());
-        mergedSummaryPanel.setIdentifier(mergedIdentifier);
+        if (newRoleRelation.isIncludeMembers() != null) {
+            currentRoleRelation.includeMembers(newRoleRelation.isIncludeMembers());
+        }
 
-        GuiFlexibleLabelType mergedDisplayName = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getDisplayName(), compiledSummaryPanelConfiguration.getDisplayName());
-        mergedSummaryPanel.setIdentifier(mergedDisplayName);
+        if (newRoleRelation.isIncludeReferenceRole() != null) {
+            currentRoleRelation.includeReferenceRole(newRoleRelation.isIncludeReferenceRole());
+        }
+    }
 
-        GuiFlexibleLabelType mergedOrganization = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getOrganization(), compiledSummaryPanelConfiguration.getOrganization());
-        mergedSummaryPanel.setIdentifier(mergedOrganization);
+    private static void mergeFormObject(ObjectFormType currentForm, ObjectFormType newForm) {
+        if (newForm.getFormSpecification() != null) {
+            currentForm.formSpecification(newForm.getFormSpecification());
+        }
 
-        GuiFlexibleLabelType mergedTitle1 = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getTitle1(), compiledSummaryPanelConfiguration.getTitle1());
-        mergedSummaryPanel.setIdentifier(mergedTitle1);
+        if (newForm.isIncludeDefaultForms() != null) {
+            currentForm.includeDefaultForms(newForm.isIncludeDefaultForms());
+        }
+    }
 
-        GuiFlexibleLabelType mergedTitle2 = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getTitle2(), compiledSummaryPanelConfiguration.getTitle2());
-        mergedSummaryPanel.setIdentifier(mergedTitle2);
+    private SummaryPanelSpecificationType mergeSummaryPanels(SummaryPanelSpecificationType defaultSummary, SummaryPanelSpecificationType compiledSummary) {
+        if (compiledSummary == null) {
+            return defaultSummary;
+        }
 
-        GuiFlexibleLabelType mergedTitle3 = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getTitle3(), compiledSummaryPanelConfiguration.getTitle3());
-        mergedSummaryPanel.setIdentifier(mergedTitle3);
+        if (defaultSummary == null) {
+            return compiledSummary;
+        }
 
-        return mergedSummaryPanel;
+        SummaryPanelSpecificationType mergedSummary = defaultSummary.cloneWithoutId();
+        GuiFlexibleLabelType mergedIdentifier = mergeSummaryPanelFlexibleLabel(defaultSummary.getIdentifier(), compiledSummary.getIdentifier());
+        mergedSummary.setIdentifier(mergedIdentifier);
+
+        GuiFlexibleLabelType mergedDisplayName = mergeSummaryPanelFlexibleLabel(defaultSummary.getDisplayName(), compiledSummary.getDisplayName());
+        mergedSummary.setDisplayName(mergedDisplayName);
+
+        GuiFlexibleLabelType mergedOrganization = mergeSummaryPanelFlexibleLabel(defaultSummary.getOrganization(), compiledSummary.getOrganization());
+        mergedSummary.setOrganization(mergedOrganization);
+
+        GuiFlexibleLabelType mergedTitle1 = mergeSummaryPanelFlexibleLabel(defaultSummary.getTitle1(), compiledSummary.getTitle1());
+        mergedSummary.setTitle1(mergedTitle1);
+
+        GuiFlexibleLabelType mergedTitle2 = mergeSummaryPanelFlexibleLabel(defaultSummary.getTitle2(), compiledSummary.getTitle2());
+        mergedSummary.setTitle2(mergedTitle2);
+
+        GuiFlexibleLabelType mergedTitle3 = mergeSummaryPanelFlexibleLabel(defaultSummary.getTitle3(), compiledSummary.getTitle3());
+        mergedSummary.setTitle3(mergedTitle3);
+
+        return mergedSummary;
     }
 
     private GuiFlexibleLabelType mergeSummaryPanelFlexibleLabel(GuiFlexibleLabelType defaultSummaryPanelIdentifier, GuiFlexibleLabelType compiledSummaryPanelIdentifier) {
         if (compiledSummaryPanelIdentifier == null) {
-            return defaultSummaryPanelIdentifier.cloneWithoutId();
+            return defaultSummaryPanelIdentifier != null ? defaultSummaryPanelIdentifier.cloneWithoutId() : null;
         }
 
-        GuiFlexibleLabelType mergedFlexibleLabel = defaultSummaryPanelIdentifier.cloneWithoutId();
+        GuiFlexibleLabelType mergedFlexibleLabel = defaultSummaryPanelIdentifier != null ?
+                defaultSummaryPanelIdentifier.cloneWithoutId() : new GuiFlexibleLabelType();
         if (compiledSummaryPanelIdentifier.getVisibility() != null) {
             mergedFlexibleLabel.setVisibility(compiledSummaryPanelIdentifier.getVisibility());
         }
@@ -412,5 +463,4 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
     private boolean pathsMatch(ItemPathType supperPath, ItemPathType currentPath) {
         return supperPath != null && currentPath != null && supperPath.equivalent(currentPath);
     }
-
 }

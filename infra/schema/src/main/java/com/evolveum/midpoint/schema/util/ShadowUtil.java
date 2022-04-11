@@ -86,7 +86,9 @@ public class ShadowUtil {
         return (ResourceAttribute<String>) secondaryIdentifiers.iterator().next();
     }
 
-    public static Collection<ResourceAttribute<?>> getSecondaryIdentifiers(Collection<? extends ResourceAttribute<?>> identifiers, ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+    public static Collection<ResourceAttribute<?>> getSecondaryIdentifiers(
+            @Nullable Collection<? extends ResourceAttribute<?>> identifiers,
+            @NotNull ResourceObjectDefinition objectClassDefinition) throws SchemaException {
         if (identifiers == null) {
             return null;
         }
@@ -105,23 +107,6 @@ public class ShadowUtil {
             return null;
         }
         return secondaryIdentifier.getRealValue();
-    }
-
-    public static ResourceAttribute<?> getSecondaryIdentifier(ObjectClassComplexTypeDefinition objectClassDefinition,
-            Collection<? extends ResourceAttribute<?>> identifiers) throws SchemaException {
-        if (identifiers == null) {
-            return null;
-        }
-        ResourceAttribute<?> secondaryIdentifier = null;
-        for (ResourceAttribute<?> identifier: identifiers) {
-            if (identifier.getDefinition().isSecondaryIdentifier(objectClassDefinition)) {
-                if (secondaryIdentifier != null) {
-                    throw new SchemaException("More than one secondary identifier in "+objectClassDefinition);
-                }
-                secondaryIdentifier = identifier;
-            }
-        }
-        return secondaryIdentifier;
     }
 
     public static Collection<ResourceAttribute<?>> getAllIdentifiers(PrismObject<? extends ShadowType> shadow) {
@@ -152,6 +137,7 @@ public class ShadowUtil {
         return getAttributes(shadowType.asPrismObject());
     }
 
+    // TODO what if there's no attributes container?
     public static Collection<ResourceAttribute<?>> getAttributes(PrismObject<? extends ShadowType> shadow) {
         return getAttributesContainer(shadow).getAttributes();
     }
@@ -189,36 +175,38 @@ public class ShadowUtil {
         }
     }
 
-    public static ResourceAttributeContainer getOrCreateAttributesContainer(PrismObject<? extends ShadowType> shadow,
-            ObjectClassComplexTypeDefinition objectClassDefinition) {
+    public static ResourceAttributeContainer getOrCreateAttributesContainer(
+            PrismObject<? extends ShadowType> shadow, ResourceObjectDefinition definition) {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer != null) {
             return attributesContainer;
         }
-        ResourceAttributeContainer emptyContainer = ResourceAttributeContainer.createEmptyContainer(ShadowType.F_ATTRIBUTES, objectClassDefinition);
+        ResourceAttributeContainer emptyContainer =
+                ResourceAttributeContainer.createEmptyContainer(ShadowType.F_ATTRIBUTES, definition);
         try {
             shadow.add(emptyContainer);
         } catch (SchemaException e) {
-            throw new SystemException("Unexpected schema error: "+e.getMessage(), e);
+            throw SystemException.unexpected(e);
         }
         return emptyContainer;
     }
 
-    public static ObjectClassComplexTypeDefinition getObjectClassDefinition(ShadowType shadow) {
+    public static ResourceObjectClassDefinition getObjectClassDefinition(ShadowType shadow) {
         // TODO: maybe we can do something more intelligent here
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
-        return attributesContainer.getDefinition().getComplexTypeDefinition();
+        return attributesContainer.getDefinition()
+                .getComplexTypeDefinition()
+                .getObjectClassDefinition();
     }
-
-    public static ObjectClassComplexTypeDefinition getObjectClassDefinition(PrismObject<? extends ShadowType> shadow) {
-        // TODO: maybe we can do something more intelligent here
-        ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
-        return attributesContainer.getDefinition().getComplexTypeDefinition();
-    }
-
 
     public static String getResourceOid(ShadowType shadowType) {
         return getResourceOid(shadowType.asPrismObject());
+    }
+
+    public static @NotNull String getResourceOidRequired(@NotNull ShadowType shadow) {
+        return java.util.Objects.requireNonNull(
+                getResourceOid(shadow),
+                () -> "No resource OID in " + shadow);
     }
 
     public static String getResourceOid(PrismObject<ShadowType> shadow) {
@@ -365,20 +353,20 @@ public class ShadowUtil {
             ResourceSchema resourceSchema) throws SchemaException {
         ShadowType shadowType = shadow.asObjectable();
         QName objectClass = shadowType.getObjectClass();
-        ObjectClassComplexTypeDefinition objectClassDefinition = resourceSchema.findObjectClassDefinition(objectClass);
-        applyObjectClass(shadow, objectClassDefinition);
+        ResourceObjectDefinition objectClassDefinition = resourceSchema.findDefinitionForObjectClass(objectClass);
+        applyObjectDefinition(shadow, objectClassDefinition);
     }
 
-    private static void applyObjectClass(PrismObject<? extends ShadowType> shadow,
-            ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+    private static void applyObjectDefinition(PrismObject<? extends ShadowType> shadow,
+            ResourceObjectDefinition objectClassDefinition) throws SchemaException {
         PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         ResourceAttributeContainerDefinition racDef = ObjectFactory.createResourceAttributeContainerDefinition(
-                ShadowType.F_ATTRIBUTES, objectClassDefinition, objectClassDefinition.getPrismContext());
+                ShadowType.F_ATTRIBUTES, objectClassDefinition);
         attributesContainer.applyDefinition((PrismContainerDefinition) racDef, true);
     }
 
-    public static PrismObjectDefinition<ShadowType> applyObjectClass(PrismObjectDefinition<ShadowType> shadowDefinition,
-            ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+    public static PrismObjectDefinition<ShadowType> applyObjectDefinition(PrismObjectDefinition<ShadowType> shadowDefinition,
+            ResourceObjectDefinition objectClassDefinition) throws SchemaException {
         return shadowDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES,
                 objectClassDefinition.toResourceAttributeContainerDefinition());
     }
@@ -730,10 +718,12 @@ public class ShadowUtil {
         return value.getValue();
     }
 
-    public static ResourceObjectIdentification getResourceObjectIdentification(
-            PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
-        return new ResourceObjectIdentification(objectClassDefinition,
-                ShadowUtil.getPrimaryIdentifiers(shadow), ShadowUtil.getSecondaryIdentifiers(shadow));
+    public static @NotNull ResourceObjectIdentification getResourceObjectIdentification(
+            PrismObject<ShadowType> shadow, ResourceObjectDefinition objectDefinition) {
+        return new ResourceObjectIdentification(
+                objectDefinition,
+                ShadowUtil.getPrimaryIdentifiers(shadow),
+                ShadowUtil.getSecondaryIdentifiers(shadow));
     }
 
     public static boolean matchesAttribute(ItemPath path, QName attributeName) {
@@ -742,18 +732,18 @@ public class ShadowUtil {
     }
 
     public static boolean hasPrimaryIdentifier(PrismObject<ShadowType> shadow,
-            ObjectClassComplexTypeDefinition objectClassDefinition) {
+            ResourceObjectDefinition objectDefinition) {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         return attributesContainer != null &&
                 !attributesContainer
-                        .extractAttributesByDefinitions(objectClassDefinition.getPrimaryIdentifiers())
+                        .extractAttributesByDefinitions(objectDefinition.getPrimaryIdentifiers())
                         .isEmpty();
     }
 
     public static boolean hasPrimaryIdentifier(Collection<? extends ResourceAttribute<?>> identifiers,
-            ObjectClassComplexTypeDefinition objectClassDefinition) {
+            ResourceObjectDefinition objectDefinition) {
         for (ResourceAttribute identifier: identifiers) {
-            if (objectClassDefinition.isPrimaryIdentifier(identifier.getElementName())) {
+            if (objectDefinition.isPrimaryIdentifier(identifier.getElementName())) {
                 return true;
             }
         }
@@ -761,7 +751,7 @@ public class ShadowUtil {
     }
 
     public static boolean hasSecondaryIdentifier(Collection<? extends ResourceAttribute<?>> identifiers,
-            ObjectClassComplexTypeDefinition objectClassDefinition) {
+            ResourceObjectClassDefinition objectClassDefinition) {
         for (ResourceAttribute identifier: identifiers) {
             if (objectClassDefinition.isSecondaryIdentifier(identifier.getElementName())) {
                 return true;
@@ -778,30 +768,30 @@ public class ShadowUtil {
             return attribute;
         }
         ResourceAttribute<?> fixedAttribute = attribute.clone();
-        ResourceAttributeContainer container = ObjectFactory.createResourceAttributeContainer(ShadowType.F_ATTRIBUTES, null, attribute.getPrismContext());
+        ResourceAttributeContainer container = ObjectFactory.createResourceAttributeContainer(ShadowType.F_ATTRIBUTES, null);
         container.createNewValue().add(fixedAttribute);
         return fixedAttribute;
     }
 
-    // TODO: may be useful to move to ObjectClassComplexTypeDefinition later?
-    public static void validateAttributeSchema(PrismObject<ShadowType> shadow,
-            ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+    // TODO: may be useful to move to ResourceObjectClassDefinition later?
+    public static void validateAttributeSchema(ShadowType shadow,
+            ResourceObjectDefinition objectDefinition) throws SchemaException {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         for (ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
-            validateAttribute(attribute, objectClassDefinition);
+            validateAttribute(attribute, objectDefinition);
         }
     }
 
     // TODO: may be useful to move to ResourceAttributeDefinition later?
     private static <T> void validateAttribute(ResourceAttribute<T> attribute,
-            ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+            ResourceObjectDefinition objectDefinition) throws SchemaException {
         QName attrName = attribute.getElementName();
-        ResourceAttributeDefinition<T> attrDef = objectClassDefinition.findAttributeDefinition(attrName);
+        ResourceAttributeDefinition<?> attrDef = objectDefinition.findAttributeDefinition(attrName);
         if (attrDef == null) {
-            throw new SchemaException("No definition for attribute "+attrName+" in object class "+objectClassDefinition);
+            throw new SchemaException("No definition for attribute "+attrName+" in object class "+objectDefinition);
         }
         List<PrismPropertyValue<T>> pvals = attribute.getValues();
-        if (pvals == null || pvals.isEmpty()) {
+        if (pvals.isEmpty()) {
             if (attrDef.isMandatory()) {
                 throw new SchemaException("Mandatory attribute "+attrName+" has no value");
             } else {
@@ -811,7 +801,7 @@ public class ShadowUtil {
         if (pvals.size() > 1 && attrDef.isSingleValue()) {
             throw new SchemaException("Single-value attribute "+attrName+" has "+pvals.size()+" values");
         }
-        Class<T> expectedClass = attrDef.getTypeClass();
+        Class<?> expectedClass = attrDef.getTypeClass();
         for (PrismPropertyValue<T> pval: pvals) {
             T val = pval.getValue();
             if (val == null) {
@@ -906,12 +896,12 @@ public class ShadowUtil {
     }
 
     public static void removeAllAttributesExceptPrimaryIdentifier(PrismObject<ShadowType> shadow,
-            ObjectClassComplexTypeDefinition ocDef) {
+            ResourceObjectDefinition objDef) {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer != null) {
             List<ItemName> attributesToDelete = attributesContainer.getAttributes().stream()
                     .map(Item::getElementName)
-                    .filter(attrName -> !ocDef.isPrimaryIdentifier(attrName))
+                    .filter(attrName -> !objDef.isPrimaryIdentifier(attrName))
                     .collect(Collectors.toList());
             for (ItemName attrName : attributesToDelete) {
                 attributesContainer.getValue().removeProperty(attrName);
@@ -936,5 +926,31 @@ public class ShadowUtil {
         ShadowLifecycleStateType state = shadow.getShadowLifecycleState();
         stateCheck(state != null, "Unknown lifecycle state of %s", shadow);
         return state == ShadowLifecycleStateType.CORPSE || state == ShadowLifecycleStateType.TOMBSTONE;
+    }
+
+    public static ShadowCorrelationStateType getCorrelationStateRequired(@NotNull ShadowType shadow) {
+        return MiscUtil.requireNonNull(
+                shadow.getCorrelation(),
+                () -> new IllegalStateException("No correlation state in shadow " + shadow));
+
+    }
+    public static <T extends AbstractCorrelatorStateType> T getCorrelatorStateRequired(@NotNull ShadowType shadow, Class<T> clazz)
+            throws SchemaException {
+        return MiscUtil.requireNonNull(
+                MiscUtil.castSafely(getCorrelationStateRequired(shadow).getCorrelatorState(), clazz),
+                () -> new IllegalStateException("No correlation state in shadow " + shadow));
+    }
+
+    public static void setCorrelatorState(@NotNull ShadowType shadow, @Nullable AbstractCorrelatorStateType state) {
+        if (shadow.getCorrelation() == null) {
+            if (state == null) {
+                return;
+            } else {
+                shadow.setCorrelation(
+                        new ShadowCorrelationStateType(PrismContext.get()));
+            }
+        }
+
+        shadow.getCorrelation().setCorrelatorState(state);
     }
 }

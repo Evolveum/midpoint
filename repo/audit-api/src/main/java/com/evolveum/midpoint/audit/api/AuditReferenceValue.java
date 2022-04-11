@@ -19,8 +19,6 @@ import java.util.Objects;
 
 /**
  * Restricted version of ObjectReferenceType/PrismReferenceValue to be used for audit records.
- *
- * @author mederly
  */
 public class AuditReferenceValue implements Serializable {
     private static final long serialVersionUID = 1L;

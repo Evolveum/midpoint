@@ -7,9 +7,9 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -18,8 +18,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  *
  * TODO show really only certification scheduling tasks (not e.g. remediation ones)
  * TODO decouple settings (e.g. selected task states) from PageTasks
- *
- * @author mederly
  */
 @PageDescriptor(
         urls = {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -86,9 +86,16 @@ public class OperationResultAssert extends AbstractAssert<OperationResultAssert,
         return this;
     }
 
+    public OperationResultAssert anySubResultMatches(Predicate<OperationResult> resultPredicate) {
+        if (actual.getResultStream().noneMatch(resultPredicate)) {
+            failWithMessage("Found no subresult matching specified predicate");
+        }
+        return this;
+    }
+
     /** Use after asserting success or failure to propagate the message from subresult(s). */
     public OperationResultAssert hasMessage(String message) {
-        objects.assertEqual(info, actual, message);
+        objects.assertEqual(info, actual.getMessage(), message);
         return this;
     }
 

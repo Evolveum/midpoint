@@ -10,8 +10,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -21,14 +19,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ProvisioningDiag;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -77,7 +71,7 @@ public interface ProvisioningService {
     /**
      * Returns object for provided OID.
      *
-     * Must fail if object with the OID does not exists.
+     * Must fail if object with the OID does not exist.
      *
      * Resource Object Shadows: The resource object shadow attributes may be
      * retrieved from the local database, directly form the resource or a
@@ -167,6 +161,8 @@ public interface ProvisioningService {
      *
      * It is typically invoked from a live sync activity (task).
      *
+     * TODO review the following
+     *
      * Notes regarding the `shadowCoordinates` parameter:
      *
      * * Resource OID is obligatory.
@@ -177,7 +173,7 @@ public interface ProvisioningService {
      * (Currently, the default refined object class having given object class name is selected. But this should
      * be no problem, because we need just the object class name for live synchronization.)
      *
-     * See also {@link RefinedResourceSchema#determineCompositeObjectClassDefinition(ResourceShadowDiscriminator)}.
+     * See also {@link ResourceSchema#determineCompositeObjectClassDefinition(ResourceShadowDiscriminator)}.
      *
      * @param shadowCoordinates Where to attempt synchronization. See description above.
      * @param options Options driving the synchronization process (execution mode, batch size, ...)
@@ -216,7 +212,7 @@ public interface ProvisioningService {
      *          What objects to synchronize. Note that although it is possible to specify other parameters in addition
      *          to resource OID (e.g. objectClass), these settings are not supported now.
      */
-    void processAsynchronousUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates,
+    void processAsynchronousUpdates(@NotNull ResourceShadowCoordinates shadowCoordinates,
             @NotNull AsyncUpdateEventHandler handler, @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException;
@@ -225,6 +221,8 @@ public interface ProvisioningService {
      * Search for objects. Returns a list of objects that match search criteria (may be empty if there are no matching objects).
      *
      * Should fail if object type is wrong. Should fail if unknown property is specified in the query.
+     *
+     * TODO review the following
      *
      * When dealing with shadow queries in non-raw mode, there are the following requirements:
      *
@@ -247,7 +245,7 @@ public interface ProvisioningService {
      * It is the responsibility of the caller to sort these extra objects out.
      *
      * @see ObjectQueryUtil#getCoordinates(ObjectFilter, PrismContext)
-     * @see RefinedResourceSchema#determineCompositeObjectClassDefinition(ResourceShadowDiscriminator)
+     * @see ResourceSchema#determineCompositeObjectClassDefinition(ResourceShadowDiscriminator)
      *
      * @return all objects of specified type that match search criteria (subject to paging)
      *
@@ -300,7 +298,7 @@ public interface ProvisioningService {
 
     /**
      * Modifies object using relative change description. Must fail if user with
-     * provided OID does not exists. Must fail if any of the described changes
+     * provided OID does not exist. Must fail if any of the described changes
      * cannot be applied. Should be atomic.
      *
      * If two or more modify operations are executed in parallel, the operations
@@ -499,11 +497,20 @@ public interface ProvisioningService {
      */
     void postInit(OperationResult parentResult);
 
-    ConstraintsCheckingResult checkConstraints(RefinedObjectClassDefinition shadowDefinition,
-            PrismObject<ShadowType> shadowObject, PrismObject<ShadowType> shadowObjectOld,
-            ResourceType resourceType, String shadowOid, ResourceShadowDiscriminator resourceShadowDiscriminator,
-            ConstraintViolationConfirmer constraintViolationConfirmer, ConstraintsCheckingStrategyType strategy,
-            Task task, OperationResult parentResult)
+    /**
+     * TODO description
+     */
+    ConstraintsCheckingResult checkConstraints(
+            ResourceObjectDefinition objectTypeDefinition,
+            PrismObject<ShadowType> shadowObject,
+            PrismObject<ShadowType> shadowObjectOld,
+            ResourceType resource,
+            String shadowOid,
+            ResourceShadowCoordinates shadowCoordinates,
+            ConstraintViolationConfirmer constraintViolationConfirmer,
+            ConstraintsCheckingStrategyType strategy,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException;
 
@@ -517,8 +524,10 @@ public interface ProvisioningService {
      * Note: comparison may be quite an expensive and heavy weight operation, e.g. it may try authenticating the user
      * on the resource.
      */
-    <O extends ObjectType, T> ItemComparisonResult compare(Class<O> type, String oid, ItemPath path, T expectedValue, Task task, OperationResult result)
-            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException;
+    <O extends ObjectType, T> ItemComparisonResult compare(Class<O> type, String oid, ItemPath path, T expectedValue,
+            Task task, OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, EncryptionException;
 
     void shutdown();
 

@@ -6,10 +6,24 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -18,15 +32,13 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -50,25 +62,6 @@ import com.evolveum.midpoint.web.page.admin.resources.CapabilitiesPanel;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.util.ListModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
 
 @PanelType(name = "resourceDetails")
 @PanelInstance(identifier = "resourceDetails", applicableForType = ResourceType.class, applicableForOperation = OperationTypeType.MODIFY, defaultPanel = true,
@@ -148,7 +141,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
         tableColumns.addAll(ColumnUtils.createColumns(columns));
 
         PropertyColumn tasksColumn = new PropertyColumn(
-                PageBase.createStringResourceStatic(this, "ResourceType.tasks"), "definedTasks") {
+                PageBase.createStringResourceStatic("ResourceType.tasks"), "definedTasks") {
 
             @Override
             public void populateItem(Item item, String componentId, final IModel rowModel) {
@@ -197,6 +190,13 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
             List<ResourceConfigurationDto> configs = new ArrayList<>();
 
             if (resource.getSchemaHandling() == null) {
+                return configs;
+            }
+
+            if (resource.getSchema() == null) {
+                // Current implementation of SynchronizationUtils.isPolicyApplicable (that is called from the code below)
+                // fails if there is no resource schema. So let's just pretend there are no configurations there.
+                // TODO Remove this temporary code after handling of synchronization section is cleaned up in 4.6.
                 return configs;
             }
 
@@ -379,23 +379,16 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
             String numberMessage;
             String description = null;
 
-            ResourceType resource = getObjectDetailsModels().getObjectType();
             Integer progress = null;
-            RefinedResourceSchema refinedSchema;
+            ResourceSchema refinedSchema;
             try {
-                refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+                refinedSchema = getObjectDetailsModels().getRefinedSchema();
                 if (refinedSchema != null) {
                     backgroundColor = "bg-purple";
                     icon = "fa fa-cubes";
-                    int numObjectTypes = 0;
-                    List<? extends RefinedObjectClassDefinition> refinedDefinitions = refinedSchema
-                            .getRefinedDefinitions();
-                    for (RefinedObjectClassDefinition refinedDefinition : refinedDefinitions) {
-                        if (refinedDefinition.getKind() != null) {
-                            numObjectTypes++;
-                        }
-                    }
-                    int numAllDefinitions = refinedDefinitions.size();
+                    // TODO is this correct?
+                    int numObjectTypes = refinedSchema.getObjectTypeDefinitions().size();
+                    int numAllDefinitions = numObjectTypes + refinedSchema.getObjectClassDefinitions().size();
                     numberMessage = numObjectTypes + " " + getPageBase().getString("PageResource.resource.objectTypes");
                     if (numAllDefinitions != 0) {
                         progress = numObjectTypes * 100 / numAllDefinitions;
@@ -461,21 +454,21 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
             // TODO: unify with determineObjectClass in Utils (model-impl, which
             // is not accessible in admin-gui)
             if (taskObjectClassValue == null) {
-                ObjectClassComplexTypeDefinition taskObjectClassDef = null;
-                RefinedResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+                ResourceObjectDefinition taskObjectClassDef = null;
+                ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
                 if (schema == null) {
                     throw new SchemaException(
                             "No schema defined in resource. Possible configuration problem?");
                 }
                 if (taskKindValue == null && taskIntentValue == null) {
-                    taskObjectClassDef = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+                    taskObjectClassDef = schema.findObjectDefinition(ShadowKindType.ACCOUNT, null); // TODO ok?
                 }
 
                 if (taskKindValue != null) {
                     if (StringUtils.isEmpty(taskIntentValue)) {
-                        taskObjectClassDef = schema.findDefaultObjectClassDefinition(taskKindValue);
+                        taskObjectClassDef = schema.findObjectDefinition(taskKindValue, null); // TODO ok?
                     } else {
-                        taskObjectClassDef = schema.findObjectClassDefinition(taskKindValue, taskIntentValue);
+                        taskObjectClassDef = schema.findObjectDefinition(taskKindValue, taskIntentValue);
                     }
 
                 }

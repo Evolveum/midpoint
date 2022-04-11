@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -79,9 +79,10 @@ public class TestSqaleRepositoryBeanConfig {
     /**
      * Taken from `SqaleRepoBaseTest#clearDatabase()` - this is the new repo version of
      * TestSqlRepositoryBeanPostProcessor.
+     * No need to clean up the cache tables, only the main and audit tables are cleared.
      */
     public void clearDatabase(SqaleRepoContext sqlRepoContext) {
-        LOGGER.info("Postprocessing session factory - removing everything from database if necessary.");
+        LOGGER.info("Clearing the testing database!");
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             // Truncate cascades to sub-rows of the "object aggregate" - if FK points to m_object table hierarchy.
             jdbcSession.executeStatement("TRUNCATE m_object CASCADE;");

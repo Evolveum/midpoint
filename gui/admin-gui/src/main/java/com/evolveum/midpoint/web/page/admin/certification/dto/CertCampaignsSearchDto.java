@@ -13,9 +13,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
-/**
- * @author mederly
- */
 public class CertCampaignsSearchDto implements Serializable, DebugDumpable {
     private static final long serialVersionUID = 1L;
 

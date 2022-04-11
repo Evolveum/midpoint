@@ -15,13 +15,18 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -43,7 +48,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -55,11 +59,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceResolutionFrequencyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
  * Resolves resource objects (also) with the help of the repository / shadow manager.
@@ -83,51 +85,63 @@ class ResourceObjectReferenceResolver {
     private RepositoryService repositoryService;
 
     /**
-     * TODO description
+     * Resolves a {@link ResourceObjectReferenceType}.
      *
-     * *Note that the object is resolved using _raw_ definition of the given object class.*
-     * (This is to avoid endless loops during base context resolution.)
+     * @param useRawDefinition If true, object class definition is used (instead of object type definition).
+     * This is to avoid endless recursion when resolving the base context for object type.
      */
-    PrismObject<ShadowType> resolve(ProvisioningContext ctx, ResourceObjectReferenceType resourceObjectReference,
-            QName objectClass, final String desc, OperationResult result)
+    @Nullable PrismObject<ShadowType> resolve(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ResourceObjectReferenceType resourceObjectReference,
+            boolean useRawDefinition,
+            @NotNull String desc,
+            @NotNull OperationResult result)
                     throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
                     SecurityViolationException, ExpressionEvaluationException {
-        if (resourceObjectReference == null) {
-            return null;
-        }
+
         ObjectReferenceType shadowRef = resourceObjectReference.getShadowRef();
         if (shadowRef != null && shadowRef.getOid() != null) {
             if (resourceObjectReference.getResolutionFrequency() == null
                     || resourceObjectReference.getResolutionFrequency() == ResourceObjectReferenceResolutionFrequencyType.ONCE) {
                 PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result);
-                shadowsFacade.applyDefinition(shadow, result);
+                shadowsFacade.applyDefinition(shadow, ctx.getTask(), result);
                 return shadow;
             }
         } else if (resourceObjectReference.getResolutionFrequency() == ResourceObjectReferenceResolutionFrequencyType.NEVER) {
             throw new ObjectNotFoundException("No shadowRef OID in "+desc+" and resolution frequency set to NEVER");
         }
-        if (resourceObjectReference.getObjectClass() != null) {
-            objectClass = resourceObjectReference.getObjectClass();
-            if (objectClass.getNamespaceURI() == null) {
-                objectClass = new QName(ResourceTypeUtil.getResourceNamespace(ctx.getResource()), objectClass.getLocalPart());
-            }
-        }
-        ProvisioningContext subctx = ctx.spawn(objectClass);
-        // Use "raw" definitions from the original schema to avoid endless loops
-        subctx.setUseRefinedDefinition(false);
-        subctx.assertDefinition();
 
-        ObjectQuery refQuery = prismContext.getQueryConverter().createObjectQuery(ShadowType.class, resourceObjectReference.getFilter());
+        argCheck(resourceObjectReference.getObjectClass() != null,
+                "No object class name in object reference in %s", desc);
+
+        QName objectClassName =
+                QNameUtil.qualifyIfNeeded(
+                        resourceObjectReference.getObjectClass(),
+                        MidPointConstants.NS_RI);
+
+        ProvisioningContext subCtx =
+                useRawDefinition ?
+                        ctx.spawnForObjectClassWithRawDefinition(objectClassName) :
+                        ctx.spawnForObjectClass(objectClassName);
+
+        subCtx.assertDefinition();
+
+        ObjectQuery refQuery =
+                prismContext.getQueryConverter().createObjectQuery(ShadowType.class, resourceObjectReference.getFilter());
         // No variables. At least not now. We expect that mostly constants will be used here.
         VariablesMap variables = new VariablesMap();
-        ObjectQuery evaluatedRefQuery = ExpressionUtil.evaluateQueryExpressions(refQuery, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory, prismContext, desc, ctx.getTask(), result);
-        ObjectFilter baseFilter = ObjectQueryUtil.createResourceAndObjectClassFilter(ctx.getResource().getOid(), objectClass, prismContext);
+        ObjectQuery evaluatedRefQuery =
+                ExpressionUtil.evaluateQueryExpressions(
+                        refQuery, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory, prismContext,
+                        desc, ctx.getTask(), result);
+        ObjectFilter baseFilter =
+                ObjectQueryUtil.createResourceAndObjectClassFilter(ctx.getResource().getOid(), objectClassName, prismContext);
         ObjectFilter filter = prismContext.queryFactory().createAnd(baseFilter, evaluatedRefQuery.getFilter());
         ObjectQuery query = prismContext.queryFactory().createQuery(filter);
 
         // TODO: implement "repo" search strategies, don't forget to apply definitions
 
-        final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
+        Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
         ResultHandler<ShadowType> handler = (shadow, objResult) -> {
             if (shadowHolder.getValue() != null) {
                 throw new IllegalStateException("More than one search results for " + desc);
@@ -136,7 +150,7 @@ class ResourceObjectReferenceResolver {
             return true;
         };
 
-        shadowsFacade.searchObjectsIterative(subctx, query, null, handler, result);
+        shadowsFacade.searchObjectsIterative(subCtx, query, null, handler, result);
 
         // TODO: implement storage of OID (ONCE search frequency)
 
@@ -154,21 +168,21 @@ class ResourceObjectReferenceResolver {
         if (identifiers == null) {
             return null;
         }
-        Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(identifiers, ctx.getObjectClassDefinition());
+        ResourceObjectDefinition objDef = ctx.getObjectDefinitionRequired();
+        Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(identifiers, objDef);
         PrismObject<ShadowType> repoShadow = shadowManager.lookupShadowBySecondaryIds(ctx, secondaryIdentifiers, result);
         if (repoShadow == null) {
             return null;
         }
-        shadowsFacade.applyDefinition(repoShadow, result);
+        shadowsFacade.applyDefinition(repoShadow, ctx.getTask(), result);
         PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer == null) {
             return null;
         }
-        RefinedObjectClassDefinition ocDef = ctx.getObjectClassDefinition();
         Collection primaryIdentifiers = new ArrayList<>();
         for (PrismProperty property: attributesContainer.getValue().getProperties()) {
-            if (ocDef.isPrimaryIdentifier(property.getElementName())) {
-                RefinedAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(property.getElementName());
+            if (objDef.isPrimaryIdentifier(property.getElementName())) {
+                ResourceAttributeDefinition<?> attrDef = objDef.findAttributeDefinition(property.getElementName());
                 if (attrDef == null) {
                     throw new IllegalStateException("No definition for attribute " + property);
                 }
@@ -177,22 +191,18 @@ class ResourceObjectReferenceResolver {
                 primaryIdentifiers.add(primaryIdentifier);
             }
         }
-        LOGGER.trace("Resolved identifiers {} to primary identifiers {} (object class {})", identifiers, primaryIdentifiers, ocDef);
+        LOGGER.trace("Resolved identifiers {} to primary identifiers {} (object class {})", identifiers, primaryIdentifiers, objDef);
         return primaryIdentifiers;
     }
 
-    /**
-     * @param oidToReportAsNotFound When we know the shadow OID corresponding to the object being fetched, we should provide
-     * it here. It is stored in {@link ObjectNotFoundException} should that be thrown.
-     */
     PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
             Collection<? extends ResourceAttribute<?>> identifiers,
             AttributesToReturn attributesToReturn,
-            @Nullable String oidToReportAsNotFound,
+            @Nullable PrismObject<ShadowType> repoShadow,
             OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
-        RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+        ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
 
         try {
 
@@ -202,19 +212,19 @@ class ResourceObjectReferenceResolver {
             }
 
             if (Boolean.TRUE.equals(readCapability.isCachingOnly())) {
-                return ctx.getOriginalShadow();
+                return repoShadow;
             }
 
-            ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectClassDefinition, identifiers);
+            ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectDefinition, identifiers);
             ResourceObjectIdentification resolvedIdentification = resolvePrimaryIdentifiers(ctx, identification, parentResult);
-            resolvedIdentification.validatePrimaryIdenfiers();
-            return connector.fetchObject(resolvedIdentification, attributesToReturn, ctx, parentResult);
+            resolvedIdentification.validatePrimaryIdentifiers();
+            return connector.fetchObject(resolvedIdentification, attributesToReturn, ctx.getUcfExecutionContext(), parentResult);
         } catch (ObjectNotFoundException e) {
             // Not finishing the result because we did not create it! (The same for other catch clauses.)
             parentResult.recordFatalErrorNotFinish("Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
             throw new ObjectNotFoundException("Object not found. identifiers=" + identifiers + ", objectclass="+
-                        PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName())+": "
-                    + e.getMessage(), e, oidToReportAsNotFound);
+                        PrettyPrinter.prettyPrint(objectDefinition.getTypeName())+": "
+                    + e.getMessage(), e, repoShadow != null ? repoShadow.getOid() : null);
         } catch (CommunicationException e) {
             parentResult.recordFatalErrorNotFinish("Error communication with the connector " + connector
                     + ": " + e.getMessage(), e);
@@ -256,16 +266,16 @@ class ResourceObjectReferenceResolver {
             // TODO: we should attempt resource search here
             throw new ObjectNotFoundException("No repository shadow for "+secondaryIdentifiers+", cannot resolve identifiers");
         }
-        shadowsFacade.applyDefinition(repoShadow, result);
+        shadowsFacade.applyDefinition(repoShadow, ctx.getTask(), result);
         PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer == null) {
             throw new SchemaException("No attributes in "+repoShadow+", cannot resolve identifiers "+secondaryIdentifiers);
         }
-        RefinedObjectClassDefinition ocDef = ctx.getObjectClassDefinition();
+        ResourceObjectDefinition objDef = ctx.getObjectDefinitionRequired();
         Collection primaryIdentifiers = new ArrayList<>();
         for (PrismProperty<?> property: attributesContainer.getValue().getProperties()) {
-            if (ocDef.isPrimaryIdentifier(property.getElementName())) {
-                RefinedAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(property.getElementName());
+            if (objDef.isPrimaryIdentifier(property.getElementName())) {
+                ResourceAttributeDefinition<?> attrDef = objDef.findAttributeDefinition(property.getElementName());
                 if (attrDef == null) {
                     throw new IllegalStateException("No definition for attribute " + property);
                 }
@@ -275,8 +285,10 @@ class ResourceObjectReferenceResolver {
                 primaryIdentifiers.add(primaryIdentifier);
             }
         }
-        LOGGER.trace("Resolved {} to primary identifiers {} (object class {})", identification, primaryIdentifiers, ocDef);
-        return new ResourceObjectIdentification(identification.getObjectClassDefinition(), primaryIdentifiers,
+        LOGGER.trace("Resolved {} to primary identifiers {} (object class {})", identification, primaryIdentifiers, objDef);
+        return new ResourceObjectIdentification(
+                identification.getResourceObjectDefinition(),
+                primaryIdentifiers,
                 identification.getSecondaryIdentifiers());
     }
 }

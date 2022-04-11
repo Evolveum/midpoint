@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -21,7 +21,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_A
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -54,6 +53,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 @SuppressWarnings("ConstantConditions")
 public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
@@ -73,13 +73,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String user2Oid; // different user, this one is in org
     private String user3Oid; // another user in org
     private String user4Oid; // another user in org
-    private String task1Oid; // task has more attribute type variability
+    private String task1Oid; // task has more item type variability
     private String task2Oid;
     private String shadow1Oid; // shadow with owner
     private String case1Oid; // Closed case, two work items
     private String accCertCampaign1Oid;
     private String connector1Oid;
     private String connector2Oid;
+    private String roleOid; // role for assignment-vs-inducement tests
 
     // other info used in queries
     private final QName relation1 = QName.valueOf("{https://random.org/ns}rel-1");
@@ -95,42 +96,42 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         // org structure
         org1Oid = repositoryService.addObject(
-                new OrgType(prismContext).name("org-1").asPrismObject(),
+                new OrgType().name("org-1").asPrismObject(),
                 null, result);
         org11Oid = repositoryService.addObject(
-                new OrgType(prismContext).name("org-1-1")
+                new OrgType().name("org-1-1")
                         .parentOrgRef(org1Oid, OrgType.COMPLEX_TYPE)
                         .asPrismObject(),
                 null, result);
         org111Oid = repositoryService.addObject(
-                new OrgType(prismContext).name("org-1-1-1")
+                new OrgType().name("org-1-1-1")
                         .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation2)
                         .subtype("newWorkers")
                         .asPrismObject(),
                 null, result);
         org112Oid = repositoryService.addObject(
-                new OrgType(prismContext).name("org-1-1-2")
+                new OrgType().name("org-1-1-2")
                         .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation1)
                         .subtype("secret")
                         .asPrismObject(),
                 null, result);
         org12Oid = repositoryService.addObject(
-                new OrgType(prismContext).name("org-1-2")
+                new OrgType().name("org-1-2")
                         .parentOrgRef(org1Oid, OrgType.COMPLEX_TYPE)
                         .asPrismObject(),
                 null, result);
         org2Oid = repositoryService.addObject(
-                new OrgType(prismContext).name("org-2").asPrismObject(),
+                new OrgType().name("org-2").asPrismObject(),
                 null, result);
         org21Oid = repositoryService.addObject(
-                new OrgType(prismContext).name("org-2-1")
+                new OrgType().name("org-2-1")
                         .costCenter("5")
                         .parentOrgRef(org2Oid, OrgType.COMPLEX_TYPE)
                         .policySituation("situationC")
                         .asPrismObject(),
                 null, result);
         orgXOid = repositoryService.addObject(
-                new OrgType(prismContext).name("org-X")
+                new OrgType().name("org-X")
                         .displayOrder(30)
                         .parentOrgRef(org12Oid, OrgType.COMPLEX_TYPE)
                         .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER)
@@ -138,7 +139,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 null, result);
 
         // shadow, owned by user-3
-        ShadowType shadow1 = new ShadowType(prismContext).name("shadow-1")
+        ShadowType shadow1 = new ShadowType().name("shadow-1")
                 .pendingOperation(new PendingOperationType().attemptNumber(1))
                 .pendingOperation(new PendingOperationType().attemptNumber(2))
                 .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE) // what relation is used for shadow->resource?
@@ -146,7 +147,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .kind(ShadowKindType.ACCOUNT)
                 .intent("intent")
                 .tag("tag")
-                .extension(new ExtensionType(prismContext));
+                .extension(new ExtensionType());
         addExtensionValue(shadow1.getExtension(), "string", "string-value");
         ItemName shadowAttributeName = new ItemName("https://example.com/p", "string-mv");
         ShadowAttributesHelper attributesHelper = new ShadowAttributesHelper(shadow1)
@@ -155,33 +156,33 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         shadow1Oid = repositoryService.addObject(shadow1.asPrismObject(), null, result);
         // another shadow just to check we don't select shadow1 accidentally/randomly
         repositoryService.addObject(
-                new ShadowType(prismContext).name("shadow-2").asPrismObject(), null, result);
+                new ShadowType().name("shadow-2").asPrismObject(), null, result);
 
         // tasks
         task1Oid = repositoryService.addObject(
-                new TaskType(prismContext).name("task-1")
+                new TaskType().name("task-1")
                         .executionState(TaskExecutionStateType.RUNNABLE)
                         .asPrismObject(),
                 null, result);
         task2Oid = repositoryService.addObject(
-                new TaskType(prismContext).name("task-2")
+                new TaskType().name("task-2")
                         .executionState(TaskExecutionStateType.CLOSED)
-                        .schedule(new ScheduleType(prismContext)
+                        .schedule(new ScheduleType()
                                 .recurrence(TaskRecurrenceType.RECURRING))
                         .asPrismObject(),
                 null, result);
 
         // users
         creatorOid = repositoryService.addObject(
-                new UserType(prismContext).name("creator").asPrismObject(),
+                new UserType().name("creator").asPrismObject(),
                 null, result);
         modifierOid = repositoryService.addObject(
-                new UserType(prismContext).name("modifier").asPrismObject(),
+                new UserType().name("modifier").asPrismObject(),
                 null, result);
 
-        UserType user1 = new UserType(prismContext).name("user-1")
+        UserType user1 = new UserType().name("user-1")
                 .fullName("User Name 1")
-                .metadata(new MetadataType(prismContext)
+                .metadata(new MetadataType()
                         .creatorRef(creatorOid, UserType.COMPLEX_TYPE, relation1)
                         .createChannel("create-channel")
                         .createTimestamp(asXMLGregorianCalendar(1L))
@@ -192,28 +193,29 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .subtype("workerC")
                 .policySituation("situationA")
                 .policySituation("situationC")
-                .activation(new ActivationType(prismContext)
+                .activation(new ActivationType()
                         .validFrom("2021-07-04T00:00:00Z")
-                        .validTo("2022-07-04T00:00:00Z"))
-                .assignment(new AssignmentType(prismContext)
+                        .validTo("2022-07-04T00:00:00Z")
+                        .disableTimestamp("2020-01-01T00:00:00Z"))
+                .assignment(new AssignmentType()
                         .lifecycleState("assignment1-1")
                         .orgRef(org1Oid, OrgType.COMPLEX_TYPE, relation1)
-                        .activation(new ActivationType(prismContext)
+                        .activation(new ActivationType()
                                 .validFrom("2021-03-01T00:00:00Z")
                                 .validTo("2022-07-04T00:00:00Z"))
                         .subtype("ass-subtype-2"))
-                .assignment(new AssignmentType(prismContext)
+                .assignment(new AssignmentType()
                         .lifecycleState("assignment1-2")
                         .order(1))
-                .operationExecution(new OperationExecutionType(prismContext)
+                .operationExecution(new OperationExecutionType()
                         .taskRef(task2Oid, TaskType.COMPLEX_TYPE)
                         .status(OperationResultStatusType.FATAL_ERROR)
                         .timestamp("2021-09-01T00:00:00Z"))
-                .operationExecution(new OperationExecutionType(prismContext)
+                .operationExecution(new OperationExecutionType()
                         .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
                         .status(OperationResultStatusType.SUCCESS)
                         .timestamp("2021-10-01T00:00:00Z"))
-                .extension(new ExtensionType(prismContext));
+                .extension(new ExtensionType());
         ExtensionType user1Extension = user1.getExtension();
         addExtensionValue(user1Extension, "string", "string-value");
         addExtensionValue(user1Extension, "int", 1);
@@ -226,7 +228,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         addExtensionValue(user1Extension, "boolean", true);
         addExtensionValue(user1Extension, "enum", BeforeAfterType.AFTER);
         addExtensionValue(user1Extension, "dateTime", // 2021-09-30 before noon
-                asXMLGregorianCalendar(Instant.ofEpochMilli(1633_000_000_000L)));
+                asXMLGregorianCalendar(1633_000_000_000L));
         addExtensionValue(user1Extension, "poly", PolyString.fromOrig("poly-value"));
         addExtensionValue(user1Extension, "ref", ref(org21Oid, OrgType.COMPLEX_TYPE, relation1));
         addExtensionValue(user1Extension, "string-mv", "string-value1", "string-value2");
@@ -237,40 +239,43 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 ref(org1Oid, null, relation2), // type is nullable if provided in schema
                 ref(org2Oid, OrgType.COMPLEX_TYPE)); // default relation
         addExtensionValue(user1Extension, "string-ni", "not-indexed-item");
+        addExtensionValue(user1Extension, "dateTime-mv",
+                createXMLGregorianCalendar("2022-03-10T23:00:00Z"),
+                createXMLGregorianCalendar("2021-01-01T00:00:00Z"));
 
-        ExtensionType user1AssignmentExtension = new ExtensionType(prismContext);
-        user1.assignment(new AssignmentType(prismContext)
+        ExtensionType user1AssignmentExtension = new ExtensionType();
+        user1.assignment(new AssignmentType()
                 .lifecycleState("assignment1-3-ext")
                 .extension(user1AssignmentExtension));
         addExtensionValue(user1AssignmentExtension, "integer", BigInteger.valueOf(47));
         user1Oid = repositoryService.addObject(user1.asPrismObject(), null, result);
 
-        UserType user2 = new UserType(prismContext).name("user-2")
+        UserType user2 = new UserType().name("user-2")
                 .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
                 .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation1)
                 .subtype("workerA")
-                .activation(new ActivationType(prismContext)
+                .activation(new ActivationType()
                         .validFrom("2021-03-01T00:00:00Z")
                         .validTo("2022-07-04T00:00:00Z"))
-                .metadata(new MetadataType(prismContext)
+                .metadata(new MetadataType()
                         .createTimestamp(asXMLGregorianCalendar(2L)))
-                .operationExecution(new OperationExecutionType(prismContext)
+                .operationExecution(new OperationExecutionType()
                         .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
                         .status(OperationResultStatusType.FATAL_ERROR)
                         .timestamp("2021-11-01T00:00:00Z"))
-                .operationExecution(new OperationExecutionType(prismContext)
+                .operationExecution(new OperationExecutionType()
                         .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
                         .status(OperationResultStatusType.SUCCESS)
                         .timestamp("2021-12-01T00:00:00Z"))
-                .operationExecution(new OperationExecutionType(prismContext)
+                .operationExecution(new OperationExecutionType()
                         .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
                         .status(OperationResultStatusType.PARTIAL_ERROR)
                         .timestamp("2022-01-01T00:00:00Z"))
-                .extension(new ExtensionType(prismContext));
+                .extension(new ExtensionType());
         ExtensionType user2Extension = user2.getExtension();
         addExtensionValue(user2Extension, "string", "other-value...");
         addExtensionValue(user2Extension, "dateTime", // 2021-10-01 ~15PM
-                asXMLGregorianCalendar(Instant.ofEpochMilli(1633_100_000_000L)));
+                asXMLGregorianCalendar(1633_100_000_000L));
         addExtensionValue(user2Extension, "int", 2);
         addExtensionValue(user2Extension, "double", Double.MIN_VALUE); // positive, close to zero
         addExtensionValue(user2Extension, "float", 0f);
@@ -283,36 +288,36 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 PolyString.fromOrig("poly-value1"), PolyString.fromOrig("poly-value2"));
         user2Oid = repositoryService.addObject(user2.asPrismObject(), null, result);
 
-        UserType user3 = new UserType(prismContext).name("user-3")
+        UserType user3 = new UserType().name("user-3")
                 .costCenter("50")
                 .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
                 .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, relation1)
                 .policySituation("situationA")
-                .assignment(new AssignmentType(prismContext)
+                .assignment(new AssignmentType()
                         .lifecycleState("ls-user3-ass1")
-                        .metadata(new MetadataType(prismContext)
+                        .metadata(new MetadataType()
                                 .createApproverRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
-                        .activation(new ActivationType(prismContext)
+                        .activation(new ActivationType()
                                 .validFrom("2021-01-01T00:00:00Z"))
                         .subtype("ass-subtype-1")
                         .subtype("ass-subtype-2"))
                 .linkRef(shadow1Oid, ShadowType.COMPLEX_TYPE)
-                .assignment(new AssignmentType(prismContext)
-                        .activation(new ActivationType(prismContext)
+                .assignment(new AssignmentType()
+                        .activation(new ActivationType()
                                 .validTo("2022-01-01T00:00:00Z")))
-                .operationExecution(new OperationExecutionType(prismContext)
+                .operationExecution(new OperationExecutionType()
                         .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
                         .status(OperationResultStatusType.WARNING)
                         .timestamp("2021-08-01T00:00:00Z"))
-                .extension(new ExtensionType(prismContext));
+                .extension(new ExtensionType());
         ExtensionType user3Extension = user3.getExtension();
         addExtensionValue(user3Extension, "int", 10);
         addExtensionValue(user3Extension, "dateTime", // 2021-10-02 ~19PM
-                asXMLGregorianCalendar(Instant.ofEpochMilli(1633_200_000_000L)));
+                asXMLGregorianCalendar(1633_200_000_000L));
         user3Oid = repositoryService.addObject(user3.asPrismObject(), null, result);
 
         user4Oid = repositoryService.addObject(
-                new UserType(prismContext).name("user-4")
+                new UserType().name("user-4")
                         .givenName("John")
                         .fullName("John")
                         .costCenter("51")
@@ -328,10 +333,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         // other objects
         case1Oid = repositoryService.addObject(
-                new CaseType(prismContext).name("case-1")
+                new CaseType().name("case-1")
                         .state("closed")
                         .closeTimestamp(asXMLGregorianCalendar(321L))
-                        .workItem(new CaseWorkItemType(prismContext)
+                        .workItem(new CaseWorkItemType()
                                 .id(41L)
                                 .createTimestamp(asXMLGregorianCalendar(10000L))
                                 .closeTimestamp(asXMLGregorianCalendar(10100L))
@@ -341,8 +346,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 .stageNumber(1)
                                 .assigneeRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
                                 .assigneeRef(user2Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
-                                .output(new AbstractWorkItemOutputType(prismContext).outcome("OUTCOME one")))
-                        .workItem(new CaseWorkItemType(prismContext)
+                                .output(new AbstractWorkItemOutputType().outcome("OUTCOME one")))
+                        .workItem(new CaseWorkItemType()
                                 .id(42L)
                                 .createTimestamp(asXMLGregorianCalendar(20000L))
                                 .closeTimestamp(asXMLGregorianCalendar(20100L))
@@ -350,39 +355,39 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 .originalAssigneeRef(user1Oid, UserType.COMPLEX_TYPE)
                                 .performerRef(user1Oid, UserType.COMPLEX_TYPE)
                                 .stageNumber(2)
-                                .output(new AbstractWorkItemOutputType(prismContext).outcome("OUTCOME two")))
+                                .output(new AbstractWorkItemOutputType().outcome("OUTCOME two")))
                         .asPrismObject(),
                 null, result);
 
         accCertCampaign1Oid = repositoryService.addObject(
-                new AccessCertificationCampaignType(prismContext).name("acc-1")
+                new AccessCertificationCampaignType().name("acc-1")
                         .stageNumber(0) // mandatory, also for containers
                         .iteration(1) // mandatory with default 1, also for containers
-                        ._case(new AccessCertificationCaseType(prismContext)
+                        ._case(new AccessCertificationCaseType()
                                 .id(1L)
                                 .stageNumber(1)
                                 .iteration(1)
-                                .workItem(new AccessCertificationWorkItemType(prismContext)
+                                .workItem(new AccessCertificationWorkItemType()
                                         .stageNumber(11)
                                         .iteration(1))
-                                .workItem(new AccessCertificationWorkItemType(prismContext)
+                                .workItem(new AccessCertificationWorkItemType()
                                         .stageNumber(12)
                                         .iteration(1)))
-                        ._case(new AccessCertificationCaseType(prismContext)
+                        ._case(new AccessCertificationCaseType()
                                 .id(2L)
                                 .stageNumber(2)
                                 .iteration(2)
-                                .workItem(new AccessCertificationWorkItemType(prismContext)
+                                .workItem(new AccessCertificationWorkItemType()
                                         .stageNumber(21)
                                         .iteration(1))
-                                .workItem(new AccessCertificationWorkItemType(prismContext)
+                                .workItem(new AccessCertificationWorkItemType()
                                         .stageNumber(22)
                                         .iteration(1)))
                         .asPrismObject(),
                 null, result);
 
         connector1Oid = repositoryService.addObject(
-                new ConnectorType(prismContext)
+                new ConnectorType()
                         .name("conn-1")
                         .connectorBundle("com.connector.package")
                         .connectorType("ConnectorTypeClass")
@@ -393,12 +398,21 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .targetSystemType("type2")
                         .asPrismObject(), null, result);
         connector2Oid = repositoryService.addObject(
-                new ConnectorType(prismContext)
+                new ConnectorType()
                         .name("conn-2")
                         .connectorBundle("com.connector.package")
                         .connectorType("ConnectorTypeClass")
                         .connectorVersion("1.2.3")
                         .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN)
+                        .asPrismObject(), null, result);
+
+        roleOid = repositoryService.addObject(
+                new RoleType()
+                        .name("role-ass-vs-ind")
+                        .assignment(new AssignmentType()
+                                .lifecycleState("role-ass-lc"))
+                        .inducement(new AssignmentType()
+                                .lifecycleState("role-ind-lc"))
                         .asPrismObject(), null, result);
 
         // objects for OID range tests
@@ -417,7 +431,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 "ffffffff-ffff-ffff-ffff-ffffffffffff").forEach(oid -> {
             try {
                 repositoryService.addObject(
-                        new ServiceType(prismContext).oid(oid).name(oid)
+                        new ServiceType().oid(oid).name(oid)
                                 .costCenter("OIDTEST")
                                 .asPrismObject(),
                         null, result);
@@ -516,17 +530,28 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test125SearchObjectsBySubtypeContainsIsNotSupported() {
-        given("query for subtype containing (=substring) value");
-        OperationResult operationResult = createOperationResult();
-        ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(ObjectType.F_SUBTYPE).contains("worker")
-                .build();
+    public void test125SearchObjectsBySubtypeContains() throws SchemaException {
+        searchUsersTest("with subtype (PG array column) containing (=substring) value",
+                f -> f.item(ObjectType.F_SUBTYPE).contains("A"),
+                user1Oid, user2Oid);
+    }
 
-        expect("repository throws exception because it is not supported");
-        assertThatThrownBy(() -> searchObjects(ObjectType.class, query, operationResult))
-                .isInstanceOf(SystemException.class)
-                .hasMessageStartingWith("Can't translate filter");
+    @Test
+    public void test126SearchObjectsBySubtypeUsingComparison() throws SchemaException {
+        searchUsersTest("with subtype using comparison, case-ignore even (possible for text)",
+                f -> f.item(ObjectType.F_SUBTYPE).gt("workera").matchingCaseIgnore(),
+                user1Oid, user4Oid);
+    }
+
+    @Test
+    public void test127SearchObjectsBySubtypeUsingComparisonNegated() throws SchemaException {
+        // NOTE: This is actually a bit tricky, because depending on the DB collation the comparison
+        // is likely case-insensitive already! E.g.:
+        // select 'workerA' COLLATE "en_US.utf8" > 'WORKERC' -- false, this is expected default for MP!
+        // select 'workerA' COLLATE "C.UTF-8" > 'WORKERC' -- true, as expected in binary
+        searchUsersTest("with subtype using NOT and comparison",
+                f -> f.not().item(ObjectType.F_SUBTYPE).gt("WORKERA").matchingCaseIgnore(),
+                creatorOid, modifierOid, user2Oid, user3Oid);
     }
 
     @Test
@@ -555,13 +580,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         given("query for policy situation containing (=substring) value");
         OperationResult operationResult = createOperationResult();
         ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(ObjectType.F_POLICY_SITUATION).contains("worker")
+                .item(ObjectType.F_POLICY_SITUATION).contains("anything")
                 .build();
 
-        expect("repository throws exception because it is not supported");
+        expect("repository throws exception because it is not supported for URI-like values");
         assertThatThrownBy(() -> searchObjects(ObjectType.class, query, operationResult))
                 .isInstanceOf(SystemException.class)
-                .hasMessageStartingWith("Can't translate filter");
+                .hasMessageStartingWith("Unsupported operation for multi-value non-textual item");
     }
 
     @Test
@@ -631,7 +656,29 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test160SearchShadowByObjectClass() throws SchemaException {
+    public void test160SearchRoleByAssignment() throws SchemaException {
+        searchObjectTest("having assignment with specified lifecycle", RoleType.class,
+                f -> f.item(RoleType.F_ASSIGNMENT, AssignmentType.F_LIFECYCLE_STATE).eq("role-ass-lc"),
+                roleOid);
+    }
+
+    @Test
+    public void test161SearchRoleByInducementWithWrongName() throws SchemaException {
+        // this shows the bug when the containerType condition is missing in the query
+        searchObjectTest("having inducement with specified (wrong) lifecycle", RoleType.class,
+                f -> f.item(RoleType.F_INDUCEMENT, AssignmentType.F_LIFECYCLE_STATE).eq("role-ass-lc"));
+        // nothing must be found
+    }
+
+    @Test
+    public void test162SearchRoleByInducementWithRightName() throws SchemaException {
+        searchObjectTest("having inducement with specified lifecycle", RoleType.class,
+                f -> f.item(RoleType.F_INDUCEMENT, AssignmentType.F_LIFECYCLE_STATE).eq("role-ind-lc"),
+                roleOid);
+    }
+
+    @Test
+    public void test170SearchShadowByObjectClass() throws SchemaException {
         // this uses URI mapping with QName instead of String
         searchObjectTest("having specified object class", ShadowType.class,
                 f -> f.item(ShadowType.F_OBJECT_CLASS).eq(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS),
@@ -639,7 +686,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test170SearchShadowOwner() {
+    public void test171SearchShadowOwner() {
         when("searching for shadow owner by shadow OID");
         OperationResult operationResult = createOperationResult();
         PrismObject<UserType> result =
@@ -654,7 +701,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test171SearchShadowOwnerByNonexistentOid() {
+    public void test172SearchShadowOwnerByNonexistentOid() {
         when("searching for shadow owner by shadow OID");
         OperationResult operationResult = createOperationResult();
         PrismObject<UserType> result =
@@ -1082,6 +1129,15 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test405SearchObjectHavingAnyOfValuesInMultiValueRef() throws SchemaException {
+        searchUsersTest("having parent org ref matching any of the provided values",
+                f -> f.item(UserType.F_PARENT_ORG_REF)
+                        .ref(ref(org11Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY),
+                                ref(org21Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY)),
+                user2Oid, user3Oid);
+    }
+
+    @Test
     public void test410SearchObjectByParentOrgName() throws SchemaException {
         // this is multi-value ref in separate table
         searchUsersTest("having parent org with specified name",
@@ -1109,7 +1165,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test420SearchObjectBySingleValueReferenceTargetAttribute() throws SchemaException {
+    public void test420SearchObjectBySingleValueReferenceTargetItem() throws SchemaException {
         searchUsersTest("with object creator name",
                 f -> f.item(UserType.F_METADATA, MetadataType.F_CREATOR_REF,
                                 T_OBJECT_REFERENCE, UserType.F_NAME)
@@ -1242,25 +1298,32 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test515SearchObjectWithMultivalueExtensionUsingNonEqualFilterFails() {
-        given("query for multi-value extension string item with non-equal operation");
-        OperationResult operationResult = createOperationResult();
-        ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(UserType.F_EXTENSION, new QName("string-mv")).gt("string-value2")
-                .build();
-
-        expect("searchObjects throws exception because of unsupported filter");
-        assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
-                .isInstanceOf(SystemException.class)
-                .hasMessageContaining("supported");
-    }
-
-    @Test
-    public void test516SearchObjectHavingAnyOfSpecifiedMultivalueStringExtension() throws SchemaException {
+    public void test513SearchObjectHavingAnyOfSpecifiedMultivalueStringExtension() throws SchemaException {
         searchUsersTest("with multi-value extension string matching any of provided values",
                 f -> f.item(UserType.F_EXTENSION, new QName("string-mv"))
                         .eq("string-value2", "string-valueX"), // second value does not match, but that's OK
                 user1Oid, user2Oid); // both users have "string-value2" in "string-mv"
+    }
+
+    @Test
+    public void test515SearchObjectWithMultivalueExtensionUsingSubstring() throws SchemaException {
+        searchUsersTest("with multi-value extension string item with substring operation",
+                f -> f.item(UserType.F_EXTENSION, new QName("string-mv")).contains("1"), // matches string-value1
+                user1Oid);
+    }
+
+    @Test
+    public void test516SearchObjectWithMultivalueExtensionUsingComparison() throws SchemaException {
+        searchUsersTest("with multi-value extension string item with comparison operation",
+                f -> f.item(UserType.F_EXTENSION, new QName("string-mv")).gt("string-value2"),
+                user2Oid);
+    }
+
+    @Test
+    public void test517SearchObjectWithMultivalueExtensionUsingComparisonNegated() throws SchemaException {
+        searchUsersTest("with multi-value extension string item with NOT comparison operation",
+                f -> f.not().item(UserType.F_EXTENSION, new QName("string-mv")).gt("string-value2"),
+                creatorOid, modifierOid, user1Oid, user3Oid, user4Oid);
     }
 
     // integer tests
@@ -1305,24 +1368,24 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test528SearchObjectHavingSpecifiedMultivalueIntegerExtension() throws SchemaException {
+    public void test525SearchObjectHavingSpecifiedMultivalueIntegerExtension() throws SchemaException {
         searchUsersTest("having extension multi-integer item equal to value",
                 f -> f.item(UserType.F_EXTENSION, new QName("int-mv")).eq(47),
                 user1Oid);
     }
 
     @Test
-    public void test529SearchObjectHavingSpecifiedMultivalueIntegerExtension() {
-        given("query for multi-value extension integer item with non-equal operation");
-        OperationResult operationResult = createOperationResult();
-        ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(UserType.F_EXTENSION, new QName("int-mv")).gt(40)
-                .build();
+    public void test526SearchObjectHavingAnyOfSpecifiedMultivalueIntegerExtension() throws SchemaException {
+        searchUsersTest("having extension multi-integer item equal to any of provided values",
+                f -> f.item(UserType.F_EXTENSION, new QName("int-mv")).eq(40, 31),
+                user1Oid);
+    }
 
-        expect("searchObjects throws exception because of unsupported filter");
-        assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
-                .isInstanceOf(SystemException.class)
-                .hasMessageContaining("supported");
+    @Test
+    public void test527SearchObjectHavingSpecifiedMultivalueIntegerExtension() throws SchemaException {
+        searchUsersTest("having extension multi-integer item greater than some value",
+                f -> f.item(UserType.F_EXTENSION, new QName("int-mv")).gt(40),
+                user1Oid);
     }
 
     // other numeric types tests + wilder conditions
@@ -1460,6 +1523,15 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 user1Oid, user2Oid);
     }
 
+    @Test
+    public void test546SearchObjectHavingAnyOfSpecifiedMultiValueEnumExtension() throws SchemaException {
+        searchUsersTest("having extension multi-value enum item equal to any of specified values",
+                f -> f.item(UserType.F_EXTENSION, new QName("enum-mv"))
+                        .eq(OperationResultStatusType.UNKNOWN, // this one is used by user2
+                                OperationResultStatusType.FATAL_ERROR), // not used
+                user2Oid);
+    }
+
     // boolean tests
     @Test
     public void test548SearchObjectByBooleanExtension() throws SchemaException {
@@ -1474,7 +1546,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test550SearchObjectByDateTimeExtension() throws SchemaException {
         searchUsersTest("having extension date-time item with specified value",
                 f -> f.item(UserType.F_EXTENSION, new QName("dateTime"))
-                        .eq(asXMLGregorianCalendar(Instant.ofEpochMilli(1633_100_000_000L))),
+                        .eq(asXMLGregorianCalendar(1633_100_000_000L)),
                 user2Oid);
     }
 
@@ -1482,9 +1554,9 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test551SearchObjectByDateTimeExtensionBetween() throws SchemaException {
         searchUsersTest("having extension date-time item between specified values",
                 f -> f.item(UserType.F_EXTENSION, new QName("dateTime"))
-                        .gt(asXMLGregorianCalendar(Instant.ofEpochMilli(1633_000_000_000L)))
+                        .gt(asXMLGregorianCalendar(1633_000_000_000L))
                         .and().item(UserType.F_EXTENSION, new QName("dateTime"))
-                        .lt(asXMLGregorianCalendar(Instant.ofEpochMilli(1634_000_000_000L))),
+                        .lt(asXMLGregorianCalendar(1634_000_000_000L)),
                 user2Oid, user3Oid);
     }
 
@@ -1492,9 +1564,9 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test552SearchObjectByDateTimeExtensionOrCondition() throws SchemaException {
         searchUsersTest("having extension date-time item matching either condition (OR)",
                 f -> f.item(UserType.F_EXTENSION, new QName("dateTime"))
-                        .le(asXMLGregorianCalendar(Instant.ofEpochMilli(1633_000_000_000L)))
+                        .le(asXMLGregorianCalendar(1633_000_000_000L))
                         .or().item(UserType.F_EXTENSION, new QName("dateTime"))
-                        .ge(asXMLGregorianCalendar(Instant.ofEpochMilli(1633_200_000_000L))),
+                        .ge(asXMLGregorianCalendar(1633_200_000_000L)),
                 user1Oid, user3Oid);
     }
 
@@ -1509,6 +1581,41 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         // reverse ordering, user 3 first
         assertThat(result).extracting(u -> u.getOid())
                 .containsExactly(user3Oid, user2Oid, user1Oid);
+    }
+
+    @Test
+    public void test555SearchObjectByDateTimeMultiValueExtension() throws SchemaException {
+        searchUsersTest("having multi-value date-time extension item eq to specified value (any of semantics)",
+                f -> f.item(UserType.F_EXTENSION, new QName("dateTime-mv"))
+                        .eq(createXMLGregorianCalendar("2022-03-10T23:00:00Z")),
+                user1Oid);
+    }
+
+    @Test
+    public void test556SearchObjectByDateTimeMultiValueExtensionNot() throws SchemaException {
+        searchUsersTest("having multi-value date-time extension item NOT eq to specified value (none of the item values)",
+                f -> f.not().item(UserType.F_EXTENSION, new QName("dateTime-mv"))
+                        .eq(createXMLGregorianCalendar("2022-03-10T23:00:00Z")),
+                creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
+        // This can't match user1 just because it has also another value that is not equal.
+        // The result is true complement to the previous test without NOT.
+    }
+
+    @Test
+    public void test557SearchObjectByDateTimeMultiValueExtensionComparison() throws SchemaException {
+        searchUsersTest("having multi-value date-time extension item GOE (any of semantics)",
+                f -> f.item(UserType.F_EXTENSION, new QName("dateTime-mv"))
+                        .ge(createXMLGregorianCalendar("2022-03-10T23:00:00Z")),
+                user1Oid);
+    }
+
+    @Test
+    public void test558SearchObjectByDateTimeMultiValueExtensionEqualToAnyOfValue() throws SchemaException {
+        searchUsersTest("having multi-value date-time extension item eq to any of specified values",
+                f -> f.item(UserType.F_EXTENSION, new QName("dateTime-mv"))
+                        .eq(createXMLGregorianCalendar("2021-01-01T00:00:00Z"), // this one should match
+                                createXMLGregorianCalendar("2022-01-01T00:00:00Z")),
+                user1Oid);
     }
 
     // date-time uses the same code as string, no need for more tests, only EQ works for multi-value
@@ -1674,6 +1781,31 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 user1Oid, user2Oid);
     }
 
+    @Test(description = "MID-7738")
+    public void test586SearchObjectWithExtensionRefMatchingAnyOfValsXmlFilter() throws SchemaException {
+        when("searching for user by extension single-value ref by any of multiple values using XML filter");
+        OperationResult operationResult = createOperationResult();
+        // any is necessary for refs, unless the right relation is specified (e.g. relation1 for org21Oid)
+        ObjectQuery objectQuery = prismContext.getQueryConverter().createObjectQuery(UserType.class,
+                prismContext.parserFor("<query>\n"
+                        + "  <filter>\n"
+                        + "    <ref xmlns:q='http://prism.evolveum.com/xml/ns/public/query-3'>\n"
+                        + "      <path>extension/ref</path>\n"
+                        + "      <value oid=\"" + orgXOid + "\" relation=\"q:any\"/>\n"
+                        + "      <value oid=\"" + org21Oid + "\" relation=\"q:any\"/>\n"
+                        + "    </ref>\n"
+                        + "  </filter>\n"
+                        + "</query>").parseRealValue(QueryType.class));
+        SearchResultList<UserType> result =
+                repositorySearchObjects(UserType.class, objectQuery, operationResult);
+
+        then("users with extension/ref matching any of the values are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user1Oid, user2Oid);
+    }
+
     @Test
     public void test590SearchObjectWithAssignmentExtension() throws SchemaException {
         searchUsersTest("with assignment extension item equal to value",
@@ -1704,8 +1836,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .isInstanceOf(SystemException.class)
                 .hasMessageContaining("not indexed");
     }
-
-    // TODO multi-value EQ filter (IN semantics) for extensions is not supported YET (except for refs)
     // endregion
 
     // region container search
@@ -1797,7 +1927,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test610SearchCaseWIContainerByAssigneeName() throws SchemaException {
         SearchResultList<CaseWorkItemType> result = searchContainerTest(
                 "by multi-value reference target's full name", CaseWorkItemType.class,
-                // again trying with user specific attribute
+                // again trying with user specific item
                 f -> f.item(CaseWorkItemType.F_ASSIGNEE_REF, T_OBJECT_REFERENCE, UserType.F_FULL_NAME)
                         .eq(new PolyString("User Name 1")));
         assertThat(result)
@@ -1883,6 +2013,36 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .endBlock(),
                 user3Oid);
         */
+    }
+
+    // MID-7487, nothing found, just a query test
+    @Test
+    public void test702SearchShadowsByCorrelationItems() throws SchemaException {
+        searchObjectTest("using all correlation items", ShadowType.class,
+                f -> f.item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_START_TIMESTAMP)
+                        .gt(asXMLGregorianCalendar(1L))
+                        .and()
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP)
+                        .gt(asXMLGregorianCalendar(2L))
+                        .and()
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_OPEN_TIMESTAMP)
+                        .gt(asXMLGregorianCalendar(3L))
+                        .and()
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_CLOSE_TIMESTAMP)
+                        .gt(asXMLGregorianCalendar(4L))
+                        .and()
+                        .not()
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION)
+                        .eq(CorrelationSituationType.ERROR));
+    }
+
+    // MID-7683 'disableTimestamp' in mapping SqaleNestedMapping
+    @Test
+    public void test703SearchFocusByDisableTimestamp() throws SchemaException {
+        searchUsersTest("using disableTimestamp item",
+                f -> f.item(F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)
+                        .lt(createXMLGregorianCalendar("2022-01-01T00:00:00Z")),
+                user1Oid);
     }
     // endregion
 

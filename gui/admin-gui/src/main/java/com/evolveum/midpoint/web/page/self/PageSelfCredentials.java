@@ -6,22 +6,22 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
-import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyCredentialsDto;
 import com.evolveum.midpoint.web.page.self.component.SecurityQuestionsPanel;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
 
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -86,7 +86,7 @@ public class PageSelfCredentials extends PageAbstractSelfCredentials{
     }
 
     private boolean showQuestions() {
-        GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal == null) {
             return false;
         }

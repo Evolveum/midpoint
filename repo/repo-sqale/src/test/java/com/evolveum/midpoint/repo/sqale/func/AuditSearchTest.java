@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,14 +18,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -60,8 +58,6 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
     public static final long TIMESTAMP_2 = 1580515200000L; // 2020-02-01
     public static final long TIMESTAMP_3 = 1583020800000L; // 2020-03-01
     public static final long TIMESTAMP_4 = 1600000000000L; // 2020-04...
-
-    @Autowired private AuditService auditService;
 
     private String initiatorOid;
     private String attorneyOid;
@@ -101,8 +97,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         record1.setNodeIdentifier("node1");
         record1.setRemoteHostAddress("192.168.10.1");
         record1.setSessionIdentifier("session-1");
-        record1.setTarget(target, prismContext);
-        record1.setTargetOwner(targetOwner, prismContext);
+        record1.setTarget(target);
+        record1.setTargetOwner(targetOwner);
         record1.addDelta(createDelta(UserType.F_FULL_NAME)); // values are not even necessary
         record1.addDelta(createDelta(UserType.F_FAMILY_NAME, PolyString.fromOrig("familyNameVal")));
         ObjectDeltaOperation<UserType> delta3 = createDelta(ItemPath.create(
@@ -135,11 +131,11 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         record2.setEventStage(AuditEventStage.EXECUTION);
         record2.setMessage("record2");
         record2.setOutcome(OperationResultStatus.UNKNOWN);
-        record2.setInitiator(initiator, prismContext);
+        record2.setInitiator(initiator);
         record2.setHostIdentifier("127.0.0.1");
         record2.setRemoteHostAddress("192.168.10.2");
         record2.setSessionIdentifier("session-1"); // session-1 on purpose
-        record2.setAttorney(attorney, prismContext);
+        record2.setAttorney(attorney);
         record2.setRequestIdentifier("req-id");
         record2.addDelta(createDelta(UserType.F_FULL_NAME, PolyString.fromOrig("somePolyString")));
         record2.addDelta(createDelta(UserType.F_ADDITIONAL_NAME));
@@ -196,7 +192,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
 
     private PrismObject<UserType> createUser(String userName)
             throws ObjectAlreadyExistsException, SchemaException {
-        PrismObject<UserType> user = new UserType(prismContext)
+        PrismObject<UserType> user = new UserType()
                 .name(userName)
                 .asPrismObject();
         repositoryService.addObject(user, null, createOperationResult());
@@ -693,7 +689,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test185SearchByParameter() throws SchemaException {
-        when("searching audit filtered by parameter attribute");
+        when("searching audit filtered by parameter item");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_PARAMETER).eq("1")
@@ -969,7 +965,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test300SearchReturnsMappedToManyAttributes() throws SchemaException {
+    public void test300SearchReturnsMappedToManyEntities() throws SchemaException {
         when("searching audit with query without any conditions and paging");
         List<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class)
@@ -983,14 +979,16 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 .sorted(Comparator.comparing(AuditEventRecordType::getParameter))
                 .collect(Collectors.toList());
 
-        and("record 1 has all the attributes filled");
+        and("record 1 has all the items filled");
         AuditEventRecordType record1 = result.get(0);
         assertThat(record1.getProperty()).hasSize(1);
         AuditEventRecordPropertyType prop1 = record1.getProperty().get(0);
         assertThat(prop1.getName()).isEqualTo("prop1");
         assertThat(prop1.getValue()).containsExactly("val1");
-        // for other attributes we just use the size check, fetch mechanism is similar
-        assertThat(record1.getChangedItem()).hasSize(4);
+        // Changed items are not returned, they are used for query only and can be found in deltas.
+        // Also, they may be stored in wrong format (e.g. "canonicalized").
+        assertThat(record1.getChangedItem()).isNullOrEmpty();
+        // for other items we just use the size check, fetch mechanism is similar
         assertThat(record1.getDelta()).hasSize(3)
                 .allMatch(d -> d.getObjectDelta() != null);
         assertThat(record1.getReference()).hasSize(2);
@@ -1006,7 +1004,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         and("record 3 has expected properties");
         AuditEventRecordType record3 = result.get(2);
         assertThat(record3.getProperty()).as("two different property keys").hasSize(2);
-        // currently props are sorted by name during transformation to AERType
+        // Currently, props are sorted by name during transformation to AERType.
         prop1 = record3.getProperty().get(0);
         assertThat(prop1.getName()).isEqualTo("prop1");
         assertThat(prop1.getValue()).containsExactlyInAnyOrder("val3-1", "val3-2", "val3-3");

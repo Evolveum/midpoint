@@ -11,14 +11,10 @@ import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutablePrismObjectDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.deleg.ObjectDefinitionDelegator;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -31,6 +27,7 @@ public class TransformableObjectDefinition<O extends Objectable> extends Transfo
 
     public TransformableObjectDefinition(PrismObjectDefinition<O> delegate, ComplexTypeDefinition typedef) {
         super(delegate, typedef);
+        //noinspection unchecked
         delegatedItem(new DelegatedItem.ObjectDef(delegate()));
     }
 
@@ -65,15 +62,15 @@ public class TransformableObjectDefinition<O extends Objectable> extends Transfo
     }
 
     @Override
-    public PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
+    public @NotNull PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition<?> newDefinition) {
         TransformableComplexTypeDefinition typedef = complexTypeDefinition.copy();
         typedef.replaceDefinition(itemName, newDefinition);
         return new TransformableObjectDefinition<>(this, typedef);
     }
 
     @Override
-    public PrismObjectDefinition<O> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
-        return (PrismObjectDefinition<O>) super.deepClone(ultraDeep, postCloneAction);
+    public PrismObjectDefinition<O> deepClone(@NotNull DeepCloneOperation operation) {
+        return (PrismObjectDefinition<O>) super.deepClone(operation);
     }
 
     @Override
@@ -82,7 +79,7 @@ public class TransformableObjectDefinition<O extends Objectable> extends Transfo
     }
 
     @Override
-    public PrismObject<O> instantiate() throws SchemaException {
+    public @NotNull PrismObject<O> instantiate() throws SchemaException {
         return instantiate(getItemName());
     }
 
@@ -91,4 +88,9 @@ public class TransformableObjectDefinition<O extends Objectable> extends Transfo
         return (PrismObject<O>) super.instantiate(name);
     }
 
+    /** For a strange reason, IntelliJ IDEA complains about missing {@link #createValue()} method. So adding it here. */
+    @Override
+    public PrismObjectValue<O> createValue() {
+        return delegate().createValue();
+    }
 }

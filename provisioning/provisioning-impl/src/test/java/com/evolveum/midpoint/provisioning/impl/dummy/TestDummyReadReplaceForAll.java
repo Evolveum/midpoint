@@ -18,8 +18,6 @@ import org.springframework.test.context.ContextConfiguration;
  * Almost the same as TestDummy but uses READ+REPLACE mode for all account+group attributes.
  *
  * @author Radovan Semancik
- * @author Pavol Mederly
- *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext

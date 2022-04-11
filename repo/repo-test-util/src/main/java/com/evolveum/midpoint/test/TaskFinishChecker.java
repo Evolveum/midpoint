@@ -34,7 +34,7 @@ public class TaskFinishChecker implements Checker {
     private final OperationResult waitResult;
     private final boolean checkSubresult;
     private final boolean errorOk;
-    private final int timeout;
+    private final long timeout;
     private final int showProgressEach;
     private final boolean verbose;
     private final Consumer<Task> taskConsumer;
@@ -123,7 +123,7 @@ public class TaskFinishChecker implements Checker {
         private OperationResult waitResult;
         private boolean checkSubresult;
         private boolean errorOk;
-        private int timeout;
+        private long timeout;
         private int showProgressEach;
         private boolean verbose;
         private Consumer<Task> taskConsumer;
@@ -159,7 +159,7 @@ public class TaskFinishChecker implements Checker {
             return this;
         }
 
-        public Builder timeout(int val) {
+        public Builder timeout(long val) {
             timeout = val;
             return this;
         }

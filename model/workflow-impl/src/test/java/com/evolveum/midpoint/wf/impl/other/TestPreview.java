@@ -17,6 +17,8 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.cases.CaseEventUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -131,7 +133,7 @@ public class TestPreview extends AbstractWfTestPolicy {
                     .getObject().asObjectable();
 
         ApprovalSchemaExecutionInformationType execInfo =
-                workflowManager.getApprovalSchemaExecutionInformation(approvalCase.getOid(), task, result);
+                approvalsManager.getApprovalSchemaExecutionInformation(approvalCase.getOid(), task, result);
         displayExecutionInformation(execInfo);
 
         assertThat(getCurrentStageApprovers(execInfo)).as("current stage (1) approvers").containsExactlyInAnyOrder(USER_JANE.oid);
@@ -162,7 +164,7 @@ public class TestPreview extends AbstractWfTestPolicy {
                 .getObject().asObjectable();
 
         ApprovalSchemaExecutionInformationType execInfo =
-                workflowManager.getApprovalSchemaExecutionInformation(approvalCase.getOid(), task, result);
+                approvalsManager.getApprovalSchemaExecutionInformation(approvalCase.getOid(), task, result);
         displayExecutionInformation(execInfo);
 
         assertThat(getPastStageApprovers(execInfo, 1)).as("stage 1 approvers").containsExactlyInAnyOrder(USER_ADMINISTRATOR_OID);
@@ -192,7 +194,7 @@ public class TestPreview extends AbstractWfTestPolicy {
                 .getObject().asObjectable();
 
         ApprovalSchemaExecutionInformationType execInfo =
-                workflowManager.getApprovalSchemaExecutionInformation(approvalCase.getOid(), task, result);
+                approvalsManager.getApprovalSchemaExecutionInformation(approvalCase.getOid(), task, result);
         displayExecutionInformation(execInfo);
 
         assertThat(getPastStageApprovers(execInfo, 1)).as("stage 1 approvers").containsExactlyInAnyOrder(USER_ADMINISTRATOR_OID);
@@ -224,7 +226,7 @@ public class TestPreview extends AbstractWfTestPolicy {
                 .getObject().asObjectable();
 
         ApprovalSchemaExecutionInformationType execInfo =
-                workflowManager.getApprovalSchemaExecutionInformation(approvalCase.getOid(), task, result);
+                approvalsManager.getApprovalSchemaExecutionInformation(approvalCase.getOid(), task, result);
         displayExecutionInformation(execInfo);
 
         assertThat(getPastStageApprovers(execInfo, 1)).as("stage 1 approvers").containsExactlyInAnyOrder(USER_ADMINISTRATOR_OID);

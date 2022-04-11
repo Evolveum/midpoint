@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.report;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
@@ -18,6 +19,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -173,7 +175,7 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
 
     void createUsers(int users, Task initTask, OperationResult initResult) throws CommonException {
         for (int i = 0; i < users; i++) {
-            UserType user = new UserType(prismContext)
+            UserType user = new UserType()
                     .name(String.format("u%06d", i))
                     .givenName(String.format("GivenNameU%06d", i))
                     .familyName(String.format("FamilyNameU%06d", i))
@@ -197,7 +199,7 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
     File findOutputFile(PrismObject<ReportType> report) throws ParseException {
         // We should use a more robust way of finding the file names, e.g. by looking at ReportDataType repo objects.
         String expectedFilePrefix =
-                MiscUtil.replaceColonsInFileNameOnWindows(
+                MiscUtil.replaceIllegalCharInFileNameOnWindows(
                         report.getName().getOrig());
         File[] matchingFiles = EXPORT_DIR.listFiles((dir, name) -> name.startsWith(expectedFilePrefix));
         if (matchingFiles == null || matchingFiles.length == 0) {
@@ -264,4 +266,17 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
     }
 
     protected abstract FileFormatConfigurationType getFileFormatConfiguration();
+
+    void assertNotificationMessage(ReportType report, String expectedContentType) {
+        displayDumpable("dummy transport", dummyTransport);
+
+        String reportName = report.getName().getOrig();
+        assertSingleDummyTransportMessageContaining("reports", "Report: " + reportName);
+
+        Message message = dummyTransport.getMessages("dummy:reports").get(0);
+        List<NotificationMessageAttachmentType> attachments = message.getAttachments();
+        assertThat(attachments).as("notification message attachments").hasSize(1);
+        NotificationMessageAttachmentType attachment = attachments.get(0);
+        assertThat(attachment.getContentType()).as("attachment content type").isEqualTo(expectedContentType);
+    }
 }

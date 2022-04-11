@@ -11,6 +11,7 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.processor.ResourceSchemaParser;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -22,7 +23,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
@@ -34,7 +34,6 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -70,7 +69,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
     private ConnectorInstance lastConfiguredConnectorInstance = null;
     private CachingMetadataType lastCachingMetadata;
     private ResourceSchema lastResourceSchema = null;
-    private RefinedResourceSchema lastRefinedResourceSchema;
+    private ResourceSchema lastRefinedResourceSchema;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -136,11 +135,11 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         assertSame("Resource schema has changed", lastResourceSchema, currentResourceSchema);
     }
 
-    protected void rememberRefinedResourceSchema(RefinedResourceSchema rResourceSchema) {
+    protected void rememberRefinedResourceSchema(ResourceSchema rResourceSchema) {
         lastRefinedResourceSchema = rResourceSchema;
     }
 
-    protected void assertRefinedResourceSchemaUnchanged(RefinedResourceSchema currentRefinedResourceSchema) {
+    protected void assertRefinedResourceSchemaUnchanged(ResourceSchema currentRefinedResourceSchema) {
         // We really want == (identity test) here.
         // We want to make sure that this is actually the same instance and that it was properly cached.
         assertSame("Refined resource schema has changed", lastRefinedResourceSchema, currentRefinedResourceSchema);
@@ -161,7 +160,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         assertNotNull("No serialNumber in " + desc, cachingMetadata.getSerialNumber());
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-        ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resource.toString(), prismContext);
+        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resource.toString());
         assertNotNull("No schema after parsing in " + desc, parsedSchema);
     }
 
