@@ -102,21 +102,14 @@ final class ClassicReportImportActivityRun
 
     @Override
     public void iterateOverItemsInBucket(OperationResult result) {
-        AtomicBoolean stopped = new AtomicBoolean(false);
-        BiConsumer<Integer, VariablesMap> handler = (lineNumber, variables) -> {
-            InputReportLine line = new InputReportLine(lineNumber, variables);
-
+        AtomicInteger sequence = new AtomicInteger(1);
+        for (VariablesMap variablesMap : variables) {
+            int lineNumber = sequence.getAndIncrement();
+            InputReportLine line = new InputReportLine(lineNumber, variablesMap);
             boolean canContinue = coordinator.submit(
                     new InputReportLineProcessingRequest(line, this),
                     result);
             if (!canContinue) {
-                stopped.set(true);
-            }
-        };
-        AtomicInteger sequence = new AtomicInteger(1);
-        for (VariablesMap variablesMap : variables) {
-            handler.accept(sequence.getAndIncrement(), variablesMap);
-            if (Boolean.TRUE.equals(stopped.get())) {
                 break;
             }
         }
