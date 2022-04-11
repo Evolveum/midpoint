@@ -151,44 +151,45 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
 
     @Override
     protected Search createSearch() {
+        //todo check
 //        Search search = super.createSearch();
 //        search.addSpecialItem(createScopeItem(search, getRoleCatalogStorage()));
 //        return search;
         return SearchFactory.createSearch(createSearchConfigWrapper(), getPageBase());
     }
 
-    private SearchItem createScopeItem(Search search, RoleCatalogStorage roleCatalogStorage) {
-        return new SpecialSearchItem(search) {
-            @Override
-            public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
-                return null;
-            }
-
-            @Override
-            public SearchSpecialItemPanel createSpecialSearchPanel(String id){
-                return new SearchSpecialItemPanel(id, new PropertyModel(roleCatalogStorage, RoleCatalogStorage.F_ORG_SEARCH_SCOPE)) {
-                    @Override
-                    protected WebMarkupContainer initSearchItemField(String id) {
-                        DropDownChoicePanel inputPanel = new DropDownChoicePanel(id, getModelValue(), Model.of(Arrays.asList(SearchBoxScopeType.values())), new EnumChoiceRenderer(), false);
-                        inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
-                        inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 88px; max-width: 400px !important;"));
-                        inputPanel.setOutputMarkupId(true);
-                        return inputPanel;
-                    }
-
-                    @Override
-                    protected IModel<String> createLabelModel() {
-                        return getPageBase().createStringResource("abstractRoleMemberPanel.searchScope");
-                    }
-
-                    @Override
-                    protected IModel<String> createHelpModel() {
-                        return getPageBase().createStringResource("abstractRoleMemberPanel.searchScope.tooltip");
-                    }
-                };
-            }
-        };
-    }
+//    private SearchItem createScopeItem(Search search, RoleCatalogStorage roleCatalogStorage) {
+//        return new SpecialSearchItem(search) {
+//            @Override
+//            public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+//                return null;
+//            }
+//
+//            @Override
+//            public SearchSpecialItemPanel createSpecialSearchPanel(String id){
+//                return new SearchSpecialItemPanel(id, new PropertyModel(roleCatalogStorage, RoleCatalogStorage.F_ORG_SEARCH_SCOPE)) {
+//                    @Override
+//                    protected WebMarkupContainer initSearchItemField(String id) {
+//                        DropDownChoicePanel inputPanel = new DropDownChoicePanel(id, getModelValue(), Model.of(Arrays.asList(SearchBoxScopeType.values())), new EnumChoiceRenderer(), false);
+//                        inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
+//                        inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 88px; max-width: 400px !important;"));
+//                        inputPanel.setOutputMarkupId(true);
+//                        return inputPanel;
+//                    }
+//
+//                    @Override
+//                    protected IModel<String> createLabelModel() {
+//                        return getPageBase().createStringResource("abstractRoleMemberPanel.searchScope");
+//                    }
+//
+//                    @Override
+//                    protected IModel<String> createHelpModel() {
+//                        return getPageBase().createStringResource("abstractRoleMemberPanel.searchScope.tooltip");
+//                    }
+//                };
+//            }
+//        };
+//    }
 
     private SearchConfigurationWrapper createSearchConfigWrapper() {
         SearchBoxConfigurationType config = new SearchBoxConfigurationType();

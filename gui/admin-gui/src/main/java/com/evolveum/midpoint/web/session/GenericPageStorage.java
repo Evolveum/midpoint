@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.web.session;
 
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.web.component.search.Search;
 
 /**
  * Created by Viliam Repan (lazyman).

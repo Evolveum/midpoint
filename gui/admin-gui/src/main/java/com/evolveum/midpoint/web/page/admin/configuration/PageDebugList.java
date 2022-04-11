@@ -164,9 +164,9 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private SearchConfigurationWrapper createSearchConfigWrapper(Class<? extends Containerable> type, QName defaultValue) {
         SearchBoxConfigurationType config = new SearchBoxConfigurationType();
-        config.createAllowedModeList().add(SearchBoxModeType.BASIC);
-        config.createAllowedModeList().add(SearchBoxModeType.ADVANCED);
-        config.createAllowedModeList().add(SearchBoxModeType.OID);
+        config.getAllowedMode().add(SearchBoxModeType.BASIC);
+        config.getAllowedMode().add(SearchBoxModeType.ADVANCED);
+        config.getAllowedMode().add(SearchBoxModeType.OID);
         ObjectTypeSearchItemConfigurationType objectTypeConfig = new ObjectTypeSearchItemConfigurationType()
                 .defaultValue(defaultValue);
         objectTypeConfig.getSupportedTypes().addAll(getAllowedTypes());

@@ -566,9 +566,6 @@ public class SearchFactory {
             config.setDefaultMode(customConfig.getDefaultMode());
         }
         if (CollectionUtils.isNotEmpty(customConfig.getAllowedMode())) {
-            if (config.getAllowedMode() == null) {
-                config.createAllowedModeList();
-            }
             config.getAllowedMode().clear();
             config.getAllowedMode().addAll(customConfig.getAllowedMode());
         }
@@ -582,9 +579,9 @@ public class SearchFactory {
                     objectTypeConfig.setDefaultValue(config.getObjectTypeConfiguration().getDefaultValue());
                 }
                 if (CollectionUtils.isNotEmpty(customConfig.getObjectTypeConfiguration().getSupportedTypes())) {
-                    objectTypeConfig.createSupportedTypesList().addAll(customConfig.getObjectTypeConfiguration().getSupportedTypes());
+                    objectTypeConfig.getSupportedTypes().addAll(customConfig.getObjectTypeConfiguration().getSupportedTypes());
                 } else if (config.getObjectTypeConfiguration() != null) {
-                    objectTypeConfig.createSupportedTypesList().addAll(config.getObjectTypeConfiguration().getSupportedTypes());
+                    objectTypeConfig.getSupportedTypes().addAll(config.getObjectTypeConfiguration().getSupportedTypes());
                 }
             }
             config.setObjectTypeConfiguration(objectTypeConfig);
@@ -599,9 +596,9 @@ public class SearchFactory {
                     relationConfig.setDefaultValue(config.getRelationConfiguration().getDefaultValue());
                 }
                 if (CollectionUtils.isNotEmpty(customConfig.getRelationConfiguration().getSupportedRelations())) {
-                    relationConfig.createSupportedRelationsList().addAll(customConfig.getRelationConfiguration().getSupportedRelations());
+                    relationConfig.getSupportedRelations().addAll(customConfig.getRelationConfiguration().getSupportedRelations());
                 } else if (config.getRelationConfiguration() != null) {
-                    relationConfig.createSupportedRelationsList().addAll(config.getRelationConfiguration().getSupportedRelations());
+                    relationConfig.getSupportedRelations().addAll(config.getRelationConfiguration().getSupportedRelations());
                 }
             }
             config.setRelationConfiguration(relationConfig);
