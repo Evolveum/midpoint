@@ -28,5 +28,4 @@ public interface PageStorage extends Serializable, DebugDumpable {
     void setPaging(ObjectPaging paging);
 
     ObjectPaging getPaging();
-
 }

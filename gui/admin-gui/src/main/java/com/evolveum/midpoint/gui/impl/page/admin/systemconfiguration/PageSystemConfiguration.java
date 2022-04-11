@@ -11,6 +11,7 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -117,6 +119,14 @@ public class PageSystemConfiguration extends PageBase {
 
     public PageSystemConfiguration() {
         initLayout();
+    }
+
+    @Override
+    protected void createBreadcrumb() {
+        super.createBreadcrumb();
+
+        Breadcrumb bc = getLastBreadcrumb();
+        bc.setIcon(new Model(GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON));
     }
 
     private void initLayout() {

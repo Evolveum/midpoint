@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import javax.xml.namespace.QName;
@@ -49,6 +51,17 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
 
     public PageBaseSystemConfiguration(final PrismObject<SystemConfigurationType> object) {
         super(object);
+    }
+
+    @Override
+    protected void onConfigure() {
+        super.onConfigure();
+
+        clearBreadcrumbs();
+
+        IModel<String> model = createStringResource("PageAdmin.menu.top.configuration.basic");
+        addBreadcrumb(new Breadcrumb(model, new Model(GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON), PageSystemConfiguration.class, null));
+        createBreadcrumb();
     }
 
     @Override
