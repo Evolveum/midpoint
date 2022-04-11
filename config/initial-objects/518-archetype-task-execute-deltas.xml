@@ -4,22 +4,23 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<archetype oid="00000000-0000-0000-0000-000000000508"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-    <name>Single bulk action task</name>
+<archetype oid="00000000-0000-0000-0000-000000000518"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+    <name>Execute deltas task (backgroud processing for chnage execution)</name>
+    <archetypeType>auxiliary</archetypeType>
     <archetypePolicy>
         <display>
-            <label>Single bulk action task</label>
+            <label>Execute deltas task (backgroud processing for chnage execution)</label>
             <pluralLabel>
-                <orig>Single bulk action tasks</orig>
+                <orig>Execute deltas task (backgroud processing for chnage execution)</orig>
                 <translation>
-                    <key>SingleBulkActionTasks.title</key>
+                    <key>TaskHandlerSelector.model.execute.deltas.handler</key>
                 </translation>
             </pluralLabel>
             <icon>
-                <cssClass>fa fa-bullseye</cssClass>
+                <cssClass>fa fa-wrench</cssClass>
                 <color>green</color>
             </icon>
         </display>
@@ -28,7 +29,15 @@
             <visibility>vacant</visibility>
         </itemConstraint>
         <itemConstraint>
-            <path>extension/scext:executeScript</path>
+            <path>extension/mext:objectDeltas</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:objectDelta</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:modelExecuteOptions</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
@@ -39,22 +48,10 @@
                     <panel>
                         <identifier>work</identifier>
                         <container>
-                            <identifier>work-noniterative-scripting</identifier>
-                            <path>activity/work/nonIterativeScripting</path>
+                            <identifier>work-nonIterativeChangeExecution</identifier>
+                            <path>activity/work/nonIterativeChangeExecution</path>
                         </container>
                     </panel>
-                </panel>
-                <panel>
-                    <identifier>taskBasic</identifier>
-                    <container>
-                        <identifier>bulk-action</identifier>
-                        <display>
-                            <label>SingleBulkActionTask.bulkAction</label>
-                        </display>
-                        <item>
-                            <c:path>extension/scext:executeScript</c:path>
-                        </item>
-                    </container>
                 </panel>
             </objectDetails>
         </adminGuiConfiguration>
@@ -82,7 +79,7 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
-                    <value>BulkActions</value>
+                    <value>Utility</value>
                 </expression>
                 <target>
                     <c:path>category</c:path>
@@ -98,7 +95,7 @@
                     <path>activity</path>
                 </source>
                 <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</value>
+                    <value>http://midpoint.evolveum.com/xml/ns/public/model/execute-deltas/handler-3</value>
                 </expression>
                 <target>
                     <c:path>handlerUri</c:path>

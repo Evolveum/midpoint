@@ -4,22 +4,23 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<archetype oid="00000000-0000-0000-0000-000000000501"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
-    <name>Reconciliation task</name>
+<archetype oid="00000000-0000-0000-0000-000000000516"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+    <name>Delete long time not updated shadows task</name>
+    <archetypeType>auxiliary</archetypeType>
     <archetypePolicy>
         <display>
-            <label>Reconciliation task</label>
+            <label>Delete long time not updated shadows task</label>
             <pluralLabel>
-                <orig>Reconciliation tasks</orig>
+                <orig>Delete long time not updated shadows task</orig>
                 <translation>
-                    <key>ReconciliationTasks.title</key>
+                    <key>TaskHandlerSelector.model.synchronization.task.delete.not.updated.shadow.handler</key>
                 </translation>
             </pluralLabel>
             <icon>
-                <cssClass>fa fa-exchange</cssClass>
+                <cssClass>fa fa-wrench</cssClass>
                 <color>green</color>
             </icon>
         </display>
@@ -44,61 +45,33 @@
             <visibility>visible</visibility>
         </itemConstraint>
         <itemConstraint>
-            <path>extension/mext:workerThreads</path>
+            <path>extension/mext:searchOptions</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <itemConstraint>
-            <path>extension/mext:dryRun</path>
+            <path>extension/mext:iterationMethod</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:failedObjectsSelector</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:notUpdatedShadowsDuration</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
-                <type>c:TaskType</type>
+                <type>TaskType</type>
                 <panel>
                     <identifier>activity</identifier>
                     <panel>
                         <identifier>work</identifier>
                         <container>
-                            <identifier>work-reconciliation</identifier>
-                            <path>activity/work/reconciliation</path>
+                            <identifier>work-shadowCleanup</identifier>
+                            <path>activity/work/shadowCleanup</path>
                         </container>
                     </panel>
-                </panel>
-                <panel>
-                    <identifier>taskBasic</identifier>
-                    <container>
-                        <identifier>resource-objects</identifier>
-                        <display>
-                            <label>ReconciliationTask.resourceObjects</label>
-                        </display>
-                        <item>
-                            <c:path>objectRef</c:path>
-                        </item>
-                        <item>
-                            <c:path>extension/mext:objectclass</c:path>
-                        </item>
-                        <item>
-                            <c:path>extension/mext:kind</c:path>
-                        </item>
-                        <item>
-                            <c:path>extension/mext:intent</c:path>
-                        </item>
-                        <item>
-                            <c:path>extension/mext:objectQuery</c:path>
-                        </item>
-                    </container>
-                    <container>
-                        <identifier>reconciliation-options</identifier>
-                        <display>
-                            <label>ReconciliationTask.reconciliationOptions</label>
-                        </display>
-                        <item>
-                            <c:path>extension/mext:workerThreads</c:path>
-                        </item>
-                        <item>
-                            <c:path>extension/mext:dryRun</c:path>
-                        </item>
-                    </container>
                 </panel>
             </objectDetails>
         </adminGuiConfiguration>
@@ -122,7 +95,7 @@
 
                             String name = source.name
 
-                            String description = midpoint.describeResourceObjectSet(task?.activity?.work?.reconciliation?.resourceObjects)
+                            String description = midpoint.describeResourceObjectSet(task?.activity?.work?.shadowCleanup?.resourceObjects)
                             if(StringUtils.isNotEmpty(description)) {
                                 return name + ': ' + description
                             }
@@ -138,7 +111,7 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
-                    <value>Reconciliation</value>
+                    <value>Utility</value>
                 </expression>
                 <target>
                     <c:path>category</c:path>
@@ -154,7 +127,7 @@
                     <path>activity</path>
                 </source>
                 <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</value>
+                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/delete-not-updated-shadow/handler-3</value>
                 </expression>
                 <target>
                     <c:path>handlerUri</c:path>
