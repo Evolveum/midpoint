@@ -876,7 +876,7 @@
                         <phase>generate-resources</phase>
 
                         <configuration>
-                            <arguments>-c ./src/main/resources/static/webpack.config.js</arguments>
+                            <arguments>-c ./webpack.config.js</arguments>
                         </configuration>
                     </execution>
                 </executions>

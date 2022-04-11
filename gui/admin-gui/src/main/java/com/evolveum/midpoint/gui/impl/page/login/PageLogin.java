@@ -7,7 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -18,15 +23,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
 import com.evolveum.midpoint.web.page.login.AbstractPageLogin;
 import com.evolveum.midpoint.web.page.login.PageSelfRegistration;
 import com.evolveum.midpoint.web.security.module.authentication.LdapModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.LoginFormModuleAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -202,7 +205,7 @@ public class PageLogin extends AbstractPageLogin {
 
         MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
         ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-        if (isModuleApplicable(moduleAuthentication)){
+        if (isModuleApplicable(moduleAuthentication)) {
             String prefix = moduleAuthentication.getPrefix();
             return SecurityUtils.stripSlashes(prefix) + "/spring_security_login";
         }
@@ -214,7 +217,5 @@ public class PageLogin extends AbstractPageLogin {
         return (moduleAuthentication instanceof LoginFormModuleAuthentication
                 || moduleAuthentication instanceof LdapModuleAuthentication);
     }
-
-
 
 }

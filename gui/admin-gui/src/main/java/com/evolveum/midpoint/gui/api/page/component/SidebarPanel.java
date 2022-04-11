@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.page.component;
 
+import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -27,7 +29,7 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -56,7 +58,6 @@ import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.PageParameterConstants;
-import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -75,6 +76,7 @@ import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -528,7 +530,7 @@ public class SidebarPanel extends BasePanel<Void> {
             return menu;
         }
 
-        Map<String, Class> urlClassMap = DescriptorLoader.getUrlClassMap();
+        Map<String, Class> urlClassMap = PageMounter.getUrlClassMap();
         if (MapUtils.isEmpty(urlClassMap)) {
             return menu;
         }

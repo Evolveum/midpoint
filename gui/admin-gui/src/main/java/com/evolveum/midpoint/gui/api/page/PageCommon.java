@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.page;
 
+import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -299,11 +300,11 @@ public abstract class PageCommon extends WebPage implements ModelServiceLocator 
         return getMidpointApplication().getTaskManager();
     }
 
-    public WorkflowService getWorkflowService() {
+    public CaseService getWorkflowService() {
         return getMidpointApplication().getWorkflowService();
     }
 
-    public WorkflowManager getWorkflowManager() {
+    public CaseManager getWorkflowManager() {
         return getMidpointApplication().getWorkflowManager();
     }
 
