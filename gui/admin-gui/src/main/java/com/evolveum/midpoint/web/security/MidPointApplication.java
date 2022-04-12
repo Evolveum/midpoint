@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.security;
 
 import java.io.*;
@@ -14,16 +13,6 @@ import java.util.*;
 import javax.servlet.ServletContext;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.common.Clock;
-
-import com.evolveum.midpoint.repo.api.*;
-
-import com.evolveum.midpoint.cases.api.CaseManager;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -34,7 +23,9 @@ import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.mapper.MountedMapper;
-import org.apache.wicket.core.util.objects.checker.*;
+import org.apache.wicket.core.util.objects.checker.CheckingObjectOutputStream;
+import org.apache.wicket.core.util.objects.checker.IObjectChecker;
+import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
 import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
 import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
 import org.apache.wicket.devutils.inspector.InspectorPage;
@@ -58,6 +49,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.Environment;
@@ -67,6 +59,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.security.web.csrf.CsrfToken;
 
+import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -84,11 +80,15 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -189,6 +189,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private Clock clock;
     @Autowired private AccessCertificationService certificationService;
     @Autowired @Qualifier("descriptorLoader") private DescriptorLoader descriptorLoader;
+    @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -331,11 +332,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         if (applicationContext == null) {
             return;
         }
-        Environment environment = applicationContext.getEnvironment();
-        if (environment == null) {
-            return;
-        }
 
+        Environment environment = applicationContext.getEnvironment();
         String value = environment.getProperty(MidpointConfiguration.MIDPOINT_SCHRODINGER_PROPERTY);
         boolean enabled = Boolean.parseBoolean(value);
 
@@ -372,6 +370,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
             properties.load(reader);
 
             Map<String, Map<String, String>> localeMap = new HashMap<>();
+            //noinspection unchecked,rawtypes
             Set<String> keys = (Set) properties.keySet();
             for (String key : keys) {
                 String[] array = key.split("\\.");
@@ -380,11 +379,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
                 }
 
                 String locale = array[0];
-                Map<String, String> map = localeMap.get(locale);
-                if (map == null) {
-                    map = new HashMap<>();
-                    localeMap.put(locale, map);
-                }
+                Map<String, String> map = localeMap.computeIfAbsent(locale, k -> new HashMap<>());
 
                 map.put(key, properties.getProperty(key));
             }
@@ -587,6 +582,14 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve system configuration", e);
             return null;
         }
+    }
+
+    /**
+     * Returns customizable comma-separated list of additional packages to scan.
+     * This can be set with `midpoint.additionalPackagesToScan` property.
+     */
+    public String getAdditionalPackagesToScan() {
+        return additionalPackagesToScan;
     }
 
     public static MidPointApplication get() {
