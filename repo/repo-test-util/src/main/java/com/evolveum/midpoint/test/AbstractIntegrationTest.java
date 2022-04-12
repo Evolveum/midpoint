@@ -1014,8 +1014,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-            MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers) throws SchemaException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), nameMatchingRule, requireNormalizedIdentfiers);
+            MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers) throws SchemaException {
+        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), nameMatchingRule, requireNormalizedIdentifiers);
     }
 
     protected QName getAccountObjectClass(ResourceType resourceType) {

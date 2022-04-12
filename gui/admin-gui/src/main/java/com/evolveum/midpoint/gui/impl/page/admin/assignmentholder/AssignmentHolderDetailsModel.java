@@ -1,12 +1,13 @@
 /*
- * Copyright (C) 2021 Evolveum and contributors
+ * Copyright (C) 2021-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -18,11 +19,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import org.apache.wicket.model.LoadableDetachableModel;
-
-import java.util.List;
 
 public class AssignmentHolderDetailsModel<AH extends AssignmentHolderType> extends ObjectDetailsModels<AH> {
 

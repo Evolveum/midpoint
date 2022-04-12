@@ -96,6 +96,12 @@ class SaveReportFileSupport {
     private void storeExportedReport(String completizedReport,
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
+
+        if (!activityRun.getRunningTask().canRun()) {
+            LOGGER.warn("Not storing the resulting report, as the activity is being suspended: {}", report);
+            return;
+        }
+
         String aggregatedFilePath = getDestinationFileName(report, dataWriter);
 
         if (StoreExportedWidgetDataType.ONLY_FILE.equals(storeType)

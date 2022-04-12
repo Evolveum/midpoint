@@ -34,7 +34,7 @@
                 <xsd:schema targetNamespace="http://mi6.gov.uk/schema/">
 
                 <!-- We will only allow imports of well-know schemas. That
-                     essentialy means only parts of our "standard" resource
+                     essentially means only parts of our "standard" resource
                      schema. The schemaLocation attribute below will not be
                      present in the final version.
                 -->

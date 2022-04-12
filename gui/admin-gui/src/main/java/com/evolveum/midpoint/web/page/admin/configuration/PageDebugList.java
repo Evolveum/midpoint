@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.web.component.dialog.*;
 
+import com.evolveum.midpoint.web.session.GenericPageStorage;
+
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -73,7 +75,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDow
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugConfDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -119,7 +120,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             protected Search<? extends ObjectType> load() {
-                ConfigurationStorage storage = getSessionStorage().getConfiguration();
+                GenericPageStorage storage = getSessionStorage().getConfiguration();
                 Search search = storage.getSearch();
 
                 if (search == null) {
@@ -216,7 +217,7 @@ public class PageDebugList extends PageAdminConfiguration {
         };
         table.setOutputMarkupId(true);
 
-        ConfigurationStorage storage = getSessionStorage().getConfiguration();
+        GenericPageStorage storage = getSessionStorage().getConfiguration();
         table.setCurrentPage(storage.getPaging());
 
         mainForm.addOrReplace(table);
@@ -503,7 +504,7 @@ public class PageDebugList extends PageAdminConfiguration {
         }
 
         // save object type category to session storage, used by back button
-        ConfigurationStorage storage = getSessionStorage().getConfiguration();
+        GenericPageStorage storage = getSessionStorage().getConfiguration();
         storage.setSearch(searchModel.getObject());
 
         target.add((Component) table);

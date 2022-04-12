@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -13,7 +13,7 @@
     <parent>
         <artifactId>midpoint</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.5-SNAPSHOT</version>
+        <version>4.6-SNAPSHOT</version>
     </parent>
 
     <artifactId>dist</artifactId>
@@ -25,14 +25,14 @@
         <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
-            <version>4.5-SNAPSHOT</version>
+            <version>${project.version}</version>
             <type>war</type>
             <classifier>executable</classifier>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>ninja</artifactId>
-            <version>4.5-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint</groupId>
@@ -57,7 +57,7 @@
                 <!-- Used to pull XSD files from the JAR -->
                 <groupId>com.evolveum.prism.tools</groupId>
                 <artifactId>schema-dist-maven-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${prism.version}</version>
                 <executions>
                     <execution>
                         <id>schemadist-prism</id>
@@ -70,7 +70,7 @@
                                 <artifactItem>
                                     <groupId>com.evolveum.prism</groupId>
                                     <artifactId>prism-impl</artifactId>
-                                    <version>${project.version}</version>
+                                    <version>${prism.version}</version>
                                     <type>jar</type>
                                     <!-- no catalog (the one in schema suffices) -->
                                 </artifactItem>

@@ -12,23 +12,11 @@
     <name>Report tasks</name>
     <type>TaskType</type>
     <filter>
-        <q:or>
-            <q:ref>
-                <q:path>archetypeRef</q:path>
-                <q:value oid="00000000-0000-0000-0000-000000000507"/>
-            </q:ref>
-            <q:ref>
-                <q:path>archetypeRef</q:path>
-                <q:value oid="00000000-0000-0000-0000-000000000510"/>
-            </q:ref>
-            <q:ref>
-                <q:path>archetypeRef</q:path>
-                <q:value oid="00000000-0000-0000-0000-000000000511"/>
-            </q:ref>
-            <q:ref>
-                <q:path>archetypeRef</q:path>
-                <q:value oid="00000000-0000-0000-0000-000000000512"/>
-            </q:ref>
-        </q:or>
+        <q:text>
+            archetypeRef matches (oid = "00000000-0000-0000-0000-000000000507")
+            or archetypeRef matches (oid = "00000000-0000-0000-0000-000000000510")
+            or archetypeRef matches (oid = "00000000-0000-0000-0000-000000000511")
+            or archetypeRef matches (oid = "00000000-0000-0000-0000-000000000512")
+        </q:text>
     </filter>
 </objectCollection>

@@ -15,16 +15,14 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.common.activity.run.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.ReportUtils;
@@ -84,6 +82,12 @@ public final class ReportDataCreationActivityRun
         reportService = getActivity().getHandler().reportService;
         support = new DistributedReportExportActivitySupport(this, getActivity());
         setInstanceReady();
+    }
+
+    @Override
+    public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
+        return super.createReportingCharacteristics()
+                .skipWritingOperationExecutionRecords(true); // because of performance
     }
 
     /**
@@ -255,7 +259,7 @@ public final class ReportDataCreationActivityRun
 
     @Override
     public void afterBucketProcessing(OperationResult result) throws CommonException {
-        controller.afterBucketExecution(bucket.getSequentialNumber(), result);
+        controller.afterBucketExecution(bucket.getSequentialNumber(), getRunningTask(), result);
     }
 
     private static class SearchSpecificationHolder implements ReportDataSource<Containerable> {

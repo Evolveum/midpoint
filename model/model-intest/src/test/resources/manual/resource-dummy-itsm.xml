@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2017-2019 Evolveum and contributors
+  ~ Copyright (C) 2017-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -9,10 +9,8 @@
 <resource oid="4d2131d8-5f75-11e8-8b1d-e73768ded4fc"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.model.intest.manual/DummyItsmIntegrationConnector"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
     <name>Dummy ITSM Resource</name>
@@ -36,47 +34,47 @@
     <!-- Static schema definition -->
     <schema>
         <definition>
-             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-                     elementFormDefault="qualified"
-                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                    xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                    elementFormDefault="qualified"
+                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
                 <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
                 <xsd:complexType name="AccountObjectClass">
-                   <xsd:annotation>
-                      <xsd:appinfo>
-                         <ra:resourceObject/>
-                         <ra:identifier>tns:username</ra:identifier>
-                         <ra:displayNameAttribute>tns:username</ra:displayNameAttribute>
-                         <ra:namingAttribute>tns:username</ra:namingAttribute>
-                         <ra:kind>account</ra:kind>
-                         <ra:default/>
-                      </xsd:appinfo>
-                   </xsd:annotation>
-                   <xsd:sequence>
-                      <xsd:element minOccurs="1" name="username" type="xsd:string">
-                         <xsd:annotation>
-                            <xsd:appinfo>
-                               <a:displayName>Username</a:displayName>
-                               <a:displayOrder>110</a:displayOrder>
-                            </xsd:appinfo>
-                         </xsd:annotation>
-                      </xsd:element>
-                      <xsd:element name="fullname" type="xsd:string" minOccurs="0">
-                         <xsd:annotation>
-                            <xsd:appinfo>
-                               <a:displayOrder>200</a:displayOrder>
-                            </xsd:appinfo>
-                         </xsd:annotation>
-                      </xsd:element>
-                      <xsd:element minOccurs="0" name="description" type="xsd:string"/>
-                      <xsd:element maxOccurs="unbounded" minOccurs="0" name="interests" type="xsd:string"/>
-                   </xsd:sequence>
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <ra:resourceObject/>
+                            <ra:identifier>tns:username</ra:identifier>
+                            <ra:displayNameAttribute>tns:username</ra:displayNameAttribute>
+                            <ra:namingAttribute>tns:username</ra:namingAttribute>
+                            <ra:kind>account</ra:kind>
+                            <ra:default/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="1" name="username" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>Username</a:displayName>
+                                    <a:displayOrder>110</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="fullname" type="xsd:string" minOccurs="0">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>200</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="description" type="xsd:string"/>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="interests" type="xsd:string"/>
+                    </xsd:sequence>
                 </xsd:complexType>
-             </xsd:schema>
-          </definition>
+            </xsd:schema>
+        </definition>
     </schema>
 
     <schemaHandling>
@@ -125,11 +123,10 @@
         <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
         <pendingOperationRetentionPeriod>PT30M</pendingOperationRetentionPeriod>
         <deadShadowRetentionPeriod>PT2H</deadShadowRetentionPeriod>
-        <reshreshOnRead>true</reshreshOnRead>
+        <refreshOnRead>true</refreshOnRead>
         <connectorErrorCriticality>
             <network>partial</network>
             <schema>partial</schema>
         </connectorErrorCriticality>
     </consistency>
-
 </resource>

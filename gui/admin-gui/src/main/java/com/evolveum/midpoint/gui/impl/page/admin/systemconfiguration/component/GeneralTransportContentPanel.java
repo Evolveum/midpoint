@@ -10,11 +10,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 import java.util.Arrays;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -26,25 +21,30 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralTransportConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public abstract class GeneralTransportContentPanel<T extends GeneralTransportConfigurationType> extends MultivalueContainerListPanelWithDetailsPanel<T> {
+public abstract class GeneralTransportContentPanel<T extends GeneralTransportConfigurationType>
+        extends MultivalueContainerListPanelWithDetailsPanel<T> {
 
     private IModel<PrismContainerWrapper<T>> model;
 
-    public GeneralTransportContentPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType,
-            Class<T> clazz, ItemName messageTransportItem) {
+    public GeneralTransportContentPanel(String id, AssignmentHolderDetailsModel<?> model,
+            ContainerPanelConfigurationType configurationType, Class<T> clazz, ItemName messageTransportItem) {
 
         super(id, clazz, configurationType);
 
         this.model = PrismContainerWrapperModel.fromContainerWrapper(model.getObjectWrapperModel(),
-                ItemPath.create(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION, messageTransportItem), () -> getPageBase());
+                ItemPath.create(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION, messageTransportItem),
+                () -> getPageBase());
     }
 
     @Override

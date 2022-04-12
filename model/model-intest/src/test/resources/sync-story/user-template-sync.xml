@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate oid="10000000-0000-0000-0000-000000000333"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>Sync User Template</name>
+    <mapping>
+        <strength>strong</strength>
+        <source>
+            <path>$user/fullName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    fullName + ' from Sync'
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>$user/familyName</path>
+        </target>
+    </mapping>
+</objectTemplate>

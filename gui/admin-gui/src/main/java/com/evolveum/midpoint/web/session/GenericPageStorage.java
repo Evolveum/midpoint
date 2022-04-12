@@ -44,8 +44,8 @@ public class GenericPageStorage implements PageStorage {
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("MemberPanelStorage\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "search", search, indent+1);
+        sb.append("GenericPageStorage\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "search", search, indent + 1);
         DebugUtil.dumpObjectSizeEstimate(sb, "searchSize", search, indent + 1);
         return sb.toString();
     }

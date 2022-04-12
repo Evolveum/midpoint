@@ -12,12 +12,9 @@
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
 
     <name>Dummy Resource Green</name>
     <connectorRef type="c:ConnectorType">
@@ -140,15 +137,14 @@
                 </inbound>
             </attribute>
             <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:internalId</ref>
-            <inbound>
-            <strength>strong</strength>
-               <target>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                          xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">employeeNumber</c:path>
-               </target>
-            </inbound>
-         </attribute>
+                <ref>ri:internalId</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>employeeNumber</path>
+                    </target>
+                </inbound>
+            </attribute>
             <attribute>
                 <ref>ri:loot</ref>
                 <displayName>Loot</displayName>
@@ -217,10 +213,7 @@
             <protected>
                 <filter>
                     <q:equal>
-                        <q:path>
-                            declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                            attributes/icfs:name
-                        </q:path>
+                        <q:path>attributes/icfs:name</q:path>
                         <expression>
                             <c:script>
                                 <code>
@@ -402,7 +395,7 @@
                 <script>
                     <code>
                         import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
-                        name = basic.getAttributeValue(shadow, ICFS_NAME);
+                        name = basic.getAttributeValue(shadow, ICFS_NAME)
                         log.info("name: {}", name)
                         !(name ==~ /X.*/)
                     </code>

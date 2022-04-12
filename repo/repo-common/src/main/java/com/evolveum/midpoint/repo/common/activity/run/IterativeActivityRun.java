@@ -246,6 +246,8 @@ public abstract class IterativeActivityRun<
                 }
 
                 complete = processOrAnalyzeOrSkipSingleBucket(result);
+                pruneResult(result);
+
                 if (!complete) {
                     break;
                 }
@@ -260,6 +262,33 @@ public abstract class IterativeActivityRun<
                     releaseAllBucketsWhenWorker(result);
                 }
             }
+        }
+    }
+
+    /**
+     * Keeps the result of reasonable size:
+     *
+     * 1. removes successful minor subresults
+     * 2. summarizes operations (if there is a lot of buckets - see MID-7830)
+     *
+     * We catch all exceptions here, because we don't want the task to fail on these checks.
+     * We also want to execute the summarization even if the cleanup fails.
+     */
+    private void pruneResult(OperationResult result) {
+        try {
+            // We cannot clean up the current (root) result, as it is not closed yet. So we do that on subresults.
+            // (This means that minor subresult of the current root result will survive, but let's them be.
+            // Hopefully they will be eliminated later e.g. when the result is finally stored into the task.)
+            result.getSubresults().forEach(
+                    OperationResult::cleanupResultDeeply);
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't clean up the operation result in {}", e, this);
+        }
+
+        try {
+            result.summarize();
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't summarize the operation result in {}", e, this);
         }
     }
 
@@ -631,6 +660,18 @@ public abstract class IterativeActivityRun<
                     ". This task cannot be run with worker threads. Please remove workerThreads task "
                     + "extension property and/or workerThreads distribution definition item or set its value to 0.");
         }
+    }
+
+    /**
+     * Fails if there is any parallelism within this activity: worker threads or worker tasks.
+     * It is to avoid unintended parallel execution like the one in MID-7861.
+     *
+     * Note that this method does not preclude parallel execution with a different activity.
+     * But that is not enabled by default, so it's safe to assume it will not be configured by mistake.
+     */
+    protected final void ensureNoParallelism() {
+        ensureNotInWorkerTask(null);
+        ensureNoWorkerThreads();
     }
 
     public final @NotNull String getShortName() {
