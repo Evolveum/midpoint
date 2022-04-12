@@ -101,6 +101,11 @@
 
         <!-- webjars -->
         <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>jquery</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.webjars</groupId>
             <artifactId>AdminLTE</artifactId>
             <scope>runtime</scope>

@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
+const webpack = require('./node_modules/webpack');
 const CssMinimizerPlugin = require('./node_modules/css-minimizer-webpack-plugin');
 const MiniCssExtractPlugin = require('./node_modules/mini-css-extract-plugin');
 
@@ -17,7 +17,7 @@ module.exports = {
             './src/main/resources/static/js/index.js'
         ],
     },
-    mode: 'production',
+    mode: 'development',
     devtool: false,
     output: {
         path: path.resolve(__dirname, 'target/generated-resources/webpack/static/static'),
@@ -72,19 +72,27 @@ module.exports = {
         ],
     },
     plugins: [
+        new webpack.ProvidePlugin({
+            $: 'jquery',
+            jQuery: 'jquery',
+        }),
         // Extracts CSS into separate files
         new MiniCssExtractPlugin({
             filename: '[name]-theme.css',
             chunkFilename: '[id].css',
         }),
     ],
-    optimization: {
-        minimize: true,
-        minimizer: [new CssMinimizerPlugin(), '...'],
-        // runtimeChunk: {
-        //     name: 'runtime',
-        // },
+    externals: {
+        // external (from webjar) not to collide with wicket headers.
+        jquery: 'jQuery',
     },
+    // optimization: {
+    //     minimize: true,
+    //     minimizer: [new CssMinimizerPlugin(), '...'],
+    //     // runtimeChunk: {
+    //     //     name: 'runtime',
+    //     // },
+    // },
     performance: {
         hints: false,
         maxEntrypointSize: 512000,

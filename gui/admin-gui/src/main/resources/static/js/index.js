@@ -9,7 +9,6 @@ import '../../../../../node_modules/admin-lte/plugins/bootstrap/js/bootstrap';
 import '../../../../../node_modules/admin-lte/dist/js/adminlte';
 
 import '../../../../../node_modules/bootstrap-select';
-import '../../../../../node_modules/knockout';
 import '../../../../../node_modules/bootstrap-multiselect';
 
 import MidPointTheme from './midpoint/midpoint-theme';
