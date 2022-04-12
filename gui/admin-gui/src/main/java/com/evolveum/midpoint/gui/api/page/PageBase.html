@@ -62,19 +62,19 @@
                         </li>
                     </ol>
                 </li>
+                <wicket:enclosure child="cartButton">
+                    <li class="nav-item">
+                        <a wicket:id="cartButton" class="nav-link shopping-cart-icon">
+                            <i class="fa fa-shopping-cart fa-2x shopping-cart-icon"></i>
+                            <span wicket:id="itemsCount" class="badge bg-red"
+                                    style="position: absolute; top: 1px; margin-left: -10px;"></span>
+                        </a>
+                    </li>
+                </wicket:enclosure>
                 <li class="nav-item">
-                    <a wicket:id="cartButton" class="shopping-cart-icon">
-                        <i class="fa fa-shopping-cart fa-2x shopping-cart-icon"></i>
-                        <span wicket:id="itemsCount" class="badge bg-red"
-                                style="position: absolute; top: 1px; margin-left: -10px;"></span>
-                    </a>
-                </li>
-                <li>
                     <div wicket:id="locale"/>
                 </li>
-                <li class="nav-item dropdown" wicket:id="rightMenu">
-
-                </li>
+                <li class="nav-item dropdown user-menu" wicket:id="rightMenu"/>
             </ul>
         </nav>
 
@@ -84,17 +84,19 @@
 
         <div class="content-wrapper" style="min-height: 916px; overflow: auto; overflow-x: hidden;">
             <!-- Main content -->
-            <section class="content col-xs-12" style="float:left;">
-                <div wicket:id="feedbackContainer" class="feedbackContainer">
-                    <div wicket:id="feedback" class="messagePanel"/>
-<!--                     <div wicket:id="tempFeedback" class="tempMessage"/> -->
-                </div>
-                <wicket:child/>
+            <section class="content">
+                <div class="container-fluid" style="margin-top: 0.75rem;">
+                    <div wicket:id="feedbackContainer" class="feedbackContainer">
+                        <div wicket:id="feedback" class="messagePanel"/>
+    <!--                     <div wicket:id="tempFeedback" class="tempMessage"/> -->
+                    </div>
+                    <wicket:child/>
 
-                <div class="wicket-debug-buttons" wicket:id="debugBar">
-                    <a wicket:id="dumpPageTree">Dump page tree to console</a>
+                    <div class="wicket-debug-buttons" wicket:id="debugBar">
+                        <a wicket:id="dumpPageTree">Dump page tree to console</a>
+                    </div>
+                    <div wicket:id="debugPanel" style="z-index: 10000;"/>
                 </div>
-                <div wicket:id="debugPanel" style="z-index: 10000;"/>
             </section>
         </div>
         <footer wicket:id="footerContainer" class="main-footer">

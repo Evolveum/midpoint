@@ -775,7 +775,7 @@ th.cog, td.cog {
 .navbar-title {
 	float: left;
 	background-color: transparent;
-	padding-top: 8px;
+	margin-top: 3px;
 }
 
 .navbar-ajax {
@@ -793,14 +793,15 @@ th.cog, td.cog {
 	font-size: 22px;
 }
 
-.navbar-custom-menu > .breadcrumb {
+.nav-item > .breadcrumb {
   float: left;
   background: transparent;
-  margin-top: 10px;
+  margin-top: 5px;
   margin-bottom: 0;
   margin-right: 20px;
   font-size: 12px;
   padding: 7px 5px;
+  color: inherit;
 
   //.border-radius(2px);
 
@@ -818,22 +819,6 @@ th.cog, td.cog {
     content: '>\00a0';
     padding: 0 0 0 5px;
   }
-
-  //$media (max-width: $screen-sm-max) {
-  //  > .breadcrumb {
-  //    position: relative;
-  //    margin-top: 5px;
-  //    top: 0;
-  //    right: 0;
-  //    float: none;
-  //    background: $gray;
-  //    padding-left: 10px;
-  //
-  //    li:before {
-  //      color: darken($gray, 20%);
-  //    }
-  //  }
-  //}
 }
 
 // Prism containers and attributes
@@ -1376,14 +1361,6 @@ th.icon {
 	width: 30px;
 }
 
-th.check, td.check {
-	// The content of this column is just a single checkbox.
-	// WARNING: this means both the header and the table data
-	//          have just a single checkbox. Nothing else.
-	// See com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn
-	width: 34px;
-}
-
 th.mid-width-column, td.mid-width-column {
 	width: 180px;
 }
@@ -1531,10 +1508,6 @@ td .prism-property-value {
 	width: 100% !important;
 }
 
-th.composited-icon {
-  width: 30px;
-}
-
 .small-box > .small-box-footer {
 	color: inherit !important;
 }
@@ -1549,6 +1522,10 @@ th.composited-icon {
 
 .ace-editor-left-aligning {
   margin-left: -15px;
+}
+
+.search-form {
+
 }
 
 .search-item {
@@ -2180,3 +2157,21 @@ fieldset.objectButtons {
   text-decoration: line-through;
 }
 
+// todo cleanup
+th, td {
+  &.check {
+    // The content of this column is just a single checkbox.
+    // WARNING: this means both the header and the table data
+    //          have just a single checkbox. Nothing else.
+    // See com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn
+    width: 50px;
+  }
+
+  &.composited-icon, &.icon {
+    width: 40px;
+  }
+
+  &.inline-menu-column {
+    width: 120px;
+  }
+}

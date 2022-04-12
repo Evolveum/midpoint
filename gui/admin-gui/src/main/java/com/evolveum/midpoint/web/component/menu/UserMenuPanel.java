@@ -49,7 +49,6 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
     private static final String ID_USERNAME = "username";
     private static final String ID_FOCUS_TYPE = "focusType";
     private static final String ID_PASSWORD_QUESTIONS = "passwordQuestions";
-    private static final String ID_ICON_BOX = "menuIconBox";
     private static final String ID_PHOTO = "menuPhoto";
     private static final String ID_PANEL_ICON_BOX = "menuPanelIconBox";
     private static final String ID_PANEL_PHOTO = "menuPanelPhoto";
@@ -66,22 +65,16 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
     }
 
     private void initLayout() {
-        WebMarkupContainer iconBox = new WebMarkupContainer(ID_ICON_BOX);
-        add(iconBox);
-
         IModel<AbstractResource> jpegPhotoModel = loadJpegPhotoModel();
 
         NonCachingImage img = new NonCachingImage(ID_PHOTO, jpegPhotoModel);
-        iconBox.add(img);
+        add(img);
 
         Label usernameLink = new Label(ID_USERNAME_LINK, (IModel<String>) this::getShortUserName);
         add(usernameLink);
 
-        WebMarkupContainer panelIconBox = new WebMarkupContainer(ID_PANEL_ICON_BOX);
-        add(panelIconBox);
-
         NonCachingImage panelImg = new NonCachingImage(ID_PANEL_PHOTO, jpegPhotoModel);
-        panelIconBox.add(panelImg);
+        add(panelImg);
 
         Label username = new Label(ID_USERNAME, (IModel<String>) this::getShortUserName);
         username.setRenderBodyOnly(true);

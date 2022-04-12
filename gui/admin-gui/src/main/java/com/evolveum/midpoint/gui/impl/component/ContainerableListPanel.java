@@ -419,7 +419,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase()){
                 @Override
                 public String getCssClass() {
-                    return "col-md-1";
+                    return "inline-menu-column";
                 }
 
                 @Override

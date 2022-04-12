@@ -892,7 +892,7 @@ public class ColumnUtils {
 
             @Override
             public String getCssClass() {
-                return "col-lg-1";
+                return "icon";
             }
         };
         columns.add(column);
