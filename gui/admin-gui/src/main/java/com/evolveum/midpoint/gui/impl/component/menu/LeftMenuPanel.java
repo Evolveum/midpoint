@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageBaseSystemConfiguration;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +19,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -28,6 +27,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageBaseSystemConfiguration;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.authentication.CompiledDashboardType;
@@ -66,7 +66,6 @@ import com.evolveum.midpoint.web.page.self.PageSelfConsents;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -252,6 +251,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return new MenuItem(label, PageDashboardConfigurable.class, createDashboardPageParameters(dashboard), active);
 
     }
+
     private String getDashboardLabel(CompiledDashboardType dashboard) {
         String label = null;
         PolyStringType displayType = WebComponentUtil.getCollectionLabel(dashboard.getDisplay());
@@ -307,7 +307,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private MainMenuItem createResourcesItems() {
         MainMenuItem resourceMenu = createMainMenuItem("PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
         createBasicAssignmentHolderMenuItems(resourceMenu, PageTypes.RESOURCE);
-        createFocusPageViewMenu(resourceMenu,"PageAdmin.menu.top.resources.view", PageResource.class);
+        createFocusPageViewMenu(resourceMenu, "PageAdmin.menu.top.resources.view", PageResource.class);
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.resources.import", PageImportResource.class));
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class));
         return resourceMenu;
@@ -331,7 +331,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
         casesMenu.addMenuItem(new MenuItem("PageWorkItemsClaimable.title", PageWorkItemsClaimable.class));
 
-        createFocusPageViewMenu(casesMenu,"PageAdmin.menu.top.case.view", PageCase.class);
+        createFocusPageViewMenu(casesMenu, "PageAdmin.menu.top.case.view", PageCase.class);
         createFocusPageViewMenu(casesMenu, "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
 
         return casesMenu;
@@ -358,11 +358,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
         certificationMenu.addMenuItem(menu);
 
 //        if (isFullyAuthorized()) {  // workaround for MID-5917
-            certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.allDecisions", PageCertDecisionsAll.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.allDecisions", PageCertDecisionsAll.class));
 
 //        }
         certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.decisions", PageCertDecisions.class));
-
 
         MenuItem newCertificationMenu = new MenuItem("PageAdmin.menu.top.certification.newDefinition", GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCertDefinition.class);
         certificationMenu.addMenuItem(newCertificationMenu);
@@ -417,7 +416,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             return menu;
         }
 
-        Map<String, Class> urlClassMap = PageMounter.getUrlClassMap();
+        Map<String, Class<? extends WebPage>> urlClassMap = PageMounter.getUrlClassMap();
         if (MapUtils.isEmpty(urlClassMap)) {
             return menu;
         }
@@ -427,18 +426,18 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 continue;
             }
 
-            AdditionalMenuItem item = new AdditionalMenuItem(link, urlClassMap.get(link.getTargetUrl()));
+            //noinspection unchecked
+            AdditionalMenuItem item = new AdditionalMenuItem(link,
+                    (Class<? extends PageBase>) urlClassMap.get(link.getTargetUrl()));
             menu.addMainMenuItem(item);
         }
         return menu;
     }
 
     private void createBasicAssignmentHolderMenuItems(MainMenuItem mainMenuItem, PageTypes pageDesc) {
-
-        MenuItem objectListMenuItem = createObjectListPageMenuItem( "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".list", pageDesc.getIcon(), pageDesc.getListClass());
-        if (objectListMenuItem != null) {
-            mainMenuItem.addMenuItem(objectListMenuItem);
-        }
+        MenuItem objectListMenuItem = createObjectListPageMenuItem(
+                "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".list", pageDesc.getIcon(), pageDesc.getListClass());
+        mainMenuItem.addMenuItem(objectListMenuItem);
         addCollectionsMenuItems(mainMenuItem, pageDesc.getTypeName(), pageDesc.getListClass());
 
         if (PageTypes.CASE != pageDesc) {
@@ -458,11 +457,11 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private boolean isEditForAdminObjectDetails() {
         PageBase pageBase = getPageBase();
         if (pageBase instanceof AbstractPageObjectDetails) {
-            AbstractPageObjectDetails page = (AbstractPageObjectDetails) pageBase;
+            AbstractPageObjectDetails<?, ?> page = (AbstractPageObjectDetails<?, ?>) pageBase;
             return page.isEditObject();
         }
         if (pageBase instanceof PageAdminObjectDetails) {
-            PageAdminObjectDetails page = (PageAdminObjectDetails) pageBase;
+            PageAdminObjectDetails<?> page = (PageAdminObjectDetails<?>) pageBase;
             return page.isOidParameterExists() || page.isEditingFocus();
         }
 
@@ -499,7 +498,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private boolean isAddNewObjectMenuItemAuthorized(Class<? extends PageBase> newPageClass) {
         if (newPageClass.isAssignableFrom(PageAdminObjectDetails.class)) {
             try {
-                PageAdminObjectDetails page = (PageAdminObjectDetails) newPageClass.getConstructor().newInstance();
+                PageAdminObjectDetails<?> page = (PageAdminObjectDetails<?>) newPageClass.getConstructor().newInstance();
                 ObjectType object = page.createNewObject();
                 return getPageBase().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
                         AuthorizationPhaseType.REQUEST, object == null ? null : object.asPrismObject(),
@@ -630,7 +629,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private void createSystemConfigurationMenu(SideBarMenuItem item) {
-        MainMenuItem system = createMainMenuItem("PageAdmin.menu.top.configuration.basic", GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON, com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
+        MainMenuItem system = createMainMenuItem("PageAdmin.menu.top.configuration.basic",
+                GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON,
+                com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
         PageBase page = getPageBase();
         if (page != null && PageBaseSystemConfiguration.class.isAssignableFrom(page.getClass())) {
 
@@ -639,17 +640,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
             system.addMenuItem(menuItem);
         }
         item.addMainMenuItem(system);
-    }
-
-    private int getSelectedTabForConfiguration(WebPage page) {
-        PageParameters params = page.getPageParameters();
-        StringValue val = params.get(PageSystemConfiguration.SELECTED_TAB_INDEX);
-        String value = null;
-        if (val != null && !val.isNull()) {
-            value = val.toString();
-        }
-
-        return StringUtils.isNumeric(value) ? Integer.parseInt(value) : PageSystemConfiguration.CONFIGURATION_TAB_BASIC;
     }
 
     private MainMenuItem createMainMenuItem(String key, String icon) {

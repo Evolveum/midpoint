@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
@@ -85,7 +84,6 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
-import org.apache.wicket.request.resource.ContextRelativeResourceReference;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
@@ -98,6 +96,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.Environment;
@@ -190,6 +189,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private Clock clock;
     @Autowired private AccessCertificationService certificationService;
     @Autowired @Qualifier("descriptorLoader") private DescriptorLoader descriptorLoader;
+    @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -197,7 +197,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
     public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
-    public static final String MOUNT_FORBIDEN_ERROR = "/error/403";
+    public static final String MOUNT_FORBIDDEN_ERROR = "/error/403";
     public static final String MOUNT_NOT_FOUND_ERROR = "/error/404";
     public static final String MOUNT_GONE_ERROR = "/error/410";
 
@@ -271,7 +271,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
         mount(new MountedMapper(MOUNT_INTERNAL_SERVER_ERROR, PageError.class, new PageParametersEncoder()));
         mount(new MountedMapper(MOUNT_UNAUTHORIZED_ERROR, PageError401.class, new PageParametersEncoder()));
-        mount(new MountedMapper(MOUNT_FORBIDEN_ERROR, PageError403.class, new PageParametersEncoder()));
+        mount(new MountedMapper(MOUNT_FORBIDDEN_ERROR, PageError403.class, new PageParametersEncoder()));
         mount(new MountedMapper(MOUNT_NOT_FOUND_ERROR, PageError404.class, new PageParametersEncoder()));
         mount(new MountedMapper(MOUNT_GONE_ERROR, PageError410.class, new PageParametersEncoder()));
 
@@ -333,11 +333,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         if (applicationContext == null) {
             return;
         }
-        Environment environment = applicationContext.getEnvironment();
-        if (environment == null) {
-            return;
-        }
 
+        Environment environment = applicationContext.getEnvironment();
         String value = environment.getProperty(MidpointConfiguration.MIDPOINT_SCHRODINGER_PROPERTY);
         boolean enabled = Boolean.parseBoolean(value);
 
@@ -374,6 +371,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
             properties.load(reader);
 
             Map<String, Map<String, String>> localeMap = new HashMap<>();
+            //noinspection unchecked,rawtypes
             Set<String> keys = (Set) properties.keySet();
             for (String key : keys) {
                 String[] array = key.split("\\.");
@@ -382,11 +380,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
                 }
 
                 String locale = array[0];
-                Map<String, String> map = localeMap.get(locale);
-                if (map == null) {
-                    map = new HashMap<>();
-                    localeMap.put(locale, map);
-                }
+                Map<String, String> map = localeMap.computeIfAbsent(locale, k -> new HashMap<>());
 
                 map.put(key, properties.getProperty(key));
             }
@@ -589,6 +583,14 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve system configuration", e);
             return null;
         }
+    }
+
+    /**
+     * Returns customizable comma-separated list of additional packages to scan.
+     * This can be set with `midpoint.additionalPackagesToScan` property.
+     */
+    public String getAdditionalPackagesToScan() {
+        return additionalPackagesToScan;
     }
 
     public static MidPointApplication get() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -22,13 +22,15 @@ public class MenuItem extends BaseMenuItem {
         this(nameModel, iconClass, pageClass, null);
     }
 
+    @SafeVarargs
     public MenuItem(String nameModel, Class<? extends WebPage> pageClass,
-                    PageParameters params, Class<? extends WebPage>... aliases) {
+            PageParameters params, Class<? extends WebPage>... aliases) {
         this(nameModel, DEFAULT_ICON, pageClass, params, aliases);
     }
 
+    @SafeVarargs
     public MenuItem(String nameModel, String iconClass, Class<? extends WebPage> pageClass,
-                    PageParameters params, Class<? extends WebPage>... aliases) {
+            PageParameters params, Class<? extends WebPage>... aliases) {
         super(nameModel, iconClass, pageClass, params, aliases);
     }
 
@@ -41,7 +43,4 @@ public class MenuItem extends BaseMenuItem {
             PageParameters params, boolean active) {
         super(nameModel, BaseMenuItem.DEFAULT_ICON, pageClass, params, active);
     }
-
-
-
 }
