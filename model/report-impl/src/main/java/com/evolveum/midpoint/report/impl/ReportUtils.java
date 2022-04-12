@@ -170,7 +170,8 @@ public class ReportUtils {
 
     public static String getDateTime() {
         Date createDate = new Date(System.currentTimeMillis());
-        SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy hh-mm-ss");
+        // TODO: reconsider the time part with -, this is good for file names, but for printing : would be better
+        SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy HH-mm-ss");
         return formatDate.format(createDate);
     }
 

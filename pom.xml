@@ -192,6 +192,9 @@
         <!-- Controls both surefire and failsafe config/redirectTestOutputToFile setting. -->
         <redirectTestOutputToFile>true</redirectTestOutputToFile>
 
+        <!-- For now, both versions are aligned, but this may change in the future. -->
+        <prism.version>${project.version}</prism.version>
+
         <!-- Dependencies global versions -->
         <commons.io.version>2.9.0</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
@@ -258,7 +261,52 @@
     <dependencyManagement>
         <dependencies>
 
-            <!-- Upgrade to Java 11 -->
+            <!-- Prism libraries with versions pre-declared (no need to use versions in other POMs) -->
+            <dependency>
+                <groupId>com.evolveum.commons</groupId>
+                <artifactId>util</artifactId>
+                <version>${prism.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.xml.bind</groupId>
+                        <artifactId>jaxb-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.evolveum.prism</groupId>
+                <artifactId>prism-api</artifactId>
+                <version>${prism.version}</version>
+                <exclusions>
+                    <!-- superset jakarta.activation:jakarta.activation comes from other deps -->
+                    <exclusion>
+                        <groupId>jakarta.activation</groupId>
+                        <artifactId>jakarta.activation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.xml.bind</groupId>
+                        <artifactId>jaxb-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.evolveum.prism</groupId>
+                <artifactId>prism-impl</artifactId>
+                <version>${prism.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.xml.bind</groupId>
+                        <artifactId>jaxb-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.evolveum.axiom</groupId>
+                <artifactId>axiom</artifactId>
+                <version>${prism.version}</version>
+            </dependency>
+
+            <!-- TODO: Upgrade to Java 11 -->
             <dependency>
                 <groupId>org.apache.geronimo.specs</groupId>
                 <artifactId>geronimo-ws-metadata_2.0_spec</artifactId>
@@ -1479,11 +1527,13 @@
                 <artifactId>testng</artifactId>
                 <version>${testng.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>com.evolveum.commons</groupId>
                 <artifactId>test-ng</artifactId>
-                <version>${project.version}</version>
+                <version>${prism.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>com.evolveum.midpoint.infra</groupId>
                 <artifactId>test-util</artifactId>
@@ -1761,7 +1811,7 @@
                                 <!--dependency contains bug when dependency is used only in annotation, we use it in authentication-impl -->
                                 <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-autoconfigure</ignoredUnusedDeclaredDependency>
 
-                                <!--  Since generated code depends on prism-impl, it needs sometime to be runtime/ compile
+                                <!--  Since generated code depends on prism-impl, it needs sometime to be runtime/compile
                                       but report can not detect this uses (and if you change scope, it can not compile target project -->
                                 <ignoredUsedUndeclaredDependency>com.evolveum.prism:prism-impl</ignoredUsedUndeclaredDependency>
                             </ignoredUnusedDeclaredDependencies>

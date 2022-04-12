@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -50,7 +50,7 @@ public class TaskOperationUtils {
             SystemObjectsType.ARCHETYPE_SHADOWS_REFRESH_TASK.value(),
             SystemObjectsType.ARCHETYPE_SHADOWS_DELETE_LONG_TIME_NOT_UPDATED_TASK.value(),
             SystemObjectsType.ARCHETYPE_EXECUTE_CHANGE_TASK.value(),
-            SystemObjectsType.ARCHETYPE_EXECUTE_DETLAS_TASK.value(),
+            SystemObjectsType.ARCHETYPE_EXECUTE_DELTAS_TASK.value(),
             SystemObjectsType.ARCHETYPE_REINDEX_REPOSITORY_TASK.value(),
             SystemObjectsType.ARCHETYPE_OBJECT_INTEGRITY_CHECK_TASK.value(),
             SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value());

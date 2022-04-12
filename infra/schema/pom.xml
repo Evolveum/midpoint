@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -24,46 +24,20 @@
         <dependency>
             <groupId>com.evolveum.axiom</groupId>
             <artifactId>axiom</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-api</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <!-- superset jakarta.activation:jakarta.activation comes from other deps -->
-                <exclusion>
-                    <groupId>jakarta.activation</groupId>
-                    <artifactId>jakarta.activation-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>javax.xml.bind</groupId>
-                    <artifactId>jaxb-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-impl</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.xml.bind</groupId>
-                    <artifactId>jaxb-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.commons</groupId>
             <artifactId>util</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.xml.bind</groupId>
-                    <artifactId>jaxb-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
@@ -174,7 +148,7 @@
                 <!-- Used to pull XSD files from the JAR -->
                 <groupId>com.evolveum.prism.tools</groupId>
                 <artifactId>schema-dist-maven-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${prism.version}</version>
                 <executions>
                     <execution>
                         <id>schemadist-prism</id>
@@ -187,7 +161,7 @@
                                 <artifactItem>
                                     <groupId>com.evolveum.prism</groupId>
                                     <artifactId>prism-impl</artifactId>
-                                    <version>${project.version}</version>
+                                    <version>${prism.version}</version>
                                     <type>jar</type>
                                 </artifactItem>
                             </artifactItems>
@@ -202,9 +176,9 @@
             <plugin>
                 <groupId>com.evolveum.prism</groupId>
                 <artifactId>prism-maven-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${prism.version}</version>
                 <configuration>
-                     <schemaFiles>
+                    <schemaFiles>
                         <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
@@ -229,7 +203,7 @@
             <plugin>
                 <groupId>com.evolveum.prism</groupId>
                 <artifactId>prism-codegen-maven-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${prism.version}</version>
                 <configuration>
                     <schemaFiles>
                         <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
@@ -249,67 +223,67 @@
                         <catalogFile>src/main/resources/META-INF/schemas-in-this-module.xml</catalogFile>   <!-- nextCatalog doesn't work for unknown reason -->
                     </catalogFiles>
                     <constants>
-                      <constant>
-                        <prefix>C</prefix>
-                        <namespace>http://midpoint.evolveum.com/xml/ns/public/common/common-3</namespace>
-                        <name>COMMON</name>
-                      </constant>
-                      <constant>
-                        <prefix>T</prefix>
-                        <namespace>http://prism.evolveum.com/xml/ns/public/types-3</namespace>
-                        <name>TYPES</name>
-                      </constant>
-                      <constant>
-                        <prefix>Q</prefix>
-                        <namespace>http://prism.evolveum.com/xml/ns/public/query-3</namespace>
-                        <name>QUERY</name>
-                      </constant>
-                      <constant>
-                        <prefix>R_CAP</prefix>
-                        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3</namespace>
-                        <name>CAPABILITIES</name>
-                      </constant>
-                      <constant>
-                        <prefix>A</prefix>
-                        <namespace>http://prism.evolveum.com/xml/ns/public/annotation-3</namespace>
-                        <name>ANNOTATION</name>
-                      </constant>
-                      <constant>
-                        <prefix>S</prefix>
-                        <namespace>http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd</namespace>
-                        <name>SITUATION</name>
-                      </constant>
-                      <constant>
-                        <prefix>SC</prefix>
-                        <namespace>http://midpoint.evolveum.com/xml/ns/public/model/scripting-3</namespace>
-                        <name>SCRIPTING</name>
-                      </constant>
-                      <constant>
-                        <prefix>ICF_S</prefix>
-                        <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3</namespace>
-                        <name>ICF_SCHEMA</name>
-                      </constant>
-                      <constant>
-                        <prefix>ICF_C</prefix>
-                        <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3</namespace>
-                        <name>ICF_CONFIGURATION</name>
-                      </constant>
-                      <constant>
-                        <prefix>ENC</prefix>
-                        <namespace>http://www.w3.org/2001/04/xmlenc#</namespace>
-                        <name>XML_ENC</name>
-                      </constant>
-                      <constant>
-                        <prefix>DSIG</prefix>
-                        <namespace>http://www.w3.org/2000/09/xmldsig#</namespace>
-                        <name>XML_DSIG</name>
-                      </constant>
-                      <constant>
-                        <prefix>XSD</prefix>
-                        <namespace>http://www.w3.org/2001/XMLSchema</namespace>
-                        <name>XSD</name>
-                      </constant>
-                      </constants>
+                        <constant>
+                            <prefix>C</prefix>
+                            <namespace>http://midpoint.evolveum.com/xml/ns/public/common/common-3</namespace>
+                            <name>COMMON</name>
+                        </constant>
+                        <constant>
+                            <prefix>T</prefix>
+                            <namespace>http://prism.evolveum.com/xml/ns/public/types-3</namespace>
+                            <name>TYPES</name>
+                        </constant>
+                        <constant>
+                            <prefix>Q</prefix>
+                            <namespace>http://prism.evolveum.com/xml/ns/public/query-3</namespace>
+                            <name>QUERY</name>
+                        </constant>
+                        <constant>
+                            <prefix>R_CAP</prefix>
+                            <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3</namespace>
+                            <name>CAPABILITIES</name>
+                        </constant>
+                        <constant>
+                            <prefix>A</prefix>
+                            <namespace>http://prism.evolveum.com/xml/ns/public/annotation-3</namespace>
+                            <name>ANNOTATION</name>
+                        </constant>
+                        <constant>
+                            <prefix>S</prefix>
+                            <namespace>http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd</namespace>
+                            <name>SITUATION</name>
+                        </constant>
+                        <constant>
+                            <prefix>SC</prefix>
+                            <namespace>http://midpoint.evolveum.com/xml/ns/public/model/scripting-3</namespace>
+                            <name>SCRIPTING</name>
+                        </constant>
+                        <constant>
+                            <prefix>ICF_S</prefix>
+                            <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3</namespace>
+                            <name>ICF_SCHEMA</name>
+                        </constant>
+                        <constant>
+                            <prefix>ICF_C</prefix>
+                            <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3</namespace>
+                            <name>ICF_CONFIGURATION</name>
+                        </constant>
+                        <constant>
+                            <prefix>ENC</prefix>
+                            <namespace>http://www.w3.org/2001/04/xmlenc#</namespace>
+                            <name>XML_ENC</name>
+                        </constant>
+                        <constant>
+                            <prefix>DSIG</prefix>
+                            <namespace>http://www.w3.org/2000/09/xmldsig#</namespace>
+                            <name>XML_DSIG</name>
+                        </constant>
+                        <constant>
+                            <prefix>XSD</prefix>
+                            <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+                            <name>XSD</name>
+                        </constant>
+                    </constants>
                 </configuration>
                 <executions>
                     <execution>
