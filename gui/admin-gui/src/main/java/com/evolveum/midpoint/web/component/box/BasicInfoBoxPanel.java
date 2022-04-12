@@ -35,6 +35,8 @@ public class BasicInfoBoxPanel extends InfoBoxPanel<InfoBoxType> {
 
     public BasicInfoBoxPanel(String id, IModel<InfoBoxType> model, Class<? extends IRequestablePage> linkPage) {
         super(id, model, linkPage);
+
+        setRenderBodyOnly(true);
     }
 
     @Override
