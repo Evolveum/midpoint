@@ -197,7 +197,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
     public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
-    public static final String MOUNT_FORBIDEN_ERROR = "/error/403";
+    public static final String MOUNT_FORBIDDEN_ERROR = "/error/403";
     public static final String MOUNT_NOT_FOUND_ERROR = "/error/404";
     public static final String MOUNT_GONE_ERROR = "/error/410";
 
@@ -270,7 +270,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
         mount(new MountedMapper(MOUNT_INTERNAL_SERVER_ERROR, PageError.class, new PageParametersEncoder()));
         mount(new MountedMapper(MOUNT_UNAUTHORIZED_ERROR, PageError401.class, new PageParametersEncoder()));
-        mount(new MountedMapper(MOUNT_FORBIDEN_ERROR, PageError403.class, new PageParametersEncoder()));
+        mount(new MountedMapper(MOUNT_FORBIDDEN_ERROR, PageError403.class, new PageParametersEncoder()));
         mount(new MountedMapper(MOUNT_NOT_FOUND_ERROR, PageError404.class, new PageParametersEncoder()));
         mount(new MountedMapper(MOUNT_GONE_ERROR, PageError410.class, new PageParametersEncoder()));
 
