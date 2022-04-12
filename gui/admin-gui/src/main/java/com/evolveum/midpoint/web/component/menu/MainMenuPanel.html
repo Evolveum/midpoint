@@ -7,24 +7,25 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <li wicket:id="item" class="treeview">
-        <a wicket:id="link">
-            <i wicket:id="icon" class="fa fa-user"></i>
-            <span wicket:id="label" />
-            <wicket:enclosure child="arrow">
-                <span class="pull-right-container">
-                    <i wicket:id="arrow" class="fa fa-angle-left pull-right"></i>
-                </span>
-            </wicket:enclosure>
+    <li wicket:id="item" class="nav-item">
+        <a wicket:id="link" class="nav-link">
+            <i wicket:id="icon" class="nav-icon"></i>
+            <p>
+                <span wicket:id="label"/>
+                <wicket:enclosure child="arrow">
+                    <i wicket:id="arrow" class="fas fa-angle-left right"></i>
+                </wicket:enclosure>
+            </p>
+
             <wicket:enclosure child="bubble">
                 <span class="pull-right-container">
                     <span class="label label-primary pull-right" wicket:id="bubble"/>
                 </span>
             </wicket:enclosure>
         </a>
-        <ul wicket:id="submenu" class="treeview-menu">
-            <li wicket:id="subItem">
-                <a wicket:id="subLink" href="user-list.php"><i style="min-width: 20px;" wicket:id="subLinkIcon"></i>
+        <ul wicket:id="submenu" class="nav nav-treeview">
+            <li wicket:id="subItem" class="nav-item">
+                <a wicket:id="subLink" class="nav-link" href="user-list.php"><i class="nav-icon" style="min-width: 20px;" wicket:id="subLinkIcon"></i>
                     &nbsp;<span wicket:id="subLabel" />
                 </a>
             </li>

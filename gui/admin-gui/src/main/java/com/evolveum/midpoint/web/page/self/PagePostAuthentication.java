@@ -242,7 +242,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
     }
 
     @Override
-    protected boolean isLogoLinkEnabled() {
+    public boolean isLogoLinkEnabled() {
         return false;
     }
 }

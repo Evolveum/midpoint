@@ -11,9 +11,6 @@ import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
-import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -28,12 +25,10 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalDialog;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
-import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -188,11 +183,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
     private static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_COPYRIGHT_MESSAGE = "copyrightMessage";
-    private static final String ID_LOGO = "logo";
-    private static final String ID_CUSTOM_LOGO = "customLogo";
-    private static final String ID_CUSTOM_LOGO_IMG_SRC = "customLogoImgSrc";
-    private static final String ID_CUSTOM_LOGO_IMG_CSS = "customLogoImgCss";
-    private static final String ID_NAVIGATION = "navigation";
     private static final String ID_DEPLOYMENT_NAME = "deploymentName";
     private static final String ID_BODY = "body";
 
@@ -809,57 +799,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         mainHeader.setOutputMarkupId(true);
         add(mainHeader);
 
-        AjaxLink<String> logo = new AjaxLink<>(ID_LOGO) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                Class<? extends Page> page = MidPointApplication.get().getHomePage();
-                setResponsePage(page);
-            }
-        };
-        logo.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !isCustomLogoVisible();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return isLogoLinkEnabled();
-            }
-        });
-        mainHeader.add(logo);
-
-        AjaxLink<String> customLogo = new AjaxLink<>(ID_CUSTOM_LOGO) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                //TODO may be this should lead to customerUrl ?
-                Class<? extends Page> page = MidPointApplication.get().getHomePage();
-                setResponsePage(page);
-            }
-        };
-        customLogo.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isCustomLogoVisible();
-            }
-        });
-        mainHeader.add(customLogo);
-
-        WebMarkupContainer navigation = new WebMarkupContainer(ID_NAVIGATION);
-        navigation.setOutputMarkupId(true);
-        mainHeader.add(navigation);
-
         IModel<IconType> logoModel = new IModel<>() {
 
             private static final long serialVersionUID = 1L;
@@ -871,27 +810,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
 
-        ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC) {
-
-            @Override
-            protected void buildSrcAttribute(ComponentTag tag, IModel<?> srcModel) {
-                tag.put("src", WebComponentUtil.getIconUrlModel(logoModel.getObject()).getObject());
-            }
-        };
-        customLogoImgSrc.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isEmpty(logoModel.getObject().getCssClass())));
-
-        WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
-        customLogoImgCss.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isNotEmpty(logoModel.getObject().getCssClass())));
-        customLogoImgCss.add(new AttributeAppender("class", new IModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return logoModel.getObject() != null ? logoModel.getObject().getCssClass() : null;
-            }
-        }));
-
         mainHeader.add(new AttributeAppender("style", new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
@@ -902,21 +820,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         }));
 
-        customLogo.add(customLogoImgSrc);
-        customLogo.add(customLogoImgCss);
-
         Label title = new Label(ID_TITLE, createPageTitleModel());
         title.setRenderBodyOnly(true);
         add(title);
 
-        initHeaderLayout(navigation);
-        initTitleLayout(navigation);
+        initHeaderLayout(mainHeader);
+        initTitleLayout(mainHeader);
 
-        logo.add(createHeaderColorStyleModel(false));
-        customLogo.add(createHeaderColorStyleModel(false));
         mainHeader.add(createHeaderColorStyleModel(false));
-
-        navigation.add(createHeaderColorStyleModel(true));
 
         initDebugBarLayout();
 
@@ -984,7 +895,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         add(mainPopup);
     }
 
-    private AttributeAppender createHeaderColorStyleModel(boolean checkSkinUsage) {
+    public static AttributeAppender createHeaderColorStyleModel(boolean checkSkinUsage) {
         return new AttributeAppender("style", new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
@@ -1145,7 +1056,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public WebMarkupContainer getTitleContainer() {
-        return (WebMarkupContainer) get(createComponentPath(ID_MAIN_HEADER, ID_NAVIGATION, ID_PAGE_TITLE_CONTAINER));
+        return (WebMarkupContainer) get(createComponentPath(ID_MAIN_HEADER, ID_PAGE_TITLE_CONTAINER));
     }
 
     private Label getHeaderTitle() {
@@ -1693,17 +1604,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         getBreadcrumbs().clear();
     }
 
-    private boolean isCustomLogoVisible() {
-        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
-        if (info == null || info.getLogo() == null) {
-            return false;
-        }
-
-        IconType logo = info.getLogo();
-        return StringUtils.isNotEmpty(logo.getImageUrl()) || StringUtils.isNotEmpty(logo.getCssClass());
-    }
-
-    protected boolean isLogoLinkEnabled() {
+    public boolean isLogoLinkEnabled() {
         return true;
     }
 
@@ -1749,8 +1650,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public void reloadShoppingCartIcon(AjaxRequestTarget target) {
-        target.add(get(createComponentPath(ID_MAIN_HEADER, ID_NAVIGATION)));
-        target.add(get(createComponentPath(ID_MAIN_HEADER, ID_NAVIGATION, ID_CART_BUTTON)));
+        target.add(get(createComponentPath(ID_MAIN_HEADER)));
+        target.add(get(createComponentPath(ID_MAIN_HEADER, ID_CART_BUTTON)));
     }
 
     public AsyncWebProcessManager getAsyncWebProcessManager() {

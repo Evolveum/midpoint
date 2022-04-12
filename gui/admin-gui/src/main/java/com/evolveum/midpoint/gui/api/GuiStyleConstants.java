@@ -15,7 +15,7 @@ public class GuiStyleConstants {
     public static final String CLASS_BOX = "box";
     public static final String CLASS_BOX_DEFAULT = "box-default";
 
-    public static final String CLASS_DASHBOARD_ICON = "fa fa-dashboard";
+    public static final String CLASS_DASHBOARD_ICON = "fa fa-tachometer-alt";
 
     public static final String CLASS_OBJECT_USER_ICON = "fa fa-user";
     public static final String CLASS_OBJECT_USER_ICON_COLORED = CLASS_OBJECT_USER_ICON + " object-user-color";
@@ -74,9 +74,9 @@ public class GuiStyleConstants {
 
     public static final String CLASS_OBJECT_COLLECTION_ICON = "fa fa-filter";
 
-    public static final String CLASS_OBJECT_TEMPLATE_ICON = "fa fa-file-text";
+    public static final String CLASS_OBJECT_TEMPLATE_ICON = "fa fa-file-alt";
 
-    public static final String CLASS_REPORT_ICON = "fa fa-pie-chart";
+    public static final String CLASS_REPORT_ICON = "fa fa-chart-pie";
 
     public static final String CLASS_ICON_STYLE = "icon-style-";  //some icon styles start with this string
     public static final String CLASS_ICON_STYLE_NORMAL = "icon-style-normal";
@@ -98,10 +98,10 @@ public class GuiStyleConstants {
     public static final String CLASS_SHADOW_ICON_PROTECTED = "fa fa-shield";
     public static final String CLASS_SHADOW_ICON_UNKNOWN = "fa fa-eye";
 
-    public static final String CLASS_ICON_DASHBOARD = "fa fa-dashboard";
+    public static final String CLASS_ICON_DASHBOARD = CLASS_DASHBOARD_ICON;
     public static final String CLASS_ICON_PROFILE = "fa fa-user";
-    public static final String CLASS_ICON_CREDENTIALS = "fa fa-shield";
-    public static final String CLASS_ICON_REQUEST = "fa fa-pencil-square-o";
+    public static final String CLASS_ICON_CREDENTIALS = "fa fa-shield-alt";
+    public static final String CLASS_ICON_REQUEST = "fa fa-pen-square";
     public static final String CLASS_ICON_CONSENT = "fa fa-check-square-o";
 
     public static final String CLASS_APPROVAL_OUTCOME_ICON_UNKNOWN_COLORED = "fa fa-check text-warning";

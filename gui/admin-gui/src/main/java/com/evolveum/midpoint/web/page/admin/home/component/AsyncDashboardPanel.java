@@ -95,7 +95,7 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
         dashboardParent.add(dashboardContent);
 
         if (noPadding) {
-            dashboardContent.add(AttributeAppender.append("class", "no-padding"));
+            dashboardContent.add(AttributeAppender.append("class", "p-0"));
         }
 
         dashboardContent.add(new Label(ID_CONTENT));
