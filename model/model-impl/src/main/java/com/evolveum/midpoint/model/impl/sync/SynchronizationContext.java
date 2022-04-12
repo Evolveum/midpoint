@@ -13,6 +13,7 @@ import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
@@ -43,7 +44,6 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -59,7 +59,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
  *
  * @param <F> Type of the matching focus object
  */
-public class SynchronizationContext<F extends FocusType> implements DebugDumpable {
+public class SynchronizationContext<F extends FocusType> implements PreInboundsContext<F> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
 
@@ -72,7 +72,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
      *
      * See {@link ResourceObjectShadowChangeDescription#getShadowedResourceObject()}.
      */
-    @NotNull private final PrismObject<ShadowType> shadowedResourceObject;
+    @NotNull private final ShadowType shadowedResourceObject;
 
     /**
      * Original delta that triggered this synchronization. (If known.)
@@ -82,16 +82,16 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     /**
      * The resource. It is updated in {@link #checkNotInMaintenance(OperationResult)}. But it's never null.
      */
-    @NotNull private PrismObject<ResourceType> resource;
+    @NotNull private ResourceType resource;
 
     /** Current system configuration */
-    private PrismObject<SystemConfigurationType> systemConfiguration;
+    private SystemConfigurationType systemConfiguration;
 
     private final String channel;
 
     private ExpressionProfile expressionProfile;
 
-    private final Task task;
+    @NotNull private final Task task;
 
     private ResourceObjectTypeSynchronizationPolicy synchronizationPolicy;
 
@@ -134,8 +134,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     private boolean shadowExistsInRepo = true;
     private boolean forceIntentChange;
 
-    private final PrismContext prismContext;
-    private final ModelBeans beans;
+    @NotNull private final PrismContext prismContext;
+    @NotNull private final ModelBeans beans;
 
     /** TODO maybe will be removed */
     @Experimental
@@ -149,12 +149,12 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     @NotNull private final List<ItemDelta<?, ?>> pendingShadowDeltas = new ArrayList<>();
 
     public SynchronizationContext(
-            @NotNull PrismObject<ShadowType> shadowedResourceObject,
-            ObjectDelta<ShadowType> resourceObjectDelta,
-            @NotNull PrismObject<ResourceType> resource,
+            @NotNull ShadowType shadowedResourceObject,
+            @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull ResourceType resource,
             String channel,
-            ModelBeans beans,
-            Task task,
+            @NotNull ModelBeans beans,
+            @NotNull Task task,
             String itemProcessingIdentifier) {
         this.shadowedResourceObject = shadowedResourceObject;
         this.resourceObjectDelta = resourceObjectDelta;
@@ -173,7 +173,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     }
 
     public boolean isProtected() {
-        return BooleanUtils.isTrue(shadowedResourceObject.asObjectable().isProtectedObject());
+        return BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject());
     }
 
     public ShadowKindType getKind() {
@@ -211,7 +211,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     // TODO reconsider
     public @NotNull ResourceObjectTypeDefinition getObjectTypeDefinition() throws SchemaException, ConfigurationException {
         if (objectTypeDefinition == null) {
-            objectTypeDefinition = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable())
+            objectTypeDefinition = ResourceSchemaFactory.getCompleteSchemaRequired(resource)
                     .findObjectTypeDefinitionRequired(getKind(), getIntent());
         }
         return objectTypeDefinition;
@@ -315,8 +315,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
             ExpressionType expression = reaction.getCondition();
             String desc = "condition in synchronization reaction on " + reaction.getSituation()
                     + (reaction.getName() != null ? " (" + reaction.getName() + ")" : "");
-            VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(getFocus(), shadowedResourceObject, null,
-                    resource, systemConfiguration, null, prismContext);
+            VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
+                    getFocusOrPreFocus(), shadowedResourceObject, resource, systemConfiguration);
             variables.put(ExpressionConstants.VAR_RESOURCE_OBJECT_DELTA, resourceObjectDelta, ObjectDelta.class);
             try {
                 ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
@@ -334,17 +334,15 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         }
     }
 
-    @Nullable
-    private PrismObject<? extends ObjectType> getFocus() {
-        PrismObject<? extends ObjectType> focus;
+    @SuppressWarnings("ReplaceNullCheck")
+    private @NotNull ObjectType getFocusOrPreFocus() {
         if (linkedOwner != null) {
-            focus = linkedOwner.asPrismObject();
+            return linkedOwner;
         } else if (correlatedOwner != null) {
-            focus = correlatedOwner.asPrismObject();
+            return correlatedOwner;
         } else {
-            focus = null;
+            return getPreFocus();
         }
-        return focus;
     }
 
     boolean hasApplicablePolicy() {
@@ -398,7 +396,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return null;
     }
 
-    public @NotNull PrismObject<ShadowType> getShadowedResourceObject() {
+    public @NotNull ShadowType getShadowedResourceObject() {
         return shadowedResourceObject;
     }
 
@@ -406,7 +404,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return resourceObjectDelta;
     }
 
-    public @NotNull PrismObject<ResourceType> getResource() {
+    public @NotNull ResourceType getResource() {
         return resource;
     }
 
@@ -435,16 +433,20 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return focusClass;
     }
 
-    public @NotNull F getPreFocus() throws SchemaException {
+    public @NotNull F getPreFocus() {
         if (preFocus != null) {
             return preFocus;
         }
-        preFocus = prismContext.createObjectable(
-                getFocusClass());
+        try {
+            preFocus = prismContext.createObjectable(
+                    getFocusClass());
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e, "when creating pre-focus");
+        }
         return preFocus;
     }
 
-    public @NotNull PrismObject<F> getPreFocusAsPrismObject() throws SchemaException {
+    public @NotNull PrismObject<F> getPreFocusAsPrismObject() {
         //noinspection unchecked
         return (PrismObject<F>) preFocus.asPrismObject();
     }
@@ -486,7 +488,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         this.situation = situation;
     }
 
-    public PrismObject<SystemConfigurationType> getSystemConfiguration() {
+    public @Nullable SystemConfigurationType getSystemConfiguration() {
         return systemConfiguration;
     }
 
@@ -494,7 +496,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return channel;
     }
 
-    public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
+    public void setSystemConfiguration(SystemConfigurationType systemConfiguration) {
         this.systemConfiguration = systemConfiguration;
     }
 
@@ -510,7 +512,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         this.reaction = reaction;
     }
 
-    public Task getTask() {
+    public @NotNull Task getTask() {
         return task;
     }
 
@@ -601,8 +603,10 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         if (!skipMaintenanceCheck) {
-            resource = beans.provisioningService.getObject(ResourceType.class, resource.getOid(), null, task, result);
-            ResourceTypeUtil.checkNotInMaintenance(resource.asObjectable());
+            resource = beans.provisioningService
+                    .getObject(ResourceType.class, resource.getOid(), null, task, result)
+                    .asObjectable();
+            ResourceTypeUtil.checkNotInMaintenance(resource);
         }
     }
 
@@ -627,7 +631,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     void addShadowDeltas(@NotNull Collection<ItemDelta<?, ?>> deltas) throws SchemaException {
         for (ItemDelta<?, ?> delta : deltas) {
             pendingShadowDeltas.add(delta);
-            delta.applyTo(shadowedResourceObject);
+            delta.applyTo(shadowedResourceObject.asPrismObject());
         }
     }
 
@@ -652,7 +656,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     }
 
     public SystemConfigurationType getSystemConfigurationBean() {
-        return asObjectable(systemConfiguration);
+        return systemConfiguration;
     }
 
     @NotNull Collection<ResourceObjectTypeSynchronizationPolicy> getAllSynchronizationPolicies() throws SchemaException {
@@ -671,7 +675,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
             }
         }
 
-        SynchronizationType synchronization = resource.asObjectable().getSynchronization();
+        SynchronizationType synchronization = resource.getSynchronization();
         if (synchronization != null) {
             for (ObjectSynchronizationType synchronizationBean : synchronization.getObjectSynchronization()) {
                 ResourceObjectTypeSynchronizationPolicy policy =

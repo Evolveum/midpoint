@@ -30,7 +30,7 @@ public class PreShadowInboundsPreparation<F extends FocusType> extends ShadowInb
             throws SchemaException, ConfigurationException {
         super(
                 mappingsMap,
-                new PreSource(context.syncCtx),
+                new PreSource(context.ctx),
                 new PreTarget<>(focus, focusDefinition),
                 context);
     }

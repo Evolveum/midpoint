@@ -48,6 +48,8 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+
 public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, BeanNameAware {
 
     private static final Trace LOGGER = TraceManager.getTrace(BasePrimaryChangeAspect.class);
@@ -123,7 +125,11 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
         try {
 
             PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-            VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(getFocusObjectable(lensContext), null, null, systemConfiguration.asObjectable(), prismContext);
+            VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
+                    getFocusObjectable(lensContext),
+                    null,
+                    null,
+                    asObjectable(systemConfiguration));
 
             ObjectFilter origFilter = prismContext.getQueryConverter().parseFilter(filter, clazz);
             ObjectFilter evaluatedFilter = ExpressionUtil

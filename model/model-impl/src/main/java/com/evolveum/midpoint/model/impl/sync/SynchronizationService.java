@@ -22,12 +22,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
  */
 public interface SynchronizationService extends ResourceObjectChangeListener {
 
+    /**
+     * Tries to match specified focus and shadow. Return true if it matches, false otherwise.
+     */
     <F extends FocusType> boolean matchUserCorrelationRule(
             PrismObject<ShadowType> shadowedResourceObject,
             PrismObject<F> focus,
-            ResourceType resourceType,
+            ResourceType resource,
             PrismObject<SystemConfigurationType> configuration,
             Task task,
             OperationResult result) throws
-            ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+            ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException;
 }

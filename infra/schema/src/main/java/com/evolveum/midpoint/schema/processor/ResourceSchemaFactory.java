@@ -69,6 +69,7 @@ public class ResourceSchemaFactory {
      */
     public static ResourceSchema getCompleteSchema(PrismObject<ResourceType> resource) throws SchemaException {
         if (resource == null) {
+            // TODO Should be illegal argument exception, probably
             throw new SchemaException("Could not get refined schema, resource does not exist.");
         }
 

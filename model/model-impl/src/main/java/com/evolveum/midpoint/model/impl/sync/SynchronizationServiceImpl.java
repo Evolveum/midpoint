@@ -16,6 +16,8 @@ import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistency
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -94,7 +96,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     private RepositoryService repositoryService;
 
     @Override
-    public void notifyChange(@NotNull ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
+    public void notifyChange(
+            @NotNull ResourceObjectShadowChangeDescription change,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) {
 
         OperationResult result = parentResult.subresult(OP_NOTIFY_CHANGE)
                 .addArbitraryObjectAsParam("change", change)
@@ -185,7 +190,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         if (!syncCtx.hasApplicablePolicy()) {
             String message = "SYNCHRONIZATION no matching policy for " + syncCtx.getShadowedResourceObject() + " ("
-                    + syncCtx.getShadowedResourceObject().asObjectable().getObjectClass() + ") " + " on " + syncCtx.getResource()
+                    + syncCtx.getShadowedResourceObject().getObjectClass() + ") " + " on " + syncCtx.getResource()
                     + ", ignoring change from channel " + syncCtx.getChannel();
             LOGGER.debug(message);
             List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, false); // TODO record always full sync?
@@ -221,30 +226,31 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     private <F extends FocusType> List<PropertyDelta<?>> createShadowIntentAndSynchronizationTimestampDelta(
             SynchronizationContext<F> syncCtx, boolean saveIntent) throws SchemaException {
         Validate.notNull(syncCtx.getShadowedResourceObject(), "No current nor old shadow present");
-        ShadowType applicableShadow = syncCtx.getShadowedResourceObject().asObjectable();
-        List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDeltas(syncCtx.getShadowedResourceObject());
+        ShadowType applicableShadow = syncCtx.getShadowedResourceObject();
+        PrismObject<ShadowType> shadowObject = syncCtx.getShadowedResourceObject().asPrismObject();
+        List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDeltas(shadowObject);
         if (saveIntent) {
             if (StringUtils.isNotBlank(syncCtx.getIntent()) && !syncCtx.getIntent().equals(applicableShadow.getIntent())) {
                 PropertyDelta<String> intentDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_INTENT,
-                        syncCtx.getShadowedResourceObject().getDefinition(), syncCtx.getIntent());
+                        shadowObject.getDefinition(), syncCtx.getIntent());
                 modifications.add(intentDelta);
             }
             if (StringUtils.isNotBlank(syncCtx.getTag()) && !syncCtx.getTag().equals(applicableShadow.getTag())) {
                 PropertyDelta<String> tagDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_TAG,
-                        syncCtx.getShadowedResourceObject().getDefinition(), syncCtx.getTag());
+                        shadowObject.getDefinition(), syncCtx.getTag());
                 modifications.add(tagDelta);
             }
         }
         return modifications;
     }
 
-    private void executeShadowModifications(PrismObject<? extends ShadowType> object, List<PropertyDelta<?>> modifications,
+    private void executeShadowModifications(ShadowType object, List<PropertyDelta<?>> modifications,
             Task task, OperationResult subResult) {
         try {
             repositoryService.modifyObject(ShadowType.class, object.getOid(), modifications, subResult);
-            task.recordObjectActionExecuted(object, ChangeType.MODIFY, null);
+            task.recordObjectActionExecuted(object.asPrismObject(), ChangeType.MODIFY, null);
         } catch (Throwable t) {
-            task.recordObjectActionExecuted(object, ChangeType.MODIFY, t);
+            task.recordObjectActionExecuted(object.asPrismObject(), ChangeType.MODIFY, t);
         }
     }
 
@@ -337,21 +343,21 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
-    /**
-     * Tries to match specified focus and shadow. Return true if it matches,
-     * false otherwise.
-     */
     @Override
-    public <F extends FocusType> boolean matchUserCorrelationRule(PrismObject<ShadowType> shadowedResourceObject,
-            PrismObject<F> focus, ResourceType resourceType,
-            PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
+    public <F extends FocusType> boolean matchUserCorrelationRule(
+            PrismObject<ShadowType> shadowedResourceObject,
+            PrismObject<F> focus,
+            ResourceType resource,
+            PrismObject<SystemConfigurationType> configuration,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws ConfigurationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 
         SynchronizationContext<F> synchronizationContext = synchronizationContextLoader.loadSynchronizationContext(
                 shadowedResourceObject,
                 null,
-                resourceType.asPrismObject(),
+                resource.asPrismObject(),
                 task.getChannel(),
                 null,
                 configuration,
@@ -576,7 +582,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         LensContext<F> context = contextFactory.createSyncContext(syncCtx.getFocusClass(), change);
         context.setLazyAuditRequest(true);
-        context.setSystemConfiguration(syncCtx.getSystemConfiguration());
+        context.setSystemConfiguration(ObjectTypeUtil.asPrismObject(syncCtx.getSystemConfiguration()));
         context.setOptions(options);
         context.setItemProcessingIdentifier(syncCtx.getItemProcessingIdentifier());
 
@@ -598,11 +604,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     private <F extends FocusType> void createProjectionContext(SynchronizationContext<F> syncCtx,
             ResourceObjectShadowChangeDescription change, ModelExecuteOptions options, LensContext<F> context) throws SchemaException {
         ResourceType resource = change.getResource().asObjectable();
-        PrismObject<ShadowType> shadow = syncCtx.getShadowedResourceObject();
+        ShadowType shadow = syncCtx.getShadowedResourceObject();
         ShadowKindType kind = getKind(shadow, syncCtx.getKind());
         String intent = getIntent(shadow, syncCtx.getIntent());
         boolean tombstone = isTombstone(change);
-        ResourceShadowDiscriminator discriminator = new ResourceShadowDiscriminator(resource.getOid(), kind, intent, shadow.asObjectable().getTag(), tombstone);
+        ResourceShadowDiscriminator discriminator = new ResourceShadowDiscriminator(resource.getOid(), kind, intent, shadow.getTag(), tombstone);
         LensProjectionContext projectionContext = context.createProjectionContext(discriminator);
         projectionContext.setResource(resource);
         projectionContext.setOid(change.getShadowOid());
@@ -619,7 +625,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
 
         // This will set both old and current object: and that's how it should be.
-        projectionContext.setInitialObject(shadow);
+        projectionContext.setInitialObject(shadow.asPrismObject());
 
         if (!tombstone && !containsIncompleteItems(shadow)) {
             projectionContext.setFullShadow(true);
@@ -648,28 +654,27 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
-    private boolean containsIncompleteItems(PrismObject<ShadowType> shadow) {
-        ShadowAttributesType attributes = shadow.asObjectable().getAttributes();
+    private boolean containsIncompleteItems(ShadowType shadow) {
+        ShadowAttributesType attributes = shadow.getAttributes();
         //noinspection SimplifiableIfStatement
         if (attributes == null) {
-            return false;   // strictly speaking this is right; but we perhaps should not consider this shadow as fully loaded :)
+            return false; // strictly speaking this is right; but we perhaps should not consider this shadow as fully loaded :)
         } else {
             return ((PrismContainerValue<?>) (attributes.asPrismContainerValue())).getItems().stream()
                     .anyMatch(Item::isIncomplete);
         }
     }
 
-    private ShadowKindType getKind(PrismObject<ShadowType> shadow, ShadowKindType objectSynchronizationKind) {
-        ShadowKindType shadowKind = shadow.asObjectable().getKind();
+    private ShadowKindType getKind(ShadowType shadow, ShadowKindType objectSynchronizationKind) {
+        ShadowKindType shadowKind = shadow.getKind();
         if (shadowKind != null) {
             return shadowKind;
         }
         return objectSynchronizationKind;
     }
 
-    private String getIntent(PrismObject<ShadowType> shadow,
-            String objectSynchronizationIntent) {
-        String shadowIntent = shadow.asObjectable().getIntent();
+    private String getIntent(ShadowType shadow, String objectSynchronizationIntent) {
+        String shadowIntent = shadow.getIntent();
         if (shadowIntent != null) {
             return shadowIntent;
         }
@@ -703,18 +708,17 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             ResourceObjectShadowChangeDescription change, boolean full, OperationResult result) {
 
         try {
-            PrismObject<ShadowType> shadow = syncCtx.getShadowedResourceObject();
-            ShadowType shadowBean = shadow.asObjectable();
+            ShadowType shadow = syncCtx.getShadowedResourceObject();
 
             // new situation description
             XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
             syncCtx.addShadowDeltas(
                     createSynchronizationSituationAndDescriptionDelta(
-                            shadow, syncCtx.getSituation(), change.getSourceChannel(), full, now));
+                            shadow.asPrismObject(), syncCtx.getSituation(), change.getSourceChannel(), full, now));
 
             S_ItemEntry builder = prismContext.deltaFor(ShadowType.class);
 
-            if (ShadowUtil.isNotKnown(shadowBean.getKind())) {
+            if (ShadowUtil.isNotKnown(shadow.getKind())) {
                 builder = builder.item(ShadowType.F_KIND).replace(syncCtx.getKind());
             }
 
@@ -722,7 +726,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 builder = builder.item(ShadowType.F_INTENT).replace(syncCtx.getIntent());
             }
 
-            if (shadowBean.getTag() == null && syncCtx.getTag() != null) {
+            if (shadow.getTag() == null && syncCtx.getTag() != null) {
                 builder = builder.item(ShadowType.F_TAG).replace(syncCtx.getTag());
             }
 
@@ -737,7 +741,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
     private void savePendingDeltas(SynchronizationContext<?> syncCtx, OperationResult result) throws SchemaException {
         Task task = syncCtx.getTask();
-        PrismObject<ShadowType> shadow = syncCtx.getShadowedResourceObject();
+        ShadowType shadow = syncCtx.getShadowedResourceObject();
         String channel = syncCtx.getChannel();
 
         try {
@@ -747,9 +751,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     syncCtx.getPendingShadowDeltas(),
                     result);
             syncCtx.clearPendingShadowDeltas();
-            task.recordObjectActionExecuted(shadow, null, null, ChangeType.MODIFY, channel, null);
+            task.recordObjectActionExecuted(shadow.asPrismObject(), null, null, ChangeType.MODIFY, channel, null);
         } catch (ObjectNotFoundException ex) {
-            task.recordObjectActionExecuted(shadow, null, null, ChangeType.MODIFY, channel, ex);
+            task.recordObjectActionExecuted(shadow.asPrismObject(), null, null, ChangeType.MODIFY, channel, ex);
             // This may happen e.g. during some recon-livesync interactions.
             // If the shadow is gone then it is gone. No point in recording the
             // situation any more.
@@ -759,7 +763,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             syncCtx.setShadowExistsInRepo(false);
             result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
         } catch (ObjectAlreadyExistsException | SchemaException ex) {
-            task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, ex);
+            task.recordObjectActionExecuted(shadow.asPrismObject(), ChangeType.MODIFY, ex);
             LoggingUtils.logException(LOGGER,
                     "### SYNCHRONIZATION # notifyChange(..): Save of synchronization situation failed: could not modify shadow "
                             + shadow.getOid() + ": " + ex.getMessage(),
@@ -769,13 +773,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             throw new SystemException("Save of synchronization situation failed: could not modify shadow "
                     + shadow.getOid() + ": " + ex.getMessage(), ex);
         } catch (Throwable t) {
-            task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, t);
+            task.recordObjectActionExecuted(shadow.asPrismObject(), ChangeType.MODIFY, t);
             throw t;
         }
     }
 
     private <F extends FocusType> boolean shouldSaveIntent(SynchronizationContext<F> syncCtx) throws SchemaException {
-        ShadowType shadow = syncCtx.getShadowedResourceObject().asObjectable();
+        ShadowType shadow = syncCtx.getShadowedResourceObject();
         if (shadow.getIntent() == null) {
             return true;
         }

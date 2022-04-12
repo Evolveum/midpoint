@@ -50,7 +50,7 @@ class SynchronizationSorterEvaluation<F extends FocusType> {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        ExpressionType expression = ResourceTypeUtil.getSynchronizationSorterExpression(syncCtx.getResource().asObjectable());
+        ExpressionType expression = ResourceTypeUtil.getSynchronizationSorterExpression(syncCtx.getResource());
         if (expression == null) {
             return null;
         }
@@ -71,11 +71,8 @@ class SynchronizationSorterEvaluation<F extends FocusType> {
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
                 null,
                 syncCtx.getShadowedResourceObject(),
-                null,
                 syncCtx.getResource(),
-                syncCtx.getSystemConfiguration(),
-                null,
-                syncCtx.getPrismContext());
+                syncCtx.getSystemConfiguration());
         variables.put(ExpressionConstants.VAR_CHANNEL, syncCtx.getChannel(), String.class);
         try {
             ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));

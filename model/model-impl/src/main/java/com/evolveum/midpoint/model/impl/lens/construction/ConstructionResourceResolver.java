@@ -114,8 +114,9 @@ class ConstructionResourceResolver {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         VariablesMap variables = ModelImplUtils
-                .getDefaultVariablesMap(construction.getFocusOdoAbsolute().getNewObject().asObjectable(),
-                        null, null, null, PrismContext.get());
+                .getDefaultVariablesMap(
+                        construction.getFocusOdoAbsolute().getNewObject().asObjectable(),
+                        null, null, null);
         ModelImplUtils.addAssignmentPathVariables(construction.getAssignmentPathVariables(), variables, PrismContext.get());
         LOGGER.debug("Expression variables for filter evaluation: {}", variables);
 

@@ -52,6 +52,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+
 @Component
 public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSupport {
 
@@ -85,8 +87,7 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
             @NotNull RunningTask task, OperationResult result)
             throws CommonException {
         PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(result);
-        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, null, null,
-                configuration != null ? configuration.asObjectable() : null, PrismContext.get());
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, null, null, asObjectable(configuration));
         try {
             ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(task, result);
             ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);

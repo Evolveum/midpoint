@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 class ClockworkSource extends MSource {
 
@@ -52,7 +53,7 @@ class ClockworkSource extends MSource {
             ResourceObjectDefinition resourceObjectDefinition,
             @NotNull LensProjectionContext projectionContext,
             @NotNull Context context) {
-        super(currentShadow, aPrioriDelta, resourceObjectDefinition);
+        super(asObjectable(currentShadow), aPrioriDelta, resourceObjectDefinition);
         this.projectionContext = projectionContext;
         this.context = context;
         this.beans = context.beans;

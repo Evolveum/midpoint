@@ -275,8 +275,13 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
 
                                         if (ResourceTypeUtil.isFirstSynchronizationOpportunistic(resource)) {
                                             LOGGER.trace("Trying to find owner using correlation expression.");
-                                            boolean match = synchronizationService.matchUserCorrelationRule(fullConflictingShadow,
-                                                    context.getFocusContext().getObjectNew(), resource, context.getSystemConfiguration(), task, iterationResult);
+                                            boolean match = synchronizationService.matchUserCorrelationRule(
+                                                    fullConflictingShadow,
+                                                    context.getFocusContext().getObjectNew(),
+                                                    resource,
+                                                    context.getSystemConfiguration(),
+                                                    task,
+                                                    iterationResult);
 
                                             if (match) {
                                                 treatConflictWithMatchedOwner(context, projContext, iterationResult, rememberedProjectionState, fullConflictingShadow);
@@ -471,7 +476,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             LensProjectionContext projectionContext) {
         return ModelImplUtils.getDefaultVariablesMap(context.getFocusContext().getObjectNew(), projectionContext.getObjectNew(),
                 projectionContext.getResourceShadowDiscriminator(), projectionContext.getResource().asPrismObject(),
-                context.getSystemConfiguration(), projectionContext, prismContext);
+                context.getSystemConfiguration(), projectionContext);
     }
 
     private <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context,

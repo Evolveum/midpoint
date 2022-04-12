@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
-import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
-
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
@@ -45,15 +43,15 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
 
     private static final Trace LOGGER = TraceManager.getTrace(PreInboundsProcessing.class);
 
-    @NotNull private final SynchronizationContext<F> syncCtx;
+    @NotNull private final PreInboundsContext<F> ctx;
 
     public PreInboundsProcessing(
-            @NotNull SynchronizationContext<F> syncCtx,
+            @NotNull PreInboundsContext<F> ctx,
             @NotNull ModelBeans beans,
             @NotNull MappingEvaluationEnvironment env,
             @NotNull OperationResult result) {
         super(beans, env, result);
-        this.syncCtx = syncCtx;
+        this.ctx = ctx;
     }
 
     /**
@@ -64,10 +62,10 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
             ConfigurationException, ExpressionEvaluationException {
 
         try {
-            PrismObject<F> preFocus = syncCtx.getPreFocusAsPrismObject();
+            PrismObject<F> preFocus = ctx.getPreFocusAsPrismObject();
             new PreShadowInboundsPreparation<>(
                     mappingsMap,
-                    new PreContext(syncCtx, env, result, beans),
+                    new PreContext(ctx, env, result, beans),
                     preFocus,
                     getFocusDefinition(preFocus))
                     .collectOrEvaluate();
@@ -94,7 +92,7 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
     void applyComputedDeltas(Collection<ItemDelta<?, ?>> itemDeltas) throws SchemaException {
         LOGGER.trace("Applying deltas to the pre-focus:\n{}", DebugUtil.debugDumpLazily(itemDeltas, 1));
         ItemDeltaCollectionsUtil.applyTo(
-                itemDeltas, syncCtx.getPreFocusAsPrismObject());
+                itemDeltas, ctx.getPreFocusAsPrismObject());
     }
 
     @Override
@@ -105,7 +103,7 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
 
     @Override
     @Nullable PrismObject<F> getFocusNew() throws SchemaException {
-        return syncCtx.getPreFocusAsPrismObject();
+        return ctx.getPreFocusAsPrismObject();
     }
 
     @Override
@@ -122,11 +120,11 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
     // TODO !!!!!!!!!!!!!!
     public VariablesMap getVariablesMap() throws SchemaException {
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
-                syncCtx.getPreFocus(),
-                syncCtx.getShadowedResourceObject().asObjectable(),
-                asObjectable(syncCtx.getResource()),
-                asObjectable(syncCtx.getSystemConfiguration()));
-        variables.put(ExpressionConstants.VAR_SYNCHRONIZATION_CONTEXT, syncCtx, SynchronizationContext.class);
+                ctx.getPreFocus(),
+                ctx.getShadowedResourceObject(),
+                ctx.getResource(),
+                ctx.getSystemConfiguration());
+        variables.put(ExpressionConstants.VAR_SYNCHRONIZATION_CONTEXT, ctx, SynchronizationContext.class);
         return variables;
     }
 

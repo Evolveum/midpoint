@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
-import com.evolveum.midpoint.model.impl.expr.MidpointFunctionsImpl;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -35,7 +35,7 @@ public class SynchronizationServiceUtils {
      * Moreover, policy condition is evaluated in both cases. Hence the name "fully applicable".
      *
      * TODO move to {@link SynchronizationContextLoader} after
-     *  {@link MidpointFunctionsImpl#getFocusesByCorrelationRule(Class, String, ShadowKindType, String, ShadowType)} is reworked.
+     *  {@link MidpointFunctions#findCandidateOwners(Class, ShadowType, String, ShadowKindType, String)} is reworked.
      */
     public static <F extends FocusType> boolean isPolicyFullyApplicable(
             @NotNull ResourceObjectTypeSynchronizationPolicy policy,
@@ -49,8 +49,7 @@ public class SynchronizationServiceUtils {
         if (discriminator != null) {
             isPolicyApplicable = policy.isApplicableToDiscriminator(discriminator);
         } else {
-            isPolicyApplicable = policy.isApplicableToShadow(
-                    syncCtx.getShadowedResourceObject().asObjectable());
+            isPolicyApplicable = policy.isApplicableToShadow(syncCtx.getShadowedResourceObject());
         }
 
         return isPolicyApplicable &&
@@ -69,8 +68,8 @@ public class SynchronizationServiceUtils {
         }
         ExpressionType conditionExpressionBean = synchronizationBean.getCondition();
         String desc = "condition in object synchronization " + synchronizationBean.getName();
-        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, syncCtx.getShadowedResourceObject(), null,
-                syncCtx.getResource(), syncCtx.getSystemConfiguration(), null, syncCtx.getPrismContext());
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
+                null, syncCtx.getShadowedResourceObject(), syncCtx.getResource(), syncCtx.getSystemConfiguration());
         try {
             ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(syncCtx.getTask(), result));
             ExpressionFactory expressionFactory = syncCtx.getBeans().expressionFactory;

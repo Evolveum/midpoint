@@ -236,7 +236,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
 
     private CorrelationResult correlateAccount(String accountName, Task task, OperationResult result) throws CommonException {
         ShadowType shadow = getAccountByName(accountName, task, result);
-        return correlationService.correlate(shadow, task, result);
+        return correlationService.correlate(shadow, null, task, result);
     }
 
     private @NotNull ShadowType getAccountByName(String name, Task task, OperationResult result)

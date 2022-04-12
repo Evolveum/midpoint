@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import static com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils.isPolicyFullyApplicable;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,9 @@ class SynchronizationContextLoader {
     @Autowired private SynchronizationExpressionsEvaluator synchronizationExpressionsEvaluator;
 
     SynchronizationContext<FocusType> loadSynchronizationContextFromChange(
-            @NotNull ResourceObjectShadowChangeDescription change, Task task, OperationResult result)
+            @NotNull ResourceObjectShadowChangeDescription change,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -81,15 +84,15 @@ class SynchronizationContextLoader {
             String sourceChanel,
             String itemProcessingIdentifier,
             PrismObject<SystemConfigurationType> explicitSystemConfiguration,
-            Task task,
-            OperationResult result)
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
         SynchronizationContext<F> syncCtx = new SynchronizationContext<>(
-                shadowedResourceObject,
+                shadowedResourceObject.asObjectable(),
                 resourceObjectDelta,
-                resource,
+                resource.asObjectable(),
                 sourceChanel,
                 beans,
                 task,
@@ -117,17 +120,17 @@ class SynchronizationContextLoader {
             PrismObject<SystemConfigurationType> explicitSystemConfiguration,
             OperationResult result) throws SchemaException {
         if (explicitSystemConfiguration != null) {
-            syncCtx.setSystemConfiguration(explicitSystemConfiguration);
+            syncCtx.setSystemConfiguration(explicitSystemConfiguration.asObjectable());
         } else {
-            syncCtx.setSystemConfiguration(systemObjectCache.getSystemConfiguration(result));
+            syncCtx.setSystemConfiguration(asObjectable(systemObjectCache.getSystemConfiguration(result)));
         }
     }
 
     private <F extends FocusType> void generateTagIfNotPresent(SynchronizationContext<F> syncCtx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        PrismObject<ShadowType> applicableShadow = syncCtx.getShadowedResourceObject();
-        if (applicableShadow.asObjectable().getTag() != null) {
+        ShadowType applicableShadow = syncCtx.getShadowedResourceObject();
+        if (applicableShadow.getTag() != null) {
             return;
         }
         ResourceObjectTypeDefinition objectTypeDef = syncCtx.findObjectTypeDefinition();

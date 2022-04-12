@@ -12,7 +12,6 @@ import com.evolveum.midpoint.model.api.CorrelationProperty;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -93,11 +92,14 @@ public interface CorrelationService {
     void clearCorrelationState(@NotNull String shadowOid, @NotNull OperationResult result) throws ObjectNotFoundException;
 
     /**
-     * Executes the correlation for a given shadow.
+     * Executes the correlation for a given shadow + pre-focus.
+     *
+     * This is _not_ the standard use of the correlation, though.
+     * (Note that it lacks e.g. the resource object delta information.)
      */
-    @VisibleForTesting
     CorrelationResult correlate(
             @NotNull ShadowType shadow,
+            @Nullable FocusType preFocus,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,

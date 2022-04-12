@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
@@ -30,6 +32,14 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+
+import com.evolveum.midpoint.model.api.correlator.CorrelationService;
+
+import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SimplePreInboundsContextImpl;
+import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluation;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -60,9 +70,7 @@ import com.evolveum.midpoint.model.impl.expr.triggerSetter.TriggerCreatorGlobalS
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -115,6 +123,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private static final Trace LOGGER = TraceManager.getTrace(MidpointFunctionsImpl.class);
 
     public static final String CLASS_DOT = MidpointFunctions.class.getName() + ".";
+    private static final String OP_FIND_CANDIDATE_OWNERS = CLASS_DOT + "findCandidateOwners";
 
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
@@ -137,6 +146,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private TaskManager taskManager;
     @Autowired private SchemaService schemaService;
     @Autowired private CorrelationCaseManager correlationCaseManager;
+    @Autowired private CorrelationService correlationService;
+    @Autowired private SystemObjectCache systemObjectCache;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -791,6 +802,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
 
         return null;
+    }
+
+    public @NotNull Task getCurrentTaskRequired() {
+        return MiscUtil.requireNonNull(getCurrentTask(), () -> new IllegalStateException("no current task"));
     }
 
     @Override
@@ -1837,77 +1852,72 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public <F extends FocusType> List<F> getFocusesByCorrelationRule(
-            Class<F> type,
-            String resourceOid,
-            ShadowKindType kind,
-            String intent,
-            ShadowType shadow) throws SchemaException {
+    public @NotNull <F extends FocusType> List<F> findCandidateOwners(
+            @NotNull Class<F> focusType,
+            @NotNull ShadowType shadow,
+            @NotNull String resourceOid,
+            @NotNull ShadowKindType kind,
+            @NotNull String intent) throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 
-        // TODO REWORK THIS!!!
-
-        ResourceType resource;
+        Task task = getCurrentTaskRequired();
+        OperationResult result = getCurrentResult(OP_FIND_CANDIDATE_OWNERS)
+                .createSubresult(OP_FIND_CANDIDATE_OWNERS);
         try {
-            resource = getObject(ResourceType.class, resourceOid, GetOperationOptions.createNoFetchCollection());
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException
-                | SecurityViolationException | ExpressionEvaluationException e) {
-            LOGGER.error("Cannot get resource, reason: {}", e.getMessage(), e);
-            return null;
+            // We create a clone to avoid touching the shadow.
+            ShadowType shadowClone = shadow.clone()
+                    .kind(kind)
+                    .intent(intent)
+                    .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
+
+            ResourceType resource = provisioningService.getObject(
+                            ResourceType.class,
+                            resourceOid,
+                            GetOperationOptions.createNoFetchCollection(),
+                            task,
+                            result)
+                    .asObjectable();
+
+            ResourceObjectTypeSynchronizationPolicy synchronizationPolicy =
+                    MiscUtil.requireNonNull(
+                            ResourceObjectTypeSynchronizationPolicy.forKindAndIntent(kind, intent, resource),
+                            () -> new ConfigurationException("No sync policy for " + kind + "/" + intent + " in " + resource));
+
+            Class<F> specificFocusType = getMoreSpecificType(focusType, synchronizationPolicy.getFocusClass());
+
+            SimplePreInboundsContextImpl<?> context = new SimplePreInboundsContextImpl<>(
+                    shadowClone,
+                    resource,
+                    PrismContext.get().createObjectable(specificFocusType),
+                    asObjectable(systemObjectCache.getSystemConfiguration(result)),
+                    task,
+                    synchronizationPolicy.getResourceObjectDefinition());
+
+            new PreMappingsEvaluation<>(context, beans)
+                    .evaluate(result);
+
+            return correlationService.correlate(shadowClone, context.getPreFocus(), task, result)
+                    .getAllCandidates(focusType);
+
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
         }
-        SynchronizationType synchronization = resource.getSynchronization();
-        if (synchronization == null) {
-            return null;
-        }
+    }
 
-        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
-        if (schema == null) {
-            return null;
-        }
-
-        ObjectSynchronizationDiscriminatorType discriminator = new ObjectSynchronizationDiscriminatorType();
-        discriminator.setKind(kind);
-        discriminator.setIntent(intent);
-
-        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(
-                shadow.asPrismObject(),
-                null,
-                resource.asPrismObject(),
-                getCurrentTask().getChannel(),
-                beans,
-                getCurrentTask(),
-                null);
-
-        ObjectSynchronizationType applicablePolicy = null;
-
-        OperationResult result = getCurrentResult();
-
-        try {
-
-            SystemConfigurationType systemConfiguration = modelInteractionService.getSystemConfiguration(result);
-            syncCtx.setSystemConfiguration(systemConfiguration.asPrismObject());
-
-            for (ObjectSynchronizationType objectSync : synchronization.getObjectSynchronization()) {
-
-                ResourceObjectTypeSynchronizationPolicy policy =
-                        ResourceObjectTypeSynchronizationPolicy.forStandalone(objectSync, schema);
-
-                if (policy != null && SynchronizationServiceUtils.isPolicyFullyApplicable(policy, discriminator, syncCtx, result)) {
-                    applicablePolicy = objectSync;
-                    break;
-                }
-            }
-
-            if (applicablePolicy == null) {
-                return null;
-            }
-
-            List<PrismObject<F>> correlatedFocuses = correlationConfirmationEvaluator.findFocusesByCorrelationRule(type, shadow, applicablePolicy.getCorrelation(), resource, systemConfiguration, syncCtx.getTask(), result);
-            return MiscSchemaUtil.toObjectableList(correlatedFocuses);
-
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                | ConfigurationException | SecurityViolationException e) {
-            LOGGER.error("Cannot find applicable policy for kind={}, intent={}. Reason: {}", kind, intent, e.getMessage(), e);
-            return null;
+    private <F extends FocusType> Class<F> getMoreSpecificType(
+            @NotNull Class<? extends FocusType> class1, @NotNull Class<? extends FocusType> class2) {
+        if (class1.isAssignableFrom(class2)) {
+            //noinspection unchecked
+            return (Class<F>) class2;
+        } else if (class2.isAssignableFrom(class1)) {
+            //noinspection unchecked
+            return (Class<F>) class1;
+        } else {
+            throw new IllegalArgumentException(
+                    "Classes " + class1.getName() + " and " + class2.getName() + " are not compatible");
         }
     }
 

@@ -9,11 +9,11 @@ package com.evolveum.midpoint.model.impl.correlator.expression;
 
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+
+import com.evolveum.midpoint.schema.util.ObjectSet;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -85,11 +85,11 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
         public CorrelationResult execute(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
-            List<F> candidateOwners = findCandidatesUsingExpressions(result);
+            ObjectSet<F> candidateOwners = findCandidatesUsingExpressions(result);
             return beans.builtInResultCreator.createCorrelationResult(candidateOwners, correlationContext);
         }
 
-        private @NotNull List<F> findCandidatesUsingExpressions(OperationResult result)
+        private @NotNull ObjectSet<F> findCandidatesUsingExpressions(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
@@ -126,7 +126,7 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
                     .evaluateAnyExpressionInContext(expression, params, task, result);
             LOGGER.trace("Correlation expression returned:\n{}", DebugUtil.debugDumpLazily(outputTriple, 1));
 
-            List<F> allCandidates = new ArrayList<>();
+            ObjectSet<F> allCandidates = new ObjectSet<>();
             if (outputTriple != null) {
                 for (PrismValue candidateValue : outputTriple.getNonNegativeValues()) {
                     addCandidateOwner(allCandidates, candidateValue, result);
@@ -140,7 +140,7 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
             return allCandidates;
         }
 
-        private void addCandidateOwner(List<F> allCandidates, PrismValue candidateValue, OperationResult result)
+        private void addCandidateOwner(ObjectSet<F> allCandidates, PrismValue candidateValue, OperationResult result)
                 throws SchemaException, ObjectNotFoundException {
             if (candidateValue == null) {
                 return;
@@ -149,13 +149,13 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
             if (candidateValue instanceof PrismObjectValue) {
                 //noinspection unchecked
                 candidateOwner = ((PrismObjectValue<F>) candidateValue).asObjectable();
-                if (containsOid(allCandidates, candidateValue, candidateOwner.getOid())) {
-                    return;
-                }
+                checkOidPresent(candidateOwner.getOid(), candidateValue);
             } else if (candidateValue instanceof PrismReferenceValue) {
-                // We first check for duplicates to avoid needless resolution of the reference
                 PrismReferenceValue candidateOwnerRef = (PrismReferenceValue) candidateValue;
-                if (containsOid(allCandidates, candidateValue, candidateOwnerRef.getOid())) {
+                String oid = candidateOwnerRef.getOid();
+                checkOidPresent(oid, candidateValue);
+                if (allCandidates.containsOid(oid)) {
+                    // This is to avoid needless resolution of the reference
                     return;
                 }
                 candidateOwner = resolveReference(candidateOwnerRef, result);
@@ -166,19 +166,11 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
             allCandidates.add(candidateOwner);
         }
 
-        /** Does some checking/logging besides OID presence checking. */
-        private boolean containsOid(List<F> allCandidates, PrismValue candidateValue, String oid) throws SchemaException {
+        private void checkOidPresent(String oid, PrismValue candidateValue) throws SchemaException {
             if (oid == null) {
                 // Or other kind of exception?
                 throw new SchemaException("No OID found in value returned from correlation script. Value: "
                         + candidateValue + " in: " + contextDescription);
-            }
-            if (CorrelatorUtil.containsOid(allCandidates, oid)) {
-                LOGGER.trace("Candidate owner {} already processed", candidateValue);
-                return true;
-            } else {
-                LOGGER.trace("Adding {} to the list of candidate owners", candidateValue);
-                return false;
             }
         }
 

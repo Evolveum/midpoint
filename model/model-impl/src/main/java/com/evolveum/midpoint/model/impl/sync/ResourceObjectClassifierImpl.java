@@ -64,8 +64,8 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
     private Classification doClassify(
             @NotNull PrismObject<ShadowType> combinedObject,
             @NotNull PrismObject<ResourceType> resource,
-            Task task,
-            OperationResult result)
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
 

@@ -13,7 +13,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.UNKNOWN;
 
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismContext;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -312,6 +315,20 @@ public class ResourceObjectTypeSynchronizationPolicy {
         } else {
             return null;
         }
+    }
+
+    /** Returns the focus type this synchronization policy points to. */
+    public @NotNull QName getFocusTypeName() {
+        return Objects.requireNonNullElse(
+                synchronizationBean.getFocusType(),
+                UserType.COMPLEX_TYPE);
+    }
+
+    /** Returns the focus class this synchronization policy points to. */
+    public @NotNull Class<? extends FocusType> getFocusClass() {
+        return PrismContext.get().getSchemaRegistry()
+                .determineClassForTypeRequired(
+                        getFocusTypeName());
     }
 
     @Override

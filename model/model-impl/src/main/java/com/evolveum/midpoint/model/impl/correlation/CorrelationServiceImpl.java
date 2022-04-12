@@ -55,12 +55,15 @@ public class CorrelationServiceImpl implements CorrelationService {
 
     @Override
     public CorrelationResult correlate(
-            @NotNull ShadowType shadowedResourceObject, @NotNull Task task, @NotNull OperationResult result)
+            @NotNull ShadowType shadowedResourceObject,
+            @Nullable FocusType preFocus,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         FullCorrelationContext fullContext = getFullCorrelationContext(shadowedResourceObject, task, result);
         CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
-        CorrelationContext correlationContext = createCorrelationContext(fullContext, task, result);
+        CorrelationContext correlationContext = createCorrelationContext(fullContext, preFocus, task, result);
         return correlatorFactoryRegistry
                 .instantiateCorrelator(correlatorContext, task, result)
                 .correlate(correlationContext, result);
@@ -130,7 +133,11 @@ public class CorrelationServiceImpl implements CorrelationService {
         return correlatorFactoryRegistry.instantiateCorrelator(correlatorContext, task, result);
     }
 
-    private CorrelationContext createCorrelationContext(FullCorrelationContext fullContext, Task task, OperationResult result)
+    private CorrelationContext createCorrelationContext(
+            @NotNull FullCorrelationContext fullContext,
+            @Nullable FocusType preFocus,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException {
         Class<ObjectType> objectTypeClass = ObjectTypes.getObjectTypeClass(
                 Objects.requireNonNull(
@@ -138,7 +145,9 @@ public class CorrelationServiceImpl implements CorrelationService {
                         () -> "No focus type for " + fullContext.typeDefinition));
         return new CorrelationContext(
                 fullContext.shadow,
-                (FocusType) PrismContext.get().createObjectable(objectTypeClass), // TODO
+                preFocus != null ?
+                        preFocus :
+                        (FocusType) PrismContext.get().createObjectable(objectTypeClass),
                 fullContext.resource,
                 fullContext.typeDefinition,
                 asObjectable(systemObjectCache.getSystemConfiguration(result)),
