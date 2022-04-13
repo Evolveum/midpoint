@@ -21,7 +21,7 @@ module.exports = {
     devtool: false,
     output: {
         path: path.resolve(__dirname, 'target/generated-resources/webpack/static/static'),
-        publicPath: '/',
+        publicPath: '../static/',
         filename: './[name].bundle.js',
     },
     module: {

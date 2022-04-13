@@ -45,16 +45,16 @@ body.custom-hold-transition {
 }
 
 .main-sidebar {
-  & .logo {
+  & > a.logo {
 
     & > span {
       height: 100%;
       width: 100%;
       display: inline-block;
-      background: url("../img/midpoint_logo_white_180.png") no-repeat 10px 3px;
+      background: url("../img/midpoint_logo_white_180.png") no-repeat 25px -7px;
     }
   }
-  & .custom-logo {
+  & > a.custom-logo {
 
     & > img {
 		display:block;
