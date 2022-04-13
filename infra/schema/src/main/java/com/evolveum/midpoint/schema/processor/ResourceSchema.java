@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -21,6 +22,8 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -57,6 +60,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * @author semancik
  */
 public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinition {
+
+    Trace LOGGER = TraceManager.getTrace(ResourceSchema.class);
 
     /** Returns definitions for all the object classes. */
     default @NotNull Collection<ResourceObjectClassDefinition> getObjectClassDefinitions() {
@@ -175,6 +180,19 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
         stateCheck(definition instanceof ResourceObjectTypeDefinition,
                 "No type definition for %s/%s could be found; only %s", kind, intent, definition);
         return (ResourceObjectTypeDefinition) definition;
+    }
+
+    /**
+     * Sometimes we need _type_ definition (not object class definition).
+     */
+    default @Nullable ResourceObjectTypeDefinition findObjectTypeDefinition(
+            @NotNull ShadowKindType kind, @NotNull String intent) {
+        ResourceObjectDefinition definition = findObjectDefinition(kind, intent);
+        if (definition instanceof ResourceObjectTypeDefinition) {
+            return (ResourceObjectTypeDefinition) definition;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -420,8 +438,42 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
 
     /**
      * Returns true if the schema contains no "refined" (type) definitions.
+     *
+     * BEWARE! Even schemas obtained via {@link ResourceSchemaFactory#getCompleteSchema(ResourceType)} method
+     * may seem raw, if there's no `schemaHandling` section. This should be perhaps fixed.
      */
     default boolean isRaw() {
         return getObjectTypeDefinitions().isEmpty();
+    }
+
+    /**
+     * TEMPORARY CODE
+     */
+    default Collection<ResourceObjectTypeSynchronizationPolicy> getAllSynchronizationPolicies(ResourceType resource) {
+
+        List<ResourceObjectTypeSynchronizationPolicy> policies = new ArrayList<>();
+
+        for (ResourceObjectTypeDefinition typeDef : getObjectTypeDefinitions()) {
+            ObjectSynchronizationType syncDef = typeDef.getDefinitionBean().getSynchronization();
+            if (syncDef != null) {
+                policies.add(ResourceObjectTypeSynchronizationPolicy.forEmbedded(typeDef, syncDef));
+            }
+        }
+
+        SynchronizationType synchronization = resource.getSynchronization();
+        if (synchronization != null) {
+            for (ObjectSynchronizationType synchronizationBean : synchronization.getObjectSynchronization()) {
+                ResourceObjectTypeSynchronizationPolicy policy =
+                        ResourceObjectTypeSynchronizationPolicy.forStandalone(synchronizationBean, this);
+                if (policy != null) {
+                    policies.add(policy);
+                } else {
+                    LOGGER.warn("Synchronization configuration {} cannot be connected to resource object definition in {}",
+                            synchronizationBean, resource);
+                }
+            }
+        }
+
+        return policies;
     }
 }

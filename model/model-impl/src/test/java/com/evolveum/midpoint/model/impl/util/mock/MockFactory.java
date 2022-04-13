@@ -180,6 +180,10 @@ public class MockFactory {
             @Override
             public void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
             }
+
+            @Override
+            public void setShadowTagGenerator(ShadowTagGenerator generator) {
+            }
         };
     }
 

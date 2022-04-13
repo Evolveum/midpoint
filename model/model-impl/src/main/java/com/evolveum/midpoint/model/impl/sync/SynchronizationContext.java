@@ -9,19 +9,7 @@ package com.evolveum.midpoint.model.impl.sync;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.BooleanUtils;
@@ -29,29 +17,39 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContext;
+import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeSynchronizationPolicy;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 /**
  * Context of the synchronization operation. It is created in the early stages of {@link ResourceObjectShadowChangeDescription}
@@ -59,7 +57,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
  *
  * @param <F> Type of the matching focus object
  */
-public class SynchronizationContext<F extends FocusType> implements PreInboundsContext<F> {
+public class SynchronizationContext<F extends FocusType>
+        implements PreInboundsContext<F>, ResourceObjectProcessingContext {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
 
@@ -74,26 +73,25 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
      */
     @NotNull private final ShadowType shadowedResourceObject;
 
-    /**
-     * Original delta that triggered this synchronization. (If known.)
-     */
-    private final ObjectDelta<ShadowType> resourceObjectDelta;
+    /** Original delta that triggered this synchronization. (If known.) */
+    @Nullable private final ObjectDelta<ShadowType> resourceObjectDelta;
 
-    /**
-     * The resource. It is updated in {@link #checkNotInMaintenance(OperationResult)}. But it's never null.
-     */
-    @NotNull private ResourceType resource;
+    @NotNull private final ResourceType resource;
 
     /** Current system configuration */
-    private SystemConfigurationType systemConfiguration;
+    private final SystemConfigurationType systemConfiguration;
 
+    /** TODO */
     private final String channel;
 
-    private ExpressionProfile expressionProfile;
+    private final ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
     @NotNull private final Task task;
 
-    private ResourceObjectTypeSynchronizationPolicy synchronizationPolicy;
+    /** Definition of corresponding object type (currently found by kind+intent). */
+    @Nullable private final ResourceObjectTypeDefinition objectTypeDefinition;
+
+    @Nullable private final ResourceObjectTypeSynchronizationPolicy synchronizationPolicy;
 
     /**
      * Preliminary focus object - a result pre pre-mappings execution.
@@ -122,19 +120,15 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
      */
     private CorrelationContext correlationContext;
 
-    private String intent;
-    private String tag;
-
-    /** Definition of corresponding object type (currently found by kind+intent). Lazily evaluated. TODO reconsider. */
-    private ResourceObjectTypeDefinition objectTypeDefinition;
+    private final String tag;
 
     private boolean reactionEvaluated = false;
     private SynchronizationReactionType reaction;
 
     private boolean shadowExistsInRepo = true;
-    private boolean forceIntentChange;
+    private final boolean forceIntentChange;
 
-    @NotNull private final PrismContext prismContext;
+    @NotNull private final PrismContext prismContext = PrismContext.get();
     @NotNull private final ModelBeans beans;
 
     /** TODO maybe will be removed */
@@ -149,22 +143,34 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
     @NotNull private final List<ItemDelta<?, ?>> pendingShadowDeltas = new ArrayList<>();
 
     public SynchronizationContext(
-            @NotNull ShadowType shadowedResourceObject,
-            @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
-            @NotNull ResourceType resource,
-            String channel,
-            @NotNull ModelBeans beans,
-            @NotNull Task task,
-            String itemProcessingIdentifier) {
-        this.shadowedResourceObject = shadowedResourceObject;
-        this.resourceObjectDelta = resourceObjectDelta;
-        this.resource = resource;
-        this.channel = channel;
-        this.task = task;
-        this.prismContext = beans.prismContext;
-        this.beans = beans;
-        this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
+            @NotNull ResourceObjectProcessingContextImpl processingContext,
+            @Nullable ResourceObjectTypeDefinition objectTypeDefinition,
+            @Nullable ResourceObjectTypeSynchronizationPolicy synchronizationPolicy,
+            @Nullable ObjectSynchronizationDiscriminatorType sorterResult,
+            @Nullable String tag,
+            @Nullable String itemProcessingIdentifier) {
+        this.shadowedResourceObject = processingContext.getShadowedResourceObject();
+        this.resourceObjectDelta = processingContext.getResourceObjectDelta();
+        this.resource = processingContext.getResource();
+        this.channel = processingContext.getChannel();
+        this.systemConfiguration = processingContext.getSystemConfiguration();
+        this.task = processingContext.getTask();
+        this.beans = processingContext.getBeans();
+        this.objectTypeDefinition = objectTypeDefinition;
+        this.synchronizationPolicy = synchronizationPolicy;
+        this.tag = tag;
         this.itemProcessingIdentifier = itemProcessingIdentifier;
+        if (sorterResult != null) {
+            this.forceIntentChange = true;
+            LOGGER.trace("Setting synchronization situation to synchronization context: {}",
+                    sorterResult.getSynchronizationSituation());
+            situation = sorterResult.getSynchronizationSituation();
+            LOGGER.trace("Setting correlated owner in synchronization context: {}", sorterResult.getOwner());
+            //noinspection unchecked
+            this.correlatedOwner = (F) sorterResult.getOwner();
+        } else {
+            this.forceIntentChange = false;
+        }
     }
 
     public boolean isSynchronizationEnabled() {
@@ -176,28 +182,14 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         return BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject());
     }
 
-    public ShadowKindType getKind() {
-
-        if (!hasApplicablePolicy()) {
-            return ShadowKindType.UNKNOWN;
-        }
-
-        return synchronizationPolicy.getKind();
+    /** May be unknown! */
+    public @NotNull ShadowKindType getKind() {
+        return objectTypeDefinition != null ? objectTypeDefinition.getKind() : ShadowKindType.UNKNOWN;
     }
 
-    public String getIntent() throws SchemaException {
-        if (!hasApplicablePolicy()) {
-            return SchemaConstants.INTENT_UNKNOWN;
-        }
-
-        if (intent == null) {
-            ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
-            ResourceObjectDefinition def = schema.findObjectDefinition(getKind(), null);
-            if (def instanceof ResourceObjectTypeDefinition) {
-                intent = ((ResourceObjectTypeDefinition) def).getIntent(); // TODO ???
-            }
-        }
-        return intent;
+    /** May be unknown! */
+    public @NotNull String getIntent() throws SchemaException {
+        return objectTypeDefinition != null ? objectTypeDefinition.getIntent() : SchemaConstants.INTENT_UNKNOWN;
     }
 
     public CorrelationContext getCorrelationContext() {
@@ -208,33 +200,21 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         this.correlationContext = correlationContext;
     }
 
-    // TODO reconsider
-    public @NotNull ResourceObjectTypeDefinition getObjectTypeDefinition() throws SchemaException, ConfigurationException {
-        if (objectTypeDefinition == null) {
-            objectTypeDefinition = ResourceSchemaFactory.getCompleteSchemaRequired(resource)
-                    .findObjectTypeDefinitionRequired(getKind(), getIntent());
-        }
-        return objectTypeDefinition;
+    public @NotNull ResourceObjectTypeDefinition getObjectTypeDefinitionRequired()
+            throws SchemaException, ConfigurationException {
+        return MiscUtil.requireNonNull(objectTypeDefinition, () -> new IllegalStateException("No object type definition"));
     }
 
     public String getTag() {
         return tag;
     }
 
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
-
     private ObjectSynchronizationType getSynchronizationBean() {
         return synchronizationPolicy != null ? synchronizationPolicy.getSynchronizationBean() : null;
     }
 
-    public List<ConditionalSearchFilterType> getCorrelation() {
-        return getSynchronizationBean().getCorrelation();
-    }
-
-    public ExpressionType getConfirmation() {
-        return getSynchronizationBean().getConfirmation();
+    @NotNull private ObjectSynchronizationType getSynchronizationBeanRequired() {
+        return getSynchronizationPolicyRequired().getSynchronizationBean();
     }
 
     /**
@@ -267,8 +247,8 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         if (reaction.getObjectTemplateRef() != null) {
             return reaction.getObjectTemplateRef();
         }
-
-        return getSynchronizationBean().getObjectTemplateRef();
+        ObjectSynchronizationType bean = getSynchronizationBean();
+        return bean != null ? bean.getObjectTemplateRef() : null;
     }
 
     public SynchronizationReactionType getReaction(OperationResult result)
@@ -279,7 +259,7 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         }
 
         SynchronizationReactionType defaultReaction = null;
-        for (SynchronizationReactionType reactionToConsider : getSynchronizationBean().getReaction()) {
+        for (SynchronizationReactionType reactionToConsider : getSynchronizationBeanRequired().getReaction()) {
             SynchronizationSituationType reactionSituation = reactionToConsider.getSituation();
             if (reactionSituation == null) {
                 throw new ConfigurationException("No situation defined for a reaction in " + resource);
@@ -315,9 +295,7 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
             ExpressionType expression = reaction.getCondition();
             String desc = "condition in synchronization reaction on " + reaction.getSituation()
                     + (reaction.getName() != null ? " (" + reaction.getName() + ")" : "");
-            VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
-                    getFocusOrPreFocus(), shadowedResourceObject, resource, systemConfiguration);
-            variables.put(ExpressionConstants.VAR_RESOURCE_OBJECT_DELTA, resourceObjectDelta, ObjectDelta.class);
+            VariablesMap variables = createVariablesMap();
             try {
                 ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
                 boolean value = ExpressionUtil.evaluateConditionDefaultFalse(variables, expression,
@@ -334,6 +312,14 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         }
     }
 
+    @Override
+    public @NotNull VariablesMap createVariablesMap() {
+        VariablesMap variablesMap = ModelImplUtils.getDefaultVariablesMap(
+                getFocusOrPreFocus(), shadowedResourceObject, resource, systemConfiguration);
+        variablesMap.put(ExpressionConstants.VAR_RESOURCE_OBJECT_DELTA, resourceObjectDelta, ObjectDelta.class);
+        return variablesMap;
+    }
+
     @SuppressWarnings("ReplaceNullCheck")
     private @NotNull ObjectType getFocusOrPreFocus() {
         if (linkedOwner != null) {
@@ -345,6 +331,14 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         }
     }
 
+    @Nullable ResourceObjectTypeSynchronizationPolicy getSynchronizationPolicy() {
+        return synchronizationPolicy;
+    }
+
+    public @NotNull ResourceObjectTypeSynchronizationPolicy getSynchronizationPolicyRequired() {
+        return MiscUtil.requireNonNull(synchronizationPolicy, () -> new IllegalStateException("No synchronization policy"));
+    }
+
     boolean hasApplicablePolicy() {
         return synchronizationPolicy != null;
     }
@@ -353,8 +347,9 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         if (synchronizationPolicy == null) {
             return null;
         }
-        if (getSynchronizationBean().getName() != null) {
-            return getSynchronizationBean().getName();
+        String name = getSynchronizationBeanRequired().getName();
+        if (name != null) {
+            return name;
         }
         return synchronizationPolicy.toString();
     }
@@ -363,10 +358,7 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         if (reaction.isReconcile() != null) {
             return reaction.isReconcile();
         }
-        if (getSynchronizationBean().isReconcile() != null) {
-            return getSynchronizationBean().isReconcile();
-        }
-        return null;
+        return getSynchronizationBeanRequired().isReconcile();
     }
 
     public ModelExecuteOptionsType getExecuteOptions() {
@@ -390,12 +382,10 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         if (reaction.isLimitPropagation() != null) {
             return reaction.isLimitPropagation();
         }
-        if (getSynchronizationBean().isLimitPropagation() != null) {
-            return getSynchronizationBean().isLimitPropagation();
-        }
-        return null;
+        return getSynchronizationBeanRequired().isLimitPropagation();
     }
 
+    @Override
     public @NotNull ShadowType getShadowedResourceObject() {
         return shadowedResourceObject;
     }
@@ -414,11 +404,7 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
             return focusClass;
         }
 
-        if (!hasApplicablePolicy()) {
-            throw new IllegalStateException("synchronizationPolicy is null");
-        }
-
-        QName focusTypeQName = getSynchronizationBean().getFocusType();
+        QName focusTypeQName = getSynchronizationBeanRequired().getFocusType();
         if (focusTypeQName == null) {
             //noinspection unchecked
             this.focusClass = (Class<F>) UserType.class;
@@ -459,21 +445,8 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         return correlatedOwner;
     }
 
-    public PrismContext getPrismContext() {
-        return prismContext;
-    }
-
     public SynchronizationSituationType getSituation() {
         return situation;
-    }
-
-    void setObjectSynchronizationPolicy(ResourceObjectTypeSynchronizationPolicy policy) {
-        this.intent = policy.getIntent();
-        this.synchronizationPolicy = policy;
-    }
-
-    public void setFocusClass(Class<F> focusClass) {
-        this.focusClass = focusClass;
     }
 
     public void setLinkedOwner(F owner) {
@@ -496,20 +469,8 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         return channel;
     }
 
-    public void setSystemConfiguration(SystemConfigurationType systemConfiguration) {
-        this.systemConfiguration = systemConfiguration;
-    }
-
     public ExpressionProfile getExpressionProfile() {
         return expressionProfile;
-    }
-
-    public void setExpressionProfile(ExpressionProfile expressionProfile) {
-        this.expressionProfile = expressionProfile;
-    }
-
-    public void setReaction(SynchronizationReactionType reaction) {
-        this.reaction = reaction;
     }
 
     public @NotNull Task getTask() {
@@ -529,41 +490,21 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         return forceIntentChange;
     }
 
-    public void setForceIntentChange(boolean forceIntentChange) {
-        this.forceIntentChange = forceIntentChange;
-    }
-
     public String getItemProcessingIdentifier() {
         return itemProcessingIdentifier;
-    }
-
-    ResourceObjectTypeDefinition findObjectTypeDefinition() throws SchemaException {
-        ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ShadowKindType kind = getKind();
-
-        // FIXME this hacking
-        String intent = getIntent();
-        if (kind == null || kind == ShadowKindType.UNKNOWN) {
-            return null; // nothing to look for
-        }
-        if (SchemaConstants.INTENT_UNKNOWN.equals(intent)) {
-            intent = null;
-        }
-
-        // FIXME the cast
-        return (ResourceObjectTypeDefinition) refinedResourceSchema.findObjectDefinition(kind, intent);
     }
 
     @Override
     public String toString() {
         String policyDesc = null;
         if (synchronizationPolicy != null) {
-            if (getSynchronizationBean().getName() == null) {
+            ObjectSynchronizationType bean = synchronizationPolicy.getSynchronizationBean();
+            if (bean.getName() == null) {
                 policyDesc = "(kind=" + synchronizationPolicy.getKind() + ", intent="
                         + synchronizationPolicy.getIntent() + ", objectclass="
-                        + getSynchronizationBean().getObjectClass() + ")";
+                        + bean.getObjectClass() + ")";
             } else {
-                policyDesc = getSynchronizationBean().getName();
+                policyDesc = bean.getName();
             }
         }
 
@@ -584,7 +525,7 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         DebugUtil.debugDumpWithLabelToStringLn(sb, "currentOwner", linkedOwner, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "correlatedOwner", correlatedOwner, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "situation", situation, indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "intent", intent, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "objectTypeDefinition", objectTypeDefinition, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "tag", tag, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "reaction", reaction, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowExistsInRepo", shadowExistsInRepo, indent + 1);
@@ -593,26 +534,13 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         return sb.toString();
     }
 
-    /**
-     * Checks whether the source resource is not in maintenance mode.
-     * (Throws an exception if it is.)
-     *
-     * Side-effect: updates the resource prism object (if it was changed).
-     */
-    void checkNotInMaintenance(OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
-        if (!skipMaintenanceCheck) {
-            resource = beans.provisioningService
-                    .getObject(ResourceType.class, resource.getOid(), null, task, result)
-                    .asObjectable();
-            ResourceTypeUtil.checkNotInMaintenance(resource);
-        }
-    }
-
     @VisibleForTesting
     public static void setSkipMaintenanceCheck(boolean skipMaintenanceCheck) {
         SynchronizationContext.skipMaintenanceCheck = skipMaintenanceCheck;
+    }
+
+    static boolean isSkipMaintenanceCheck() {
+        return SynchronizationContext.skipMaintenanceCheck;
     }
 
     @Nullable CorrelationDefinitionType getCorrelationDefinitionBean() {
@@ -659,46 +587,7 @@ public class SynchronizationContext<F extends FocusType> implements PreInboundsC
         return systemConfiguration;
     }
 
-    @NotNull Collection<ResourceObjectTypeSynchronizationPolicy> getAllSynchronizationPolicies() throws SchemaException {
-        List<ResourceObjectTypeSynchronizationPolicy> policies = new ArrayList<>();
-
-        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
-        if (schema == null) {
-            LOGGER.warn("No synchronization policies can be collected from {}. It has no schema.", resource);
-            return List.of();
-        }
-
-        for (ResourceObjectTypeDefinition typeDef : schema.getObjectTypeDefinitions()) {
-            ObjectSynchronizationType syncDef = typeDef.getDefinitionBean().getSynchronization();
-            if (syncDef != null) {
-                policies.add(ResourceObjectTypeSynchronizationPolicy.forEmbedded(typeDef, syncDef));
-            }
-        }
-
-        SynchronizationType synchronization = resource.getSynchronization();
-        if (synchronization != null) {
-            for (ObjectSynchronizationType synchronizationBean : synchronization.getObjectSynchronization()) {
-                ResourceObjectTypeSynchronizationPolicy policy =
-                        ResourceObjectTypeSynchronizationPolicy.forStandalone(synchronizationBean, schema);
-                if (policy != null) {
-                    policies.add(policy);
-                } else {
-                    LOGGER.warn("Synchronization configuration {} cannot be connected to resource object definition in {}",
-                            synchronizationBean, resource);
-                }
-            }
-        }
-
-        return policies;
-    }
-
-    boolean isShadowAlreadyLinked() {
-        return linkedOwner != null
-                && linkedOwner.getLinkRef().stream()
-                .anyMatch(link -> link.getOid().equals(shadowedResourceObject.getOid()));
-    }
-
     public @NotNull ModelBeans getBeans() {
-        return Objects.requireNonNull(beans, () -> "no model Spring beans in " + this);
+        return beans;
     }
 }

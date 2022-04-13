@@ -98,7 +98,7 @@ class ShadowAcquisition {
         if (skipClassification) {
             LOGGER.trace("Acquired repo shadow (skipping classification as requested):\n{}", repoShadow.debugDumpLazily(1));
             return repoShadow;
-        } else if (!localBeans.classificationHelper.needsClassification(repoShadow)) {
+        } else if (ShadowUtil.isClassified(repoShadow.asObjectable())) {
             LOGGER.trace("Acquired repo shadow (already classified):\n{}", repoShadow.debugDumpLazily(1));
             return repoShadow;
         } else {
@@ -120,8 +120,8 @@ class ShadowAcquisition {
     }
 
     // TODO is it OK to do it here? OID maybe. But resourceRef should have been there already (although without full object)
-    private void setOidAndResourceRefToResourceObject(PrismObject<ShadowType> repoShadow) throws ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void setOidAndResourceRefToResourceObject(PrismObject<ShadowType> repoShadow)
+            throws SchemaException {
         ShadowType resourceObject = getResourceObject().asObjectable();
 
         resourceObject.setOid(repoShadow.getOid());

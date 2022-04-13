@@ -178,6 +178,8 @@ class ShadowIntegrityCheckItemProcessor {
             }
         }
 
+        // FIXME what about unknown intents?
+        //  and about unknown kinds?
         String intent = shadowType.getIntent();
         if (cfg.checkIntents && (intent == null || intent.isEmpty())) {
             checkResult.recordWarning(ShadowStatistics.NO_INTENT_SPECIFIED, "None or empty intent");
@@ -328,31 +330,30 @@ class ShadowIntegrityCheckItemProcessor {
             fullShadow = fetchedShadow;
         }
         if (fullShadow == null) {
-            checkResult.recordError(ShadowStatistics.CANNOT_APPLY_FIX, new SystemException("Cannot fix missing intent, because the resource object couldn't be fetched"));
+            checkResult.recordError(
+                    ShadowStatistics.CANNOT_APPLY_FIX,
+                    new SystemException("Cannot fix missing intent, because the resource object couldn't be fetched"));
             return;
         }
 
-        // We clear existing values, because otherwise the classifier would use them.
-        fullShadow.asObjectable().setKind(null);
-        fullShadow.asObjectable().setIntent(null);
-
         ResourceObjectClassifier.Classification classification;
         try {
-            classification = getModelBeans().resourceObjectClassifier.classify(fullShadow, resource, task, result);
+            classification = getModelBeans().resourceObjectClassifier.classify(
+                    fullShadow.asObjectable(),
+                    resource.asObjectable(),
+                    task,
+                    result);
         } catch (CommonException e) {
-            checkResult.recordError(ShadowStatistics.CANNOT_APPLY_FIX,
+            checkResult.recordError(
+                    ShadowStatistics.CANNOT_APPLY_FIX,
                     new SystemException("Couldn't prepare fix for missing intent, because shadow cannot be classified", e));
             return;
         }
 
-        if (classification.getIntent() != null) {
-            PropertyDelta<String> delta = prismContext.deltaFactory().property()
-                    .createReplaceDelta(fullShadow.getDefinition(), ShadowType.F_INTENT, classification.getIntent());
-            LOGGER.trace("Intent fix delta (not executed now) = \n{}", delta.debugDumpLazily());
-            checkResult.addFixDelta(delta, ShadowStatistics.NO_INTENT_SPECIFIED);
-        } else {
-            LOGGER.info("Classification does not contain intent: {}", classification);
-        }
+        PropertyDelta<String> delta = prismContext.deltaFactory().property()
+                .createReplaceDelta(fullShadow.getDefinition(), ShadowType.F_INTENT, classification.getIntent());
+        LOGGER.trace("Intent fix delta (not executed now) = \n{}", delta.debugDumpLazily());
+        checkResult.addFixDelta(delta, ShadowStatistics.NO_INTENT_SPECIFIED);
     }
 
     private void applyFix(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, Task workerTask, OperationResult result) throws CommonException {

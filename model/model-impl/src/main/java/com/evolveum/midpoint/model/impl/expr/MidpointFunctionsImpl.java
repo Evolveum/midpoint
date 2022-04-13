@@ -1891,7 +1891,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                     PrismContext.get().createObjectable(specificFocusType),
                     asObjectable(systemObjectCache.getSystemConfiguration(result)),
                     task,
-                    synchronizationPolicy.getResourceObjectDefinition());
+                    synchronizationPolicy.getResourceObjectDefinition(),
+                    beans);
 
             new PreMappingsEvaluation<>(context, beans)
                     .evaluate(result);

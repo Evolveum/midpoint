@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import static com.evolveum.midpoint.common.SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta;
-import static com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils.isLogDebug;
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
@@ -112,8 +111,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
             SynchronizationContext<?> syncCtx = synchronizationContextLoader.
                     loadSynchronizationContextFromChange(change, task, result);
-
-            syncCtx.checkNotInMaintenance(result);
 
             if (shouldSkipSynchronization(syncCtx, result)) {
                 return;
@@ -280,7 +277,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             findLinkedOwner(syncCtx, change, result);
 
             if (syncCtx.getLinkedOwner() == null || syncCtx.isCorrelatorsUpdateRequested()) {
-                determineSituationWithCorrelators(syncCtx, change, result);
+                determineSituationWithCorrelators(syncCtx, change, result); // TODO change the name (if sorter is used)
             } else {
                 determineSituationWithoutCorrelators(syncCtx, change, result);
             }
@@ -343,6 +340,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
+    // FIXME adapt to new correlators
     @Override
     public <F extends FocusType> boolean matchUserCorrelationRule(
             PrismObject<ShadowType> shadowedResourceObject,
@@ -355,12 +353,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 
         SynchronizationContext<F> synchronizationContext = synchronizationContextLoader.loadSynchronizationContext(
-                shadowedResourceObject,
+                shadowedResourceObject.asObjectable(),
                 null,
-                resource.asPrismObject(),
+                resource,
                 task.getChannel(),
                 null,
-                configuration,
+                asObjectable(configuration),
+                true,
                 task,
                 result);
         return synchronizationExpressionsEvaluator.matchFocusByCorrelationRule(synchronizationContext, focus, result);
@@ -818,7 +817,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     continue;
                 }
 
-                if (SynchronizationServiceUtils.isLogDebug(syncCtx)) {
+                if (isLogDebug(syncCtx)) {
                     LOGGER.debug("SYNCHRONIZATION: ACTION: Executing: {}.", action.getClass());
                 } else {
                     LOGGER.trace("SYNCHRONIZATION: ACTION: Executing: {}.", action.getClass());
@@ -838,5 +837,15 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     @Override
     public String getName() {
         return "model synchronization service";
+    }
+
+
+    private static boolean isLogDebug(ResourceObjectShadowChangeDescription change) {
+        // Reconciliation changes are routine. Do not let them pollute the log files.
+        return !SchemaConstants.CHANNEL_RECON_URI.equals(change.getSourceChannel());
+    }
+
+    private static <F extends FocusType> boolean isLogDebug(SynchronizationContext<F> syncCtx) {
+        return !SchemaConstants.CHANNEL_RECON_URI.equals(syncCtx.getChannel());
     }
 }

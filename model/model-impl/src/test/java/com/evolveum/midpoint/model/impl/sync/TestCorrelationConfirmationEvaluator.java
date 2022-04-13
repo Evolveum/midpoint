@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
+import static com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl.ResourceObjectProcessingContextBuilder.aResourceObjectProcessingContext;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 import static org.testng.AssertJUnit.*;
@@ -225,23 +226,21 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
         assertNotNull("Unexpected null system configuration", systemConfiguration);
 
-        SynchronizationContext<UserType> syncCtx = new SynchronizationContext<>(
-                shadow,
-                null,
-                resourceType,
-                SchemaConstants.CHANNEL_USER_URI,
-                beans,
-                task,
-                null);
-        syncCtx.setSystemConfiguration(asObjectable(systemConfiguration));
-
         ResourceObjectTypeSynchronizationPolicy policy =
                 Objects.requireNonNull(
                         ResourceObjectTypeSynchronizationPolicy.forStandalone(
                                 objectSynchronizationType, ResourceSchemaFactory.getCompleteSchemaRequired(resourceType)));
-        syncCtx.setObjectSynchronizationPolicy(policy);
-        syncCtx.setFocusClass(UserType.class);
-        return syncCtx;
+
+        return new SynchronizationContext<>(
+                aResourceObjectProcessingContext(shadow, resourceType, task, beans)
+                        .withExplicitChannel(SchemaConstants.CHANNEL_USER_URI)
+                        .withSystemConfiguration(asObjectable(systemConfiguration))
+                        .build(),
+                policy.getResourceTypeDefinitionRequired(),
+                policy,
+                null,
+                null,
+                null);
     }
 
     @Test

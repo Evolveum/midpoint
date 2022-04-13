@@ -14,6 +14,11 @@ import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeSynchronizationPolicy;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -212,18 +217,20 @@ public class SynchronizationExpressionsEvaluator {
 
     /**
      * TODO describe!
+     * TODO adapt to new correlators!
      */
     <F extends FocusType> boolean matchFocusByCorrelationRule(SynchronizationContext<F> syncCtx, PrismObject<F> focus,
             OperationResult result) {
 
-        if (!syncCtx.hasApplicablePolicy()) {
+        ResourceObjectTypeSynchronizationPolicy synchronizationPolicy = syncCtx.getSynchronizationPolicy();
+        if (synchronizationPolicy == null) {
             LOGGER.warn(
                     "Resource does not support synchronization. Skipping evaluation correlation/confirmation for {} and {}",
                     focus, syncCtx.getShadowedResourceObject());
             return false;
         }
 
-        List<ConditionalSearchFilterType> conditionalFilters = syncCtx.getCorrelation();
+        List<ConditionalSearchFilterType> conditionalFilters = synchronizationPolicy.getSynchronizationBean().getCorrelation();
 
         try {
             for (ConditionalSearchFilterType conditionalFilter : conditionalFilters) {
@@ -285,15 +292,20 @@ public class SynchronizationExpressionsEvaluator {
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, shadow, resource, configuration);
         ItemDefinition<?> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
-        PrismPropertyValue<String> tagProp = ExpressionUtil.evaluateExpression(
-                variables,
-                outputDefinition,
-                expressionBean,
-                MiscSchemaUtil.getExpressionProfile(),
-                expressionFactory,
-                shortDesc,
-                task,
-                result);
-        return getRealValue(tagProp);
+        try {
+            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
+            PrismPropertyValue<String> tagProp = ExpressionUtil.evaluateExpression(
+                    variables,
+                    outputDefinition,
+                    expressionBean,
+                    MiscSchemaUtil.getExpressionProfile(),
+                    expressionFactory,
+                    shortDesc,
+                    task,
+                    result);
+            return getRealValue(tagProp);
+        } finally {
+            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+        }
     }
 }

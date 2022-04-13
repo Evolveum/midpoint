@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -43,21 +44,25 @@ public class SimplePreInboundsContextImpl<F extends FocusType>
 
     @NotNull private final ResourceObjectDefinition objectTypeDefinition;
 
+    @NotNull private final ModelBeans beans;
+
     public SimplePreInboundsContextImpl(
             @NotNull ShadowType shadowedResourceObject,
             @NotNull ResourceType resource,
             @NotNull F preFocus,
             @Nullable SystemConfigurationType systemConfiguration,
             @NotNull Task task,
-            @NotNull ResourceObjectDefinition objectTypeDefinition) {
+            @NotNull ResourceObjectDefinition objectTypeDefinition, @NotNull ModelBeans beans) {
         this.shadowedResourceObject = shadowedResourceObject;
         this.resource = resource;
         this.preFocus = preFocus;
         this.systemConfiguration = systemConfiguration;
         this.task = task;
         this.objectTypeDefinition = objectTypeDefinition;
+        this.beans = beans;
     }
 
+    @Override
     public @NotNull ShadowType getShadowedResourceObject() {
         return shadowedResourceObject;
     }
@@ -81,12 +86,17 @@ public class SimplePreInboundsContextImpl<F extends FocusType>
     }
 
     @Override
+    public @NotNull ModelBeans getBeans() {
+        return beans;
+    }
+
+    @Override
     public @NotNull ResourceType getResource() {
         return resource;
     }
 
     @Override
-    public @NotNull ResourceObjectDefinition getObjectTypeDefinition() {
+    public @NotNull ResourceObjectDefinition getObjectTypeDefinitionRequired() {
         return objectTypeDefinition;
     }
 

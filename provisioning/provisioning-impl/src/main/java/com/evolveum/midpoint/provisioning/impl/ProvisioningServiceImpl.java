@@ -1258,4 +1258,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     public void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
         shadowsFacade.setResourceObjectClassifier(classifier);
     }
+
+    @Override
+    public void setShadowTagGenerator(ShadowTagGenerator generator) {
+        shadowsFacade.setShadowTagGenerator(generator);
+    }
 }

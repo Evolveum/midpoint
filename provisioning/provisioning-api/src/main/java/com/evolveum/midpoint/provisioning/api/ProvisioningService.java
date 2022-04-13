@@ -540,4 +540,9 @@ public interface ProvisioningService {
      * Provides a classifier to the provisioning service.
      */
     void setResourceObjectClassifier(ResourceObjectClassifier classifier);
+
+    /**
+     * Provides a shadow tag generator to the provisioning service.
+     */
+    void setShadowTagGenerator(ShadowTagGenerator generator);
 }

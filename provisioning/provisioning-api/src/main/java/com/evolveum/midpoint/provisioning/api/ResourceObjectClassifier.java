@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.provisioning.api;
 
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -11,6 +12,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Classifies resource objects, i.e. determines their kind and intent.
@@ -33,8 +35,8 @@ public interface ResourceObjectClassifier {
      * @param resource Resource on which the resource object was found
      */
     @NotNull Classification classify(
-            @NotNull PrismObject<ShadowType> combinedObject,
-            @NotNull PrismObject<ResourceType> resource,
+            @NotNull ShadowType combinedObject,
+            @NotNull ResourceType resource,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
@@ -45,35 +47,39 @@ public interface ResourceObjectClassifier {
      */
     class Classification {
 
-        @NotNull private final ShadowKindType kind;
-        private final String intent;
-        private final String tag;
+        @Nullable private final ResourceObjectTypeDefinition definition;
 
-        public Classification(@NotNull ShadowKindType kind, String intent, String tag) {
-            this.kind = kind;
-            this.intent = intent;
-            this.tag = tag;
+        private Classification(@Nullable ResourceObjectTypeDefinition definition) {
+            this.definition = definition;
+        }
+
+        public static Classification unknown() {
+            return new Classification(null);
+        }
+
+        public static Classification of(@Nullable ResourceObjectTypeDefinition definition) {
+            return new Classification(definition);
+        }
+
+        public @Nullable ResourceObjectTypeDefinition getDefinition() {
+            return definition;
         }
 
         public @NotNull ShadowKindType getKind() {
-            return kind;
+            return definition != null ? definition.getKind() : ShadowKindType.UNKNOWN;
         }
 
-        public String getIntent() {
-            return intent;
+        public @NotNull String getIntent() {
+            return definition != null ? definition.getIntent() : SchemaConstants.INTENT_UNKNOWN;
         }
 
-        public String getTag() {
-            return tag;
+        public boolean isKnown() {
+            return definition != null;
         }
 
         @Override
         public String toString() {
-            return "Classification{" +
-                    "kind=" + kind +
-                    ", intent='" + intent + '\'' +
-                    ", tag='" + tag + '\'' +
-                    '}';
+            return "Classification{" + definition + '}';
         }
     }
 }

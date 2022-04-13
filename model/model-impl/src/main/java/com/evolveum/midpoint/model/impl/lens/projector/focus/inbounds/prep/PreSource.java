@@ -35,7 +35,7 @@ class PreSource extends MSource {
         super(
                 ctx.getShadowedResourceObject(),
                 ctx.getResourceObjectDelta(),
-                ctx.getObjectTypeDefinition());
+                ctx.getObjectTypeDefinitionRequired());
         this.ctx = ctx;
     }
 

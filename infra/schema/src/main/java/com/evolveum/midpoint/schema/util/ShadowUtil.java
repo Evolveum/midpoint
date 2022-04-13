@@ -895,6 +895,11 @@ public class ShadowUtil {
         return !isKnown(intent);
     }
 
+    public static boolean isClassified(ShadowType shadow) {
+        // We want to be explicit here: no defaults (like kind=account, intent=default) are accepted!
+        return isKnown(shadow.getKind()) && isKnown(shadow.getIntent());
+    }
+
     public static void removeAllAttributesExceptPrimaryIdentifier(PrismObject<ShadowType> shadow,
             ResourceObjectDefinition objDef) {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
@@ -947,7 +952,7 @@ public class ShadowUtil {
                 return;
             } else {
                 shadow.setCorrelation(
-                        new ShadowCorrelationStateType(PrismContext.get()));
+                        new ShadowCorrelationStateType());
             }
         }
 

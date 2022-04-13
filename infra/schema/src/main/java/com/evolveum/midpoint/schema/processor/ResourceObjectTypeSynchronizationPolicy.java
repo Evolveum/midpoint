@@ -18,6 +18,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -107,6 +110,10 @@ public class ResourceObjectTypeSynchronizationPolicy {
     public static @Nullable ResourceObjectTypeSynchronizationPolicy forKindAndIntent(
             @NotNull ShadowKindType kind, @NotNull String intent, @NotNull ResourceType resource)
             throws SchemaException, ConfigurationException {
+
+        Preconditions.checkArgument(ShadowUtil.isKnown(kind), "kind is not known: %s", kind);
+        Preconditions.checkArgument(ShadowUtil.isKnown(intent), "intent is not known: %s", intent);
+
         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         ResourceObjectTypeSynchronizationPolicy embeddedPolicy = getEmbeddedPolicyIfPresent(kind, intent, schema);
         if (embeddedPolicy != null) {
@@ -114,6 +121,16 @@ public class ResourceObjectTypeSynchronizationPolicy {
         } else {
             return getStandalonePolicyIfPresent(kind, intent, resource, schema);
         }
+    }
+
+    /** Temporary implementation. */
+    public static @Nullable ResourceObjectTypeSynchronizationPolicy forTypeDefinition(
+            @NotNull ResourceObjectTypeDefinition definition, @NotNull ResourceType resource)
+            throws SchemaException, ConfigurationException {
+        return forKindAndIntent(
+                definition.getKind(),
+                definition.getIntent(),
+                resource);
     }
 
     private static @Nullable ResourceObjectTypeSynchronizationPolicy getEmbeddedPolicyIfPresent(
@@ -209,15 +226,15 @@ public class ResourceObjectTypeSynchronizationPolicy {
     }
 
     /**
-     * Compares the policy to given discriminator (containing kind & intent).
+     * Returns true if the policy is applicable to given synchronization discriminator (sorter result):
+     * compares its kind and intent.
      */
-    public boolean isApplicableToDiscriminator(@NotNull ObjectSynchronizationDiscriminatorType discriminator)
-            throws SchemaException {
+    public boolean isApplicableToSynchronizationDiscriminator(@NotNull ObjectSynchronizationDiscriminatorType discriminator) {
         ShadowKindType kind = discriminator.getKind();
         String intent = discriminator.getIntent();
-        if (kind == null && intent == null) { // shouldn't be "||" here?
-            throw new SchemaException(
-                    "Illegal state, object synchronization discriminator must have kind/intent specified. "
+        if (kind == null || intent == null) {
+            throw new IllegalArgumentException(
+                    "Object synchronization discriminator must have both kind and intent specified. "
                             + "Current values are: kind=" + kind + ", intent=" + intent);
         }
         return isApplicableTo(null, kind, intent, false);

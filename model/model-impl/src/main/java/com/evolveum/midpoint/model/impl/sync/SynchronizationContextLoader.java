@@ -7,22 +7,27 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
-import static com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils.isPolicyFullyApplicable;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+import static com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl.ResourceObjectProcessingContextBuilder.aResourceObjectProcessingContext;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl;
+import com.evolveum.midpoint.model.impl.classification.SynchronizationSorterEvaluation;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.schema.processor.RefinedDefinitionUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeSynchronizationPolicy;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -46,7 +51,6 @@ class SynchronizationContextLoader {
 
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ModelBeans beans;
-    @Autowired private SynchronizationExpressionsEvaluator synchronizationExpressionsEvaluator;
 
     SynchronizationContext<FocusType> loadSynchronizationContextFromChange(
             @NotNull ResourceObjectShadowChangeDescription change,
@@ -61,12 +65,13 @@ class SynchronizationContextLoader {
                         () -> new IllegalStateException("No resource in change description: " + change));
 
         SynchronizationContext<FocusType> syncCtx = loadSynchronizationContext(
-                change.getShadowedResourceObject(),
+                change.getShadowedResourceObject().asObjectable(),
                 change.getObjectDelta(),
-                resource,
+                resource.asObjectable(),
                 change.getSourceChannel(),
                 change.getItemProcessingIdentifier(),
                 null,
+                SynchronizationContext.isSkipMaintenanceCheck(),
                 task,
                 result);
         if (Boolean.FALSE.equals(change.getShadowExistsInRepo())) {
@@ -78,79 +83,110 @@ class SynchronizationContextLoader {
     }
 
     <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(
-            @NotNull PrismObject<ShadowType> shadowedResourceObject,
+            @NotNull ShadowType shadow,
             ObjectDelta<ShadowType> resourceObjectDelta,
-            @NotNull PrismObject<ResourceType> resource,
+            @NotNull ResourceType originalResource,
             String sourceChanel,
             String itemProcessingIdentifier,
-            PrismObject<SystemConfigurationType> explicitSystemConfiguration,
+            SystemConfigurationType explicitSystemConfiguration,
+            boolean skipMaintenanceCheck,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
-        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(
-                shadowedResourceObject.asObjectable(),
-                resourceObjectDelta,
-                resource.asObjectable(),
-                sourceChanel,
-                beans,
-                task,
-                itemProcessingIdentifier);
-        setSystemConfiguration(syncCtx, explicitSystemConfiguration, result);
+        ResourceType updatedResource;
+        if (skipMaintenanceCheck) {
+            updatedResource = originalResource;
+        } else {
+            updatedResource = checkNotInMaintenance(originalResource, task, result);
+        }
+
+        SystemConfigurationType systemConfiguration = explicitSystemConfiguration != null ?
+                explicitSystemConfiguration :
+                systemObjectCache.getSystemConfigurationBean(result);
+
+        @Nullable ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(updatedResource);
+
+        ResourceObjectProcessingContextImpl processingContext =
+                aResourceObjectProcessingContext(shadow, updatedResource, task, beans)
+                        .withResourceObjectDelta(resourceObjectDelta)
+                        .withExplicitChannel(sourceChanel)
+                        .withSystemConfiguration(systemConfiguration)
+                        .build();
 
         ObjectSynchronizationDiscriminatorType sorterResult =
-                new SynchronizationSorterEvaluation<>(syncCtx, beans)
-                        .evaluateAndApply(result);
+                new SynchronizationSorterEvaluation(processingContext)
+                        .evaluate(result);
 
-        for (ResourceObjectTypeSynchronizationPolicy policy : syncCtx.getAllSynchronizationPolicies()) {
-            if (isPolicyFullyApplicable(policy, sorterResult, syncCtx, result)) {
-                syncCtx.setObjectSynchronizationPolicy(policy);
-                break;
-            }
-        }
+        ResourceObjectTypeDefinition definition = determineTypeDefinition(processingContext, schema, sorterResult, result);
 
-        generateTagIfNotPresent(syncCtx, result);
+        String tag = getOrGenerateTag(processingContext, definition, result);
 
-        return syncCtx;
+        @Nullable ResourceObjectTypeSynchronizationPolicy policy =
+                definition != null ?
+                        ResourceObjectTypeSynchronizationPolicy.forTypeDefinition(definition, updatedResource) :
+                        null;
+
+        return new SynchronizationContext<>(
+                processingContext,
+                definition,
+                policy,
+                sorterResult,
+                tag,
+                itemProcessingIdentifier);
     }
 
-    private <F extends FocusType> void setSystemConfiguration(
-            SynchronizationContext<F> syncCtx,
-            PrismObject<SystemConfigurationType> explicitSystemConfiguration,
-            OperationResult result) throws SchemaException {
-        if (explicitSystemConfiguration != null) {
-            syncCtx.setSystemConfiguration(explicitSystemConfiguration.asObjectable());
+    /**
+     * Checks whether the source resource is not in maintenance mode.
+     * (Throws an exception if it is.)
+     *
+     * Side-effect: updates the resource prism object (if it was changed).
+     */
+    private @NotNull ResourceType checkNotInMaintenance(ResourceType resource, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        resource = beans.provisioningService
+                .getObject(ResourceType.class, resource.getOid(), null, task, result)
+                .asObjectable();
+        ResourceTypeUtil.checkNotInMaintenance(resource);
+        return resource;
+    }
+
+    @Nullable
+    private ResourceObjectTypeDefinition determineTypeDefinition(
+            @NotNull ResourceObjectProcessingContextImpl processingContext,
+            @Nullable ResourceSchema schema,
+            @Nullable ObjectSynchronizationDiscriminatorType sorterResult,
+            @NotNull OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        ShadowType shadow = processingContext.getShadowedResourceObject();
+        ShadowKindType kind = shadow.getKind();
+        String intent = shadow.getIntent();
+        if (ShadowUtil.isNotKnown(kind) || ShadowUtil.isNotKnown(intent)) {
+            return beans.resourceObjectClassifier
+                    .classify(processingContext, sorterResult, result)
+                    .getDefinition();
         } else {
-            syncCtx.setSystemConfiguration(asObjectable(systemObjectCache.getSystemConfiguration(result)));
+            return schema != null ? schema.findObjectTypeDefinition(kind, intent) : null;
         }
     }
 
-    private <F extends FocusType> void generateTagIfNotPresent(SynchronizationContext<F> syncCtx, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        ShadowType applicableShadow = syncCtx.getShadowedResourceObject();
-        if (applicableShadow.getTag() != null) {
-            return;
+    private @Nullable String getOrGenerateTag(
+            @NotNull ResourceObjectProcessingContextImpl processingContext,
+            @Nullable ResourceObjectTypeDefinition definition,
+            @NotNull OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        ShadowType shadow = processingContext.getShadowedResourceObject();
+        if (shadow.getTag() == null) {
+            if (definition != null) {
+                return beans.shadowTagGenerator.generateTag(processingContext, definition, result);
+            } else {
+                return null;
+            }
+        } else {
+            return shadow.getTag();
         }
-        ResourceObjectTypeDefinition objectTypeDef = syncCtx.findObjectTypeDefinition();
-        if (objectTypeDef == null) {
-            // We probably do not have kind/intent yet.
-            return;
-        }
-        ResourceObjectMultiplicityType multiplicity = objectTypeDef.getObjectMultiplicity();
-        if (!RefinedDefinitionUtil.isMultiaccount(multiplicity)) {
-            return;
-        }
-        String tag = synchronizationExpressionsEvaluator.generateTag(
-                multiplicity,
-                applicableShadow,
-                syncCtx.getResource(),
-                syncCtx.getSystemConfiguration(),
-                "tag expression for " + applicableShadow,
-                syncCtx.getTask(),
-                result);
-        LOGGER.debug("SYNCHRONIZATION: TAG generated: {}", tag);
-        syncCtx.setTag(tag);
     }
 }
