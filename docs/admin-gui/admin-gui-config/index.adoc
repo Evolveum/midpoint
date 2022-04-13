@@ -12,7 +12,6 @@
 Admin GUI configuration is a specialized data structure that is present in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object], in all the role-like objects (roles, orgs, services), in the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user objects] and partially also in archetype objects. The admin GUI configuration structure influences how to user interface is displayed.
 Despite its name it applies both to the self-service part and administration part of the user interface.
 
-
 == Basic Structure
 
 The admin GUI configuration structure contains:
@@ -35,7 +34,6 @@ However the compatibility will be maintained and this setting will also remain h
 * `*preferredDataLanguage*`: (since midPoint 3.6) Defines the data language that will use used by the user interface to display content of objects (XML, JSON or YAML)
 
 * `*feedbackMessagesHook*`: Script hook configuration which can be used to modify operation results shown in GUI.
-
 
 Since midPoint 4.4, the look and feel of GUI has been significantly changed. The aim was to provide better user experience and more configuration options. The old look is still available in midPoint for preview. It can be turned on in adminGuiConfiguration setting `useNewDesign` property to _false_. However, bugs and improvements will be fixed and implemented only for the new look and the old look will be completely removed in release 4.6. Old look is no more supported in 4.4. Please, migrate your configuration as soon as possible.
 
@@ -78,6 +76,7 @@ The step that applies admin GUI configuration from the user object is meant to s
 It is only partially implemented.
 
 === Widgets
+
 The merged configurations for widgets have one quite specific characteristic.
 If no configuration is present at all, then a default configuration will be used (all default widgets).
 However, if only a single widget is defined then the default configuration is not applied.
@@ -88,6 +87,7 @@ But they are not that flexible yet.
 Therefore all the widgets need to be explicitly defined in order to appear in a customized dashboard.
 
 === Object details
+
 Object details configuration influences the look and feel of the pages for creating and editing object. MidPoint comes with default panels and default pre-defined configuration for each object available to edit and create in GUI. It is basic configuration which might be adjusted according to customer's needs. Custom configuration defined by customer is merged with default pre-defined configuration according to the rules described in _How it works_.
 
 Comparing the behavior before 4.4, there is a change in merging mechanism. Before 4.4 if any customization was made, it meant that the default configuration wasn't taken into the account while displaying the corresponding page. Since 4.4 this behavior was changed, so any custom configuration is additional to one coming with midPoint by default. If the behavior or settings of the default panel needs to be changed, it is done with adjusting such configuration. To be able to adjust and override default configuration the `identifier` have to be specified and correctly used.
@@ -114,6 +114,7 @@ Basis structure for object details configuration is:
 
 Following tables described basic configuration options for panels:
 [%autowidth]
+
 |===
 | Property | Mandatory | Type | Description
 
@@ -192,6 +193,7 @@ MidPoint itself comes with default panels with the identifiers specified. Those 
 
 Panels applicable for all AssignmentHolderType object (except ResourceType):
 [%autowidth]
+
 |===
 | Panel | Identifier | Description | Default order | Panel type
 
@@ -204,6 +206,7 @@ Panels applicable for all AssignmentHolderType object (except ResourceType):
 
 Panels applicable for all FocusType objects:
 [%autowidth]
+
 |===
 | Panel | Identifier | Description | Default order
 
@@ -347,6 +350,7 @@ Panel applicable for all AbstractRoleType objects:
 
 Panels applicable only for users:
 [%autowidth]
+
 |===
 | Panel | Identifier | Description | Default order
 
@@ -502,6 +506,7 @@ Panels applicable only for object collections:
 
 Panels applicable only for object templates:
 [%autowidth]
+
 |===
 | Panel | Identifier | Description | Default order
 
@@ -545,6 +550,7 @@ Panels applicable only for reports:
 
 Panels applicable only for resources:
 [%autowidth]
+
 |===
 | Panel | Identifier | Description | Default order
 
@@ -758,11 +764,7 @@ Panels applicable only for system configuration:
 | 30
 |===
 
-
-
-
 == Examples
-
 
 === Show Only Some Default Forms
 
@@ -1153,7 +1155,6 @@ Set another panel as `basic` panel to be shown as a default panel after opening 
 
 TODO:
 
-
 === Hiding User Dashboard Widgets
 
 Following example can be used to customize the look of the user dashboard (home screen).
@@ -1265,7 +1266,6 @@ Possible widget identifiers on the self dashboard page:
 
 |===
 
-
 === Custom columns configuration
 
 To customize columns in the object list table, please, see use the following example
@@ -1304,7 +1304,6 @@ To customize columns in the object list table, please, see use the following exa
 ----
 
 image::custom-columns-2022-03-18.png[]
-
 
 Column can be configured with the following attributes
 
@@ -1360,7 +1359,6 @@ However, the algorithm should be deterministic: the same ordering should be used
 
 |===
 
-
 == Custom actions for object lists
 
 Starting from midpoint 3.9, there is a possibility to configure a custom action to be run from the object list table.
@@ -1388,7 +1386,6 @@ To configure custom actions, please, use the following example
 ----
 
 Xml for the task template object you can find by the link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/templates/task-template-change-description.xml[following link]. After custom action is configured in the admin gui configuration section, you can find action link among menu items on the appropriate type object list panel.image::custom_action_screen.png[]
-
 
 == Admin GUI Configuration and Authorizations
 
@@ -1436,7 +1433,6 @@ This link will be displayed only if the user has authorization that allow the ac
 Secondly, inclusion of default forms and the `automatic` visibility mode of widgets are authorization-sensitive.
 This means that form or widget will be displayed only if the user has access to the data that are displayed.
 
-
 == Feedback Messages Hook
 
 Feedback messages hook configuration allows operation result preprocessing before it's shown in GUI.
@@ -1481,28 +1477,100 @@ To see changes made in this part of configuration, user needs to do logout/login
 </adminGuiConfiguration>
 ----
 
-== Notes
-
-=== Classpath scanning
+== Customizing classpath scanning
 
 Different panels and pages are searched via annotations on classes, e.g. `@PageDescriptor`, `@PanelInstance`, and others.
-In versions prior 4.5 (4.4.2) whole classpath was used to search for such annotated classes.
+In versions prior 4.5 (4.4.2) whole classpath was used to search for such annotated classes
+which resulted in less than ideal performance of the scanning process.
 In midPoint version 4.5 (4.4.2) and newer default search scope is package `com.evolveum.midpoint`.
-It is possible to extend search scope, for example when using maven overlay with custom code.
-Extension can be done via setting property `midpoint.additionalPackagesToScan` with comma separated package names in `${midpoint.home}/application.yml` like so:
 
-[source, yaml]
+It is possible to extend the search scope by setting the property `midpoint.additionalPackagesToScan` to comma separated package names.
+This is required for xref:/midpoint/reference/deployment/maven-overlay-project/[midPoint Overlays]
+with custom GUI pages and forms.
+
+The property can be set in one of the following ways:
+
+* Using command line argument:
+** You can use JVM argument like `-Dmidpoint.additionalPackagesToScan=my.package`.
+If using `midpoint.sh` or `start.sh`, this can be also provided with `JAVA_OPTS` environment variable.
+The variable can also be set in `setenv.sh` file (see xref:/midpoint/install/distribution/#post-installation[this] for more).
+
+** You can also use application argument `--midpoint.additionalPackagesToScan=my.package`,
+which can be provided as an argument to `midpoint.sh` or `start.sh` scripts.
+
++
+--
+Either of this can be also set in service configuration for midPoint (e.g. `ExecStart` for systemd),
+just remember that `-Dkey=val` form goes *before* the `-jar` option while `--key=val` form goes
+*after* the `-jar` option and its `midpoint.war` parameter.
+
+You can find more information in xref:/midpoint/operations-manual/#changing-the-midpoint-embedded-tomcat-configuration[this part] of the Operation manual.
+--
+
+* Using `application.yml` (or `application.properties`) file in xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory].
+E.g. for YAML format the file `${midpoint.home}/application.yml` may look like this:
++
+[source,yaml]
 ----
 midpoint:
   additionalPackagesToScan: org.example.acme,com.acme
 ----
++
+This file complements the default built-in midPoint configuration.
+
+* Finally, you can add the configuration directly into the overlay project.
+This is more convenient for the user of the JAR/WAR file as they don't need to take any additional action.
+To do this you need to add properties or YAML file into the root of the classpath, which typically
+is `src/main/resources` directory.
++
+Here, a little knowlege of midPoint structure is needed, concretely - midPoint uses `application.yml` file.
+We can't put the same file into overlay's `src/main/resources` because it would overwrite the default one.
+There is a couple of options:
+
+** You can use `application.yml`, but first copy its content from midPoint sources - the file can be found in `gui/admin-gui/src/main/resources/application.yml`.
+Then put your options inside it, in case of `midpoint.additionalPackagesToScan` you can just add
+the lines (see the YAML example above) at the end.
++
+This works, but it can be annoying when upgrading the overlay to the new midPoint version
+as it may contain some changes to the default configuration which you should copy again.
+There are better ways.
+
+** Use `application-default.yml` instead - this one complements the default configuration.
+It is the same as adding `${midpoint.home}/application.yml` in the example above and the content
+of the file is exactly the same.
+This still allows using the `${midpoint.home}/application.yml` file for other purposes,
+but you don't have to worry about the GUI component scanning anymore.
+
+** Finally, knowing that midPoint uses `application.yml` and Spring Boot also recognizes
+`application.properties` you can use the latter file - which also has a bit simpler content
+(although arguably less structured):
++
+[source,properties]
+----
+midpoint.additionalPackagesToScan=org.example.acme,com.acme
+----
++
+Both YAML and properties files are merged nicely, but the option with `application-default.yml`
+is still the preferred one.
+If you really want to use properties format, name the file `application-default.properties` instead.
+That clearly shows it is an additional configuration file to complement the existing configuration.
+
+All these options use the Spring Boot mechanism called https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config[Externalized Configuration].
+
+[TIP]
+====
+Long story short - the best way to specify the property in overlay project is adding
+`application-default.yml` (or `application-default.properties`) under `src/main/resources` directory
+in your overlay project sources.
+
+See the overlay example https://github.com/Evolveum/midpoint-overlay-example/tree/master/src/main/resources[here].
+====
 
 == Security
 
 Some parts of admin GUI configuration may contain xref:/midpoint/reference/expressions/expressions/[expressions]. Expressions are pieces of code that are executed inside midPoint server.
 As such expressions has to be inherently trusted.
 Therefore do not allow untrusted users to define sensitive parts of admin GUI configuration.
-
 
 == See Also
 
