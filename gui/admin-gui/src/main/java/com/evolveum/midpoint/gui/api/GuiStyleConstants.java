@@ -93,8 +93,8 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_STYLE_BROKEN = "icon-style-broken";
 
     public static final String CLASS_SHADOW_ICON_ACCOUNT = "fa fa-male";
-    public static final String CLASS_SHADOW_ICON_ENTITLEMENT = "fa fa-group";
-    public static final String CLASS_SHADOW_ICON_GENERIC = "fa fa-circle-o";
+    public static final String CLASS_SHADOW_ICON_ENTITLEMENT = "fa fa-users";
+    public static final String CLASS_SHADOW_ICON_GENERIC = "far fa-circle";
     public static final String CLASS_SHADOW_ICON_PROTECTED = "fa fa-shield";
     public static final String CLASS_SHADOW_ICON_UNKNOWN = "fa fa-eye";
 
@@ -260,7 +260,7 @@ public class GuiStyleConstants {
     public static final String CLASS_GROUP_ICON = "fa fa-users";
     public static final String CLASS_APPLICABLE_POLICY_ICON = "fa fa-share-alt";
     public static final String CLASS_LIFECYCLE_ICON = "fa fa-recycle";
-    public static final String CLASS_TRIGGER_ICON = "fa fa-calendar-check-o";
+    public static final String CLASS_TRIGGER_ICON = "fa fa-calendar-check";
     public static final String CLASS_PASSWORD_ICON = "fa fa-key";
 
     public static final String CLASS_OPTIONS_BUTTON_ICON = "fa fa-bars";
