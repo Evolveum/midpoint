@@ -358,8 +358,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     private void initializeAuthenticationSequence(
             MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest, AuthenticationWrapper authWrapper) {
         if (mpAuthentication != null && AuthSequenceUtil.isLoginPage(httpRequest)) {
-            if (existOldAuthConfigurationForSelfRegistration(httpRequest)) { //TEMPORARY UGLY HACK remove when will be removed old authentication configuration of self registration
-            } else if (!mpAuthentication.getAuthenticationChannel().getChannelId().equals(AuthSequenceUtil.findChannelByRequest(httpRequest))
+            if (!mpAuthentication.getAuthenticationChannel().getChannelId().equals(AuthSequenceUtil.findChannelByRequest(httpRequest))
                     && AuthSequenceUtil.getSequenceByPath(httpRequest, authWrapper.authenticationsPolicy, taskManager.getLocalNodeGroups()) == null) {
                 return;
             }
@@ -389,29 +388,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
         return mpAuthentication != null && !mpAuthentication.getSequence().equals(authWrapper.sequence) && mpAuthentication.isAuthenticated()
                 && (((authWrapper.sequence != null && authWrapper.sequence.getChannel() != null && mpAuthentication.getAuthenticationChannel().matchChannel(authWrapper.sequence)))
                 || mpAuthentication.getAuthenticationChannel().getChannelId().equals(AuthSequenceUtil.findChannelByRequest(httpRequest)));
-    }
-
-    private boolean existOldAuthConfigurationForSelfRegistration(HttpServletRequest httpRequest) {
-        if (!SchemaConstants.CHANNEL_SELF_REGISTRATION_URI.equals(AuthSequenceUtil.findChannelByRequest(httpRequest))) {
-            return false;
-        }
-        try {
-            PrismObject<SecurityPolicyType> securityPolicy = getSecurityPolicy();
-            if (securityPolicy != null) {
-                SelfRegistrationPolicyType selfReg = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy.asObjectable());
-                if (selfReg != null) {
-                    String sequenceName = selfReg.getAdditionalAuthenticationSequence() == null ? selfReg.getAdditionalAuthenticationName() : selfReg.getAdditionalAuthenticationSequence();
-                    if (StringUtils.isNotBlank(sequenceName)
-                            && SecurityPolicyUtil.getAuthenticationPolicy(sequenceName, securityPolicy.asObjectable()) != null) {
-                        return true;
-                    }
-                }
-            }
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't load Authentication policy", e);
-            return false;
-        }
-        return false;
     }
 
     private AuthenticationsPolicyType getAuthenticationPolicy(

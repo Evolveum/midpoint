@@ -42,17 +42,6 @@ public class SecurityPolicyUtil {
         DEFAULT_IGNORED_LOCAL_PATH = Collections.unmodifiableList(list);
     }
 
-    public static AbstractAuthenticationPolicyType getAuthenticationPolicy(
-            String authPolicyName, SecurityPolicyType securityPolicy) throws SchemaException {
-
-        MailAuthenticationPolicyType mailAuthPolicy =
-                getMailAuthenticationPolicy(authPolicyName, securityPolicy);
-        SmsAuthenticationPolicyType smsAuthPolicy =
-                getSmsAuthenticationPolicy(authPolicyName, securityPolicy);
-        return checkAndGetAuthPolicyConsistence(mailAuthPolicy, smsAuthPolicy);
-
-    }
-
     public static NonceCredentialsPolicyType getCredentialPolicy(
             String policyName, SecurityPolicyType securityPolicy) throws SchemaException {
 
@@ -80,66 +69,6 @@ public class SecurityPolicyUtil {
         }
 
         return availableNoncePolicies.iterator().next();
-    }
-
-    private static MailAuthenticationPolicyType getMailAuthenticationPolicy(
-            String authName, SecurityPolicyType securityPolicy) throws SchemaException {
-
-        AuthenticationsPolicyType authPolicies = securityPolicy.getAuthentication();
-        if (authPolicies == null) {
-            return null;
-        }
-        return getAuthenticationPolicy(authName, authPolicies.getMailAuthentication());
-    }
-
-    private static SmsAuthenticationPolicyType getSmsAuthenticationPolicy(
-            String authName, SecurityPolicyType securityPolicy) throws SchemaException {
-
-        AuthenticationsPolicyType authPolicies = securityPolicy.getAuthentication();
-        if (authPolicies == null) {
-            return null;
-        }
-        return getAuthenticationPolicy(authName, authPolicies.getSmsAuthentication());
-    }
-
-    private static AbstractAuthenticationPolicyType checkAndGetAuthPolicyConsistence(
-            MailAuthenticationPolicyType mailPolicy, SmsAuthenticationPolicyType smsPolicy)
-            throws SchemaException {
-
-        if (mailPolicy != null && smsPolicy != null) {
-            throw new SchemaException(
-                    "Found both, mail and sms authentication method for registration. Only one of them can be present at the moment");
-        }
-
-        if (mailPolicy != null) {
-            return mailPolicy;
-        }
-
-        return smsPolicy;
-
-    }
-
-    private static <T extends AbstractAuthenticationPolicyType> T getAuthenticationPolicy(
-            String authName, List<T> authPolicies) throws SchemaException {
-
-        List<T> smsPolicies = new ArrayList<>();
-        for (T smsAuthPolicy : authPolicies) {
-            if (Objects.equals(smsAuthPolicy.getName(), authName)) {
-                smsPolicies.add(smsAuthPolicy);
-            }
-        }
-
-        if (smsPolicies.size() > 1) {
-            throw new SchemaException(
-                    "Found more than one mail authentication policy. Please review your configuration");
-        }
-
-        if (smsPolicies.size() == 0) {
-            return null;
-        }
-
-        return smsPolicies.iterator().next();
-
     }
 
     public static List<AuthenticationSequenceModuleType> getSortedModules(AuthenticationSequenceType sequence) {
