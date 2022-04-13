@@ -1,0 +1,95 @@
+= Proposed Features for 4.6
+
+WARNING: This is feature proposal for midPoint 4.6, it intention is to discuss
+proposed solutions and resulting implementation may differ.
+
+
+== Match on reference and it's target properties at same time
+
+Filters currently can match reference itself based on it's parameters such
+as `oid`,`relation` and `type` or we can use dereferencing paths (paths containing `@`)
+to match properties on referenced objects, but we can not match on both.
+
+===  Design proposal
+Adding option for `target` inside ref filter would allow us to write filters
+which targets both reference itself and target.
+
+----
+<query>
+    <filter>
+        <ref>
+            <path>assignment/targetRef</path>
+            <value relation="default"></value>
+            <target>
+                <equal>
+                  <path>name</path>
+                  <value>a-test-4</value>
+                </equal>
+            </target>
+        </ref>
+    </filter>
+</query>
+----
+
+In Axiom Query this could be:
+
+----
+assignment/targetRef matches (
+  relation = "default"
+  and target matches (
+    name = 'a-test-4'
+  )
+)
+----
+
+`target` would allow any valid filter to be executed. Most common use would be
+probably use with `type` filter (to allow matching on target type specific properties),
+but other filters could be used.
+
+In short ref filter without target filter specified will behave as before,
+once target filter it is specified it will work as join filter.
+
+=== Open Question: target exists filter?
+
+Interestingly this allows to construct filter like:
+  `assignment/targetRef matches (target not exists)`
+Note that similar filter could be created using path `assignment/target/@ not exists`
+Should this filter match any assignment, which target does not exist?
+
+
+
+== JOIN filter: referencedBy
+
+.Related JIRA Issues
+MID-4343 Seach: join::
+Support searches that "join" two object types. For example allow to search all roles, that are assigned to particular user.
+
+From description it seems, that we want to find target based on criteria on object which references it - this inverts ref filter relation.
+
+.YAML format
+----
+query:
+  type: RoleType
+  filter:
+    referencedBy:
+      type: UserType
+      path: assignment/targetRef
+      target:
+        exists:
+          equal:
+            path: archetypeRef/@/name
+            value "System User"
+----
+
+----
+. referencedBy (
+      type = UserType
+      and path = assignment/targetRef
+      and target matches (
+        archetypeRef/@/name = "System User"
+      )
+)
+----
+
+The proposed syntax based on existing Axiom Query triplets may be bit less readable,
+but allow for faster prototyping.
