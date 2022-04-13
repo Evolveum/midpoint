@@ -1996,15 +1996,16 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test700SearchUsersWithAccountsOnSpecificResource()
             throws SchemaException {
-        searchUsersTest("with extension poly-string multi-value item",
+        searchUsersTest("with shadow on a specific resource",
                 f -> f.item(UserType.F_LINK_REF, T_OBJECT_REFERENCE, ShadowType.F_RESOURCE_REF)
                         .ref(resourceOid),
                 user3Oid);
+    }
 
-        // TODO failing: java.lang.IllegalArgumentException: Item path of 'linkRef/{http://prism.evolveum.com/xml/ns/public/types-3}objectReference'
-        //  in class com.evolveum.midpoint.xml.ns._public.common.common_3.UserType does not point to a valid PrismContainerDefinition
-        /*
-        searchUsersTest("with extension poly-string multi-value item",
+    @Test
+    public void test701SearchUsersHavingShadowMatchingMultipleCriteria()
+            throws SchemaException {
+        searchUsersTest("with shadow on a specific resource and with specified tag",
                 f -> f.exists(UserType.F_LINK_REF, T_OBJECT_REFERENCE)
                         .block()
                         .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
@@ -2012,7 +2013,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .item(ShadowType.F_TAG).eq("tag")
                         .endBlock(),
                 user3Oid);
-        */
     }
 
     // MID-7487, nothing found, just a query test
