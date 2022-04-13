@@ -130,7 +130,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_RESOURCE_SCHEMA = "fa fa-code";
     public static final String CLASS_ICON_RESOURCE_SCHEMA_HANDLING_COLORED = "fa fa-exchange";
     public static final String CLASS_ICON_ASSIGNMENTS = "fa fa-bank";
-    public static final String CLASS_SHADOW_ICON_REQUEST = "fa fa-pencil-square-o";
+    public static final String CLASS_SHADOW_ICON_REQUEST = "fa fa-pen-square";
     public static final String CLASS_ICON_TACHOMETER = "fa fa-tachometer-alt";
     public static final String CLASS_ICON_COLLAPSE_CONTAINER = "fa fa-caret-down fa-lg";
     public static final String CLASS_ICON_EXPAND_CONTAINER = "fa fa-caret-right fa-lg";

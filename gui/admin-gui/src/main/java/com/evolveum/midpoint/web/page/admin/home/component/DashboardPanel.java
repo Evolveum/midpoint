@@ -58,7 +58,7 @@ public abstract class DashboardPanel<T extends Serializable> extends BasePanel<T
         dashboardParent.add(dashboardContent);
 
         WebMarkupContainer iconI = new WebMarkupContainer(ID_ICON);
-        iconI.add(AttributeModifier.replace("class", icon));
+        iconI.add(AttributeModifier.append("class", icon));
         dashboardTitle.add(iconI);
     }
 
