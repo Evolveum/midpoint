@@ -4158,7 +4158,7 @@
     <xsd:complexType name="NumericIntervalWorkBucketContentType">
         <xsd:annotation>
             <xsd:documentation>
-                Work bucket content defined as a interval of numeric values of discriminator item.
+                Work bucket content defined as an interval of numeric values of discriminator item.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>

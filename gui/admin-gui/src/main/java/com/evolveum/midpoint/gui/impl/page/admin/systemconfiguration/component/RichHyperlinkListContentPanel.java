@@ -7,7 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
@@ -22,16 +29,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.model.IModel;
-
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Supplier;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -39,10 +36,11 @@ public abstract class RichHyperlinkListContentPanel extends MultivalueContainerL
 
     private IModel<PrismContainerWrapper<RichHyperlinkType>> model;
 
-    public RichHyperlinkListContentPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType, ItemPath containerRealPath) {
+    public RichHyperlinkListContentPanel(String id, AssignmentHolderDetailsModel<?> model,
+            ContainerPanelConfigurationType configurationType, ItemPath containerRealPath) {
         super(id, RichHyperlinkType.class, configurationType);
 
-        this.model = PrismContainerWrapperModel.fromContainerWrapper(model.getObjectWrapperModel(), containerRealPath, (Supplier<PageBase> & Serializable)() -> getPageBase());
+        this.model = PrismContainerWrapperModel.fromContainerWrapper(model.getObjectWrapperModel(), containerRealPath, () -> getPageBase());
     }
 
     @Override

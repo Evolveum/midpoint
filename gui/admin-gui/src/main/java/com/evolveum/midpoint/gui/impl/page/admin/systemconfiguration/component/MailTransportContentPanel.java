@@ -32,16 +32,16 @@ import java.util.List;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@PanelType(name = "mailTransportPanel")
-@PanelInstance(
-        identifier = "mailTransportPanel",
-        applicableForType = MessageTransportConfigurationType.class,
-        display = @PanelDisplay(
-                label = "MailTransportContentPanel.label",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 20
-        )
-)
+//@PanelType(name = "mailTransportPanel")
+//@PanelInstance(
+//        identifier = "mailTransportPanel",
+//        applicableForType = MessageTransportConfigurationType.class,
+//        display = @PanelDisplay(
+//                label = "MailTransportContentPanel.label",
+//                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+//                order = 20
+//        )
+//)
 @Counter(provider = MailTransportCounter.class)
 public class MailTransportContentPanel extends GeneralTransportContentPanel<MailTransportConfigurationType> {
 

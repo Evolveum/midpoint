@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.CorrelationProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -64,6 +66,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     private static final String ID_COLUMN = "column";
 
     private static final String OP_LOAD = CorrelationContextPanel.class.getName() + ".load";
+    private static final String OP_DECIDE_CORRELATION = CorrelationContextPanel.class.getName() + ".decideCorrelation";
 
     // Move into properties
     private static final String TEXT_CREATE_NEW = "Create new";
@@ -114,16 +117,23 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                                 .outcome(item.getModelObject().getIdentifier())
                                 .comment(workItem.getOutput() != null ? workItem.getOutput().getComment() : null);
 
-                        Task task = getPageBase().createSimpleTask("DecideCorrelation");
+                        PageBase page = getPageBase();
+                        Task task = page.createSimpleTask(OP_DECIDE_CORRELATION);
                         OperationResult result = task.getResult();
                         try {
-                            getPageBase().getCaseService().completeWorkItem(workItemId, output, task, result);
+                            page.getCaseService().completeWorkItem(workItemId, output, task, result);
                             result.computeStatusIfUnknown();
                         } catch (Throwable e) {
                             result.recordFatalError("Cannot finish correlation process, " + e.getMessage(), e);
                         }
-                        getPageBase().showResult(result);
-                        target.add(getPageBase().getFeedbackPanel());
+
+                        page.showResult(result);
+
+                        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+                            target.add(page.getFeedbackPanel());
+                        } else {
+                            page.redirectBack();
+                        }
                     }
                 };
 

@@ -7,6 +7,19 @@
 
 package com.evolveum.midpoint.gui.api;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
@@ -30,19 +43,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
 
 @Component
 public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
@@ -70,15 +70,16 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.web.page.admin.users"
     };
 
-    private final Map<String, Class<? extends Panel>> panelsMap = new HashMap<>();
+    private static final Map<Object, Collection<Class<?>>> SCANNED_CLASSES_MAP = new HashMap<>();
 
-    private final Map<String, SimpleCounter> countersMap = new HashMap<>();
+    private static final Map<String, Class<? extends Panel>> PANELS_MAP = new HashMap<>();
+
+    private static final Map<String, SimpleCounter<?, ?>> COUNTERS_MAP = new HashMap<>();
 
     private Boolean experimentalFeaturesEnabled = false;
 
-    private static final Map<Object, Collection<Class<?>>> SCANNED_CLASSES_MAP = new HashMap<>();
-
-    private static synchronized Collection<Class<?>> getClassesForAnnotation(Class<? extends Annotation> annotation, String additionalPackagesToScan) {
+    private static synchronized Collection<Class<?>> getClassesForAnnotation(
+            Class<? extends Annotation> annotation, String additionalPackagesToScan) {
         Collection<Class<?>> result = SCANNED_CLASSES_MAP.get(annotation);
         if (result != null) {
             return result;
@@ -121,31 +122,29 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return getClassesForAnnotation(PanelType.class, additionalPackagesToScan);
     }
 
-    @Override
     @PostConstruct
-    public void register() {
+    public void init() {
+        fillInPanelsMap();
+        fillInCountersMap();
+
         registry.registerCompiler(this);
     }
 
     public Class<? extends Panel> findPanel(String identifier) {
-        return panelsMap.get(identifier);
+        return PANELS_MAP.get(identifier);
     }
 
     public SimpleCounter findCounter(String identifier) {
-        return countersMap.get(identifier);
+        return COUNTERS_MAP.get(identifier);
     }
 
     @Override
     public void postProcess(CompiledGuiProfile compiledGuiProfile) {
         experimentalFeaturesEnabled = compiledGuiProfile.isEnableExperimentalFeatures();
 
-        fillInPanelsMap();
-        fillInCountersMap();
-
         compileDefaultDetailsPages(compiledGuiProfile);
         mergeCollectionViewsWithDefault(compiledGuiProfile);
         processShadowPanels(compiledGuiProfile);
-
     }
 
     private void compileDefaultDetailsPages(CompiledGuiProfile compiledGuiProfile) {
@@ -154,13 +153,16 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         for (GuiObjectDetailsPageType defaultDetailsPage : detailsPages) {
 
             //objects
-            GuiObjectDetailsPageType compiledPageType = compiledGuiProfile.findObjectDetailsConfiguration(defaultDetailsPage.getType());
-            GuiObjectDetailsPageType mergedDetailsPage = adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(defaultDetailsPage, compiledPageType);
+            GuiObjectDetailsPageType compiledPageType =
+                    compiledGuiProfile.findObjectDetailsConfiguration(defaultDetailsPage.getType());
+            GuiObjectDetailsPageType mergedDetailsPage =
+                    adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(defaultDetailsPage, compiledPageType);
 
             if (compiledGuiProfile.getObjectDetails() == null) {
                 compiledGuiProfile.setObjectDetails(new GuiObjectDetailsSetType(prismContext));
             }
-            compiledGuiProfile.getObjectDetails().getObjectDetailsPage().removeIf(p -> QNameUtil.match(p.getType(), defaultDetailsPage.getType()));
+            compiledGuiProfile.getObjectDetails().getObjectDetailsPage()
+                    .removeIf(p -> QNameUtil.match(p.getType(), defaultDetailsPage.getType()));
             compiledGuiProfile.getObjectDetails().getObjectDetailsPage().add(mergedDetailsPage.cloneWithoutId());
         }
     }
@@ -170,7 +172,9 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         List<CompiledObjectCollectionView> defaultCollectionViews = compileDefaultCollectionViews(classes);
 
         for (CompiledObjectCollectionView defaultCollectionView : defaultCollectionViews) {
-            CompiledObjectCollectionView compiledObjectCollectionView = compiledGuiProfile.findObjectCollectionView(defaultCollectionView.getContainerType(), defaultCollectionView.getViewIdentifier());
+            CompiledObjectCollectionView compiledObjectCollectionView =
+                    compiledGuiProfile.findObjectCollectionView(
+                            defaultCollectionView.getContainerType(), defaultCollectionView.getViewIdentifier());
             if (compiledObjectCollectionView == null) {
                 compiledGuiProfile.getObjectCollectionViews().add(defaultCollectionView);
                 continue;
@@ -180,12 +184,14 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
     }
 
-    private void mergeCollectionViews(CompiledObjectCollectionView compiledObjectCollectionView, CompiledObjectCollectionView defaulCollectionView) {
-        DisplayType displayType = adminGuiConfigurationMergeManager.mergeDisplayType(compiledObjectCollectionView.getDisplay(), defaulCollectionView.getDisplay());
+    private void mergeCollectionViews(CompiledObjectCollectionView compiledObjectCollectionView,
+            CompiledObjectCollectionView defaultCollectionView) {
+        DisplayType displayType = adminGuiConfigurationMergeManager.mergeDisplayType(
+                compiledObjectCollectionView.getDisplay(), defaultCollectionView.getDisplay());
         compiledObjectCollectionView.setDisplay(displayType);
 
         if (compiledObjectCollectionView.getApplicableForOperation() == null) {
-            compiledObjectCollectionView.setApplicableForOperation(defaulCollectionView.getApplicableForOperation());
+            compiledObjectCollectionView.setApplicableForOperation(defaultCollectionView.getApplicableForOperation());
         }
     }
 
@@ -197,7 +203,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                 continue;
             }
             ObjectTypes objectType = ObjectTypes.getObjectType(collectionInstance.applicableForType());
-            CompiledObjectCollectionView defaultCollectionView = new CompiledObjectCollectionView(objectType.getTypeQName(), collectionInstance.identifier());
+            CompiledObjectCollectionView defaultCollectionView =
+                    new CompiledObjectCollectionView(objectType.getTypeQName(), collectionInstance.identifier());
             defaultCollectionView.setDisplay(createDisplayType(collectionInstance.display()));
             compiledObjectCollectionViews.add(defaultCollectionView);
             defaultCollectionView.setDefaultView(true);
@@ -256,14 +263,15 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         }
 
         for (GuiShadowDetailsPageType shadowDetailsPage : compiledGuiProfile.getObjectDetails().getShadowDetailsPage()) {
-            List<ContainerPanelConfigurationType> mergedPanels = adminGuiConfigurationMergeManager.mergeContainerPanelConfigurationType(shadowPanels, shadowDetailsPage.getPanel());
+            List<ContainerPanelConfigurationType> mergedPanels =
+                    adminGuiConfigurationMergeManager.mergeContainerPanelConfigurationType(shadowPanels, shadowDetailsPage.getPanel());
             shadowDetailsPage.getPanel().clear();
             shadowDetailsPage.getPanel().addAll(mergedPanels);
         }
     }
 
-    private void fillInPanelsMap() {
-        if (!panelsMap.isEmpty()) {
+    private synchronized void fillInPanelsMap() {
+        if (!PANELS_MAP.isEmpty()) {
             return;
         }
         for (Class<?> clazz : getPanelTypeClasses()) {
@@ -272,7 +280,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                 continue;
             }
             //noinspection unchecked
-            panelsMap.put(panelType.name(), (Class<? extends Panel>) clazz);
+            PANELS_MAP.put(panelType.name(), (Class<? extends Panel>) clazz);
         }
     }
 
@@ -289,21 +297,23 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return false;
     }
 
-    private void fillInCountersMap() {
-        if (!countersMap.isEmpty()) {
+    private synchronized void fillInCountersMap() {
+        if (!COUNTERS_MAP.isEmpty()) {
             return;
         }
+
         for (Class<?> clazz : getPanelInstanceClasses()) {
             Counter counterDefinition = clazz.getAnnotation(Counter.class);
             if (counterDefinition != null) {
                 Class<? extends SimpleCounter> counterProvider = counterDefinition.provider();
+                PanelInstance panelInstance = clazz.getAnnotation(PanelInstance.class);
                 try {
-                    PanelInstance panelInstance = clazz.getAnnotation(PanelInstance.class);
                     if (panelInstance != null) {
-                        countersMap.put(panelInstance.identifier(), counterProvider.getDeclaredConstructor().newInstance());
+                        COUNTERS_MAP.put(panelInstance.identifier(), counterProvider.getDeclaredConstructor().newInstance());
                     }
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                    //TODO log at least
+                    LOGGER.warn("Problem instantiating counter of type {} for panel identifier '{}'",
+                            counterDefinition.getClass().getName(), panelInstance.identifier(), e);
                 }
             }
         }

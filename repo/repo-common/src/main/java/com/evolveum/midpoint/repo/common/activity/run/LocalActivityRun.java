@@ -29,6 +29,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import java.util.Objects;
+
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.UNKNOWN;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.IN_PROGRESS_LOCAL;
@@ -156,6 +158,18 @@ public abstract class LocalActivityRun<
 
     protected abstract @NotNull ActivityRunResult runLocally(OperationResult result)
             throws ActivityRunException, CommonException;
+
+    /**
+     * Fails if running within a worker task. (Currently this mode is not supported e.g. for composite activities.)
+     */
+    final void ensureNotInWorkerTask(@Nullable String customMessage) {
+        if (isWorker()) {
+            throw new UnsupportedOperationException(
+                    Objects.requireNonNull(
+                            customMessage,
+                            "This activity cannot be run in worker tasks."));
+        }
+    }
 
     /** Updates item progress in the tree overview. Assumes that the activity run is still in progress. */
     public void updateItemProgressInTreeOverviewIfTimePassed(OperationResult result)

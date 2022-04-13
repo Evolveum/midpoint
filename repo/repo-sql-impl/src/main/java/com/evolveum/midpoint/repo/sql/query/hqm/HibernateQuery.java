@@ -19,6 +19,8 @@ import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 
 /**
  * Query in HQL that is being created.
+ *
+ * NOTE: This could be merged with RootHibernateQuery (the only subclass), but this will all die with the old repo.
  */
 public abstract class HibernateQuery {
 
@@ -48,10 +50,6 @@ public abstract class HibernateQuery {
 
     public HibernateQuery(@NotNull JpaEntityDefinition primaryEntityDef) {
         primaryEntity = createItemSpecification(primaryEntityDef);
-    }
-
-    protected HibernateQuery(@NotNull EntityReference primaryEntity) {
-        this.primaryEntity = primaryEntity;
     }
 
     public static class Ordering {

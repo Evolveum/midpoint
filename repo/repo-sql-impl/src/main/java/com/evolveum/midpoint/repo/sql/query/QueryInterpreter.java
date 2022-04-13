@@ -99,10 +99,14 @@ public class QueryInterpreter {
     public RootHibernateQuery interpret(ObjectQuery query, @NotNull Class<? extends Containerable> type,
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull PrismContext prismContext,
             @NotNull RelationRegistry relationRegistry, boolean countingObjects, @NotNull Session session) throws QueryException {
-        boolean distinctRequested = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
-        LOGGER.trace("Interpreting query for type '{}' (counting={}, distinctRequested={}), query:\n{}", type, countingObjects, distinctRequested, query);
 
-        InterpretationContext context = new InterpretationContext(this, type, prismContext, relationRegistry, extItemDictionary, session);
+        boolean distinctRequested = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
+        LOGGER.trace("Interpreting query for type '{}' (counting={}, distinctRequested={}), query:\n{}",
+                type, countingObjects, distinctRequested, query);
+
+        // I'm sorry about the 7th parameter, but this will die with the old repo soon.
+        InterpretationContext context = new InterpretationContext(this, type, prismContext,
+                relationRegistry, extItemDictionary, session, repoConfiguration.getDatabaseType());
         interpretQueryFilter(context, query);
         String rootAlias = context.getHibernateQuery().getPrimaryEntityAlias();
         ResultStyle resultStyle = getResultStyle(context);
@@ -132,7 +136,7 @@ public class QueryInterpreter {
         if (distinct && !distinctBlobCapable) {
             String subqueryText = "\n" + hibernateQuery.getAsHqlText(2, true);
             InterpretationContext wrapperContext = new InterpretationContext(
-                    this, type, prismContext, relationRegistry, extItemDictionary, session);
+                    this, type, prismContext, relationRegistry, extItemDictionary, session, repoConfiguration.getDatabaseType());
             try {
                 interpretPagingAndSorting(wrapperContext, query, false);
             } catch (QueryException e) {

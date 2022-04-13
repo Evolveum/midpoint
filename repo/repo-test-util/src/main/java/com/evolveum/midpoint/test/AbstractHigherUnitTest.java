@@ -183,8 +183,8 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
     }
 
     protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-            MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers) throws SchemaException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(), nameMatchingRule, requireNormalizedIdentfiers);
+            MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers) throws SchemaException {
+        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(), nameMatchingRule, requireNormalizedIdentifiers);
     }
 
     protected QName getAccountObjectClass() {
@@ -196,12 +196,12 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
     }
 
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
-            QName objectClass, MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers) throws SchemaException {
-        assertShadowCommon(shadow, oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentfiers, false);
+            QName objectClass, MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers) throws SchemaException {
+        assertShadowCommon(shadow, oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentifiers, false);
     }
 
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
-            QName objectClass, final MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers, boolean useMatchingRuleForShadowName) throws SchemaException {
+            QName objectClass, final MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers, boolean useMatchingRuleForShadowName) throws SchemaException {
         assertShadow(shadow);
         if (oid != null) {
             assertEquals("Shadow OID mismatch (prism)", oid, shadow.getOid());
@@ -259,7 +259,7 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
             if (nameMatchingRule == null) {
                 assertEquals("Unexpected primary identifier in shadow for " + username, username, idProp.getRealValue());
             } else {
-                if (requireNormalizedIdentfiers) {
+                if (requireNormalizedIdentifiers) {
                     assertEquals("Unexpected primary identifier in shadow for " + username, nameMatchingRule.normalize(username), idProp.getRealValue());
                 } else {
                     PrismAsserts.assertEquals("Unexpected primary identifier in shadow for " + username, nameMatchingRule, username, idProp.getRealValue());
@@ -268,7 +268,7 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
         } else {
             boolean found = false;
             String expected = username;
-            if (requireNormalizedIdentfiers && nameMatchingRule != null) {
+            if (requireNormalizedIdentifiers && nameMatchingRule != null) {
                 expected = nameMatchingRule.normalize(username);
             }
             List<String> wasValues = new ArrayList<>();
@@ -282,7 +282,7 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
                         break;
                     }
                 } else {
-                    if (requireNormalizedIdentfiers) {
+                    if (requireNormalizedIdentifiers) {
                         if (expected.equals(idProp.getRealValue())) {
                             found = true;
                             break;

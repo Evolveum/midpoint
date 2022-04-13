@@ -9,6 +9,7 @@ package com.evolveum.midpoint.report.impl.activity;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
@@ -30,8 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
-
-import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
@@ -103,16 +102,16 @@ final class ClassicReportImportActivityRun
 
     @Override
     public void iterateOverItemsInBucket(OperationResult result) {
-        BiConsumer<Integer, VariablesMap> handler = (lineNumber, variables) -> {
-            InputReportLine line = new InputReportLine(lineNumber, variables);
-
-            coordinator.submit(
-                    new InputReportLineProcessingRequest(line, this),
-                    result);
-        };
         AtomicInteger sequence = new AtomicInteger(1);
         for (VariablesMap variablesMap : variables) {
-            handler.accept(sequence.getAndIncrement(), variablesMap);
+            int lineNumber = sequence.getAndIncrement();
+            InputReportLine line = new InputReportLine(lineNumber, variablesMap);
+            boolean canContinue = coordinator.submit(
+                    new InputReportLineProcessingRequest(line, this),
+                    result);
+            if (!canContinue) {
+                break;
+            }
         }
     }
 

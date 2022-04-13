@@ -111,6 +111,19 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
+                    <script>
+                        <code>
+                            return source.name
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>name</path>
+                </target>
+            </mapping>
+            <mapping>
+                <strength>weak</strength>
+                <expression>
                     <value>BulkActions</value>
                 </expression>
                 <target>

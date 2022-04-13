@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -70,6 +71,7 @@ public final class ClassicDashboardReportExportActivityRun
     @Override
     public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
         return super.createReportingCharacteristics()
+                .skipWritingOperationExecutionRecords(true) // a bit questionable
                 .determineOverallSizeDefault(ActivityOverallItemCountingOptionType.ALWAYS);
     }
 
@@ -136,12 +138,19 @@ public final class ClassicDashboardReportExportActivityRun
 
         List<DashboardWidgetType> widgets = support.getDashboard().getWidget();
         AtomicInteger widgetSequence = new AtomicInteger(1);
+        AtomicBoolean stopped = new AtomicBoolean(false);
         for (DashboardWidgetType widget : widgets) {
+
+            if (Boolean.TRUE.equals(stopped.get())) {
+                return;
+            }
 
             ExportDashboardReportLine<Containerable> widgetLine = new ExportDashboardReportLine<>(widgetSequence.getAndIncrement(), widget);
             ItemProcessingRequest<ExportDashboardReportLine<Containerable>> widgetRequest = new ExportDashboardReportLineProcessingRequest(
                     widgetLine, this);
-            coordinator.submit(widgetRequest, gResult);
+            if (!coordinator.submit(widgetRequest, gResult)) {
+                break;
+            }
 
             if (support.isWidgetTableVisible()) {
                 AtomicInteger sequence = new AtomicInteger(1);
@@ -151,8 +160,12 @@ public final class ClassicDashboardReportExportActivityRun
                             widget.getIdentifier());
                     ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request =
                             new ExportDashboardReportLineProcessingRequest(line, this);
-                    coordinator.submit(request, lResult);
-                    return true;
+                    if (coordinator.submit(request, lResult)) {
+                        return true;
+                    } else {
+                        stopped.set(true);
+                        return false;
+                    }
                 };
 
                 DashboardWidgetHolder holder = mapOfWidgetsController.get(widget.getIdentifier());
