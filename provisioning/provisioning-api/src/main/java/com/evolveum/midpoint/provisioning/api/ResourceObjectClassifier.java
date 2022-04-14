@@ -14,6 +14,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 /**
  * Classifies resource objects, i.e. determines their kind and intent.
  *
@@ -63,6 +65,10 @@ public interface ResourceObjectClassifier {
 
         public @Nullable ResourceObjectTypeDefinition getDefinition() {
             return definition;
+        }
+
+        public @NotNull ResourceObjectTypeDefinition getDefinitionRequired() {
+            return Objects.requireNonNull(definition, "no definition");
         }
 
         public @NotNull ShadowKindType getKind() {

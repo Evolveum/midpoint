@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.sync;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -91,6 +92,9 @@ public class SynchronizationContext<F extends FocusType>
     /** Definition of corresponding object type (currently found by kind+intent). */
     @Nullable private final ResourceObjectTypeDefinition objectTypeDefinition;
 
+    /** What kind to use _if there's no definition_: To preserve last known kind even if classification fails. */
+    @NotNull private final ShadowKindType kindIfNoDefinition;
+
     @Nullable private final ResourceObjectTypeSynchronizationPolicy synchronizationPolicy;
 
     /**
@@ -157,6 +161,10 @@ public class SynchronizationContext<F extends FocusType>
         this.task = processingContext.getTask();
         this.beans = processingContext.getBeans();
         this.objectTypeDefinition = objectTypeDefinition;
+        this.kindIfNoDefinition =
+                Objects.requireNonNullElse(
+                        processingContext.getShadowedResourceObject().getKind(),
+                        ShadowKindType.UNKNOWN);
         this.synchronizationPolicy = synchronizationPolicy;
         this.tag = tag;
         this.itemProcessingIdentifier = itemProcessingIdentifier;
@@ -184,7 +192,8 @@ public class SynchronizationContext<F extends FocusType>
 
     /** May be unknown! */
     public @NotNull ShadowKindType getKind() {
-        return objectTypeDefinition != null ? objectTypeDefinition.getKind() : ShadowKindType.UNKNOWN;
+        return objectTypeDefinition != null ?
+                objectTypeDefinition.getKind() : kindIfNoDefinition;
     }
 
     /** May be unknown! */

@@ -153,8 +153,7 @@ class SynchronizationContextLoader {
         return resource;
     }
 
-    @Nullable
-    private ResourceObjectTypeDefinition determineTypeDefinition(
+    private @Nullable ResourceObjectTypeDefinition determineTypeDefinition(
             @NotNull ResourceObjectProcessingContextImpl processingContext,
             @Nullable ResourceSchema schema,
             @Nullable ObjectSynchronizationDiscriminatorType sorterResult,

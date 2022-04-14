@@ -7,6 +7,18 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
+import java.util.List;
+import java.util.Objects;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -16,25 +28,13 @@ import com.evolveum.midpoint.provisioning.api.ShadowTagGenerator;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
  * Helps with resource object classification, i.e. determining their kind, intent, and tag.
@@ -85,12 +85,9 @@ class ClassificationHelper {
                 ctx.getTask(),
                 result);
 
-        ResourceObjectTypeDefinition definition = classification.getDefinition();
-        if (definition == null) {
-            LOGGER.trace("Classification was not successful for {}", shadow);
-        } else if (isDifferent(classification, shadow)) {
+        if (isDifferent(classification, shadow)) {
             LOGGER.trace("New/updated classification of {} found: {}", shadow, classification);
-            updateShadowClassificationAndTag(combinedObject, definition, ctx, result);
+            updateShadowClassificationAndTag(combinedObject, classification, ctx, result);
         } else {
             LOGGER.trace("No change in classification of {}: {}", shadow, classification);
         }
@@ -114,20 +111,29 @@ class ClassificationHelper {
         return combined.asObjectable();
     }
 
-    /** We update the tag as well, because it may depend on the object type. */
+    /**
+     * We update the tag as well, because it may depend on the object type.
+     *
+     * (We intentionally set the value of intent to "unknown" if the classification is not known!)
+     */
     private void updateShadowClassificationAndTag(
             @NotNull ShadowType combinedObject,
-            @NotNull ResourceObjectTypeDefinition definition,
+            @NotNull Classification classification,
             @NotNull ProvisioningContext ctx,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException {
-        String tag = shadowTagGenerator != null ?
-                shadowTagGenerator.generateTag(combinedObject, ctx.getResource(), definition, ctx.getTask(), result) :
+        String tag = classification.isKnown() && shadowTagGenerator != null ?
+                shadowTagGenerator.generateTag(
+                        combinedObject, ctx.getResource(), classification.getDefinitionRequired(), ctx.getTask(), result) :
                 null;
+        ShadowKindType kindToSet = classification.isKnown() ?
+                classification.getKind() :
+                Objects.requireNonNullElse( // We don't want to lose last-known kind even if classification is not known
+                        combinedObject.getKind(), ShadowKindType.UNKNOWN);
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
-                .item(ShadowType.F_KIND).replace(definition.getKind())
-                .item(ShadowType.F_INTENT).replace(definition.getIntent())
+                .item(ShadowType.F_KIND).replace(kindToSet)
+                .item(ShadowType.F_INTENT).replace(classification.getIntent())
                 .item(ShadowType.F_TAG).replace(tag)
                 .asItemDeltas();
         try {
