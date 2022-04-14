@@ -4,19 +4,19 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 @import "midpoint-theme-variables";
 
-@import "../../../../../node_modules/admin-lte/build/scss/adminlte";
-@import "../../../../../node_modules/overlayscrollbars/css/OverlayScrollbars.css";
-@import "../../../../../node_modules/@fortawesome/fontawesome-free/css/all.css";
-@import "../../../../../node_modules/datatables.net-bs4/css/dataTables.bootstrap4";
+@import "../../../node_modules/admin-lte/build/scss/adminlte";
+@import "../../../node_modules/overlayscrollbars/css/OverlayScrollbars.css";
+@import "../../../node_modules/@fortawesome/fontawesome-free/css/all.css";
+@import "../../../node_modules/datatables.net-bs4/css/dataTables.bootstrap4";
 
-@import "../../../../../node_modules/bootstrap-select/dist/css/bootstrap-select.css";
-@import "../../../../../node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css";
+@import "../../../node_modules/bootstrap-select/dist/css/bootstrap-select.css";
+@import "../../../node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css";
 
 @import "icon-style";
 @import "prism-forms";
+@import "midpoint-utils";
 
 //@import "midpoint/prism-container";
 //@import "midpoint/wizard";
@@ -2178,11 +2178,4 @@ th, td {
 
 .nav-sidebar > .nav-header > span {
   text-transform: uppercase;
-}
-
-// width utility classes
-@for $i from 1 through 20 {
-  .mp-w-#{$i} {
-    width: (100% / 20 * $i);
-  }
 }

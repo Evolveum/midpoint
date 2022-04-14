@@ -12,9 +12,13 @@ const path = require('path');
 
 module.exports = {
     entry: {
+        vendors: [
+            './src/frontend/js/vendors.js',
+            './src/frontend/scss/vendors.scss',
+        ],
         midpoint: [
-            './src/main/resources/static/scss/midpoint-theme.scss',
-            './src/main/resources/static/js/index.js'
+            './src/frontend/js/index.js',
+            './src/frontend/scss/midpoint-theme.scss',
         ],
     },
     mode: 'development',

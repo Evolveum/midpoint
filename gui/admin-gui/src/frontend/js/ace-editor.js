@@ -1,15 +1,9 @@
 /*
- * Copyright (c) 2021 Evolveum and contributors
+ * Copyright (c) 2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
-import * as ace from '../../../../../../node_modules/ace-builds/src-noconflict/ace'
-
-require('../../../../../../node_modules/ace-builds/src-noconflict/theme-eclipse')
-require('../../../../../../node_modules/ace-builds/src-noconflict/mode-xml')
-require('../../../../../../node_modules/ace-builds/src-noconflict/ext-language_tools')
 
 var ACE_EDITOR_POSTFIX = "_editor";
 // var DISABLED_CLASS = "disabled";
