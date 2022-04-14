@@ -377,3 +377,5 @@ image::confirmation-success.png[]
 * xref:/midpoint/reference/admin-gui/custom-forms/[Custom Forms]
 
 * xref:/midpoint/reference/security/credentials/password-policy/[Password Policy]
+
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]
