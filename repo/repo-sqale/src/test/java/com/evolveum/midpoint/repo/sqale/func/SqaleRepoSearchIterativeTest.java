@@ -62,6 +62,12 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
                     .costCenter(String.valueOf(i / 10)); // 10 per cost center
             repositoryService.addObject(user.asPrismObject(), null, result);
         }
+        // MID-7860: Special name that breaks iteration conditions which should be only by orig.
+        // If additional conditions for further "pages" use strict poly match (which is default)
+        // then both orig and norm is used for GT/LT operations and it doesn't work for some values.
+        repositoryService.addObject(new UserType()
+                .name("α-user-0001")
+                .asPrismObject(), null, result);
     }
 
     @BeforeMethod
@@ -265,7 +271,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         when("calling search iterative");
         SearchResultMetadata metadata = searchObjectsIterative(query, operationResult);
 
-        then("result metadata is not null and reports partial result (because of the break)");
+        then("result metadata is not null and not partial result");
         assertThat(metadata).isNotNull();
         assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
         assertThat(metadata.isPartialResults()).isFalse();
@@ -279,7 +285,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         assertThat(testHandler.getCounter()).isEqualTo(101);
     }
 
-    @Test
+    @Test(description = "MID-7860")
     public void test125SearchIterativeWithCustomOrdering() throws Exception {
         OperationResult operationResult = createOperationResult();
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
@@ -294,7 +300,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         when("calling search iterative");
         SearchResultMetadata metadata = searchObjectsIterative(query, operationResult);
 
-        then("result metadata is not null and reports partial result (because of the break)");
+        then("result metadata is not null and not partial result");
         assertThatOperationResult(operationResult).isSuccess();
         assertThat(metadata).isNotNull();
         assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
@@ -305,7 +311,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
                 REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
         assertTypicalPageOperationCount(metadata);
 
-        and("all objects were processed in proper order");
+        and("all objects were processed");
         QUser u = aliasFor(QUser.class);
         try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             List<String> result = jdbcSession.newQuery()
@@ -318,6 +324,36 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
             for (int i = 1; i < result.size(); i++) {
                 assertThat(result.get(i)).isEqualTo(getTestNumber() + "-" + i); // order matches
             }
+        }
+    }
+
+    @Test
+    public void test130SearchIterativeWithCustomOrderingByName() throws Exception {
+        OperationResult operationResult = createOperationResult();
+
+        given("query with custom ordering by name (poly-string)");
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .asc(UserType.F_NAME)
+                .build();
+
+        when("calling search iterative");
+        SearchResultMetadata metadata = searchObjectsIterative(query, operationResult);
+
+        then("result metadata is not null and not partial result");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse();
+
+        and("all objects were processed");
+        QUser u = aliasFor(QUser.class);
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
+            long processed = jdbcSession.newQuery()
+                    .from(u)
+                    .where(u.employeeNumber.startsWith(getTestNumber()))
+                    .fetchCount();
+
+            assertThat(processed).isEqualTo(count(QUser.class)); // all users should be processed
         }
     }
 
@@ -354,6 +390,9 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
                 .getIterativeSearchByPagingBatchSize();
     }
 
+    /**
+     * Counts processed objects and changes user's employee number (test+count).
+     */
     private class TestResultHandler implements ResultHandler<UserType> {
 
         private final AtomicInteger counter = new AtomicInteger();
