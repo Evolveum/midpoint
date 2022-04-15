@@ -256,8 +256,8 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
     }
 
     private SearchConfigurationWrapper<O> createSearchConfigWrapper(Class<O> type, String collectionViewName) {
-        SearchBoxConfigurationType searchBoxConfig = SearchFactory.createDefaultSearchBoxConfiguration(type, null, getPageBase());
-        SearchConfigurationWrapper<O> searchConfigWrapper = new SearchConfigurationWrapper<>(type, searchBoxConfig, collectionViewName);
+        SearchConfigurationWrapper searchConfigWrapper = SearchFactory.createDefaultSearchBoxConfigurationWrapper(type, getPageBase());
+        searchConfigWrapper.setCollectionViewName(collectionViewName);
         searchConfigWrapper.getItemsList().addAll(new ArrayList(getSpecialSearchItemWrappers()));
         return searchConfigWrapper;
     }

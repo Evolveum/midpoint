@@ -29,8 +29,8 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper {
     private XMLGregorianCalendar fromDate;
     private XMLGregorianCalendar toDate;
 
-    public DateSearchItemWrapper(SearchItemType searchItem) {
-        super(searchItem);
+    public DateSearchItemWrapper(ItemPath path) {
+        super(path);
     }
 
     public XMLGregorianCalendar getFromDate() {
@@ -62,7 +62,7 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper {
     @Override
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         PrismContext ctx = PrismContext.get();
-        ItemPath path = getSearchItem().getPath().getItemPath();
+        ItemPath path = getPath();
         if (fromDate != null && toDate != null) {
             return ctx.queryFor(type)
                     .item(path)

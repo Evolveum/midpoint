@@ -194,6 +194,7 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
     private SearchConfigurationWrapper createSearchConfigWrapper() {
         SearchBoxConfigurationType config = new SearchBoxConfigurationType();
         config.setScopeConfiguration(SearchFactory.createScopeSearchItem());
-        return new SearchConfigurationWrapper(getQueryClass(), config);
+        //todo fix scope item
+        return new SearchConfigurationWrapper(getQueryClass());
     }
 }

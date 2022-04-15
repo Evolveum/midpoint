@@ -58,12 +58,12 @@ public class TenantRefWrapperFactory extends PrismReferenceWrapperFactory<Object
     }
 
     private AbstractSearchItemWrapper createTenantSearchItem() {
-        PrismPropertyDefinition tenantDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(OrgType.class)
-                .findPropertyDefinition(OrgType.F_TENANT);
-        SearchItemType searchItem = new SearchItemType()
-                .path(new ItemPathType(ItemPath.create(OrgType.F_TENANT)))
-                .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(tenantDef, null));
-        ChoicesSearchItemWrapper searchItemWrapper = new ChoicesSearchItemWrapper(searchItem,
+//        PrismPropertyDefinition tenantDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(OrgType.class)
+//                .findPropertyDefinition(OrgType.F_TENANT);
+//        SearchItemType searchItem = new SearchItemType()
+//                .path(new ItemPathType(ItemPath.create(OrgType.F_TENANT)))
+//                .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(tenantDef, null));
+        ChoicesSearchItemWrapper searchItemWrapper = new ChoicesSearchItemWrapper(ItemPath.create(OrgType.F_TENANT),
                 Collections.singletonList(new SearchValue<Boolean>(Boolean.TRUE, "Boolean.TRUE")))  {
             @Override
             public boolean canRemoveSearchItem() {

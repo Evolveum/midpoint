@@ -208,7 +208,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                             if (!(item instanceof PropertySearchItemWrapper)) {
                                 continue;
                             }
-                            if (ItemPath.create(ObjectType.F_NAME).equivalent(((PropertySearchItemWrapper)item).getSearchItem().getPath().getItemPath())) {
+                            if (ItemPath.create(ObjectType.F_NAME).equivalent(((PropertySearchItemWrapper)item).getPath())) {
                                 item.setValue(new SearchValue<>(searchByName));
                             }
                         }

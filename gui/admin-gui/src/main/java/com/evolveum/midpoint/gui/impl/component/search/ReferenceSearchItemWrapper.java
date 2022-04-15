@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -34,13 +35,13 @@ public class ReferenceSearchItemWrapper<T extends Serializable> extends Property
     Class<? extends Containerable> searchType;
     List<T> availableValues = new ArrayList<>();
 
-    public ReferenceSearchItemWrapper(SearchItemType searchItem, PrismReferenceDefinition def, Class<? extends Containerable> searchType) {
-        this(searchItem, def, new ArrayList<>(), searchType);
+    public ReferenceSearchItemWrapper(PrismReferenceDefinition def, Class<? extends Containerable> searchType) {
+        this(def, new ArrayList<>(), searchType);
     }
 
-    public ReferenceSearchItemWrapper(SearchItemType searchItem, PrismReferenceDefinition def,
+    public ReferenceSearchItemWrapper(PrismReferenceDefinition def,
             List<T> availableValues, Class<? extends Containerable> searchType) {
-        super(searchItem);
+        super(def.getItemName());
         this.def = def;
         this.searchType = searchType;
         this.availableValues.addAll(availableValues);
@@ -81,7 +82,7 @@ public class ReferenceSearchItemWrapper<T extends Serializable> extends Property
             return null;
         }
         RefFilter refFilter = (RefFilter) PrismContext.get().queryFor(type)
-                .item(getSearchItem().getPath().getItemPath()).ref(refValue.clone())
+                .item(getPath()).ref(refValue.clone())
                 .buildFilter();
         refFilter.setOidNullAsAny(true);
         refFilter.setTargetTypeNullAsAny(true);

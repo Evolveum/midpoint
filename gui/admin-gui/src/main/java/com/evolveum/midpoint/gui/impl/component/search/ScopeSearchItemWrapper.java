@@ -40,20 +40,20 @@ public class ScopeSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     @Override
     public String getName() {
-        if (getSearchConfig().getConfig().getScopeConfiguration() == null
-                || getSearchConfig().getConfig().getScopeConfiguration().getDisplay() == null) {
-            return "";
-        }
-        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getScopeConfiguration().getDisplay().getLabel());
+//        if (getSearchConfig().getConfig().getScopeConfiguration() == null
+//                || getSearchConfig().getConfig().getScopeConfiguration().getDisplay() == null) {
+            return "abstractRoleMemberPanel.searchScope";
+//        }
+//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getScopeConfiguration().getDisplay().getLabel());
     }
 
     @Override
     public String getHelp() {
-        if (getSearchConfig().getConfig().getScopeConfiguration() == null
-                || getSearchConfig().getConfig().getScopeConfiguration().getDisplay() == null) {
-            return "";
-        }
-        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getScopeConfiguration().getDisplay().getHelp());
+//        if (getSearchConfig().getConfig().getScopeConfiguration() == null
+//                || getSearchConfig().getConfig().getScopeConfiguration().getDisplay() == null) {
+            return "abstractRoleMemberPanel.searchScope.tooltip";
+//        }
+//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getScopeConfiguration().getDisplay().getHelp());
     }
 
     @Override
@@ -63,8 +63,7 @@ public class ScopeSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     @Override
     public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
-        ScopeSearchItemConfigurationType config = getSearchConfig().getConfig().getScopeConfiguration();
-        return  config != null && config.getDefaultValue() == SearchBoxScopeType.SUBTREE;
+        return SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getScope());
     }
 
 }

@@ -38,8 +38,7 @@ public class RelationSearchItemPanel extends AbstractSearchItemPanel<RelationSea
     protected Component initSearchItemField() {
         ReadOnlyModel<List<QName>> availableRelations = new ReadOnlyModel<>(() -> {
             List<QName> choices = new ArrayList<>();
-            RelationSearchItemConfigurationType relationItem = getModelObject().getSearchConfig().getConfig().getRelationConfiguration();
-            List<QName> relations = relationItem.getSupportedRelations();
+            List<QName> relations = getModelObject().getSearchConfig().getSupportedRelations();
             if (relations != null && relations.size() > 1) {
                 choices.add(PrismConstants.Q_ANY);
             }

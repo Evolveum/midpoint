@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
@@ -16,8 +17,8 @@ public class AutoCompleteSearchItemWrapper extends PropertySearchItemWrapper {
 
     private LookupTableType lookupTable;
 
-    public AutoCompleteSearchItemWrapper(SearchItemType searchItem, LookupTableType lookupTable) {
-        super(searchItem);
+    public AutoCompleteSearchItemWrapper(ItemPath path, LookupTableType lookupTable) {
+        super(path);
         this.lookupTable = lookupTable;
     }
 

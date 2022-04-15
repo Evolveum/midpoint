@@ -2,6 +2,7 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -14,8 +15,8 @@ import java.util.List;
 
 public class DeadShadowSearchItemWrapper<T> extends ChoicesSearchItemWrapper<T> {
 
-    public DeadShadowSearchItemWrapper(SearchItemType searchItem, List<DisplayableValue<T>> availableValues) {
-        super(searchItem, availableValues);
+    public DeadShadowSearchItemWrapper(List<DisplayableValue<T>> availableValues) {
+        super(ShadowType.F_DEAD, availableValues);
     }
 
     @Override

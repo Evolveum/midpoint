@@ -25,7 +25,7 @@ public class RelationSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     @Override
     public boolean isEnabled() {
-        return CollectionUtils.isNotEmpty(getSearchConfig().getAvailableRelations());
+        return CollectionUtils.isNotEmpty(getSearchConfig().getSupportedRelations());
     }
 
     public boolean isVisible() {
@@ -44,20 +44,19 @@ public class RelationSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     @Override
     public String getName() {
-        if (getSearchConfig().getConfig().getRelationConfiguration() == null
-                || getSearchConfig().getConfig().getRelationConfiguration().getDisplay() == null) {
+//        if (getSearchConfig().getRelationConfiguration().getDisplay() == null) {
             return "relationDropDownChoicePanel.relation";
-        }
-        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getRelationConfiguration().getDisplay().getLabel());
+//        }
+//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getRelationConfiguration().getDisplay().getLabel());
     }
 
     @Override
     public String getHelp() {
-        if (getSearchConfig().getConfig().getRelationConfiguration() == null
-                || getSearchConfig().getConfig().getRelationConfiguration().getDisplay() == null) {
+//        if (getSearchConfig().getConfig().getRelationConfiguration() == null
+//                || getSearchConfig().getConfig().getRelationConfiguration().getDisplay() == null) {
             return "relationDropDownChoicePanel.tooltip.relation";
-        }
-        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getRelationConfiguration().getDisplay().getHelp());
+//        }
+//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getRelationConfiguration().getDisplay().getHelp());
     }
 
     @Override

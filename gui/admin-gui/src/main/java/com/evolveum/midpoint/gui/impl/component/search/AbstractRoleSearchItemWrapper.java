@@ -53,15 +53,15 @@ public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWr
 
         PrismContext prismContext = pageBase.getPrismContext();
         List relations;
-        QName relation = getSearchConfig().getConfig().getRelationConfiguration().getDefaultValue();
+        QName relation = getSearchConfig().getDefaultRelation();
         if (QNameUtil.match(relation, PrismConstants.Q_ANY)){
-            relations = getSearchConfig().getConfig().getRelationConfiguration().getSupportedRelations();
+            relations = getSearchConfig().getSupportedRelations();
         } else {
             relations = Collections.singletonList(relation);
         }
 
         ObjectFilter filter;
-        Boolean indirect = getSearchConfig().getConfig().getIndirectConfiguration().isIndirect();
+        Boolean indirect = getSearchConfig().isIndirect();
 
         if(BooleanUtils.isTrue(indirect)) {
             filter = prismContext.queryFor(type)

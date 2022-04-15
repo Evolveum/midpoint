@@ -379,7 +379,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         if (additionalPanelConfig != null && additionalPanelConfig.getSearchBoxConfiguration() != null) {
             searchConfig.setAllowToConfigureSearchItems(!Boolean.FALSE.equals(additionalPanelConfig.getSearchBoxConfiguration().isAllowToConfigureSearchItems()));
         }
-        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(getDefaultObjectTypeClass(), searchConfig);
+        //todo fix
+        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(getDefaultObjectTypeClass());
         searchConfigWrapper.setAllowAllTypeSearch(true);
         return searchConfigWrapper;
     }

@@ -40,7 +40,6 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -80,8 +79,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     }
 
     private SearchConfigurationWrapper<C> createSearchConfigWrapper(Class<C> type) {
-        SearchBoxConfigurationType searchBoxConfig = SearchFactory.createDefaultSearchBoxConfiguration(type, null, getPageBase());
-        SearchConfigurationWrapper<C> searchConfigWrapper = new SearchConfigurationWrapper<>(type, searchBoxConfig);
+//        SearchBoxConfigurationType searchBoxConfig = SearchFactory.createDefaultSearchBoxConfigurationWrapper(type, null, getPageBase());
+        SearchConfigurationWrapper<C> searchConfigWrapper = new SearchConfigurationWrapper<C>(type);
         PrismContainerDefinition<C> containerDefinition = getTypeDefinitionForSearch();
         List<AbstractSearchItemWrapper> items = (List<AbstractSearchItemWrapper>)initSearchableItemWrappers(containerDefinition);
         if (items != null) {

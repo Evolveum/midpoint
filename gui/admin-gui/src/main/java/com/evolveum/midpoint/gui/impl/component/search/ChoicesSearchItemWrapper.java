@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -21,8 +22,8 @@ public class ChoicesSearchItemWrapper<T> extends PropertySearchItemWrapper {
 
     List<DisplayableValue<T>> availableValues;
 
-    public ChoicesSearchItemWrapper(SearchItemType searchItem, List<DisplayableValue<T>> availableValues) {
-        super(searchItem);
+    public ChoicesSearchItemWrapper(ItemPath path, List<DisplayableValue<T>> availableValues) {
+        super(path);
         this.availableValues = availableValues;
     }
 
@@ -46,6 +47,6 @@ public class ChoicesSearchItemWrapper<T> extends PropertySearchItemWrapper {
             return null;
         }
         return PrismContext.get().queryFor(type)
-                .item(getSearchItem().getPath().getItemPath()).eq(getValue().getValue()).buildFilter();
+                .item(getPath()).eq(getValue().getValue()).buildFilter();
     }
 }

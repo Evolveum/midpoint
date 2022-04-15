@@ -307,7 +307,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
         searchItemsType.createSearchItemList().addAll(searchItems);
         searchBoxConfiguration.setSearchItems(searchItemsType);
 
-        return new SearchConfigurationWrapper<>(type, searchBoxConfiguration);
+        return new SearchConfigurationWrapper<>(type);
     }
 
     @Override

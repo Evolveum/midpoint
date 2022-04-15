@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
-import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -78,26 +77,30 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private boolean isCollectionItemVisible = false;
     private boolean isOidSearchEnabled = false;
     private LoadableModel<List<AbstractSearchItemWrapper>> itemsModel;
-    private IModel<SearchConfigurationWrapper> searchConfigModel;
+    private SearchConfigurationWrapper searchConfigurationWrapper;
 
-    public Search(IModel<SearchConfigurationWrapper> searchConfigModel) {
-        this.searchConfigModel = searchConfigModel;
+    public Search(SearchConfigurationWrapper searchConfigurationWrapper) {
+        this.searchConfigurationWrapper = searchConfigurationWrapper;
+    }
+
+    public SearchConfigurationWrapper getSearchConfigurationWrapper() {
+        return searchConfigurationWrapper;
     }
 
     public List<AbstractSearchItemWrapper> getItems() {
-        return searchConfigModel.getObject().getItemsList();
+        return searchConfigurationWrapper.getItemsList();
     }
 
     public SearchBoxModeType getSearchMode() {
-        return searchConfigModel.getObject().getSearchBoxMode();
+        return searchConfigurationWrapper.getDefaultSearchBoxMode();
     }
 
     public void setSearchMode(SearchBoxModeType searchMode) {
-        searchConfigModel.getObject().setSearchBoxMode(searchMode);
+        searchConfigurationWrapper.setDefaultSearchBoxMode(searchMode);
     }
 
     public boolean isFullTextSearchEnabled() {
-        return getConfig().getAllowedMode().contains(SearchBoxModeType.FULLTEXT);
+        return searchConfigurationWrapper.getAllowedModeList().contains(SearchBoxModeType.FULLTEXT);
     }
 
     public boolean isAdvancedQueryValid(PrismContext ctx) {
@@ -122,7 +125,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     private ObjectFilter createAdvancedObjectFilter(PrismContext ctx) throws SchemaException {
-        SearchBoxModeType searchMode = searchConfigModel.getObject().getSearchBoxMode();
+        SearchBoxModeType searchMode = searchConfigurationWrapper.getDefaultSearchBoxMode();
         if (SearchBoxModeType.ADVANCED.equals(searchMode)) {
             if (StringUtils.isEmpty(advancedQuery)) {
                 return null;
@@ -145,11 +148,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), objectTypeWrapper.getValue().getValue());
         }
         return SearchBoxModeType.OID.equals(getSearchMode()) ? (Class<C> )  ObjectType.class
-                : searchConfigModel.getObject().getTypeClass();
-    }
-
-    public SearchBoxConfigurationType getConfig() {
-        return searchConfigModel.getObject().getConfig();
+                : searchConfigurationWrapper.getTypeClass();
     }
 
     private String createErrorMessage(Exception ex) {
@@ -179,7 +178,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public ObjectQuery createObjectQuery(VariablesMap variables, PageBase pageBase, ObjectQuery customizeContentQuery) {
         LOGGER.debug("Creating query from {}", this);
         ObjectQuery query;
-        SearchBoxModeType searchMode = searchConfigModel.getObject().getSearchBoxMode();
+        SearchBoxModeType searchMode = searchConfigurationWrapper.getDefaultSearchBoxMode();
         if (SearchBoxModeType.OID.equals(getSearchMode())) {
             query = createObjectQueryOid(pageBase);
         } else {
@@ -248,7 +247,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public OidSearchItemWrapper findOidSearchItemWrapper() {
-        List<AbstractSearchItemWrapper> items = searchConfigModel.getObject().getItemsList();
+        List<AbstractSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
         for (AbstractSearchItemWrapper item : items) {
             if (item instanceof OidSearchItemWrapper) {
                 return (OidSearchItemWrapper) item;
@@ -258,7 +257,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public ObjectTypeSearchItemWrapper findObjectTypeSearchItemWrapper() {
-        List<AbstractSearchItemWrapper> items = searchConfigModel.getObject().getItemsList();
+        List<AbstractSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
         for (AbstractSearchItemWrapper item : items) {
             if (item instanceof ObjectTypeSearchItemWrapper) {
                 return (ObjectTypeSearchItemWrapper) item;
@@ -398,18 +397,25 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public VariablesMap getFilterVariables(VariablesMap defaultVariables, PageBase pageBase) {
         VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
-        if (getConfig().getSearchItems() == null) {
-            return variables;
-        }
-        for (SearchItemType item : getConfig().getSearchItems().getSearchItem()) {
-            SearchFilterParameterType functionParameter = item.getParameter();
-            if (functionParameter != null && functionParameter.getType() != null) {
-                Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(functionParameter.getType());
-                TypedValue value = new TypedValue(//item.getInput() != null ? item.getInput().getValue() :
-                        null, inputClass);
-                variables.put(functionParameter.getName(), value);
+        List<AbstractSearchItemWrapper> items = getItems();
+        items.forEach(item -> {
+            if (StringUtils.isNoneEmpty(item.getFunctionParameterName())) {
+                variables.put(item.getFunctionParameterName(), item.functionParameterValue);
             }
-        }
+        });
+
+//        if (getConfig().getSearchItems() == null) {
+//            return variables;
+//        }
+//        for (SearchItemType item : getConfig().getSearchItems().getSearchItem()) {
+//            SearchFilterParameterType functionParameter = item.getParameter();
+//            if (functionParameter != null && functionParameter.getType() != null) {
+//                Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(functionParameter.getType());
+//                TypedValue value = new TypedValue(//item.getInput() != null ? item.getInput().getValue() :
+//                        null, inputClass);
+//                variables.put(functionParameter.getName(), value);
+//            }
+//        }
         return variables;
     }
 
@@ -561,7 +567,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             if (!(searchItemWrapper instanceof PropertySearchItemWrapper)) {
                 continue;
             }
-            if (path.equivalent(((PropertySearchItemWrapper)searchItemWrapper).getSearchItem().getPath().getItemPath())) {
+            if (path.equivalent(((PropertySearchItemWrapper)searchItemWrapper).getPath())) {
                 return (PropertySearchItemWrapper)searchItemWrapper;
             }
         }
@@ -591,8 +597,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         DebugUtil.dumpObjectSizeEstimate(sb, "advancedQuery", advancedQuery, indent + 2);
         DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "type", getTypeClass(), indent + 1);
-        DebugUtil.dumpObjectSizeEstimate(sb, "itemsList", searchConfigModel.getObject(), indent + 2);
-        List<AbstractSearchItemWrapper> items = searchConfigModel.getObject().getItemsList();
+        DebugUtil.dumpObjectSizeEstimate(sb, "itemsList", searchConfigurationWrapper, indent + 2);
+        List<AbstractSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
         for (AbstractSearchItemWrapper item : items) {
             DebugUtil.dumpObjectSizeEstimate(sb, "item " + item.getName(), item, indent + 2);
         }

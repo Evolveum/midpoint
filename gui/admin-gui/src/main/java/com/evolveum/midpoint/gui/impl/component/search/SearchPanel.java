@@ -187,10 +187,10 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         };
 
         IModel<String> buttonRightPaddingModel = () -> {
-            boolean isLongButton = SearchBoxModeType.BASIC.equals(getModelObject().getConfig().getDefaultMode())
-                    || SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getConfig().getDefaultMode());
+            boolean isLongButton = SearchBoxModeType.BASIC.equals(getSearchConfigurationWrapper().getDefaultSearchBoxMode())
+                    || SearchBoxModeType.AXIOM_QUERY.equals(getSearchConfigurationWrapper().getDefaultSearchBoxMode());
             String style = "padding-right: " + (isLongButton ? "23" : "16") + "px;";
-            if (getModelObject().getConfig().getAllowedMode().size() == 1) {
+            if (getSearchConfigurationWrapper().getAllowedModeList().size() == 1) {
                 style = style + "border-top-right-radius: 3px; border-bottom-right-radius: 3px;";
             }
             return style;
@@ -223,7 +223,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         form.setDefaultButton(submitSearchButton);
 
         WebMarkupContainer dropdownButton = new WebMarkupContainer(ID_SEARCH_TYPES_MENU);
-        dropdownButton.add(new VisibleBehaviour(() -> getModelObject().getConfig().getAllowedMode().size() != 1));
+        dropdownButton.add(new VisibleBehaviour(() -> getSearchConfigurationWrapper().getAllowedModeList().size() != 1));
         searchContainer.add(dropdownButton);
 
         ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_SEARCH_TYPE_ITEMS, getSearchBoxTypesList()) {
@@ -279,7 +279,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     }
 
     private boolean isOidSearchTypePresent() {
-        return getModelObject().getConfig().getAllowedMode().contains(SearchBoxModeType.OID);
+        return getSearchConfigurationWrapper().getAllowedModeList().contains(SearchBoxModeType.OID);
     }
 
     private CompositedIcon getSubmitSearchButtonBuilder() {
@@ -293,7 +293,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private List<InlineMenuItem> getSearchBoxTypesList() {
         List<InlineMenuItem> searchItems = new ArrayList<>();
-        for (SearchBoxModeType searchBoxModeType : getModelObject().getConfig().getAllowedMode()) {
+        List<SearchBoxModeType> modeList = getSearchConfigurationWrapper().getAllowedModeList();
+        for (SearchBoxModeType searchBoxModeType : modeList) {
             InlineMenuItem searchItem = new InlineMenuItem(createStringResource(searchBoxModeType)) {
                 private static final long serialVersionUID = 1L;
 
@@ -314,9 +315,9 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                 public IModel<Boolean> getVisible() {
                     if (SearchBoxModeType.AXIOM_QUERY.equals(searchBoxModeType)) {
                         return Model.of(WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())
-                                && getModelObject().getConfig().getAllowedMode().contains(searchBoxModeType));
+                                && getSearchConfigurationWrapper().getAllowedModeList().contains(searchBoxModeType));
                     }
-                    return Model.of(getModelObject().getConfig().getAllowedMode().contains(searchBoxModeType));
+                    return Model.of(getSearchConfigurationWrapper().getAllowedModeList().contains(searchBoxModeType));
                 }
             };
             searchItems.add(searchItem);
@@ -407,6 +408,10 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }
     }
 
+    private SearchConfigurationWrapper getSearchConfigurationWrapper() {
+        return getModelObject().getSearchConfigurationWrapper();
+    }
+
     class BasicSearchFragment extends Fragment {
         private static final long serialVersionUID = 1L;
 
@@ -461,8 +466,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }
 
         private VisibleBehaviour createMoreGroupVisibleBehaviour() {
-            return new VisibleBehaviour(() -> (getModelObject().getConfig().isAllowToConfigureSearchItems() == null
-                    || getModelObject().getConfig().isAllowToConfigureSearchItems()) &&
+            return new VisibleBehaviour(() -> getSearchConfigurationWrapper().isAllowToConfigureSearchItems() &&
                     SearchBoxModeType.BASIC.equals(getModelObject().getSearchMode()));
         }
 

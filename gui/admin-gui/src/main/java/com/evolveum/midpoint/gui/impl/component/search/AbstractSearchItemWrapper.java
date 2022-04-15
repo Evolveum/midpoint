@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
@@ -31,6 +32,9 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
     private boolean selected;
     private boolean visible;
     private boolean canConfigure = true;
+
+    String functionParameterName;
+    TypedValue functionParameterValue;
 
     public abstract Class<? extends AbstractSearchItemPanel> getSearchItemPanelClass();
 
@@ -69,6 +73,22 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
             setValue(getDefaultValue());
         }
         return value;
+    }
+
+    public String getFunctionParameterName() {
+        return functionParameterName;
+    }
+
+    public void setFunctionParameterName(String functionParameterName) {
+        this.functionParameterName = functionParameterName;
+    }
+
+    public TypedValue getFunctionParameterValue() {
+        return functionParameterValue;
+    }
+
+    public void setFunctionParameterValue(TypedValue functionParameterValue) {
+        this.functionParameterValue = functionParameterValue;
     }
 
     public void setValue(DisplayableValue<T> value) {

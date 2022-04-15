@@ -39,20 +39,20 @@ public class TenantSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     @Override
     public String getName() {
-        if (getSearchConfig().getConfig().getTenantConfiguration() == null
-                || getSearchConfig().getConfig().getTenantConfiguration().getDisplay() == null) {
+//        if (getSearchConfig().getConfig().getTenantConfiguration() == null
+//                || getSearchConfig().getConfig().getTenantConfiguration().getDisplay() == null) {
             return "abstractRoleMemberPanel.tenant";
-        }
-        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getTenantConfiguration().getDisplay().getLabel());
+//        }
+//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getTenantConfiguration().getDisplay().getLabel());
     }
 
     @Override
     public String getHelp() {
-        if (getSearchConfig().getConfig().getTenantConfiguration() == null
-                || getSearchConfig().getConfig().getTenantConfiguration().getDisplay() == null) {
+//        if (getSearchConfig().getConfig().getTenantConfiguration() == null
+//                || getSearchConfig().getConfig().getTenantConfiguration().getDisplay() == null) {
             return "";
-        }
-        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getTenantConfiguration().getDisplay().getHelp());
+//        }
+//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getTenantConfiguration().getDisplay().getHelp());
     }
 
     @Override
@@ -61,8 +61,8 @@ public class TenantSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     }
 
     public boolean isApplyFilter() {
-        return  getSearchConfig().getConfig().getScopeConfiguration() != null
-                && SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getConfig().getScopeConfiguration().getDefaultValue());
+        //todo check
+        return SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getScope());
     }
 
 }

@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -22,18 +21,18 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class PropertySearchItemWrapper<T extends Serializable> extends AbstractSearchItemWrapper<T> {
 
-    private SearchItemType searchItem;
 //    private ItemDefinition<?> itemDef;
-    private ItemPath searchItemPath;
+    private ItemPath path;
     private QName valueTypeName;
+    private String name;
+    private String help;
 
-    public PropertySearchItemWrapper (SearchItemType searchItem) {
-        this.searchItem = searchItem;
+    public PropertySearchItemWrapper (ItemPath path) {
+        this.path = path;
     }
 
     @Override
@@ -51,20 +50,38 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
         return super.canRemoveSearchItem() && !isResourceRefSearchItem();
     }
 
-    private boolean isObjectClassSearchItem() {
-        return ShadowType.F_OBJECT_CLASS.equivalent(searchItem.getPath().getItemPath());
+    @Override
+    public String getName() {
+        return name;
     }
 
-    private boolean isResourceRefSearchItem() {
-        return ShadowType.F_RESOURCE_REF.equivalent(searchItem.getPath().getItemPath());
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
-    public String getName() {
-        if (searchItem.getDisplayName() != null){
-            return WebComponentUtil.getTranslatedPolyString(searchItem.getDisplayName());
-        }
-        return "";
+    public String getHelp() {
+        return help;
+    }
+
+    public void setHelp(String help) {
+        this.help = help;
+    }
+
+    private boolean isObjectClassSearchItem() {
+        return ShadowType.F_OBJECT_CLASS.equivalent(path);
+    }
+
+    private boolean isResourceRefSearchItem() {
+        return ShadowType.F_RESOURCE_REF.equivalent(path);
+    }
+
+//    @Override
+//    public String getName() {
+//        if (searchItem.getDisplayName() != null){
+//            return WebComponentUtil.getTranslatedPolyString(searchItem.getDisplayName());
+//        }
+//        return "";
 //        String key = getDefinition().getDef().getDisplayName();
 //        if (StringUtils.isEmpty(key)) {
 //            key = getSearch().getTypeClass().getSimpleName() + '.' + getDefinition().getDef().getItemName().getLocalPart();
@@ -90,24 +107,16 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
 //            return PageBase.createStringResourceStatic(null, getDef().getDisplayName()).getString();
 //        }
 //        return WebComponentUtil.getItemDefinitionDisplayNameOrName(getDef(), null);
-    }
+//    }
 
-    @Override
-    public String getHelp() {
-        return ""; //todo
-    }
+//    @Override
+//    public String getHelp() {
+//        return help;
+//    }
 
     @Override
     public String getTitle() {
         return ""; //todo
-    }
-
-    public SearchItemType getSearchItem() {
-        return searchItem;
-    }
-
-    public void setSearchItem(SearchItemType searchItem) {
-        this.searchItem = searchItem;
     }
 
 //    public ItemDefinition<?> getItemDef() {
@@ -118,12 +127,12 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
 //        this.itemDef = itemDef;
 //    }
 
-    public ItemPath getSearchItemPath() {
-        return searchItemPath;
+    public ItemPath getPath() {
+        return path;
     }
 
-    public void setSearchItemPath(ItemPath searchItemPath) {
-        this.searchItemPath = searchItemPath;
+    public void setPath(ItemPath path) {
+        this.path = path;
     }
 
     public QName getValueTypeName() {
@@ -160,11 +169,11 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
             }
             Object parsedValue = Long.parseLong((String) getValue().getValue());
             return ctx.queryFor(type)
-                    .item(searchItemPath).eq(parsedValue).buildFilter();
+                    .item(path).eq(parsedValue).buildFilter();
         } else if (DOMUtil.XSD_STRING.equals(valueTypeName)) {
             String text = (String) getValue().getValue();
             return ctx.queryFor(type)
-                    .item(searchItemPath).contains(text).matchingCaseIgnore().buildFilter();
+                    .item(path).contains(text).matchingCaseIgnore().buildFilter();
         } else if (DOMUtil.XSD_QNAME.equals(valueTypeName)) {
             Object qnameValue = getValue().getValue();
             QName qName;
@@ -174,12 +183,12 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
                 qName = new QName((String) qnameValue);
             }
             return ctx.queryFor(type)
-                    .item(searchItemPath).eq(qName).buildFilter();
+                    .item(path).eq(qName).buildFilter();
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueTypeName)) {
                 //we're looking for string value, therefore substring filter should be used
                 String text = (String) getValue().getValue();
                 return ctx.queryFor(type)
-                        .item(searchItemPath).contains(text).matchingNorm().buildFilter();
+                        .item(path).contains(text).matchingNorm().buildFilter();
             }
 //            else if (propDef.getValueEnumerationRef() != null) {
 //                String value = (String) searchValue.getValue();
