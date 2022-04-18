@@ -10,19 +10,22 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
+
+import javax.xml.namespace.QName;
 
 public class TextSearchItemWrapper extends PropertySearchItemWrapper<String> {
 
-    private PrismReferenceValue valueEnumerationRef;
+    private String valueEnumerationRefOid;
+    private QName valueEnumerationRefType;
 
     public TextSearchItemWrapper(ItemPath path) {
-        this(path, null);
+        super(path);
     }
 
-    public TextSearchItemWrapper(ItemPath path, PrismReferenceValue valueEnumerationRef) {
+    public TextSearchItemWrapper(ItemPath path, String valueEnumerationRefOid, QName valueEnumerationRefType) {
         super(path);
-        this.valueEnumerationRef = valueEnumerationRef;
+        this.valueEnumerationRefOid = valueEnumerationRefOid;
+        this.valueEnumerationRefType = valueEnumerationRefType;
     }
 
     @Override
@@ -35,11 +38,19 @@ public class TextSearchItemWrapper extends PropertySearchItemWrapper<String> {
         return new SearchValue<>();
     }
 
-    public PrismReferenceValue getValueEnumerationRef() {
-        return valueEnumerationRef;
+    public String getValueEnumerationRefOid() {
+        return valueEnumerationRefOid;
     }
 
-    public void setValueEnumerationRef(PrismReferenceValue valueEnumerationRef) {
-        this.valueEnumerationRef = valueEnumerationRef;
+    public void setValueEnumerationRefOid(String valueEnumerationRefOid) {
+        this.valueEnumerationRefOid = valueEnumerationRefOid;
+    }
+
+    public QName getValueEnumerationRefType() {
+        return valueEnumerationRefType;
+    }
+
+    public void setValueEnumerationRefType(QName valueEnumerationRefType) {
+        this.valueEnumerationRefType = valueEnumerationRefType;
     }
 }

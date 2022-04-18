@@ -537,8 +537,10 @@ public class SearchFactory {
             itemWrapper = new ObjectClassSearchItemWrapper();
         } else if (ShadowType.F_DEAD.equivalent(itemDef.getItemName())) {
             itemWrapper = new DeadShadowSearchItemWrapper(Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
+        } else if (itemDef.getValueEnumerationRef() != null) {
+            itemWrapper = new TextSearchItemWrapper(path, itemDef.getValueEnumerationRef().getOid(), itemDef.getValueEnumerationRef().getTargetType());
         } else {
-            itemWrapper = new TextSearchItemWrapper(path, itemDef.getValueEnumerationRef());
+            itemWrapper = new TextSearchItemWrapper(path);
         }
         itemWrapper.setVisible(isFixedItem(type, path));
         itemWrapper.setValueTypeName(itemDef.getTypeName());
