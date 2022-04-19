@@ -18,6 +18,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -89,8 +90,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
     private void initHeader(WebMarkupContainer box) {
         WebMarkupContainer iconType = new WebMarkupContainer(ID_ICON_TYPE);
-        iconType.setOutputMarkupId(true);
-        iconType.add(new AttributeAppender("class", new IModel<String>() {
+        iconType.add(AttributeAppender.append("class", new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -115,31 +115,17 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                     case WARNING:
                     case HANDLED_ERROR:
                     default:
-                        sb.append(" fa-warning");
+                        sb.append(" fa-exclamation-triangle");
                 }
 
                 return sb.toString();
             }
         }));
 
-        box.add(iconType);
+        WebMarkupContainer message = createMessage();
+        message.add(iconType);
 
-        Label message = createMessage();
-
-        AjaxLink<String> showMore = new AjaxLink<String>(ID_MESSAGE) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                OpResult result = OperationResultPanel.this.getModelObject();
-                result.setShowMore(!result.isShowMore());
-                result.setAlreadyShown(false);  // hack to be able to expand/collapse OpResult after rendered.
-                target.add(OperationResultPanel.this);
-            }
-        };
-
-        showMore.add(message);
-        box.add(showMore);
+        box.add(message);
 
         AjaxLink<String> backgroundTask = new AjaxLink<String>(ID_BACKGROUND_TASK) {
             private static final long serialVersionUID = 1L;
@@ -267,15 +253,14 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         target.add(this);
     }
 
-    private Label createMessage() {
-        Label message = new Label(ID_MESSAGE_LABEL, (IModel<String>) () -> {
+    private WebMarkupContainer createMessage() {
+        Label messageLabel = new Label(ID_MESSAGE_LABEL, (IModel<String>) () -> {
             OpResult result = OperationResultPanel.this.getModel().getObject();
 
             PageBase page = getPageBase();
 
             String msg = null;
             if (result.getUserFriendlyMessage() != null) {
-
                 //TODO: unify with WebModelServiceUtil.translateMessage()
                 LocalizationService service = page.getLocalizationService();
                 Locale locale = page.getSession().getLocale();
@@ -295,8 +280,21 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             String resourceKey = OPERATION_RESOURCE_KEY_PREFIX + result.getOperation();
             return page.getString(resourceKey, null, result.getOperation());
         });
+        messageLabel.setRenderBodyOnly(true);
 
-        message.setOutputMarkupId(true);
+        WebMarkupContainer message = new WebMarkupContainer(ID_MESSAGE);
+        message.add(messageLabel);
+        message.add(new AjaxEventBehavior("click") {
+
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                OpResult result = OperationResultPanel.this.getModelObject();
+                result.setShowMore(!result.isShowMore());
+                result.setAlreadyShown(false);  // hack to be able to expand/collapse OpResult after rendered.
+                target.add(OperationResultPanel.this);
+            }
+        });
+
         return message;
     }
 
@@ -586,7 +584,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
     private IModel<String> createHeaderCss() {
 
-        return new IModel<String>() {
+        return new IModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -594,28 +592,27 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 OpResult result = getModelObject();
 
                 if (result == null || result.getStatus() == null) {
-                    return " box-warning";
+                    return "card-warning";
                 }
 
                 switch (result.getStatus()) {
                     case IN_PROGRESS:
                     case NOT_APPLICABLE:
-                        return " box-info";
+                        return "card-info";
                     case SUCCESS:
-                        return " box-success";
+                        return "card-success";
                     case HANDLED_ERROR:
-                        return " box-default";
+                        return "card-default";
                     case FATAL_ERROR:
 
-                        return " box-danger";
+                        return "card-danger";
                     case UNKNOWN:
                     case PARTIAL_ERROR:
                     case WARNING:
                     default:
-                        return " box-warning";
+                        return "card-warning";
                 }
             }
-
         };
     }
 

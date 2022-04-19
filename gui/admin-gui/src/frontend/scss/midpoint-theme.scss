@@ -336,7 +336,7 @@ th.cog, td.cog {
 // Colored boxes for each object type
 
 @mixin box-object($color) {
-	border-top-color: $color;
+    border-top: 3px solid $color !important;
 
 	&.box-solid {
 		border: 1px solid $color;
