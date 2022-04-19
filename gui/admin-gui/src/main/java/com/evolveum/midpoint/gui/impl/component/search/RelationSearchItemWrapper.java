@@ -66,6 +66,6 @@ public class RelationSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     @Override
     public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
-        return !getSearchConfig().getScope().equals(SearchBoxScopeType.SUBTREE);
+        return !getSearchConfig().getDefaultScope().equals(SearchBoxScopeType.SUBTREE);
     }
 }

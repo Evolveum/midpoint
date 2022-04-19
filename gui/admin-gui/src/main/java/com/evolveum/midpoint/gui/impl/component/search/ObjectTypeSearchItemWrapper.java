@@ -23,18 +23,24 @@ import java.util.List;
 
 public class ObjectTypeSearchItemWrapper extends AbstractSearchItemWrapper<QName> {
 
-    ObjectTypeSearchItemConfigurationType config;
     private QName oldType;
     private boolean typeChanged;
     private boolean allowAllTypesSearch;
 
+    private List<QName> supportedTypeList = new ArrayList<>();
+
+    private QName defaultObjectType;
     public ObjectTypeSearchItemWrapper(ObjectTypeSearchItemConfigurationType config) {
-        this(config, false);
+        this(config.getSupportedTypes(), config.getDefaultValue(), false);
     }
 
     public ObjectTypeSearchItemWrapper(ObjectTypeSearchItemConfigurationType config, boolean allowAllTypesSearch) {
-        this.config = config;
-        this.allowAllTypesSearch = allowAllTypesSearch;
+        this(config.getSupportedTypes(), config.getDefaultValue(), allowAllTypesSearch);
+    }
+
+    public ObjectTypeSearchItemWrapper(List<QName> supportedTypeList, QName defaultObjectType, boolean allowAllTypesSearch) {
+        this.supportedTypeList = supportedTypeList;
+        this.defaultObjectType = defaultObjectType;
     }
 
     public Class<ObjectTypeSearchItemPanel> getSearchItemPanelClass() {
@@ -42,7 +48,7 @@ public class ObjectTypeSearchItemWrapper extends AbstractSearchItemWrapper<QName
     }
 
     public List<QName> getAvailableValues() {
-        return config.getSupportedTypes();
+        return getSupportedTypeList();
     }
 
     public boolean isTypeChanged() {
@@ -55,22 +61,38 @@ public class ObjectTypeSearchItemWrapper extends AbstractSearchItemWrapper<QName
 
     @Override
     public DisplayableValue<QName> getDefaultValue() {
-        return new SearchValue(config.getDefaultValue());
+        return new SearchValue(getDefaultObjectType());
+    }
+
+    public List<QName> getSupportedTypeList() {
+        return supportedTypeList;
+    }
+
+    public void setSupportedTypeList(List<QName> supportedTypeList) {
+        this.supportedTypeList = supportedTypeList;
+    }
+
+    public QName getDefaultObjectType() {
+        return defaultObjectType;
+    }
+
+    public void setDefaultObjectType(QName defaultObjectType) {
+        this.defaultObjectType = defaultObjectType;
     }
 
     @Override
     public String getName() {
-        if (config != null && config.getDisplay() != null && config.getDisplay().getLabel() != null){
-            return WebComponentUtil.getTranslatedPolyString(config.getDisplay().getLabel());
-        }
-        return PageBase.createStringResourceStatic(null, "ContainerTypeSearchItem.name").getString();
+//        if (config != null && config.getDisplay() != null && config.getDisplay().getLabel() != null){
+//            return WebComponentUtil.getTranslatedPolyString(config.getDisplay().getLabel());
+//        }
+        return PageBase.createStringResourceStatic("ContainerTypeSearchItem.name").getString();
     }
 
     @Override
     public String getHelp() {
-        if (config != null && config.getDisplay() != null && config.getDisplay().getHelp() != null){
-            return WebComponentUtil.getTranslatedPolyString(config.getDisplay().getHelp());
-        }
+//        if (config != null && config.getDisplay() != null && config.getDisplay().getHelp() != null){
+//            return WebComponentUtil.getTranslatedPolyString(config.getDisplay().getHelp());
+//        }
         return "";
     }
 

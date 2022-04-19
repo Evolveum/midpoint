@@ -62,7 +62,7 @@ public class TenantSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     public boolean isApplyFilter() {
         //todo check
-        return SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getScope());
+        return SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getDefaultScope());
     }
 
 }

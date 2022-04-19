@@ -63,7 +63,7 @@ public class ScopeSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     @Override
     public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
-        return SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getScope());
+        return SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getDefaultScope());
     }
 
 }

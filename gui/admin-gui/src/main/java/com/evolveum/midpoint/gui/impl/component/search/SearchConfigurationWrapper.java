@@ -1,6 +1,9 @@
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
@@ -38,6 +41,35 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
 
     public SearchConfigurationWrapper(Class<C> typeClass) {
         this(typeClass, null);
+    }
+
+   public SearchConfigurationWrapper(SearchBoxConfigurationType searchBoxConfig) {
+        typeClass = (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(),
+                searchBoxConfig.getObjectTypeConfiguration() != null ? searchBoxConfig.getObjectTypeConfiguration().getDefaultValue() :
+                        searchBoxConfig.getDefaultObjectType());
+        if (searchBoxConfig.getObjectTypeConfiguration() != null) {
+            allowedTypeList = searchBoxConfig.getObjectTypeConfiguration().getSupportedTypes();
+        }
+        defaultSearchBoxMode = searchBoxConfig.getDefaultMode();
+        allowedModeList = searchBoxConfig.getAllowedMode();
+        defaultScope = searchBoxConfig.getScopeConfiguration() != null ? searchBoxConfig.getScopeConfiguration().getDefaultValue()
+                : searchBoxConfig.getDefaultScope();
+        if (searchBoxConfig.getRelationConfiguration() != null) {
+            defaultRelation = searchBoxConfig.getRelationConfiguration().getDefaultValue() != null ?
+                    searchBoxConfig.getRelationConfiguration().getDefaultValue() : RelationTypes.MEMBER.getRelation();
+            supportedRelations = searchBoxConfig.getRelationConfiguration().getSupportedRelations();
+        }
+        if (searchBoxConfig.getIndirectConfiguration() != null && searchBoxConfig.getIndirectConfiguration().isIndirect() != null) {
+            indirect = searchBoxConfig.getIndirectConfiguration().isIndirect();
+        }
+        if  (searchBoxConfig.getProjectConfiguration() != null) {
+        }
+        if (searchBoxConfig.getTenantConfiguration() != null) {
+        }
+        if (searchBoxConfig.isAllowToConfigureSearchItems() != null) {
+            allowToConfigureSearchItems = searchBoxConfig.isAllowToConfigureSearchItems();
+        }
+        //todo convert search items to search item wrappers
     }
 
     public SearchConfigurationWrapper(Class<C> typeClass, String collectionViewName) {
@@ -138,20 +170,6 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
         this.allowToConfigureSearchItems = allowToConfigureSearchItems;
     }
 
-    public SearchBoxScopeType getScope() {
-        //todo fix
-        return SearchBoxScopeType.ONE_LEVEL;
-//        return config.getScopeConfiguration() != null ? config.getScopeConfiguration().getDefaultValue() : SearchBoxScopeType.ONE_LEVEL;
-    }
-
-    public void setScope(SearchBoxScopeType scope) {
-        //todo fix
-//        if (config.getScopeConfiguration() == null) {
-//            config.setScopeConfiguration(new ScopeSearchItemConfigurationType());
-//        }
-//        config.getScopeConfiguration().setDefaultValue(scope);
-    }
-
     public boolean isIndirect() {
         //todo fix
         return indirect;
@@ -164,7 +182,7 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
     }
 
     public boolean isSearchScope(SearchBoxScopeType scopeType) {
-        return getScope() != null && getScope().equals(scopeType);
+        return getDefaultScope() != null && getDefaultScope().equals(scopeType);
     }
 
     public ObjectReferenceType getProjectRef() {

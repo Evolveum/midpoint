@@ -15,6 +15,8 @@ import com.evolveum.midpoint.gui.impl.component.search.*;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.Model;
@@ -417,7 +419,7 @@ public class SearchFactory {
             ModelServiceLocator modelServiceLocator, Search.PanelType panelType) {
         SearchConfigurationWrapper searchConfWrapper = createDefaultSearchBoxConfigurationWrapper(searchConfigurationWrapper.getTypeClass(),
                 discriminator, modelServiceLocator);
-//        searchBoxConfig = combineSearchBoxConfiguration(searchBoxConfig, searchConfigurationWrapper.getConfig());
+        searchConfWrapper = combineSearchBoxConfiguration(searchConfWrapper, searchConfigurationWrapper);
 
 //        if (ObjectType.class.isAssignableFrom(searchConfigurationWrapper.getTypeClass())) {
 //            QName typeQname = WebComponentUtil.classToQName(PrismContext.get(), (Class<? extends ObjectType>) searchConfigurationWrapper.getTypeClass());
@@ -435,7 +437,7 @@ public class SearchFactory {
 //            searchConfigurationWrapper.getItemsList().forEach(item -> item.setCanConfigure(false));
 //        }
         com.evolveum.midpoint.gui.impl.component.search.Search search =
-                new com.evolveum.midpoint.gui.impl.component.search.Search(searchConfigurationWrapper);
+                new com.evolveum.midpoint.gui.impl.component.search.Search(searchConfWrapper);
         if (ObjectType.class.isAssignableFrom(searchConfigurationWrapper.getTypeClass())) {
             QName typeQname = WebComponentUtil.classToQName(PrismContext.get(), (Class<? extends ObjectType>) searchConfigurationWrapper.getTypeClass());
             searchConfigurationWrapper.setAllowToConfigureSearchItems(
@@ -551,98 +553,74 @@ public class SearchFactory {
 
 
 
-    private static List<AbstractRoleSearchItemWrapper> createAbstractRoleSearchItemWrapperList(SearchConfigurationWrapper searchConfig) {
-        List<AbstractRoleSearchItemWrapper> wrappers = new ArrayList<>();
-        wrappers.add(new IndirectSearchItemWrapper(searchConfig));
-        wrappers.add(new ScopeSearchItemWrapper(searchConfig));
-        wrappers.add(new TenantSearchItemWrapper(searchConfig));
-        wrappers.add(new ProjectSearchItemWrapper(searchConfig));
-        wrappers.add(new RelationSearchItemWrapper(searchConfig));
-        return wrappers;
+    public static void createAbstractRoleSearchItemWrapperList(SearchConfigurationWrapper searchConfigWrapper, SearchBoxConfigurationType config) {
+        if (config.getObjectTypeConfiguration() != null) {
+            searchConfigWrapper.getItemsList().add(new ObjectTypeSearchItemWrapper(config.getObjectTypeConfiguration()));
+        }
+        if (config.getRelationConfiguration() != null) {
+            searchConfigWrapper.getItemsList().add(new RelationSearchItemWrapper(searchConfigWrapper));
+        }
+
+        if (config.getIndirectConfiguration() != null) {
+            searchConfigWrapper.getItemsList().add(new IndirectSearchItemWrapper(searchConfigWrapper));
+        }
+
+        if (config.getScopeConfiguration() != null) {
+            searchConfigWrapper.getItemsList().add(new ScopeSearchItemWrapper(searchConfigWrapper));
+        }
+        if (config.getProjectConfiguration() != null) {
+            searchConfigWrapper.getItemsList().add(new ProjectSearchItemWrapper(searchConfigWrapper));
+        }
+        if (config.getTenantConfiguration() != null) {
+            searchConfigWrapper.getItemsList().add(new TenantSearchItemWrapper(searchConfigWrapper));
+        }
     }
 
-    private static SearchBoxConfigurationType combineSearchBoxConfiguration(SearchBoxConfigurationType config, SearchBoxConfigurationType customConfig) {
+    private static SearchConfigurationWrapper combineSearchBoxConfiguration(SearchConfigurationWrapper config, SearchConfigurationWrapper customConfig) {
         if (config == null) {
             return customConfig;
         }
         if (customConfig == null) {
             return config;
         }
-        if (customConfig.getDefaultMode() != null) {
-            config.setDefaultMode(customConfig.getDefaultMode());
+        if (customConfig.getDefaultSearchBoxMode() != null) {
+            config.setDefaultSearchBoxMode(customConfig.getDefaultSearchBoxMode());
         }
-        if (CollectionUtils.isNotEmpty(customConfig.getAllowedMode())) {
-            config.getAllowedMode().clear();
-            config.getAllowedMode().addAll(customConfig.getAllowedMode());
-        }
-        config.setScopeConfiguration(combineScopeSearchItem(config.getScopeConfiguration(), customConfig.getScopeConfiguration()));
-        if (customConfig.getObjectTypeConfiguration() != null) {
-            ObjectTypeSearchItemConfigurationType objectTypeConfig = combineCustomUserInterfaceFeatureType(config.getObjectTypeConfiguration(), customConfig.getObjectTypeConfiguration());
-            if (objectTypeConfig != customConfig.getObjectTypeConfiguration()) {
-                if (customConfig.getObjectTypeConfiguration().getDefaultValue() != null) {
-                    objectTypeConfig.setDefaultValue(customConfig.getObjectTypeConfiguration().getDefaultValue());
-                } else if (config.getObjectTypeConfiguration() != null) {
-                    objectTypeConfig.setDefaultValue(config.getObjectTypeConfiguration().getDefaultValue());
-                }
-                if (CollectionUtils.isNotEmpty(customConfig.getObjectTypeConfiguration().getSupportedTypes())) {
-                    objectTypeConfig.getSupportedTypes().addAll(customConfig.getObjectTypeConfiguration().getSupportedTypes());
-                } else if (config.getObjectTypeConfiguration() != null) {
-                    objectTypeConfig.getSupportedTypes().addAll(config.getObjectTypeConfiguration().getSupportedTypes());
-                }
-            }
-            config.setObjectTypeConfiguration(objectTypeConfig);
-        }
-        if (customConfig.getRelationConfiguration() != null) {
-            RelationSearchItemConfigurationType relationConfig = combineCustomUserInterfaceFeatureType(config.getRelationConfiguration(),
-                    customConfig.getRelationConfiguration());
-            if (relationConfig != customConfig.getRelationConfiguration()) {
-                if (customConfig.getRelationConfiguration().getDefaultValue() != null) {
-                    relationConfig.setDefaultValue(customConfig.getRelationConfiguration().getDefaultValue());
-                } else if (config.getRelationConfiguration() != null) {
-                    relationConfig.setDefaultValue(config.getRelationConfiguration().getDefaultValue());
-                }
-                if (CollectionUtils.isNotEmpty(customConfig.getRelationConfiguration().getSupportedRelations())) {
-                    relationConfig.getSupportedRelations().addAll(customConfig.getRelationConfiguration().getSupportedRelations());
-                } else if (config.getRelationConfiguration() != null) {
-                    relationConfig.getSupportedRelations().addAll(config.getRelationConfiguration().getSupportedRelations());
-                }
-            }
-            config.setRelationConfiguration(relationConfig);
-        }
-        if (customConfig.getIndirectConfiguration() != null) {
-            IndirectSearchItemConfigurationType indirectConfig = combineCustomUserInterfaceFeatureType(config.getIndirectConfiguration(),
-                    customConfig.getIndirectConfiguration());
-            if (indirectConfig != config.getIndirectConfiguration()) {
-                if (customConfig.getIndirectConfiguration().isIndirect() != null) {
-                    indirectConfig.setIndirect(customConfig.getIndirectConfiguration().isIndirect());
-                } else if (config.getIndirectConfiguration() != null) {
-                    indirectConfig.setIndirect(config.getIndirectConfiguration().isIndirect());
-                }
-            }
-            config.setIndirectConfiguration(indirectConfig);
-        }
-        if (customConfig.getProjectConfiguration() != null) {
-            config.setProjectConfiguration(combineCustomUserInterfaceFeatureType(config.getProjectConfiguration(),
-                    customConfig.getProjectConfiguration()));
-        }
-        if (customConfig.getTenantConfiguration() != null) {
-            config.setTenantConfiguration(combineCustomUserInterfaceFeatureType(config.getTenantConfiguration(),
-                    customConfig.getTenantConfiguration()));
+        if (CollectionUtils.isNotEmpty(customConfig.getAllowedModeList())) {
+            config.getAllowedModeList().clear();
+            config.getAllowedModeList().addAll(customConfig.getAllowedModeList());
         }
         if (customConfig.getDefaultScope() != null) {
             config.setDefaultScope(customConfig.getDefaultScope());
         }
-        if (customConfig.getDefaultObjectType() != null) {
-            config.setDefaultObjectType(customConfig.getDefaultObjectType());
+        if (customConfig.getTypeClass() != null) {
+            config.setTypeClass(customConfig.getTypeClass());
         }
-        if (customConfig.getSearchItems() != null && CollectionUtils.isNotEmpty(customConfig.getSearchItems().getSearchItem())) {
-            config.setSearchItems(combineSearchItems(config.getSearchItems(), customConfig.getSearchItems()));
-            config.setDefaultObjectType(customConfig.getDefaultObjectType());
+        if (CollectionUtils.isNotEmpty(customConfig.getAllowedTypeList())) {
+            config.getAllowedTypeList().clear();
+            config.getAllowedTypeList().addAll(customConfig.getAllowedTypeList());
         }
-        if (customConfig.isAllowToConfigureSearchItems() != null) {
-            config.setAllowToConfigureSearchItems(customConfig.isAllowToConfigureSearchItems());
+        if (customConfig.getDefaultRelation() != null) {
+            config.setDefaultRelation(customConfig.getDefaultRelation());
         }
+        if (CollectionUtils.isNotEmpty(customConfig.getSupportedRelations())) {
+            config.getSupportedRelations().clear();
+            config.getSupportedRelations().addAll(customConfig.getSupportedRelations());
+        }
+        config.setIndirect(customConfig.isIndirect());
 
+//        if (customConfig.getProjectConfiguration() != null) {
+//            config.setProjectConfiguration(combineCustomUserInterfaceFeatureType(config.getProjectConfiguration(),
+//                    customConfig.getProjectConfiguration()));
+//        }
+//        if (customConfig.getTenantConfiguration() != null) {
+//            config.setTenantConfiguration(combineCustomUserInterfaceFeatureType(config.getTenantConfiguration(),
+//                    customConfig.getTenantConfiguration()));
+//        }
+        if (CollectionUtils.isNotEmpty(customConfig.getItemsList())) {
+            config.getItemsList().addAll(customConfig.getItemsList());
+        }
+        config.setAllowToConfigureSearchItems(customConfig.isAllowToConfigureSearchItems());
         return config;
     }
 
