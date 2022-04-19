@@ -1,17 +1,15 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.boot;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.gui.impl.factory.panel.TextAreaPanelFactory;
-import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import java.lang.management.ManagementFactory;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.Manager;
@@ -44,10 +42,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Component;
 
-import java.lang.management.ManagementFactory;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.Collections;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.gui.impl.factory.panel.TextAreaPanelFactory;
+import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -83,7 +83,6 @@ import java.util.Collections;
 @SpringBootConfiguration
 @ComponentScan(
         basePackages = {
-                "com.evolveum.midpoint.web.security.factory",
                 "com.evolveum.midpoint.gui",
                 "com.evolveum.midpoint.gui.api",
         },
@@ -148,8 +147,8 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
 
         application.bannerMode(Banner.Mode.LOG);
 
-        // cglib used by wicket unsupport java 15+ so we need use byte buddy generation for wicket
-        // We can remove this after cglib(wicket) fix issue with java 15+ or when wicket will use byte buddy as default
+        // cglib used by wicket does not support Java 15+ so we need use byte buddy generation for wicket.
+        // We can remove this after cglib(wicket) fix issue with java 15+ or when wicket will use byte buddy as default.
         System.setProperty("wicket.ioc.useByteBuddy", "true");
 
         return application.sources(MidPointSpringApplication.class);
