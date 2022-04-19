@@ -18,13 +18,18 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
     private List<SearchBoxModeType> allowedModeList = new ArrayList<>();
     private List<QName> supportedRelations = new ArrayList<>();
     private QName defaultRelation;
+
+    private SearchBoxScopeType defaultScope;
+
+    private boolean indirect;
+
     private String collectionViewName;
     private boolean allowAllTypeSearch;
 
     private boolean allowToConfigureSearchItems;
-    public static final String F_INDIRECT = "config.indirectConfiguration.indirect";
-    public static final String F_SCOPE = "config.scopeConfiguration.defaultValue";
-    public static final String F_RELATION = "config.relationConfiguration.defaultValue";
+    public static final String F_INDIRECT = "indirect";
+    public static final String F_SCOPE = "defaultScope";
+    public static final String F_RELATION = "defaultRelation";
     public static final String F_TENANT = "tenantRef";
     public static final String F_PROJECT = "projectRef";
 
@@ -94,6 +99,14 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
         itemsList.add(searchItem);
     }
 
+    public SearchBoxScopeType getDefaultScope() {
+        return defaultScope;
+    }
+
+    public void setDefaultScope(SearchBoxScopeType defaultScope) {
+        this.defaultScope = defaultScope;
+    }
+
     public QName getDefaultRelation() {
         return defaultRelation;
     }
@@ -108,12 +121,13 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
 //        return config.getIndirectConfiguration() != null ? config.getIndirectConfiguration().isIndirect() : null;
     }
 
-    public void setIndirect(Boolean indirect) {
+    public void setIndirect(boolean indirect) {
         //todo fix
 //        if (config.getIndirectConfiguration() == null) {
 //            config.setIndirectConfiguration(new IndirectSearchItemConfigurationType());
 //        }
 //        config.getIndirectConfiguration().setIndirect(indirect);
+        this.indirect = indirect;
     }
 
     public boolean isAllowToConfigureSearchItems() {
@@ -140,7 +154,7 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
 
     public boolean isIndirect() {
         //todo fix
-        return false;
+        return indirect;
 //        return config.getIndirectConfiguration() != null
 //                && config.getIndirectConfiguration().isIndirect() != null && config.getIndirectConfiguration().isIndirect().equals(Boolean.TRUE);
     }

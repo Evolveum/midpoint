@@ -10,8 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.ScopeSearchItemWrapper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Created by honchar
  */
-public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleType> {
+public class RoleCatalogTabPanel<R extends AbstractRoleType> extends AbstractShoppingCartTabPanel<AbstractRoleType> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TREE_PANEL_CONTAINER = "treePanelContainer";
@@ -150,51 +149,9 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
     }
 
     @Override
-    protected Search createSearch() {
-        //todo check
-//        Search search = super.createSearch();
-//        search.addSpecialItem(createScopeItem(search, getRoleCatalogStorage()));
-//        return search;
-        return SearchFactory.createSearch(createSearchConfigWrapper(), getPageBase());
-    }
-
-//    private SearchItem createScopeItem(Search search, RoleCatalogStorage roleCatalogStorage) {
-//        return new SpecialSearchItem(search) {
-//            @Override
-//            public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
-//                return null;
-//            }
-//
-//            @Override
-//            public SearchSpecialItemPanel createSpecialSearchPanel(String id){
-//                return new SearchSpecialItemPanel(id, new PropertyModel(roleCatalogStorage, RoleCatalogStorage.F_ORG_SEARCH_SCOPE)) {
-//                    @Override
-//                    protected WebMarkupContainer initSearchItemField(String id) {
-//                        DropDownChoicePanel inputPanel = new DropDownChoicePanel(id, getModelValue(), Model.of(Arrays.asList(SearchBoxScopeType.values())), new EnumChoiceRenderer(), false);
-//                        inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
-//                        inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 88px; max-width: 400px !important;"));
-//                        inputPanel.setOutputMarkupId(true);
-//                        return inputPanel;
-//                    }
-//
-//                    @Override
-//                    protected IModel<String> createLabelModel() {
-//                        return getPageBase().createStringResource("abstractRoleMemberPanel.searchScope");
-//                    }
-//
-//                    @Override
-//                    protected IModel<String> createHelpModel() {
-//                        return getPageBase().createStringResource("abstractRoleMemberPanel.searchScope.tooltip");
-//                    }
-//                };
-//            }
-//        };
-//    }
-
-    private SearchConfigurationWrapper createSearchConfigWrapper() {
-        SearchBoxConfigurationType config = new SearchBoxConfigurationType();
-        config.setScopeConfiguration(SearchFactory.createScopeSearchItem());
-        //todo fix scope item
-        return new SearchConfigurationWrapper(getQueryClass());
+    protected Search<R> createSearch() {
+        Search search = super.createSearch();
+        search.getItems().add(new ScopeSearchItemWrapper(search.getSearchConfigurationWrapper()));
+        return search;
     }
 }
