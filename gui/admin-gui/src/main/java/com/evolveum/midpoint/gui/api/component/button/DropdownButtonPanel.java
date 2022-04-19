@@ -128,6 +128,8 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
     }
 
     protected void populateMenuItem(String componentId, ListItem<InlineMenuItem> menuItem) {
+        menuItem.setRenderBodyOnly(true);
+
         MenuLinkPanel menuItemBody = new MenuLinkPanel(componentId, menuItem.getModel()){
             @Override
             protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {

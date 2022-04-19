@@ -128,7 +128,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_RESOURCE_UNKNOWN = "fa fa-question";
     public static final String CLASS_ICON_RESOURCE_MAINTENANCE = "fa fa-wrench";
     public static final String CLASS_ICON_RESOURCE_SCHEMA = "fa fa-code";
-    public static final String CLASS_ICON_RESOURCE_SCHEMA_HANDLING_COLORED = "fa fa-exchange";
+    public static final String CLASS_ICON_RESOURCE_SCHEMA_HANDLING_COLORED = "fa fa-exchange-alt";
     public static final String CLASS_ICON_ASSIGNMENTS = "fa fa-university";
     public static final String CLASS_SHADOW_ICON_REQUEST = "fa fa-pen-square";
     public static final String CLASS_ICON_TACHOMETER = "fa fa-tachometer-alt";
@@ -146,7 +146,7 @@ public class GuiStyleConstants {
 
     //menu items icons classes
     public static final String CLASS_THREE_DOTS = "fa fa-ellipsis-h";
-    public static final String CLASS_RECONCILE_MENU_ITEM = "fa fa-exchange";
+    public static final String CLASS_RECONCILE_MENU_ITEM = "fa fa-exchange-alt";
     public static final String CLASS_TEST_CONNECTION_MENU_ITEM = "fa fa-question";
     public static final String CLASS_DELETE_MENU_ITEM = "fa fa-minus";
     public static final String CLASS_EDIT_MENU_ITEM = "fa fa-edit";
