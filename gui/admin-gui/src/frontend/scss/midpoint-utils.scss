@@ -5,11 +5,23 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-//@mixin make-width-classes($steps: $grid-steps)
+@mixin make-grid-width($columns: $grid-columns, $breakpoints: $grid-breakpoints) {
 
-// width utility classes
-@for $i from 1 through 20 {
-  .mp-w-#{$i} {
-    width: (100% / 20 * $i);
+  @each $breakpoint in map-keys($breakpoints) {
+    $infix: breakpoint-infix($breakpoint, $breakpoints);
+
+    @include media-breakpoint-up($breakpoint, $breakpoints) {
+
+      @if $columns > 0 {
+        @for $i from 1 through $columns {
+          .mp-w#{$infix}-#{$i} {
+            width: (100% / $columns * $i);
+          }
+        }
+      }
+    }
   }
 }
+
+@include make-grid-width();
+

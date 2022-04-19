@@ -5,6 +5,10 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
+@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/functions.scss";
+@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/variables.scss";
+@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/mixins/breakpoints.scss";
+
 $text-label-color: #3c8dbc;
 $text-dimmed-color: #808080;
 $text-dark-dimmed-color: #595959;
