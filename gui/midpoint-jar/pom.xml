@@ -19,10 +19,7 @@
     <artifactId>midpoint-jar</artifactId>
     <!--
     TODO: EXPERIMENTAL AT THE MOMENT:
-     Support of midPoint as JAR is experimental at the moment and further testing is necessary:
-     - included libs need to be checked, compared with WAR content of lib + lib-provided
-     - thorough testing of ${midpoint.home}/lib loading is needed
-     (perhaps it's possible to support it without special command line using simple custom launcher)
+     Support of midPoint as JAR is experimental at the moment but should work, perhaps even faster than WAR!
 
     To try midPoint as a JAR:
     - enable "mpjar" profile (defined in gui/pom.xml) during Maven build (mvn ... -P mpjar ...)
@@ -59,7 +56,8 @@
         Following drivers are excluded in repackaging, we don't want to distribute it (or can't).
         TODO: in admin-gui they are provided, because it's handy for developer
          but perhaps we can just delete it here and recheck whether they are packaged.
-         See repackaging "exclusions" and truezip-maven-plugin lower.
+         This may actually be useless here, because developer runs main class from the GUI module (at least now).
+         But we leave it here + the exclusion in repackage, so no harm done.
         -->
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
@@ -97,10 +95,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>com.evolveum.midpoint.web.boot.MidPointSpringApplication</mainClass>
-                    <layout>ZIP</layout>
-                    <!--
-                    Exclude does NOT exclude transitive dependencies (as of Boot 2.3.3). How crazy is that?!
-                    See truezip-maven-plugin plugin lower.
+                    <!-- This excludes these deps, including their transitive dependencies. -->
                     <excludes>
                         <exclude>
                             <groupId>com.microsoft.sqlserver</groupId>
@@ -111,46 +106,24 @@
                             <artifactId>ojdbc11</artifactId>
                         </exclude>
                     </excludes>
-                    -->
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
                             <goal>repackage</goal>
                         </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>truezip-maven-plugin</artifactId>
-                <version>1.2</version>
-                <executions>
-                    <execution>
-                        <id>remove-unwanted-libs</id>
-                        <goals>
-                            <goal>remove</goal>
-                        </goals>
-                        <phase>package</phase>
                         <configuration>
-                            <fileset>
-                                <!-- note how the archive is treated as a normal file directory -->
-                                <directory>${project.build.directory}/midpoint.jar/BOOT-INF/lib</directory>
-                                <includes>
-                                    <include>admin-gui-*.war</include>
-                                    <include>ojdbc11-*.jar</include>
-                                    <include>ucp-*.jar</include>
-                                    <include>oraclepki-*.jar</include>
-                                    <include>osdt_cert-*.jar</include>
-                                    <include>osdt_core-*.jar</include>
-                                    <include>simplefan-*.jar</include>
-                                    <include>ons-*.jar</include>
-                                    <include>mssql-jdbc-*.jar</include>
-                                </includes>
-                            </fileset>
+                            <layoutFactory implementation="com.evolveum.midpoint.launcher.MidPointJarLayoutFactory"/>
                         </configuration>
                     </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.evolveum.midpoint.tools</groupId>
+                        <artifactId>midpoint-boot-layout</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
