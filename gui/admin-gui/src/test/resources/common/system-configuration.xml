@@ -126,7 +126,7 @@
             <label>Credentials</label>
             <description>View/edit your credentials</description>
             <icon>
-                <cssClass>fa fa-shield</cssClass>
+                <cssClass>fa fa-shield-alt</cssClass>
             </icon>
             <color>blue</color>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfCredentials</authorization>

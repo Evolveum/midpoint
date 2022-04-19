@@ -97,7 +97,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         super.createBreadcrumb();
 
         Breadcrumb bc = getLastBreadcrumb();
-        bc.setIcon(new Model<>("fa fa-shield"));
+        bc.setIcon(new Model<>("fa fa-shield-alt"));
     }
 
     private void initLayout() {
