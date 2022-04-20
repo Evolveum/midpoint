@@ -14,6 +14,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.WicketRuntimeException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -114,6 +115,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
                 final T tab = TabbedPanel.this.tabs.getObject().get(index);
 
                 final WebMarkupContainer titleLink = newLink(ID_LINK, index);
+                titleLink.add(AttributeAppender.append("class", () -> getSelectedTab() == index ? getSelectedTabCssClass() : ""));
 
                 titleLink.add(newTitle(ID_TITLE, tab.getTitle(), index));
                 titleLink.setOutputMarkupPlaceholderTag(true);
@@ -225,9 +227,6 @@ public class TabbedPanel<T extends ITab> extends Panel {
                 }
                 cssClass += " tab" + getIndex();
 
-                if (getIndex() == getSelectedTab()) {
-                    cssClass += ' ' + getSelectedTabCssClass();
-                }
                 if (getVisiblityCache().getLastVisible() == getIndex()) {
                     cssClass += ' ' + getLastTabCssClass();
                 }

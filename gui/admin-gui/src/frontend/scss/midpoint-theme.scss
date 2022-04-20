@@ -336,18 +336,20 @@ th.cog, td.cog {
 // Colored boxes for each object type
 
 @mixin box-object($color) {
+  &.card.card-outline {
     border-top: 3px solid $color !important;
+  }
 
-	&.box-solid {
-		border: 1px solid $color;
-	}
+  &.card:not(.card-outline) {
+    border: 1px solid $color;
+    border-top: 0px;
+  }
 
-	&.box-solid > .box-header {
-		color: #fff;
-		background: $color;
-		background-color: $color;
-	}
-
+  &.card:not(.card-outline) > .card-header {
+    color: #fff;
+    background: $color;
+    background-color: $color;
+  }
 }
 
 .object-user-box {
@@ -1039,21 +1041,6 @@ span.tree-content > table tr td:first-child {
 .org-members-additional-search {
 	text-align: right;
 	margin-right: 20px !important;
-}
-
-.org-managers-box {
-
-	.box-body {
-		padding-top: 13px;
-		padding-bottom: 0px;
-	}
-}
-
-.org-members-box {
-
-	.box-body {
-		padding-top: 13px;
-	}
 }
 
 .modal-dialog-content {

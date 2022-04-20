@@ -448,7 +448,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     }
 
     private void createRefreshNowIconButton(RepeatingView repeatingView) {
-        AjaxIconButton refreshNow = new AjaxIconButton(repeatingView.newChildId(), new Model<>("fa fa-refresh"), createStringResource("autoRefreshPanel.refreshNow")) {
+        AjaxIconButton refreshNow = new AjaxIconButton(repeatingView.newChildId(), new Model<>("fa fa-sync-alt"), createStringResource("autoRefreshPanel.refreshNow")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {

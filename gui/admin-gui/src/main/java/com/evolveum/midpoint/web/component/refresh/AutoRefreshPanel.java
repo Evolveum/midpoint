@@ -33,7 +33,7 @@ public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
 
     private void initLayout() {
 
-        final LinkIconPanel refreshNow = new LinkIconPanel(ID_REFRESH_NOW, new Model("fa fa-refresh"), createStringResource("autoRefreshPanel.refreshNow")) {
+        final LinkIconPanel refreshNow = new LinkIconPanel(ID_REFRESH_NOW, new Model("fa fa-sync-alt"), createStringResource("autoRefreshPanel.refreshNow")) {
             @Override
             protected void onClickPerformed(AjaxRequestTarget target) {
                 refreshPerformed(target);

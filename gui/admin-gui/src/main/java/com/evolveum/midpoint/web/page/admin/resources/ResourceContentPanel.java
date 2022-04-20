@@ -320,7 +320,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
         initButton(ID_IMPORT, "Import", " fa-download", SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
         initButton(ID_RECONCILIATION, "Reconciliation", " fa-link", SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value());
-        initButton(ID_LIVE_SYNC, "Live Sync", " fa-refresh", SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value());
+        initButton(ID_LIVE_SYNC, "Live Sync", " fa-sync-alt", SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value());
 
         initCustomLayout();
     }

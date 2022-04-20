@@ -121,6 +121,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
         String title = StringUtils.isEmpty(treeTitleKey) ? "TreeTablePanel.hierarchy" : treeTitleKey;
         Label treeTitle = new Label(ID_TREE_TITLE, createStringResource(title));
+        treeTitle.setRenderBodyOnly(true);
         treeHeader.add(treeTitle);
 
         List<InlineMenuItem> actions = createTreeMenu();

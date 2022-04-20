@@ -19,36 +19,36 @@ public class GuiStyleConstants {
 
     public static final String CLASS_OBJECT_USER_ICON = "fa fa-user";
     public static final String CLASS_OBJECT_USER_ICON_COLORED = CLASS_OBJECT_USER_ICON + " object-user-color";
-    public static final String CLASS_OBJECT_USER_BOX_CSS_CLASSES = "object-user-box";
+    public static final String CLASS_OBJECT_USER_BOX_CSS_CLASSES = "card-outline object-user-box";
     public static final String CLASS_OBJECT_USER_BOX_THIN_CSS_CLASSES = "object-user-box-thin";
 
     public static final String CLASS_OBJECT_ROLE_ICON = "fe fe-role";
     public static final String CLASS_OBJECT_ROLE_BG = "object-role-bg";
     public static final String CLASS_DISABLED_OBJECT_ROLE_BG = "object-disabled-bg";
     public static final String CLASS_OBJECT_ROLE_ICON_COLORED = CLASS_OBJECT_ROLE_ICON + " object-role-color";
-    public static final String CLASS_OBJECT_ROLE_BOX_CSS_CLASSES = "object-role-box";
+    public static final String CLASS_OBJECT_ROLE_BOX_CSS_CLASSES = "card-outline object-role-box";
     public static final String CLASS_OBJECT_ROLE_BOX_THIN_CSS_CLASSES = "object-role-box-thin";
 
     public static final String CLASS_OBJECT_ORG_ICON = "fa fa-building";
     public static final String CLASS_OBJECT_ORG_BG = "object-org-bg";
     public static final String CLASS_OBJECT_ORG_ICON_COLORED = CLASS_OBJECT_ORG_ICON + " object-org-color";
-    public static final String CLASS_OBJECT_ORG_BOX_CSS_CLASSES = "object-org-box";
+    public static final String CLASS_OBJECT_ORG_BOX_CSS_CLASSES = "card-outline object-org-box";
     public static final String CLASS_OBJECT_ORG_BOX_THIN_CSS_CLASSES = "object-org-box-thin";
 
     public static final String CLASS_OBJECT_SERVICE_ICON = "fa fa-cloud";
     public static final String CLASS_OBJECT_SERVICE_BG = "object-service-bg";
     public static final String CLASS_OBJECT_SERVICE_ICON_COLORED = CLASS_OBJECT_SERVICE_ICON + " object-service-color";
-    public static final String CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES = "object-service-box";
+    public static final String CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES = "card-outline object-service-box";
     public static final String CLASS_OBJECT_SERVICE_BOX_THIN_CSS_CLASSES = "object-service-box-thin";
 
     public static final String CLASS_OBJECT_RESOURCE_ICON = "fa fa-database";
     public static final String CLASS_OBJECT_RESOURCE_ICON_COLORED = CLASS_OBJECT_RESOURCE_ICON + " object-resource-color";
-    public static final String CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES = "object-resource-box";
+    public static final String CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES = "card-outline object-resource-box";
     public static final String CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES = "object-resource-box-thin";
 
     public static final String CLASS_OBJECT_SHADOW_ICON = "fa fa-eye";
     public static final String CLASS_OBJECT_SHADOW_ICON_COLORED = CLASS_OBJECT_RESOURCE_ICON + " object-shadow-color";
-    public static final String CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES = "object-shadow-box";
+    public static final String CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES = "card-outline object-shadow-box";
     public static final String CLASS_OBJECT_SHADOW_BOX_THIN_CSS_CLASSES = "object-shadow-box-thin";
 
     public static final String CLASS_OBJECT_TASK_ICON = "fa fa-tasks";
@@ -194,7 +194,7 @@ public class GuiStyleConstants {
 
     public static final String CLASS_ASSIGN = "fa fa-link";
     public static final String CLASS_UNASSIGN = "fa fa-unlink";
-    public static final String CLASS_RECONCILE = "fa fa-refresh";
+    public static final String CLASS_RECONCILE = "fa fa-sync-alt";
     public static final String CLASS_ADD_NEW_OBJECT = "fa fa-plus";
     public static final String CLASS_UPLOAD = "fa fa-upload";
     public static final String CLASS_CREATE_FOCUS = "fa fa-user-plus";
