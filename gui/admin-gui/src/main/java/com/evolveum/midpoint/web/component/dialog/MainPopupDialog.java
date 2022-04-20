@@ -7,25 +7,25 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalDialog;
-import org.apache.wicket.extensions.ajax.markup.html.modal.theme.DefaultTheme;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * @author Viliam Repan (lazyman)
  * @author katkav
  */
 public class MainPopupDialog extends ModalDialog {
+
     private static final long serialVersionUID = 1L;
 
-    private static final String TITLE_ID = "title";
+    private static final String ID_TITLE = "title";
 
     public MainPopupDialog(String id) {
         super(id);
@@ -35,9 +35,27 @@ public class MainPopupDialog extends ModalDialog {
     protected void onInitialize() {
         super.onInitialize();
         setOutputMarkupId(true);
-        add(new DefaultTheme());
-        trapFocus();
         setOutputMarkupPlaceholderTag(true);
+    }
+
+    @Override
+    public ModalDialog open(AjaxRequestTarget target) {
+        ModalDialog dialog = super.open(target);
+        appendJS(target, "show");
+
+        return dialog;
+    }
+
+    @Override
+    public ModalDialog close(AjaxRequestTarget target) {
+        appendJS(target, "hide");
+
+        // overlay is handled (hidden) via javascript
+        return this;
+    }
+
+    private void appendJS(AjaxRequestTarget target, String operation) {
+        target.appendJavaScript("$(document).ready(function () { $('#" + get("overlay").getMarkupId() + "').modal('" + operation + "'); });");
     }
 
     public WebMarkupContainer getDialogComponent() {
@@ -59,7 +77,7 @@ public class MainPopupDialog extends ModalDialog {
     }
 
     public void setTitle(StringResourceModel title) {
-        Label titleLabel = new Label(TITLE_ID, title);
+        Label titleLabel = new Label(ID_TITLE, title);
         titleLabel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(title.getString())));
         getDialogComponent().addOrReplace(titleLabel);
     }
