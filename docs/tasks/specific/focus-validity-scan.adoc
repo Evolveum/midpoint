@@ -109,3 +109,15 @@ xref:/midpoint/reference/tasks/activities/distribution/[`distribution/subtasks`]
     </activity>
 </task>
 ----
+
+== Limitations
+
+The validity scanner uses a simple _recomputation_ to update the object state. In particular, this means that
+there are _no deltas_ as input to the recomputation process. This has some negative consequences, namely that
+if some values (of assignments, associations, or any multi-value items in general) are deleted as a result,
+the deletion is not automatically applied to the respective objects.
+
+A workaround is to set up ranges for any mappings that depend on the validity state of an object.
+
+In the future we may implement the deltas here, so the usual "relative mode" of midPoint working would
+be applied during validation scan as well.
