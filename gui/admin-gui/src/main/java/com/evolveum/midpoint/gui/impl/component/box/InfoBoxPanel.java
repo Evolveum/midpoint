@@ -37,11 +37,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
+import com.evolveum.midpoint.web.page.admin.shadows.PageShadows;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -170,17 +170,18 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
             Class<? extends WebPage> pageType = getLinksRefCollections().get(collection.getType().getLocalPart());
             PageParameters parameters = new PageParameters();
             if (QNameUtil.match(collection.getType(), ShadowType.COMPLEX_TYPE)) {
-                pageType = PageResource.class;
-                String oid = getResourceOid(collection.getFilter());
-                if (oid != null) {
-                    parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                    Integer tab = getResourceTab(collection.getFilter());
-                    if (tab != null) {
-                        parameters.add(PageResource.PARAMETER_SELECTED_TAB, tab);
-                    } else {
-                        parameters.add(PageResource.PARAMETER_SELECTED_TAB, 2);
-                    }
-                }
+                pageType = PageShadows.class;
+//                pageType = PageResource.class;
+//                String oid = getResourceOid(collection.getFilter());
+//                if (oid != null) {
+//                    parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+//                    Integer tab = getResourceTab(collection.getFilter());
+//                    if (tab != null) {
+//                        parameters.add(PageResource.PARAMETER_SELECTED_TAB, tab);
+//                    } else {
+//                        parameters.add(PageResource.PARAMETER_SELECTED_TAB, 2);
+//                    }
+//                }
             }
             if(pageType == null) {
                 return;

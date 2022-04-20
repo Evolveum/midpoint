@@ -38,7 +38,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.ResourceContentPanel;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentRepositoryPanel;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentResourcePanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceContentSearchDto;
@@ -52,16 +51,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * @author katkav
  * @author semancik
  */
-public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
+public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ResourceContentTabPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceContentPanel.class);
 
     enum Operation {
         REMOVE, MODIFY;
     }
 
-    private static final String DOT_CLASS = ResourceContentTabPanel.class.getName() + ".";
+    private static final String DOT_CLASS = ResourceContentPanel.class.getName() + ".";
 
     private static final String ID_INTENT = "intent";
     private static final String ID_REAL_OBJECT_CLASS = "realObjectClass";
@@ -80,7 +79,7 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
     private IModel<ResourceContentSearchDto> resourceContentSearch;
 
-    public ResourceContentTabPanel(String id, final ShadowKindType kind,
+    public ResourceContentPanel(String id, final ShadowKindType kind,
             final ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
 
@@ -240,7 +239,7 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
                 resourceContentSearch.getObject().setResourceSearch(Boolean.FALSE);
                 updateResourceContentSearch();
-                mainForm.addOrReplace(initRepoContent(ResourceContentTabPanel.this.getObjectWrapperModel()));
+                mainForm.addOrReplace(initRepoContent(ResourceContentPanel.this.getObjectWrapperModel()));
                 target.add(getParent().addOrReplace(mainForm));
                 target.add(this);
                 target.add(getParent().get(ID_RESOURCE_SEARCH)
@@ -267,7 +266,7 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).setResourceSearch(Boolean.TRUE);
                 updateResourceContentSearch();
                 resourceContentSearch.getObject().setResourceSearch(Boolean.TRUE);
-                mainForm.addOrReplace(initResourceContent(ResourceContentTabPanel.this.getObjectWrapperModel()));
+                mainForm.addOrReplace(initResourceContent(ResourceContentPanel.this.getObjectWrapperModel()));
                 target.add(getParent().addOrReplace(mainForm));
                 target.add(this.add(AttributeModifier.append("class", " active")));
                 target.add(getParent().get(ID_REPO_SEARCH)
@@ -298,7 +297,7 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 new ArrayList<>(refinedSchema.getObjectClassNames()) : List.of();
     }
 
-    private ResourceContentPanel initTable(IModel<PrismObjectWrapper<ResourceType>> model) {
+    private com.evolveum.midpoint.web.page.admin.resources.ResourceContentPanel initTable(IModel<PrismObjectWrapper<ResourceType>> model) {
         if (isResourceSearch()) {
             return initResourceContent(getObjectWrapperModel());
         } else {
