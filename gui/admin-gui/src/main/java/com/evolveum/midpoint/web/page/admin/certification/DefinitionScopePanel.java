@@ -8,13 +8,8 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
@@ -22,17 +17,10 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeObjectType;
 
-import com.evolveum.midpoint.web.page.admin.roles.component.MultiplicityPolicyPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
-import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.List;
