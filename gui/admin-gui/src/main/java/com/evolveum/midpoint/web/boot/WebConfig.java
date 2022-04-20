@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,9 +8,8 @@ package com.evolveum.midpoint.web.boot;
 
 import java.time.Duration;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.web.ResourceProperties;
+import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -50,17 +49,15 @@ public class WebConfig {
     @Configuration
     public static class StaticResourceConfiguration implements WebMvcConfigurer {
 
-        @Autowired
-        private ResourceProperties resourceProperties;
+        private final WebProperties.Resources resourceProperties = new WebProperties.Resources();
 
         @Value("${midpoint.home}")
         private String midpointHome;
 
         @Override
         public void addResourceHandlers(ResourceHandlerRegistry registry) {
-            Duration cachePeriod = this.resourceProperties.getCache().getPeriod();
-            CacheControl cacheControl = this.resourceProperties.getCache()
-                    .getCachecontrol().toHttpCacheControl();
+            Duration cachePeriod = resourceProperties.getCache().getPeriod();
+            CacheControl cacheControl = resourceProperties.getCache().getCachecontrol().toHttpCacheControl();
             if (!registry.hasMappingForPattern("/static-web/**")) {
                 registry
                         .addResourceHandler("/static-web/**")
