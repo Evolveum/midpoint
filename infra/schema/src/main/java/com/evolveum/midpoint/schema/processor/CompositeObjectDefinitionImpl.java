@@ -10,7 +10,6 @@ import java.util.*;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
@@ -32,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Used to represent combined definition of structural and auxiliary object classes.
+ * Represents ad-hoc combination of definitions of structural and auxiliary object classes.
  *
  * @author semancik
  */
@@ -101,11 +100,6 @@ public class CompositeObjectDefinitionImpl
     @Override
     public boolean isObjectMarker() {
         return structuralDefinition.isObjectMarker();
-    }
-
-    @Override
-    public boolean isIgnored() {
-        return structuralDefinition.isIgnored();
     }
 
     @Override
@@ -197,7 +191,6 @@ public class CompositeObjectDefinitionImpl
         return structuralDefinition.isRuntimeSchema();
     }
 
-    @SuppressWarnings("unchecked") // temporary workaround
     @NotNull
     @Override
     public Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers() {
@@ -209,7 +202,6 @@ public class CompositeObjectDefinitionImpl
         return structuralDefinition.getPrimaryIdentifiersNames();
     }
 
-    @SuppressWarnings("unchecked") // temporary workaround
     @NotNull
     @Override
     public Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers() {
@@ -309,7 +301,6 @@ public class CompositeObjectDefinitionImpl
         return structuralDefinition.getEffectiveCapability(capabilityClass, resource);
     }
 
-    @SuppressWarnings("unchecked") // temporary workaround
     @NotNull
     @Override
     public List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
@@ -375,11 +366,6 @@ public class CompositeObjectDefinitionImpl
         return structuralDefinition.getIgnoredNamespaces();
     }
 
-//    @Override
-//    public LayerRefinedObjectDefinition forLayer(@NotNull LayerType layerType) {
-//        return LayerRefinedObjectDefinitionImpl.wrap(this, layerType);
-//    }
-
     public Collection<ResourceAssociationDefinition> getEntitlementAssociationDefinitions() {
         return getAssociationDefinitions(ShadowKindType.ENTITLEMENT);
     }
@@ -421,22 +407,10 @@ public class CompositeObjectDefinitionImpl
         return ShadowAttributesType.class;
     }
 
-    // TODO what is this for?
-    private Stream<ResourceObjectDefinition> getRefinedObjectClassDefinitionsStream() {
-        return Stream.concat(
-                Stream.of(structuralDefinition),
-                auxiliaryDefinitions.stream());
-    }
-
     @Override
     public PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
         return structuralDefinition.createBlankShadow(resourceOid, tag);
     }
-
-//    @Override
-//    public ResourceShadowDiscriminator getShadowDiscriminator() {
-//        return structuralObjectClassDefinition.getShadowDiscriminator();
-//    }
 
     @Override
     public ResourcePasswordDefinitionType getPasswordDefinition() {
@@ -508,9 +482,6 @@ public class CompositeObjectDefinitionImpl
         if (this == obj) {
             return true;
         }
-//        if (!super.equals(obj)) {
-//            return false;
-//        }
         if (getClass() != obj.getClass()) {
             return false;
         }
@@ -526,10 +497,6 @@ public class CompositeObjectDefinitionImpl
 
     @Override
     public String debugDump(int indent) {
-        return debugDump(indent, (LayerType) null);
-    }
-
-    protected String debugDump(int indent, LayerType layer) {
         StringBuilder sb = new StringBuilder();
         sb.append(INDENT_STRING.repeat(Math.max(0, indent)));
         sb.append(getDebugDumpClassName()).append(getMutabilityFlag()).append(": ");

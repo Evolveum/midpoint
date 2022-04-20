@@ -3852,27 +3852,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-<!--         <xsd:element name="objectClass" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0"
-                         maxOccurs="unbounded">
-            <xsd:annotation>
-                <xsd:documentation>
-                    The objectClass part of schema handling definition provides a mechanism to redefine schema
-                    object classes. The object classes are tough of as being fairly abstract. This definition
-                    may define default values to set for each instance of this object class. It may define
-                    default mapping. But these definitions should be directly used in constructions in roles
-                    and assignments. The objectType definitions below are supposed to be used for that purpose.
-                </xsd:documentation>
-            </xsd:annotation>
-        </xsd:element>  -->
-        <xsd:element name="objectType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0"
-                         maxOccurs="unbounded">
+        <xsd:element name="objectType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
             <xsd:annotation>
                 <xsd:documentation>
                     The objectType part of schema handling definition provides a mechanism to define
                     concrete types of objects that this resource supports. There should be definitions
-                    of account types, entitlement types, etc.
-                    There are the definitions that should be used in constructions in roles, orgs,
-                    assignments, etc.
+                    of account types, entitlement types, etc. These are the definitions that should be
+                    used in constructions in roles, orgs, assignments, etc.
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:element>
@@ -3909,17 +3895,31 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="intent" type="xsd:string" minOccurs="0">
+            <xsd:element name="intent" type="xsd:string" minOccurs="0" default="default">
                 <xsd:annotation>
                     <xsd:documentation>
                         Intent of objects covered by this type.
-                        If not specified, then XXXXXXXXXXXX.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:displayName" minOccurs="0"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="abstract" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is this an abstract object type? Such a type cannot be referenced from a construction,
+                        nor it can be used as a categorization result.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="parent" type="tns:ParentObjectTypeReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Parent (super) type of this resource object type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="default" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4166,6 +4166,35 @@
                     <xsd:appinfo>
                         <a:since>4.6</a:since>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ParentObjectTypeReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                References a parent object type.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                         Kind of the parent type. If not specified, the kind of the child is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="intent" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Intent of the parent type. Should be specified.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

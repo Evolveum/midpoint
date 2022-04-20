@@ -34,15 +34,11 @@ public class ObjectClassDetailsDto implements Serializable{
     private boolean isDefault;
 
     public ObjectClassDetailsDto(ResourceObjectTypeDefinition definition){
-        if(definition != null){
+        if (definition != null) {
             displayName = definition.getDisplayName() != null ? definition.getDisplayName() : VALUE_NOT_SPECIFIED;
             description = definition.getDescription() != null ? definition.getDescription() : VALUE_NOT_SPECIFIED;
-
-            if(definition.getKind() != null){
-                kind = definition.getKind().value();
-            } else
-
-            intent = definition.getIntent() != null ? definition.getIntent() : VALUE_NOT_SPECIFIED;
+            kind = definition.getKind().value();
+            intent = definition.getIntent();
             String nativeObjectClassName = definition.getObjectClassDefinition().getNativeObjectClass();
             this.nativeObjectClass = nativeObjectClassName != null ? nativeObjectClassName : VALUE_NOT_SPECIFIED;
             isDefault = definition.isDefaultForKind();

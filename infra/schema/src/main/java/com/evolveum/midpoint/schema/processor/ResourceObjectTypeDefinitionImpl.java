@@ -301,7 +301,7 @@ public final class ResourceObjectTypeDefinitionImpl
         if (configuredCapabilities == null) {
             return null;
         }
-        CapabilitiesType capabilitiesType = new CapabilitiesType(getPrismContext());
+        CapabilitiesType capabilitiesType = new CapabilitiesType();
         capabilitiesType.setConfigured(configuredCapabilities);
         return capabilitiesType;
     }
