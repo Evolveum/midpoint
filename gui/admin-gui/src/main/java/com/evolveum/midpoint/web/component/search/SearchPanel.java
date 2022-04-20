@@ -104,7 +104,6 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private static final String ID_FULL_TEXT_CONTAINER = "fullTextContainer";
     private static final String ID_FULL_TEXT_FIELD = "fullTextField";
     private static final String ID_ADVANCED_GROUP = "advancedGroup";
-    private static final String ID_MORE_GROUP = "moreGroup";
     private static final String ID_ADVANCED_AREA = "advancedArea";
     private static final String ID_AXIOM_QUERY_FIELD = "axiomQueryField";
     private static final String ID_ADVANCED_CHECK = "advancedCheck";
@@ -269,10 +268,6 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         oidItem.add(createVisibleBehaviour(SearchBoxModeType.OID));
         form.add(oidItem);
 
-        WebMarkupContainer moreGroup = new WebMarkupContainer(ID_MORE_GROUP);
-        moreGroup.add(new VisibleBehaviour(() -> createVisibleBehaviour(SearchBoxModeType.BASIC).isVisible()));
-        form.add(moreGroup);
-
         AjaxLink<Void> more = new AjaxLink<Void>(ID_MORE) {
             private static final long serialVersionUID = 1L;
 
@@ -280,22 +275,20 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
             public void onClick(AjaxRequestTarget target) {
                 resetMoreDialogModel();
                 Component popover = SearchPanel.this.get(createComponentPath(ID_POPOVER));
-                Component button = SearchPanel.this.get(createComponentPath(ID_FORM, ID_MORE_GROUP, ID_MORE));
+                Component button = SearchPanel.this.get(createComponentPath(ID_FORM, ID_MORE));
                 togglePopover(target, button, popover, 14);
             }
         };
-        more.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                Search search = getModelObject();
-                return !search.getAvailableDefinitions().isEmpty();
+        more.add(new VisibleBehaviour(() -> {
+            if (!isItemVisible(SearchBoxModeType.BASIC)) {
+                return false;
             }
-        });
+
+            Search search = getModelObject();
+            return !search.getAvailableDefinitions().isEmpty();
+        }));
         more.setOutputMarkupId(true);
-        moreGroup.add(more);
+        form.add(more);
 
         WebMarkupContainer searchContainer = new WebMarkupContainer(ID_SEARCH_CONTAINER);
         searchContainer.setOutputMarkupId(true);
@@ -728,16 +721,12 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     }
 
     private VisibleEnableBehaviour createVisibleBehaviour(SearchBoxModeType ... searchType) {
-        return new VisibleEnableBehaviour() {
+        return new VisibleBehaviour(() -> isItemVisible(searchType));
+    }
 
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return getModelObject() != null && getModelObject().getSearchType() != null
-                        && Arrays.asList(searchType).contains(getModelObject().getSearchType());
-            }
-        };
+    private boolean isItemVisible(SearchBoxModeType... searchType) {
+        return getModelObject() != null && getModelObject().getSearchType() != null
+                && Arrays.asList(searchType).contains(getModelObject().getSearchType());
     }
 
     private void initPopover() {
@@ -929,7 +918,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     }
 
     public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
-        target.appendJavaScript("toggleSearchPopover('"
+        target.appendJavaScript("MidPointTheme.toggleSearchPopover('"
                 + button.getMarkupId() + "','"
                 + popover.getMarkupId() + "',"
                 + paddingRight + ");");

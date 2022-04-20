@@ -78,7 +78,7 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
 
     public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
         StringBuilder script = new StringBuilder();
-        script.append("toggleSearchPopover('");
+        script.append("MidPointTheme.toggleSearchPopover('");
         script.append(button.getMarkupId()).append("','");
         script.append(popover.getMarkupId()).append("',");
         script.append(paddingRight).append(");");
