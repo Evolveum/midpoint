@@ -899,6 +899,8 @@ Definition for OpenID Provider. Possible attributes are:
 
 |===
 
+Required attribute is only 'issuerUri', because midPoint get configuration for all other uris from 'issuerUri'/.well-known/openid-configuration. MidPoint can write error to log file, that some from optional configuration uris is null and required. This error we can see when 'issuerUri'/.well-known/openid-configuration is unavailable.
+
 .Example of Client configuration with client authentication for client signed JWT
 [source,xml]
 ----
