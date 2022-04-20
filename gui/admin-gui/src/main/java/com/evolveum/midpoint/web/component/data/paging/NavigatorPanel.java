@@ -7,12 +7,12 @@
 package com.evolveum.midpoint.web.component.data.paging;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.Loop;
 import org.apache.wicket.markup.html.list.LoopItem;
@@ -21,7 +21,8 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.AbstractRepeater;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * @author lazyman
@@ -30,13 +31,13 @@ public class NavigatorPanel extends Panel {
 
     private static final int PAGING_SIZE = 5;
 
+    private static final String ID_PAGINATION = "pagination";
     private static final String ID_PREVIOUS = "previous";
     private static final String ID_PREVIOUS_LINK = "previousLink";
     private static final String ID_FIRST = "first";
     private static final String ID_FIRST_LINK = "firstLink";
     private static final String ID_LAST = "last";
     private static final String ID_LAST_LINK = "lastLink";
-    //    private static final String ID_DOTS = "dots";
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_PAGE_LINK = "pageLink";
     private static final String ID_NEXT = "next";
@@ -46,12 +47,7 @@ public class NavigatorPanel extends Panel {
     private final IModel<Boolean> showPageListingModel;
 
     public NavigatorPanel(String id, IPageable pageable, final boolean showPageListing) {
-        this(id, pageable, new IModel<Boolean>() {
-            @Override
-            public Boolean getObject() {
-                return showPageListing;
-            }
-        });
+        this(id, pageable, () -> showPageListing);
     }
 
     public NavigatorPanel(String id, IPageable pageable, IModel<Boolean> showPageListingModel) {
@@ -60,36 +56,27 @@ public class NavigatorPanel extends Panel {
         this.showPageListingModel = showPageListingModel;
 
         setOutputMarkupId(true);
-        add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return NavigatorPanel.this.pageable.getPageCount() > 0;
-            }
-        });
+        add(new VisibleBehaviour(() -> NavigatorPanel.this.pageable.getPageCount() > 0));
 
         initLayout();
     }
 
     private void initLayout() {
-        initFirst();
-        initPrevious();
-        initNavigation();
-        initNext();
-        initLast();
+        WebMarkupContainer pagination = new WebMarkupContainer(ID_PAGINATION);
+        add(pagination);
+
+        initFirst(pagination);
+        initPrevious(pagination);
+        initNavigation(pagination);
+        initNext(pagination);
+        initLast(pagination);
     }
 
-    private void initPrevious() {
+    private void initPrevious(WebMarkupContainer pagination) {
         WebMarkupContainer previous = new WebMarkupContainer(ID_PREVIOUS);
-        previous.add(new AttributeModifier("class", new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                return isPreviousEnabled() ? "" : "disabled";
-            }
-        }));
-        add(previous);
-        AjaxLink<Void> previousLink = new AjaxLink<Void>(ID_PREVIOUS_LINK) {
+        previous.add(AttributeAppender.append("class", (IModel<String>) () -> isPreviousEnabled() ? "" : "disabled"));
+        pagination.add(previous);
+        AjaxLink<Void> previousLink = new AjaxLink<>(ID_PREVIOUS_LINK) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -101,27 +88,15 @@ public class NavigatorPanel extends Panel {
                 previousPerformed(target);
             }
         };
-        previousLink.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isEnabled() {
-                return isPreviousEnabled();
-            }
-        });
+        previousLink.add(new EnableBehaviour(() -> isPreviousEnabled()));
         previous.add(previousLink);
     }
 
-    private void initFirst() {
+    private void initFirst(WebMarkupContainer pagination) {
         WebMarkupContainer first = new WebMarkupContainer(ID_FIRST);
-        first.add(new AttributeModifier("class", new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                return isFirstEnabled() ? "" : "disabled";
-            }
-        }));
-        add(first);
-        AjaxLink<Void> firstLink = new AjaxLink<Void>(ID_FIRST_LINK) {
+        first.add(AttributeAppender.append("class", (IModel<String>) () -> isFirstEnabled() ? "" : "disabled"));
+        pagination.add(first);
+        AjaxLink<Void> firstLink = new AjaxLink<>(ID_FIRST_LINK) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -133,28 +108,18 @@ public class NavigatorPanel extends Panel {
                 firstPerformed(target);
             }
         };
-        firstLink.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isEnabled() {
-                return BooleanUtils.isTrue(showPageListingModel.getObject()) && isFirstEnabled();
-            }
-        });
+        firstLink.add(new EnableBehaviour(() -> BooleanUtils.isTrue(showPageListingModel.getObject()) && isFirstEnabled()));
         first.add(firstLink);
     }
 
-    private void initNavigation() {
-        IModel<Integer> model = new IModel<Integer>() {
-
-            @Override
-            public Integer getObject() {
-                int count = (int) pageable.getPageCount();
-                if (count < PAGING_SIZE) {
-                    return count;
-                }
-
-                return PAGING_SIZE;
+    private void initNavigation(WebMarkupContainer pagination) {
+        IModel<Integer> model = () -> {
+            int count = (int) pageable.getPageCount();
+            if (count < PAGING_SIZE) {
+                return count;
             }
+
+            return PAGING_SIZE;
         };
 
         Loop navigation = new Loop(ID_NAVIGATION, model) {
@@ -171,23 +136,11 @@ public class NavigatorPanel extends Panel {
                 };
                 item.add(pageLink);
 
-                item.add(new AttributeModifier("class", new IModel<String>() {
-
-                    @Override
-                    public String getObject() {
-                        return pageable.getCurrentPage() == pageLink.getPageNumber() ? "active" : "";
-                    }
-                }));
+                item.add(AttributeAppender.append("class", (IModel<String>) () -> pageable.getCurrentPage() == pageLink.getPageNumber() ? "active" : ""));
             }
         };
-        navigation.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return BooleanUtils.isTrue(showPageListingModel.getObject());
-            }
-        });
-        add(navigation);
+        navigation.add(new VisibleBehaviour(() -> BooleanUtils.isTrue(showPageListingModel.getObject())));
+        pagination.add(navigation);
     }
 
     private long computePageNumber(int loopIndex) {
@@ -213,18 +166,12 @@ public class NavigatorPanel extends Panel {
         return result;
     }
 
-    private void initNext() {
+    private void initNext(WebMarkupContainer pagination) {
         WebMarkupContainer next = new WebMarkupContainer(ID_NEXT);
-        next.add(new AttributeModifier("class", new IModel<String>() {
+        next.add(AttributeAppender.append("class", (IModel<String>) () -> isNextEnabled() ? "" : "disabled"));
+        pagination.add(next);
 
-            @Override
-            public String getObject() {
-                return isNextEnabled() ? "" : "disabled";
-            }
-        }));
-        add(next);
-
-        AjaxLink<Void> nextLink = new AjaxLink<Void>(ID_NEXT_LINK) {
+        AjaxLink<Void> nextLink = new AjaxLink<>(ID_NEXT_LINK) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -236,28 +183,16 @@ public class NavigatorPanel extends Panel {
                 nextPerformed(target);
             }
         };
-        nextLink.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isEnabled() {
-                return isNextEnabled();
-            }
-        });
+        nextLink.add(new EnableBehaviour(() -> isNextEnabled()));
         next.add(nextLink);
     }
 
-    private void initLast() {
+    private void initLast(WebMarkupContainer pagination) {
         WebMarkupContainer last = new WebMarkupContainer(ID_LAST);
-        last.add(new AttributeModifier("class", new IModel<String>() {
+        last.add(AttributeAppender.append("class", (IModel<String>) () -> isLastEnabled() ? "" : "disabled"));
+        pagination.add(last);
 
-            @Override
-            public String getObject() {
-                return isLastEnabled() ? "" : "disabled";
-            }
-        }));
-        add(last);
-
-        AjaxLink<Void> lastLink = new AjaxLink<Void>(ID_LAST_LINK) {
+        AjaxLink<Void> lastLink = new AjaxLink<>(ID_LAST_LINK) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -269,13 +204,7 @@ public class NavigatorPanel extends Panel {
                 lastPerformed(target);
             }
         };
-        lastLink.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isEnabled() {
-                return !isCountingDisabled() && BooleanUtils.isTrue(showPageListingModel.getObject()) && isLastEnabled();
-            }
-        });
+        lastLink.add(new EnableBehaviour(() -> !isCountingDisabled() && BooleanUtils.isTrue(showPageListingModel.getObject()) && isLastEnabled()));
         last.add(lastLink);
     }
 

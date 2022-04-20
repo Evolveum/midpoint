@@ -7,17 +7,10 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -29,13 +22,12 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-
-import org.apache.wicket.util.visit.IVisit;
-import org.apache.wicket.util.visit.IVisitor;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -290,17 +282,11 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
             footerContainer.setOutputMarkupId(true);
 
-            final Label count = new Label(ID_COUNT, new IModel<String>() {
-
-                @Override
-                public String getObject() {
-                    return CountToolbar.createCountString(PagingFooter.this, dataTable);
-                }
-            });
+            final Label count = new Label(ID_COUNT, () -> CountToolbar.createCountString(PagingFooter.this, dataTable));
             count.setOutputMarkupId(true);
             footerContainer.add(count);
 
-            BoxedPagingPanel nb2 = new BoxedPagingPanel(ID_PAGING, dataTable, true) {
+            NavigatorPanel nb2 = new NavigatorPanel(ID_PAGING, dataTable, true) {
 
                 @Override
                 protected void onPageChanged(AjaxRequestTarget target, long page) {
