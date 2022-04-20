@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -56,6 +57,11 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
                     @Override
                     protected OrgType getAbstractRoleTypeObject(){
                         return ChooseOrgMemberPopup.this.getAssignmentTargetRefObject();
+                    }
+
+                    @Override
+                    protected List<ObjectReferenceType> getArchetypeRefList() {
+                        return ChooseOrgMemberPopup.this.getArchetypeRefList();
                     }
                 };
             }
