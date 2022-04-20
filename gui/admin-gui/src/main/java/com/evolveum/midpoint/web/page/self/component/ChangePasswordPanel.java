@@ -333,7 +333,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
             @Override
             public String getCssClass() {
-                return "col-lg-1";
+                return "mp-w-lg-1";
             }
         };
         columns.add(enabled);
@@ -370,7 +370,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
             @Override
             public String getCssClass() {
-                return "col-lg-2";
+                return "mp-w-lg-2";
             }
         });
 
@@ -442,7 +442,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
             @Override
             public String getCssClass() {
-                return "col-lg-2";
+                return "mp-w-lg-2";
             }
         });
 

@@ -53,7 +53,7 @@ public class GuiStyleConstants {
 
     public static final String CLASS_OBJECT_TASK_ICON = "fa fa-tasks";
     public static final String CLASS_OBJECT_TASK_ICON_COLORED = CLASS_OBJECT_TASK_ICON + " object-task-color";
-    public static final String CLASS_OBJECT_TASK_BOX_CSS_CLASSES = "object-task-box";
+    public static final String CLASS_OBJECT_TASK_BOX_CSS_CLASSES = "card-outline object-task-box";
     public static final String CLASS_OBJECT_TASK_BOX_THIN_CSS_CLASSES = "object-task-box-thin";
 
     public static final String CLASS_OBJECT_NODE_ICON = "fa fa-server";
@@ -63,11 +63,11 @@ public class GuiStyleConstants {
 
     public static final String CLASS_OBJECT_WORK_ITEM_ICON = "fa fa-inbox";
     public static final String CLASS_OBJECT_WORK_ITEM_ICON_COLORED = CLASS_OBJECT_WORK_ITEM_ICON + " object-task-color";        // TODO
-    public static final String CLASS_OBJECT_WORK_ITEM_BOX_CSS_CLASSES = "object-task-box"; // TODO
+    public static final String CLASS_OBJECT_WORK_ITEM_BOX_CSS_CLASSES = "card-outline object-task-box"; // TODO
 
     public static final String CLASS_OBJECT_CERT_DEF_ICON = "fa fa-certificate";
     public static final String CLASS_OBJECT_CERT_DEF_ICON_COLORED = CLASS_OBJECT_CERT_DEF_ICON + " object-task-color";        // TODO
-    public static final String CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES = "object-task-box";                                    // TODO
+    public static final String CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES = "card-outline object-task-box";                                    // TODO
 
     public static final String CLASS_OBJECT_CERT_CAMPAIGN_ICON = "fa fa-gavel";
     public static final String CLASS_OBJECT_CERT_CAMPAIGN_ICON_COLORED = CLASS_OBJECT_CERT_CAMPAIGN_ICON + " object-task-color";        // TODO
