@@ -62,7 +62,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
     private static final String DOT_CLASS = PageSelfRegistration.class.getName() + ".";
 
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
-//    private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
 
     private static final String ID_WELCOME = "welcome";
     private static final String ID_ADDITIONAL_TEXT = "additionalText";
@@ -102,7 +101,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
     public void initializeModel() {
         final String userOid = getOidFromParams(pageParameters);
 
-        userModel = new LoadableModel<UserType>(false) {
+        userModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -118,7 +117,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
             return instantiateUser();
         }
 
-        PrismObject<UserType> result = runPrivileged(new Producer<PrismObject<UserType>>() {
+        PrismObject<UserType> result = runPrivileged(new Producer<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -164,10 +163,9 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     @Override
     protected WebMarkupContainer initStaticLayout() {
-        // feedback
-//        final Form<?> mainForm = new Form<>(ID_MAIN_FORM);
-
-        WebMarkupContainer staticRegistrationForm = createMarkupContainer(ID_STATIC_FORM);
+        WebMarkupContainer staticRegistrationForm = new WebMarkupContainer(ID_STATIC_FORM);
+        staticRegistrationForm.setOutputMarkupId(true);
+        add(staticRegistrationForm);
 
         addMultilineLable(ID_WELCOME, createStringResource("PageSelfRegistration.welcome.message"), staticRegistrationForm);
         addMultilineLable(ID_ADDITIONAL_TEXT, createStringResource("PageSelfRegistration.additional.message",
@@ -179,7 +177,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         add(feedback);
 
         TextPanel<String> firstName = new TextPanel<>(ID_FIRST_NAME,
-                new PropertyModel<String>(getUserModel(), UserType.F_GIVEN_NAME.getLocalPart() + ".orig") {
+                new PropertyModel<>(getUserModel(), UserType.F_GIVEN_NAME.getLocalPart() + ".orig") {
 
                     private static final long serialVersionUID = 1L;
 
@@ -192,7 +190,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         staticRegistrationForm.add(firstName);
 
         TextPanel<String> lastName = new TextPanel<>(ID_LAST_NAME,
-                new PropertyModel<String>(getUserModel(), UserType.F_FAMILY_NAME.getLocalPart() + ".orig") {
+                new PropertyModel<>(getUserModel(), UserType.F_FAMILY_NAME.getLocalPart() + ".orig") {
 
                     private static final long serialVersionUID = 1L;
 
@@ -217,14 +215,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
     private void addMultilineLable(String id, StringResourceModel messageModel, WebMarkupContainer mainForm) {
         MultiLineLabel welcome = new MultiLineLabel(id, messageModel);
         welcome.setOutputMarkupId(true);
-//        welcome.add(new VisibleEnableBehaviour() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//                return !submited;
-//            }
-//        });
         mainForm.add(welcome);
 
     }
@@ -282,14 +272,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
         return dynamicForm;
     }
 
-    private WebMarkupContainer createMarkupContainer(String id) {
-        WebMarkupContainer formContainer = new WebMarkupContainer(id);
-        formContainer.setOutputMarkupId(true);
-
-        add(formContainer);
-        return formContainer;
-    }
-
     @Override
     public IModel<UserType> getUserModel() {
         return userModel;
@@ -315,17 +297,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
             if (SecurityUtils.getSequenceByName(sequenceName, getSelfRegistrationConfiguration().getAuthenticationPolicy()) != null) {
                 target.add(PageSelfRegistration.this);
-            } else {
-
-                switch (getSelfRegistrationConfiguration().getAuthenticationMethod()) {
-                    case MAIL:
-                        target.add(PageSelfRegistration.this);
-                        break;
-                    case SMS:
-                        throw new UnsupportedOperationException();
-                    case NONE:
-                        setResponsePage(PageLogin.class);
-                }
             }
             LOGGER.trace("Registration for user {} was successfull.", getUserModel().getObject());
 
@@ -467,27 +438,9 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     }
 
-//    private void createCredentials(UserType user, NonceCredentialsPolicyType noncePolicy, Task task,
-//            OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-//        NonceType nonceType = createNonce(noncePolicy, task, result);
-//
-////         PasswordType password = createPassword();
-//
-//        CredentialsType credentials = user.getCredentials();
-//        if (user.getCredentials() == null) {
-//            credentials = new CredentialsType();
-//            user.setCredentials(credentials);
-//        }
-//
-//        credentials.setNonce(nonceType);
-////         credentials.setPassword(password);
-//        // return credentials;
-//
-//    }
-
     private NonceType createNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         ProtectedStringType nonceCredentials = new ProtectedStringType();
-        nonceCredentials.setClearValue(generateNonce(noncePolicy, null, task, result));
+        nonceCredentials.setClearValue(generateNonce(noncePolicy, task, result));
 
         NonceType nonceType = new NonceType();
         nonceType.setValue(nonceCredentials);
@@ -522,7 +475,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
     }
 
     private <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy,
-            PrismObject<O> user, Task task, OperationResult result)
+            Task task, OperationResult result)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         ValuePolicyType policy = null;
@@ -538,7 +491,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         }
 
         return getModelInteractionService().generateValue(policy,
-                24, false, user, "nonce generation (registration)", task, result);
+                24, false, (PrismObject<O>) null, "nonce generation (registration)", task, result);
     }
 
     private String getPassword() {

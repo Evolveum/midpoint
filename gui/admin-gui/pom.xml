@@ -597,10 +597,6 @@
             <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>jakarta.mail</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.codehaus.janino</groupId>
             <artifactId>janino</artifactId>
             <scope>runtime</scope>
@@ -865,7 +861,7 @@
                         <phase>package</phase>
                         <configuration>
                             <classifier>executable</classifier>
-                            <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>
+                            <layoutFactory implementation="com.evolveum.midpoint.launcher.MidPointWarLayoutFactory"/>
                         </configuration>
                     </execution>
                 </executions>

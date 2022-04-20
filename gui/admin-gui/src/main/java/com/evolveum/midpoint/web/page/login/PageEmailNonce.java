@@ -62,10 +62,6 @@ public class PageEmailNonce extends PageAuthenticationBase {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageEmailNonce.class);
 
-    private static final String DOT_CLASS = com.evolveum.midpoint.web.page.forgetpassword.PageSecurityQuestions.class.getName() + ".";
-    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loaduser";
-    private static final String OPERATION_LOAD_QUESTION_POLICY = DOT_CLASS + "LOAD Question Policy";
-
     private static final String ID_STATIC_LAYOUT = "staticLayout";
     private static final String ID_EMAIL = "email";
     private static final String ID_MAIN_FORM = "mainForm";
@@ -150,7 +146,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
         }
         LOGGER.trace("Reset Password user: {}", user);
 
-        if (getResetPasswordPolicy() == null) {
+        if (getFormRef() == null) {
             LOGGER.debug("No policies for reset password defined");
             getSession().error(getString("pageForgetPassword.message.policy.not.found"));
             throw new RestartResponseException(PageEmailNonce.class);
@@ -277,8 +273,8 @@ public class PageEmailNonce extends PageAuthenticationBase {
         return (DynamicFormPanel) getMainForm().get(createComponentPath(ID_DYNAMIC_LAYOUT, ID_DYNAMIC_FORM));
     }
 
-    private RequiredTextField getEmail(){
-        return (RequiredTextField) getMainForm().get(createComponentPath(ID_STATIC_LAYOUT, ID_EMAIL));
+    private RequiredTextField<String> getEmail(){
+        return (RequiredTextField<String>) getMainForm().get(createComponentPath(ID_STATIC_LAYOUT, ID_EMAIL));
     }
 
     @Override
@@ -326,7 +322,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
     }
 
     private OperationResult saveUserNonce(final UserType user, final NonceCredentialsPolicyType noncePolicy) {
-        return runPrivileged(new Producer<OperationResult>() {
+        return runPrivileged(new Producer<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -341,15 +337,13 @@ public class PageEmailNonce extends PageAuthenticationBase {
                     nonceCredentials
                             .setClearValue(generateNonce(noncePolicy, task, user.asPrismObject(), result));
 
-//                    NonceType nonceType = new NonceType();
-//                    nonceType.setValue(nonceCredentials);
-
                     ObjectDelta<UserType> nonceDelta = getPrismContext().deltaFactory().object()
                             .createModificationReplaceProperty(UserType.class, user.getOid(),
                                     SchemaConstants.PATH_NONCE_VALUE, nonceCredentials);
 
                     WebModelServiceUtils.save(nonceDelta, result, task, PageEmailNonce.this);
-                } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+                } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
+                         ConfigurationException | SecurityViolationException e) {
                     result.recordFatalError(getString("PageForgotPassword.message.saveUserNonce.fatalError"));
                     LoggingUtils.logException(LOGGER, "Failed to generate nonce for user: " + e.getMessage(),
                             e);

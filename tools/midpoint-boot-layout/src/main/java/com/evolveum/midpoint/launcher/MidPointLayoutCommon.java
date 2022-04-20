@@ -1,41 +1,43 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.tools.layout;
+package com.evolveum.midpoint.launcher;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
 import org.springframework.boot.loader.tools.CustomLoaderLayout;
-import org.springframework.boot.loader.tools.JarWriter;
-import org.springframework.boot.loader.tools.Layouts;
+import org.springframework.boot.loader.tools.Layout;
 import org.springframework.boot.loader.tools.LoaderClassesWriter;
 
-public class MidPointWarLayout extends Layouts.War implements CustomLoaderLayout {
+/**
+ * Common custom midPoint JAR/WAR layout functionality.
+ */
+public interface MidPointLayoutCommon extends CustomLoaderLayout, Layout {
 
     @Override
-    public void writeLoadedClasses(LoaderClassesWriter writer) throws IOException {
-        writer.writeLoaderClasses(); // this writes
-
-        // This writes this JAR (layout) to the root of the Spring Boot archive.
-        // TODO: Is it possible to write *Launcher classes without layout and factory?
-        JarFile self = createSelf();
-        ((JarWriter) writer).writeEntries(self);
+    default void writeLoadedClasses(LoaderClassesWriter writer) throws IOException {
+        String zipEntryName = getLauncherClassName().replace('.', '/') + ".class";
+        writer.writeLoaderClasses(); // this writes the default classes
+        try (JarFile self = customLayoutJar();
+                InputStream classInputStream = self.getInputStream(new ZipEntry(zipEntryName))) {
+            writer.writeEntry(zipEntryName, classInputStream);
+        }
     }
 
-    @Override
-    public String getLauncherClassName() {
-        return MidPointWarLauncher.class.getName();
-    }
-
-    private JarFile createSelf() throws IOException {
+    /**
+     * Creates JarFile instance for midpoint-boot-layout JAR for launcher classes extraction.
+     */
+    private JarFile customLayoutJar() throws IOException {
         try {
             ProtectionDomain protectionDomain = getClass().getProtectionDomain();
             CodeSource codeSource = protectionDomain.getCodeSource();
@@ -53,7 +55,7 @@ public class MidPointWarLayout extends Layouts.War implements CustomLoaderLayout
 
             return new JarFile(root);
         } catch (Exception e) {
-            throw new IOException("Could not find self jar", e);
+            throw new IOException("Could not find self JAR", e);
         }
     }
 }

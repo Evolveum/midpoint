@@ -25,8 +25,6 @@ import org.springframework.security.web.WebAttributes;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -37,8 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
  */
 public abstract class AbstractPageLogin extends PageBase {
     private static final long serialVersionUID = 1L;
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractPageLogin.class);
 
     private static final String ID_SEQUENCE = "sequence";
     private static final String ID_SWITCH_TO_DEFAULT_SEQUENCE = "switchToDefaultSequence";
@@ -100,6 +96,11 @@ public abstract class AbstractPageLogin extends PageBase {
     @Override
     protected void onConfigure() {
         super.onConfigure();
+        showExceptionMessage();
+        clearBreadcrumbs();
+    }
+
+    private void showExceptionMessage() {
 
         ServletWebRequest req = (ServletWebRequest) RequestCycle.get().getRequest();
         HttpServletRequest httpReq = req.getContainerRequest();
@@ -120,10 +121,7 @@ public abstract class AbstractPageLogin extends PageBase {
             message = getLocalizationService().translate(message, null, getLocale(), message);
             error(message);
         }
-
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-
-        clearBreadcrumbs();
     }
 
     @Override
@@ -135,6 +133,11 @@ public abstract class AbstractPageLogin extends PageBase {
     protected void onBeforeRender() {
         super.onBeforeRender();
         confirmUserPrincipal();
+    }
+
+    @Override
+    protected void onAfterRender() {
+        super.onAfterRender();
     }
 
     protected void confirmUserPrincipal() {

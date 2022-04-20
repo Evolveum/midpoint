@@ -273,10 +273,11 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
         OperationResult result = new OperationResult(getOperationName(OPERATION_RECONCILE_OBJECTS));
         for (SelectableBean<F> object : objects) {
             OperationResult opResult = result.createSubresult(getOperationName(OPERATION_RECONCILE_OBJECT));
+            F focus = object.getValue();
             try {
                 Task task = parentPage.createSimpleTask(OPERATION_RECONCILE_OBJECT);
                 ObjectDelta delta = parentPage.getPrismContext().deltaFactory().object()
-                        .createEmptyModifyDelta(objectClass, object.getValue().getOid()
+                        .createEmptyModifyDelta(objectClass, focus.getOid()
                         );
                 Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                 parentPage.getModelService().executeChanges(deltas, parentPage.executeOptions().reconcile(), task, opResult);
@@ -284,8 +285,8 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             } catch (CommonException|RuntimeException ex) {
                 opResult.recomputeStatus();
                 opResult.recordFatalError(
-                        parentPage.createStringResource("FocusListInlineMenuHelper.message.reconcile.fatalError", object).getString(), ex);
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reconcile object " + object + ".", ex);
+                        parentPage.createStringResource("FocusListInlineMenuHelper.message.reconcile.fatalError", focus).getString(), ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reconcile object " + focus + ".", ex);
             }
         }
 

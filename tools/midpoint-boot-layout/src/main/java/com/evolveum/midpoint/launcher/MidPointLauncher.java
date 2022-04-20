@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.tools.layout;
+package com.evolveum.midpoint.launcher;
 
 import java.nio.file.Path;
 
@@ -14,7 +14,6 @@ import org.springframework.boot.loader.PropertiesLauncher;
  * This is a "pre-launcher" to {@link PropertiesLauncher} which is the actual launcher.
  *
  * `PropertiesLauncher` is used because we can specify additional classpath components with it.
- * When started as a WAR it needs to contain also WEB-INFO subdirectories.
  * This launcher sets `loader.path` system property if not specified.
  * If `loader.path` is specified the user/system administrator is fully responsible for it.
  *
@@ -23,12 +22,14 @@ import org.springframework.boot.loader.PropertiesLauncher;
  *
  * Finally, this class also provides {@link #stop(String[])} method for Windows service.
  */
-public class MidPointWarLauncher {
+public class MidPointLauncher {
 
-    private MidPointWarLauncher() {
+    private MidPointLauncher() {
         throw new AssertionError("Non-instantiable launcher class");
     }
 
+    // Mostly duplicates with WAR launcher, but we want to keep these separate.
+    @SuppressWarnings("DuplicatedCode")
     public static void main(String[] args) throws Exception {
         String midpointHome = System.getProperty("midpoint.home");
         if (midpointHome == null) {
@@ -43,11 +44,9 @@ public class MidPointWarLauncher {
 
         // if loader.path is set we will respect it, although it's unlikely
         if (System.getProperty("loader.path") == null) {
-            System.setProperty("loader.path",
-                    "WEB-INF/classes,WEB-INF/lib,WEB-INF/lib-provided,"
-                            + Path.of(midpointHome, "lib").toString());
+            System.setProperty("loader.path", Path.of(midpointHome, "lib").toString());
         }
-        System.out.println("Using loader path: " + System.getProperty("loader.path"));
+        System.out.println("Using loader path (for additional JARs): " + System.getProperty("loader.path"));
 
         PropertiesLauncher.main(args);
     }
