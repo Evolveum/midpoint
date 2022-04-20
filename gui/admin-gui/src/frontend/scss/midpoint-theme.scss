@@ -1400,12 +1400,6 @@ th.countLabel{
     margin-left: -10px !important;
 }
 
-@media (max-width: 767px) {
-  .content-wrapper {
-    width: 100%;
-  }
-}
-
 .role-catalog > .object-org-box > .org-tree-container{
 	max-height: 50vh;
 }
@@ -1533,12 +1527,6 @@ td .prism-property-value {
   .search-item-field {
     padding-right: 3px !important;
     padding-left: 3px !important;
-  }
-
-  .search-item-remove-button {
-    margin-top: 5px;
-    border: none !important;
-    margin-right: 3px;
   }
 }
 
