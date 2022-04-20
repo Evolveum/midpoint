@@ -763,7 +763,7 @@
                         <phase>package</phase>
                         <configuration>
                             <classifier>executable</classifier>
-                            <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>
+                            <layoutFactory implementation="com.evolveum.midpoint.launcher.MidPointWarLayoutFactory"/>
                         </configuration>
                     </execution>
                 </executions>

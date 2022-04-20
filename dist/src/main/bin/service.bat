@@ -73,7 +73,7 @@ REM ----- Execute The Requested Command ---------------------------------------
 
 set EXECUTABLE=%BIN_DIR%\midpoint.exe
 set PR_INSTALL=%EXECUTABLE%
-set MIDPOINT_LAUNCHER_CLASS=com.evolveum.midpoint.tools.layout.MidPointWarLauncher
+set MIDPOINT_LAUNCHER_CLASS=com.evolveum.midpoint.launcher.MidPointWarLauncher
 
 REM Service log configuration
 set PR_LOGPREFIX=%SERVICE_NAME%

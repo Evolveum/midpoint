@@ -45,6 +45,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.impl.factory.panel.TextAreaPanelFactory;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -113,13 +114,31 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
             System.exit(SpringApplication.exit(applicationContext, () -> 0));
 
         } else {
-            applicationContext = configureApplication(new SpringApplicationBuilder()).run(args);
+            try {
+                applicationContext = configureApplication(new SpringApplicationBuilder()).run(args);
+            } catch (Throwable e) {
+                reportFatalErrorToStdErr(e);
+                throw e;
+            }
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
                         " Application started context:" + applicationContext);
             }
         }
+    }
+
+    private static final int MAX_FATAL_ERROR_OUTPUT_LENGTH = 300;
+
+    private static void reportFatalErrorToStdErr(Throwable e) {
+        System.err.println("ERROR initializing midPoint: "
+                + StringUtils.abbreviate(e.toString(), MAX_FATAL_ERROR_OUTPUT_LENGTH));
+        Throwable rootCause = ExceptionUtil.findRootCause(e);
+        if (rootCause != null && rootCause != e) {
+            System.err.println("ROOT cause: "
+                    + StringUtils.abbreviate(rootCause.toString(), MAX_FATAL_ERROR_OUTPUT_LENGTH));
+        }
+        System.err.println("See midpoint.log for more details.");
     }
 
     @Override
