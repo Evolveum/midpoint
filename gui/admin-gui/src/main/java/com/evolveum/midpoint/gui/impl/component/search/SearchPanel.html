@@ -12,7 +12,7 @@
 
             <div class="pull-left" wicket:id="searchItemsPanel"></div>
 
-            <div class="form-group pull-right" style="vertical-align: top; padding-right: 5px;" wicket:id="searchContainer">
+            <div class="form-group" style="vertical-align: top; padding-right: 5px;" wicket:id="searchContainer">
                 <div class="btn-group btn-group-sm">
                     <button type="button" class="btn btn-primary" about="searchSimple" wicket:id="submitSearchButton">
                         <i class="fa fa-search flip-icon fa-lg"></i>
@@ -25,6 +25,23 @@
                     <ul class="dropdown-menu pull-right" role="menu">
                         <li wicket:id="searchTypeItems">
                             <div wicket:id="searchType"/>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="form-group pull-right" style="vertical-align: top; padding-right: 5px;" wicket:id="saveSearchContainer">
+                <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-primary" wicket:id="saveSearchButton">
+                        <i class="fa fa-save flip-icon fa-lg"></i>
+                    </button>
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false" wicket:id="savedSearchMenu">
+                        <span class="caret"></span>
+                        <span class="sr-only">Toggle Dropdown</span>
+                    </button>
+                    <ul class="dropdown-menu pull-right" role="menu">
+                        <li wicket:id="savedSearchItems">
+                            <div wicket:id="savedSearchItem"/>
                         </li>
                     </ul>
                 </div>

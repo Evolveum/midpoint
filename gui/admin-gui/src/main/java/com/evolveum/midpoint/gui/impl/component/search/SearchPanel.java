@@ -84,6 +84,11 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private static final String ID_SEARCH_TYPES_MENU = "searchTypesMenu";
     private static final String ID_SEARCH_TYPE_ITEMS = "searchTypeItems";
     private static final String ID_SEARCH_TYPE = "searchType";
+    private static final String ID_SAVE_SEARCH_CONTAINER = "saveSearchContainer";
+    private static final String ID_SAVE_SEARCH_BUTTON = "saveSearchButton";
+    private static final String ID_SAVED_SEARCH_MENU = "savedSearchMenu";
+    private static final String ID_SAVED_SEARCH_ITEMS = "savedSearchItems";
+    private static final String ID_SAVED_SEARCH_ITEM = "savedSearchItem";
     private static final String ID_BASIC_SEARCH_FRAGMENT = "basicSearchFragment";
     private static final String ID_ADVANCED_SEARCH_FRAGMENT = "advancedSearchFragment";
     private static final String ID_FULLTEXT_SEARCH_FRAGMENT = "fulltextSearchFragment";
@@ -244,6 +249,44 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             }
         };
         searchContainer.add(li);
+
+        WebMarkupContainer saveSearchContainer = new WebMarkupContainer(ID_SAVE_SEARCH_CONTAINER);
+        saveSearchContainer.setOutputMarkupId(true);
+        form.add(saveSearchContainer);
+        AjaxButton saveSearchButton = new AjaxButton(ID_SAVE_SEARCH_BUTTON) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                SaveSearchPanel panel = new SaveSearchPanel(getPageBase().getMainPopupBodyId(), SearchPanel.this.getModel());
+                getPageBase().showMainPopup(panel, target);
+            }
+        };
+        saveSearchButton.setOutputMarkupId(true);
+        saveSearchContainer.add(saveSearchButton);
+
+        WebMarkupContainer savedSearchMenu = new WebMarkupContainer(ID_SAVED_SEARCH_MENU);
+        saveSearchContainer.add(savedSearchMenu);
+
+        ListView<InlineMenuItem> savedSearchItems = new ListView<InlineMenuItem>(ID_SAVED_SEARCH_ITEMS, new ArrayList<>()) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<InlineMenuItem> item) {
+                WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_SAVED_SEARCH_ITEM, item.getModel());
+                menuItemBody.setRenderBodyOnly(true);
+                item.add(menuItemBody);
+                menuItemBody.add(new VisibleEnableBehaviour() {
+                    @Override
+                    public boolean isVisible() {
+                        return Boolean.TRUE.equals(item.getModelObject().getVisible().getObject());
+                    }
+                });
+            }
+        };
+        saveSearchContainer.add(savedSearchItems);
 
     }
 
