@@ -6,14 +6,16 @@
  */
 package com.evolveum.midpoint.web.component.sample;
 
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -23,22 +25,16 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author Radovan Semancik
  *
  */
-public class HelloObjectTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
+public class HelloObjectTabPanel<F extends FocusType> extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
 
     private static final String ID_HELLO_LABEL = "helloLabel";
 
-    public HelloObjectTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel) {
-        super(id, focusModel);
+    public HelloObjectTabPanel(String id, FocusDetailsModels<F> model, ContainerPanelConfigurationType config) {
+        super(id, model, config);
 
     }
 
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
-
-    private void initLayout() {
+    protected void initLayout() {
         add(new Label(ID_HELLO_LABEL, new Model<String>() {
             @Override
             public String getObject() {

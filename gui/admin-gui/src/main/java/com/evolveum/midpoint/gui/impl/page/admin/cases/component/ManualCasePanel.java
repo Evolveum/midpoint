@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
@@ -17,10 +16,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
-import com.evolveum.midpoint.web.page.admin.cases.OperationRequestCaseTabPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
@@ -36,8 +33,8 @@ import org.apache.wicket.model.IModel;
 public class ManualCasePanel extends AbstractObjectMainPanel<CaseType, AssignmentHolderDetailsModel<CaseType>> {
     private static final long serialVersionUID = 1L;
 
-    private static final String DOT_CLASS = OperationRequestCaseTabPanel.class.getName() + ".";
-    private static final Trace LOGGER = TraceManager.getTrace(OperationRequestCaseTabPanel.class);
+    private static final String DOT_CLASS = ManualCasePanel.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(ManualCasePanel.class);
     private static final String OPERATION_PREPARE_DELTA_VISUALIZATION = DOT_CLASS + "prepareDeltaVisualization";
 
     private static final String ID_MANUAL_CASE_DETAILS_PANEL = "manualCaseDetailsPanel";

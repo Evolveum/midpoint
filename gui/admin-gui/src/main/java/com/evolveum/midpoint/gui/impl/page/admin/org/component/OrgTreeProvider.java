@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.page.admin.users.component;
+package com.evolveum.midpoint.gui.impl.page.admin.org.component;
 
 import java.util.*;
 

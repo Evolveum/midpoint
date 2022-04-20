@@ -11,8 +11,11 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
+
+import com.evolveum.midpoint.prism.PrismObject;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -45,7 +48,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.component.menu.*;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.cases.*;
 import com.evolveum.midpoint.web.page.admin.certification.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
@@ -457,11 +459,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
             AbstractPageObjectDetails<?, ?> page = (AbstractPageObjectDetails<?, ?>) pageBase;
             return page.isEditObject();
         }
-        if (pageBase instanceof PageAdminObjectDetails) {
-            PageAdminObjectDetails<?> page = (PageAdminObjectDetails<?>) pageBase;
-            return page.isOidParameterExists() || page.isEditingFocus();
-        }
-
         return false;
     }
 
@@ -493,12 +490,14 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private boolean isAddNewObjectMenuItemAuthorized(Class<? extends PageBase> newPageClass) {
-        if (newPageClass.isAssignableFrom(PageAdminObjectDetails.class)) {
+        if (newPageClass.isAssignableFrom(AbstractPageObjectDetails.class)) {
             try {
-                PageAdminObjectDetails<?> page = (PageAdminObjectDetails<?>) newPageClass.getConstructor().newInstance();
-                ObjectType object = page.createNewObject();
+
+                AbstractPageObjectDetails page = (AbstractPageObjectDetails) newPageClass.getConstructor().newInstance();
+                Class<? extends ObjectType> objectType = page.getType();
+                PrismObject<? extends ObjectType> object = getPrismContext().createObject(objectType);
                 return getPageBase().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
-                        AuthorizationPhaseType.REQUEST, object == null ? null : object.asPrismObject(),
+                        AuthorizationPhaseType.REQUEST, object,
                         null, null, null);
             } catch (Exception ex) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New object menu item", ex);

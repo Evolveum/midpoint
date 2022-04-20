@@ -4,44 +4,40 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.page.admin.users;
+package com.evolveum.midpoint.gui.impl.page.admin.focus;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.CountableLoadableModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
-import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.users.component.MergeObjectsPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by honchar.
@@ -60,24 +56,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_MERGE_OBJECTS_URL,
                 label = "PageMergeObjects.auth.mergeObjects.label",
                 description = "PageMergeObjects.auth.mergeObjects.description") })
-public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
+public class PageMergeObjects extends PageBase {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageMergeObjects.class.getName() + ".";
-    private static final String OPERATION_DELETE_USER = DOT_CLASS + "deleteUser";
+
     private static final String OPERATION_MERGE_OBJECTS = DOT_CLASS + "mergeObjects";
+
+    private static final String ID_FORM = "form";
+    private static final String ID_MERGE_PANEL = "mergePanel";
+    private static final String ID_SAVE = "save";
+    private static final String ID_BACK = "back";
+
     private static final Trace LOGGER = TraceManager.getTrace(PageMergeObjects.class);
-    private F mergeObject;
-    private IModel<F> mergeObjectModel;
-    private F mergeWithObject;
-    private IModel<F> mergeWithObjectModel;
-    private Class<F> type;
+    private UserType mergeObject;
+    private IModel<UserType> mergeObjectModel;
+    private UserType mergeWithObject;
+    private IModel<UserType> mergeWithObjectModel;
+    private Class<UserType> type;
     private MergeObjectsPanel mergeObjectsPanel;
 
     public PageMergeObjects() {
     }
 
-    public PageMergeObjects(F mergeObject, F mergeWithObject, Class<F> type) {
+    public PageMergeObjects(UserType mergeObject, UserType mergeWithObject, Class<UserType> type) {
         this.mergeObject = mergeObject;
         this.mergeWithObject = mergeWithObject;
         this.type = type;
@@ -87,18 +89,19 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, mergeObject.getOid());
         getPageParameters().overwriteWith(parameters);
-        initialize(this.mergeObject.asPrismObject());
+        initLayout();
     }
+
 
     private void initModels() {
         mergeObjectModel = new IModel<>() {
             @Override
-            public F getObject() {
+            public UserType getObject() {
                 return mergeObject;
             }
 
             @Override
-            public void setObject(F f) {
+            public void setObject(UserType f) {
                 mergeObject = f;
             }
 
@@ -109,12 +112,12 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
         };
         mergeWithObjectModel = new IModel<>() {
             @Override
-            public F getObject() {
+            public UserType getObject() {
                 return mergeWithObject;
             }
 
             @Override
-            public void setObject(F f) {
+            public void setObject(UserType f) {
                 mergeWithObject = f;
             }
 
@@ -125,8 +128,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
         };
     }
 
-    @Override
-    protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
+    private void initLayout() {
 
         //empty assignments model
         CountableLoadableModel<AssignmentType> assignments = new CountableLoadableModel<>() {
@@ -158,63 +160,52 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
             }
         };
 
-        return new FocusMainPanel<UserType>(id, getObjectModel(), shadows, this) {
+        MidpointForm<?> form = new MidpointForm<>(ID_FORM);
+        add(form);
+        mergeObjectsPanel = new MergeObjectsPanel<>(ID_MERGE_PANEL, mergeObjectModel, mergeWithObjectModel, type, PageMergeObjects.this);
+        form.add(mergeObjectsPanel);
 
+        createSaveButton(form);
+        createBackButton(form);
+
+    }
+
+    private void createSaveButton(MidpointForm<?> form) {
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_ICON_SAVE, LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton save = new AjaxCompositedIconSubmitButton(ID_SAVE, iconBuilder.build(),
+                createStringResource("PageBase.button.save")) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<ITab> createTabs(final PageAdminObjectDetails<UserType> parentPage) {
-                List<ITab> tabs = new ArrayList<>();
-                tabs.add(
-                        new PanelTab(parentPage.createStringResource("PageMergeObjects.tabTitle"), new VisibleEnableBehaviour()) {
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public WebMarkupContainer createPanel(String panelId) {
-                                mergeObjectsPanel = new MergeObjectsPanel<>(panelId, mergeObjectModel, mergeWithObjectModel, type, PageMergeObjects.this);
-                                return mergeObjectsPanel;
-                            }
-                        });
-                return tabs;
+            protected void onSubmit(AjaxRequestTarget target) {
+                savePerformed(target);
             }
 
             @Override
-            protected boolean isPreviewButtonVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean getOptionsPanelVisibility() {
-                return false;
+            protected void onError(AjaxRequestTarget target) {
+                target.add(getFeedbackPanel());
             }
         };
+        save.titleAsLabel(true);
+        save.setOutputMarkupId(true);
+        save.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
+        form.add(save);
     }
 
-    //TODO did it work before?
-    @Override
-    protected ObjectSummaryPanel createSummaryPanel(IModel summaryModel) {
-        UserSummaryPanel summaryPanel = new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), WebComponentUtil.getSummaryPanelSpecification(getCompileTimeClass(), getCompiledGuiProfile()));
-        return summaryPanel;
-    }
+    private void createBackButton(MidpointForm<?> form) {
+        AjaxIconButton back = new AjaxIconButton(ID_BACK, Model.of(GuiStyleConstants.ARROW_LEFT),
+                createStringResource("pageAdminFocus.button.back")) {
+            private static final long serialVersionUID = 1L;
 
-    @Override
-    protected void setSummaryPanelVisibility(ObjectSummaryPanel summaryPanel) {
-        summaryPanel.setVisible(false);
-    }
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                redirectBack();
+            }
+        };
 
-    @Override
-    protected Class getRestartResponsePage() {
-        return PageUsers.class;
-    }
-
-    @Override
-    public UserType createNewObject() {
-        return new UserType();
-    }
-
-    @Override
-    public Class getCompileTimeClass() {
-        return type;
+        back.showTitleAsLabel(true);
+        back.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        form.add(back);
     }
 
     @Override
@@ -222,15 +213,10 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
         return createStringResource("PageMergeObjects.title");
     }
 
-    @Override
-    public boolean isOidParameterExists() {
-        return true;
-    }
-
-    @Override
-    public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
+    public void savePerformed(AjaxRequestTarget target) {
+        Task task = createSimpleTask(OPERATION_MERGE_OBJECTS);
+        OperationResult result = task.getResult();
         try {
-            Task task = createSimpleTask(OPERATION_MERGE_OBJECTS);
             getModelService().mergeObjects(type, mergeObject.getOid(), mergeWithObject.getOid(),
                     mergeObjectsPanel.getMergeConfigurationName(), task, result);
             result.computeStatusIfUnknown();

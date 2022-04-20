@@ -333,4 +333,11 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
                 .item(FocusType.F_JPEG_PHOTO).retrieve()
                 .build();
     }
+
+    public boolean isLoggedInFocusPage() {
+        PrismObjectWrapper<F> objectWrapper = getModelWrapperObject();
+        return objectWrapper != null &&
+                org.apache.commons.lang3.StringUtils.isNotEmpty(objectWrapper.getOid()) &&
+                objectWrapper.getOid().equals(WebModelServiceUtils.getLoggedInFocusOid());
+    }
 }

@@ -110,8 +110,6 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                     "green",
                     createStringResource("AssignmentPanel.defaultAssignment").getString(),
                     createStringResource("AssignmentPanel.newAssignmentTitle", "", "").getString());
-//                    AssignmentPanel.this.createStringResource(isInducement() ?
-//                            "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle", "", "").getString());
             CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
             CompositedIconBuilder builder = new CompositedIconBuilder();
             builder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
@@ -122,9 +120,6 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
             defaultButton.setCompositedIcon(builder.build());
             buttonDtoList.add(defaultButton);
         }
-
-//        multiFunctinalButtonDto.setAdditionalButtons(buttonDtoList);
-
         return buttonDtoList;
     }
 
@@ -156,7 +151,6 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
         buttonDto.setAssignmentObjectRelation(relation);
 
         DisplayType additionalButtonDisplayType = GuiDisplayTypeUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation, "AssignmentPanel.newAssignmentTitle");
-//                isInducement() ? "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle");
         buttonDto.setAdditionalButtonDisplayType(additionalButtonDisplayType);
 
         CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(getPageBase(), relation,

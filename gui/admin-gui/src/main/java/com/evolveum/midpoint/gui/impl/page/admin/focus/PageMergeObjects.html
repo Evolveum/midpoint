@@ -5,16 +5,15 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm" class="form-horizontal">
-        <div wicket:id="tabbedPanel" class="nav-tabs-custom" />
-        <div class="main-button-bar">
-            <a class="btn btn-default" wicket:id="continueEditing" />
-            <a class="btn btn-primary" wicket:id="save" />
+    <form wicket:id="form">
+        <div class="box box-solid">
+            <div class="box-body" wicket:id="mergePanel"></div>
         </div>
+        <div wicket:id="back"></div>
+        <div wicket:id="save"></div>
     </form>
 </wicket:extend>
 </body>

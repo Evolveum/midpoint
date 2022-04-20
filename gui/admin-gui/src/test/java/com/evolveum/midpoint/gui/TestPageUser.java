@@ -10,20 +10,6 @@ import static org.testng.Assert.assertNotNull;
 
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_OID;
 
-import java.io.File;
-
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderBasicPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment.AllAssignmentsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.focus.component.*;
-import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
-import com.evolveum.midpoint.gui.impl.page.admin.user.component.DelegatedToMePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.user.component.UserDelegationsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.user.component.UserPersonasPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
-import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
-import com.evolveum.midpoint.web.component.objectdetails.*;
-
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -31,9 +17,13 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment.AllAssignmentsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.component.*;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+import com.evolveum.midpoint.gui.impl.page.admin.user.component.DelegatedToMePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.user.component.UserDelegationsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.user.component.UserPersonasPanel;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
