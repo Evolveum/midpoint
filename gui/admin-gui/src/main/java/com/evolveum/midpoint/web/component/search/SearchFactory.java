@@ -377,7 +377,7 @@ public class SearchFactory {
     public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearch(Class<C> type, String collectionViewName,  ModelServiceLocator modelServiceLocator) {
         SearchConfigurationWrapper<C> searchConfigWrapper = createDefaultSearchBoxConfigurationWrapper(type, null, modelServiceLocator);
         searchConfigWrapper.setCollectionViewName(collectionViewName);
-        return createSearch(searchConfigWrapper, modelServiceLocator);
+        return createSearchNew(searchConfigWrapper, null, modelServiceLocator, Search.PanelType.DEFAULT, false);
     }
 
     /**
@@ -389,12 +389,12 @@ public class SearchFactory {
      */
     public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearch(
             SearchConfigurationWrapper<C> searchConfig, ModelServiceLocator modelServiceLocator) {
-        return createSearchNew(searchConfig, null, modelServiceLocator, Search.PanelType.DEFAULT);
+        return createSearchNew(searchConfig, null, modelServiceLocator, Search.PanelType.DEFAULT, true);
     }
 
    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createMemberPanelSearch(
            SearchConfigurationWrapper<C> searchConfig, ModelServiceLocator modelServiceLocator) {
-        return createSearchNew(searchConfig, null, modelServiceLocator, Search.PanelType.MEMBER_PANEL);
+        return createSearchNew(searchConfig, null, modelServiceLocator, Search.PanelType.MEMBER_PANEL, true);
     }
 
     public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<ShadowType> createProjectionsTabSearch(ModelServiceLocator modelServiceLocator) {
@@ -416,10 +416,16 @@ public class SearchFactory {
 
     private static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearchNew(
             SearchConfigurationWrapper<C> searchConfigurationWrapper, ResourceShadowDiscriminator discriminator,
-            ModelServiceLocator modelServiceLocator, Search.PanelType panelType) {
-        SearchConfigurationWrapper searchConfWrapper = createDefaultSearchBoxConfigurationWrapper(searchConfigurationWrapper.getTypeClass(),
-                discriminator, modelServiceLocator);
-        searchConfWrapper = combineSearchBoxConfiguration(searchConfWrapper, searchConfigurationWrapper);
+            ModelServiceLocator modelServiceLocator, Search.PanelType panelType, boolean createDefault) {
+        SearchConfigurationWrapper searchConfWrapper;
+        if (createDefault) {
+            SearchConfigurationWrapper defaultWrapper = createDefaultSearchBoxConfigurationWrapper(searchConfigurationWrapper.getTypeClass(),
+                    discriminator, modelServiceLocator);
+            searchConfWrapper = combineSearchBoxConfiguration(defaultWrapper, searchConfigurationWrapper);
+        } else {
+            searchConfWrapper = searchConfigurationWrapper;
+
+        }
 
 //        if (ObjectType.class.isAssignableFrom(searchConfigurationWrapper.getTypeClass())) {
 //            QName typeQname = WebComponentUtil.classToQName(PrismContext.get(), (Class<? extends ObjectType>) searchConfigurationWrapper.getTypeClass());
@@ -618,10 +624,46 @@ public class SearchFactory {
 //                    customConfig.getTenantConfiguration()));
 //        }
         if (CollectionUtils.isNotEmpty(customConfig.getItemsList())) {
-            config.getItemsList().addAll(customConfig.getItemsList());
+            customConfig.getItemsList().forEach(item -> {
+                addOrReplaceSearchItemWrapper(config, (AbstractSearchItemWrapper) item);
+            });
         }
         config.setAllowToConfigureSearchItems(customConfig.isAllowToConfigureSearchItems());
         return config;
+    }
+
+    private static void addOrReplaceSearchItemWrapper(SearchConfigurationWrapper config, AbstractSearchItemWrapper customItem) {
+        List<AbstractSearchItemWrapper> items = config.getItemsList();
+        boolean isProcessed = false;
+        if (customItem instanceof PropertySearchItemWrapper) {
+            for (AbstractSearchItemWrapper item : items) {
+                if (!(item instanceof PropertySearchItemWrapper)) {
+                    continue;
+                }
+                if (((PropertySearchItemWrapper<?>) item).getPath().equivalent(((PropertySearchItemWrapper<?>) customItem).getPath())) {
+                    items.remove(item);
+                    items.add(customItem);
+                    isProcessed = true;
+                    break;
+                }
+            }
+            if (!isProcessed) {
+                items.add(customItem);
+            }
+            return;
+        }
+
+        for (AbstractSearchItemWrapper item : items) {
+            if (item.getClass().equals(customItem.getClass())) {
+                items.remove(item);
+                items.add(customItem);
+                isProcessed = true;
+                break;
+            }
+        }
+        if (!isProcessed) {
+            items.add(customItem);
+        }
     }
 
     public static ScopeSearchItemConfigurationType combineScopeSearchItem(ScopeSearchItemConfigurationType scope1, ScopeSearchItemConfigurationType scope2) {
