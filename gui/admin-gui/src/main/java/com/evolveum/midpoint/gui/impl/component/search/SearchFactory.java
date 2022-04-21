@@ -4,24 +4,19 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.component.search;
+package com.evolveum.midpoint.gui.impl.component.search;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.*;
-
 import com.evolveum.midpoint.prism.path.ItemName;
 
-import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
+import com.evolveum.midpoint.web.component.search.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
@@ -34,7 +29,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -215,16 +209,16 @@ public class SearchFactory {
         ));
     }
 
-    public static <C extends Containerable> Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, ModelServiceLocator modelServiceLocator) {
+    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, ModelServiceLocator modelServiceLocator) {
         return createContainerSearch(type, null, modelServiceLocator, false);
     }
 
-    public static <C extends Containerable> Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem,
+    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem,
             ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
         return createContainerSearch(type, defaultSearchItem, null, modelServiceLocator, useObjectCollection);
     }
 
-    public static <C extends Containerable> Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
+    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
             ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
         PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry()
                 .findContainerDefinitionByCompileTimeClass(type.getTypeClass());
@@ -232,7 +226,7 @@ public class SearchFactory {
     }
 
     @Deprecated
-    public static <C extends Containerable> Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, PrismContainerDefinition<C> containerDef, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
+    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, PrismContainerDefinition<C> containerDef, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
             ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
 
         List<SearchItemDefinition> availableDefs = defaultAvailableDefs;
@@ -240,11 +234,11 @@ public class SearchFactory {
             availableDefs = getAvailableDefinitions(containerDef, null, true, modelServiceLocator);
         }
 
-        Search<C> search = new Search<>(type, availableDefs);
+        com.evolveum.midpoint.web.component.search.Search<C> search = new com.evolveum.midpoint.web.component.search.Search<>(type, availableDefs);
 
         List<SearchItemDefinition> configuredSearchItemDefs = null;
         if (useObjectCollection) {
-            configuredSearchItemDefs = getConfiguredSearchItemDefinitions(availableDefs, modelServiceLocator, containerDef.getTypeName(), null, Search.PanelType.DEFAULT);
+            configuredSearchItemDefs = getConfiguredSearchItemDefinitions(availableDefs, modelServiceLocator, containerDef.getTypeName(), null, com.evolveum.midpoint.web.component.search.Search.PanelType.DEFAULT);
         }
         if (!CollectionUtils.isEmpty(configuredSearchItemDefs)) {
             processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, containerDef);
@@ -257,72 +251,9 @@ public class SearchFactory {
         return search;
     }
 
-    public static <T extends ObjectType> Search<? extends T> createSearch(Class<? extends T> type, ModelServiceLocator modelServiceLocator) {
-        @NotNull ObjectTypes objectTypes = ObjectTypes.getObjectType(type);
-        return createSearch(new ContainerTypeSearchItem<>(new SearchValue<>(type, "ObjectType." + objectTypes.getTypeQName().getLocalPart())), null, null,
-                null, modelServiceLocator, null, true, true, Search.PanelType.DEFAULT);
-    }
-
-    public static <T extends ObjectType> Search createSearch(ContainerTypeSearchItem<T> type, ModelServiceLocator modelServiceLocator, boolean isOidSearchEnabled) {
-        return createSearch(type, null, null, null, modelServiceLocator, null, true,
-                true, Search.PanelType.DEFAULT, isOidSearchEnabled);
-    }
-
-    public static <T extends ObjectType> Search<T> createSearch(
-            ContainerTypeSearchItem<T> type, String collectionViewName, List<ItemPath> fixedSearchItems, ResourceShadowDiscriminator discriminator,
-            ModelServiceLocator modelServiceLocator, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass, boolean useObjectCollection, Search.PanelType panelType) {
-        return createSearch(type, collectionViewName, fixedSearchItems, discriminator, modelServiceLocator, availableItemPath, useDefsFromSuperclass, useObjectCollection,
-                panelType, false);
-    }
-
-    private static <T extends ObjectType> Search<T> createSearch(
-            ContainerTypeSearchItem<T> type, String collectionViewName, List<ItemPath> fixedSearchItems, ResourceShadowDiscriminator discriminator,
-            ModelServiceLocator modelServiceLocator, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass, boolean useObjectCollection, Search.PanelType panelType,
-            boolean isOidSearchEnabled) {
-
-        PrismObjectDefinition<?> objectDef = findObjectDefinition(type.getTypeClass(), discriminator, modelServiceLocator);
-        List<SearchItemDefinition> availableDefs = getAvailableDefinitions(objectDef, availableItemPath, useDefsFromSuperclass, modelServiceLocator);
-        boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelServiceLocator, type.getTypeClass());
-
-        QName qNametype = WebComponentUtil.classToQName(modelServiceLocator.getPrismContext(), type.getTypeClass());
-        SearchBoxConfigurationType searchBox = getSearchBoxConfiguration(modelServiceLocator, qNametype, collectionViewName, panelType);
-        SearchBoxModeType searchMode = null;
-        List<SearchBoxModeType> allowedSearchModes = new ArrayList<>();
-        if (searchBox != null) {
-            searchMode = searchBox.getDefaultMode();
-            allowedSearchModes = searchBox.getAllowedMode();
-        }
-        Search<T> search = new Search<>(type, availableDefs, isFullTextSearchEnabled, searchMode, allowedSearchModes, isOidSearchEnabled);
-
-        SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
-        PrismObjectDefinition<?> objDef = registry.findObjectDefinitionByCompileTimeClass(type.getTypeClass());
-
-        List<SearchItemDefinition> configuredSearchItemDefs = null;
-        if (useObjectCollection) {
-            configuredSearchItemDefs = getConfiguredSearchItemDefinitions(availableDefs, modelServiceLocator, qNametype, collectionViewName, panelType);
-        }
-        if (useObjectCollection && !CollectionUtils.isEmpty(configuredSearchItemDefs)) {
-            processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, objDef);
-        } else {
-            if (CollectionUtils.isEmpty(fixedSearchItems)) {
-                fixedSearchItems = new ArrayList<>();
-                fixedSearchItems.add(ObjectType.F_NAME);
-            }
-            fixedSearchItems.forEach(searchItemPath -> {
-                ItemDefinition def = objDef.findItemDefinition(searchItemPath);
-                SearchItem item = search.addItem(def);
-                if (item != null) {
-                    item.setFixed(true);
-                }
-            });
-        }
-        search.setCanConfigure(isAllowToConfigureSearchItems(modelServiceLocator, qNametype, collectionViewName, panelType));
-        return search;
-    }
-
-    public static <C extends Containerable> Search<C> createSearchForReport(Class<C> type, List<SearchFilterParameterType> parameters, ModelServiceLocator modelServiceLocator) {
+    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.Search<C> createSearchForReport(Class<C> type, List<SearchFilterParameterType> parameters, ModelServiceLocator modelServiceLocator) {
         ContainerTypeSearchItem<C> typeItem = new ContainerTypeSearchItem<>(new SearchValue<>(type, ""));
-        Search<C> search = new Search<>(typeItem, new ArrayList<>(), false, SearchBoxModeType.BASIC, Collections.singletonList(SearchBoxModeType.BASIC), false);
+        com.evolveum.midpoint.web.component.search.Search<C> search = new com.evolveum.midpoint.web.component.search.Search<>(typeItem, new ArrayList<>(), false, SearchBoxModeType.BASIC, Collections.singletonList(SearchBoxModeType.BASIC), false);
 
         SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
         PrismContainerDefinition objDef = registry.findContainerDefinitionByCompileTimeClass(type);
@@ -350,7 +281,7 @@ public class SearchFactory {
         return search;
     }
 
-    private static void processSearchItemDefFromCompiledView(List<SearchItemDefinition> configuredSearchItemDefs, Search search, PrismContainerDefinition containerDef) {
+    private static void processSearchItemDefFromCompiledView(List<SearchItemDefinition> configuredSearchItemDefs, com.evolveum.midpoint.web.component.search.Search search, PrismContainerDefinition containerDef) {
         configuredSearchItemDefs.forEach(searchItemDef -> {
             search.addItemToAllDefinitions(searchItemDef);
             if (searchItemDef.isVisibleByDefault()) {
@@ -370,14 +301,14 @@ public class SearchFactory {
         });
     }
 
-    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearchNew(Class<C> type, ModelServiceLocator modelServiceLocator) {
+    public static <C extends Containerable> Search<C> createSearch(Class<C> type, ModelServiceLocator modelServiceLocator) {
         return createSearch(type, null, modelServiceLocator);
     }
 
-    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearch(Class<C> type, String collectionViewName,  ModelServiceLocator modelServiceLocator) {
+    public static <C extends Containerable> Search<C> createSearch(Class<C> type, String collectionViewName,  ModelServiceLocator modelServiceLocator) {
         SearchConfigurationWrapper<C> searchConfigWrapper = createDefaultSearchBoxConfigurationWrapper(type, null, modelServiceLocator);
         searchConfigWrapper.setCollectionViewName(collectionViewName);
-        return createSearchNew(searchConfigWrapper, null, modelServiceLocator, Search.PanelType.DEFAULT, false);
+        return createSearch(searchConfigWrapper, null, modelServiceLocator, com.evolveum.midpoint.web.component.search.Search.PanelType.DEFAULT, false);
     }
 
     /**
@@ -389,16 +320,16 @@ public class SearchFactory {
      */
     public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearch(
             SearchConfigurationWrapper<C> searchConfig, ModelServiceLocator modelServiceLocator) {
-        return createSearchNew(searchConfig, null, modelServiceLocator, Search.PanelType.DEFAULT, true);
+        return createSearch(searchConfig, null, modelServiceLocator, com.evolveum.midpoint.web.component.search.Search.PanelType.DEFAULT, true);
     }
 
    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createMemberPanelSearch(
            SearchConfigurationWrapper<C> searchConfig, ModelServiceLocator modelServiceLocator) {
-        return createSearchNew(searchConfig, null, modelServiceLocator, Search.PanelType.MEMBER_PANEL, true);
+        return createSearch(searchConfig, null, modelServiceLocator, com.evolveum.midpoint.web.component.search.Search.PanelType.MEMBER_PANEL, true);
     }
 
     public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<ShadowType> createProjectionsTabSearch(ModelServiceLocator modelServiceLocator) {
-        com.evolveum.midpoint.gui.impl.component.search.Search<ShadowType> search = createSearchNew(ShadowType.class, modelServiceLocator);
+        com.evolveum.midpoint.gui.impl.component.search.Search<ShadowType> search = createSearch(ShadowType.class, modelServiceLocator);
         search.getItems().forEach(item -> {
             if (!(item instanceof PropertySearchItemWrapper)) {
                 return;
@@ -414,9 +345,9 @@ public class SearchFactory {
         return search;
     }
 
-    private static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearchNew(
+    private static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearch(
             SearchConfigurationWrapper<C> searchConfigurationWrapper, ResourceShadowDiscriminator discriminator,
-            ModelServiceLocator modelServiceLocator, Search.PanelType panelType, boolean createDefault) {
+            ModelServiceLocator modelServiceLocator, com.evolveum.midpoint.web.component.search.Search.PanelType panelType, boolean createDefault) {
         SearchConfigurationWrapper searchConfWrapper;
         if (createDefault) {
             SearchConfigurationWrapper defaultWrapper = createDefaultSearchBoxConfigurationWrapper(searchConfigurationWrapper.getTypeClass(),
@@ -433,7 +364,7 @@ public class SearchFactory {
 //                    typeQname, searchConfigurationWrapper.getCollectionViewName(), panelType);
 //            searchBoxConfig = combineSearchBoxConfiguration(searchBoxConfig, configuredSearchBoxConfig);
 //        }
-        if (Search.PanelType.MEMBER_PANEL.equals(panelType)) {
+        if (com.evolveum.midpoint.web.component.search.Search.PanelType.MEMBER_PANEL.equals(panelType)) {
             //todo add additional panel config here
         }
 //        searchConfigurationWrapper.setConfig(searchBoxConfig);
@@ -828,7 +759,7 @@ public class SearchFactory {
     }
 
     public static List<SearchItemDefinition> getConfiguredSearchItemDefinitions(List<SearchItemDefinition> availableDefinitions,
-            ModelServiceLocator modelServiceLocator, QName type, String collectionViewName, Search.PanelType panelType) {
+            ModelServiceLocator modelServiceLocator, QName type, String collectionViewName, com.evolveum.midpoint.web.component.search.Search.PanelType panelType) {
         SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName, panelType);
         if (searchConfig == null) {
             return null;
@@ -933,7 +864,7 @@ public class SearchFactory {
     }
 
     private static boolean isAllowToConfigureSearchItems(ModelServiceLocator modelServiceLocator, QName type,
-            String collectionViewName, Search.PanelType panelType) {
+            String collectionViewName, com.evolveum.midpoint.web.component.search.Search.PanelType panelType) {
         SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName, panelType);
         if (searchConfig == null || searchConfig.isAllowToConfigureSearchItems() == null) {
             return true; //todo should be set to false
@@ -942,13 +873,13 @@ public class SearchFactory {
     }
 
     private static SearchBoxConfigurationType getSearchBoxConfiguration(ModelServiceLocator modelServiceLocator,
-            QName type, String collectionViewName, Search.PanelType panelType) {
+            QName type, String collectionViewName, com.evolveum.midpoint.web.component.search.Search.PanelType panelType) {
         OperationResult result = new OperationResult(LOAD_ADMIN_GUI_CONFIGURATION);
         try {
             CompiledGuiProfile guiConfig = modelServiceLocator.getModelInteractionService().getCompiledGuiProfile(null, result);
             CompiledObjectCollectionView view = guiConfig.findObjectCollectionView(type, collectionViewName);
             if (view != null) {
-                if (Search.PanelType.MEMBER_PANEL.equals(panelType) && view.getAdditionalPanels() != null
+                if (com.evolveum.midpoint.web.component.search.Search.PanelType.MEMBER_PANEL.equals(panelType) && view.getAdditionalPanels() != null
                         && view.getAdditionalPanels().getMemberPanel() != null) {
                     return view.getAdditionalPanels().getMemberPanel().getSearchBoxConfiguration();
                 }

@@ -11,8 +11,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
-import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -20,7 +19,6 @@ import com.evolveum.midpoint.prism.query.ObjectOrdering;
 
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
