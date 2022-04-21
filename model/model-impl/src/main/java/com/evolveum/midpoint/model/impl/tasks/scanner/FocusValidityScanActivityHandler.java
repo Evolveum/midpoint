@@ -63,7 +63,7 @@ public class FocusValidityScanActivityHandler
         switch (queryStyle) {
             case SINGLE_QUERY:
                 children.add(EmbeddedActivity.create(
-                        parentActivity.getDefinition().clone(),
+                        parentActivity.getDefinition().cloneWithoutId(),
                         (context, result) -> new FocusValidityScanPartialRun(context, COMBINED),
                         null,
                         (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_FULL_ID,
@@ -72,14 +72,14 @@ public class FocusValidityScanActivityHandler
                 break;
             case SEPARATE_OBJECT_AND_ASSIGNMENT_QUERIES:
                 children.add(EmbeddedActivity.create(
-                        parentActivity.getDefinition().clone(),
+                        parentActivity.getDefinition().cloneWithoutId(),
                         (context, result) -> new FocusValidityScanPartialRun(context, OBJECTS),
                         null,
                         (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_OBJECTS_ID,
                         stateDef,
                         parentActivity));
                 children.add(EmbeddedActivity.create(
-                        parentActivity.getDefinition().clone(),
+                        parentActivity.getDefinition().cloneWithoutId(),
                         (context, result) -> new FocusValidityScanPartialRun(context, ASSIGNMENTS),
                         null,
                         (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID,
