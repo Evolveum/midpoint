@@ -145,7 +145,7 @@ public class AuditLogViewerPanel extends BasePanel {
                     protected String getStorageKey() {
                         String collectionNameValue = null;
                         if (isCollectionViewPanelForCompiledView()) {
-                            StringValue collectionName = getCollectionNameParameterValue();
+                            StringValue collectionName = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
                             collectionNameValue = collectionName != null ? collectionName.toString() : "";
                         }
                         return getAuditStorageKey(collectionNameValue);

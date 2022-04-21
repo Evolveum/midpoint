@@ -940,7 +940,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     protected String getStorageKey(){
 
         if (isCollectionViewPanelForCompiledView()) {
-            StringValue collectionName = getCollectionNameParameterValue();
+            StringValue collectionName = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
             String collectionNameValue = collectionName != null ? collectionName.toString() : "";
             return WebComponentUtil.getObjectListPageStorageKey(collectionNameValue);
         } else if(isCollectionViewPanelForWidget()) {
@@ -984,7 +984,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         if (view != null) {
             return view;
         }
-        String collectionName = getCollectionNameParameterValue().toString();
+        String collectionName = WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString();
         return getPageBase().getCompiledGuiProfile().findObjectCollectionView
                 (WebComponentUtil.containerClassToQName(getPageBase().getPrismContext(), getType()), collectionName);
     }
@@ -1061,10 +1061,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
     }
 
-    protected StringValue getCollectionNameParameterValue(){
-        PageParameters parameters = getPageBase().getPageParameters();
-        return parameters ==  null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
-    }
 
     protected boolean isCollectionViewPanelForWidget() {
         PageParameters parameters = getPageBase().getPageParameters();
@@ -1082,7 +1078,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected boolean isCollectionViewPanelForCompiledView() {
-        return getCollectionNameParameterValue() != null && getCollectionNameParameterValue().toString() != null;
+        return WebComponentUtil.getCollectionNameParameterValue(getPageBase()) != null
+                && WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() != null;
     }
 
     protected boolean isCollectionViewPanel() {

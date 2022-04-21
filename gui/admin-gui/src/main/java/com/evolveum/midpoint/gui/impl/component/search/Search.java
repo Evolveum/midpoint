@@ -355,22 +355,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             return null;
         }
 
-        List<ObjectFilter> conditions = new ArrayList<>();
         ObjectQuery query = null;
-        boolean abstractRoleFilterCheck = false;
-        for (AbstractSearchItemWrapper item : getItems()) {
-            if (!item.isApplyFilter(getSearchMode()) ||
-                    (item instanceof AbstractRoleSearchItemWrapper && abstractRoleFilterCheck)) {
-                continue;
-            }
-            ObjectFilter filter = item.createFilter(getTypeClass(), pageBase, defaultVariables);
-            if (filter != null) {
-                conditions.add(filter);
-            }
-            if (item instanceof  AbstractRoleSearchItemWrapper) {
-                abstractRoleFilterCheck = true;
-            }
-        }
         if (query == null) {
             if (getTypeClass() != null) {
                 query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
@@ -378,7 +363,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 query = pageBase.getPrismContext().queryFactory().createQuery();
             }
         }
-        for (ObjectFilter filter : conditions) {
+        for (ObjectFilter filter : getSearchItemFilterList(pageBase, defaultVariables)) {
             if (filter != null) {
                 query.addFilter(filter);
             }
@@ -393,6 +378,28 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 //                }
 //        }
         return query;
+    }
+
+    public List<ObjectFilter> getSearchItemFilterList(PageBase pageBase, VariablesMap defaultVariables) {
+        List<ObjectFilter> conditions = new ArrayList<>();
+        if (!SearchBoxModeType.BASIC.equals(getSearchMode())) {
+            return conditions;
+        }
+        boolean abstractRoleFilterCheck = false;
+        for (AbstractSearchItemWrapper item : getItems()) {
+            if (!item.isApplyFilter(getSearchMode()) ||
+                    (item instanceof AbstractRoleSearchItemWrapper && abstractRoleFilterCheck)) {
+                continue;
+            }
+            ObjectFilter filter = item.createFilter(getTypeClass(), pageBase, defaultVariables);
+            if (filter != null) {
+                conditions.add(filter);
+            }
+            if (item instanceof  AbstractRoleSearchItemWrapper) {
+                abstractRoleFilterCheck = true;
+            }
+        }
+        return conditions;
     }
 
     public VariablesMap getFilterVariables(VariablesMap defaultVariables, PageBase pageBase) {

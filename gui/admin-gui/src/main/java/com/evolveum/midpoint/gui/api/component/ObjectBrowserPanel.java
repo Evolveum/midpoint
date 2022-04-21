@@ -241,7 +241,8 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
             @Override
             protected Search createSearch(Class<O> type) {
-                String collectionName = isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null;
+                String collectionName = isCollectionViewPanelForCompiledView() ?
+                        WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() : null;
                 return SearchFactory.createSearch(createSearchConfigWrapper(type, collectionName), getPageBase());
 //                Search search = super.createSearch(type);
 //                getSpecialSearchItemWrappers()

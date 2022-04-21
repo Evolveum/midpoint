@@ -5299,6 +5299,11 @@ public final class WebComponentUtil {
         return allowedValues;
     }
 
+    public static StringValue getCollectionNameParameterValue(PageBase pageBase) {
+        PageParameters parameters = pageBase.getPageParameters();
+        return parameters ==  null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
+    }
+
     public static <T extends Object> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model, IModel<List<DisplayableValue<T>>> choices,
             boolean allowNull, PageBase pageBase) {
         return new DropDownChoicePanel(id, model, choices, new IChoiceRenderer<DisplayableValue>() {
