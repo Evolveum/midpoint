@@ -151,6 +151,12 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         }
     }
 
+    private @NotNull Map<String, Activity<?, ?>> getChildrenMapCopy() {
+        synchronized (childrenMap) {
+            return new HashMap<>(childrenMap);
+        }
+    }
+
     public @NotNull List<Activity<?, ?>> getChildrenCopyExceptSkipped() {
         synchronized (childrenMap) {
             return childrenMap.values().stream()
@@ -168,7 +174,8 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         DebugUtil.debugDumpWithLabelLn(sb, "parent", String.valueOf(getParent()), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "path", String.valueOf(getPath()), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "local path", String.valueOf(getLocalPath()), indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "children (initialized=" + childrenMapInitialized + ")", childrenMap, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "children (initialized=" + childrenMapInitialized + ")",
+                getChildrenMapCopy(), indent + 1);
         return sb.toString();
     }
 
@@ -248,24 +255,34 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
             return child;
         } else {
             throw new IllegalArgumentException("Child with identifier " + identifier + " was not found among children of "
-                    + this + ". Known children are: " + childrenMap.keySet());
+                    + this + ". Known children are: " + getChildrenMapCopy().keySet());
         }
     }
 
     public void initializeChildrenMapIfNeeded() throws SchemaException {
-        if (!childrenMapInitialized) {
-            assert childrenMap.isEmpty();
-            createChildren();
-            childrenMapInitialized = true;
+        synchronized (childrenMap) { // just for sure
+            if (!childrenMapInitialized) {
+                assert childrenMap.isEmpty();
+                createChildren();
+                childrenMapInitialized = true;
+            }
         }
     }
 
+    /** Creates children in {@link #childrenMap}. The caller must hold the lock on {@link #childrenMap}. */
     private void createChildren() throws SchemaException {
         ArrayList<Activity<?, ?>> childrenList = getHandler().createChildActivities(this);
         setupIdentifiers(childrenList);
         tailorChildren(childrenList);
         setupIdentifiers(childrenList);
-        childrenList.forEach(child -> childrenMap.put(child.getIdentifier(), child));
+        childrenList.forEach(this::addChild);
+    }
+
+    private void addChild(@NotNull Activity<?, ?> child) {
+        var previous = childrenMap.put(child.getIdentifier(), child);
+        stateCheck(previous == null,
+                "Multiple child activities with the same identifier: %s (%s, %s)",
+                child.getIdentifier(), child, previous);
     }
 
     private void setupIdentifiers(List<Activity<?, ?>> childrenList) {
@@ -389,7 +406,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
 
     public void accept(@NotNull ActivityVisitor visitor) {
         visitor.visit(this);
-        childrenMap.values()
+        getChildrenCopy()
                 .forEach(child -> child.accept(visitor));
     }
 

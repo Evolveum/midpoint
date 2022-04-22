@@ -246,10 +246,25 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
 
     /**
      * Does the deep clone. The goal is to be able to modify cloned definition freely.
+     *
+     * BEWARE: Do not use this method to create a definition clone to be used for child activities.
+     * Use {@link #cloneWithoutId()} instead. See MID-7894.
      */
     @SuppressWarnings({ "MethodDoesntCallSuperMethod" })
     @Override
     public ActivityDefinition<WD> clone() {
+        return cloneInternal(explicitlyDefinedIdentifier);
+    }
+
+    /**
+     * As {@link #clone()} but discards the {@link #explicitlyDefinedIdentifier} value.
+     */
+    public ActivityDefinition<WD> cloneWithoutId() {
+        return cloneInternal(null);
+    }
+
+    @NotNull
+    private ActivityDefinition<WD> cloneInternal(String explicitlyDefinedIdentifier) {
         //noinspection unchecked
         return new ActivityDefinition<>(
                 explicitlyDefinedIdentifier,

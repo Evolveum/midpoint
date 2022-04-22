@@ -18,6 +18,7 @@
     <executionState>closed</executionState> <!-- run by the test code -->
 
     <activity>
+        <identifier>my-reconciliation</identifier>
         <work>
             <reconciliation>
                 <resourceObjects>
