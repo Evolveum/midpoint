@@ -7,6 +7,8 @@ import com.evolveum.midpoint.authentication.api.AuthModule;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -14,10 +16,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherAuthenticationModuleType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -39,7 +37,7 @@ public class OtherModuleFactory extends AbstractModuleFactory {
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType module, String sequenceSuffix, ServletRequest request,
             Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
-            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
+            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
 
         if (!(module instanceof OtherAuthenticationModuleType)) {
             LOGGER.error("This factory support only OtherAuthenticationModuleType, but module is " + module);
@@ -54,6 +52,6 @@ public class OtherModuleFactory extends AbstractModuleFactory {
         AbstractModuleFactory factory = applicationContext.getBean(factoryClazz);
 
         return factory.createModuleFilter(module, sequenceSuffix, request, sharedObjects,
-                authenticationsPolicy, credentialPolicy, authenticationChannel);
+                authenticationsPolicy, credentialPolicy, authenticationChannel, sequenceModule);
     }
 }

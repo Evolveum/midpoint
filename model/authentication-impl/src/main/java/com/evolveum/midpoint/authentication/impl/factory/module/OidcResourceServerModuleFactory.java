@@ -44,7 +44,7 @@ public class OidcResourceServerModuleFactory extends RemoteModuleFactory {
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
                                          Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
-            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
+            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType necessity) throws Exception {
         if (!(moduleType instanceof OidcAuthenticationModuleType)) {
             LOGGER.error("This factory support only OidcAuthenticationModuleType, but modelType is " + moduleType);
             return null;
@@ -76,15 +76,15 @@ public class OidcResourceServerModuleFactory extends RemoteModuleFactory {
         setSharedObjects(http, sharedObjects);
 
         ModuleAuthenticationImpl moduleAuthentication =
-                createEmptyModuleAuthentication(configuration, resourceServer);
+                createEmptyModuleAuthentication(configuration, resourceServer, necessity);
         moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 
-    public ModuleAuthenticationImpl createEmptyModuleAuthentication(OidcResourceServerModuleWebSecurityConfiguration configuration,
-            OidcResourceServerAuthenticationModuleType resourceServer) {
-        OidcResourceServerModuleAuthentication moduleAuthentication = new OidcResourceServerModuleAuthentication();
+    private ModuleAuthenticationImpl createEmptyModuleAuthentication(OidcResourceServerModuleWebSecurityConfiguration configuration,
+            OidcResourceServerAuthenticationModuleType resourceServer, AuthenticationSequenceModuleType sequenceModule) {
+        OidcResourceServerModuleAuthentication moduleAuthentication = new OidcResourceServerModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
         moduleAuthentication.setRealm(resourceServer.getRealm());

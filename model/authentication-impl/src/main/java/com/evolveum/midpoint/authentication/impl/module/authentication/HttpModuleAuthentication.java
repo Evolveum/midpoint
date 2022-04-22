@@ -9,6 +9,9 @@ package com.evolveum.midpoint.authentication.impl.module.authentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.AuthenticationException;
@@ -22,8 +25,8 @@ public class HttpModuleAuthentication extends CredentialModuleAuthenticationImpl
     private String realm;
     private String proxyUserOid;
 
-    public HttpModuleAuthentication(String nameOfType) {
-        super(nameOfType);
+    public HttpModuleAuthentication(String nameOfType, AuthenticationSequenceModuleType sequenceModule) {
+        super(nameOfType, sequenceModule);
     }
 
     public String getProxyUserOid() {
@@ -43,7 +46,7 @@ public class HttpModuleAuthentication extends CredentialModuleAuthenticationImpl
     }
 
     public ModuleAuthenticationImpl clone() {
-        HttpModuleAuthentication module = new HttpModuleAuthentication(this.getNameOfModuleType());
+        HttpModuleAuthentication module = new HttpModuleAuthentication(this.getNameOfModuleType(), this.getSequenceModule());
         clone(module);
         return module;
     }

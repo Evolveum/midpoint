@@ -9,6 +9,8 @@ package com.evolveum.midpoint.authentication.api.config;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+
 import org.springframework.security.core.Authentication;
 
 import javax.xml.namespace.QName;
@@ -55,4 +57,14 @@ public interface ModuleAuthentication {
      * @return type of authenticated object, get from configuration
      */
     QName getFocusType();
+
+    /**
+     * @return necessity for this module
+     */
+    AuthenticationSequenceModuleNecessityType getNecessity();
+
+    /**
+     * @return order for this module
+     */
+    Integer getOrder();
 }

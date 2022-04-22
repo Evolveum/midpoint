@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.authentication.impl.module.authentication;
 
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
 /**
  * @author skublik
@@ -14,12 +16,12 @@ import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameCon
 
 public class MailNonceModuleAuthenticationImpl extends CredentialModuleAuthenticationImpl {
 
-    public MailNonceModuleAuthenticationImpl() {
-        super(AuthenticationModuleNameConstants.MAIL_NONCE);
+    public MailNonceModuleAuthenticationImpl(AuthenticationSequenceModuleType sequenceModule) {
+        super(AuthenticationModuleNameConstants.MAIL_NONCE, sequenceModule);
     }
 
     public ModuleAuthenticationImpl clone() {
-        MailNonceModuleAuthenticationImpl module = new MailNonceModuleAuthenticationImpl();
+        MailNonceModuleAuthenticationImpl module = new MailNonceModuleAuthenticationImpl(this.getSequenceModule());
         module.setAuthentication(this.getAuthentication());
         super.clone(module);
         return module;

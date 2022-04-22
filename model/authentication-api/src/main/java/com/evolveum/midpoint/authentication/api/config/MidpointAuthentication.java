@@ -50,10 +50,10 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
      */
     private final List<ModuleAuthentication> authentications = new ArrayList<>();
 
-    /**
-     * Configuration of modules for sequence
-     */
-    private final List<AuthenticationSequenceModuleType> modules;
+//    /**
+//     * Configuration of modules for sequence
+//     */
+//    private final List<AuthenticationSequenceModuleType> modules;
 
     /**
      * Channel defining scope of authentication, etc. rest, gui, reset password ...
@@ -72,7 +72,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
-        this.modules = SecurityPolicyUtil.getSortedModules(sequence);
+//        this.modules = SecurityPolicyUtil.getSortedModules(sequence);
         this.sequence = sequence;
     }
 
@@ -114,9 +114,9 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         this.authorities = authorities;
     }
 
-    public List<AuthenticationSequenceModuleType> getModules() {
-        return Collections.unmodifiableList(modules);
-    }
+//    private List<AuthenticationSequenceModuleType> getModules() {
+//        return Collections.unmodifiableList(modules);
+//    }
 
     @Override
     public Object getCredentials() {
@@ -151,17 +151,17 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     @Override
     public boolean isAuthenticated() {
-        List<AuthenticationSequenceModuleType> modules = getModules();
+        List<AuthModule> modules = getAuthModules();
         if (modules.isEmpty()) {
             return false;
         }
-        for (AuthenticationSequenceModuleType module : modules) {
-            ModuleAuthentication authentication = getAuthenticationByName(module.getName());
+        for (AuthModule module : modules) {
+            ModuleAuthentication authentication = getAuthenticationByName(module.getNameOfModule());
             if (authentication == null) {
                 continue;
             }
             //TODO we will complete after supporting of full "necessity"
-            if (AuthenticationSequenceModuleNecessityType.SUFFICIENT.equals(module.getNecessity())) {
+            if (AuthenticationSequenceModuleNecessityType.SUFFICIENT.equals(authentication.getNecessity())) {
                 if (AuthenticationModuleState.SUCCESSFULLY.equals(authentication.getState())) {
                     return true;
                 }
@@ -219,9 +219,11 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     public int getIndexOfModule(ModuleAuthentication authentication) {
         Validate.notNull(authentication);
 
-        for (int i = 0; i < getModules().size(); i++) {
-            if (getModules().get(i).getName().equals(authentication.getNameOfModule())) {
-                return i;
+        for (int i = 0; i < getAuthModules().size(); i++) {
+            if (getAuthModules().get(i).getNameOfModule().equals(authentication.getNameOfModule())) {
+                int indexOfModule = i;
+                //TODO presumption that necessity is sufficient
+                return indexOfModule;
             }
         }
         return -1;
@@ -261,26 +263,26 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     private List<ModuleAuthentication> getParallelProcessingModules(int actualIndex) {
         List<ModuleAuthentication> parallelProcessingModules = new ArrayList<>();
-        ModuleAuthentication processingModule = getAuthentications().get(actualIndex);
-        AuthenticationSequenceModuleType processingModuleType = getModules().get(actualIndex);
-        if (processingModule == null) {
+        ModuleAuthentication authentication = getAuthentications().get(actualIndex);
+        AuthModule processingModule = getAuthModules().get(actualIndex);
+        if (authentication == null) {
             return parallelProcessingModules;
         }
 
         if (actualIndex > 0) {
             for (int i = actualIndex - 1; i >= 0; i--) {
-                if (getModules().get(i) != null
-                        && processingModuleType.getOrder().equals(getModules().get(i).getOrder())) {
+                if (getAuthModules().get(i) != null
+                        && authentication.getOrder().equals(getAuthModules().get(i).getOrder())) {
                     parallelProcessingModules.add(getAuthModules().get(i).getBaseModuleAuthentication());
                 } else {
                     break;
                 }
             }
         }
-        parallelProcessingModules.add(processingModule);
-        for (int i = actualIndex + 1; i < getModules().size(); i++) {
-            if (getModules().get(i) != null
-                    && processingModuleType.getOrder().equals(getModules().get(i).getOrder())) {
+        parallelProcessingModules.add(authentication);
+        for (int i = actualIndex + 1; i < getAuthModules().size(); i++) {
+            if (getAuthModules().get(i) != null
+                    && authentication.getOrder().equals(getAuthModules().get(i).getOrder())) {
                 parallelProcessingModules.add(getAuthModules().get(i).getBaseModuleAuthentication());
             }
         }
@@ -331,10 +333,10 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         if (index == -1) {
             return false;
         }
-        if (index == getModules().size() - 1) {
+        if (index == getAuthModules().size() - 1) {
             return true;
         }
-        return getModules().get(index).getOrder().equals(getModules().get(getModules().size() - 1).getOrder());
+        return moduleAuthentication.getOrder().equals(getAuthModules().get(getAuthModules().size() - 1).getOrder());
     }
 
     @Override

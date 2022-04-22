@@ -49,7 +49,8 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
 
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
-                                         Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
+                                         Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
+            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
         if (!(moduleType instanceof Saml2AuthenticationModuleType)) {
             LOGGER.error("This factory support only Saml2AuthenticationModuleType, but modelType is " + moduleType);
             return null;
@@ -67,7 +68,7 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
         HttpSecurity http = getNewHttpSecurity(module);
         setSharedObjects(http, sharedObjects);
 
-        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, request);
+        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, sequenceModule, request);
         moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         for (Filter f : filter.getFilters()){
@@ -80,8 +81,9 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 
-    public ModuleAuthenticationImpl createEmptyModuleAuthentication(SamlModuleWebSecurityConfiguration configuration, ServletRequest request) {
-        Saml2ModuleAuthenticationImpl moduleAuthentication = new Saml2ModuleAuthenticationImpl();
+    public ModuleAuthenticationImpl createEmptyModuleAuthentication(
+            SamlModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
+        Saml2ModuleAuthenticationImpl moduleAuthentication = new Saml2ModuleAuthenticationImpl(sequenceModule);
         List<IdentityProvider> providers = new ArrayList<>();
         configuration.getRelyingPartyRegistrationRepository().forEach(
                 p -> {
