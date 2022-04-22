@@ -30,7 +30,6 @@ import java.util.Collection;
 /**
  * @author lazyman
  */
-//TODO unify with PageAdminObjectDetails!
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/resources/shadow")
@@ -40,8 +39,8 @@ import java.util.Collection;
                 label = "PageAdminResources.auth.resourcesAll.label",
                 description = "PageAdminResources.auth.resourcesAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ACCOUNT_URL,
-                label = "PageAccount.auth.resourcesAccount.label",
-                description = "PageAccount.auth.resourcesAccount.description")})
+                label = "PageShadow.auth.resourcesAccount.label",
+                description = "PageShadow.auth.resourcesAccount.description")})
 public class PageShadow extends AbstractPageObjectDetails<ShadowType, ShadowDetailsModel> {
 
     public PageShadow(PageParameters parameters) {

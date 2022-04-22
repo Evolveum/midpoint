@@ -100,15 +100,6 @@ public class PageCases extends PageAdmin {
             protected List<InlineMenuItem> createInlineMenu() {
                 return createActions();
             }
-
-//            @Override
-//            protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
-//                LOGGER.trace("caseDetailsPerformed()");
-//
-//                PageParameters pageParameters = new PageParameters();
-//                pageParameters.add(OnePageParameterEncoder.PARAMETER, caseInstance.getOid());
-//                navigateToNext(PageCase.class, pageParameters);
-//            }
         };
         add(tablePanel);
     }

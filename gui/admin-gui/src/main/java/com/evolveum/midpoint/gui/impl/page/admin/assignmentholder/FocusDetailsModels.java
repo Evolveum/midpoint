@@ -147,47 +147,6 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
         return isSelfProfile;
     }
 
-    //    public void loadFullShadow(PrismObjectValueWrapper<ShadowType> shadowWrapperValue, AjaxRequestTarget target) {
-//        LOGGER.trace("Loading full shadow");
-//        long start = System.currentTimeMillis();
-//        if (shadowWrapperValue.getRealValue() == null) {
-//            error(getString("pageAdminFocus.message.couldntCreateShadowWrapper"));
-//            LOGGER.error("Couldn't create shadow wrapper, because RealValue is null in " + shadowWrapperValue);
-//            return;
-//        }
-//        String oid = shadowWrapperValue.getRealValue().getOid();
-//        Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
-//        OperationResult result = task.getResult();
-//        long loadStart = System.currentTimeMillis();
-//        PrismObject<ShadowType> projection = getPrismObjectForShadowWrapper(oid, false, task,
-//                result, createLoadOptionForShadowWrapper());
-//
-//        long loadEnd = System.currentTimeMillis();
-//        LOGGER.trace("Load projection in {} ms", loadEnd - loadStart);
-//        if (projection == null) {
-//            result.recordFatalError(getString("PageAdminFocus.message.loadFullShadow.fatalError", shadowWrapperValue.getRealValue()));
-//            showResult(result);
-//            target.add(getFeedbackPanel());
-//            return;
-//        }
-//
-//        long wrapperStart = System.currentTimeMillis();
-//        ShadowWrapper shadowWrapperNew;
-//        try {
-//            shadowWrapperNew = loadShadowWrapper(projection, task, result);
-//            shadowWrapperValue.clearItems();
-//            shadowWrapperValue.addItems((Collection) shadowWrapperNew.getValue().getItems());
-//            ((ShadowWrapper) shadowWrapperValue.getParent()).setLoadWithNoFetch(false);
-//        } catch (SchemaException e) {
-//            error(getString("pageAdminFocus.message.couldntCreateShadowWrapper"));
-//            LOGGER.error("Couldn't create shadow wrapper", e);
-//        }
-//        long wrapperEnd = System.currentTimeMillis();
-//        LOGGER.trace("Wrapper loaded in {} ms", wrapperEnd - wrapperStart);
-//        long end = System.currentTimeMillis();
-//        LOGGER.trace("Got full shadow in {} ms", end - start);
-//    }
-//
     private PrismObject<ShadowType> getPrismObjectForShadowWrapper(String oid, boolean noFetch,
             Task task, OperationResult subResult, Collection<SelectorOptions<GetOperationOptions>> loadOptions) {
         if (oid == null) {

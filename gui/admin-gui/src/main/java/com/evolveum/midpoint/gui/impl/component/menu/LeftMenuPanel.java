@@ -11,6 +11,12 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
+
+import com.evolveum.midpoint.prism.PrismObject;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -19,7 +25,6 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -43,7 +48,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.component.menu.*;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.cases.*;
 import com.evolveum.midpoint.web.page.admin.certification.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
@@ -54,7 +58,6 @@ import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageConnectorHosts;
 import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.server.PageNodes;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -447,11 +450,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private Class<? extends PageBase> getDetailsPage(PageTypes pageDesc) {
-        CompiledGuiProfile guiProfile = getPageBase().getCompiledGuiProfile();
-        if (guiProfile.isUseNewDesign()) {
-            return pageDesc.getDetailsPage();
-        }
-        return pageDesc.getOldDetailsPage();
+        return pageDesc.getDetailsPage();
     }
 
     private boolean isEditForAdminObjectDetails() {
@@ -460,11 +459,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
             AbstractPageObjectDetails<?, ?> page = (AbstractPageObjectDetails<?, ?>) pageBase;
             return page.isEditObject();
         }
-        if (pageBase instanceof PageAdminObjectDetails) {
-            PageAdminObjectDetails<?> page = (PageAdminObjectDetails<?>) pageBase;
-            return page.isOidParameterExists() || page.isEditingFocus();
-        }
-
         return false;
     }
 
@@ -496,12 +490,14 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private boolean isAddNewObjectMenuItemAuthorized(Class<? extends PageBase> newPageClass) {
-        if (newPageClass.isAssignableFrom(PageAdminObjectDetails.class)) {
+        if (newPageClass.isAssignableFrom(AbstractPageObjectDetails.class)) {
             try {
-                PageAdminObjectDetails<?> page = (PageAdminObjectDetails<?>) newPageClass.getConstructor().newInstance();
-                ObjectType object = page.createNewObject();
+
+                AbstractPageObjectDetails page = (AbstractPageObjectDetails) newPageClass.getConstructor().newInstance();
+                Class<? extends ObjectType> objectType = page.getType();
+                PrismObject<? extends ObjectType> object = getPrismContext().createObject(objectType);
                 return getPageBase().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
-                        AuthorizationPhaseType.REQUEST, object == null ? null : object.asPrismObject(),
+                        AuthorizationPhaseType.REQUEST, object,
                         null, null, null);
             } catch (Exception ex) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New object menu item", ex);

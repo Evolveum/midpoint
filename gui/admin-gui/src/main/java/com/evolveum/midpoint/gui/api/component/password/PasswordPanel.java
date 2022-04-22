@@ -37,6 +37,11 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
+import com.evolveum.midpoint.gui.impl.page.self.PageOrgSelfProfile;
+import com.evolveum.midpoint.gui.impl.page.self.PageRoleSelfProfile;
+import com.evolveum.midpoint.gui.impl.page.self.PageServiceSelfProfile;
+import com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -50,11 +55,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.self.PageOrgSelfProfile;
-import com.evolveum.midpoint.web.page.self.PageRoleSelfProfile;
-import com.evolveum.midpoint.web.page.self.PageServiceSelfProfile;
-import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -278,7 +278,7 @@ public class PasswordPanel extends InputPanel {
                         || pageBase instanceof PageRoleSelfProfile || pageBase instanceof PageServiceSelfProfile) {
                     return false;
                 }
-                return pageBase instanceof PageAdminFocus && !((PageAdminFocus) pageBase).isLoggedInFocusPage()
+                return pageBase instanceof PageFocusDetails && !((PageFocusDetails) pageBase).isLoggedInFocusPage()
                         && model.getObject() != null;
             }
         });

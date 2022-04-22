@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.component.util;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugUtil;

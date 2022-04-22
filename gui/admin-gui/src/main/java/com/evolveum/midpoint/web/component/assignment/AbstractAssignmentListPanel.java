@@ -24,9 +24,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -71,7 +69,6 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 deleteAssignmentConfirmedPerformed(target, dto);
-                reloadMainFormButtons(target);
             }
         };
     }
@@ -90,13 +87,6 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
                     dto.getName()).getString();
         } else {
             return createStringResource("PageAssignmentsList.deleteAllItemsFromShoppingCartConfirm").getString();
-        }
-    }
-
-    protected void reloadMainFormButtons(AjaxRequestTarget target){
-        AbstractObjectMainPanel panel = AbstractAssignmentListPanel.this.findParent(AbstractObjectMainPanel.class);
-        if (panel != null){
-            panel.reloadSavePreviewButtons(target);
         }
     }
 

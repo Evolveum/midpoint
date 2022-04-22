@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleInducementPanel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.web.component.assignment.ConstructionAssociationPan
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
@@ -81,8 +81,8 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Abstr
             createValidator();
         }
 
-        if (getPageBase() instanceof PageAdminObjectDetails) {
-            PageAdminObjectDetails page = (PageAdminObjectDetails) getPageBase();
+        if (getPageBase() instanceof AbstractPageObjectDetails) {
+            AbstractPageObjectDetails page = (AbstractPageObjectDetails) getPageBase();
             if (!page.getFormValidatorRegistry().getValidators().contains(validator)) {
                 page.getFormValidatorRegistry().registerValidator(validator);
             }

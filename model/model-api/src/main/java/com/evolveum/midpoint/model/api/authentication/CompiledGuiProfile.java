@@ -136,6 +136,11 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         return objectCollectionViews;
     }
 
+    @NotNull
+    public List<CompiledShadowCollectionView> getShadowCollectionViews() {
+        return shadowCollectionViews;
+    }
+
     /**
      * Compiled information about object list view for a particular type.
      * If viewName is null then it returns view definition for "all objects" view,
