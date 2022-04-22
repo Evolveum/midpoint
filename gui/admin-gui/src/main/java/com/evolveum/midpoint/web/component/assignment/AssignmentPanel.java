@@ -253,7 +253,7 @@ public class AssignmentPanel<AH extends AssignmentHolderType> extends BasePanel<
                     }
 
                     @Override
-                    protected CompiledObjectCollectionView getObjectCollectionView() {
+                    public CompiledObjectCollectionView getObjectCollectionView() {
                         if (config == null) {
                             return super.getObjectCollectionView();
                         }

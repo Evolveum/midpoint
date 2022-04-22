@@ -128,7 +128,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     }
 
     @Override
-    protected CompiledObjectCollectionView getObjectCollectionView() {
+    public CompiledObjectCollectionView getObjectCollectionView() {
         return view;
     }
 

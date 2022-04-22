@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.search;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.Containerable;
@@ -57,7 +58,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<ObjectQu
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SaveSearchPanel.class);
-    private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_FEEDBACK_MESSAGE = "feedbackMessage";
     private static final String ID_SEARCH_NAME = "searchName";
     private static final String ID_BUTTONS_PANEL = "buttonsPanel";
     private static final String ID_SAVE_BUTTON = "saveButton";
@@ -80,9 +81,9 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<ObjectQu
     private void initLayout() {
         setOutputMarkupId(true);
 
-        Label feedbackMessage = new Label(ID_FEEDBACK, feedbackMessageModel);
-        feedbackMessage.setOutputMarkupId(true);
+        MessagePanel feedbackMessage = new MessagePanel(ID_FEEDBACK_MESSAGE, MessagePanel.MessagePanelType.WARN, feedbackMessageModel);
         feedbackMessage.add(new VisibleBehaviour(() -> feedbackMessageModel.getObject() != null && StringUtils.isNotEmpty(feedbackMessageModel.getObject())));
+        feedbackMessage.setOutputMarkupId(true);
         add(feedbackMessage);
 
         TextField<String> nameField = new TextField<>(ID_SEARCH_NAME, queryNameModel);
@@ -101,7 +102,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<ObjectQu
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 if (StringUtils.isEmpty(queryNameModel.getObject())) {
                     feedbackMessageModel = createStringResource("SaveSearchPanel.enterQueryNameWarning");
-                    ajaxRequestTarget.add(SaveSearchPanel.this);
+                    ajaxRequestTarget.add(feedbackMessage);
                     return;
                 }
                 saveCustomQuery();
@@ -135,32 +136,12 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<ObjectQu
     }
 
     private void saveSearchItemToAdminConfig(SearchItemType searchItemType) {
-        StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
-        String collectionViewName = collectionViewParameter != null ? collectionViewParameter.toString() : null;
         FocusType principalFocus = getPageBase().getPrincipalFocus();
-        if (!(principalFocus instanceof UserType)) {
-            return;
-        }
-        AdminGuiConfigurationType adminGui = ((UserType) principalFocus).getAdminGuiConfiguration();
-        if (adminGui == null) {
-            adminGui = new AdminGuiConfigurationType();
-            ((UserType) principalFocus).setAdminGuiConfiguration(adminGui);
-        }
-        GuiObjectListViewsType views = adminGui.getObjectCollectionViews();
-        if (views == null) {
-            views = new GuiObjectListViewsType();
-            adminGui.objectCollectionViews(views);
-        }
-        GuiObjectListViewType view = null;
-        if (StringUtils.isNotEmpty(collectionViewName)) {
-            view = findViewByName(views.getObjectCollectionView(), collectionViewName);
-        } else {
-            view = findViewByType(views.getObjectCollectionView());
-        }
+        GuiObjectListViewType view = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, type, true);
         if (view == null) {
             view = new GuiObjectListViewType();
             view.setType(WebComponentUtil.containerClassToQName(PrismContext.get(), type));
-            views.objectCollectionView(view);
+            ((UserType)principalFocus).getAdminGuiConfiguration().getObjectCollectionViews().objectCollectionView(view);
         }
         SearchBoxConfigurationType searchConfig = view.getSearchBoxConfiguration();
         if (searchConfig == null) {
@@ -192,27 +173,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<ObjectQu
         }
     }
 
-    private GuiObjectListViewType findViewByName(List<GuiObjectListViewType> views, String viewName) {
-        if (StringUtils.isEmpty(viewName)) {
-            return null;
-        }
-        for (GuiObjectListViewType view : views) {
-            if (view.getIdentifier().equals(viewName)) {
-                return view;
-            }
-        }
-        return null;
-    }
-
-    private GuiObjectListViewType findViewByType(List<GuiObjectListViewType> views) {
-        for (GuiObjectListViewType view : views) {
-            if (view.getType().equals(WebComponentUtil.containerClassToQName(PrismContext.get(), type))) {
-                return view;
-            }
-        }
-        return null;
-    }
-    @Override
+      @Override
     public int getWidth() {
         return 500;
     }

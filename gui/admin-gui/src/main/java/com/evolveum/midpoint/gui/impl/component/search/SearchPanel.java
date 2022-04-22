@@ -17,9 +17,13 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.web.component.search.SearchValue;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -70,8 +74,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
 public abstract class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
@@ -259,7 +261,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                SaveSearchPanel panel = new SaveSearchPanel(getPageBase().getMainPopupBodyId(),
+                SaveSearchPanel<C> panel = new SaveSearchPanel<>(getPageBase().getMainPopupBodyId(),
                         Model.of(SearchPanel.this.getModelObject().createObjectQuery(getPageBase())), SearchPanel.this.getModelObject().getTypeClass());
                 getPageBase().showMainPopup(panel, target);
             }
@@ -270,7 +272,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         WebMarkupContainer savedSearchMenu = new WebMarkupContainer(ID_SAVED_SEARCH_MENU);
         saveSearchContainer.add(savedSearchMenu);
 
-        ListView<InlineMenuItem> savedSearchItems = new ListView<InlineMenuItem>(ID_SAVED_SEARCH_ITEMS, new ArrayList<>()) {
+        ListView<InlineMenuItem> savedSearchItems = new ListView<InlineMenuItem>(ID_SAVED_SEARCH_ITEMS, getSavedSearchList()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -454,6 +456,52 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private SearchConfigurationWrapper getSearchConfigurationWrapper() {
         return getModelObject().getSearchConfigurationWrapper();
+    }
+
+    private List<InlineMenuItem> getSavedSearchList() {
+        ContainerableListPanel listPanel = findParent(ContainerableListPanel.class);
+        List<InlineMenuItem> savedSearchItems = new ArrayList<>();
+        List<SearchItemType> searchItems = null;
+        if (listPanel != null) {
+            CompiledObjectCollectionView view = listPanel.getObjectCollectionView();
+            searchItems = view != null ? getSearchItemList(view.getSearchBoxConfiguration()) : null;
+        } else {
+            FocusType principalFocus = getPageBase().getPrincipalFocus();
+            GuiObjectListViewType view = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, getModelObject().getTypeClass(), false);
+            searchItems = view != null ? getSearchItemList(view.getSearchBoxConfiguration()) : null;
+        }
+        if (searchItems != null) {
+            searchItems.forEach(item -> {
+                InlineMenuItem searchItem = new InlineMenuItem(Model.of(WebComponentUtil.getTranslatedPolyString(item.getDisplayName()))) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public InlineMenuItemAction initAction() {
+                        return new InlineMenuItemAction() {
+
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                            }
+                        };
+                    }
+                };
+                savedSearchItems.add(searchItem);
+            });
+        }
+        return savedSearchItems;
+    }
+
+    private List<SearchItemType> getSearchItemList(SearchBoxConfigurationType config) {
+        if (config == null) {
+            return null;
+        }
+        SearchItemsType items = config.getSearchItems();
+        if (items == null) {
+            return null;
+        }
+        return items.getSearchItem();
     }
 
     class BasicSearchFragment extends Fragment {

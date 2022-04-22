@@ -286,7 +286,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                     }
 
                     @Override
-                    protected CompiledObjectCollectionView getObjectCollectionView() {
+                    public CompiledObjectCollectionView getObjectCollectionView() {
                         CompiledShadowCollectionView compiledView = findContainerPanelConfig();
                         if (compiledView != null) {
                             return compiledView;

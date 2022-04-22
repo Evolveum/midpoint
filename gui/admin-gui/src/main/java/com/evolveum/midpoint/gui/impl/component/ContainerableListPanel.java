@@ -975,7 +975,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return 0;
     }
 
-    protected CompiledObjectCollectionView getObjectCollectionView() {
+    public CompiledObjectCollectionView getObjectCollectionView() {
         CompiledObjectCollectionView containerPanelCollectionView = getCompiledCollectionViewFromPanelConfiguration();
         if (containerPanelCollectionView != null) {
             return containerPanelCollectionView;

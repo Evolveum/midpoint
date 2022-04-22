@@ -5304,6 +5304,46 @@ public final class WebComponentUtil {
         return parameters ==  null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
     }
 
+    public static <C extends Containerable> GuiObjectListViewType getPrincipalUserObjectListView(PageBase pageBase,
+            FocusType principalFocus, @NotNull Class<C> viewType, boolean createIfNotExist) {
+        if (!(principalFocus instanceof UserType)) {
+            return null;
+        }
+        StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(pageBase);
+        String viewName = collectionViewParameter != null ? collectionViewParameter.toString() : null;
+        AdminGuiConfigurationType adminGui = ((UserType) principalFocus).getAdminGuiConfiguration();
+        if (adminGui == null) {
+            if (!createIfNotExist) {
+                return null;
+            }
+            adminGui = new AdminGuiConfigurationType();
+            ((UserType) principalFocus).setAdminGuiConfiguration(adminGui);
+        }
+        GuiObjectListViewsType views = adminGui.getObjectCollectionViews();
+        if (views == null) {
+            if (!createIfNotExist) {
+                return null;
+            }
+            views = new GuiObjectListViewsType();
+            adminGui.objectCollectionViews(views);
+        }
+
+        if (StringUtils.isNoneEmpty(viewName)) {
+            for (GuiObjectListViewType view : views.getObjectCollectionView()) {
+                if (view.getIdentifier().equals(viewName)) {
+                    return view;
+                }
+            }
+        } else {
+            for (GuiObjectListViewType view : views.getObjectCollectionView()) {
+                if (view.getType().equals(WebComponentUtil.containerClassToQName(PrismContext.get(), viewType))) {
+                    return view;
+                }
+            }
+        }
+        return null;
+    }
+
     public static <T extends Object> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model, IModel<List<DisplayableValue<T>>> choices,
             boolean allowNull, PageBase pageBase) {
         return new DropDownChoicePanel(id, model, choices, new IChoiceRenderer<DisplayableValue>() {
