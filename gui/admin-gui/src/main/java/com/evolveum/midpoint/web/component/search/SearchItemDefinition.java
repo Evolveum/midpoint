@@ -89,6 +89,10 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
         return visibleByDefault;
     }
 
+    public void setVisibleByDefault(Boolean visibleByDefault) {
+        this.visibleByDefault = !Boolean.FALSE.equals(visibleByDefault);
+    }
+
     public String getName() {
         if (getDisplayName() != null){
             return WebComponentUtil.getTranslatedPolyString(getDisplayName());

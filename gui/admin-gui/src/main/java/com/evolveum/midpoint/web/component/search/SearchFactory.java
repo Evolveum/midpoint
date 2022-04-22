@@ -371,6 +371,7 @@ public class SearchFactory {
                 ItemPathType searchItemPath = new ItemPathType(def.getPath());
                 if (searchItem.getPath() != null && searchItem.getPath().equivalent(searchItemPath)) {
                     def.setDisplayName(searchItem.getDisplayName());
+                    def.setVisibleByDefault(searchItem.isVisibleByDefault());
                     configuredSearchItemList.add(def);
                     return;
                 }
