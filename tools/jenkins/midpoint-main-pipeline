@@ -58,7 +58,7 @@ podTemplate(
             container('maven') {
                 try {
                     sh """
-                        mvn verify -P extratest -Dfailsafe.args="-Xms2g -Xmx8g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+                        mvn verify -P extratest -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
                     """
                 } catch (err) {
                     echo "Caught: ${err}"
