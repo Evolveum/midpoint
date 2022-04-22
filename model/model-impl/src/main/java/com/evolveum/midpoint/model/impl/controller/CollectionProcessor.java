@@ -252,6 +252,7 @@ public class CollectionProcessor {
             // TODO: support more cases
             if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRefType)) {
                 compileArchetypeCollectionView(existingView, targetTypeClass, collectionRef.getOid(), collectionSpec.getBaseCollectionRef(), task, result);
+                return;
             }
 
             if (QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, collectionRefType)) {
