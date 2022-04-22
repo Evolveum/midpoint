@@ -9,6 +9,8 @@ package com.evolveum.midpoint.authentication.impl.module.authentication;
 import com.evolveum.midpoint.authentication.api.config.CredentialModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 
 /**
@@ -20,8 +22,8 @@ public class CredentialModuleAuthenticationImpl extends ModuleAuthenticationImpl
     private String credentialName = null;
     private Class<? extends CredentialPolicyType> credentialType;
 
-    public CredentialModuleAuthenticationImpl(String nameOfType) {
-        super(nameOfType);
+    public CredentialModuleAuthenticationImpl(String nameOfType, AuthenticationSequenceModuleType sequenceModule) {
+        super(nameOfType, sequenceModule);
         setType(ModuleType.LOCAL);
         setState(AuthenticationModuleState.LOGIN_PROCESSING);
     }
@@ -44,7 +46,8 @@ public class CredentialModuleAuthenticationImpl extends ModuleAuthenticationImpl
 
     @Override
     public ModuleAuthenticationImpl clone() {
-        CredentialModuleAuthenticationImpl module = new CredentialModuleAuthenticationImpl(this.getNameOfModuleType());
+        CredentialModuleAuthenticationImpl module =
+                new CredentialModuleAuthenticationImpl(this.getNameOfModuleType(), this.getSequenceModule());
         module.setAuthentication(this.getAuthentication());
         clone(module);
         return module;

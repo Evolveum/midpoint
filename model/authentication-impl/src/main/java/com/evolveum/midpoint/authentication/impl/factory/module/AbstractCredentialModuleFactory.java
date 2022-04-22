@@ -42,7 +42,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType,
             String sequenceSuffix, ServletRequest request, Map<Class<?>, Object> sharedObjects,
             AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
-            AuthenticationChannel authenticationChannel) throws Exception {
+            AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType necessity) throws Exception {
 
         if (!(moduleType instanceof AbstractCredentialAuthenticationModuleType)) {
             LOGGER.error("This factory supports only AbstractPasswordAuthenticationModuleType, but modelType is " + moduleType);
@@ -60,7 +60,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
         HttpSecurity http = getNewHttpSecurity(module);
         setSharedObjects(http, sharedObjects);
 
-        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(moduleType, configuration);
+        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(moduleType, configuration, necessity);
         moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
@@ -113,7 +113,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
     }
 
     protected abstract ModuleAuthenticationImpl createEmptyModuleAuthentication(
-            AbstractAuthenticationModuleType moduleType, C configuration);
+            AbstractAuthenticationModuleType moduleType, C configuration, AuthenticationSequenceModuleType sequenceModule);
 
     protected abstract C createConfiguration(AbstractAuthenticationModuleType moduleType,
             String prefixOfSequence, AuthenticationChannel authenticationChannel);

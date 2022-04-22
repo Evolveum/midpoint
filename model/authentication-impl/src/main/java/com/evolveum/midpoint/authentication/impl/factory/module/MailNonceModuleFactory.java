@@ -57,8 +57,8 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory
 
     @Override
     protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
-                                                                   ModuleWebSecurityConfiguration configuration) {
-        MailNonceModuleAuthenticationImpl moduleAuthentication = new MailNonceModuleAuthenticationImpl();
+            ModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+        MailNonceModuleAuthenticationImpl moduleAuthentication = new MailNonceModuleAuthenticationImpl(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());

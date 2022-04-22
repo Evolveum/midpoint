@@ -120,7 +120,7 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
                 authRegistry, sequence, request, authenticationsPolicy.getModules(),
                 null, new HashMap<>(), authenticationChannel);
         authentication.setAuthModules(authModules);
-        if (authModules != null) {
+        if (authModules != null && !authModules.isEmpty()) {
             ModuleAuthenticationImpl module = (ModuleAuthenticationImpl) authModules.get(0).getBaseModuleAuthentication();
             module.setAuthentication(auth);
             authentication.addAuthentications(module);

@@ -788,6 +788,8 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 // "By default, null values sort as if larger than any non-null value; that is,
                 // NULLS FIRST is the default for DESC order, and NULLS LAST otherwise."
             } else {
+                // IMPORTANT: There is no fix for poly-strings here (MID-7860) like in SqaleRepositoryService.
+                // Although some poly-strings are stored in deltas and refs, they are never used for searched.
                 S_MatchingRuleEntry matchingRuleEntry =
                         asc ? filter.gt(item.getRealValue()) : filter.lt(item.getRealValue());
                 filter = matchingRuleEntry.or()

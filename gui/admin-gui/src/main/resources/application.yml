@@ -4,6 +4,8 @@ spring:
   main:
     # needed to override springSecurityFilterChain from Spring Security
     allow-bean-definition-overriding: true
+    # Added after upgrade to Boot 2.6.x because of objectRetriever<>certificationCaseHelper.
+    allow-circular-references: true
   servlet:
     multipart:
       max-file-size: 100MB

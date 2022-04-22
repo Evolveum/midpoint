@@ -55,8 +55,9 @@ public class HttpSecurityQuestionModuleFactory extends AbstractCredentialModuleF
     }
 
     @Override
-    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, ModuleWebSecurityConfiguration configuration) {
-        HttpModuleAuthentication moduleAuthentication = new HttpModuleAuthentication(AuthenticationModuleNameConstants.SECURITY_QUESTIONS);
+    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
+            ModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+        HttpModuleAuthentication moduleAuthentication = new HttpModuleAuthentication(AuthenticationModuleNameConstants.SECURITY_QUESTIONS, sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());

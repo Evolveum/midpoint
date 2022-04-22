@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.authentication.impl.module.authentication;
 
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
 /**
  * @author skublik
@@ -14,12 +16,12 @@ import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameCon
 
 public class SecurityQuestionFormModuleAuthentication extends CredentialModuleAuthenticationImpl {
 
-    public SecurityQuestionFormModuleAuthentication() {
-        super(AuthenticationModuleNameConstants.SECURITY_QUESTIONS_FORM);
+    public SecurityQuestionFormModuleAuthentication(AuthenticationSequenceModuleType sequenceModule) {
+        super(AuthenticationModuleNameConstants.SECURITY_QUESTIONS_FORM, sequenceModule);
     }
 
     public ModuleAuthenticationImpl clone() {
-        SecurityQuestionFormModuleAuthentication module = new SecurityQuestionFormModuleAuthentication();
+        SecurityQuestionFormModuleAuthentication module = new SecurityQuestionFormModuleAuthentication(this.getSequenceModule());
         module.setAuthentication(this.getAuthentication());
         super.clone(module);
         return module;

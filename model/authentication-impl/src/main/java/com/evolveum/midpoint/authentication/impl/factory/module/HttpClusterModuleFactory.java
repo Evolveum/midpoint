@@ -19,14 +19,12 @@ import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 import com.evolveum.midpoint.authentication.impl.module.configurer.HttpClusterModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Component;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 
 /**
  * @author skublik
@@ -41,8 +39,9 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory {
 
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix,
-                                         ServletRequest request, Map<Class<?>, Object> sharedObjects,
-                                         AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
+            ServletRequest request, Map<Class<?>, Object> sharedObjects,
+            AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
+            AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
 
         ModuleWebSecurityConfiguration configuration = createConfiguration(moduleType, sequenceSuffix);
 
@@ -52,7 +51,7 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory {
         HttpSecurity http = getNewHttpSecurity(module);
         setSharedObjects(http, sharedObjects);
 
-        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration);
+        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, sequenceModule);
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
@@ -71,8 +70,8 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory {
         return getObjectObjectPostProcessor().postProcess(new ClusterProvider());
     }
 
-    private ModuleAuthenticationImpl createEmptyModuleAuthentication(ModuleWebSecurityConfiguration configuration) {
-        ModuleAuthenticationImpl moduleAuthentication = new ModuleAuthenticationImpl(AuthenticationModuleNameConstants.CLUSTER);
+    private ModuleAuthenticationImpl createEmptyModuleAuthentication(ModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+        ModuleAuthenticationImpl moduleAuthentication = new ModuleAuthenticationImpl(AuthenticationModuleNameConstants.CLUSTER, sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
         return moduleAuthentication;

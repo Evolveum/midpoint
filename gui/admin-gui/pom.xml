@@ -725,7 +725,7 @@
 
         <!-- end connectors -->
 
-        <!-- report dependency (needed for microsoft office formats) -->
+        <!-- report dependency (needed for Microsoft Office formats) -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
