@@ -23,12 +23,8 @@ public class SecurityPolicyUtil {
 
     public static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_USER_URI;
     public static final String DEFAULT_MODULE_NAME = "loginForm";
-    public static final String HTTP_BASIC_MODULE_NAME = "httpBasic";
     public static final String DEFAULT_SEQUENCE_NAME = "admin-gui-default";
     public static final String DEFAULT_SEQUENCE_DISPLAY_NAME = "Default gui sequence";
-    public static final String REST_SEQUENCE_NAME = "rest-default";
-    public static final String ACTUATOR_SEQUENCE_NAME = "actuator-default";
-    public static final String PASSWORD_RESET_SEQUENCE_NAME = "password-reset-default";
 
     private static final List<String> DEFAULT_IGNORED_LOCAL_PATH;
 
@@ -104,91 +100,37 @@ public class SecurityPolicyUtil {
         PrismObjectDefinition<SecurityPolicyType> secPolicyDef =
                 schemaRegistry.findObjectDefinitionByCompileTimeClass(SecurityPolicyType.class);
         @NotNull PrismObject<SecurityPolicyType> secPolicy = secPolicyDef.instantiate();
-        AuthenticationsPolicyType authenticationPolicy = new AuthenticationsPolicyType();
-        AuthenticationModulesType modules = new AuthenticationModulesType();
-        LoginFormAuthenticationModuleType loginForm = new LoginFormAuthenticationModuleType();
-        loginForm.name(DEFAULT_MODULE_NAME);
-        modules.loginForm(loginForm);
-        HttpBasicAuthenticationModuleType httpBasic = new HttpBasicAuthenticationModuleType();
-        httpBasic.name(HTTP_BASIC_MODULE_NAME);
-        modules.httpBasic(httpBasic);
-        authenticationPolicy.setModules(modules);
-        authenticationPolicy.sequence(createDefaultSequence());
-        authenticationPolicy.sequence(createRestSequence());
-        authenticationPolicy.sequence(createActuatorSequence());
-        authenticationPolicy.sequence(createPasswordResetSequence());
+        AuthenticationsPolicyType authenticationPolicy =
+                new AuthenticationsPolicyType()
+                        .beginModules()
+                            .beginLoginForm()
+                                .name(DEFAULT_MODULE_NAME)
+                            .<AuthenticationModulesType>end()
+                        .<AuthenticationsPolicyType>end()
+                        .sequence(createDefaultSequence());
         if (customIgnoredLocalPaths == null || customIgnoredLocalPaths.isEmpty()) {
             DEFAULT_IGNORED_LOCAL_PATH.forEach(authenticationPolicy::ignoredLocalPath);
         } else {
             customIgnoredLocalPaths.forEach(authenticationPolicy::ignoredLocalPath);
         }
-        secPolicy.asObjectable().setAuthentication(authenticationPolicy);
+        secPolicy.asObjectable().authentication(authenticationPolicy);
         return secPolicy.asObjectable().getAuthentication();
     }
 
     public static AuthenticationSequenceType createDefaultSequence() {
-        AuthenticationSequenceType sequence = new AuthenticationSequenceType();
-        sequence.name(DEFAULT_SEQUENCE_NAME);
-        sequence.setDisplayName(DEFAULT_SEQUENCE_DISPLAY_NAME);
-        AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
-        channel.setDefault(true);
-        channel.channelId(DEFAULT_CHANNEL);
-        channel.setUrlSuffix("gui-default");
-        sequence.channel(channel);
-        AuthenticationSequenceModuleType module = new AuthenticationSequenceModuleType();
-        module.name(DEFAULT_MODULE_NAME);
-        module.order(1);
-        module.necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT);
-        sequence.module(module);
-        return sequence;
-    }
-
-    private static AuthenticationSequenceType createRestSequence() {
-        AuthenticationSequenceType sequence = new AuthenticationSequenceType();
-        sequence.name(REST_SEQUENCE_NAME);
-        AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
-        channel.setDefault(true);
-        channel.channelId(SchemaConstants.CHANNEL_REST_URI);
-        channel.setUrlSuffix("rest-default");
-        sequence.channel(channel);
-        AuthenticationSequenceModuleType module = new AuthenticationSequenceModuleType();
-        module.name(HTTP_BASIC_MODULE_NAME);
-        module.order(1);
-        module.necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT);
-        sequence.module(module);
-        return sequence;
-    }
-
-    private static AuthenticationSequenceType createActuatorSequence() {
-        AuthenticationSequenceType sequence = new AuthenticationSequenceType();
-        sequence.name(ACTUATOR_SEQUENCE_NAME);
-        AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
-        channel.setDefault(true);
-        channel.channelId(SchemaConstants.CHANNEL_ACTUATOR_URI);
-        channel.setUrlSuffix("actuator-default");
-        sequence.channel(channel);
-        AuthenticationSequenceModuleType module = new AuthenticationSequenceModuleType();
-        module.name(HTTP_BASIC_MODULE_NAME);
-        module.order(1);
-        module.necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT);
-        sequence.module(module);
-        return sequence;
-    }
-
-    public static AuthenticationSequenceType createPasswordResetSequence() {
-        AuthenticationSequenceType sequence = new AuthenticationSequenceType();
-        sequence.name(PASSWORD_RESET_SEQUENCE_NAME);
-        AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
-        channel.setDefault(true);
-        channel.channelId(SchemaConstants.CHANNEL_RESET_PASSWORD_URI);
-        channel.setUrlSuffix("resetPassword");
-        sequence.channel(channel);
-        AuthenticationSequenceModuleType module = new AuthenticationSequenceModuleType();
-        module.name(DEFAULT_MODULE_NAME);
-        module.order(1);
-        module.necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT);
-        sequence.module(module);
-        return sequence;
+        return new AuthenticationSequenceType()
+                .name(DEFAULT_SEQUENCE_NAME)
+                .displayName(DEFAULT_SEQUENCE_DISPLAY_NAME)
+                .beginChannel()
+                    ._default(true)
+                    .channelId(DEFAULT_CHANNEL)
+                    .urlSuffix("gui-default")
+                .<AuthenticationSequenceType>end()
+                .beginModule()
+                    .name(DEFAULT_MODULE_NAME)
+                    .order(1)
+                    .necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT)
+                .end();
     }
 
     public static SelfRegistrationPolicyType getSelfRegistrationPolicy(SecurityPolicyType securityPolicyType) {
