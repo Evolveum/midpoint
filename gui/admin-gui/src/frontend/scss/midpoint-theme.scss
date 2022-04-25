@@ -550,49 +550,6 @@ th.cog, td.cog {
 	}
 }
 
-.boxed-table-footer-button-toolbar {
-	display: inline-block;
-}
-
-.boxed-table-footer-paging {
-	display: block;
-	float: right;
-
-	.btn-group {
-		margin-left: 10px;
-		vertical-align: top;
-	}
-
-	.paging_bootstrap {
-		display: inline-block;
-	}
-
-	.dataTables_info {
-		margin-right: 10px;
-		display: inline-block;
-		vertical-align: top;
-	}
-}
-
-.boxed-table-footer-paging-center {
-	display: block;
-
-	.btn-group {
-		margin-left: 10px;
-		vertical-align: top;
-	}
-
-	.paging_bootstrap {
-		display: inline-block;
-	}
-
-	.dataTables_info {
-		margin-right: 10px;
-		display: inline-block;
-		vertical-align: top;
-	}
-}
-
 // capability buttons in resource details page
 
 .btn-resource-capability {
@@ -2150,4 +2107,26 @@ th, td {
 
 .nav-sidebar > .nav-header > span {
   text-transform: uppercase;
+}
+
+div.search-popover {
+
+  & > div.more-input,
+  & > div.buttons {
+    margin: 6px;
+  }
+
+  & > div.properties {
+    padding: 0 5px;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    height: 150px;
+    max-height: 150px;
+    overflow: auto;
+    vertical-align: top;
+
+    & label {
+      font-weight: normal;
+    }
+  }
 }

@@ -16,14 +16,14 @@
         <div wicket:id="typePanel" class="my-1"/>
         <div wicket:id="oidItem" class="my-1"/>
 
-        <wicket:container wicket:id="specialItems">
-            <div wicket:id="specialItem" class="my-1"/>
+        <wicket:container wicket:id="items">
+            <div wicket:id="item" class="my-1"/>
         </wicket:container>
         <wicket:container wicket:id="compositedSpecialItems">
             <div wicket:id="specialItem" class="my-1"/>
         </wicket:container>
-        <wicket:container wicket:id="items">
-            <div wicket:id="item" class="my-1"/>
+        <wicket:container wicket:id="specialItems">
+            <div wicket:id="specialItem" class="my-1"/>
         </wicket:container>
 
         <div class="my-1 has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px; text-align-last: left;">
@@ -64,13 +64,13 @@
                 </div>
             </div>
 
-            <a class="btn btn-sm btn-link" wicket:id="debug" style="display: table-cell; vertical-align: top; padding: 0px;"/>
+            <a class="btn btn-sm btn-link" wicket:id="debug"/>
         </div>
     </form>
 
-    <div wicket:id="popover" class="popover bottom" style="display: none;">
-        <div class="arrow"></div>
-        <div class="search-popover">
+    <div wicket:id="popover" class="popover fade bs-popover-bottom" style="display: none;">
+        <div class="popover-arrow"></div>
+        <div class="popover-body search-popover">
             <div class="more-input">
                 <input wicket:id="addText" type="text" class="form-control form-control-sm" style="width: auto;" size="20">
             </div>
