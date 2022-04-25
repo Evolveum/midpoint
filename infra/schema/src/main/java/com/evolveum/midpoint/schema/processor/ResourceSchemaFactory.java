@@ -17,7 +17,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
@@ -26,7 +25,8 @@ public class ResourceSchemaFactory {
     private static final String USER_DATA_KEY_PARSED_RESOURCE_SCHEMA = ResourceSchema.class.getName()+".parsedResourceSchema";
     private static final String USER_DATA_KEY_REFINED_SCHEMA = ResourceSchema.class.getName()+".refinedSchema";
 
-    public static ResourceSchema getCompleteSchema(ResourceType resource) throws SchemaException {
+    public static ResourceSchema getCompleteSchema(ResourceType resource)
+            throws SchemaException, ConfigurationException {
         return getCompleteSchema(resource.asPrismObject());
     }
 
@@ -40,7 +40,8 @@ public class ResourceSchemaFactory {
                 () -> new ConfigurationException("No schema in " + resource));
     }
 
-    public static ResourceSchema getCompleteSchema(ResourceType resourceType, LayerType layer) throws SchemaException {
+    public static ResourceSchema getCompleteSchema(ResourceType resourceType, LayerType layer)
+            throws SchemaException, ConfigurationException {
         return getCompleteSchema(resourceType.asPrismObject(), layer);
     }
 
@@ -67,7 +68,8 @@ public class ResourceSchemaFactory {
      *
      * TODO rework this -- management of refined resource schemas will be the responsibility of ResourceManager
      */
-    public static ResourceSchema getCompleteSchema(PrismObject<ResourceType> resource) throws SchemaException {
+    public static ResourceSchema getCompleteSchema(PrismObject<ResourceType> resource)
+            throws SchemaException, ConfigurationException {
         if (resource == null) {
             // TODO Should be illegal argument exception, probably
             throw new SchemaException("Could not get refined schema, resource does not exist.");
@@ -89,7 +91,8 @@ public class ResourceSchemaFactory {
         }
     }
 
-    public static ResourceSchema getCompleteSchema(PrismObject<ResourceType> resource, LayerType layer) throws SchemaException {
+    public static ResourceSchema getCompleteSchema(PrismObject<ResourceType> resource, LayerType layer)
+            throws SchemaException, ConfigurationException {
         ResourceSchema schema = getCompleteSchema(resource);
         if (schema != null) {
             return schema.forLayer(layer);
@@ -165,7 +168,7 @@ public class ResourceSchemaFactory {
      *
      * Normally internal to this class, but may be called externally from the test code.
      */
-    public static ResourceSchema parseCompleteSchema(ResourceType resource) throws SchemaException {
+    public static ResourceSchema parseCompleteSchema(ResourceType resource) throws SchemaException, ConfigurationException {
         return new RefinedResourceSchemaParser(resource)
                 .parse();
     }

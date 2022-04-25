@@ -59,29 +59,29 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
      */
     private TracingProfileType tracingProfile;
 
-    public ModelExecuteOptions(PrismContext prismContext) {
-        content = new ModelExecuteOptionsType(prismContext);
+    @Deprecated public ModelExecuteOptions(PrismContext ignored) {
+        content = new ModelExecuteOptionsType();
+    }
+
+    private ModelExecuteOptions() {
+        content = new ModelExecuteOptionsType();
     }
 
     private ModelExecuteOptions(@NotNull ModelExecuteOptionsType content) {
         this.content = content;
     }
 
-    private ModelExecuteOptions() {
-        this((PrismContext) null);
-    }
-
     /** Assumes that {@link PrismContext#get()} can be called. Which usually is, after midPoint is initialized. */
     public static ModelExecuteOptions create() {
-        return new ModelExecuteOptions(PrismContext.get());
+        return new ModelExecuteOptions();
     }
 
-    public static ModelExecuteOptions create(PrismContext prismContext) {
-        return new ModelExecuteOptions(prismContext);
+    @Deprecated public static ModelExecuteOptions create(PrismContext ignored) {
+        return new ModelExecuteOptions();
     }
 
-    public static ModelExecuteOptions create(ModelExecuteOptions original, PrismContext prismContext) {
-        return original != null ? original.clone() : new ModelExecuteOptions(prismContext);
+    public static ModelExecuteOptions create(ModelExecuteOptions original) {
+        return original != null ? original.clone() : new ModelExecuteOptions();
     }
 
     public static boolean is(ModelExecuteOptions options, ItemName itemName) {
@@ -429,12 +429,12 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return bean != null ? new ModelExecuteOptions(bean.clone()) : null;
     }
 
-    public static ModelExecuteOptions fromRestOptions(List<String> options, PrismContext prismContext) {
+    public static ModelExecuteOptions fromRestOptions(List<String> options) {
         if (options == null || options.isEmpty()) {
             return null;
         }
 
-        ModelExecuteOptions retVal = new ModelExecuteOptions(prismContext);
+        ModelExecuteOptions retVal = ModelExecuteOptions.create();
         for (String option : options){
             if (ModelExecuteOptionsType.F_RAW.getLocalPart().equals(option)) {
                 retVal.raw(true);

@@ -187,8 +187,13 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
                 if (repositoryObject.canRepresent(ShadowType.class)) {
                     try {
-                        resultingObject = (PrismObject<T>) shadowsFacade.getShadow(oid,
-                                (PrismObject<ShadowType>) (repositoryObject), null, options, task, result);
+                        resultingObject = (PrismObject<T>) shadowsFacade.getShadow(
+                                oid,
+                                (PrismObject<ShadowType>) (repositoryObject),
+                                null,
+                                options,
+                                task,
+                                result);
                     } catch (ObjectNotFoundException e) {
                         if (!GetOperationOptions.isAllowNotFound(rootOptions)) {
                             ProvisioningUtil
@@ -475,7 +480,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
                 // TODO: what else do to with objResult??
 
-            } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException e) {
+            } catch (ConfigurationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException e) {
                 LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", repoObject, e.getMessage(), e);
                 objResult.recordFatalError(e);
                 repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
@@ -503,7 +508,12 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     // TODO: move to ResourceManager and ConnectorManager
     // the shadow-related code is already in the ShadowCache
     private <T extends ObjectType> PrismObject<T> completeObject(
-            Class<T> type, PrismObject<T> inObject, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+            Class<T> type,
+            PrismObject<T> inObject,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
 
         if (ResourceType.class.equals(type)) {
             //noinspection unchecked

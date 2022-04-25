@@ -90,7 +90,7 @@ public class ResourceManager {
      */
     PrismObject<ResourceType> completeResource(
             PrismObject<ResourceType> repositoryObject, GetOperationOptions options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
 
         String oid = repositoryObject.getOid();
         boolean readonly = GetOperationOptions.isReadOnly(options);
@@ -111,7 +111,7 @@ public class ResourceManager {
      */
     @NotNull public PrismObject<ResourceType> getResource(
             @NotNull String oid, @Nullable GetOperationOptions options, @NotNull Task task, @NotNull OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
         boolean readonly = GetOperationOptions.isReadOnly(options);
         PrismObject<ResourceType> cachedResource = resourceCache.getIfLatest(oid, readonly, parentResult);
         if (cachedResource != null) {
@@ -141,7 +141,7 @@ public class ResourceManager {
      */
     @NotNull private PrismObject<ResourceType> completeAndCacheResource(@NotNull PrismObject<ResourceType> repositoryObject,
             GetOperationOptions options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
 
         checkMutable(repositoryObject);
 
@@ -212,7 +212,7 @@ public class ResourceManager {
     @NotNull private PrismObject<ResourceType> completeResourceInternal(@NotNull PrismObject<ResourceType> repoResource,
             ResourceSchema resourceSchema, boolean fetchedSchema, Map<String,Collection<Object>> capabilityMap,
             GetOperationOptions options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
 
         checkMutable(repoResource);
 
@@ -777,6 +777,12 @@ public class ResourceManager {
             modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, statusChangeReason, task, parentResult, true);
             schemaResult.recordFatalError(msg, e);
             return;
+        } catch (ConfigurationException e) {
+            String msg = "Configuration error: " + e.getMessage();
+            String statusChangeReason = operationDesc + " failed while completing resource. " + msg;
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, statusChangeReason, task, parentResult, true);
+            schemaResult.recordFatalError(msg, e);
+            return;
         } catch (SchemaException e) {
             String msg = "Schema processing error (probably connector bug): " + e.getMessage();
             String statusChangeReason = operationDesc + " failed while completing resource. " + msg;
@@ -1041,7 +1047,7 @@ public class ResourceManager {
         } else {
             try {
                 resource = getResource(resourceOid, GetOperationOptions.createNoFetch(), task, result);
-            } catch (SchemaException | ExpressionEvaluationException e) {
+            } catch (ConfigurationException | SchemaException | ExpressionEvaluationException e) {
                 // We actually do not expect any of these exceptions here. The resource is most probably in use
                 result.recordFatalError("Unexpected exception: " + e.getMessage(), e);
                 throw new SystemException("Unexpected exception: " + e.getMessage(), e);
@@ -1135,7 +1141,13 @@ public class ResourceManager {
         return rawSchema;
     }
 
-    public void applyDefinition(ObjectDelta<ResourceType> delta, ResourceType resourceWhenNoOid, GetOperationOptions options, Task task, OperationResult objectResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+    public void applyDefinition(
+            ObjectDelta<ResourceType> delta,
+            ResourceType resourceWhenNoOid,
+            GetOperationOptions options,
+            Task task,
+            OperationResult objectResult)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
 
         if (delta.isAdd()) {
             PrismObject<ResourceType> resource = delta.getObjectToAdd();

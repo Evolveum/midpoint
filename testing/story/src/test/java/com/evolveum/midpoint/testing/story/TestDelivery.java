@@ -380,7 +380,11 @@ public class TestDelivery extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ModelContext<UserType> previewContext = previewChanges(prismContext.deltaFor(UserType.class).asObjectDelta(userBobOid), ModelExecuteOptions.create(prismContext).reconcile(), task, result);
+        ModelContext<UserType> previewContext = previewChanges(
+                prismContext.deltaFor(UserType.class).asObjectDelta(userBobOid),
+                ModelExecuteOptions.create().reconcile(),
+                task,
+                result);
         assertPreviewContext(previewContext).projectionContexts().by().shadowOid(bobShadowOid).find().assertNoSecondaryDelta();
     }
 

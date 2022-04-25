@@ -607,7 +607,7 @@ public class ModelImplUtils {
     }
 
     public static VariablesMap getDefaultVariablesMap(@NotNull LensContext<?> context,
-            @Nullable LensProjectionContext projCtx, boolean focusOdoAbsolute) throws SchemaException {
+            @Nullable LensProjectionContext projCtx, boolean focusOdoAbsolute) throws SchemaException, ConfigurationException {
         VariablesMap variables = new VariablesMap();
         if (context.getFocusContext() != null) {
             ObjectDeltaObject<?> focusOdo = focusOdoAbsolute

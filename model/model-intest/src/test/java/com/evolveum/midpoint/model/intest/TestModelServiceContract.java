@@ -3301,7 +3301,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .asObjectDelta(roleOid);
 
         when();
-        modelService.executeChanges(singleton(emptyDelta), ModelExecuteOptions.create(prismContext).reconcile(), task, result);
+        modelService.executeChanges(singleton(emptyDelta), ModelExecuteOptions.create().reconcile(), task, result);
 
         then();
         assertSuccess(result);

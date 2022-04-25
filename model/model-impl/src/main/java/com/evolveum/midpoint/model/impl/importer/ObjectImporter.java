@@ -402,7 +402,7 @@ public class ObjectImporter {
         if (importOptions.getModelExecutionOptions() != null) {
             modelOptions = ModelExecuteOptions.fromModelExecutionOptionsType(importOptions.getModelExecutionOptions());
         } else {
-            modelOptions = ModelExecuteOptions.create(prismContext);
+            modelOptions = ModelExecuteOptions.create();
         }
         if (modelOptions.getRaw() == null) {
             modelOptions.raw(true);

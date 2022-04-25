@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.test.asserter.prism.PrismSchemaAsserter;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -43,16 +44,18 @@ public class RefinedResourceSchemaAsserter<RA> extends PrismSchemaAsserter<RA> {
         return new RefinedResourceSchemaAsserter<>(schema);
     }
 
-    public static RefinedResourceSchemaAsserter<Void> forResource(PrismObject<ResourceType> resource) throws SchemaException {
+    public static RefinedResourceSchemaAsserter<Void> forResource(PrismObject<ResourceType> resource)
+            throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         assertNotNull("No refined schema for "+resource, refinedSchema);
         return new RefinedResourceSchemaAsserter<>(refinedSchema, resource.toString());
     }
 
-    public static RefinedResourceSchemaAsserter<Void> forResource(PrismObject<ResourceType> resource, String details) throws SchemaException {
+    public static RefinedResourceSchemaAsserter<Void> forResource(PrismObject<ResourceType> resource, String details)
+            throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         assertNotNull("No refined schema for "+resource+" ("+details+")", refinedSchema);
-        return new RefinedResourceSchemaAsserter<>(refinedSchema, resource.toString()+" ("+details+")");
+        return new RefinedResourceSchemaAsserter<>(refinedSchema, resource +" ("+details+")");
     }
 
     public ResourceSchema getSchema() {

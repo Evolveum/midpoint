@@ -18,6 +18,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -255,9 +257,10 @@ public class TestDummyExtra extends TestDummy {
     }
 
     @Override
-    protected void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
+    protected void checkAccountWill(
+            PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs)
+            throws SchemaException, EncryptionException, ConfigurationException {
         super.checkAccountWill(shadow, result, startTs, endTs);
         assertPassword(shadow.asObjectable(), accountWillCurrentPassword);
     }
-
 }

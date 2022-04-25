@@ -25,6 +25,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -1385,7 +1387,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     }
 
     protected void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result,
-            XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
+            XMLGregorianCalendar startTs, XMLGregorianCalendar endTs)
+            throws SchemaException, EncryptionException, ConfigurationException {
         checkAccountShadow(shadow, result, true);
         Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
@@ -1407,7 +1410,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
     protected void checkAccountShadow(
             PrismObject<ShadowType> shadowType, OperationResult parentResult, boolean fullShadow)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
         ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
         ShadowUtil.checkConsistence(shadowType, parentResult.getOperation());
         IntegrationTestTools.checkAccountShadow(shadowType.asObjectable(), resourceBean,

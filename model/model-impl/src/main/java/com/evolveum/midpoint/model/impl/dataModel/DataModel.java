@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -64,7 +65,7 @@ public class DataModel {
         }
         try {
             return ResourceSchemaFactory.getCompleteSchema(resource);
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             throw new SystemException("Unexpected exception: " + e.getMessage(), e);
         }
     }

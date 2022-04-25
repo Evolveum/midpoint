@@ -451,7 +451,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     }
 
                     @Override
-                    public void onAssigned(ResourceShadowDiscriminator rsd, String desc) throws SchemaException {
+                    public void onAssigned(ResourceShadowDiscriminator rsd, String desc)
+                            throws SchemaException, ConfigurationException {
                         LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd).context;
                         projectionContext.setAssigned(true);
                         projectionContext.setAssignedOldIfUnknown(false);
@@ -465,7 +466,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     }
 
                     @Override
-                    public void onUnchangedValid(ResourceShadowDiscriminator key, String desc) throws SchemaException {
+                    public void onUnchangedValid(ResourceShadowDiscriminator key, String desc)
+                            throws SchemaException, ConfigurationException {
                         LensProjectionContext projectionContext = context.findProjectionContext(key);
                         if (projectionContext == null) {
                             if (processOnlyExistingProjContexts) {
@@ -490,7 +492,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     }
 
                     @Override
-                    public void onUnchangedInvalid(ResourceShadowDiscriminator rsd, String desc) throws SchemaException {
+                    public void onUnchangedInvalid(ResourceShadowDiscriminator rsd, String desc)
+                            throws SchemaException, ConfigurationException {
                         LensProjectionContext projectionContext = context.findProjectionContext(rsd);
                         if (projectionContext == null) {
                             if (processOnlyExistingProjContexts) {
@@ -516,7 +519,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     }
 
                     @Override
-                    public void onUnassigned(ResourceShadowDiscriminator rsd, String desc) throws SchemaException {
+                    public void onUnassigned(ResourceShadowDiscriminator rsd, String desc)
+                            throws SchemaException, ConfigurationException {
                         if (accountExists(context, rsd)) {
                             LensProjectionContext projectionContext = context.findProjectionContext(rsd);
                             if (projectionContext == null) {
@@ -709,7 +713,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
     /**
      * Set 'legal' flag for the accounts that does not have it already
      */
-    private <F extends AssignmentHolderType> void finishLegalDecisions(LensContext<F> context) throws PolicyViolationException, SchemaException {
+    private <F extends AssignmentHolderType> void finishLegalDecisions(LensContext<F> context)
+            throws PolicyViolationException, SchemaException, ConfigurationException {
         for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 
             String desc = projectionContext.toHumanReadableString();
@@ -945,7 +950,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
     @SuppressWarnings("unused")
     @ProcessorMethod
     <F extends ObjectType> void checkForAssignmentConflicts(LensContext<F> context,
-            XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException, SchemaException {
+            XMLGregorianCalendar now, Task task, OperationResult result)
+            throws PolicyViolationException, SchemaException, ConfigurationException {
         for(LensProjectionContext projectionContext: context.getProjectionContexts()) {
             if (AssignmentPolicyEnforcementType.NONE == projectionContext.getAssignmentPolicyEnforcementType()) {
                 continue;

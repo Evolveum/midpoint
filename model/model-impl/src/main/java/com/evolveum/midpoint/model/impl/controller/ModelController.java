@@ -1489,19 +1489,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         try {
             resource = getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result).asObjectable();
 
-            List<ObjectSynchronizationType> allSyncDefBeans = ResourceTypeUtil.getAllSynchronizationBeans(resource);
-            if (allSyncDefBeans.isEmpty()) {
-                OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE + ".check");
-                subresult.recordWarning("No synchronization settings in " + resource + ", import will probably do nothing");
-                LOGGER.warn("No synchronization settings in " + resource + ", import will probably do nothing");
-            } else {
-                boolean anyEnabled = allSyncDefBeans.stream().anyMatch(ResourceTypeUtil::isEnabled);
-                if (!anyEnabled) {
-                    OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE + ".check");
-                    subresult.recordWarning("Synchronization is disabled for " + resource + ", import will probably do nothing");
-                    LOGGER.warn("Synchronization is disabled for " + resource + ", import will probably do nothing");
-                }
-            }
+            // Here was a check on synchronization configuration, providing a warning if there is no configuration set up.
+            // But with changes in 4.6 it is not so easy to definitely tell that there's no synchronization set up,
+            // so - maybe temporarily - we removed these checks.
 
             result.recordStatus(OperationResultStatus.IN_PROGRESS, "Task running in background");
 

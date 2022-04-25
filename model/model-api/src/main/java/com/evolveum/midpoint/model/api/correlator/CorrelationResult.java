@@ -142,6 +142,12 @@ public class CorrelationResult implements Serializable, DebugDumpable {
         return situation == EXISTING_OWNER;
     }
 
+    /** Returns true if the correlation result points to the given owner OID. */
+    public boolean isExistingOwner(@NotNull String oid) {
+        return isExistingOwner()
+                && oid.equals(getOwnerRequired().getOid());
+    }
+
     public boolean isNoOwner() {
         return situation == NO_OWNER;
     }

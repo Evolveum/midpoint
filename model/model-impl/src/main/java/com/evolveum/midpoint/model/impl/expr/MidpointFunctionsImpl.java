@@ -36,8 +36,6 @@ import javax.xml.stream.events.XMLEvent;
 import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SimplePreInboundsContextImpl;
-import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluation;
 
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -749,7 +747,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return isUniqueHolder.getValue();
     }
 
-    private <T> ObjectQuery createAttributeQuery(ResourceType resourceType, QName attributeName, T attributeValue) throws SchemaException {
+    private <T> ObjectQuery createAttributeQuery(ResourceType resourceType, QName attributeName, T attributeValue)
+            throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
         ResourceObjectTypeDefinition rAccountDef = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         ResourceAttributeDefinition<?> attrDef = rAccountDef.findAttributeDefinition(attributeName);
@@ -1878,26 +1877,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                             result)
                     .asObjectable();
 
-            ResourceObjectTypeSynchronizationPolicy synchronizationPolicy =
+            SynchronizationPolicy synchronizationPolicy =
                     MiscUtil.requireNonNull(
-                            ResourceObjectTypeSynchronizationPolicy.forKindAndIntent(kind, intent, resource),
+                            SynchronizationPolicyFactory.forKindAndIntent(kind, intent, resource),
                             () -> new ConfigurationException("No sync policy for " + kind + "/" + intent + " in " + resource));
 
             Class<F> specificFocusType = getMoreSpecificType(focusType, synchronizationPolicy.getFocusClass());
 
-            SimplePreInboundsContextImpl<?> context = new SimplePreInboundsContextImpl<>(
-                    shadowClone,
-                    resource,
-                    PrismContext.get().createObjectable(specificFocusType),
-                    asObjectable(systemObjectCache.getSystemConfiguration(result)),
-                    task,
-                    synchronizationPolicy.getResourceObjectDefinition(),
-                    beans);
-
-            new PreMappingsEvaluation<>(context, beans)
-                    .evaluate(result);
-
-            return correlationService.correlate(shadowClone, context.getPreFocus(), task, result)
+            return correlationService.correlate(shadowClone, resource, synchronizationPolicy, specificFocusType, task, result)
                     .getAllCandidates(focusType);
 
         } catch (Throwable t) {

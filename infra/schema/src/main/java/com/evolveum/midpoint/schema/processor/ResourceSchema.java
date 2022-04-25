@@ -7,36 +7,34 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import java.util.ArrayList;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * A schema covering the whole resource.
@@ -447,33 +445,11 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
     }
 
     /**
-     * TEMPORARY CODE
+     * Returns all {@link SynchronizationPolicy} objects that can be found in given resource definition
+     * (that this schema belongs to).
      */
-    default Collection<ResourceObjectTypeSynchronizationPolicy> getAllSynchronizationPolicies(ResourceType resource) {
-
-        List<ResourceObjectTypeSynchronizationPolicy> policies = new ArrayList<>();
-
-        for (ResourceObjectTypeDefinition typeDef : getObjectTypeDefinitions()) {
-            ObjectSynchronizationType syncDef = typeDef.getDefinitionBean().getSynchronization();
-            if (syncDef != null) {
-                policies.add(ResourceObjectTypeSynchronizationPolicy.forEmbedded(typeDef, syncDef));
-            }
-        }
-
-        SynchronizationType synchronization = resource.getSynchronization();
-        if (synchronization != null) {
-            for (ObjectSynchronizationType synchronizationBean : synchronization.getObjectSynchronization()) {
-                ResourceObjectTypeSynchronizationPolicy policy =
-                        ResourceObjectTypeSynchronizationPolicy.forStandalone(synchronizationBean, this);
-                if (policy != null) {
-                    policies.add(policy);
-                } else {
-                    LOGGER.warn("Synchronization configuration {} cannot be connected to resource object definition in {}",
-                            synchronizationBean, resource);
-                }
-            }
-        }
-
-        return policies;
+    default Collection<SynchronizationPolicy> getAllSynchronizationPolicies(ResourceType resource)
+            throws ConfigurationException {
+        return SynchronizationPolicyFactory.getAllPolicies(this, resource);
     }
 }

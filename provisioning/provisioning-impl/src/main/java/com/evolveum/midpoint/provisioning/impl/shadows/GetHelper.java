@@ -277,6 +277,8 @@ class GetHelper {
                 LOGGER.trace("Resource object fetched from resource:\n{}", resourceObject.debugDump(1));
             }
 
+            // TODO we may need to classify the shadow somewhere around here (MID-7910)
+
             repoShadow = shadowManager.updateShadow(shadowCtx, resourceObject, null, repoShadow, shadowState, parentResult);
             LOGGER.trace("Repository shadow after update:\n{}", repoShadow.debugDumpLazily(1));
 

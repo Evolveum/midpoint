@@ -38,6 +38,7 @@
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-security-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-metadata-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-gui-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-resources-3" />
 
     <!-- ################################## -->
     <!-- ##      Common Schema Layer     ## -->
@@ -3491,7 +3492,14 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="connectorRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="include" type="tns:ResourceIncludeDirectiveType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Instruction to include a configuration from another resource.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="connectorRef" type="c:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Reference to the connector that implements specified resource.
@@ -3506,7 +3514,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="connectorConfiguration" type="tns:ConnectorConfigurationType"/>
+                    <xsd:element name="connectorConfiguration" type="tns:ConnectorConfigurationType" minOccurs="0"/>
                     <xsd:element name="additionalConnector" type="tns:ConnectorInstanceSpecificationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -4013,6 +4021,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="objectsSetDelineation" type="tns:ResourceObjectTypeDelineationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Delineates (defines) the set of objects corresponding to this object type, e.g. by
+                        providing the base context and/or a search filter.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="baseContext" type="tns:ResourceObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4021,7 +4040,13 @@
                         hierarchically below the baseContext are returned by such a search.
                         E.g. this is used to specify LDAP organizationalUnit that contains users or groups
                         of particular type.
+
+                        DEPRECATED: set the value in objectSetDelineation instead
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="searchHierarchyScope" type="tns:SearchHierarchyScopeType" minOccurs="0">
@@ -4030,9 +4055,24 @@
                         Definition of search hierarchy scope. It specifies how "deep" the search should go
                         into the object hierarchy. It is only applicable to resources that support hierarchical
                         organization of objects (e.g. LDAP resources).
+
+                        DEPRECATED: set the value in objectSetDelineation instead
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="focusType" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the focus that would be applied to this type.
+                        If not specified (neither here nor in synchronization configuration), the User (c:UserType) is assumed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.6</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -4155,7 +4195,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
              </xsd:element>
-            <xsd:element name="synchronization" type="tns:ObjectSynchronizationType" minOccurs="0">
+            <xsd:element name="correlation" type="tns:CorrelationDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How objects of this type are correlated?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="synchronization" type="tns:SynchronizationReactionsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO better description
@@ -8930,22 +8980,11 @@
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
-            <xsd:element name="objectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Object classes that will be processed by this definition.
-
-                        This property should NOT be multi-value. Multiple object classes here do not
-                        make sense any more. That might make sense in early midPoint versions. But
-                        we cannot have several object classes that map to the same kind/intent.
-                        This is still formally multi-valued property in the schema, so we won't break
-                        upgrades. But multiple values in this property won't work.
+                        Object class that will be processed by this definition.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <!-- This property will be set to single-value. Therefore there will be incompatible
-                             change in 4.0. Thereofre marking it, so it won't escape the review. -->
-                        <a:plannedChange>4.0</a:plannedChange>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" maxOccurs="1">

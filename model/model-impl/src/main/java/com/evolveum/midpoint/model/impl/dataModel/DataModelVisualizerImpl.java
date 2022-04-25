@@ -100,7 +100,8 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
         return export(model, target);
     }
 
-    private void processResourceMappings(DataModel model, List<PrismObject<ResourceType>> resources) throws SchemaException {
+    private void processResourceMappings(DataModel model, List<PrismObject<ResourceType>> resources)
+            throws SchemaException, ConfigurationException {
         for (PrismObject<ResourceType> resource : resources) {
             LOGGER.debug("Processing {}", ObjectTypeUtil.toShortString(resource));
             ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
@@ -189,7 +190,8 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
         }
     }
 
-    private void createDataItems(DataModel model, List<PrismObject<ResourceType>> resources) throws SchemaException {
+    private void createDataItems(DataModel model, List<PrismObject<ResourceType>> resources)
+            throws SchemaException, ConfigurationException {
         LOGGER.debug("createDataItems starting");
         for (PrismObject<ResourceType> resource : resources) {
             final ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);

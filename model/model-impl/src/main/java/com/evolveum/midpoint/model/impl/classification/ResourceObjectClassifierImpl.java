@@ -152,6 +152,7 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
                     typeDefinition = schema.findObjectTypeDefinition(kind, intent);
                 } else {
                     // We don't accept partial sorter results (like kind known, intent unknown, or vice versa).
+                    // TODO Shouldn't we try the default classification here?
                     typeDefinition = null;
                 }
             } else {
@@ -174,10 +175,14 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
                 ConfigurationException, ObjectNotFoundException {
             ShadowType shadow = context.getShadowedResourceObject();
 
-            Collection<ResourceObjectTypeSynchronizationPolicy> allPolicies =
+            Collection<SynchronizationPolicy> allPolicies =
                     schema.getAllSynchronizationPolicies(context.getResource());
 
-            for (ResourceObjectTypeSynchronizationPolicy policy : allPolicies) {
+            for (SynchronizationPolicy policy : allPolicies) {
+                if (!policy.isSynchronizationEnabled()) { // FIXME TEMPORARY!! (we should probably classify even without sync enabled?)
+                    LOGGER.trace("Policy {} is not enabled for synchronization", policy);
+                    continue;
+                }
                 if (!policy.isApplicableToShadow(shadow)) {
                     LOGGER.trace("Policy {} is not applicable to {}", policy, shadow);
                     continue;
@@ -201,16 +206,15 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
         }
 
         private boolean isPolicyConditionTrue(
-                @NotNull ResourceObjectTypeSynchronizationPolicy policy,
+                @NotNull SynchronizationPolicy policy,
                 @NotNull OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
-            ObjectSynchronizationType synchronizationBean = policy.getSynchronizationBean();
-            if (synchronizationBean.getCondition() == null) {
+            ExpressionType conditionExpressionBean = policy.getClassificationCondition();
+            if (conditionExpressionBean == null) {
                 return true;
             }
-            ExpressionType conditionExpressionBean = synchronizationBean.getCondition();
-            String desc = "condition in object synchronization " + synchronizationBean.getName();
+            String desc = "condition in object synchronization";
             try {
                 Task task = context.getTask();
                 ModelExpressionThreadLocalHolder.pushExpressionEnvironment(

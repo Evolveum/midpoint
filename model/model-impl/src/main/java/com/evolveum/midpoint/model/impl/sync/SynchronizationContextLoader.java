@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import static com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl.ResourceObjectProcessingContextBuilder.aResourceObjectProcessingContext;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +23,6 @@ import com.evolveum.midpoint.model.impl.classification.SynchronizationSorterEval
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeSynchronizationPolicy;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -123,9 +121,12 @@ class SynchronizationContextLoader {
 
         String tag = getOrGenerateTag(processingContext, definition, result);
 
-        @Nullable ResourceObjectTypeSynchronizationPolicy policy =
+        @Nullable SynchronizationPolicy policy =
                 definition != null ?
-                        ResourceObjectTypeSynchronizationPolicy.forTypeDefinition(definition, updatedResource) :
+                        SynchronizationPolicyFactory.forKindAndIntent(
+                                definition.getKind(),
+                                definition.getIntent(),
+                                updatedResource) :
                         null;
 
         return new SynchronizationContext<>(

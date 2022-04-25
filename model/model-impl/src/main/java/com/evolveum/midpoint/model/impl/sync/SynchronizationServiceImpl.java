@@ -9,15 +9,11 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import static com.evolveum.midpoint.common.SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta;
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -28,29 +24,26 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.model.impl.sync.reactions.SynchronizationActionExecutor;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -80,13 +73,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     private static final String OP_SETUP_SITUATION = CLASS_NAME_WITH_DOT + "setupSituation";
     private static final String OP_NOTIFY_CHANGE = CLASS_NAME_WITH_DOT + "notifyChange";
 
-    @Autowired private ActionManager<Action> actionManager;
     @Autowired private SynchronizationExpressionsEvaluator synchronizationExpressionsEvaluator;
-    @Autowired private ContextFactory contextFactory;
-    @Autowired private Clockwork clockwork;
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
-    @Autowired private ClockworkMedic clockworkMedic;
     @Autowired private ModelBeans beans;
     @Autowired private SynchronizationContextLoader synchronizationContextLoader;
 
@@ -116,6 +105,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 return;
             }
 
+            assert syncCtx.getSynchronizationPolicy() != null;
+
             setupLinkedOwnerAndSituation(syncCtx, change, result);
 
             task.onSynchronizationStart(change.getItemProcessingIdentifier(), change.getShadowOid(), syncCtx.getSituation());
@@ -127,7 +118,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             saveSyncMetadata(syncCtx, change, fullSync, result);
 
             if (!dryRun) {
-                reactToChange(syncCtx, change, result);
+                new SynchronizationActionExecutor<>(syncCtx, change)
+                        .react(result);
+                // Note that exceptions from action execution are not propagated here.
             }
 
             LOGGER.debug("SYNCHRONIZATION: DONE (mode '{}') for {}", executionMode, change.getShadowedResourceObject());
@@ -312,12 +305,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         checkLinkedAndCorrelatedOwnersMatch(syncCtx, result);
 
-        if (syncCtx.getSituation() == null) {
-            if (change.isDelete()) {
-                syncCtx.setSituation(SynchronizationSituationType.DELETED);
-            } else {
-                syncCtx.setSituation(SynchronizationSituationType.LINKED);
-            }
+        if (change.isDelete()) {
+            syncCtx.setSituationIfNull(SynchronizationSituationType.DELETED);
+        } else {
+            syncCtx.setSituationIfNull(SynchronizationSituationType.LINKED);
         }
     }
 
@@ -340,31 +331,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
-    // FIXME adapt to new correlators
-    @Override
-    public <F extends FocusType> boolean matchUserCorrelationRule(
-            PrismObject<ShadowType> shadowedResourceObject,
-            PrismObject<F> focus,
-            ResourceType resource,
-            PrismObject<SystemConfigurationType> configuration,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws ConfigurationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, SecurityViolationException {
-
-        SynchronizationContext<F> synchronizationContext = synchronizationContextLoader.loadSynchronizationContext(
-                shadowedResourceObject.asObjectable(),
-                null,
-                resource,
-                task.getChannel(),
-                null,
-                asObjectable(configuration),
-                true,
-                task,
-                result);
-        return synchronizationExpressionsEvaluator.matchFocusByCorrelationRule(synchronizationContext, focus, result);
-    }
-
     /**
      * EITHER (todo update the description):
      *
@@ -385,17 +351,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         if (change.isDelete()) {
             // account was deleted and it was not linked; there is nothing to do (not even updating the correlators)
-            if (syncCtx.getSituation() == null) {
-                syncCtx.setSituation(SynchronizationSituationType.DELETED);
-            }
+            syncCtx.setSituationIfNull(SynchronizationSituationType.DELETED);
             return;
         }
 
         if (!syncCtx.isCorrelatorsUpdateRequested() && syncCtx.getCorrelatedOwner() != null) { // e.g. from sync sorter
             LOGGER.trace("Correlated owner present in synchronization context: {}", syncCtx.getCorrelatedOwner());
-            if (syncCtx.getSituation() == null) {
-                syncCtx.setSituation(SynchronizationSituationType.UNLINKED);
-            }
+            syncCtx.setSituationIfNull(SynchronizationSituationType.UNLINKED);
             return;
         }
 
@@ -440,9 +402,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         LOGGER.debug("Determined synchronization situation: {} with owner: {}", state, owner);
 
         syncCtx.setCorrelatedOwner(owner);
-        if (syncCtx.getSituation() == null) {
-            syncCtx.setSituation(state);
-        }
+        syncCtx.setSituationIfNull(state);
 
         if (correlationResult.isError()) {
             // This is a very crude and preliminary error handling: we just write pending deltas to the shadow
@@ -484,219 +444,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
-    private <F extends FocusType> void reactToChange(SynchronizationContext<F> syncCtx,
-            ResourceObjectShadowChangeDescription change, OperationResult result)
-            throws ConfigurationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ExpressionEvaluationException, CommunicationException {
-
-        LOGGER.trace("Synchronization context:\n{}", syncCtx.debugDumpLazily(1));
-
-        SynchronizationReactionType reaction = syncCtx.getReaction(result);
-        if (reaction == null) {
-            LOGGER.trace("No reaction is defined for situation {} in {}", syncCtx.getSituation(), syncCtx.getResource());
-            return;
-        }
-
-        if (!isSynchronize(reaction)) {
-            LOGGER.trace("Skipping clockwork run on {} for situation {} because 'synchronize' is set to false (or there are "
-                    + "no actions and 'synchronize' is not set).", syncCtx.getResource(), syncCtx.getSituation());
-            return;
-        }
-
-        Task task = syncCtx.getTask();
-
-        ModelExecuteOptions options = createOptions(syncCtx, change);
-        LensContext<F> lensContext = createLensContext(syncCtx, change, options, result);
-        lensContext.setDoReconciliationForAllProjections(BooleanUtils.isTrue(reaction.isReconcileAll()));
-        LOGGER.trace("---[ SYNCHRONIZATION context before action execution ]-------------------------\n"
-                + "{}\n------------------------------------------", lensContext.debugDumpLazily());
-
-        // there's no point in calling executeAction without context - so
-        // the actions are executed only if we are doing the synchronization
-        executeActions(syncCtx, lensContext, BeforeAfterType.BEFORE, task, result);
-
-        try {
-
-            clockworkMedic.enterModelMethod(false);
-            try {
-                if (change.isSimulate()) {
-                    clockwork.previewChanges(lensContext, null, task, result);
-                } else {
-                    clockwork.run(lensContext, task, result);
-                }
-            } finally {
-                clockworkMedic.exitModelMethod(false);
-            }
-
-        } catch (Exception e) {
-            LOGGER.error("SYNCHRONIZATION: Error in synchronization on {} for situation {}: {}: {}. Change was {}",
-                    syncCtx.getResource(), syncCtx.getSituation(), e.getClass().getSimpleName(), e.getMessage(), change, e);
-            // what to do here? We cannot throw the error back. All that the notifyChange method
-            // could do is to convert it to SystemException. But that indicates an internal error and it will
-            // break whatever code called the notifyChange in the first place. We do not want that.
-            // If the clockwork could not do anything with the exception then perhaps nothing can be done at all.
-            // So just log the error (the error should be remembered in the result and task already)
-            // and then just go on.
-        }
-
-        // note: actions "AFTER" seem to be useless here (basically they
-        // modify lens context - which is relevant only if followed by
-        // clockwork run)
-        executeActions(syncCtx, lensContext, BeforeAfterType.AFTER, task, result);
-    }
-
-    @NotNull
-    private <F extends FocusType> ModelExecuteOptions createOptions(SynchronizationContext<F> syncCtx,
-            ResourceObjectShadowChangeDescription change) {
-
-        ModelExecuteOptionsType explicitOptions = syncCtx.getExecuteOptions();
-        ModelExecuteOptions options = explicitOptions != null ?
-                ModelExecuteOptions.fromModelExecutionOptionsType(explicitOptions) :
-                ModelExecuteOptions.create(prismContext);
-
-        if (options.getReconcile() == null) {
-            Boolean doReconciliation = syncCtx.isDoReconciliation();
-            if (doReconciliation != null) {
-                options.reconcile(doReconciliation);
-            } else {
-                // We have to do reconciliation if we have got a full shadow and no delta.
-                // There is no other good way how to reflect the changes from the shadow.
-                if (change.getObjectDelta() == null) {
-                    options.reconcile();
-                }
-            }
-        }
-
-        if (options.getLimitPropagation() == null) {
-            options.limitPropagation(syncCtx.isLimitPropagation());
-        }
-
-        return options;
-    }
-
-    @NotNull
-    private <F extends FocusType> LensContext<F> createLensContext(SynchronizationContext<F> syncCtx,
-            ResourceObjectShadowChangeDescription change, ModelExecuteOptions options,
-            OperationResult result) throws ObjectNotFoundException, SchemaException {
-
-        LensContext<F> context = contextFactory.createSyncContext(syncCtx.getFocusClass(), change);
-        context.setLazyAuditRequest(true);
-        context.setSystemConfiguration(ObjectTypeUtil.asPrismObject(syncCtx.getSystemConfiguration()));
-        context.setOptions(options);
-        context.setItemProcessingIdentifier(syncCtx.getItemProcessingIdentifier());
-
-        ResourceType resource = change.getResource().asObjectable();
-        if (ModelExecuteOptions.isLimitPropagation(options)) {
-            context.setTriggeringResourceOid(resource);
-        }
-
-        context.rememberResource(resource);
-
-        createProjectionContext(syncCtx, change, options, context);
-        createFocusContext(syncCtx, context);
-
-        setObjectTemplate(syncCtx, context, result);
-
-        return context;
-    }
-
-    private <F extends FocusType> void createProjectionContext(SynchronizationContext<F> syncCtx,
-            ResourceObjectShadowChangeDescription change, ModelExecuteOptions options, LensContext<F> context) throws SchemaException {
-        ResourceType resource = change.getResource().asObjectable();
-        ShadowType shadow = syncCtx.getShadowedResourceObject();
-        ShadowKindType kind = getKind(shadow, syncCtx.getKind());
-        String intent = getIntent(shadow, syncCtx.getIntent());
-        boolean tombstone = isTombstone(change);
-        ResourceShadowDiscriminator discriminator = new ResourceShadowDiscriminator(resource.getOid(), kind, intent, shadow.getTag(), tombstone);
-        LensProjectionContext projectionContext = context.createProjectionContext(discriminator);
-        projectionContext.setResource(resource);
-        projectionContext.setOid(change.getShadowOid());
-        projectionContext.setSynchronizationSituationDetected(syncCtx.getSituation());
-        projectionContext.setShadowExistsInRepo(syncCtx.isShadowExistsInRepo());
-        projectionContext.setSynchronizationSource(true);
-
-        // insert object delta if available in change
-        ObjectDelta<ShadowType> delta = change.getObjectDelta();
-        if (delta != null) {
-            projectionContext.setSyncDelta(delta);
-        } else {
-            projectionContext.setSyncAbsoluteTrigger(true);
-        }
-
-        // This will set both old and current object: and that's how it should be.
-        projectionContext.setInitialObject(shadow.asPrismObject());
-
-        if (!tombstone && !containsIncompleteItems(shadow)) {
-            projectionContext.setFullShadow(true);
-        }
-        projectionContext.setFresh(true);
-        projectionContext.setExists(!change.isDelete()); // TODO is this correct?
-        projectionContext.setDoReconciliation(ModelExecuteOptions.isReconcile(options));
-    }
-
-    private <F extends FocusType> void createFocusContext(SynchronizationContext<F> syncCtx, LensContext<F> context) {
-        if (syncCtx.getLinkedOwner() != null) {
-            F owner = syncCtx.getLinkedOwner();
-            LensFocusContext<F> focusContext = context.createFocusContext();
-            //noinspection unchecked
-            focusContext.setInitialObject((PrismObject<F>) owner.asPrismObject());
-        }
-    }
-
-    private <F extends FocusType> void setObjectTemplate(SynchronizationContext<F> syncCtx, LensContext<F> context, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        if (syncCtx.getObjectTemplateRef() != null) {
-            ObjectTemplateType objectTemplate = repositoryService
-                    .getObject(ObjectTemplateType.class, syncCtx.getObjectTemplateRef().getOid(), createReadOnlyCollection(), parentResult)
-                    .asObjectable();
-            context.setFocusTemplate(objectTemplate);
-            context.setFocusTemplateExternallySet(true); // we do not want to override this template e.g. when subtype changes
-        }
-    }
-
-    private boolean containsIncompleteItems(ShadowType shadow) {
-        ShadowAttributesType attributes = shadow.getAttributes();
-        //noinspection SimplifiableIfStatement
-        if (attributes == null) {
-            return false; // strictly speaking this is right; but we perhaps should not consider this shadow as fully loaded :)
-        } else {
-            return ((PrismContainerValue<?>) (attributes.asPrismContainerValue())).getItems().stream()
-                    .anyMatch(Item::isIncomplete);
-        }
-    }
-
-    private ShadowKindType getKind(ShadowType shadow, ShadowKindType objectSynchronizationKind) {
-        ShadowKindType shadowKind = shadow.getKind();
-        if (shadowKind != null) {
-            return shadowKind;
-        }
-        return objectSynchronizationKind;
-    }
-
-    private String getIntent(ShadowType shadow, String objectSynchronizationIntent) {
-        String shadowIntent = shadow.getIntent();
-        if (shadowIntent != null) {
-            return shadowIntent;
-        }
-        return objectSynchronizationIntent;
-    }
-
-    // TODO is this OK? What if the dead flag is obsolete?
-    private boolean isTombstone(ResourceObjectShadowChangeDescription change) {
-        PrismObject<? extends ShadowType> shadow = change.getShadowedResourceObject();
-        if (shadow.asObjectable().isDead() != null) {
-            return shadow.asObjectable().isDead();
-        } else {
-            return change.isDelete();
-        }
-    }
-
-    private boolean isSynchronize(SynchronizationReactionType reactionDefinition) {
-        if (reactionDefinition.isSynchronize() != null) {
-            return reactionDefinition.isSynchronize();
-        }
-        return !reactionDefinition.getAction().isEmpty();
-    }
-
     /**
      * Saves situation, timestamps, kind and intent (if needed)
      *
@@ -721,7 +468,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 builder = builder.item(ShadowType.F_KIND).replace(syncCtx.getKind());
             }
 
-            if (shouldSaveIntent(syncCtx)) {
+            if (ShadowUtil.isNotKnown(shadow.getIntent()) ||
+                    syncCtx.isForceIntentChange() &&
+                            !shadow.getIntent().equals(syncCtx.getIntent())) {
                 builder = builder.item(ShadowType.F_INTENT).replace(syncCtx.getIntent());
             }
 
@@ -777,68 +526,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
-    private <F extends FocusType> boolean shouldSaveIntent(SynchronizationContext<F> syncCtx) throws SchemaException {
-        ShadowType shadow = syncCtx.getShadowedResourceObject();
-        if (shadow.getIntent() == null) {
-            return true;
-        }
-
-        if (SchemaConstants.INTENT_UNKNOWN.equals(shadow.getIntent())) {
-            return true;
-        }
-
-        if (syncCtx.isForceIntentChange()) {
-            String objectSyncIntent = syncCtx.getIntent();
-            //noinspection RedundantIfStatement
-            if (!MiscSchemaUtil.equalsIntent(shadow.getIntent(), objectSyncIntent)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private <F extends FocusType> void executeActions(@NotNull SynchronizationContext<F> syncCtx, @NotNull LensContext<F> context,
-            BeforeAfterType order, Task task, OperationResult parentResult)
-            throws ConfigurationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
-
-        SynchronizationReactionType reaction = syncCtx.getReaction(parentResult);
-        for (SynchronizationActionType actionDef : reaction.getAction()) {
-            if (orderMatches(actionDef, order)) {
-                String handlerUri = MiscUtil.requireNonNull(actionDef.getHandlerUri(),
-                        () -> new ConfigurationException("Action definition in resource " + syncCtx.getResource() +
-                                " doesn't contain handler URI"));
-
-                Action action = actionManager.getActionInstance(handlerUri);
-                if (action == null) {
-                    LOGGER.warn("Couldn't create action with uri '{}' in resource {}, skipping action.", handlerUri,
-                            syncCtx.getResource());
-                    continue;
-                }
-
-                if (isLogDebug(syncCtx)) {
-                    LOGGER.debug("SYNCHRONIZATION: ACTION: Executing: {}.", action.getClass());
-                } else {
-                    LOGGER.trace("SYNCHRONIZATION: ACTION: Executing: {}.", action.getClass());
-                }
-                SynchronizationSituation<F> situation = new SynchronizationSituation<>(syncCtx.getLinkedOwner(),
-                        syncCtx.getCorrelatedOwner(), syncCtx.getSituation());
-                action.handle(context, situation, null, task, parentResult);
-            }
-        }
-    }
-
-    private boolean orderMatches(SynchronizationActionType actionDef, BeforeAfterType order) {
-        return (actionDef.getOrder() == null && order == BeforeAfterType.BEFORE)
-                || (actionDef.getOrder() != null && actionDef.getOrder() == order);
-    }
-
     @Override
     public String getName() {
         return "model synchronization service";
     }
-
 
     private static boolean isLogDebug(ResourceObjectShadowChangeDescription change) {
         // Reconciliation changes are routine. Do not let them pollute the log files.

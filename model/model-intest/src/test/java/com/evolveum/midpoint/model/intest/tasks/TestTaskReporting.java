@@ -19,6 +19,10 @@ import java.net.ConnectException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -580,7 +584,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
     }
 
     @NotNull
-    private PrismObject<ShadowType> createHackerShadow() throws com.evolveum.midpoint.util.exception.SchemaException {
+    private PrismObject<ShadowType> createHackerShadow() throws SchemaException, ConfigurationException {
         var hacker = new ShadowType(prismContext)
                 .resourceRef(RESOURCE_DUMMY_HACKED.oid, ResourceType.COMPLEX_TYPE)
                 .objectClass(RESOURCE_DUMMY_HACKED.controller.getAccountObjectClass())

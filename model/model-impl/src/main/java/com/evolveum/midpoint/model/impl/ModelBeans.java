@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendT
 import com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor.PolicyRuleScriptExecutor;
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
+import com.evolveum.midpoint.model.impl.sync.reactions.SynchronizationActionFactory;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
@@ -135,4 +136,5 @@ public class ModelBeans {
     @Autowired public ResourceObjectClassifierImpl resourceObjectClassifier;
     @Autowired public ShadowTagGeneratorImpl shadowTagGenerator;
     @Autowired public SynchronizationExpressionsEvaluator synchronizationExpressionsEvaluator;
+    @Autowired public SynchronizationActionFactory synchronizationActionFactory;
 }

@@ -165,9 +165,14 @@ public class ConsolidationProcessor {
         return objectDelta;
     }
 
-    private <F extends FocusType> ResourceObjectDefinition consolidateAuxiliaryObjectClasses(LensContext<F> context,
-            LensProjectionContext projCtx, boolean addUnchangedValues, ObjectDelta<ShadowType> objectDelta, ObjectDelta<ShadowType> existingDelta, OperationResult result)
-                    throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+    private <F extends FocusType> ResourceObjectDefinition consolidateAuxiliaryObjectClasses(
+            LensContext<F> context,
+            LensProjectionContext projCtx,
+            boolean addUnchangedValues,
+            ObjectDelta<ShadowType> objectDelta,
+            ObjectDelta<ShadowType> existingDelta,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ConfigurationException {
         ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses = projCtx.getSqueezedAuxiliaryObjectClasses();
 
@@ -689,7 +694,8 @@ public class ConsolidationProcessor {
         }
     }
 
-    private <F extends FocusType> void squeezeAll(LensContext<F> context, LensProjectionContext projCtx) throws SchemaException {
+    private <F extends FocusType> void squeezeAll(LensContext<F> context, LensProjectionContext projCtx)
+            throws SchemaException, ConfigurationException {
         // "Squeeze" all the relevant mappings into a data structure that we can process conveniently. We want to have all the
         // (meta)data about relevant for a specific attribute in one data structure, not spread over several account constructions.
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes =
@@ -772,7 +778,8 @@ public class ConsolidationProcessor {
     }
 
     private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeeze(
-            LensProjectionContext projCtx, EvaluatedConstructionMappingExtractor<V,D,F> extractor) throws SchemaException {
+            LensProjectionContext projCtx, EvaluatedConstructionMappingExtractor<V,D,F> extractor)
+            throws SchemaException, ConfigurationException {
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap = new HashMap<>();
         if (projCtx.getEvaluatedAssignedConstructionDeltaSetTriple() != null) {
             squeezeMappingsFromConstructionTriple(squeezedMap, projCtx.getEvaluatedAssignedConstructionDeltaSetTriple(),
@@ -1057,8 +1064,9 @@ public class ConsolidationProcessor {
     /**
      * TODO
      */
-    <F extends FocusType> void consolidateValuesPostRecon(LensContext<F> context, LensProjectionContext projCtx, Task task,
-            OperationResult result) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+    <F extends FocusType> void consolidateValuesPostRecon(
+            LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, PolicyViolationException, ConfigurationException {
 
         //account was deleted, no changes are needed.
         if (wasProjectionDeleted(projCtx)) {

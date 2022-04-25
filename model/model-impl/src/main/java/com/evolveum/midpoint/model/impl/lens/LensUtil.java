@@ -122,7 +122,8 @@ public class LensUtil {
         }
     }
 
-    public static String refineProjectionIntent(ShadowKindType kind, String intent, ResourceType resource) throws SchemaException {
+    public static String refineProjectionIntent(ShadowKindType kind, String intent, ResourceType resource)
+            throws SchemaException, ConfigurationException {
         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource, LayerType.MODEL);
         ResourceObjectDefinition rObjClassDef = schema.findObjectDefinition(kind, intent);
         if (rObjClassDef == null) {
@@ -974,7 +975,8 @@ public class LensUtil {
         }
     }
 
-    public static boolean needsFullShadowForCredentialProcessing(LensProjectionContext projCtx) throws SchemaException {
+    public static boolean needsFullShadowForCredentialProcessing(LensProjectionContext projCtx)
+            throws SchemaException, ConfigurationException {
         ResourceObjectDefinition refinedProjDef = projCtx.getStructuralObjectDefinition();
         if (refinedProjDef == null) {
             return false;

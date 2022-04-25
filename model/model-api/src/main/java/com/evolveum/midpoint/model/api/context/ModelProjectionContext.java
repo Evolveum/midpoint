@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -53,7 +54,7 @@ public interface ModelProjectionContext extends ModelElementContext<ShadowType> 
      * E.g. they may both be MODIFY deltas even in case that the account should be created. The deltas begin to make sense
      * only if combined with sync decision. This method provides the deltas all combined and ready for execution.
      */
-    ObjectDelta<ShadowType> getExecutableDelta() throws SchemaException;
+    ObjectDelta<ShadowType> getExecutableDelta() throws SchemaException, ConfigurationException;
 
     boolean isFullShadow();
 

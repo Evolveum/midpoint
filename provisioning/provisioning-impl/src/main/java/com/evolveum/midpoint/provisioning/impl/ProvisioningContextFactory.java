@@ -13,7 +13,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinitionResolver;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -212,14 +211,14 @@ public class ProvisioningContextFactory {
     }
 
     public @NotNull ResourceType getResource(PrismObject<ShadowType> shadow, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
         return getResource(
                 ShadowUtil.getResourceOidRequired(shadow.asObjectable()),
                 task, result);
     }
 
     public @NotNull ResourceType getResource(String resourceOid, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
         return resourceManager.getResource(resourceOid, GetOperationOptions.createReadOnly(), task, result)
                 .asObjectable();
     }

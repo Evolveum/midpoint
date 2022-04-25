@@ -16,6 +16,8 @@ import com.evolveum.midpoint.repo.cache.local.LocalRepoCacheCollection;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
@@ -600,7 +602,7 @@ public class IntegrationTestTools {
     }
 
     public static void checkAllShadows(ResourceType resourceType, RepositoryService repositoryService,
-            ObjectChecker<ShadowType> checker, PrismContext prismContext) throws SchemaException {
+            ObjectChecker<ShadowType> checker, PrismContext prismContext) throws SchemaException, ConfigurationException {
         OperationResult result = new OperationResult(IntegrationTestTools.class.getName() + ".checkAllShadows");
 
         ObjectQuery query = createAllShadowsQuery(resourceType, prismContext);
@@ -633,37 +635,71 @@ public class IntegrationTestTools {
 
     @UnusedTestElement
     public static void checkAccountShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService,
-            ObjectChecker<ShadowType> checker, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
+            ObjectChecker<ShadowType> checker, PrismContext prismContext, OperationResult parentResult)
+            throws SchemaException, ConfigurationException {
         checkAccountShadow(shadowType, resourceType, repositoryService, checker, null, prismContext, parentResult);
     }
 
-    public static void checkAccountShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService,
-            ObjectChecker<ShadowType> checker, MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
+    public static void checkAccountShadow(
+            ShadowType shadowType,
+            ResourceType resourceType,
+            RepositoryService repositoryService,
+            ObjectChecker<ShadowType> checker,
+            MatchingRule<String> uidMatchingRule,
+            PrismContext prismContext,
+            OperationResult parentResult)
+            throws SchemaException, ConfigurationException {
         checkShadow(shadowType, resourceType, repositoryService, checker, uidMatchingRule, prismContext, parentResult);
         assertEquals(new QName(MidPointConstants.NS_RI, SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME),
                 shadowType.getObjectClass());
     }
 
     @UnusedTestElement
-    public static void checkEntitlementShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService,
-            ObjectChecker<ShadowType> checker, String objectClassLocalName, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
+    public static void checkEntitlementShadow(
+            ShadowType shadowType,
+            ResourceType resourceType,
+            RepositoryService repositoryService,
+            ObjectChecker<ShadowType> checker,
+            String objectClassLocalName,
+            PrismContext prismContext,
+            OperationResult parentResult)
+            throws SchemaException, ConfigurationException {
         checkEntitlementShadow(shadowType, resourceType, repositoryService, checker, objectClassLocalName, null, prismContext, parentResult);
     }
 
-    public static void checkEntitlementShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService,
-            ObjectChecker<ShadowType> checker, String objectClassLocalName, MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
+    public static void checkEntitlementShadow(
+            ShadowType shadowType,
+            ResourceType resourceType,
+            RepositoryService repositoryService,
+            ObjectChecker<ShadowType> checker,
+            String objectClassLocalName,
+            MatchingRule<String> uidMatchingRule,
+            PrismContext prismContext,
+            OperationResult parentResult) throws SchemaException, ConfigurationException {
         checkShadow(shadowType, resourceType, repositoryService, checker, uidMatchingRule, prismContext, parentResult);
         assertEquals(new QName(MidPointConstants.NS_RI, objectClassLocalName),
                 shadowType.getObjectClass());
     }
 
-    public static void checkShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService,
-            ObjectChecker<ShadowType> checker, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
+    public static void checkShadow(
+            ShadowType shadowType,
+            ResourceType resourceType,
+            RepositoryService repositoryService,
+            ObjectChecker<ShadowType> checker,
+            PrismContext prismContext,
+            OperationResult parentResult)
+            throws SchemaException, ConfigurationException {
         checkShadow(shadowType, resourceType, repositoryService, checker, null, prismContext, parentResult);
     }
 
-    public static void checkShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService,
-            ObjectChecker<ShadowType> checker, MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
+    public static void checkShadow(
+            ShadowType shadowType,
+            ResourceType resourceType,
+            RepositoryService repositoryService,
+            ObjectChecker<ShadowType> checker,
+            MatchingRule<String> uidMatchingRule,
+            PrismContext prismContext,
+            OperationResult parentResult) throws SchemaException, ConfigurationException {
         LOGGER.trace("Checking shadow:\n{}", shadowType.asPrismObject().debugDump());
         shadowType.asPrismObject().checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
         assertNotNull("no OID", shadowType.getOid());

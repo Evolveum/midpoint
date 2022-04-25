@@ -1647,7 +1647,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         try {
             Collection<ObjectDeltaOperation<? extends ObjectType>> result = modelService.executeChanges(
-                    MiscUtil.createCollection(userDelta), ModelExecuteOptions.create(prismContext).raw(), task, parentResult);
+                    MiscUtil.createCollection(userDelta), ModelExecuteOptions.create().raw(), task, parentResult);
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException
                 | SecurityViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PolicyViolationException e) {
             response.message(LocalizationUtil.createForFallbackMessage("Failed to reset credential: " + e.getMessage()));

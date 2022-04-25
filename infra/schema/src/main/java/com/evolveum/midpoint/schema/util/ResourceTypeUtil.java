@@ -483,20 +483,6 @@ public class ResourceTypeUtil {
         return MidPointConstants.NS_RI;
     }
 
-    /** TODO why we ask only about the first synchronization?! */
-    public static boolean isFirstSynchronizationOpportunistic(ResourceType resource) {
-        List<ObjectSynchronizationType> syncBeans = getAllSynchronizationBeans(resource);
-        if (syncBeans.isEmpty()) {
-            return false;
-        }
-        ObjectSynchronizationType first = syncBeans.iterator().next();
-        if (first.isEnabled() != null && !first.isEnabled()) {
-            return false;
-        }
-        Boolean isOpportunistic = first.isOpportunistic();
-        return isOpportunistic == null || isOpportunistic;
-    }
-
     public static int getDependencyOrder(ResourceObjectTypeDependencyType dependency) {
         if (dependency.getOrder() == 0) {
             return 0;
@@ -774,18 +760,11 @@ public class ResourceTypeUtil {
     }
 
     /**
-     * Returns all synchronization configuration beans from given resource object:
-     * both "inlined" into object type definitions (4.6+) and "standalone" (pre-4.6).
+     * FIXME! Delete this method. It no longer works with embedded synchronization configurations.
      */
+    @Deprecated
     public static List<ObjectSynchronizationType> getAllSynchronizationBeans(ResourceType resource) {
         List<ObjectSynchronizationType> all = new ArrayList<>();
-        if (resource.getSchemaHandling() != null) {
-            for (ResourceObjectTypeDefinitionType typeDef : resource.getSchemaHandling().getObjectType()) {
-                if (typeDef.getSynchronization() != null) {
-                    all.add(typeDef.getSynchronization());
-                }
-            }
-        }
         if (resource.getSynchronization() != null) {
             all.addAll(resource.getSynchronization().getObjectSynchronization());
         }

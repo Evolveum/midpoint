@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeSynchronizationPolicy;
+import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
@@ -41,9 +41,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -209,8 +206,8 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
             try {
                 for (ResourceObjectTypeDefinitionType objectTypeDefBean : objectTypes) {
-                    ResourceObjectTypeSynchronizationPolicy syncPolicy =
-                            ResourceObjectTypeSynchronizationPolicy.forDefinitionBean(objectTypeDefBean, resource);
+                    SynchronizationPolicy syncPolicy =
+                            SynchronizationPolicyFactory.forDefinitionBean(objectTypeDefBean, resource);
                     List<TaskType> syncTasks;
                     if (syncPolicy != null) {
                         syncTasks = getTasksFor(tasks, syncPolicy, resource.asPrismObject());
@@ -414,7 +411,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
     private List<TaskType> getTasksFor(
             List<PrismObject<TaskType>> tasks,
-            ResourceObjectTypeSynchronizationPolicy synchronizationPolicy,
+            SynchronizationPolicy synchronizationPolicy,
             PrismObject<ResourceType> resource)
             throws SchemaException {
         List<TaskType> syncTasks = new ArrayList<>();

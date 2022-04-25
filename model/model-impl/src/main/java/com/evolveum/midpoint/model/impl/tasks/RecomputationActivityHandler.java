@@ -155,7 +155,7 @@ public class RecomputationActivityHandler
             }
             executionOptions = java.util.Objects.requireNonNullElseGet(
                     rawExecutionOptions,
-                    () -> ModelExecuteOptions.create(PrismContext.get()).reconcile()); // Default for compatibility reasons
+                    () -> ModelExecuteOptions.create().reconcile()); // Default for compatibility reasons
         }
 
         @Override

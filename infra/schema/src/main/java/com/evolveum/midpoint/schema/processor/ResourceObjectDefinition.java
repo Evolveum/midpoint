@@ -176,6 +176,12 @@ public interface ResourceObjectDefinition
     //endregion
 
     //region Fetching various information from the definition bean
+
+    /**
+     * Returns the delineation of the set of objects belonging to this object type.
+     */
+    @NotNull ResourceObjectTypeDelineation getDelineation();
+
     /**
      * The definition of base context (resource object container). This object will be used
      * as a base for searches for objects of this type.

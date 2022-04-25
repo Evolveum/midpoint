@@ -124,7 +124,7 @@ public class ClockworkConflictResolver {
             return HookOperationMode.FOREGROUND;
         }
         PrismObject<F> focusObject = context.getFocusContext() != null ? context.getFocusContext().getObjectAny() : null;
-        ModelExecuteOptions options = new ModelExecuteOptions(prismContext);
+        ModelExecuteOptions options = ModelExecuteOptions.create();
         switch (resolutionPolicy.getAction()) {
             case FAIL:
                 throw new SystemException("Conflict detected while updating " + focusObject);

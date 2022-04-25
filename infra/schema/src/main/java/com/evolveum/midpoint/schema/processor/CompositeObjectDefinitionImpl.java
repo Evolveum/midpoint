@@ -252,6 +252,11 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
+    public @NotNull ResourceObjectTypeDelineation getDelineation() {
+        return structuralDefinition.getDelineation();
+    }
+
+    @Override
     public ResourceObjectReferenceType getBaseContext() {
         return structuralDefinition.getBaseContext();
     }

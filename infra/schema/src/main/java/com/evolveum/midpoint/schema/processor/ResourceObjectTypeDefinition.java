@@ -7,15 +7,17 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import javax.xml.namespace.QName;
+import java.util.Collection;
 
 /**
  * Definition of "resource object type". Roughly corresponds to an `objectType` section in `schemaHandling`
@@ -76,6 +78,30 @@ public interface ResourceObjectTypeDefinition
 
     /**
      * Returns the "raw" configuration bean for this object type.
+     *
+     * BEWARE: In the case of inherited object types, this is only the partial information.
+     * (Parts inherited from the parents are not returned.)
      */
     @NotNull ResourceObjectTypeDefinitionType getDefinitionBean();
+
+    /** Returns the correlation definition bean, if present here. (It may be standalone.) */
+    @Nullable CorrelationDefinitionType getCorrelationDefinitionBean();
+
+    /** Returns the "synchronization enabled" flag value, if present here. (It may be standalone.) FIXME */
+    @Nullable Boolean isSynchronizationEnabled();
+
+    /** Returns the "synchronization opportunistic" flag value, if present here. (It may be standalone.) */
+    @Nullable Boolean isSynchronizationOpportunistic();
+
+    /** Returns the focus type name, if present here. (It may be standalone.) */
+    @Nullable QName getFocusTypeName();
+
+    /** Returns true if there is "synchronization reactions" definition section here (even if it's empty). */
+    boolean hasSynchronizationReactionsDefinition();
+
+    /** Returns the synchronization reactions defined here. (They may be standalone.) */
+    @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions();
+
+    /** Temporary? */
+    @Nullable ExpressionType getClassificationCondition();
 }

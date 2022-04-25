@@ -14,6 +14,8 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorAuthorityLevelType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NoOpCorrelatorType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -35,6 +37,12 @@ public abstract class CorrelatorConfiguration {
 
     CorrelatorConfiguration(@NotNull AbstractCorrelatorType configurationBean) {
         this.configurationBean = configurationBean;
+    }
+
+    /** Returns empty correlator configuration - one that matches no owner. */
+    public static CorrelatorConfiguration none() {
+        return new TypedCorrelationConfiguration(
+                new NoOpCorrelatorType());
     }
 
     public @Nullable Integer getOrder() {
@@ -88,7 +96,7 @@ public abstract class CorrelatorConfiguration {
         return configurations;
     }
 
-    public static List<CorrelatorConfiguration> getConfigurationsSorted(CompositeCorrelatorType correlatorsBean) {
+    public static List<CorrelatorConfiguration> getConfigurationsSorted(@NotNull CompositeCorrelatorType correlatorsBean) {
         List<CorrelatorConfiguration> configurations = new ArrayList<>(getConfigurations(correlatorsBean));
         configurations.sort(
                 Comparator.comparing(CorrelatorConfiguration::getOrder, Comparator.nullsLast(Comparator.naturalOrder()))

@@ -202,7 +202,7 @@ class ShadowIntegrityCheckItemProcessor {
             ResourceSchema refinedSchema;
             try {
                 refinedSchema = ResourceSchemaFactory.getCompleteSchema(context.getResource(), LayerType.MODEL);
-            } catch (SchemaException e) {
+            } catch (ConfigurationException | SchemaException e) {
                 checkResult.recordError(
                         ShadowStatistics.CANNOT_GET_REFINED_SCHEMA, new SchemaException("Couldn't derive resource schema: " + e.getMessage(), e));
                 return;

@@ -11,9 +11,10 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -52,7 +53,7 @@ public class TestModelServiceContractCaching extends TestModelServiceContract {
 
     @Override
     protected void assertShadowRepo(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
-            QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
+            QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException, ConfigurationException {
         super.assertShadowRepo(shadow, oid, username, resourceType, objectClass, nameMatchingRule);
         CachingMetadataType cachingMetadata = shadow.asObjectable().getCachingMetadata();
         assertNotNull("Missing caching metadata in repo shadow"+shadow, cachingMetadata);

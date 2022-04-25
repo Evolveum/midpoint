@@ -8,9 +8,23 @@
 package com.evolveum.midpoint.model.impl.classification;
 
 import static com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl.ResourceObjectProcessingContextBuilder.aResourceObjectProcessingContext;
+import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
+import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrimitiveType;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,16 +41,16 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectMultiplicityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+/**
+ * Currently only used during classification and synchronization, but later can be used in outbound/assignments.
+ */
 @Component
 public class ShadowTagGeneratorImpl implements ShadowTagGenerator {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowTagGeneratorImpl.class);
 
-    private static final String OP_GENERATE = ResourceObjectClassifierImpl.class.getName() + ".generate";
+    private static final String OP_GENERATE = ShadowTagGeneratorImpl.class.getName() + ".generate";
 
     @Autowired private ModelBeans beans;
 
@@ -107,15 +121,37 @@ public class ShadowTagGeneratorImpl implements ShadowTagGenerator {
             result.recordNotApplicable();
             return null;
         }
-        String tag = beans.synchronizationExpressionsEvaluator.generateTag(
-                multiplicity,
-                context.getShadowedResourceObject(),
-                context.getResource(),
-                context.getSystemConfiguration(),
-                "tag expression for " + context.getShadowedResourceObject(),
-                context.getTask(),
-                result);
-        LOGGER.debug("SYNCHRONIZATION: TAG generated: {}", tag);
-        return tag;
+
+        ShadowType shadow = context.getShadowedResourceObject();
+        ShadowTagSpecificationType tagSpec = multiplicity.getTag();
+        ExpressionType expressionBean = tagSpec != null ? tagSpec.getExpression() : null;
+        if (expressionBean == null) {
+            String tag = shadow.getOid();
+            LOGGER.debug("SYNCHRONIZATION: TAG derived from shadow OID: {}", tag);
+            return tag;
+        } else {
+            VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, shadow, context.getResource(), context.getSystemConfiguration());
+            ItemDefinition<?> outputDefinition = PrismContext.get().definitionFactory().createPropertyDefinition(
+                    ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
+            try {
+                Task task = context.getTask();
+                String shortDesc = "tag expression for " + context.getShadowedResourceObject();
+                ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
+                PrismPropertyValue<String> tagProp = ExpressionUtil.evaluateExpression(
+                        variables,
+                        outputDefinition,
+                        expressionBean,
+                        MiscSchemaUtil.getExpressionProfile(),
+                        beans.expressionFactory,
+                        shortDesc,
+                        task,
+                        result);
+                String tag = getRealValue(tagProp);
+                LOGGER.debug("SYNCHRONIZATION: TAG generated: {}", tag);
+                return tag;
+            } finally {
+                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            }
+        }
     }
 }

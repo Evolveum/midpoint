@@ -10,17 +10,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import javax.xml.namespace.QName;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContext;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl;
@@ -30,24 +26,21 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeSynchronizationPolicy;
-import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -95,7 +88,7 @@ public class SynchronizationContext<F extends FocusType>
     /** What kind to use _if there's no definition_: To preserve last known kind even if classification fails. */
     @NotNull private final ShadowKindType kindIfNoDefinition;
 
-    @Nullable private final ResourceObjectTypeSynchronizationPolicy synchronizationPolicy;
+    @Nullable private final SynchronizationPolicy synchronizationPolicy;
 
     /**
      * Preliminary focus object - a result pre pre-mappings execution.
@@ -103,11 +96,6 @@ public class SynchronizationContext<F extends FocusType>
      * Lazily created on the first getter call.
      */
     private F preFocus;
-
-    /**
-     * Lazily evaluated on the first getter call.
-     */
-    private Class<F> focusClass;
 
     /** Owner that was found to be linked (in repo) to the shadow being synchronized. */
     private F linkedOwner;
@@ -125,9 +113,6 @@ public class SynchronizationContext<F extends FocusType>
     private CorrelationContext correlationContext;
 
     private final String tag;
-
-    private boolean reactionEvaluated = false;
-    private SynchronizationReactionType reaction;
 
     private boolean shadowExistsInRepo = true;
     private final boolean forceIntentChange;
@@ -149,7 +134,7 @@ public class SynchronizationContext<F extends FocusType>
     public SynchronizationContext(
             @NotNull ResourceObjectProcessingContextImpl processingContext,
             @Nullable ResourceObjectTypeDefinition objectTypeDefinition,
-            @Nullable ResourceObjectTypeSynchronizationPolicy synchronizationPolicy,
+            @Nullable SynchronizationPolicy synchronizationPolicy,
             @Nullable ObjectSynchronizationDiscriminatorType sorterResult,
             @Nullable String tag,
             @Nullable String itemProcessingIdentifier) {
@@ -183,20 +168,24 @@ public class SynchronizationContext<F extends FocusType>
 
     public boolean isSynchronizationEnabled() {
         return synchronizationPolicy != null
-                && BooleanUtils.isNotFalse(synchronizationPolicy.getSynchronizationBean().isEnabled());
+                && synchronizationPolicy.isSynchronizationEnabled();
     }
 
     public boolean isProtected() {
         return BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject());
     }
 
-    /** May be unknown! */
+    /**
+     * Note that the returned value may be `UNKNOWN`.
+     */
     public @NotNull ShadowKindType getKind() {
         return objectTypeDefinition != null ?
                 objectTypeDefinition.getKind() : kindIfNoDefinition;
     }
 
-    /** May be unknown! */
+    /**
+     * Note that the returned value may be `unknown`.
+     */
     public @NotNull String getIntent() throws SchemaException {
         return objectTypeDefinition != null ? objectTypeDefinition.getIntent() : SchemaConstants.INTENT_UNKNOWN;
     }
@@ -218,109 +207,6 @@ public class SynchronizationContext<F extends FocusType>
         return tag;
     }
 
-    private ObjectSynchronizationType getSynchronizationBean() {
-        return synchronizationPolicy != null ? synchronizationPolicy.getSynchronizationBean() : null;
-    }
-
-    @NotNull private ObjectSynchronizationType getSynchronizationBeanRequired() {
-        return getSynchronizationPolicyRequired().getSynchronizationBean();
-    }
-
-    /**
-     * Assumes synchronization is defined.
-     */
-    public @NotNull CompositeCorrelatorType getCorrelators() {
-        ObjectSynchronizationType objectSynchronization = getSynchronizationBean();
-        assert objectSynchronization != null;
-        CorrelationDefinitionType correlationDefinition = objectSynchronization.getCorrelationDefinition();
-        CompositeCorrelatorType correlators = correlationDefinition != null ? correlationDefinition.getCorrelators() : null;
-        if (correlators != null) {
-            return correlators;
-        } else if (objectSynchronization.getCorrelation().isEmpty()) {
-            LOGGER.debug("No correlation information present. Will always find no owner. In: {}", this);
-            return new CompositeCorrelatorType()
-                    .beginNone().end();
-        } else {
-            CompositeCorrelatorType composite =
-                    new CompositeCorrelatorType()
-                            .beginFilter()
-                            .confirmation(CloneUtil.clone(objectSynchronization.getConfirmation()))
-                            .end();
-            composite.getFilter().get(0).getOwnerFilter().addAll(
-                    CloneUtil.cloneCollectionMembers(objectSynchronization.getCorrelation()));
-            return composite;
-        }
-    }
-
-    public ObjectReferenceType getObjectTemplateRef() {
-        if (reaction.getObjectTemplateRef() != null) {
-            return reaction.getObjectTemplateRef();
-        }
-        ObjectSynchronizationType bean = getSynchronizationBean();
-        return bean != null ? bean.getObjectTemplateRef() : null;
-    }
-
-    public SynchronizationReactionType getReaction(OperationResult result)
-            throws ConfigurationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
-        if (reactionEvaluated) {
-            return reaction;
-        }
-
-        SynchronizationReactionType defaultReaction = null;
-        for (SynchronizationReactionType reactionToConsider : getSynchronizationBeanRequired().getReaction()) {
-            SynchronizationSituationType reactionSituation = reactionToConsider.getSituation();
-            if (reactionSituation == null) {
-                throw new ConfigurationException("No situation defined for a reaction in " + resource);
-            }
-            if (reactionSituation == situation) {
-                List<String> channels = reactionToConsider.getChannel();
-                // The second and third conditions are suspicious but let's keep them here for historical reasons.
-                if (channels.isEmpty() || channels.contains("") || channels.contains(null)) {
-                    if (conditionMatches(reactionToConsider, result)) {
-                        defaultReaction = reactionToConsider;
-                    }
-                } else if (channels.contains(this.channel)) {
-                    if (conditionMatches(reactionToConsider, result)) {
-                        reaction = reactionToConsider;
-                        reactionEvaluated = true;
-                        return reaction;
-                    }
-                } else {
-                    LOGGER.trace("Skipping reaction {} because the channel does not match {}", reaction, this.channel);
-                }
-            }
-        }
-        LOGGER.trace("Using default reaction {}", defaultReaction);
-        reaction = defaultReaction;
-        reactionEvaluated = true;
-        return reaction;
-    }
-
-    private boolean conditionMatches(SynchronizationReactionType reaction, OperationResult result) throws SchemaException,
-            ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
-        if (reaction.getCondition() != null) {
-            ExpressionType expression = reaction.getCondition();
-            String desc = "condition in synchronization reaction on " + reaction.getSituation()
-                    + (reaction.getName() != null ? " (" + reaction.getName() + ")" : "");
-            VariablesMap variables = createVariablesMap();
-            try {
-                ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
-                boolean value = ExpressionUtil.evaluateConditionDefaultFalse(variables, expression,
-                        expressionProfile, beans.expressionFactory, desc, task, result);
-                if (!value) {
-                    LOGGER.trace("Skipping reaction {} because the condition was evaluated to false", reaction);
-                }
-                return value;
-            } finally {
-                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-            }
-        } else {
-            return true;
-        }
-    }
-
     @Override
     public @NotNull VariablesMap createVariablesMap() {
         VariablesMap variablesMap = ModelImplUtils.getDefaultVariablesMap(
@@ -340,11 +226,11 @@ public class SynchronizationContext<F extends FocusType>
         }
     }
 
-    @Nullable ResourceObjectTypeSynchronizationPolicy getSynchronizationPolicy() {
+    @Nullable SynchronizationPolicy getSynchronizationPolicy() {
         return synchronizationPolicy;
     }
 
-    public @NotNull ResourceObjectTypeSynchronizationPolicy getSynchronizationPolicyRequired() {
+    public @NotNull SynchronizationPolicy getSynchronizationPolicyRequired() {
         return MiscUtil.requireNonNull(synchronizationPolicy, () -> new IllegalStateException("No synchronization policy"));
     }
 
@@ -356,42 +242,11 @@ public class SynchronizationContext<F extends FocusType>
         if (synchronizationPolicy == null) {
             return null;
         }
-        String name = getSynchronizationBeanRequired().getName();
+        String name = synchronizationPolicy.getName();
         if (name != null) {
             return name;
         }
         return synchronizationPolicy.toString();
-    }
-
-    public Boolean isDoReconciliation() {
-        if (reaction.isReconcile() != null) {
-            return reaction.isReconcile();
-        }
-        return getSynchronizationBeanRequired().isReconcile();
-    }
-
-    public ModelExecuteOptionsType getExecuteOptions() {
-        return reaction.getExecuteOptions();
-    }
-
-    Boolean isLimitPropagation() {
-        if (StringUtils.isNotBlank(channel)) {
-            QName channelQName = QNameUtil.uriToQName(channel);
-            // Discovery channel is used when compensating some inconsistent
-            // state. Therefore we do not want to propagate changes to other
-            // resources. We only want to resolve the problem and continue in
-            // previous provisioning/synchronization during which this
-            // compensation was triggered.
-            if (SchemaConstants.CHANNEL_DISCOVERY.equals(channelQName)
-                    && SynchronizationSituationType.DELETED != reaction.getSituation()) {
-                return true;
-            }
-        }
-
-        if (reaction.isLimitPropagation() != null) {
-            return reaction.isLimitPropagation();
-        }
-        return getSynchronizationBeanRequired().isLimitPropagation();
     }
 
     @Override
@@ -408,24 +263,9 @@ public class SynchronizationContext<F extends FocusType>
     }
 
     public @NotNull Class<F> getFocusClass() throws SchemaException {
-
-        if (focusClass != null) {
-            return focusClass;
-        }
-
-        QName focusTypeQName = getSynchronizationBeanRequired().getFocusType();
-        if (focusTypeQName == null) {
-            //noinspection unchecked
-            this.focusClass = (Class<F>) UserType.class;
-            return focusClass;
-        }
-        ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(focusTypeQName);
-        if (objectType == null) {
-            throw new SchemaException("Unknown focus type " + focusTypeQName + " in synchronization policy in " + resource);
-        }
-
-        focusClass = objectType.getClassDefinition();
-        return focusClass;
+        assert synchronizationPolicy != null;
+        //noinspection unchecked
+        return (Class<F>) synchronizationPolicy.getFocusClass();
     }
 
     public @NotNull F getPreFocus() {
@@ -458,16 +298,22 @@ public class SynchronizationContext<F extends FocusType>
         return situation;
     }
 
+    void setSituationIfNull(SynchronizationSituationType situation) {
+        if (this.situation == null) {
+            this.situation = situation;
+        }
+    }
+
+    public SynchronizationSituation<F> getSynchronizationSituation() {
+        return new SynchronizationSituation<>(getLinkedOwner(), getCorrelatedOwner(), getSituation());
+    }
+
     public void setLinkedOwner(F owner) {
         this.linkedOwner = owner;
     }
 
     public void setCorrelatedOwner(F correlatedFocus) {
         this.correlatedOwner = correlatedFocus;
-    }
-
-    public void setSituation(SynchronizationSituationType situation) {
-        this.situation = situation;
     }
 
     public @Nullable SystemConfigurationType getSystemConfiguration() {
@@ -486,7 +332,7 @@ public class SynchronizationContext<F extends FocusType>
         return task;
     }
 
-    boolean isShadowExistsInRepo() {
+    public boolean isShadowExistsInRepo() {
         return shadowExistsInRepo;
     }
 
@@ -505,19 +351,14 @@ public class SynchronizationContext<F extends FocusType>
 
     @Override
     public String toString() {
-        String policyDesc = null;
         if (synchronizationPolicy != null) {
-            ObjectSynchronizationType bean = synchronizationPolicy.getSynchronizationBean();
-            if (bean.getName() == null) {
-                policyDesc = "(kind=" + synchronizationPolicy.getKind() + ", intent="
-                        + synchronizationPolicy.getIntent() + ", objectclass="
-                        + bean.getObjectClass() + ")";
-            } else {
-                policyDesc = bean.getName();
-            }
+            return "SynchronizationContext(kind=" + synchronizationPolicy.getKind()
+                    + ", intent=" + synchronizationPolicy.getIntent()
+                    + ", objectclass=" + synchronizationPolicy.getObjectClassName()
+                    + ")";
+        } else {
+            return "SynchronizationContext";
         }
-
-        return policyDesc;
     }
 
     @Override
@@ -529,14 +370,12 @@ public class SynchronizationContext<F extends FocusType>
         DebugUtil.debugDumpWithLabelToStringLn(sb, "channel", channel, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "expressionProfile", expressionProfile, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "synchronizationPolicy", synchronizationPolicy, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "focusClass", focusClass, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "preFocus", preFocus, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "currentOwner", linkedOwner, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "correlatedOwner", correlatedOwner, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "situation", situation, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "objectTypeDefinition", objectTypeDefinition, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "tag", tag, indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "reaction", reaction, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowExistsInRepo", shadowExistsInRepo, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "pendingShadowDeltas", pendingShadowDeltas, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "forceIntentChange", forceIntentChange, indent + 1);
@@ -550,11 +389,6 @@ public class SynchronizationContext<F extends FocusType>
 
     static boolean isSkipMaintenanceCheck() {
         return SynchronizationContext.skipMaintenanceCheck;
-    }
-
-    @Nullable CorrelationDefinitionType getCorrelationDefinitionBean() {
-        ObjectSynchronizationType objectSynchronization = getSynchronizationBean();
-        return objectSynchronization != null ? objectSynchronization.getCorrelationDefinition() : null;
     }
 
     @NotNull List<ItemDelta<?, ?>> getPendingShadowDeltas() {

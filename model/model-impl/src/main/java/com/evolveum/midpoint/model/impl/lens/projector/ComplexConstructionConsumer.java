@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAbstractConstruction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
 import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -19,13 +20,13 @@ public interface ComplexConstructionConsumer<K, EC extends EvaluatedAbstractCons
 
     boolean before(K key);
 
-    void onAssigned(K key, String desc) throws SchemaException;
+    void onAssigned(K key, String desc) throws SchemaException, ConfigurationException;
 
-    void onUnchangedValid(K key, String desc) throws SchemaException;
+    void onUnchangedValid(K key, String desc) throws SchemaException, ConfigurationException;
 
-    void onUnchangedInvalid(K key, String desc) throws SchemaException;
+    void onUnchangedInvalid(K key, String desc) throws SchemaException, ConfigurationException;
 
-    void onUnassigned(K key, String desc) throws SchemaException;
+    void onUnassigned(K key, String desc) throws SchemaException, ConfigurationException;
 
     void after(K key, String desc, DeltaMapTriple<K, EvaluatedConstructionPack<EC>> constructionMapTriple);
 }
