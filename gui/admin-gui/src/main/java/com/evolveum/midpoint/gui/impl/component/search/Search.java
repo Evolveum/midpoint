@@ -124,6 +124,14 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return advancedQuery;
     }
 
+    public String getDslQuery() {
+        return dslQuery;
+    }
+
+    public void setDslQuery(String dslQuery) {
+        this.dslQuery = dslQuery;
+    }
+
     private ObjectFilter createAdvancedObjectFilter(PrismContext ctx) throws SchemaException {
         SearchBoxModeType searchMode = searchConfigurationWrapper.getDefaultSearchBoxMode();
         if (SearchBoxModeType.ADVANCED.equals(searchMode)) {

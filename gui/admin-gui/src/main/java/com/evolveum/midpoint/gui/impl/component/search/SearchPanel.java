@@ -21,9 +21,16 @@ import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -483,6 +490,25 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
                             @Override
                             public void onClick(AjaxRequestTarget target) {
+                                SearchFilterType filter = item.getFilter();
+                                if (filter == null) {
+                                    return;
+                                }
+                                try {
+                                    ObjectFilter savedFilter = getPageBase().getQueryConverter().parseFilter(filter, getModelObject().getTypeClass());
+                                    if (savedFilter instanceof AndFilter) {
+                                        List<ObjectFilter> conditions = ((AndFilter) savedFilter).getConditions();
+                                        //todo
+                                    }
+                                    PrismQuerySerialization serialization = getPageBase().getPrismContext().querySerializer().serialize(savedFilter);
+                                    if (serialization != null) {
+                                        getModelObject().getSearchConfigurationWrapper().setDefaultSearchBoxMode(SearchBoxModeType.AXIOM_QUERY);
+                                        getModelObject().setDslQuery(serialization.filterText());
+                                    }
+                                } catch (SchemaException | PrismQuerySerialization.NotSupportedException e) {
+                                    LOG.error("Unable to create object query from search filter: {}, {}", filter, e.getLocalizedMessage());
+                                }
+                                searchPerformed(target);
                             }
                         };
                     }
@@ -855,7 +881,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                     + " '" + parent.getMarkupId() + "', 'fa-exclamation-triangle', 'has-error');");
 
             target.add(
-                    get(createComponentPath(ID_FORM, ID_ADVANCED_GROUP, ID_ADVANCED_CHECK)),
+                    get(createComponentPath(ID_FORM, ID_SEARCH_ITEMS_PANEL, ID_ADVANCED_GROUP, ID_ADVANCED_CHECK)),
                     get(createComponentPath(ID_FORM, ID_ADVANCED_GROUP, ID_ADVANCED_ERROR_GROUP)),
                     get(createComponentPath(ID_FORM, ID_SEARCH_CONTAINER)));
         }
