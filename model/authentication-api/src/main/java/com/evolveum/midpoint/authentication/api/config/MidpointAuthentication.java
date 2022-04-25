@@ -63,7 +63,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     /**
      * Authentication module created basic on configuration of module
      */
-    private List<AuthModule> authModules;
+    private List<AuthModule> authModules = new ArrayList<>();
 
     private Object principal;
     private Object credential;
