@@ -4,7 +4,8 @@
   "description": "Evolveum midPoint admin-gui module npm project for css/javascript code",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack --build --config ./webpack.config.js --progress --profile --bail",
+    "watch": "webpack --watch --config ./webpack.config.js --progress --profile"
   },
   "author": "",
   "license": "Apache License 2.0 and European Union Public License",

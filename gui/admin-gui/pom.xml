@@ -870,7 +870,7 @@
                             <goal>webpack</goal>
                         </goals>
                         <configuration>
-                            <arguments>-c ./webpack.config.js</arguments>
+                            <arguments>--config ./webpack.config.js --progress --profile --bail</arguments>
                         </configuration>
                     </execution>
                 </executions>
