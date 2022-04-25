@@ -18,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 @PanelType(name = "resourceUncategorized")
 @PanelInstance(identifier = "resourceUncategorized", applicableForOperation = OperationTypeType.MODIFY, applicableForType = ResourceType.class,
         display = @PanelDisplay(label = "PageResource.tab.content.others", icon = GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN, order = 80))
-public class ResourceUncategorizedPanel extends ResourceContentTabPanel {
+public class ResourceUncategorizedPanel extends ResourceContentPanel {
 
     public ResourceUncategorizedPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, null, model, config);

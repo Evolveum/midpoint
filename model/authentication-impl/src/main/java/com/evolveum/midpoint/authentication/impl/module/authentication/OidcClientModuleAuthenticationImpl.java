@@ -14,6 +14,10 @@ import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameCon
 
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
@@ -29,8 +33,8 @@ public class OidcClientModuleAuthenticationImpl extends RemoteModuleAuthenticati
 
     private InMemoryClientRegistrationRepository clientsRepository;
 
-    public OidcClientModuleAuthenticationImpl() {
-        super(AuthenticationModuleNameConstants.OIDC);
+    public OidcClientModuleAuthenticationImpl(AuthenticationSequenceModuleType sequenceModule) {
+        super(AuthenticationModuleNameConstants.OIDC, sequenceModule);
         setType(ModuleType.REMOTE);
         setState(AuthenticationModuleState.LOGIN_PROCESSING);
     }
@@ -45,7 +49,7 @@ public class OidcClientModuleAuthenticationImpl extends RemoteModuleAuthenticati
 
     @Override
     public ModuleAuthenticationImpl clone() {
-        OidcClientModuleAuthenticationImpl module = new OidcClientModuleAuthenticationImpl();
+        OidcClientModuleAuthenticationImpl module = new OidcClientModuleAuthenticationImpl(this.getSequenceModule());
         module.setClientsRepository(this.getClientsRepository());
         module.setProviders(this.getProviders());
         Authentication actualAuth = SecurityContextHolder.getContext().getAuthentication();

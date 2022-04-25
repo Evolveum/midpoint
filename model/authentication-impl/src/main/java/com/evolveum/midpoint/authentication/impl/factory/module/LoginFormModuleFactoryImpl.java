@@ -54,8 +54,8 @@ public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory
 
     @Override
     protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
-            LoginFormModuleWebSecurityConfiguration configuration) {
-        LoginFormModuleAuthenticationImpl moduleAuthentication = new LoginFormModuleAuthenticationImpl();
+            LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+        LoginFormModuleAuthenticationImpl moduleAuthentication = new LoginFormModuleAuthenticationImpl(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());

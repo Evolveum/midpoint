@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -54,7 +53,6 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -489,14 +487,6 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         toDelete.forEach(value -> servers.remove(value.getValue()));
         target.add(this.addOrReplace(initServersTable(mailConfigType)));
-        reloadSavePreviewButtons(target);
-    }
-
-    private void reloadSavePreviewButtons(AjaxRequestTarget target) {
-        FocusMainPanel mainPanel = findParent(FocusMainPanel.class);
-        if (mainPanel != null) {
-            mainPanel.reloadSavePreviewButtons(target);
-        }
     }
 
     private ColumnMenuAction<MailServerConfiguration> createEditColumnAction() {

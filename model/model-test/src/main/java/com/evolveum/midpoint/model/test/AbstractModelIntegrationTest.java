@@ -4538,6 +4538,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public QName getFocusType() {
                 return null;
             }
+
+            @Override
+            public AuthenticationSequenceModuleNecessityType getNecessity() {
+                return AuthenticationSequenceModuleNecessityType.SUFFICIENT;
+            }
+
+            @Override
+            public Integer getOrder() {
+                return 10;
+            }
         };
         mpAuthentication.addAuthentications(moduleAuthentication);
         mpAuthentication.setPrincipal(authentication.getPrincipal());

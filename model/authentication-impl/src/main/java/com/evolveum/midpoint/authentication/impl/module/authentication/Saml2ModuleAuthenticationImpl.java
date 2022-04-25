@@ -17,6 +17,10 @@ import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameCon
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
 import com.evolveum.midpoint.authentication.impl.module.configuration.SamlAdditionalConfiguration;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
@@ -29,8 +33,8 @@ public class Saml2ModuleAuthenticationImpl extends RemoteModuleAuthenticationImp
 
     private Map<String, SamlAdditionalConfiguration> additionalConfiguration;
 
-    public Saml2ModuleAuthenticationImpl() {
-        super(AuthenticationModuleNameConstants.SAML_2);
+    public Saml2ModuleAuthenticationImpl(AuthenticationSequenceModuleType sequenceModule) {
+        super(AuthenticationModuleNameConstants.SAML_2, sequenceModule);
         setType(ModuleType.REMOTE);
         setState(AuthenticationModuleState.LOGIN_PROCESSING);
     }
@@ -45,7 +49,7 @@ public class Saml2ModuleAuthenticationImpl extends RemoteModuleAuthenticationImp
 
     @Override
     public ModuleAuthenticationImpl clone() {
-        Saml2ModuleAuthenticationImpl module = new Saml2ModuleAuthenticationImpl();
+        Saml2ModuleAuthenticationImpl module = new Saml2ModuleAuthenticationImpl(this.getSequenceModule());
         module.setAdditionalConfiguration(this.getAdditionalConfiguration());
         module.setProviders(this.getProviders());
         Authentication actualAuth = SecurityContextHolder.getContext().getAuthentication();

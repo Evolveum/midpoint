@@ -24,7 +24,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -99,26 +98,4 @@ public class TestPageOrg extends AbstractInitializedGuiIntegrationTest {
         assertAssignedOrg(newOrgChild, newOrg.getOid());
     }
 
-    @Test //TODO old test remove after removing old gui pages
-    public void test006testPageOrgUnit() {
-        renderPage(PageOrgUnit.class);
-    }
-
-    @Test //TODO old test remove after removing old gui pages
-    public void test007testAddNewOrgUnit() throws Exception {
-        renderPage(PageOrgUnit.class);
-
-        FormTester formTester = tester.newFormTester(MAIN_FORM_OLD, false);
-        formTester.setValue(
-                PATH_FORM_NAME_OLD,
-                NEW_ORG_NAME + "Unit"
-        );
-        formTester.submit(FORM_SAVE_OLD);
-
-        Thread.sleep(5000);
-
-        PrismObject<OrgType> newOrg = findObjectByName(OrgType.class, NEW_ORG_NAME + "Unit");
-        assertNotNull(newOrg, "New org not created.");
-        logger.info("created org: {}", newOrg.debugDump());
-    }
 }

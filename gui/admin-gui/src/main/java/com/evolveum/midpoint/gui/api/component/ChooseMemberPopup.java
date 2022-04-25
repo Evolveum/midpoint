@@ -6,12 +6,29 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
@@ -30,25 +47,7 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by honchar
@@ -57,7 +56,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ChooseMemberPopup.class);
-    private static final String DOT_CLASS = AbstractRoleMemberPanel.class.getName() + ".";
+    private static final String DOT_CLASS = ChooseMemberPopup.class.getName() + ".";
     private static final String OPERATION_LOAD_MEMBER_RELATIONS = DOT_CLASS + "loadMemberRelationsList";
 
     private static final String ID_TABS_PANEL = "tabsPanel";

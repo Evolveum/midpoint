@@ -8,6 +8,10 @@ package com.evolveum.midpoint.authentication.impl.module.authentication;
 
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
+
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
@@ -23,12 +27,12 @@ import java.util.Map;
 
 public class OidcResourceServerModuleAuthentication extends HttpModuleAuthentication {
 
-    public OidcResourceServerModuleAuthentication() {
-        super(AuthenticationModuleNameConstants.OIDC);
+    public OidcResourceServerModuleAuthentication(AuthenticationSequenceModuleType sequenceModule) {
+        super(AuthenticationModuleNameConstants.OIDC, sequenceModule);
     }
 
     public ModuleAuthenticationImpl clone() {
-        OidcResourceServerModuleAuthentication module = new OidcResourceServerModuleAuthentication();
+        OidcResourceServerModuleAuthentication module = new OidcResourceServerModuleAuthentication(this.getSequenceModule());
         clone(module);
         return module;
     }

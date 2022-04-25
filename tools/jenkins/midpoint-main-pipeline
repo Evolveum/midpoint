@@ -1,0 +1,72 @@
+podTemplate(
+        activeDeadlineSeconds: 7200,
+        idleMinutes: 1,
+        nodeSelector: '${NODE_SELECTOR}',
+        containers: [
+                containerTemplate(name: 'jnlp',
+                        image: 'jenkins/inbound-agent:4.7-1-alpine',
+                        runAsUser: '0',
+                        resourceLimitCpu: '900m',
+                        resourceLimitMemory: '1Gi',
+                        resourceRequestCpu: '900m',
+                        resourceRequestMemory: '1Gi'),
+                containerTemplate(name: 'maven',
+                        image: 'maven:3.8.5-openjdk-11-slim',
+                        ttyEnabled: true,
+                        command: 'cat',
+                        resourceLimitCpu: '4',
+                        resourceLimitMemory: '8Gi')
+        ]
+) {
+    node(POD_LABEL) {
+        stage("checkout") {
+            git branch: "${BRANCH}",
+                    url: 'https://github.com/Evolveum/midpoint.git'
+            echo "git checkout done..."
+        }
+        stage("build") {
+            container('maven') {
+                try {
+                    sh """#!/bin/bash
+                        if [ '${VERBOSE}' = '1' ]
+                        then
+	                        env | sort
+	                        mvn --version
+			            fi
+
+				        mvn clean install -P -dist -DskipTests
+                    """
+                } catch (err) {
+                    echo "Caught: ${err}"
+                    currentBuild.result = 'FAILURE'
+                }
+            }
+        }
+        stage("tests-default") {
+            container('maven') {
+                try {
+                    sh """mvn verify"""
+                } catch (err) {
+                    echo "Caught: ${err}"
+                    currentBuild.result = 'FAILURE'
+                } finally {
+                    step([$class: 'Publisher', reportFilenamePattern: '**/testng-results.xml'])
+                }
+            }
+        }
+        stage("tests-extra") {
+            container('maven') {
+                try {
+                    sh """
+                        mvn verify -P extratest -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+                    """
+                } catch (err) {
+                    echo "Caught: ${err}"
+                    currentBuild.result = 'FAILURE'
+                } finally {
+                    step([$class: 'Publisher', reportFilenamePattern: '**/testng-results.xml'])
+                }
+            }
+        }
+    }
+}

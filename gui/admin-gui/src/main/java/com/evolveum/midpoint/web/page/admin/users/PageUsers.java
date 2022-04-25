@@ -14,6 +14,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.PageMergeObjects;
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -117,13 +119,6 @@ public class PageUsers extends PageAdmin {
         add(mainForm);
 
         MainObjectListPanel<UserType> table = new MainObjectListPanel<>(ID_TABLE, UserType.class) {
-//            @Override
-//            protected void objectDetailsPerformed(AjaxRequestTarget target, UserType user) {
-//                WebComponentUtil.dispatchToObjectDetailsPage(UserType.class, user.getOid(), this, false);
-//                PageParameters parameters = new PageParameters();
-//                parameters.add(OnePageParameterEncoder.PARAMETER, user.getOid());
-//                navigateToNext(PageUser.class, parameters);
-//            }
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
@@ -275,6 +270,7 @@ public class PageUsers extends PageAdmin {
 
         menu.add(getTable().createDeleteInlineMenu());
 
+        //TODO: shouldn't  be visible only if supported?
         menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge")) {
             private static final long serialVersionUID = 1L;
 
@@ -338,6 +334,11 @@ public class PageUsers extends PageAdmin {
             protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
                 hideMainPopup(target);
                 mergeConfirmedPerformed(selectedUser, user, target);
+            }
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("ObjectBrowserPanel.chooseObject.merge.with", WebComponentUtil.getName(selectedUser)) ;
             }
 
         };

@@ -56,8 +56,8 @@ public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleF
 
     @Override
     protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
-            LoginFormModuleWebSecurityConfiguration configuration) {
-        SecurityQuestionFormModuleAuthentication moduleAuthentication = new SecurityQuestionFormModuleAuthentication();
+            LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+        SecurityQuestionFormModuleAuthentication moduleAuthentication = new SecurityQuestionFormModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
