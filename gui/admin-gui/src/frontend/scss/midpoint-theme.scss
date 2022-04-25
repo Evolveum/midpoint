@@ -1435,6 +1435,7 @@ th.countLabel{
 	margin-top: 5px !important;
 }
 
+// todo probably delete? why is this here?
 th > div > .sortableLabel .row {
 	margin: 0px;
 }
@@ -2129,4 +2130,22 @@ div.search-popover {
       font-weight: normal;
     }
   }
+}
+
+/* table panel sorting */
+th.sortable {
+
+  &.asc > a > .icon:before {
+    content: "\f077";
+    color: $dark;
+  }
+
+  &.desc > a > .icon:before {
+    content: "\f078";
+    color: $dark;
+  }
+}
+
+th:not(.sortable) > .icon {
+  display: none;
 }
