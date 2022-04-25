@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.page.admin.orgs;
 
 import java.util.Iterator;
 
+import com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgTreeProvider;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.tree.AbstractTree;
@@ -22,7 +24,6 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.component.OrgTreeProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 public class MidpointSubtree extends Panel {

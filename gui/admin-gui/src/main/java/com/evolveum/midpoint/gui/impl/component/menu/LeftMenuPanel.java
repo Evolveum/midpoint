@@ -11,6 +11,10 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
