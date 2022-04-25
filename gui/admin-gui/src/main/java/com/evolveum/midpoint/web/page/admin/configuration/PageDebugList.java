@@ -162,13 +162,13 @@ public class PageDebugList extends PageAdminConfiguration {
         initLayout();
     }
 
-    private <C extends Containerable> SearchConfigurationWrapper createSearchConfigWrapper(Class<C> type, QName defaultValue) {
+    private <C extends Containerable> SearchConfigurationWrapper<C> createSearchConfigWrapper(Class<C> type, QName defaultValue) {
         SearchConfigurationWrapper<C> searchConfigurationWrapper = new SearchConfigurationWrapper<C>(type);
         searchConfigurationWrapper.addAllowedMode(SearchBoxModeType.BASIC)
                 .addAllowedMode(SearchBoxModeType.ADVANCED)
                 .addAllowedMode(SearchBoxModeType.OID);
         searchConfigurationWrapper.getAllowedTypeList().addAll(getAllowedTypes());
-        return new SearchConfigurationWrapper(type);
+        return searchConfigurationWrapper;
     }
 
 //    private List<DisplayableValue<Class<? extends ObjectType>>> getAllowedTypes() {

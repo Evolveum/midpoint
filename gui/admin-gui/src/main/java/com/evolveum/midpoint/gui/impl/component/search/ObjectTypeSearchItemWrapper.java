@@ -31,14 +31,10 @@ public class ObjectTypeSearchItemWrapper extends AbstractSearchItemWrapper<QName
 
     private QName defaultObjectType;
     public ObjectTypeSearchItemWrapper(ObjectTypeSearchItemConfigurationType config) {
-        this(config.getSupportedTypes(), config.getDefaultValue(), false);
+        this(config.getSupportedTypes(), config.getDefaultValue());
     }
 
-    public ObjectTypeSearchItemWrapper(ObjectTypeSearchItemConfigurationType config, boolean allowAllTypesSearch) {
-        this(config.getSupportedTypes(), config.getDefaultValue(), allowAllTypesSearch);
-    }
-
-    public ObjectTypeSearchItemWrapper(List<QName> supportedTypeList, QName defaultObjectType, boolean allowAllTypesSearch) {
+    public ObjectTypeSearchItemWrapper(List<QName> supportedTypeList, QName defaultObjectType) {
         this.supportedTypeList = supportedTypeList;
         this.defaultObjectType = defaultObjectType;
     }

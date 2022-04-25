@@ -345,12 +345,12 @@ public class SearchFactory {
         return search;
     }
 
-    private static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearch(
+    private static <C extends Containerable> Search<C> createSearch(
             SearchConfigurationWrapper<C> searchConfigurationWrapper, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator, com.evolveum.midpoint.web.component.search.Search.PanelType panelType, boolean createDefault) {
-        SearchConfigurationWrapper searchConfWrapper;
+        SearchConfigurationWrapper<C> searchConfWrapper;
         if (createDefault) {
-            SearchConfigurationWrapper defaultWrapper = createDefaultSearchBoxConfigurationWrapper(searchConfigurationWrapper.getTypeClass(),
+            SearchConfigurationWrapper<C> defaultWrapper = createDefaultSearchBoxConfigurationWrapper(searchConfigurationWrapper.getTypeClass(),
                     discriminator, modelServiceLocator);
             searchConfWrapper = combineSearchBoxConfiguration(defaultWrapper, searchConfigurationWrapper);
         } else {
@@ -373,13 +373,10 @@ public class SearchFactory {
 //        if (searchBoxConfig.isAllowToConfigureSearchItems() != null && !searchBoxConfig.isAllowToConfigureSearchItems()) {
 //            searchConfigurationWrapper.getItemsList().forEach(item -> item.setCanConfigure(false));
 //        }
-        com.evolveum.midpoint.gui.impl.component.search.Search search =
-                new com.evolveum.midpoint.gui.impl.component.search.Search(searchConfWrapper);
-        if (ObjectType.class.isAssignableFrom(searchConfigurationWrapper.getTypeClass())) {
-            QName typeQname = WebComponentUtil.classToQName(PrismContext.get(), (Class<? extends ObjectType>) searchConfigurationWrapper.getTypeClass());
-            searchConfigurationWrapper.setAllowToConfigureSearchItems(
-                    isAllowToConfigureSearchItems(modelServiceLocator, typeQname, searchConfigurationWrapper.getCollectionViewName(), panelType));
-        }
+        Search<C> search = new Search<>(searchConfWrapper);
+        QName typeQname = WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfigurationWrapper.getTypeClass());
+        searchConfigurationWrapper.setAllowToConfigureSearchItems(
+                isAllowToConfigureSearchItems(modelServiceLocator, typeQname, searchConfigurationWrapper.getCollectionViewName(), panelType));
         return search;
     }
 
@@ -536,6 +533,10 @@ public class SearchFactory {
         if (CollectionUtils.isNotEmpty(customConfig.getAllowedTypeList())) {
             config.getAllowedTypeList().clear();
             config.getAllowedTypeList().addAll(customConfig.getAllowedTypeList());
+            if (CollectionUtils.isNotEmpty(config.getAllowedTypeList())) {
+                config.getItemsList().add(new ObjectTypeSearchItemWrapper(config.getAllowedTypeList(),
+                        WebComponentUtil.containerClassToQName(PrismContext.get(), config.getTypeClass())));
+            }
         }
         if (customConfig.getDefaultRelation() != null) {
             config.setDefaultRelation(customConfig.getDefaultRelation());
