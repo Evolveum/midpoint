@@ -238,7 +238,21 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- Actions follow here -->
+            <xsd:element name="actions" type="tns:SynchronizationActionsNewType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SynchronizationActionsNewType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Action(s) that have to be executed in specified synchronization situation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
             <xsd:element name="synchronize" type="tns:SynchronizeSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="link" type="tns:LinkSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="unlink" type="tns:UnlinkSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>

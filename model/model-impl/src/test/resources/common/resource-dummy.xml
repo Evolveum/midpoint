@@ -15,9 +15,6 @@
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
 
     <name>Dummy Resource</name>
-    <include>
-        <resourceRef oid="2d57470c-0062-4014-8c16-5c467ec66f79"/>
-    </include>
     <connectorRef type="c:ConnectorType">
         <filter>
             <q:and>
@@ -289,15 +286,21 @@
                 <reaction>
                     <situation>linked</situation>
                     <situation>deleted</situation>
-                    <synchronize/>
+                    <actions>
+                        <synchronize/>
+                    </actions>
                 </reaction>
                 <reaction>
                     <situation>unlinked</situation>
-                    <link/>
+                    <actions>
+                        <link/>
+                    </actions>
                 </reaction>
                 <reaction>
                     <situation>unmatched</situation>
-                    <addFocus/>
+                    <actions>
+                        <addFocus/>
+                    </actions>
                 </reaction>
             </synchronization>
 
@@ -354,19 +357,27 @@
             <synchronization>
                 <reaction>
                     <situation>linked</situation>
-                    <synchronize/>
+                    <actions>
+                        <synchronize/>
+                    </actions>
                 </reaction>
                 <reaction>
                     <situation>deleted</situation>
-                    <unlink/>
+                    <actions>
+                        <unlink/>
+                    </actions>
                 </reaction>
                 <reaction>
                     <situation>unlinked</situation>
-                    <link/>
+                    <actions>
+                        <link/>
+                    </actions>
                 </reaction>
                 <reaction>
                     <situation>unmatched</situation>
-                    <addFocus/>
+                    <actions>
+                        <addFocus/>
+                    </actions>
                 </reaction>
             </synchronization>
         </objectType>

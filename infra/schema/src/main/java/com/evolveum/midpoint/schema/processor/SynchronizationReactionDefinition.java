@@ -91,15 +91,19 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
     }
 
     private List<AbstractSynchronizationActionType> getAllActionBeans(@NotNull SynchronizationReactionNewType reaction) {
+        SynchronizationActionsNewType actions = reaction.getActions();
+        if (actions == null) {
+            return List.of();
+        }
         List<AbstractSynchronizationActionType> all = new ArrayList<>();
-        all.addAll(reaction.getSynchronize());
-        all.addAll(reaction.getLink());
-        all.addAll(reaction.getUnlink());
-        all.addAll(reaction.getAddFocus());
-        all.addAll(reaction.getDeleteFocus());
-        all.addAll(reaction.getInactivateFocus());
-        all.addAll(reaction.getDeleteShadow());
-        all.addAll(reaction.getInactivateShadow());
+        all.addAll(actions.getSynchronize());
+        all.addAll(actions.getLink());
+        all.addAll(actions.getUnlink());
+        all.addAll(actions.getAddFocus());
+        all.addAll(actions.getDeleteFocus());
+        all.addAll(actions.getInactivateFocus());
+        all.addAll(actions.getDeleteShadow());
+        all.addAll(actions.getInactivateShadow());
         // TODO support extensions
         return all;
     }
