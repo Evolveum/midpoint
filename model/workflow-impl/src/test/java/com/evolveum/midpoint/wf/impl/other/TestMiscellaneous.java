@@ -75,6 +75,9 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     private static final TestResource<RoleType> ROLE_TEST370 = new TestResource<>(TEST_RESOURCE_DIR, "role-test370.xml", "2c226eba-7279-4768-a34a-38392e3fcb19");
     private static final TestResource<UserType> USER_TEST370 = new TestResource<>(TEST_RESOURCE_DIR, "user-test370.xml", "a981ea50-d069-431d-86dc-f4c7dbbc4723");
 
+    private static final TestResource<RoleType> ROLE_TEST380 = new TestResource<>(TEST_RESOURCE_DIR, "role-test380.xml", "8f39e4ad-298a-4d9a-b793-56ad2f0fc7ce");
+    private static final TestResource<UserType> USER_TEST380 = new TestResource<>(TEST_RESOURCE_DIR, "user-test380.xml", "1994a4d0-4151-4260-82da-bcd1866c296a");
+
     @Override
     protected PrismObject<UserType> getDefaultActor() {
         return userAdministrator;
@@ -617,7 +620,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
      * This used to fail with an NPE - see MID-7908.
      */
     @Test
-    public void test370UnassignRoleWithMessage() throws Exception {
+    public void test370DeleteUserWithMessage() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         login(userAdministrator);
@@ -632,6 +635,29 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         then("user is gone");
         assertSuccess(result);
         assertNoObject(UserType.class, USER_TEST370.oid);
+    }
+
+    /**
+     * Deletes a user that has an assignment-related constraint with the approval action.
+     *
+     * MID-7912
+     */
+    @Test
+    public void test380DeleteUserWithApproval() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        login(userAdministrator);
+
+        given("user and role are created (in raw mode)");
+        repoAdd(ROLE_TEST380, result);
+        repoAdd(USER_TEST380, result);
+
+        when("user is deleted");
+        deleteObject(UserType.class, USER_TEST380.oid, task, result);
+
+        then("user is gone");
+        assertSuccess(result);
+        assertNoObject(UserType.class, USER_TEST380.oid);
     }
 
     /**
