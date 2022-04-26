@@ -323,6 +323,11 @@ public class SearchFactory {
         return createSearch(searchConfig, null, modelServiceLocator, com.evolveum.midpoint.web.component.search.Search.PanelType.DEFAULT, true);
     }
 
+    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearch(
+            SearchConfigurationWrapper<C> searchConfig, ModelServiceLocator modelServiceLocator, boolean combineWithDefaultConfig) {
+        return createSearch(searchConfig, null, modelServiceLocator, com.evolveum.midpoint.web.component.search.Search.PanelType.DEFAULT, true);
+    }
+
    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createMemberPanelSearch(
            SearchConfigurationWrapper<C> searchConfig, ModelServiceLocator modelServiceLocator) {
         return createSearch(searchConfig, null, modelServiceLocator, com.evolveum.midpoint.web.component.search.Search.PanelType.MEMBER_PANEL, true);
@@ -436,7 +441,7 @@ public class SearchFactory {
         if (itemDef == null) {
             return null;
         }
-        PropertySearchItemWrapper searchItemWrapper = createPropertySearchItemWrapper(type, itemDef);
+        PropertySearchItemWrapper searchItemWrapper = createPropertySearchItemWrapper(type, itemDef, item.getPath().getItemPath());
         if (StringUtils.isNotEmpty(item.getDescription())) {
             searchItemWrapper.setHelp(item.getDescription());
         }
@@ -447,9 +452,8 @@ public class SearchFactory {
     }
 
     public static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
-            ItemDefinition<?> itemDef) {
+            ItemDefinition<?> itemDef, ItemPath path) {
         PropertySearchItemWrapper itemWrapper = null;
-        ItemName path = itemDef.getItemName();
         if (itemDef instanceof PrismReferenceDefinition) {
             itemWrapper = new ReferenceSearchItemWrapper((PrismReferenceDefinition)itemDef, type);
             itemWrapper.setVisible(isFixedItem(type, path));
@@ -712,10 +716,10 @@ public class SearchFactory {
             def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
         }
 
-        List<ItemDefinition<?>> availableDefs = getSearchableDefinitionList(def, modelServiceLocator);
+        Map<ItemPath, ItemDefinition<?>> availableDefs = getSearchableDefinitionMap(def, modelServiceLocator);
 
-        availableDefs.forEach(item -> {
-            searchConfigWrapper.getItemsList().add(createPropertySearchItemWrapper(type, item));
+        availableDefs.keySet().forEach(path -> {
+            searchConfigWrapper.getItemsList().add(createPropertySearchItemWrapper(type, availableDefs.get(path), path));
         });
         if (ObjectType.class.isAssignableFrom(type)) {
             searchConfigWrapper.setTypeClass(type);
@@ -956,9 +960,9 @@ public class SearchFactory {
         return searchItemWrappers;
     }
 
-    public static <C extends Containerable> List<ItemDefinition<?>> getSearchableDefinitionList(
+    public static <C extends Containerable> Map<ItemPath, ItemDefinition<?>> getSearchableDefinitionMap(
             PrismContainerDefinition<C> containerDef, ModelServiceLocator modelServiceLocator) {
-        return getSearchableDefinitionList(containerDef, modelServiceLocator, true);
+        return getSearchableDefinitionMap(containerDef, modelServiceLocator, true);
     }
 
     /**
@@ -968,19 +972,20 @@ public class SearchFactory {
          * @param <C>
          * @return
          */
-    public static <C extends Containerable> List<ItemDefinition<?>> getSearchableDefinitionList(
+    public static <C extends Containerable> Map<ItemPath, ItemDefinition<?>> getSearchableDefinitionMap(
             PrismContainerDefinition<C> containerDef, ModelServiceLocator modelServiceLocator, boolean useDefsFromSuperclass) {
 
-        List<ItemDefinition<?>> searchableDefinitions = new ArrayList<>();
+        Map<ItemPath, ItemDefinition<?>> searchableDefinitions = new HashMap<>();
 
         if (containerDef == null) {
             return searchableDefinitions;
         }
         PrismContainerDefinition ext = containerDef.findContainerDefinition(ObjectType.F_EXTENSION);
         if (ext != null && ext.getDefinitions() != null) {
-            searchableDefinitions.addAll(((List<ItemDefinition<?>>) ext.getDefinitions()).stream()
+            List<ItemDefinition<?>> defs = ((List<ItemDefinition<?>>) ext.getDefinitions()).stream()
                     .filter(def -> (def instanceof PrismReferenceDefinition || def instanceof PrismPropertyDefinition)
-                            && isIndexed(def)).collect(Collectors.toList()));
+                            && isIndexed(def)).collect(Collectors.toList());
+            defs.forEach(def -> searchableDefinitions.put(ItemPath.create(ObjectType.F_EXTENSION, def.getItemName()), def));
         }
         Class<C> typeClass = containerDef.getCompileTimeClass();
         while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
@@ -989,7 +994,7 @@ public class SearchFactory {
                 for (ItemPath path : paths) {
                     ItemDefinition<?> def = containerDef.findItemDefinition(path);
                     if (def != null) {
-                        searchableDefinitions.add(def);
+                        searchableDefinitions.put(path, def);
                     }
                 }
             }
@@ -1104,7 +1109,7 @@ public class SearchFactory {
 //                .displayName(displayName)
 //                .path(new ItemPathType(path));
 
-        defs.add(createPropertySearchItemWrapper(containerDef.getCompileTimeClass(), propDef));
+        defs.add(createPropertySearchItemWrapper(containerDef.getCompileTimeClass(), propDef, propDef.getItemName()));
     }
 
     public static ScopeSearchItemConfigurationType createScopeSearchItem() {

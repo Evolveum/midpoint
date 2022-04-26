@@ -554,7 +554,11 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }
         item.setVisible(true);
         if (values != null && values.size() > 0) {//todo can it be there multiple values?
-            item.setValue(new SearchValue(values.get(0).getRealValue().toString()));
+            if (TextSearchItemPanel.class.equals(item.getSearchItemPanelClass())) {
+                item.setValue(new SearchValue(values.get(0).getRealValue().toString()));
+            } else {
+                item.setValue(new SearchValue(values.get(0).getRealValue()));
+            }
         }
     }
 

@@ -128,7 +128,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
             SearchItemType searchItem = new SearchItemType()
                     .path(new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def))))
                     .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(def, ResourceContentResourcePanel.this));
-            itemsList.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class, def));
+            itemsList.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class, def, ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def))));
         }
 
         return itemsList;
