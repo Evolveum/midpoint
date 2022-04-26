@@ -77,7 +77,8 @@ public class PasswordPanel extends InputPanel {
     private static final String ID_PASSWORD_REMOVE = "passwordRemove";
     private static final String ID_CHANGE_PASSWORD_LINK = "changePasswordLink";
     private static final String ID_REMOVE_PASSWORD_LINK = "removePasswordLink";
-    private static final String ID_REMOVE_BUTTON_CONTAINER = "removeButtonContainer";
+
+    private static final String ID_BUTTON_BAR = "buttonBar";
     private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_PASSWORD_TWO = "password2";
@@ -88,6 +89,8 @@ public class PasswordPanel extends InputPanel {
     private static boolean clearPasswordInput = false;
     private static boolean setPasswordInput = false;
     private final IModel<ProtectedStringType> model;
+
+    private boolean isReadOnly;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model) {
         this(id, model, false, model == null || model.getObject() == null);
@@ -106,7 +109,8 @@ public class PasswordPanel extends InputPanel {
         super(id);
         this.passwordInputVisible = isInputVisible;
         this.model = model;
-        initLayout(isReadOnly, object);
+        this.isReadOnly = isReadOnly;
+        initLayout(object);
     }
 
     @Override
@@ -114,7 +118,7 @@ public class PasswordPanel extends InputPanel {
         super.onInitialize();
     }
 
-    private <F extends FocusType> void initLayout(final boolean isReadOnly, PrismObject<F> object) {
+    private <F extends FocusType> void initLayout(PrismObject<F> object) {
         setOutputMarkupId(true);
 
         final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER);
@@ -226,6 +230,10 @@ public class PasswordPanel extends InputPanel {
         passwordRemoveLabel.setVisible(false);
         linkContainer.add(passwordRemoveLabel);
 
+        WebMarkupContainer buttonBar = new WebMarkupContainer(ID_BUTTON_BAR);
+        buttonBar.add(new VisibleBehaviour(() -> isChangePasswordVisible() || isRemovePasswordVisible()));
+        add(buttonBar);
+
         AjaxLink<Void> link = new AjaxLink<>(ID_CHANGE_PASSWORD_LINK) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -233,16 +241,11 @@ public class PasswordPanel extends InputPanel {
                 setPasswordInput = false;
                 onLinkClick(target);
             }
-
-            @Override
-            public boolean isVisible() {
-                return !passwordInputVisible && model != null && model.getObject() != null;
-            }
         };
-        link.add(new VisibleBehaviour(() -> !isReadOnly));
+        link.add(new VisibleBehaviour(() -> isChangePasswordVisible()));
         link.setBody(new ResourceModel("passwordPanel.passwordChange"));
         link.setOutputMarkupId(true);
-        add(link);
+        buttonBar.add(link);
 
         AjaxLink<Void> removePassword = new AjaxLink<>(ID_REMOVE_PASSWORD_LINK) {
             @Override
@@ -250,25 +253,28 @@ public class PasswordPanel extends InputPanel {
                 onRemovePassword(model, target);
             }
         };
-        removePassword.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                // todo wrong code, panel should be stupid, it must not know about different pages and subpages...
-                PageBase pageBase = getPageBase();
-                if (pageBase == null) {
-                    return false;
-                }
-                if (pageBase instanceof PageUserSelfProfile || pageBase instanceof PageOrgSelfProfile
-                        || pageBase instanceof PageRoleSelfProfile || pageBase instanceof PageServiceSelfProfile) {
-                    return false;
-                }
-                return pageBase instanceof PageFocusDetails && !((PageFocusDetails) pageBase).isLoggedInFocusPage()
-                        && model.getObject() != null;
-            }
-        });
+        removePassword.add(new VisibleBehaviour(() -> isRemovePasswordVisible()));
         removePassword.setBody(new ResourceModel("passwordPanel.passwordRemove"));
         removePassword.setOutputMarkupId(true);
-        add(removePassword);
+        buttonBar.add(removePassword);
+    }
+
+    private boolean isChangePasswordVisible() {
+        return !isReadOnly && !passwordInputVisible && model != null && model.getObject() != null;
+    }
+
+    private boolean isRemovePasswordVisible() {
+        // todo wrong code, panel should be stupid, it must not know about different pages and subpages...
+        PageBase pageBase = getPageBase();
+        if (pageBase == null) {
+            return false;
+        }
+        if (pageBase instanceof PageUserSelfProfile || pageBase instanceof PageOrgSelfProfile
+                || pageBase instanceof PageRoleSelfProfile || pageBase instanceof PageServiceSelfProfile) {
+            return false;
+        }
+        return pageBase instanceof PageFocusDetails && !((PageFocusDetails) pageBase).isLoggedInFocusPage()
+                && model.getObject() != null;
     }
 
     private String initPasswordValidation() {
