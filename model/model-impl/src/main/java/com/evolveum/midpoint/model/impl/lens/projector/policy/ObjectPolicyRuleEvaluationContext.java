@@ -20,7 +20,9 @@ import java.util.Collection;
 /**
  * Evaluation context for object-based policy rule.
  */
-public class ObjectPolicyRuleEvaluationContext<AH extends AssignmentHolderType> extends PolicyRuleEvaluationContext<AH> {
+public class ObjectPolicyRuleEvaluationContext<AH extends AssignmentHolderType>
+        extends PolicyRuleEvaluationContext<AH>
+        implements Cloneable {
 
     ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx,
             LensContext<AH> context, Task task) {

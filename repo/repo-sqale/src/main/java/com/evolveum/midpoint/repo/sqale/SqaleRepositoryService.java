@@ -1671,11 +1671,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .build();
 
         try {
-            if (request.getImplementationLevelQuery() != null) {
-                throw new UnsupportedOperationException(
-                        "Only midPoint query diagnostics is supported for Native repository");
-            }
-
             ObjectQuery query = request.getQuery();
             query = simplifyQuery(query);
             if (isNoneQuery(query)) {
@@ -1694,7 +1689,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
-    private <S extends ObjectType, Q extends FlexibleRelationalPathBase<R>, R> RepositoryQueryDiagResponse
+    private <S extends Containerable, Q extends FlexibleRelationalPathBase<R>, R> RepositoryQueryDiagResponse
     executeExecuteQueryDiagnostics(RepositoryQueryDiagRequest request, @NotNull Class<S> type)
             throws RepositoryException, SchemaException {
         long opHandle = registerOperationStart(OP_EXECUTE_QUERY_DIAGNOSTICS, (Class<? extends Containerable>) null);
@@ -1720,7 +1715,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 result = context.executeQuery(jdbcSession);
                 PageOf<S> transformedResult = context.transformToSchemaType(result, jdbcSession);
                 //noinspection unchecked
-                resultList = transformedResult.map(o -> (PrismObject<S>) o.asPrismObject()).content();
+                resultList = transformedResult.map(o -> (PrismContainerValue<S>) o.asPrismContainerValue()).content();
             } catch (RuntimeException e) {
                 if (e != SimulatedSqlQuery.SIMULATION_EXCEPTION) {
                     throw e; // OK, this was unexpected, so rethrow it
@@ -1817,7 +1812,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 ObjectQueryUtil.assertPropertyOnly(specFilter, logMessagePrefix + " filter is not property-only filter");
             }
             try {
-                if (!ObjectQuery.match(object, specFilter, sqlRepoContext.matchingRuleRegistry())) {
+                if (specFilter != null
+                        && !ObjectQuery.match(object, specFilter, sqlRepoContext.matchingRuleRegistry())) {
                     logger.trace("{} object OID {}", logMessagePrefix, object.getOid());
                     return false;
                 }
