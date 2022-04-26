@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -114,14 +116,9 @@ public class PasswordPanel extends InputPanel {
 
     private <F extends FocusType> void initLayout(final boolean isReadOnly, PrismObject<F> object) {
         setOutputMarkupId(true);
-        final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER) {
-            private static final long serialVersionUID = 1L;
 
-            @Override
-            public boolean isVisible() {
-                return passwordInputVisible;
-            }
-        };
+        final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER);
+        inputContainer.add(new VisibleBehaviour(() -> passwordInputVisible));
         inputContainer.setOutputMarkupId(true);
         add(inputContainer);
 
@@ -216,19 +213,13 @@ public class PasswordPanel extends InputPanel {
             }
         });
 
-        final WebMarkupContainer linkContainer = new WebMarkupContainer(ID_LINK_CONTAINER) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !passwordInputVisible;
-            }
-        };
-        inputContainer.setOutputMarkupId(true);
+        final WebMarkupContainer linkContainer = new WebMarkupContainer(ID_LINK_CONTAINER);
+        linkContainer.add(new VisibleBehaviour(() -> !passwordInputVisible));
         linkContainer.setOutputMarkupId(true);
         add(linkContainer);
 
         final Label passwordSetLabel = new Label(ID_PASSWORD_SET, new ResourceModel("passwordPanel.passwordSet"));
+        passwordSetLabel.setRenderBodyOnly(true);
         linkContainer.add(passwordSetLabel);
 
         final Label passwordRemoveLabel = new Label(ID_PASSWORD_REMOVE, new ResourceModel("passwordPanel.passwordRemoveLabel"));
@@ -248,28 +239,21 @@ public class PasswordPanel extends InputPanel {
                 return !passwordInputVisible && model != null && model.getObject() != null;
             }
         };
-        link.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !isReadOnly;
-
-            }
-        });
+        link.add(new VisibleBehaviour(() -> !isReadOnly));
         link.setBody(new ResourceModel("passwordPanel.passwordChange"));
         link.setOutputMarkupId(true);
-        linkContainer.add(link);
+        add(link);
 
-        final WebMarkupContainer removeButtonContainer = new WebMarkupContainer(ID_REMOVE_BUTTON_CONTAINER);
         AjaxLink<Void> removePassword = new AjaxLink<>(ID_REMOVE_PASSWORD_LINK) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onRemovePassword(model, target);
             }
-
         };
         removePassword.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
+                // todo wrong code, panel should be stupid, it must not know about different pages and subpages...
                 PageBase pageBase = getPageBase();
                 if (pageBase == null) {
                     return false;
@@ -284,8 +268,7 @@ public class PasswordPanel extends InputPanel {
         });
         removePassword.setBody(new ResourceModel("passwordPanel.passwordRemove"));
         removePassword.setOutputMarkupId(true);
-        removeButtonContainer.add(removePassword);
-        add(removeButtonContainer);
+        add(removePassword);
     }
 
     private String initPasswordValidation() {

@@ -93,11 +93,15 @@
     //  background-color: $table-stripe-bg-color;
     //}
   }
-
 }
 
-.property-stripe:nth-of-type(odd) {
-  background-color: $table-stripe-bg-color;
+.property-stripe {
+  padding-top: map-get($spacers, 1);
+  padding-bottom: map-get($spacers, 1);
+
+  &:nth-of-type(odd) {
+    background-color: $table-stripe-bg-color;
+  }
 }
 
 .prism-header {
@@ -113,14 +117,11 @@
 }
 
 .prism-property {
-  padding-top: 5px;
-  padding-bottom: 5px;
 }
 
 .prism-property-label { //padding because expand collapse button, which have 37px
   padding-left: 20px;
   word-wrap:break-word;
-  padding-top: 5px;
 }
 
 .prism-value { // DEPRECATED: rework the prism-value vs prism-property-value later
