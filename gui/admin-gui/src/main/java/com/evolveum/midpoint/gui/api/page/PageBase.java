@@ -599,7 +599,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public static String createEnumResourceKey(Enum<?> e) {
-        return e.getDeclaringClass().getSimpleName() + "." + e.name();
+        return WebComponentUtil.createEnumResourceKey(e);
     }
 
     public Task createAnonymousTask(String operation) {

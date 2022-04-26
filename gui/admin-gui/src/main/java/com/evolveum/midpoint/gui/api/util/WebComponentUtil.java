@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.util;
 
+import static com.evolveum.midpoint.gui.api.page.PageBase.createEnumResourceKey;
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.toModelExecutionOptionsBean;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPhase;
@@ -1038,11 +1039,20 @@ public final class WebComponentUtil {
         return concreteTypes;
     }
 
+    public static <T extends Enum> String createEnumResourceKey(T value) {
+        if (value == null) {
+            return null;
+        }
+
+        return value.getClass().getSimpleName() + "." + value.name();
+    }
+
     public static <T extends Enum> IModel<String> createLocalizedModelForEnum(T value, Component comp) {
+        String key = createEnumResourceKey(value);
         if (value == null) {
             return Model.of("");
         }
-        String key = value.getClass().getSimpleName() + "." + value.name();
+
         return new StringResourceModel(key, comp, null);
     }
 
