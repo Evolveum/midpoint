@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createDistinct;
@@ -16,8 +15,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +28,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -50,9 +51,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
@@ -81,9 +79,11 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
         },
         action = {
                 @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
-                        label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL, description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+                        label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL,
+                        description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_REPOSITORY_QUERY_URL,
-                        label = "PageRepositoryQuery.auth.query.label", description = "PageRepositoryQuery.auth.query.description")
+                        label = "PageRepositoryQuery.auth.query.label",
+                        description = "PageRepositoryQuery.auth.query.description")
         })
 public class PageRepositoryQuery extends PageAdminConfiguration {
 
@@ -166,7 +166,8 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         boolean admin;
         try {
             admin = isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException
+                | CommunicationException | ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine admin authorization -- continuing as non-admin", e);
             admin = false;
         }
@@ -174,7 +175,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     }
 
     private void initLayout() {
-        Form mainForm = new MidpointForm(ID_MAIN_FORM);
+        Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
         Label repositoryQueryLabel = new Label(ID_REPOSITORY_QUERY_LABEL, createStringResource("PageRepositoryQuery.midPoint",
@@ -196,7 +197,9 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         });
         mainForm.add(objectTypeChoice);
 
-        CheckFormGroup distinctCheck = new CheckFormGroup(ID_DISTINCT, new PropertyModel<>(model, RepoQueryDto.F_DISTINCT), createStringResource("PageRepositoryQuery.checkBox.distinct"), "col-xs-3", "col-xs-1");
+        CheckFormGroup distinctCheck = new CheckFormGroup(
+                ID_DISTINCT, new PropertyModel<>(model, RepoQueryDto.F_DISTINCT),
+                createStringResource("PageRepositoryQuery.checkBox.distinct"), "col-xs-3", "col-xs-1");
         mainForm.add(distinctCheck);
 
         AceEditor editorMidPoint = new AceEditor(ID_EDITOR_MIDPOINT, new PropertyModel<>(model, RepoQueryDto.F_MIDPOINT_QUERY));
@@ -250,7 +253,8 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         dataLanguagePanel.setOutputMarkupId(true);
         mainForm.add(dataLanguagePanel);
 
-        AjaxSubmitButton executeMidPoint = new AjaxSubmitButton(ID_EXECUTE_MIDPOINT, createStringResource("PageRepositoryQuery.button.translateAndExecute")) {
+        AjaxSubmitButton executeMidPoint = new AjaxSubmitButton(ID_EXECUTE_MIDPOINT,
+                createStringResource("PageRepositoryQuery.button.translateAndExecute")) {
             @Override
             protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
@@ -276,7 +280,8 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         };
         midPointQueryButtonBar.add(compileMidPoint);
 
-        AjaxSubmitButton useInObjectList = new AjaxSubmitButton(ID_USE_IN_OBJECT_LIST, createStringResource("PageRepositoryQuery.button.useInObjectList")) {
+        AjaxSubmitButton useInObjectList = new AjaxSubmitButton(ID_USE_IN_OBJECT_LIST,
+                createStringResource("PageRepositoryQuery.button.useInObjectList")) {
             @Override
             protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
@@ -382,11 +387,15 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     }
 
     private IModel<String> createCompileMidpointLabelModel() {
-        return isNativeRepo() ? createStringResource("PageRepositoryQuery.button.translate.SQL") : createStringResource("PageRepositoryQuery.button.translate");
+        return isNativeRepo()
+                ? createStringResource("PageRepositoryQuery.button.translate.SQL")
+                : createStringResource("PageRepositoryQuery.button.translate");
     }
 
     private IModel<String> createQueryLabelModel() {
-        return isNativeRepo() ? createStringResource("PageRepositoryQuery.sqlQuery") : createStringResource("PageRepositoryQuery.hibernateQuery");
+        return isNativeRepo()
+                ? createStringResource("PageRepositoryQuery.sqlQuery")
+                : createStringResource("PageRepositoryQuery.hibernateQuery");
     }
 
     private void useInObjectListPerformed(AjaxRequestTarget target) {
@@ -399,7 +408,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         Task task = createSimpleTask(OPERATION_CHECK_QUERY);
         OperationResult result = task.getResult();
         try {
-            updateRequestWithMidpointQuery(request, dto.getObjectType(), queryText, dto.isDistinct(), task, result);            // just to parse the query
+            updateRequestWithMidpointQuery(request, dto.getObjectType(), queryText, dto.isDistinct(), task, result); // just to parse the query
 
             ObjectFilter parsedFilter = request.getQuery().getFilter();
             String filterAsString;
@@ -411,7 +420,9 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 filterAsString = "";
             }
 
-            Class<? extends PageBase> listPageClass = WebComponentUtil.getObjectListPage(request.getType());
+            // TODO add containerable option too (or split the code sooner?)
+            //noinspection unchecked
+            Class<? extends PageBase> listPageClass = WebComponentUtil.getObjectListPage((Class<? extends ObjectType>) request.getType());
             String storageKey = listPageClass != null ? WebComponentUtil.getObjectListPageStorageKey(dto.getObjectType().getLocalPart()) : null;
             if (storageKey == null) {
                 // shouldn't occur because of button visibility
@@ -419,7 +430,9 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 target.add(getFeedbackPanel());
                 return;
             }
-            Search search = SearchFactory.createSearch(request.getType(), this);
+            // TODO add containerable option too
+            //noinspection unchecked
+            Search<?> search = SearchFactory.createSearch((Class<? extends ObjectType>) request.getType(), this);
             search.setAdvancedQuery(filterAsString);
             search.setSearchType(SearchBoxModeType.ADVANCED);
             if (!search.isAdvancedQueryValid(getPrismContext())) {
@@ -484,7 +497,9 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
                 if (action != Action.TRANSLATE_ONLY) {
                     // not an admin, so have to fetch objects via model
-                    queryResult = getModelService().searchObjects(request.getType(), request.getQuery(),
+                    // TODO add containerable option too
+                    //noinspection unchecked
+                    queryResult = getModelService().searchObjects((Class<? extends ObjectType>) request.getType(), request.getQuery(),
                             createRawCollection(), task, result);
                 } else {
                     queryResult = null;
