@@ -141,7 +141,7 @@ public class ModelDiagController implements ModelDiagnosticService {
         OperationResult result = parentResult.createSubresult(EXECUTE_REPOSITORY_QUERY);
         try {
             boolean isAdmin;
-            if (request.getImplementationLevelQuery() == null && request.isTranslateOnly()) {
+            if (request.isTranslateOnly()) {
                 // special case - no hibernate query and translate-only: does not require authorization
                 isAdmin = false;
             } else {

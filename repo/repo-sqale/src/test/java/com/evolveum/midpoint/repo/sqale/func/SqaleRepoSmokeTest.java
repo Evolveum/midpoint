@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.func;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase.DEFAULT_SCHEMA_NAME;
 
 import java.sql.SQLException;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
@@ -499,7 +501,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         then("query is executed and low-level info returned");
         assertThat(response).isNotNull();
         assertThat(response.getQueryResult()).hasSize(1)
-                .extracting(o -> ((PrismObject<?>) o).asObjectable().getName().getOrig())
+                .extracting(o -> ((PrismObjectValue<?>) o).asObjectable().getName().getOrig())
                 .containsExactly(name);
         assertThat(response.getImplementationLevelQuery()).asString()
                 .isEqualToIgnoringWhitespace("select u.oid, u.fullObject from m_user u"
@@ -535,6 +537,43 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                         + " limit ?");
 
         assertThat(queryRecorder.getQueryBuffer()).isEmpty();
+    }
+
+    @Test
+    public void test505ExecuteQueryDiagnosticsContainerSearch() {
+        OperationResult result = createOperationResult();
+
+        given("diag request with container search");
+        queryRecorder.clearBufferAndStartRecording();
+        RepositoryQueryDiagRequest request = new RepositoryQueryDiagRequest();
+        request.setType(AssignmentType.class);
+        request.setQuery(prismContext.queryFor(AssignmentType.class)
+                .not().item(AssignmentType.F_METADATA, MetadataType.F_CREATOR_REF,
+                        T_OBJECT_REFERENCE, UserType.F_NAME)
+                .isNull()
+                .asc(AssignmentType.F_METADATA, MetadataType.F_CREATOR_REF,
+                        T_OBJECT_REFERENCE, UserType.F_NAME)
+                .build());
+
+        when("executeQueryDiagnostics is called with query");
+        RepositoryQueryDiagResponse response = repositoryService.executeQueryDiagnostics(request, result);
+
+        then("query is translated");
+        assertThat(response).isNotNull();
+        assertThat(response.getQueryResult()).isNullOrEmpty();
+        assertThat(response.getImplementationLevelQuery()).asString()
+                // contains, I don't care about select part here
+                .containsIgnoringWhitespaces("from m_assignment a\n"
+                        + "left join m_user u\n"
+                        + "on a.creatorRefTargetOid = u.oid\n"
+                        // TODO this second join is wrong
+                        + "left join m_user u2\n"
+                        + "on a.creatorRefTargetOid = u2.oid\n"
+                        + "where not (u.nameNorm is null and u.nameOrig is null)\n"
+                        + "order by u2.nameOrig asc");
+        // TODO split to two tests - one for container, one for reusing join for order (which can be also tested on object, BTW)
+
+        assertThat(queryRecorder.getQueryBuffer()).hasSize(1);
     }
 
     @Test
