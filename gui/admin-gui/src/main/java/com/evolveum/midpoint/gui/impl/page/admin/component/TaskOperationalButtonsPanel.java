@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
+import static com.evolveum.midpoint.prism.Referencable.getOid;
+
 import static java.util.Collections.singletonList;
 
 import java.io.InputStream;
@@ -68,6 +70,9 @@ import com.evolveum.midpoint.web.page.admin.server.LivesyncTokenEditorPanel;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButtonsPanel<TaskType> {
 
@@ -434,16 +439,34 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
 
     private String getReportDataOid() {
         PrismObject<TaskType> task = getObjectType().asPrismObject();
-        PrismReference reportData = task.findReference(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_DATA_PROPERTY_NAME));
-        if (reportData == null || reportData.getRealValue() == null || reportData.getRealValue().getOid() == null) {
-            PrismProperty<String> reportOutputOid = task.findProperty(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME));
-            if (reportOutputOid == null) {
-                return null;
-            }
+        PrismReference reportData = task.findReference(
+                ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_DATA_PROPERTY_NAME));
+        if (reportData != null && reportData.getRealValue() != null && reportData.getRealValue().getOid() != null) {
+            return reportData.getRealValue().getOid();
+        }
+        PrismProperty<String> reportOutputOid = task.findProperty(
+                ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME));
+        if (reportOutputOid != null) {
             return reportOutputOid.getRealValue();
         }
+        return getReportDataOidFromImportActivity(task.asObjectable());
+    }
 
-        return reportData.getRealValue().getOid();
+    /** An approximate version for now: assumes that the report activity is the root one. */
+    private @Nullable String getReportDataOidFromImportActivity(@NotNull TaskType task) {
+        ActivityDefinitionType activity = task.getActivity();
+        if (activity == null) {
+            return null;
+        }
+        WorkDefinitionsType work = activity.getWork();
+        if (work == null) {
+            return null;
+        }
+        ClassicReportImportWorkDefinitionType reportImport = work.getReportImport();
+        if (reportImport == null) {
+            return null;
+        }
+        return getOid(reportImport.getReportDataRef());
     }
 
     private void createRefreshNowIconButton(RepeatingView repeatingView) {
