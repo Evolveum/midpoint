@@ -33,9 +33,9 @@ public class CheckBoxPanel extends Panel {
     private static final String ID_CHECK = "check";
     private static final String ID_LABEL = "label";
 
-    IModel<Boolean> checkboxModel;
-    IModel<String> labelModel;
-    IModel<String> tooltipModel;
+    private IModel<Boolean> checkboxModel;
+    private IModel<String> labelModel;
+    private IModel<String> tooltipModel;
 
     public CheckBoxPanel(String id, IModel<Boolean> checkboxModel) {
         this(id, checkboxModel, null, null);
@@ -74,8 +74,8 @@ public class CheckBoxPanel extends Panel {
         container.add(check);
 
         Label label = new Label(ID_LABEL, labelModel);
+        label.add(AttributeModifier.replace("for", (IModel<String>) () -> check.getMarkupId()));
         label.add(new VisibleBehaviour(() -> labelModel != null));
-        label.setRenderBodyOnly(true);
         container.add(label);
 
         if (tooltipModel != null) {
@@ -83,7 +83,7 @@ public class CheckBoxPanel extends Panel {
         }
     }
 
-    private AjaxCheckBox getPanelComponent() {
+    public AjaxCheckBox getPanelComponent() {
         return (AjaxCheckBox) get(ID_CONTAINER).get(ID_CHECK);
     }
 

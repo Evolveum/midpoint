@@ -17,6 +17,7 @@
 @import "icon-style";
 @import "prism-forms";
 @import "midpoint-utils";
+@import "details-menu";
 
 //@import "midpoint/prism-container";
 //@import "midpoint/wizard";
@@ -1805,197 +1806,6 @@ td .prism-property-value {
   font-size: 10px;
 }
 
-//Expanded
-//$media screen and (min-width: $screen-lg) {
-  .details-menu {
-    height: 100%;
-    width: 100%;
-    //position: fixed;
-    z-index: 1;
-    //top: 0;
-    right: 0;
-    overflow-x: hidden;
-    padding-top: 16px;
-
-    & > li.navigation-details {
-      list-style: none;
-      margin: 0px 10px 0px 5px;
-
-      .navigation-details {
-        display: none;
-
-        &.active {
-          background-color: #eeeeee;  //TODO: change to constant
-        }
-        //&.open {
-        //  display: block;
-        //}
-      }
-
-      &.active {
-        background-color: #eeeeee;  //TODO change to constant
-        list-style: none;
-
-        .navigation-details {
-          display: block;
-        }
-      }
-      &.open {
-        display: block;
-
-        .navigation-details {
-          display: block;
-        }
-
-        > a > .pull-right-container > .fa-angle-left {
-          //@include rotate(-90deg);
-        }
-      }
-    }
-
-    .details-menu {
-      padding-top: 0px;
-      background-color: $sidebar-light-submenu-bg;
-    }
-  }
-//}
-
-//Collapsed
-//@media screen and (max-width: $screen-lg-min) {
-//  .details-menu {
-//    height: 100%;
-//    width: 100%;
-//    //position: fixed;
-//    z-index: 1;
-//    right: 0;
-//    background-color: $sidebar-light-bg;
-//    overflow-x: hidden;
-//    padding-top: 16px;
-//
-//    > li.navigation-details {
-//      list-style: none;
-//      margin: 0px 10px 0px 5px;
-//
-//      > a > i {
-//        width: 100%;
-//      }
-//
-//      & .pull-right-container {
-//        display: none;
-//      }
-//    }
-//
-//    > li.navigation-details:hover {
-//      > a > .details-menu-label:first-of-type {
-//        display: block !important;
-//        right: 132px;
-//        position: absolute;
-//        list-style: none;
-//        margin-top: -20px;
-//        background-color: inherit;
-//      }
-//
-//
-//
-//      .details-menu {
-//        display: block !important;
-//        right: 132px;
-//        position: absolute;
-//        list-style: none;
-//
-//        .navigation-details {
-//          display: block;
-//
-//          & a > .details-menu-label {
-//            display: block;
-//          }
-//        }
-//      }
-//
-//      //  margin: 0px 10px 0px 5px;
-//    }
-//
-//    //& > li.navigation-details {
-//    //  list-style: none;
-//    //  margin: 0px 10px 0px 5px;
-//    //
-//    //  .navigation-details {
-//    //    display: none;
-//    //  }
-//
-//      //&:hover {
-//      //  .details-menu {
-//      //
-//      //
-//      //    .navigation-details {
-//      //      display: block;
-//      //    }
-//      //
-//      //    .details-menu-label {
-//      //      display: block;
-//      //    }
-//      //  }
-//      //
-//      //  .details-menu a >
-//      //  .details-menu-label {
-//      //    display: block;
-//      //  }
-//      //}
-//
-//      //&.active {
-//      //  background-color: #eeeeee;
-//      //  list-style: none;
-//      //
-//      //  .navigation-details {
-//      //    display: block;
-//      //  }
-//      //}
-//    //}
-//
-//    .details-menu {
-//      padding-top: 0px;
-//    }
-//  }
-//}
-
-//@media screen and (max-width: $screen-lg-min) {
-//  .details-menu a >
-//  .details-menu-label {
-//    display: none;
-//  }
-//}
-
-
-.details-menu a {
-  padding: 6px 8px 6px 5px;
-  text-decoration: none;
-  font-size: 15px;
-  color: $sidebar-light-color;
-  display: block;
-  cursor: pointer;
-
-  & > i {
-    padding-right: 5px;
-
-    &.fa {
-      width: 20px;
-    }
-
-    &.fe {
-      width: 20px;
-    }
-  }
-}
-
-.details-menu a:hover {
-  color: $sidebar-light-hover-color;
-  background-color: $sidebar-light-hover-bg;
-}
-
-ul.details-menu {
-  padding-inline-start: 13px;
-}
-
 .navigation-details {
 
   .navigation-details {
@@ -2037,20 +1847,10 @@ fieldset.objectButtons {
 }
 
 .execute-options {
-  padding-left: 13px;
-  right: initial;
-  width: 202px;
-
   &.radio input[type=radio] {
     margin-left: 0px;
     display: block;
   }
-}
-
-.execute-options-label {
-  display: inline;
-  margin-left: 5px;
-  font-weight: 400;
 }
 
 .details-panel {
@@ -2148,4 +1948,10 @@ th.sortable {
 
 th:not(.sortable) > .icon {
   display: none;
+}
+
+// negative margin for column gutters (this can be much more nicely done in newer boostrap 5.*, not very nice in 4.6)
+.gx-0 {
+  margin-right: $grid-gutter-width * -0.5;
+  margin-left: $grid-gutter-width * -0.5;
 }

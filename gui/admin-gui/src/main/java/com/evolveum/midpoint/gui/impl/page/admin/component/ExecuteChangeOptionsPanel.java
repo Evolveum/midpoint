@@ -113,19 +113,11 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
 
                     @Override
                     public void onUpdate(AjaxRequestTarget target) {
-                        getOptionsButtonPanel().visitChildren(new IVisitor<Component, Object>() {
-                            @Override
-                            public void component(Component component, IVisit<Object> objectIVisit) {
-                                if (component instanceof CheckBoxPanel) {
-                                    target.add(component);
-                                }
-                            }
-                        });
-//                        checkboxMenuItem.getCheckBoxModel().setObject(!checkboxMenuItem.getCheckBoxModel().getObject());
+                        target.add(this.getPanelComponent());
                     }
                 };
                 panel.add(new EnableBehaviour(() -> isOptionEnabled(model, checkboxMenuItem)));
-                panel.setOutputMarkupId(true);
+                panel.setRenderBodyOnly(true);
                 menuItem.add(panel);
             }
 
@@ -138,14 +130,9 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
             protected String getSpecialDropdownMenuClass() {
                 return "execute-options";
             }
-
-            @Override
-            protected String getSpecialLabelClass() {
-                return "execute-options-label";
-            }
         };
         add(dropdownButtonPanel);
-        dropdownButtonPanel.setOutputMarkupId(true);
+        dropdownButtonPanel.setRenderBodyOnly(true);
     }
 
     private DropdownButtonPanel getOptionsButtonPanel() {
@@ -199,11 +186,6 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
            @Override
            protected String getSpecialDropdownMenuClass() {
                return "execute-options radio";
-           }
-
-           @Override
-           protected String getSpecialLabelClass() {
-               return "execute-options-label";
            }
        };
        add(dropdownButtonPanel);
