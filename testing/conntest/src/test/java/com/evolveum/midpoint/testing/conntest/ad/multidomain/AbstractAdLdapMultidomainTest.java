@@ -2204,9 +2204,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
 //        assertLdapConnectorInstances(2);
     }
 
-    // DISABLED because we do not know how to properly configure sync privileges in a AD forrest.
-    // More experiments are needed, but only after we migrate our old AD servers.
-    @Test(enabled = false)
+    @Test
     public void test900ImportSyncTask() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -2229,9 +2227,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         assertStepSyncToken(getSyncTaskOid(), 0, tsStart, tsEnd);
     }
 
-    // DISABLED because we do not know how to properly configure sync privileges in a AD forrest.
-    // More experiments are needed, but only after we migrate our old AD servers.
-    @Test(enabled = false)
+    @Test
     public void test901SyncAddAccountHt() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -2267,7 +2263,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
                 (String) getRootSyncTokenRealValueRequired(task.getRawTaskObjectClonedIfNecessary().asObjectable());
         assertThat(StringUtils.isBlank(tokenRealValue))
                 .as("Empty sync token value")
-                .isTrue();
+                .isFalse();
         assertSuccess(result);
     }
 

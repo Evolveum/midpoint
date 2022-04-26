@@ -206,7 +206,7 @@
         <quartz.version>2.3.2.e3</quartz.version>
         <selenium.version>3.141.59</selenium.version>
         <slf4j.version>1.7.30</slf4j.version>
-        <logback.version>1.2.3e1</logback.version>
+        <logback.version>1.2.11</logback.version>
         <spring-security.version>5.6.0</spring-security.version>
         <opensaml.version>4.1.1</opensaml.version>
         <cache2k.version>2.0.0.Final</cache2k.version>
@@ -215,7 +215,7 @@
         <xmlunit.version>2.8.2</xmlunit.version>
         <hibernate.version>5.5.3.Final</hibernate.version>
         <!--
-        Default Spring Boot 2.4.3 uses H2 1.4.200 but that one has NPE bug:
+        Default Spring Boot 2.6.6 uses H2 1.4.200 but that one has NPE bug:
         https://github.com/h2database/h2database/issues/1808
         Sometimes occurs on heavy concurrent test, e.g. on TestDummyParallelism, but also during app run.
         This bug was introduced in 1.4.198, which was major version that also changed queries in OrgClosureManager.

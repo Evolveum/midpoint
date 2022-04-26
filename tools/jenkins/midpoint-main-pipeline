@@ -34,7 +34,7 @@ podTemplate(
 	                        mvn --version
 			            fi
 
-				        mvn clean install -P -dist -DskipTests
+				        mvn clean deploy -P -dist -DskipTests -DdeployAtEnd=true
                     """
                 } catch (err) {
                     echo "Caught: ${err}"
@@ -45,7 +45,7 @@ podTemplate(
         stage("tests-default") {
             container('maven') {
                 try {
-                    sh """mvn verify"""
+                    sh """mvn verify -Dmaven.test.failure.ignore=true"""
                 } catch (err) {
                     echo "Caught: ${err}"
                     currentBuild.result = 'FAILURE'
@@ -58,7 +58,7 @@ podTemplate(
             container('maven') {
                 try {
                     sh """
-                        mvn verify -P extratest -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+                        mvn verify -Dmaven.test.failure.ignore=true -P extratest -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
                     """
                 } catch (err) {
                     echo "Caught: ${err}"
