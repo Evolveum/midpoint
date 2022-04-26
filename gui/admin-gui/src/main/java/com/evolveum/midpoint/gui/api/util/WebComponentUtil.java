@@ -5257,13 +5257,16 @@ public final class WebComponentUtil {
     }
 
     public static List<DisplayableValue<?>> getAllowedValues(SearchFilterParameterType parameter, PageBase pageBase) {
+        if (parameter == null || parameter.getAllowedValuesExpression() == null) {
+            return new ArrayList<>();
+        }
+        return getAllowedValues(parameter.getAllowedValuesExpression(), pageBase);
+    }
+
+    public static List<DisplayableValue<?>> getAllowedValues(ExpressionType expression, PageBase pageBase) {
         List<DisplayableValue<?>> allowedValues = new ArrayList<>();
 
-        if (parameter == null || parameter.getAllowedValuesExpression() == null) {
-            return allowedValues;
-        }
         Task task = pageBase.createSimpleTask("evaluate expression for allowed values");
-        ExpressionType expression = parameter.getAllowedValuesExpression();
         Object value = null;
         try {
 

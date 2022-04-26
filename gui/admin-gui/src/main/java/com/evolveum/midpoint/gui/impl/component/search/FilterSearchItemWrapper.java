@@ -24,23 +24,38 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchFilterParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(FilterSearchItemWrapper.class);
-    private SearchItemType searchItem;
+    private SearchFilterType filter;
+    private ExpressionType filterExpression;
+    private String name;
+    private String help;
+    private QName filterParameterType;
+    private String filterParameterName;
+    private ExpressionType allowedValuesExpression;
+    private String allowedValuesLookupTableOid;
     private Class<? extends Containerable> typeClass;
 
     public FilterSearchItemWrapper(SearchItemType searchItem, Class<? extends Containerable> typeClass) {
-        this.searchItem = searchItem;
+        this.filter = searchItem.getFilter();
+        filterExpression = searchItem.getFilterExpression();
+        initName(searchItem);
+        initHelp(searchItem);
         this.typeClass = typeClass;
+        if (searchItem.getParameter() != null) {
+            filterParameterType = searchItem.getParameter().getType();
+            filterParameterName = searchItem.getParameter().getName();
+            allowedValuesExpression = searchItem.getParameter().getAllowedValuesExpression();
+            allowedValuesLookupTableOid = searchItem.getParameter().getAllowedValuesLookupTable() != null ?
+                    searchItem.getParameter().getAllowedValuesLookupTable().getOid() : null;
+        }
         setApplyFilter(true);
         setVisible(true);
     }
@@ -49,26 +64,32 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
         return FilterSearchItemPanel.class;
     }
 
-    @Override
-    public String getName() {
-        String name = searchItem.getDisplayName() != null ? WebComponentUtil.getTranslatedPolyString(searchItem.getDisplayName()) : null;
+    private void initName(SearchItemType searchItem) {
+        name = searchItem.getDisplayName() != null ? WebComponentUtil.getTranslatedPolyString(searchItem.getDisplayName()) : null;
         if (name == null && searchItem.getParameter() != null) {
             DisplayType displayType = searchItem.getParameter().getDisplay();
             if (displayType != null) {
                 name = WebComponentUtil.getTranslatedPolyString(displayType.getLabel());
             }
         }
-        return name != null ? name : "";
     }
 
-    public String getHelp() {
-        String help = searchItem.getDescription();
+    private void initHelp(SearchItemType searchItem) {
+        help = searchItem.getDescription();
         if (help == null && searchItem.getParameter() != null) {
             DisplayType displayType = searchItem.getParameter().getDisplay();
             if (displayType != null) {
                 help = WebComponentUtil.getTranslatedPolyString(displayType.getHelp());
             }
         }
+    }
+
+    @Override
+    public String getName() {
+        return name != null ? name : "";
+    }
+
+    public String getHelp() {
         return help != null ? help : "";
     }
 
@@ -84,6 +105,26 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
         setValue(input);
     }
 
+    public SearchFilterType getFilter() {
+        return filter;
+    }
+
+    public QName getFilterParameterType() {
+        return filterParameterType;
+    }
+
+    public String getFilterParameterName() {
+        return filterParameterName;
+    }
+
+    public ExpressionType getAllowedValuesExpression() {
+        return allowedValuesExpression;
+    }
+
+    public String getAllowedValuesLookupTableOid() {
+        return allowedValuesLookupTableOid;
+    }
+
     @Override
     public DisplayableValue<?> getDefaultValue() {
         return null;
@@ -94,20 +135,19 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
         PrismContext ctx = PrismContext.get();
         variables = getFilterVariables();   //todo which variables to use?
         if (isEnabled() && isApplyFilter(SearchBoxModeType.BASIC)) {
-            SearchFilterType filter = getSearchItem().getFilter();
-            if (filter == null && getSearchItem().getFilterExpression() != null) {
+            if (filter == null && filterExpression != null) {
                 ItemDefinition outputDefinition = ctx.definitionFactory().createPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, SearchFilterType.COMPLEX_TYPE);
                 Task task = pageBase.createSimpleTask("evaluate filter expression");
                 try {
-                    PrismValue filterValue = ExpressionUtil.evaluateExpression(variables, outputDefinition, getSearchItem().getFilterExpression(),
+                    PrismValue filterValue = ExpressionUtil.evaluateExpression(variables, outputDefinition, filterExpression,
                             MiscSchemaUtil.getExpressionProfile(), pageBase.getExpressionFactory(), "", task, task.getResult());
                     if (filterValue == null || filterValue.getRealValue() == null) {
-                        LOGGER.error("FilterExpression return null, ", getSearchItem().getFilterExpression());
+                        LOGGER.error("FilterExpression return null, ", filterExpression);
                     }
                     filter = filterValue.getRealValue();
                 } catch (Exception e) {
-                    LOGGER.error("Unable to evaluate filter expression, {} ", getSearchItem().getFilterExpression());
+                    LOGGER.error("Unable to evaluate filter expression, {} ", filterExpression);
                 }
             }
             if (filter != null) {
@@ -127,22 +167,17 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
 
     public VariablesMap getFilterVariables() {
         VariablesMap variables = new VariablesMap();
-        SearchFilterParameterType functionParameter = getSearchItem().getParameter();
-        if (functionParameter != null && functionParameter.getType() != null) {
+        if (filterParameterType != null) {
             TypedValue value;
             if (getInput() == null || getInput().getValue() == null) {
-                Class<?> inputClass = PrismContext.get().getSchemaRegistry().determineClassForType(functionParameter.getType());
+                Class<?> inputClass = PrismContext.get().getSchemaRegistry().determineClassForType(filterParameterType);
                 value = new TypedValue(null, inputClass);
             } else {
                 value = new TypedValue(getInput().getValue(), getInput().getValue().getClass());
             }
-            variables.put(functionParameter.getName(), value);
+            variables.put(filterParameterName, value);
         }
         return variables;
-    }
-
-    public SearchItemType getSearchItem() {
-        return searchItem;
     }
 
 }

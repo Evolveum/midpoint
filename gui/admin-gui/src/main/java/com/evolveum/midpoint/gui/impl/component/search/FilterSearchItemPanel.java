@@ -24,6 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -71,13 +72,12 @@ public class FilterSearchItemPanel extends AbstractSearchItemPanel<FilterSearchI
     }
 
     private boolean isCheckPanelVisible() {
-        return canRemoveSearchItem() && getModelObject().getSearchItem().getFilter() != null;
+        return canRemoveSearchItem() && getModelObject().getFilter() != null;
     }
 
     @Override
     protected Component initSearchItemField() {
-        ParameterType functionParameter = getModelObject().getSearchItem().getParameter();
-        QName returnType = functionParameter != null ? functionParameter.getType() : null;
+        QName returnType = getModelObject().getFilterParameterType();
         Component inputPanel;
         if (returnType == null) {
             inputPanel = new WebMarkupContainer(ID_SEARCH_ITEM_FIELD);
@@ -88,15 +88,12 @@ public class FilterSearchItemPanel extends AbstractSearchItemPanel<FilterSearchI
             IModel<List<DisplayableValue<?>>> choices = null;
             switch (inputType) {
                 case REFERENCE:
-                    SearchFilterParameterType parameter = getModelObject().getSearchItem().getParameter();
                     MutablePrismReferenceDefinition def = null;
-                    if (parameter != null) {
-                        Class<?> clazz = getPrismContext().getSchemaRegistry().determineClassForType(parameter.getType());
-                        QName type = getPrismContext().getSchemaRegistry().determineTypeForClass(clazz);
-                        def = getPrismContext().definitionFactory().createReferenceDefinition(
-                                new QName(parameter.getName()), type);
-                        def.setTargetTypeName(parameter.getTargetType());
-                    }
+                    Class<?> clazz = getPrismContext().getSchemaRegistry().determineClassForType(returnType);
+                    QName type = getPrismContext().getSchemaRegistry().determineTypeForClass(clazz);
+                    def = getPrismContext().definitionFactory().createReferenceDefinition(
+                            new QName(getModelObject().getFilterParameterName()), type);
+                    def.setTargetTypeName(returnType);
                     inputPanel = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
                             new PropertyModel<>(getModel(), FilterSearchItem.F_INPUT_VALUE), def);
                     break;
@@ -165,22 +162,19 @@ public class FilterSearchItemPanel extends AbstractSearchItemPanel<FilterSearchI
     }
 
     public List<DisplayableValue<?>> getAllowedValues(PageBase pageBase) {
-        if (getModelObject().getSearchItem().getFilter() == null) {
+        if (getModelObject().getFilter() == null) {
             return Collections.EMPTY_LIST;
         }
-        List<DisplayableValue<?>> values = WebComponentUtil.getAllowedValues(getModelObject().getSearchItem().getParameter(), pageBase);
+        List<DisplayableValue<?>> values = WebComponentUtil.getAllowedValues(getModelObject().getAllowedValuesExpression(), pageBase);
         return values;
     }
 
     private LookupTableType getLookupTable(PageBase pageBase) {
-        SearchItemType searchItemType = getModelObject().getSearchItem();
-        if (searchItemType.getFilter() != null && searchItemType.getParameter() != null
-                && searchItemType.getParameter().getAllowedValuesLookupTable() != null
-                && searchItemType.getParameter().getAllowedValuesLookupTable().getOid() != null) {
-            PrismObject<LookupTableType> lokupTable =
-                    WebComponentUtil.findLookupTable(searchItemType.getParameter().getAllowedValuesLookupTable().asReferenceValue(), pageBase);
-            if (lokupTable != null) {
-                return lokupTable.asObjectable();
+        if (StringUtils.isNotEmpty(getModelObject().getAllowedValuesLookupTableOid())) {
+            PrismObject<LookupTableType> lookupTable =
+                    WebComponentUtil.findLookupTable((new ObjectReferenceType().oid(getModelObject().getAllowedValuesLookupTableOid())).asReferenceValue(), pageBase);
+            if (lookupTable != null) {
+                return lookupTable.asObjectable();
             }
         }
         return null;
