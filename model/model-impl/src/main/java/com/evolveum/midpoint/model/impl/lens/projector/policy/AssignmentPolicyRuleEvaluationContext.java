@@ -20,7 +20,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderType> extends PolicyRuleEvaluationContext<AH> {
+public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderType>
+        extends PolicyRuleEvaluationContext<AH>
+        implements Cloneable {
 
     @NotNull public final EvaluatedAssignmentImpl<AH> evaluatedAssignment;
     public final boolean isAdded;

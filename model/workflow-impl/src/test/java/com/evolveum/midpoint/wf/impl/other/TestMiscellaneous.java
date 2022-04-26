@@ -72,6 +72,9 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
     private static final TestResource<TaskType> TASK_CLEANUP = new TestResource<>(TEST_RESOURCE_DIR, "task-cleanup.xml", "781a7c9a-7b37-45c6-9154-5e57f5ad077f");
 
+    private static final TestResource<RoleType> ROLE_TEST370 = new TestResource<>(TEST_RESOURCE_DIR, "role-test370.xml", "2c226eba-7279-4768-a34a-38392e3fcb19");
+    private static final TestResource<UserType> USER_TEST370 = new TestResource<>(TEST_RESOURCE_DIR, "user-test370.xml", "a981ea50-d069-431d-86dc-f4c7dbbc4723");
+
     @Override
     protected PrismObject<UserType> getDefaultActor() {
         return userAdministrator;
@@ -606,6 +609,29 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
                         .assertRejected();
 
         // @formatter:on
+    }
+
+    /**
+     * Deletes a user that has an assignment-related constraint with a custom message.
+     *
+     * This used to fail with an NPE - see MID-7908.
+     */
+    @Test
+    public void test370UnassignRoleWithMessage() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        login(userAdministrator);
+
+        given("user and role are created (in raw mode)");
+        repoAdd(ROLE_TEST370, result);
+        repoAdd(USER_TEST370, result);
+
+        when("user is deleted");
+        deleteObject(UserType.class, USER_TEST370.oid, task, result);
+
+        then("user is gone");
+        assertSuccess(result);
+        assertNoObject(UserType.class, USER_TEST370.oid);
     }
 
     /**
