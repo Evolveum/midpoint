@@ -12,8 +12,22 @@
 -- If necessary, split your changes into multiple apply_changes calls to enforce the commit
 -- before another change - for example when adding values to the custom enum types.
 
+-- Using psql is strongly recommended, don't use tools with messy autocommit behavior like pgAdmin!
+-- Using flag to stop on first error is also recommended, for example:
+-- psql -v ON_ERROR_STOP=1 -h localhost -U midpoint -W -d midpoint -f postgres-new-upgrade.sql
+
 -- SCHEMA-COMMIT is a Git commit which should be used to initialize the DB for testing changes below it.
 -- Check out that commit and initialize a fresh DB with postgres-new-audit.sql to test upgrades.
+
+DO $$
+    BEGIN
+        if to_regproc('apply_change') is null then
+            raise exception 'You are running MAIN UPGRADE script, but the procedure ''apply_change'' is missing.
+Are you sure you are running this upgrade script on the correct database?
+Current database name is ''%'', schema name is ''%''.', current_database(), current_schema();
+        end if;
+    END
+$$;
 
 -- SCHEMA-COMMIT 4.4: commit 69e8c29b
 
