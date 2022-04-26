@@ -17,6 +17,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -97,7 +98,13 @@ public class FocusLifecycleProcessor implements ProjectorProcessor {
         }
     }
 
-    private <F extends AssignmentHolderType> boolean shouldTransition(LensContext<F> context, LifecycleStateTransitionType transitionType, String targetLifecycleState, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <F extends AssignmentHolderType> boolean shouldTransition(
+            LensContext<F> context,
+            LifecycleStateTransitionType transitionType,
+            String targetLifecycleState,
+            Task task,
+            OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         ExpressionType conditionExpressionType = transitionType.getCondition();
         if (conditionExpressionType == null) {
             return false;
@@ -105,7 +112,10 @@ public class FocusLifecycleProcessor implements ProjectorProcessor {
         String desc = "condition for transition to state "+targetLifecycleState+" for "+context.getFocusContext().getHumanReadableName();
 
         VariablesMap variables = new VariablesMap();
-        variables.put(ExpressionConstants.VAR_OBJECT, context.getFocusContext().getObjectNew(), context.getFocusContext().getObjectNew().getDefinition());
+        PrismObject<F> objectNew = MiscUtil.requireNonNull(
+                context.getFocusContext().getObjectNew(),
+                () -> new IllegalStateException("No focus 'after' (should have been checked by the processor invocation code)"));
+        variables.put(ExpressionConstants.VAR_OBJECT, objectNew, objectNew.getDefinition());
         // TODO: more variables?
 
         Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(

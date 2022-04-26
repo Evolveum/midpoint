@@ -56,15 +56,20 @@ public class ConstraintEvaluatorHelper {
             JAXBElement<? extends AbstractPolicyConstraintType> constraintElement) {
         VariablesMap var = new VariablesMap();
         PrismObject<AH> object = rctx.getObject();
-        var.put(ExpressionConstants.VAR_USER, object, object.getDefinition());
-        var.put(ExpressionConstants.VAR_FOCUS, object, object.getDefinition());
-        var.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
+        PrismObjectDefinition<AH> objectDefinition = rctx.getObjectDefinition();
+        var.put(ExpressionConstants.VAR_USER, object, objectDefinition);
+        var.put(ExpressionConstants.VAR_FOCUS, object, objectDefinition);
+        var.put(ExpressionConstants.VAR_OBJECT, object, objectDefinition);
         var.put(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION,
                 LocalizationUtil.createLocalizableMessageType(createDisplayInformation(object, false)), LocalizableMessageType.class);
         if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
-            AssignmentPolicyRuleEvaluationContext actx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
-            PrismObject target = actx.evaluatedAssignment.getTarget();
-            var.put(ExpressionConstants.VAR_TARGET, target, target.getDefinition());
+            AssignmentPolicyRuleEvaluationContext<AH> actx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
+            PrismObject<?> target = actx.evaluatedAssignment.getTarget();
+            if (target != null) {
+                var.put(ExpressionConstants.VAR_TARGET, target, target.getDefinition());
+            } else {
+                var.put(ExpressionConstants.VAR_TARGET, null, getObjectTypeDefinition());
+            }
             var.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION,
                     LocalizationUtil.createLocalizableMessageType(createDisplayInformation(target, false)), LocalizableMessageType.class);
             var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment, EvaluatedAssignment.class);
@@ -72,8 +77,7 @@ public class ConstraintEvaluatorHelper {
             var.put(ExpressionConstants.VAR_ASSIGNMENT, assignment, AssignmentType.class);
         } else {
             SchemaRegistry schemaRegistry = PrismContext.get().getSchemaRegistry();
-            PrismObjectDefinition<ObjectType> targetDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
-            var.put(ExpressionConstants.VAR_TARGET, null, targetDef);
+            var.put(ExpressionConstants.VAR_TARGET, null, getObjectTypeDefinition());
             var.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, null, LocalizableMessageType.class);
             var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null, EvaluatedAssignment.class);
             PrismContainerDefinition<AssignmentType> assignmentDef = schemaRegistry
@@ -86,6 +90,10 @@ public class ConstraintEvaluatorHelper {
         var.put(VAR_CONSTRAINT, constraintElement != null ? constraintElement.getValue() : null, AbstractPolicyConstraintType.class);
         var.put(VAR_CONSTRAINT_ELEMENT, constraintElement, JAXBElement.class);
         return var;
+    }
+
+    private PrismObjectDefinition<?> getObjectTypeDefinition() {
+        return PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
     }
 
     public boolean evaluateBoolean(ExpressionType expressionBean, VariablesMap VariablesMap,
