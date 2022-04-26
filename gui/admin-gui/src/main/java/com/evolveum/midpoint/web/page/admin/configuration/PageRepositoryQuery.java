@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -102,7 +102,6 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     private static final String ID_EXECUTE_MIDPOINT = "executeMidPoint";
     private static final String ID_COMPILE_MIDPOINT = "compileMidPoint";
     private static final String ID_USE_IN_OBJECT_LIST = "useInObjectList";
-    private static final String ID_EXECUTE_HIBERNATE = "executeHibernate";
     private static final String ID_EDITOR_MIDPOINT = "editorMidPoint";
     private static final String ID_QUERY_EDITOR = "queryEditor";
     private static final String ID_QUERY_LABEL = "queryLabel";
@@ -112,7 +111,6 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     private static final String ID_QUERY_SAMPLE = "querySample";
     private static final String ID_OBJECT_TYPE = "objectType";
     private static final String ID_DISTINCT = "distinct";
-    private static final String ID_HIBERNATE_PARAMETERS_NOTE = "hibernateParametersNote";
     private static final String ID_INCOMPLETE_RESULTS_NOTE = "incompleteResultsNote";
     private static final String ID_VIEW_BUTTON_PANEL = "viewButtonPanel";
 
@@ -146,7 +144,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
     private String dataLanguage;
 
-    enum Action {TRANSLATE_ONLY, EXECUTE_MIDPOINT, @Deprecated EXECUTE_HIBERNATE}
+    enum Action {TRANSLATE_ONLY, EXECUTE_MIDPOINT}
 
     @Override
     protected void onInitialize() {
@@ -222,11 +220,6 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         hibernateParameters.setResizeToMaxHeight(false);
         hibernateParameters.setMode(null);
         mainForm.add(hibernateParameters);
-
-        Label hibernateParametersNote = new Label(ID_HIBERNATE_PARAMETERS_NOTE, createStringResource("PageRepositoryQuery.hibernateParametersNote",
-                WebComponentUtil.getMidpointCustomSystemName(PageRepositoryQuery.this, "midPoint")));
-        hibernateParametersNote.setVisible(isAdmin && !isNativeRepo());
-        mainForm.add(hibernateParametersNote);
 
         Label queryVsFilterNote = new Label(ID_QUERY_VS_FILTER_NOTE, createStringResource("PageRepositoryQuery.queryVsFilterNote",
                 WebComponentUtil.getMidpointCustomSystemName(PageRepositoryQuery.this, "midPoint")));
@@ -348,35 +341,18 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         });
         mainForm.add(sampleChoice);
 
-        AjaxSubmitButton executeHibernate = new AjaxSubmitButton(ID_EXECUTE_HIBERNATE, createStringResource("PageRepositoryQuery.button.execute")) {
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(getFeedbackPanel());
+        Label resultLabel = new Label(ID_RESULT_LABEL, (IModel<String>) () -> {
+            if (model.getObject().getQueryResultText() == null) {
+                return "";
             }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                queryPerformed(Action.EXECUTE_HIBERNATE, target);
-            }
-        };
-        executeHibernate.setVisible(isAdmin && !isNativeRepo());
-        mainForm.add(executeHibernate);
-
-        Label resultLabel = new Label(ID_RESULT_LABEL, new IModel<String>() {
-            @Override
-            public String getObject() {
-                if (model.getObject().getQueryResultText() == null) {
-                    return "";
-                }
-                Object queryResult = model.getObject().getQueryResultObject();
-                if (queryResult instanceof List) {
-                    return getString("PageRepositoryQuery.resultObjects", ((List) queryResult).size());
-                } else if (queryResult instanceof Throwable) {
-                    return getString("PageRepositoryQuery.resultException", queryResult.getClass().getName());
-                } else {
-                    // including null
-                    return getString("PageRepositoryQuery.result");
-                }
+            Object queryResult = model.getObject().getQueryResultObject();
+            if (queryResult instanceof List) {
+                return getString("PageRepositoryQuery.resultObjects", ((List<?>) queryResult).size());
+            } else if (queryResult instanceof Throwable) {
+                return getString("PageRepositoryQuery.resultException", queryResult.getClass().getName());
+            } else {
+                // including null
+                return getString("PageRepositoryQuery.result");
             }
         });
         mainForm.add(resultLabel);
@@ -478,14 +454,9 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             RepositoryQueryDiagRequest request = new RepositoryQueryDiagRequest();
 
             switch (action) {
-                // TODO we don't want this anymore
-                case EXECUTE_HIBERNATE:
-                    String hqlText = dto.getHibernateQuery();
-                    queryPresent = StringUtils.isNotBlank(hqlText);
-                    request.setImplementationLevelQuery(hqlText);
-                    break;
                 case TRANSLATE_ONLY:
                     request.setTranslateOnly(true);
+                    // Falls through to the next section, we want this.
                 case EXECUTE_MIDPOINT:
                     queryPresent = StringUtils.isNotBlank(dto.getMidPointQuery());
                     if (queryPresent) {
@@ -509,7 +480,6 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 queryResult = response.getQueryResult();
             } else {
                 request.setTranslateOnly(true);
-                request.setImplementationLevelQuery(null);    // just to be sure
                 response = getModelDiagnosticService().executeRepositoryQuery(request, task, result);
 
                 if (action != Action.TRANSLATE_ONLY) {
@@ -521,16 +491,13 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 }
             }
 
-            if (action != Action.EXECUTE_HIBERNATE) {
-                dto.setHibernateQuery(String.valueOf(response.getImplementationLevelQuery()));
-                StringBuilder sb = new StringBuilder();
-                for (Map.Entry<String, RepositoryQueryDiagResponse.ParameterValue> entry : response.getImplementationLevelQueryParameters().entrySet()) {
-                    sb.append(entry.getKey()).append(" = ").append(entry.getValue().displayValue).append("\n");
-                }
-                dto.setHibernateParameters(sb.toString());
-            } else {
-                dto.setHibernateParameters("");
+            dto.setHibernateQuery(String.valueOf(response.getImplementationLevelQuery()));
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<String, RepositoryQueryDiagResponse.ParameterValue> entry : response.getImplementationLevelQueryParameters().entrySet()) {
+                sb.append(entry.getKey()).append(" = ").append(entry.getValue().displayValue).append("\n");
             }
+            dto.setHibernateParameters(sb.toString());
+
             if (action != Action.TRANSLATE_ONLY) {
                 dto.setQueryResultText(formatQueryResult(queryResult));
                 dto.setQueryResultObject(queryResult);
