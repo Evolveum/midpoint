@@ -144,7 +144,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             if (StringUtils.isEmpty(dslQuery)) {
                 return null;
             }
-            return ctx.createQueryParser().parseQuery(getTypeClass(), dslQuery);
+            return ctx.createQueryParser(ctx.getSchemaRegistry().staticNamespaceContext().allPrefixes()).parseQuery(getTypeClass(), dslQuery);
         }
 
         return null;

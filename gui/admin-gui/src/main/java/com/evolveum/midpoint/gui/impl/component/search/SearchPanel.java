@@ -10,9 +10,7 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -21,10 +19,9 @@ import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 
@@ -496,16 +493,18 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                                 }
                                 try {
                                     ObjectFilter savedFilter = getPageBase().getQueryConverter().parseFilter(filter, getModelObject().getTypeClass());
-                                    if (savedFilter instanceof AndFilter) {
-                                        List<ObjectFilter> conditions = ((AndFilter) savedFilter).getConditions();
-                                        //todo
+                                    if (savedFilter instanceof AndFilter && ((AndFilter) savedFilter).getConditions() != null) {
+                                        getModelObject().getSearchConfigurationWrapper().setDefaultSearchBoxMode(SearchBoxModeType.BASIC);
+                                        applyFilterToBasicMode((AndFilter) savedFilter);
+                                    } else {
+                                        Optional<PrismQuerySerialization> serialization = getPageBase().getPrismContext().querySerializer()
+                                                .trySerialize(savedFilter, getPageBase().getPrismContext().getSchemaRegistry().staticNamespaceContext());
+                                        if (serialization.isPresent()) {
+                                            getModelObject().getSearchConfigurationWrapper().setDefaultSearchBoxMode(SearchBoxModeType.AXIOM_QUERY);
+                                            getModelObject().setDslQuery(serialization.get().filterText());
+                                        }
                                     }
-                                    PrismQuerySerialization serialization = getPageBase().getPrismContext().querySerializer().serialize(savedFilter);
-                                    if (serialization != null) {
-                                        getModelObject().getSearchConfigurationWrapper().setDefaultSearchBoxMode(SearchBoxModeType.AXIOM_QUERY);
-                                        getModelObject().setDslQuery(serialization.filterText());
-                                    }
-                                } catch (SchemaException | PrismQuerySerialization.NotSupportedException e) {
+                                } catch (SchemaException e) {
                                     LOG.error("Unable to create object query from search filter: {}, {}", filter, e.getLocalizedMessage());
                                 }
                                 searchPerformed(target);
@@ -517,6 +516,46 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             });
         }
         return savedSearchItems;
+    }
+
+    private void applyFilterToBasicMode(AndFilter filter) {
+        getModelObject().getItems().forEach(item -> item.setVisible(false));
+        List<ObjectFilter> conditions = filter.getConditions();
+        conditions.forEach(condition -> {
+            if (condition instanceof AndFilter) {
+                applyFilterToBasicMode((AndFilter) condition);
+            } else if (condition instanceof PropertyValueFilter) {
+                ItemPath path = ((PropertyValueFilter) condition).getPath();
+                if (path == null) {
+                    return;
+                }
+                List<? extends PrismValue> values = ((PropertyValueFilter) condition).getValues();
+                setSearchItemValue(path, values);
+            }
+        });
+    }
+
+
+    private void setSearchItemValue(ItemPath path, List<? extends PrismValue> values) {
+        if (path == null) {
+            return;
+        }
+        PropertySearchItemWrapper item = null;
+        Iterator<AbstractSearchItemWrapper> it = getModelObject().getItems().iterator();
+        while (it.hasNext()) {
+            AbstractSearchItemWrapper itemWrapper = it.next();
+            if (itemWrapper instanceof PropertySearchItemWrapper && ((PropertySearchItemWrapper<?>) itemWrapper).getPath().equivalent(path)) {
+                item = (PropertySearchItemWrapper) itemWrapper;
+                break;
+            }
+        }
+        if (item == null) {
+            return;
+        }
+        item.setVisible(true);
+        if (values != null && values.size() > 0) {//todo can it be there multiple values?
+            item.setValue(new SearchValue(values.get(0).getRealValue().toString()));
+        }
     }
 
     private List<SearchItemType> getSearchItemList(SearchBoxConfigurationType config) {
