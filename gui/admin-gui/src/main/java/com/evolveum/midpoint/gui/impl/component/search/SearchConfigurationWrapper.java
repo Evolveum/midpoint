@@ -42,13 +42,14 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
     private ObjectReferenceType tenantRef;
 
     public SearchConfigurationWrapper(Class<C> typeClass) {
-        this(typeClass, null);
+        this.typeClass = typeClass;
     }
 
-   public SearchConfigurationWrapper(SearchBoxConfigurationType searchBoxConfig) {
-        typeClass = (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(),
-                searchBoxConfig.getObjectTypeConfiguration() != null ? searchBoxConfig.getObjectTypeConfiguration().getDefaultValue() :
-                        searchBoxConfig.getDefaultObjectType());
+   public SearchConfigurationWrapper(Class<C> typeClass, SearchBoxConfigurationType searchBoxConfig) {
+        this.typeClass = typeClass;
+//        (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(),
+//                searchBoxConfig.getObjectTypeConfiguration() != null ? searchBoxConfig.getObjectTypeConfiguration().getDefaultValue() :
+//                        searchBoxConfig.getDefaultObjectType());
         if (searchBoxConfig.getObjectTypeConfiguration() != null) {
             allowedTypeList = searchBoxConfig.getObjectTypeConfiguration().getSupportedTypes();
         }

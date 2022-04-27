@@ -307,15 +307,13 @@ public class SearchFactory {
 
     public static <C extends Containerable> Search<C> createSearch(Class<C> type, String collectionViewName,  ModelServiceLocator modelServiceLocator) {
         SearchConfigurationWrapper<C> searchConfigWrapper = createDefaultSearchBoxConfigurationWrapper(type, null, modelServiceLocator);
-        if (StringUtils.isNotEmpty(collectionViewName)) {
-            SearchBoxConfigurationType config = getSearchBoxConfiguration(modelServiceLocator,
-                    WebComponentUtil.containerClassToQName(PrismContext.get(), type), collectionViewName, Search.PanelType.DEFAULT);
-            if (config != null) {
-                SearchConfigurationWrapper<C> preconfiguredSearchConfigWrapper = new SearchConfigurationWrapper<C>(config);
-                searchConfigWrapper = combineSearchBoxConfiguration(searchConfigWrapper, preconfiguredSearchConfigWrapper, true);
-            }
-            searchConfigWrapper.setCollectionViewName(collectionViewName);
+        SearchBoxConfigurationType config = getSearchBoxConfiguration(modelServiceLocator,
+                WebComponentUtil.containerClassToQName(PrismContext.get(), type), collectionViewName, Search.PanelType.DEFAULT);
+        if (config != null) {
+            SearchConfigurationWrapper<C> preconfiguredSearchConfigWrapper = new SearchConfigurationWrapper<C>(type, config);
+            searchConfigWrapper = combineSearchBoxConfiguration(searchConfigWrapper, preconfiguredSearchConfigWrapper, true);
         }
+        searchConfigWrapper.setCollectionViewName(collectionViewName);
         return createSearch(searchConfigWrapper, null, modelServiceLocator, Search.PanelType.DEFAULT, false);
     }
 
@@ -326,7 +324,7 @@ public class SearchFactory {
      * @param <C>
      * @return
      */
-    public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createSearch(
+    public static <C extends Containerable> Search<C> createSearch(
             SearchConfigurationWrapper<C> searchConfig, ModelServiceLocator modelServiceLocator) {
         return createSearch(searchConfig, null, modelServiceLocator, Search.PanelType.DEFAULT, true);
     }
