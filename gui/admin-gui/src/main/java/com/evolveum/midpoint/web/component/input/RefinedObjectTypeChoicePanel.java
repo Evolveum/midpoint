@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component.input;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
@@ -36,7 +38,7 @@ public class RefinedObjectTypeChoicePanel extends DropDownChoicePanel<ResourceOb
                 ResourceSchema refinedSchema;
                 try {
                     refinedSchema = ResourceSchemaFactory.getCompleteSchema(resourceModel.getObject());
-                } catch (SchemaException e) {
+                } catch (SchemaException | ConfigurationException e) {
                     throw new IllegalArgumentException(e.getMessage(), e);
                 }
                 return new ArrayList<>(

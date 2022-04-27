@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -192,7 +194,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
                                 availableIntentValues.add(def.getIntent());
                             }
                         }
-                    } catch (SchemaException ex) {
+                    } catch (SchemaException | ConfigurationException ex) {
                         LOGGER.error("Cannot get refined resource schema for resource {}. {}", selectedResource.getName().getOrig(), ex.getLocalizedMessage());
                     }
 

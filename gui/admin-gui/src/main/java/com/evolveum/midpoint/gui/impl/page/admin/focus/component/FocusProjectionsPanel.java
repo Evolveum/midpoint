@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -608,7 +610,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         return shadow;
     }
 
-    private ResourceSchema getRefinedSchema(ResourceType resource) throws SchemaException {
+    private ResourceSchema getRefinedSchema(ResourceType resource) throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource.asPrismObject(), LayerType.PRESENTATION);
         if (refinedSchema == null) {
             Task task = getPageBase().createSimpleTask(FocusPersonasTabPanel.class.getSimpleName() + ".loadResource");

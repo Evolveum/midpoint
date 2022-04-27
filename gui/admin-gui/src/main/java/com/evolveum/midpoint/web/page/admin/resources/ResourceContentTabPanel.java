@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -136,7 +138,7 @@ public class ResourceContentTabPanel extends BasePanel<PrismObject<ResourceType>
                     } else {
                         return Collections.emptyIterator();
                     }
-                } catch (SchemaException e) {
+                } catch (SchemaException | ConfigurationException e) {
                     return Collections.emptyIterator();
                 }
             }
@@ -186,7 +188,7 @@ public class ResourceContentTabPanel extends BasePanel<PrismObject<ResourceType>
                     if (ocDef != null) {
                         return ocDef.getObjectClassDefinition().getTypeName().getLocalPart();
                     }
-                } catch (SchemaException e) {
+                } catch (SchemaException | ConfigurationException e) {
                 }
 
                 return "NOT FOUND";
@@ -286,7 +288,7 @@ public class ResourceContentTabPanel extends BasePanel<PrismObject<ResourceType>
         ResourceSchema refinedSchema;
         try {
             refinedSchema = ResourceSchemaFactory.getCompleteSchema(model.getObject());
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             warn("Could not determine defined object classes for resource");
             return new ArrayList<>();
         }

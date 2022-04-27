@@ -163,7 +163,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         return objectClass;
     }
 
-    public ResourceObjectDefinition getDefinitionByKind() throws SchemaException {
+    public ResourceObjectDefinition getDefinitionByKind() throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = getRefinedSchema();
         if (refinedSchema == null) {
             warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
@@ -178,7 +178,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         }
     }
 
-    public ResourceObjectDefinition getDefinitionByObjectClass() throws SchemaException {
+    public ResourceObjectDefinition getDefinitionByObjectClass() throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = getRefinedSchema();
         if (refinedSchema == null) {
             warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
@@ -188,7 +188,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     }
 
-    protected ResourceSchema getRefinedSchema() throws SchemaException {
+    protected ResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
         return ResourceSchemaFactory.getCompleteSchema(resourceModel.getObject());
     }
 
@@ -471,7 +471,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                         ResourceObjectDefinition objectClassDef = null;
                         try {
                             objectClassDef = getDefinitionByKind();
-                        } catch (SchemaException e) {
+                        } catch (SchemaException | ConfigurationException e) {
                             LOGGER.error("Failed to search for objectClass definition. Reason: {}", e.getMessage(), e);
                         }
                         if (objectClassDef == null) {
@@ -521,7 +521,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
             if (rOcDef != null) {
                 baseQuery = rOcDef.createShadowSearchQuery(resourceModel.getObject().getOid());
             }
-        } catch (SchemaException ex) {
+        } catch (SchemaException | ConfigurationException ex) {
             LoggingUtils.logUnexpectedException(LOGGER,
                     "Could not crate query for shadows: " + ex.getMessage(), ex);
         }

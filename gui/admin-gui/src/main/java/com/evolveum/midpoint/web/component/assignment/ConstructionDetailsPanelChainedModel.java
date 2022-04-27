@@ -15,6 +15,8 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -121,7 +123,7 @@ public class ConstructionDetailsPanelChainedModel extends BasePanel<Construction
                             }
                         }
                     }
-                } catch (SchemaException ex) {
+                } catch (SchemaException | ConfigurationException ex) {
                     LOGGER.error("Cannot get refined resource schema for resource {}. {}", resourceModel.getObject().getName().getOrig(), ex.getLocalizedMessage());
                 }
 
@@ -185,7 +187,7 @@ public class ConstructionDetailsPanelChainedModel extends BasePanel<Construction
                             }
                         }
                     }
-                } catch (SchemaException ex) {
+                } catch (SchemaException | ConfigurationException ex) {
                     LOGGER.error("Cannot get refined resource schema for resource {}. {}", resourceModel.getObject().getName().getOrig(), ex.getLocalizedMessage());
                 }
 

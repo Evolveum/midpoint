@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -117,7 +118,7 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             Task task = getPageBase().createSimpleTask("visualize");
             primaryScenes = getPageBase().getModelInteractionService().visualizeDeltas(primaryDeltas, task, task.getResult());
             secondaryScenes = getPageBase().getModelInteractionService().visualizeDeltas(secondaryDeltas, task, task.getResult());
-        } catch (SchemaException | ExpressionEvaluationException e) {
+        } catch (SchemaException | ExpressionEvaluationException | ConfigurationException e) {
             throw new SystemException(e);        // TODO
         }
         if (LOGGER.isTraceEnabled()) {

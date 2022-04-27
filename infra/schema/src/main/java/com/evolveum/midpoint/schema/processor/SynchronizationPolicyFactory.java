@@ -14,7 +14,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
@@ -283,7 +286,10 @@ public class SynchronizationPolicyFactory {
             return null;
         }
         ResourceObjectDefinition objectDefinition =
-                schema.findObjectDefinition(typeDefBean.getKind(), typeDefBean.getIntent(), typeDefBean.getObjectClass());
+                schema.findObjectDefinition(
+                        Objects.requireNonNullElse(typeDefBean.getKind(), ACCOUNT),
+                        Objects.requireNonNullElse(typeDefBean.getIntent(), SchemaConstants.INTENT_DEFAULT),
+                        typeDefBean.getObjectClass());
         if (objectDefinition instanceof ResourceObjectTypeDefinition) {
             ResourceObjectTypeDefinition typeDef = (ResourceObjectTypeDefinition) objectDefinition;
             return forKindAndIntent(typeDef.getKind(), typeDef.getIntent(), resource);

@@ -393,7 +393,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 } else {
                     numberMessage = getPageBase().getString("PageResource.resource.noSchema");
                 }
-            } catch (SchemaException e) {
+            } catch (SchemaException | ConfigurationException e) {
                 backgroundColor = "bg-danger";
                 icon = "fa fa-warning";
                 numberMessage = getPageBase().getString("PageResource.resource.schemaError");
@@ -413,7 +413,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
             List<PrismObject<TaskType>> tasks,
             SynchronizationPolicy synchronizationPolicy,
             PrismObject<ResourceType> resource)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
         List<TaskType> syncTasks = new ArrayList<>();
         for (PrismObject<TaskType> task : tasks) {
             ShadowKindType taskKindValue = null;
