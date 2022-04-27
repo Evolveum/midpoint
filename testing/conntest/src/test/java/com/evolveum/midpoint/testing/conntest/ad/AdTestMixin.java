@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -71,7 +72,7 @@ public interface AdTestMixin extends InfraTestMixin {
 
     default ResourceObjectDefinition assertAdResourceSchema(
             PrismObject<ResourceType> resource, QName accountObjectClass)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
         ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
         displayDumpable("Resource schema", resourceSchema);
         ResourceTypeUtil.validateSchema(resourceSchema, resource);
@@ -79,7 +80,7 @@ public interface AdTestMixin extends InfraTestMixin {
     }
 
     default ResourceObjectDefinition assertAdRefinedSchema(
-            PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException {
+            PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         displayDumpable("Refined schema", refinedSchema);
         refinedSchema.validate(resource);
@@ -88,7 +89,7 @@ public interface AdTestMixin extends InfraTestMixin {
 
     // Assumes string timestamp
     default ResourceObjectDefinition assertAdSchema(
-            PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException {
+            PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException, ConfigurationException {
         ResourceObjectDefinition accountObjectClassDefinition = assertAdSchemaBase(resource, accountObjectClass);
 
         ResourceAttributeDefinition<?> createTimestampDef =
@@ -111,7 +112,7 @@ public interface AdTestMixin extends InfraTestMixin {
     }
 
     private ResourceObjectDefinition assertAdSchemaBase(
-            PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException {
+            PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException, ConfigurationException {
 
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         displayDumpable("Refined schema", refinedSchema);
@@ -177,7 +178,8 @@ public interface AdTestMixin extends InfraTestMixin {
         return accountObjectClassDefinition;
     }
 
-    default void assertExchangeSchema(PrismObject<ResourceType> resource, QName accountObjectClassQName) throws SchemaException {
+    default void assertExchangeSchema(PrismObject<ResourceType> resource, QName accountObjectClassQName)
+            throws SchemaException, ConfigurationException {
 
         ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         assertExchangeSchema(resourceSchema, accountObjectClassQName);
