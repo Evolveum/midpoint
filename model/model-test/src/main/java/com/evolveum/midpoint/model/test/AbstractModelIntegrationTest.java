@@ -1975,7 +1975,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ConfigurationException, ExpressionEvaluationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         ResourceObjectDefinition rOcDef = rSchema.findObjectDefinitionRequired(kind, intent);
-        ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
+        ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource, false);
         List<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, options, task, result);
         if (shadows.isEmpty()) {
             return null;

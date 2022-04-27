@@ -148,8 +148,7 @@ public class ShadowManager {
      */
     public PrismObject<ShadowType> lookupLiveOrAnyShadowByPrimaryIds(ProvisioningContext ctx,
             Collection<ResourceAttribute<?>> identifiers, OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException, ExpressionEvaluationException {
+            throws SchemaException, ConfigurationException {
         return ProvisioningUtil.selectLiveOrAnyShadow(
                 shadowFinder.searchShadowsByPrimaryIds(ctx, identifiers, result));
     }
@@ -157,11 +156,10 @@ public class ShadowManager {
     /**
      * Looks up (any) shadow by all available identifiers.
      */
-    public PrismObject<ShadowType> lookupShadowByAllIds(ProvisioningContext ctx,
+    public PrismObject<ShadowType> lookupLiveShadowByAllIds(ProvisioningContext ctx,
             ResourceAttributeContainer identifierContainer, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, ExpressionEvaluationException {
-        return shadowFinder.lookupShadowByAllIds(ctx, identifierContainer, result);
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        return shadowFinder.lookupLiveShadowByAllIds(ctx, identifierContainer, result);
     }
 
     /**

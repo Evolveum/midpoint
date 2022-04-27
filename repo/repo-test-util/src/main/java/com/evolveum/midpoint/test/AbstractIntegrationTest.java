@@ -1456,7 +1456,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected PrismObject<ShadowType> findAccountShadowByUsername(
             String username, PrismObject<ResourceType> resource, OperationResult result)
             throws SchemaException, ConfigurationException {
-        ObjectQuery query = createAccountShadowQuerySecondaryIdentifier(username, resource);
+        return findAccountShadowByUsername(username, resource, false, result);
+    }
+
+    protected PrismObject<ShadowType> findAccountShadowByUsername(
+            String username, PrismObject<ResourceType> resource, boolean mustBeLive, OperationResult result)
+            throws SchemaException, ConfigurationException {
+        ObjectQuery query = createAccountShadowQuerySecondaryIdentifier(username, resource, mustBeLive);
         List<PrismObject<ShadowType>> accounts = repositoryService.searchObjects(ShadowType.class, query, null, result);
         if (accounts.isEmpty()) {
             return null;
@@ -1470,7 +1476,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         ResourceObjectDefinition rOcDef = rSchema.findObjectDefinitionRequired(kind, intent);
-        ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
+        ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource, false);
         List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
         if (shadows.isEmpty()) {
             return null;
@@ -1482,9 +1488,21 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected PrismObject<ShadowType> findShadowByName(
             QName objectClass, String name, PrismObject<ResourceType> resource, OperationResult result)
             throws SchemaException, ConfigurationException {
+        return findShadowByName(objectClass, name, false, resource, result);
+    }
+
+    protected PrismObject<ShadowType> findLiveShadowByName(
+            QName objectClass, String name, PrismObject<ResourceType> resource, OperationResult result)
+            throws SchemaException, ConfigurationException {
+        return findShadowByName(objectClass, name, true, resource, result);
+    }
+
+    protected PrismObject<ShadowType> findShadowByName(
+            QName objectClass, String name, boolean mustBeLive, PrismObject<ResourceType> resource, OperationResult result)
+            throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         ResourceObjectDefinition rOcDef = rSchema.findDefinitionForObjectClassRequired(objectClass);
-        ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
+        ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource, mustBeLive);
         List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
         if (shadows.isEmpty()) {
             return null;
@@ -1523,23 +1541,30 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected ObjectQuery createAccountShadowQuerySecondaryIdentifier(
-            String identifier, PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
+            String identifier, PrismObject<ResourceType> resource, boolean mustBeLive)
+            throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         ResourceObjectDefinition accountDefinition = rSchema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, null);
-        return createShadowQuerySecondaryIdentifier(accountDefinition, identifier, resource);
+        return createShadowQuerySecondaryIdentifier(accountDefinition, identifier, resource, mustBeLive);
     }
 
     protected ObjectQuery createShadowQuerySecondaryIdentifier(
-            ResourceObjectDefinition rAccount, String identifier, PrismObject<ResourceType> resource) {
+            ResourceObjectDefinition rAccount, String identifier, PrismObject<ResourceType> resource, boolean mustBeLive) {
         Collection<? extends ResourceAttributeDefinition<?>> identifierDefs = rAccount.getSecondaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected secondary identifier set in " + resource + " refined schema: " + identifierDefs;
         ResourceAttributeDefinition<?> identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
-        return prismContext.queryFor(ShadowType.class)
+        var q = prismContext.queryFor(ShadowType.class)
                 .itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getItemName()).eq(identifier)
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getTypeName())
-                .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
-                .build();
+                .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid());
+        if (mustBeLive) {
+            q = q.and().block()
+                    .item(ShadowType.F_DEAD).eq(Boolean.FALSE)
+                    .or().item(ShadowType.F_DEAD).isNull()
+                    .endBlock();
+        }
+        return q.build();
     }
 
     protected ObjectQuery createAccountShadowQueryByAttribute(
