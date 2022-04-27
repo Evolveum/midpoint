@@ -11,6 +11,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -73,7 +74,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         WebMarkupContainer navigationDetails = createNavigationItemParentPanel(item);
         item.add(navigationDetails);
 
-        AjaxLink<Void> link = createNavigationLink(item);
+        AjaxSubmitLink link = createNavigationLink(item);
         navigationDetails.add(link);
 
         DetailsNavigationPanel<O> subPanel = createDetailsSubNavigationPanel(item);
@@ -121,13 +122,22 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         return false;
     }
 
-    private AjaxLink<Void> createNavigationLink(ListItem<ContainerPanelConfigurationType> item) {
-        AjaxLink<Void> link = new AjaxLink<>(ID_NAV_ITEM_LINK) {
+    private AjaxSubmitLink createNavigationLink(ListItem<ContainerPanelConfigurationType> item) {
+        AjaxSubmitLink link = new AjaxSubmitLink(ID_NAV_ITEM_LINK) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            public void onSubmit(AjaxRequestTarget target) {
+                super.onSubmit(target);
+
                 target.add(DetailsNavigationPanel.this);
                 onClickPerformed(item.getModelObject(), target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                super.onError(target);
+
+                target.add(getPageBase().getFeedbackPanel());
             }
         };
 
@@ -139,25 +149,25 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         return link;
     }
 
-    private void addIcon(AjaxLink<Void> link, ListItem<ContainerPanelConfigurationType> item) {
+    private void addIcon(AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
         WebMarkupContainer icon = new WebMarkupContainer(ID_NAV_ITEM_ICON);
         icon.setOutputMarkupId(true);
         icon.add(AttributeAppender.append("class", getMenuItemIconClass(item.getModel())));
         link.add(icon);
     }
 
-    private void addLabel(AjaxLink<Void> link, ListItem<ContainerPanelConfigurationType> item) {
+    private void addLabel(org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
         Label buttonLabel = new Label(ID_NAV_ITEM, createButtonLabel(item.getModel()));
         link.add(buttonLabel);
     }
 
-    private void addCount(AjaxLink<Void> link, ListItem<ContainerPanelConfigurationType> item) {
+    private void addCount(org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
         Label label = new Label(ID_COUNT, createCountModel(item.getModel()));
         label.add(new VisibleBehaviour(() -> getCounterProvider(item.getModel()) != null));
         link.add(label);
     }
 
-    private void addSubmenuLink(AjaxLink<Void> link, ListItem<ContainerPanelConfigurationType> item) {
+    private void addSubmenuLink(org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
         WebMarkupContainer submenuLink = new WebMarkupContainer(ID_SUBMENU_LINK);
         submenuLink.add(new VisibleBehaviour(() -> hasSubmenu(item.getModelObject())));
         link.add(submenuLink);

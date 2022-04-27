@@ -11,10 +11,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -42,12 +38,16 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
@@ -60,7 +60,6 @@ import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -1058,8 +1057,8 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             return null;
         }
         PrismObject<? extends FocusType> operationObject = null;
-        if (pageBase instanceof PageAdminFocus) {
-            operationObject = ((PageAdminFocus) pageBase).getObjectWrapper().getObject();
+        if (pageBase instanceof PageFocusDetails) {
+            operationObject = ((PageFocusDetails) pageBase).getPrismObject();
         } else if ((pageBase instanceof PageAssignmentDetails || pageBase instanceof PageAssignmentsList) //shopping cart assignment details panels
                 && !pageBase.getSessionStorage().getRoleCatalog().isMultiUserRequest()) {
             String targetUserOid = pageBase.getSessionStorage().getRoleCatalog().isSelfRequest() ?

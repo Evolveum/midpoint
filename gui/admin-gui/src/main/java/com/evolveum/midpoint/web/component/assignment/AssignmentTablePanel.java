@@ -346,4 +346,11 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
         return false;
     }
 
+
+    protected void reloadMainFormButtons(AjaxRequestTarget target){
+//        AbstractObjectMainPanel panel = AbstractAssignmentListPanel.this.findParent(AbstractObjectMainPanel.class);
+//        if (panel != null){
+//            panel.reloadSavePreviewButtons(target);
+//        }
+    }
 }

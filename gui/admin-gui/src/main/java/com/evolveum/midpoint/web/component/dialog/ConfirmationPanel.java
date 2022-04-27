@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.component.dialog;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.org.component.TreeTablePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 
 import org.apache.wicket.Component;
@@ -110,7 +111,7 @@ public class ConfirmationPanel extends Panel implements Popupable {
     /**
      * This method provides solution for reusing one confirmation dialog for
      * more messages/actions by using confirmType identifier. See for example
-     * {@link com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel}
+     * {@link TreeTablePanel}
      *
      * @param confirmType
      */

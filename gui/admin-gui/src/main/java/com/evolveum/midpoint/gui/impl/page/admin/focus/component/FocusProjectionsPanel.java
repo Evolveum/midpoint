@@ -84,7 +84,6 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.objectdetails.FocusPersonasTabPanel;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.ProjectionsListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -613,7 +612,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
     private ResourceSchema getRefinedSchema(ResourceType resource) throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource.asPrismObject(), LayerType.PRESENTATION);
         if (refinedSchema == null) {
-            Task task = getPageBase().createSimpleTask(FocusPersonasTabPanel.class.getSimpleName() + ".loadResource");
+            Task task = getPageBase().createSimpleTask(FocusProjectionsPanel.class.getSimpleName() + ".loadResource");
             OperationResult result = task.getResult();
             resource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result).asObjectable();
             result.recomputeStatus();

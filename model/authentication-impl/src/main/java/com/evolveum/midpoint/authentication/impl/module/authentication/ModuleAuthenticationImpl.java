@@ -13,6 +13,10 @@ import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
+
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.core.Authentication;
 
@@ -38,14 +42,37 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
 
     private boolean internalLogout = false;
 
-    public ModuleAuthenticationImpl(String nameOfType) {
+    private final AuthenticationSequenceModuleType sequenceModule;
+
+    private final AuthenticationSequenceModuleNecessityType necessity;
+
+    private final Integer order;
+
+    public ModuleAuthenticationImpl(String nameOfType, AuthenticationSequenceModuleType sequenceModule) {
         Validate.notNull(nameOfType);
         this.nameOfType = nameOfType;
+        this.sequenceModule = sequenceModule;
+        this.necessity = sequenceModule.getNecessity();
+        this.order = sequenceModule.getOrder();
         setState(AuthenticationModuleState.LOGIN_PROCESSING);
     }
 
     public String getNameOfModuleType() {
         return nameOfType;
+    }
+
+    @Override
+    public AuthenticationSequenceModuleNecessityType getNecessity() {
+        return necessity;
+    }
+
+    @Override
+    public Integer getOrder() {
+        return order;
+    }
+
+    AuthenticationSequenceModuleType getSequenceModule() {
+        return sequenceModule;
     }
 
     public String getPrefix() {
@@ -97,7 +124,7 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
     }
 
     public ModuleAuthenticationImpl clone() {
-        ModuleAuthenticationImpl module = new ModuleAuthenticationImpl(getNameOfModuleType());
+        ModuleAuthenticationImpl module = new ModuleAuthenticationImpl(getNameOfModuleType(), getSequenceModule());
         clone(module);
         return module;
     }

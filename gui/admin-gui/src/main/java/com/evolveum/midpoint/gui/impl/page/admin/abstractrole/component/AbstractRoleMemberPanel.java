@@ -756,7 +756,6 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getPageBase());
         governance.forEach(relations::remove);
         return relations;
-//        return new AvailableRelationDto(relations, defaultRelationConfiguration);
     }
 
     protected List<QName> getSupportedGovernanceTabRelations() {

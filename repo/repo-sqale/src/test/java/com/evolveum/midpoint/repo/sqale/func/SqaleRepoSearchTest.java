@@ -40,6 +40,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -296,6 +297,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .assignment(new AssignmentType()
                         .lifecycleState("ls-user3-ass1")
                         .metadata(new MetadataType()
+                                .creatorRef(user2Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
                                 .createApproverRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
                         .activation(new ActivationType()
                                 .validFrom("2021-01-01T00:00:00Z"))
@@ -303,6 +305,9 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .subtype("ass-subtype-2"))
                 .linkRef(shadow1Oid, ShadowType.COMPLEX_TYPE)
                 .assignment(new AssignmentType()
+                        .lifecycleState("ls-user3-ass2")
+                        .metadata(new MetadataType()
+                                .creatorRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
                         .activation(new ActivationType()
                                 .validTo("2022-01-01T00:00:00Z")))
                 .operationExecution(new OperationExecutionType()
@@ -1893,9 +1898,9 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test603SearchContainerWithExistsParent() throws SchemaException {
+    public void test603SearchAccessCertificationCaseContainer() throws SchemaException {
         SearchResultList<AccessCertificationCaseType> result = searchContainerTest(
-                "by owner OID exists", AccessCertificationCaseType.class,
+                "by stage number", AccessCertificationCaseType.class,
                 f -> f.item(AccessCertificationCaseType.F_STAGE_NUMBER).gt(1));
         assertThat(result)
                 .extracting(a -> a.getStageNumber())
@@ -1905,7 +1910,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test605SearchCaseWorkItemContainer() throws SchemaException {
         SearchResultList<CaseWorkItemType> result = searchContainerTest(
-                "by owner OID exists", CaseWorkItemType.class,
+                "by stage number", CaseWorkItemType.class,
                 f -> f.item(CaseWorkItemType.F_STAGE_NUMBER).eq(1));
         assertThat(result)
                 .singleElement()
@@ -1936,7 +1941,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test615SearchAssignmentByApproverName() throws SchemaException {
+    public void test615SearchAssignmentByApproverNameWithOrder() throws SchemaException {
         SearchResultList<AssignmentType> result = searchContainerTest(
                 "by approver name", AssignmentType.class,
                 f -> f.item(AssignmentType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF,
@@ -1945,6 +1950,34 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         assertThat(result)
                 .singleElement()
                 .matches(a -> a.getLifecycleState().equals("ls-user3-ass1"));
+    }
+
+    @Test
+    public void test616OrderByMultiValueReferenceTargetPropertyIsNotPossible() {
+        assertThatThrownBy(() -> searchContainerTest(
+                "having any approver (with order)", AssignmentType.class,
+                f -> f.not().item(AssignmentType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF,
+                                T_OBJECT_REFERENCE, UserType.F_NAME)
+                        .isNull()
+                        .asc(AssignmentType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF,
+                                T_OBJECT_REFERENCE, UserType.F_NAME)))
+                .isInstanceOf(SystemException.class)
+                .hasCauseInstanceOf(QueryException.class)
+                .hasMessageFindingMatch("Item path .* cannot be used for ordering because subquery is used to resolve it");
+    }
+
+    @Test
+    public void test620OrderBySingleValueReferenceTargetPropertyIsSupported() throws SchemaException {
+        SearchResultList<AssignmentType> result = searchContainerTest(
+                "having creator ref name and order by it", AssignmentType.class,
+                f -> f.not().item(AssignmentType.F_METADATA, MetadataType.F_CREATOR_REF,
+                                T_OBJECT_REFERENCE, UserType.F_NAME)
+                        .isNull()
+                        .asc(AssignmentType.F_METADATA, MetadataType.F_CREATOR_REF,
+                                T_OBJECT_REFERENCE, UserType.F_NAME));
+        assertThat(result)
+                .extracting(a -> a.getLifecycleState())
+                .containsExactly("ls-user3-ass2", "ls-user3-ass1");
     }
 
     @Test
@@ -1996,15 +2029,16 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test700SearchUsersWithAccountsOnSpecificResource()
             throws SchemaException {
-        searchUsersTest("with extension poly-string multi-value item",
+        searchUsersTest("with shadow on a specific resource",
                 f -> f.item(UserType.F_LINK_REF, T_OBJECT_REFERENCE, ShadowType.F_RESOURCE_REF)
                         .ref(resourceOid),
                 user3Oid);
+    }
 
-        // TODO failing: java.lang.IllegalArgumentException: Item path of 'linkRef/{http://prism.evolveum.com/xml/ns/public/types-3}objectReference'
-        //  in class com.evolveum.midpoint.xml.ns._public.common.common_3.UserType does not point to a valid PrismContainerDefinition
-        /*
-        searchUsersTest("with extension poly-string multi-value item",
+    @Test
+    public void test701SearchUsersHavingShadowMatchingMultipleCriteria()
+            throws SchemaException {
+        searchUsersTest("with shadow on a specific resource and with specified tag",
                 f -> f.exists(UserType.F_LINK_REF, T_OBJECT_REFERENCE)
                         .block()
                         .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
@@ -2012,7 +2046,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .item(ShadowType.F_TAG).eq("tag")
                         .endBlock(),
                 user3Oid);
-        */
     }
 
     // MID-7487, nothing found, just a query test

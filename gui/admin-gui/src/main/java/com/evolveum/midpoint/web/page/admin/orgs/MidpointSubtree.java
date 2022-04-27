@@ -8,7 +8,7 @@ package com.evolveum.midpoint.web.page.admin.orgs;
 
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.component.OrgTreeProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgTreeProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;

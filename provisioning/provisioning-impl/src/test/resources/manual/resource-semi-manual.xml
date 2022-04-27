@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2017-2021 Evolveum and contributors
+  ~ Copyright (C) 2017-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -69,7 +69,7 @@
     <consistency>
         <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
         <pendingOperationRetentionPeriod>PT20M</pendingOperationRetentionPeriod>
-        <reshreshOnRead>true</reshreshOnRead>
+        <refreshOnRead>true</refreshOnRead>
     </consistency>
 
     <business>
@@ -77,5 +77,4 @@
         <operatorRef oid="6f706572-6174-6f72-2d72-6f6c65000000" type="RoleType"/>
         <operatorRef oid="6f706572-6174-6f72-2d75-736572000000" type="UserType"/>
     </business>
-
 </resource>

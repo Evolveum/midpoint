@@ -41,11 +41,11 @@ import java.util.List;
         encoder = OnePageParameterEncoder.class,
         action = {
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
-                        label = "PageAdminUsers.auth.usersAll.label",
-                        description = "PageAdminUsers.auth.usersAll.description"),
+                        label = "PageTask.auth.tasksAll.label",
+                        description = "PageTask.auth.tasksAll.description"),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASK_URL,
-                        label = "PageUser.auth.user.label",
-                        description = "PageUser.auth.user.description")
+                        label = "PageTask.auth.task.label",
+                        description = "PageTask.auth.task.description")
         })
 public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsModel> {
 

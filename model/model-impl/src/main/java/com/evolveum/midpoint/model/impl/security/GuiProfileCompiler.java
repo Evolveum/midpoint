@@ -415,7 +415,7 @@ public class GuiProfileCompiler {
         CompiledShadowCollectionView existingView = composite.findShadowCollectionView(objectListViewType.getResourceRef().getOid(), objectListViewType.getKind(), objectListViewType.getIntent());
         if (existingView == null) {
             existingView = new CompiledShadowCollectionView(viewIdentifier);
-            composite.getObjectCollectionViews().add(existingView);
+            composite.getShadowCollectionViews().add(existingView);
         }
         return existingView;
     }

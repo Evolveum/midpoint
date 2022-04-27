@@ -72,7 +72,8 @@ public class OidcClientModuleWebSecurityConfigurer<C extends OidcClientModuleWeb
 
     @Override
     protected LogoutSuccessHandler getLogoutRequestSuccessHandler() {
-        OidcClientLogoutSuccessHandler logoutRequestSuccessHandler = new OidcClientLogoutSuccessHandler(clientRegistrationRepository());
+        OidcClientLogoutSuccessHandler logoutRequestSuccessHandler =
+                getObjectPostProcessor().postProcess(new OidcClientLogoutSuccessHandler(clientRegistrationRepository()));
         logoutRequestSuccessHandler.setPostLogoutRedirectUri(getConfiguration().getPrefixOfSequence());
         return logoutRequestSuccessHandler;
     }

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui;
 import static org.testng.Assert.assertEquals;
 
 import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.*;
-import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
@@ -122,28 +120,4 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
         assertEquals(des, sysConf.getRealValue().getDescription());
     }
 
-    @Test //TODO old test remove after removing old gui pages
-    public void test019testPageSystemConfigurationOld() {
-        renderPage(PageSystemConfiguration.class);
-    }
-
-    @Test //TODO old test remove after removing old gui pages
-    public void test020testModifySystemConfigOld() throws Exception {
-        renderPage(PageSystemConfiguration.class);
-
-        tester.clickLink(MAIN_FORM_OLD + ":tabPanel:panel:basicSystemConfiguration:values:0:value:valueForm:valueContainer:input:propertiesLabel:showEmptyButton");
-
-        FormTester formTester = tester.newFormTester(MAIN_FORM_OLD, false);
-        String des = "new description old";
-        formTester.setValue(FORM_INPUT_DESCRIPTION, des);
-
-        formTester.submit(FORM_SAVE_OLD);
-
-        Thread.sleep(5000);
-
-        tester.assertRenderedPage(PageDashboardInfo.class);
-
-        PrismObject<SystemConfigurationType> sysConf = getObject(SystemConfigurationType.class, "00000000-0000-0000-0000-000000000001");
-        assertEquals(des, sysConf.getRealValue().getDescription());
-    }
 }

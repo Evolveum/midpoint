@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2017 Evolveum and contributors
+  ~ Copyright (C) 2017-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -9,7 +9,6 @@
 <resource oid="8ed29734-a1ed-11e7-b7f9-7bce8b17fd64"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector"
         xmlns:csvconf="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
@@ -76,9 +75,6 @@
                         <cap:disableValue>true</cap:disableValue>
                     </cap:status>
                 </cap:activation>
-<!--                 <cap:addRemoveAttributeValues>
-                    <cap:enabled>false</cap:enabled>
-                </cap:addRemoveAttributeValues>  -->
             </configured>
         </capabilities>
     </additionalConnector>
@@ -110,7 +106,7 @@
                 </outbound>
             </attribute>
 
-             <activation>
+            <activation>
                 <!-- Explicit existence mapping. Unassigned accounts are disabled, not deleted. -->
                 <existence>
                     <outbound>
@@ -168,7 +164,7 @@
         <recordPendingOperations>all</recordPendingOperations>
         <avoidDuplicateOperations>true</avoidDuplicateOperations>
         <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
-        <reshreshOnRead>true</reshreshOnRead>
+        <refreshOnRead>true</refreshOnRead>
     </consistency>
 
     <synchronization>
@@ -205,5 +201,4 @@
             </reaction>
         </objectSynchronization>
     </synchronization>
-
 </resource>

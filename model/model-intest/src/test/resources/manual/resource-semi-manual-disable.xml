@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2017 Evolveum and contributors
+  ~ Copyright (C) 2017-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -76,9 +76,9 @@
                         <cap:disableValue>true</cap:disableValue>
                     </cap:status>
                 </cap:activation>
-<!--                 <cap:addRemoveAttributeValues>
-                    <cap:enabled>false</cap:enabled>
-                </cap:addRemoveAttributeValues>  -->
+                <!--                 <cap:addRemoveAttributeValues>
+                                    <cap:enabled>false</cap:enabled>
+                                </cap:addRemoveAttributeValues>  -->
             </configured>
         </capabilities>
     </additionalConnector>
@@ -110,7 +110,7 @@
                 </outbound>
             </attribute>
 
-             <activation>
+            <activation>
                 <!-- Explicit existence mapping. Unassigned accounts are disabled, not deleted. -->
                 <existence>
                     <outbound>
@@ -151,28 +151,28 @@
     <capabilities>
         <!-- No cahingMetadata here MID-4472, MID-4174 -->
         <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:type="c:CapabilityCollectionType">
-             <cap:read>
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:type="c:CapabilityCollectionType">
+            <cap:read>
                 <cap:cachingOnly>true</cap:cachingOnly>
-             </cap:read>
-             <cap:create>
+            </cap:read>
+            <cap:create>
                 <cap:manual>true</cap:manual>
-             </cap:create>
-             <cap:update>
+            </cap:create>
+            <cap:update>
                 <cap:manual>true</cap:manual>
-             </cap:update>
-             <cap:addRemoveAttributeValues/>
-             <cap:delete>
+            </cap:update>
+            <cap:addRemoveAttributeValues/>
+            <cap:delete>
                 <cap:manual>true</cap:manual>
-             </cap:delete>
-             <cap:activation>
+            </cap:delete>
+            <cap:activation>
                 <cap:status/>
-             </cap:activation>
-             <cap:credentials>
+            </cap:activation>
+            <cap:credentials>
                 <cap:password/>
-             </cap:credentials>
-         </native>
+            </cap:credentials>
+        </native>
         <configured>
             <cap:activation>
                 <cap:status>
@@ -181,9 +181,6 @@
                     <cap:disableValue>true</cap:disableValue>
                 </cap:status>
             </cap:activation>
-<!--             <cap:addRemoveAttributeValues>
-                <cap:enabled>false</cap:enabled>
-            </cap:addRemoveAttributeValues>  -->
         </configured>
     </capabilities>
 
@@ -193,7 +190,7 @@
         <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
         <pendingOperationRetentionPeriod>PT30M</pendingOperationRetentionPeriod>
         <deadShadowRetentionPeriod>PT2H</deadShadowRetentionPeriod>
-        <reshreshOnRead>true</reshreshOnRead>
+        <refreshOnRead>true</refreshOnRead>
     </consistency>
 
     <synchronization>
@@ -227,5 +224,4 @@
             </reaction>
         </objectSynchronization>
     </synchronization>
-
 </resource>

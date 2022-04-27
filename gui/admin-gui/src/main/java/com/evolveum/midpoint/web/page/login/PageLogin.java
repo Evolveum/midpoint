@@ -22,15 +22,14 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.springframework.security.core.Authentication;
@@ -55,7 +54,6 @@ public class PageLogin extends AbstractPageLogin {
 
     private static final String DOT_CLASS = PageLogin.class.getName() + ".";
     protected static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = DOT_CLASS + "loadPasswordResetPolicy";
-    private static final String OPERATION_LOAD_REGISTRATION_POLICY = DOT_CLASS + "loadRegistrationPolicy";
 
     private final LoadableDetachableModel<SecurityPolicyType> securityPolicyModel;
 
@@ -86,36 +84,8 @@ public class PageLogin extends AbstractPageLogin {
         form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));
         add(form);
 
-        BookmarkablePageLink<String> link = new BookmarkablePageLink<>(ID_FORGET_PASSWORD, PageForgotPassword.class);
-
-        link.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                SecurityPolicyType finalSecurityPolicy = getSecurityPolicy();
-                if (finalSecurityPolicy == null) {
-                    return false;
-                }
-
-                if (finalSecurityPolicy.getCredentialsReset() != null
-                        && StringUtils.isNotBlank(finalSecurityPolicy.getCredentialsReset().getAuthenticationSequenceName())) {
-                    AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(finalSecurityPolicy.getCredentialsReset().getAuthenticationSequenceName(), finalSecurityPolicy.getAuthentication());
-                    if (sequence != null
-                            && (sequence.getChannel() == null || StringUtils.isBlank(sequence.getChannel().getUrlSuffix()))){
-                        return false;
-                    }
-                }
-
-                CredentialsPolicyType creds = finalSecurityPolicy.getCredentials();
-
-                // TODO: Not entirely correct. This means we have reset somehow configured, but not necessarily enabled.
-                return creds != null
-                        && ((creds.getSecurityQuestions() != null
-                        && creds.getSecurityQuestions().getQuestionNumber() != null) || (finalSecurityPolicy.getCredentialsReset() != null));
-            }
-        });
         SecurityPolicyType securityPolicy = getSecurityPolicy();
+        String urlResetPass = "";
         if (securityPolicy != null && securityPolicy.getCredentialsReset() != null
                 && StringUtils.isNotBlank(securityPolicy.getCredentialsReset().getAuthenticationSequenceName())) {
             AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
@@ -126,44 +96,34 @@ public class PageLogin extends AbstractPageLogin {
                     LOGGER.error(message, new IllegalArgumentException(message));
                     error(message);
                 }
-                link.add(AttributeModifier.replace("href", (IModel<String>) () -> "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix()));
+                urlResetPass = "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
             }
         }
+
+        ExternalLink link = new ExternalLink(ID_FORGET_PASSWORD, urlResetPass);
+
+        String finalUrlResetPass = urlResetPass;
+        link.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(finalUrlResetPass)));
         form.add(link);
 
-        BookmarkablePageLink<String> registration = new BookmarkablePageLink<>(ID_SELF_REGISTRATION, PageSelfRegistration.class);
-        registration.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                OperationResult parentResult = new OperationResult(OPERATION_LOAD_REGISTRATION_POLICY);
-
-                RegistrationsPolicyType registrationPolicies = null;
-                try {
-                    Task task = createAnonymousTask(OPERATION_LOAD_REGISTRATION_POLICY);
-                    registrationPolicies = getModelInteractionService().getFlowPolicy(null, task, parentResult);
-
-                } catch (CommonException e) {
-                    LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
-                }
-
-                return registrationPolicies != null
-                        && registrationPolicies.getSelfRegistration() != null;
-            }
-        });
+        String urlRegistration = "";
         if (securityPolicy != null) {
             SelfRegistrationPolicyType policy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
             if (policy != null) {
-                String sequenceName = policy.getAdditionalAuthenticationSequence() == null ? policy.getAdditionalAuthenticationName() : policy.getAdditionalAuthenticationSequence();
+                String sequenceName = policy.getAdditionalAuthenticationSequence();
                 if (StringUtils.isNotBlank(sequenceName)) {
                     AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(sequenceName, securityPolicy.getAuthentication());
                     if (sequence != null) {
-                        registration.add(AttributeModifier.replace("href", () ->  "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix()));
+                        urlRegistration = "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
                     }
                 }
             }
         }
+
+        ExternalLink registration = new ExternalLink(ID_SELF_REGISTRATION, urlRegistration);
+        String finalUrlRegistration = urlRegistration;
+        registration.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(finalUrlRegistration)));
+
         form.add(registration);
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);

@@ -23,7 +23,6 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeAssignmentsTabPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -51,7 +50,7 @@ public class UserDelegationsPanel extends AbstractObjectMainPanel<UserType, User
     private static final String ID_DELEGATIONS_CONTAINER = "delegationsContainer";
     private static final String ID_DELEGATIONS_PANEL = "delegationsPanel";
 
-    private static final Trace LOGGER = TraceManager.getTrace(AssignmentHolderTypeAssignmentsTabPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(UserDelegationsPanel.class);
 
     public UserDelegationsPanel(String id, UserDetailsModel userDetailsModel, ContainerPanelConfigurationType config) {
         super(id, userDetailsModel, config);
@@ -184,7 +183,7 @@ public class UserDelegationsPanel extends AbstractObjectMainPanel<UserType, User
                 for (ObjectType object : newAssignments) {
                     try {
                         AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(
-                                ((PrismObject<UserType>)getObjectWrapper().getObject()).asObjectable(),
+                                getObjectWrapper().getObject().asObjectable(),
                                 WebComponentUtil.getDefaultRelationOrFail(RelationKindType.DELEGATION), getPageBase(), (UserType) object);
                         dto.setPrivilegeLimitationList(getPrivilegesListModel().getObject());
                         getDelegationModel().getObject().add(dto);
@@ -195,7 +194,6 @@ public class UserDelegationsPanel extends AbstractObjectMainPanel<UserType, User
                     }
                 }
                 reloadAssignmentsPanel(target);
-                reloadMainFormButtons(target);
             }
         };
 

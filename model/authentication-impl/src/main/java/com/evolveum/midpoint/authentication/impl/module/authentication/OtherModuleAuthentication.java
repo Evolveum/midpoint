@@ -20,6 +20,8 @@ import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameCon
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -27,14 +29,14 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 @Experimental
 public class OtherModuleAuthentication extends ModuleAuthenticationImpl {
 
-    public OtherModuleAuthentication() {
-        super(AuthenticationModuleNameConstants.OTHER);
+    public OtherModuleAuthentication(AuthenticationSequenceModuleType sequenceModule) {
+        super(AuthenticationModuleNameConstants.OTHER, sequenceModule);
         setType(ModuleType.LOCAL);
         setState(AuthenticationModuleState.LOGIN_PROCESSING);
     }
 
     public ModuleAuthenticationImpl clone() {
-        OtherModuleAuthentication module = new OtherModuleAuthentication();
+        OtherModuleAuthentication module = new OtherModuleAuthentication(this.getSequenceModule());
         module.setAuthentication(this.getAuthentication());
         clone(module);
         return module;

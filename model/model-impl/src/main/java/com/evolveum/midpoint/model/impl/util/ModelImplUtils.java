@@ -629,7 +629,12 @@ public class ModelImplUtils {
             variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, LensUtil.getIterationTokenVariableValue(projCtx), String.class);
         }
 
-        variables.put(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), context.getSystemConfiguration().getDefinition());
+        PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
+        if (systemConfiguration != null) {
+            variables.put(ExpressionConstants.VAR_CONFIGURATION, systemConfiguration, systemConfiguration.getDefinition());
+        } else {
+            variables.put(ExpressionConstants.VAR_CONFIGURATION, null, SystemConfigurationType.class);
+        }
         return variables;
     }
 

@@ -175,6 +175,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
+        //won't probably work correctly, will be overriden with visibale behacior default value for enabled
         save.add(new EnableBehaviour(this::isSavePreviewButtonEnabled));
         save.add(new VisibleBehaviour(this::isSaveButtonVisible));
         save.titleAsLabel(true);

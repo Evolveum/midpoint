@@ -33,8 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
                 label = "PageAdminUsers.auth.orgAll.label",
                 description = "PageAdminUsers.auth.orgAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_UNIT_HISTORY_URL,
-                label = "PageOrgUnitHistory.auth.orgUnitHistory.label",
-                description = "PageOrgUnitHistory.auth.orgUnitHistory.description")})
+                label = "PageOrgHistory.auth.orgUnitHistory.label",
+                description = "PageOrgHistory.auth.orgUnitHistory.description")})
 public class PageOrgHistory extends PageOrg {
     private static final long serialVersionUID = 1L;
 

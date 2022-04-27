@@ -248,18 +248,16 @@
         <dependency>
             <groupId>com.evolveum.commons</groupId>
             <artifactId>util</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-impl</artifactId>
-            <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
@@ -599,10 +597,6 @@
             <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>jakarta.mail</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.codehaus.janino</groupId>
             <artifactId>janino</artifactId>
             <scope>runtime</scope>
@@ -731,7 +725,7 @@
 
         <!-- end connectors -->
 
-        <!-- report dependency (needed for microsoft office formats) -->
+        <!-- report dependency (needed for Microsoft Office formats) -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
@@ -867,7 +861,7 @@
                         <phase>package</phase>
                         <configuration>
                             <classifier>executable</classifier>
-                            <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>
+                            <layoutFactory implementation="com.evolveum.midpoint.launcher.MidPointWarLayoutFactory"/>
                         </configuration>
                     </execution>
                 </executions>

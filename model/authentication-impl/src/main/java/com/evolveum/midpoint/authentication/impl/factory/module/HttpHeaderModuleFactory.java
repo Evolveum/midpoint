@@ -20,16 +20,14 @@ import com.evolveum.midpoint.authentication.impl.module.configuration.HttpHeader
 
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpHeaderAuthenticationModuleType;
 
 /**
  * @author skublik
@@ -46,7 +44,8 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
 
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
-                                         Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
+                                         Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
+            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
         if (!(moduleType instanceof HttpHeaderAuthenticationModuleType)) {
             LOGGER.error("This factory support only HttpHeaderAuthenticationModuleType, but modelType is " + moduleType);
             return null;
@@ -61,14 +60,15 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
         HttpSecurity http = getNewHttpSecurity(module);
         setSharedObjects(http, sharedObjects);
 
-        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration);
+        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, sequenceModule);
         moduleAuthentication.setFocusType(httpModuleType.getFocusType());
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 
-    private ModuleAuthenticationImpl createEmptyModuleAuthentication(ModuleWebSecurityConfigurationImpl configuration) {
-        HttpHeaderModuleAuthentication moduleAuthentication = new HttpHeaderModuleAuthentication();
+    private ModuleAuthenticationImpl createEmptyModuleAuthentication(
+            ModuleWebSecurityConfigurationImpl configuration, AuthenticationSequenceModuleType sequenceModule) {
+        HttpHeaderModuleAuthentication moduleAuthentication = new HttpHeaderModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
         return moduleAuthentication;

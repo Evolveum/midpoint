@@ -8,6 +8,10 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -17,6 +21,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
@@ -27,6 +32,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.reports.component.ImportReportPopupPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -62,6 +69,10 @@ public class PageReports extends PageAdmin {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
+
+    private static final String DOT_CLASS = PageReports.class.getName() + ".";
+    private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runReport";
+    private static final String OPERATION_IMPORT_REPORT = DOT_CLASS + "importReport";
 
     public PageReports() {
         super();
@@ -106,6 +117,78 @@ public class PageReports extends PageAdmin {
 
     }
 
+    //TODO unify with PageReport run method
+    public void runReportPerformed(AjaxRequestTarget target, PrismObject<ReportType> report, PageBase pageBase) {
+
+        if (hasNotParameters(report.asObjectable())) {
+            runConfirmPerformed(target, report, null, pageBase);
+            return;
+        }
+
+        RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(pageBase.getMainPopupBodyId(), report.asObjectable()) {
+
+            private static final long serialVersionUID = 1L;
+
+            protected void runConfirmPerformed(AjaxRequestTarget target, PrismObject<ReportType> reportType, PrismContainer<ReportParameterType> reportParam) {
+                PageReports.this.runConfirmPerformed(target, reportType, reportParam, pageBase);
+                pageBase.hideMainPopup(target);
+            }
+        };
+        pageBase.showMainPopup(runReportPopupPanel, target);
+
+    }
+
+    private boolean hasNotParameters(ReportType report) {
+        return report.getObjectCollection() == null || report.getObjectCollection().getParameter().isEmpty();
+    }
+
+    private void runConfirmPerformed(AjaxRequestTarget target, PrismObject<ReportType> reportType, PrismContainer<ReportParameterType> reportParam, PageBase pageBase) {
+        OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
+        Task task = pageBase.createSimpleTask(OPERATION_RUN_REPORT);
+
+        try {
+            pageBase.getReportManager().runReport(reportType, reportParam, task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        pageBase.showResult(result);
+        target.add(pageBase.getFeedbackPanel());
+    }
+
+    public void importReportPerformed(AjaxRequestTarget target, PrismObject<ReportType> report, PageBase pageBase) {
+        ImportReportPopupPanel importReportPopupPanel = new ImportReportPopupPanel(pageBase.getMainPopupBodyId(), report.asObjectable()) {
+
+            private static final long serialVersionUID = 1L;
+
+            protected void importConfirmPerformed(AjaxRequestTarget target, ReportDataType reportImportData) {
+                PageReports.this.importConfirmPerformed(target, report, reportImportData, pageBase);
+                pageBase.hideMainPopup(target);
+
+            }
+        };
+        pageBase.showMainPopup(importReportPopupPanel, target);
+    }
+
+    private void importConfirmPerformed(AjaxRequestTarget target, PrismObject<ReportType> reportType, ReportDataType reportImportData, PageBase pageBase) {
+        OperationResult result = new OperationResult(OPERATION_IMPORT_REPORT);
+        Task task = pageBase.createSimpleTask(OPERATION_IMPORT_REPORT);
+
+        try {
+            pageBase.getReportManager().importReport(reportType, reportImportData.asPrismObject(), task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        pageBase.showResult(result);
+        target.add(pageBase.getFeedbackPanel());
+    }
+    //end TODO
+
     private List<InlineMenuItem> createInlineMenu(){
         List<InlineMenuItem> menu = new ArrayList<>();
         ButtonInlineMenuItem runButton = new ButtonInlineMenuItem(createStringResource("PageReports.button.run")) {
@@ -119,7 +202,7 @@ public class PageReports extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         ReportType report = getRowModel().getObject().getValue();
-                        com.evolveum.midpoint.web.page.admin.reports.PageReport.runReportPerformed(
+                        runReportPerformed(
                                 target, report.asPrismObject(), PageReports.this);
                     }
                 };
@@ -151,7 +234,7 @@ public class PageReports extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         ReportType report = getRowModel().getObject().getValue();
-                        com.evolveum.midpoint.web.page.admin.reports.PageReport.importReportPerformed(
+                        importReportPerformed(
                                 target, report.asPrismObject(), PageReports.this);
                     }
                 };

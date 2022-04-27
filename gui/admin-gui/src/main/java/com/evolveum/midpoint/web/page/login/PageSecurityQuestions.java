@@ -63,10 +63,6 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSecurityQuestions.class);
 
-    private static final String DOT_CLASS = com.evolveum.midpoint.web.page.forgetpassword.PageSecurityQuestions.class.getName() + ".";
-    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loaduser";
-    private static final String OPERATION_LOAD_QUESTION_POLICY = DOT_CLASS + "LOAD Question Policy";
-
     private static final String ID_STATIC_LAYOUT = "staticLayout";
     private static final String ID_USERNAME = "username";
     private static final String ID_DYNAMIC_LAYOUT = "dynamicLayout";
@@ -336,7 +332,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         String username = usernameTextFiled != null ? usernameTextFiled.getModelObject() : null;
         LOGGER.debug("Reset Password user info form submitted. username={}", username);
 
-//        ResetPolicyDto resetPasswordPolicy = getResetPasswordPolicy();
+//        ResetPolicyDto resetPasswordPolicy = getFormRef();
 //        if (resetPasswordPolicy == null) {
 //            passwordResetNotSupported();
 //        }

@@ -6,16 +6,10 @@
  */
 package com.evolveum.midpoint.authentication.impl.util;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
@@ -25,9 +19,7 @@ import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegi
 import com.evolveum.midpoint.authentication.impl.factory.module.AbstractModuleFactory;
 import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.authentication.impl.factory.module.HttpClusterModuleFactory;
-import com.evolveum.midpoint.authentication.impl.filter.RemoteAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.module.authentication.HttpModuleAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -40,7 +32,6 @@ import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.Validate;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -305,15 +296,15 @@ public class AuthSequenceUtil {
                 AbstractAuthenticationModuleType module = getModuleByName(sequenceModule.getName(), authenticationModulesType);
                 AbstractModuleFactory moduleFactory = authRegistry.findModelFactory(module, authenticationChannel);
                 AuthModule authModule = moduleFactory.createModuleFilter(module, sequence.getChannel().getUrlSuffix(), request,
-                        sharedObjects, authenticationModulesType, credentialPolicy, authenticationChannel);
+                        sharedObjects, authenticationModulesType, credentialPolicy, authenticationChannel, sequenceModule);
                 authModules.add(authModule);
             } catch (Exception e) {
                 LOGGER.error("Couldn't build filter for module moduleFactory", e);
             }
         });
-        if (authModules.isEmpty()) {
-            return null;
-        }
+//        if (authModules.isEmpty()) {
+//            return null;
+//        }
         return authModules;
     }
 
@@ -333,7 +324,11 @@ public class AuthSequenceUtil {
                     module.setName(AuthenticationModuleNameConstants.CLUSTER.toLowerCase() + "-module");
                     try {
                         authModules.add(factory.createModuleFilter(module, urlSuffix, httpRequest,
-                                sharedObjects, authenticationModulesType, credentialPolicy, null));
+                                sharedObjects, authenticationModulesType, credentialPolicy, null,
+                                new AuthenticationSequenceModuleType()
+                                        .necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT)
+                                        .order(10)
+                        ));
                     } catch (Exception e) {
                         LOGGER.error("Couldn't create module for cluster authentication");
                         return null;
