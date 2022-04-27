@@ -141,6 +141,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<ObjectQu
         if (view == null) {
             view = new GuiObjectListViewType();
             view.setType(WebComponentUtil.containerClassToQName(PrismContext.get(), type));
+            //view.setIdentifier(); //todo set collection view identifier
             ((UserType)principalFocus).getAdminGuiConfiguration().getObjectCollectionViews().objectCollectionView(view);
         }
         SearchBoxConfigurationType searchConfig = view.getSearchBoxConfiguration();

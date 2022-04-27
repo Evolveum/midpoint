@@ -6,6 +6,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -69,7 +71,14 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
         if (searchBoxConfig.isAllowToConfigureSearchItems() != null) {
             allowToConfigureSearchItems = searchBoxConfig.isAllowToConfigureSearchItems();
         }
-        //todo convert search items to search item wrappers
+        if (searchBoxConfig.getSearchItems() != null && CollectionUtils.isNotEmpty(searchBoxConfig.getSearchItems().getSearchItem())) {
+            searchBoxConfig.getSearchItems().getSearchItem().forEach(item -> {
+                PropertySearchItemWrapper itemWrapper = SearchFactory.createPropertySearchItemWrapper(typeClass, item, null, null);
+                if (itemWrapper != null) {
+                    itemsList.add(itemWrapper);
+                }
+            });
+        }
     }
 
     public SearchConfigurationWrapper(Class<C> typeClass, String collectionViewName) {
