@@ -18,6 +18,9 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.test.TestResource;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -119,6 +122,12 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     private static final String OU_CLUB_SPITTERS = "spitters";
     private static final String OU_CLUB_DIVERS = "divers";
     private static final String OU_CLUB_SCI_FI = "sci-fi";
+
+    private static final TestResource<ShadowType> SHADOW_MAPMAKERS_DEAD = new TestResource<>(
+            TEST_DIR, "group-mapmakers-dead.xml", "1ff68c92-d526-4cfb-8df5-539bc5fdd097");
+
+    private static final TestResource<ShadowType> SHADOW_GUYBRUSH_DEAD = new TestResource<>(
+            TEST_DIR, "account-guybrush-dead.xml", "2947d268-1d43-4114-bd4c-f4aa723d884a");
 
     private ActivationType jackSwashbucklerAssignmentActivation;
 
@@ -297,6 +306,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     /**
      * Create the group directly on resource. Therefore the shadow does NOT exists.
+     *
+     * We try to mislead midPoint by inserting dead `mapmakers` shadow. (See MID-7895.) This does not lead to the exception
+     * described there, but reveals a similar problem in `associationTargetSearch` evaluation.
      */
     @Test
     public void test222AssignRoleMapmakerToWally() throws Exception {
@@ -307,6 +319,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         getDummyResource().addGroup(mapmakers);
 
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
+
+        given("dead shadow for mapmakers is created");
+        repoAdd(SHADOW_MAPMAKERS_DEAD, result);
 
         // WHEN
         when();
@@ -320,7 +335,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(GROUP_DUMMY_MAPMAKERS_NAME, USER_WALLY_NAME, getDummyResource());
 
         PrismObject<ShadowType> groupLandlubersShadow = findShadowByName(RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_LANDLUBERS_NAME, getDummyResourceObject(), result);
-        PrismObject<ShadowType> groupMapmakersShadow = findShadowByName(RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_MAPMAKERS_NAME, getDummyResourceObject(), result);
+        PrismObject<ShadowType> groupMapmakersShadow = findLiveShadowByName(RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_MAPMAKERS_NAME, getDummyResourceObject(), result);
         assertShadow(groupMapmakersShadow, "mapmakers shadow")
                 .assertKind(ShadowKindType.ENTITLEMENT)
                 .assertIntent("unknown"); // This is due to missing synchronization section for groups in the dummy resource.
@@ -334,6 +349,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
                 .assertSize(2)
                 .association(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME)
                 .assertShadowOids(groupLandlubersShadow.getOid(), groupMapmakersShadow.getOid());
+
+        // Check if the dead group shadow does not cause problems when fetching the member account.
+        provisioningService.getObject(ShadowType.class, accountWallyOid, null, task, result);
     }
 
     @Test
@@ -863,11 +881,16 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     /**
      * MID-2668
+     *
+     * Here we also check handling of dead association-target shadows - see MID-7895.
      */
     @Test
     public void test351AssignRoleCrewOfGuybrushToRapp() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        given("there is a dead association-target shadow");
+        repoAdd(SHADOW_GUYBRUSH_DEAD, result);
 
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
@@ -1316,7 +1339,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, "default", task, result);
         dumpUserAndAccounts(USER_GUYBRUSH_OID);
 
-        PrismObject<ShadowType> orangeAccount = findAccountShadowByUsername(USER_GUYBRUSH_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_ORANGE_NAME), result);
+        PrismObject<ShadowType> orangeAccount = findAccountShadowByUsername(
+                USER_GUYBRUSH_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_ORANGE_NAME), true, result);
         assertNotNull("No orange account for guybrush", orangeAccount);
 
         ObjectDelta<ShadowType> delta1 =
