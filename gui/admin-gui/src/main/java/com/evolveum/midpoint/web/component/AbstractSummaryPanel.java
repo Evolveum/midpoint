@@ -104,7 +104,9 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         }
 
         WebMarkupContainer identifierPanel = new WebMarkupContainer(ID_IDENTIFIER_PANEL);
-        identifierPanel.add(new Label(ID_IDENTIFIER, createLabelModel(getIdentifierPropertyName(), SummaryPanelSpecificationType.F_IDENTIFIER)));
+        Label identifier = new Label(ID_IDENTIFIER, createLabelModel(getIdentifierPropertyName(), SummaryPanelSpecificationType.F_IDENTIFIER));
+        identifier.setRenderBodyOnly(true);
+        identifierPanel.add(identifier);
         identifierPanel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 

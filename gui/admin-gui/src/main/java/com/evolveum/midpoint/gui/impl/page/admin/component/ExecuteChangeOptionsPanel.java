@@ -123,7 +123,7 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
 
             @Override
             protected String getSpecialButtonClass() {
-                return "btn-sm btn-default btn-margin-right";
+                return "mr-2 btn-sm btn-default";
             }
 
             @Override
@@ -180,7 +180,7 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
 
            @Override
            protected String getSpecialButtonClass() {
-               return "btn-sm btn-default btn-margin-right";
+               return "mr-2 btn-sm btn-default";
            }
 
            @Override

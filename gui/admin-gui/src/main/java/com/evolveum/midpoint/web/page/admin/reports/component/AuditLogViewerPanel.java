@@ -247,7 +247,7 @@ public class AuditLogViewerPanel extends BasePanel {
                                 createReportPerformed(target);
                             }
                         };
-                        createReport.add(AttributeAppender.append("class", "btn btn-default btn-sm btn-margin-right"));
+                        createReport.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
                         buttonsList.add(createReport);
                         return buttonsList;
                     }

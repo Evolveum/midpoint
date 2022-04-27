@@ -682,16 +682,8 @@ th.cog, td.cog {
 	white-space: pre-wrap;
 }
 
-.summary-content-box {
-	display: block;
-}
-
-.summary-text-box {
-	display: inline-block;
-}
-
 .summary-tag-box {
-	float: right;
+  max-width: 220px;
 }
 
 .summary-tag-box-wide {
@@ -905,6 +897,7 @@ th.cog, td.cog {
 	padding-right: 6px;
 }
 
+// todo remove + remove all occurrences [lazyman]
 .main-button-bar {
   display: flex;
 }
@@ -1835,10 +1828,6 @@ fieldset.objectButtons {
     width: auto;
     //color: $legend-color;
   }
-}
-
-.btn-margin-right {
-  margin-right: 10px;
 }
 
 .operationalButtonLabel {
