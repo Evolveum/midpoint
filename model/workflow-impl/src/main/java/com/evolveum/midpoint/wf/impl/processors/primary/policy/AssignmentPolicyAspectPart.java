@@ -164,6 +164,11 @@ public class AssignmentPolicyAspectPart {
             }
         }
 
+        if (ctx.modelContext.getFocusContext().isDelete()) {
+            LOGGER.debug("Focus is going to be deleted. There's no point in approving any assignment changes.");
+            return null;
+        }
+
         // Let's construct the approval schema plus supporting triggered approval policy rule information
         // Here we also treat default "rules" when no policy rules match.
         ApprovalSchemaBuilder.Result approvalSchemaResult = createSchemaWithRules(triggeredApprovalActionRules,

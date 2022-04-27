@@ -2,9 +2,16 @@ podTemplate(
         activeDeadlineSeconds: 7200,
         idleMinutes: 1,
         nodeSelector: '${NODE_SELECTOR}',
+        volumes: [secretVolume(secretName: "jenkins-nexus",mountPath: "/root/jenkins-nexus")],
+        workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
+        yaml:'''
+spec:
+  securityContext:
+    fsGroup: 1000
+''',
         containers: [
                 containerTemplate(name: 'jnlp',
-                        image: 'jenkins/inbound-agent:4.7-1-alpine',
+                        image: 'jenkins/inbound-agent:4.10-3-alpine',
                         runAsUser: '0',
                         resourceLimitCpu: '900m',
                         resourceLimitMemory: '1Gi',
@@ -28,13 +35,22 @@ podTemplate(
             container('maven') {
                 try {
                     sh """#!/bin/bash
+                        mkdir -p /root/.m2
+                        ln -s ../jenkins-nexus/settings.xml /root/.m2/settings.xml
+
                         if [ '${VERBOSE}' = '1' ]
                         then
 	                        env | sort
 	                        mvn --version
+	                        df -h
 			            fi
 
 				        mvn clean deploy -P -dist -DskipTests -DdeployAtEnd=true
+
+				        if [ '${VERBOSE}' = '1' ]
+                        then
+                            df -h
+                        fi
                     """
                 } catch (err) {
                     echo "Caught: ${err}"
@@ -45,7 +61,14 @@ podTemplate(
         stage("tests-default") {
             container('maven') {
                 try {
-                    sh """mvn verify -Dmaven.test.failure.ignore=true"""
+                    sh """
+                        mvn verify -Dmaven.test.failure.ignore=true
+
+				        if [ '${VERBOSE}' = '1' ]
+                        then
+                            df -h
+                        fi
+                    """
                 } catch (err) {
                     echo "Caught: ${err}"
                     currentBuild.result = 'FAILURE'
@@ -59,6 +82,11 @@ podTemplate(
                 try {
                     sh """
                         mvn verify -Dmaven.test.failure.ignore=true -P extratest -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+
+				        if [ '${VERBOSE}' = '1' ]
+                        then
+                            df -h
+                        fi
                     """
                 } catch (err) {
                     echo "Caught: ${err}"
