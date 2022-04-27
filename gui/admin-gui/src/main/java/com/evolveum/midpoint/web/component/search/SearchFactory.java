@@ -311,7 +311,9 @@ public class SearchFactory {
 
     private static void processSearchItemDefFromCompiledView(List<SearchItemDefinition> configuredSearchItemDefs, Search search, PrismContainerDefinition containerDef) {
         configuredSearchItemDefs.forEach(searchItemDef -> {
-            search.addItemToAllDefinitions(searchItemDef);
+            if (!search.getAllDefinitions().contains(searchItemDef)) {
+                search.addItemToAllDefinitions(searchItemDef);
+            }
             if (searchItemDef.isVisibleByDefault()) {
                 SearchItem item = null;
                 if (searchItemDef.getPath() != null) {
