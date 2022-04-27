@@ -28,6 +28,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.AuthModule;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -4550,6 +4552,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
         };
         mpAuthentication.addAuthentications(moduleAuthentication);
+        AuthModule authModule = new AuthModule() {
+            @Override
+            public ModuleAuthentication getBaseModuleAuthentication() {
+                return moduleAuthentication;
+            }
+
+            @Override
+            public String getNameOfModule() {
+                return SecurityPolicyUtil.DEFAULT_MODULE_NAME;
+            }
+
+            @Override
+            public Integer getOrder() {
+                return 1;
+            }
+        };
+        mpAuthentication.setAuthModules(Collections.singletonList(authModule));
         mpAuthentication.setPrincipal(authentication.getPrincipal());
         return mpAuthentication;
     }
