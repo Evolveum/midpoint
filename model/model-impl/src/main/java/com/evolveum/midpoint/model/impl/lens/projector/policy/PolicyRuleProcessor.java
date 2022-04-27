@@ -533,6 +533,8 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder = mappingFactory
                 .createMappingBuilder();
         ObjectDeltaObject<AH> focusOdo = new ObjectDeltaObject<>(focus, null, focus, focus.getDefinition());
+        PrismObject<?> target = evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null;
+
         builder = builder.mappingBean(condition)
                 .mappingKind(MappingKindType.POLICY_RULE_CONDITION)
                 .contextDescription("condition in global policy rule " + globalPolicyRule.getName())
@@ -542,9 +544,11 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
                 .addAliasRegistration(ExpressionConstants.VAR_USER, null)
                 .addAliasRegistration(ExpressionConstants.VAR_FOCUS, null)
-                .addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null, EvaluatedAssignment.class)
+                .addVariableDefinition(ExpressionConstants.VAR_TARGET,
+                        target, target != null ? target.getDefinition() : getObjectDefinition())
                 .addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment, EvaluatedAssignment.class)
-                .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment != null ? evaluatedAssignment.getAssignment() : null, AssignmentType.class)
+                .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT,
+                        evaluatedAssignment != null ? evaluatedAssignment.getAssignment() : null, AssignmentType.class)
                 .rootNode(focusOdo);
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
@@ -554,6 +558,10 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = mapping.getOutputTriple();
         return conditionTriple != null && ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues()); // TODO: null -> true (in the method) - ok?
     }
-    //endregion
 
+    private PrismObjectDefinition<?> getObjectDefinition() {
+        return PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+    }
+
+    //endregion
 }

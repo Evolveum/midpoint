@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +22,7 @@ import java.util.Collection;
 /**
  * Evaluation context for a policy rule.
  */
-public abstract class PolicyRuleEvaluationContext<AH extends AssignmentHolderType> implements Cloneable {
+public abstract class PolicyRuleEvaluationContext<AH extends AssignmentHolderType> {
 
     @NotNull public final EvaluatedPolicyRule policyRule;
     @NotNull public final LensContext<AH> lensContext;
@@ -52,6 +53,15 @@ public abstract class PolicyRuleEvaluationContext<AH extends AssignmentHolderTyp
             return focusContext.getObjectOld();
         } else {
             return focusContext.getObjectNew();
+        }
+    }
+
+    public PrismObjectDefinition<AH> getObjectDefinition() {
+        PrismObject<AH> object = getObject();
+        if (object != null && object.getDefinition() != null) {
+            return object.getDefinition();
+        } else {
+            return focusContext.getObjectDefinition();
         }
     }
 

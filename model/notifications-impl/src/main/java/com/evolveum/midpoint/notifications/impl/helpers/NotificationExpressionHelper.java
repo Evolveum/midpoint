@@ -171,7 +171,11 @@ public class NotificationExpressionHelper {
         variables.put(ExpressionConstants.VAR_TEXT_FORMATTER, textFormatter, TextFormatter.class);
         variables.put(ExpressionConstants.VAR_NOTIFICATION_FUNCTIONS, notificationsUtil, NotificationFunctions.class);
         PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
-        variables.put(ExpressionConstants.VAR_CONFIGURATION, systemConfiguration, systemConfiguration.getDefinition());
+        if (systemConfiguration != null) {
+            variables.put(ExpressionConstants.VAR_CONFIGURATION, systemConfiguration, systemConfiguration.getDefinition());
+        } else {
+            variables.put(ExpressionConstants.VAR_CONFIGURATION, null, SystemConfigurationType.class);
+        }
         return variables;
     }
 
