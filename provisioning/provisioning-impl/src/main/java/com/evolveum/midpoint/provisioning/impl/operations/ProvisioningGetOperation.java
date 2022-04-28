@@ -42,6 +42,7 @@ public class ProvisioningGetOperation<T extends ObjectType> {
     @Nullable private final GetOperationOptions rootOptions;
     @NotNull private final Task task;
     @NotNull private final CommonBeans beans;
+    @NotNull private final OperationsHelper operationsHelper;
 
     /**
      * See the comment in error handling code in {@link ProvisioningServiceImpl#getObject(java.lang.Class, java.lang.String,
@@ -55,13 +56,15 @@ public class ProvisioningGetOperation<T extends ObjectType> {
             @NotNull String oid,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull Task task,
-            @NotNull CommonBeans beans) {
+            @NotNull CommonBeans beans,
+            @NotNull OperationsHelper operationsHelper) {
         this.type = type;
         this.oid = oid;
         this.options = options;
         this.rootOptions = SelectorOptions.findRootOptions(options);
         this.task = task;
         this.beans = beans;
+        this.operationsHelper = operationsHelper;
     }
 
     public @NotNull PrismObject<T> execute(@NotNull OperationResult result)
@@ -80,7 +83,7 @@ public class ProvisioningGetOperation<T extends ObjectType> {
             //noinspection unchecked
             return (PrismObject<T>) getShadow(result);
         } else {
-            return beans.operationsHelper.getRepoObject(type, oid, options, result);
+            return operationsHelper.getRepoObject(type, oid, options, result);
         }
     }
 

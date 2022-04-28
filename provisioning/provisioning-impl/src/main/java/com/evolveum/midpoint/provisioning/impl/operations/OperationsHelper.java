@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.provisioning.impl.operations;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -26,7 +27,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
-@Component
+/**
+ * General helper for {@link ProvisioningServiceImpl} and for classes in this package.
+ * Should not be used by any other clients.
+ *
+ * TODO determine the fate of this class - maybe it's not a good idea after all
+ */
+@Component("provisioningOperationsHelper")
 public class OperationsHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationsHelper.class);

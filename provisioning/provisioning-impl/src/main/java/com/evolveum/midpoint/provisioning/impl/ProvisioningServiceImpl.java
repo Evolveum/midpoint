@@ -133,7 +133,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         Preconditions.checkNotNull(parentResult, "parentResult");
 
         PrismObject<T> resultingObject;
-        ProvisioningGetOperation<T> operation = new ProvisioningGetOperation<>(type, oid, options, task, beans);
+        ProvisioningGetOperation<T> operation = new ProvisioningGetOperation<>(type, oid, options, task, beans, operationsHelper);
 
         OperationResult result = parentResult.createMinorSubresult(OP_GET_OBJECT); // TODO why minor?
         result.addParam(OperationResult.PARAM_OID, oid);
@@ -834,7 +834,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             if (ShadowType.class.isAssignableFrom(type)) {
                 shadowsFacade.applyDefinition(query, task, result);
             } else if (ResourceType.class.isAssignableFrom(type)) {
-                resourceManager.applyDefinition(query, result);
+                resourceManager.applyDefinition(query, result); // beware: no implementation yet
             } else {
                 throw new IllegalArgumentException("Could not apply definition to query for object type: " + type);
             }
