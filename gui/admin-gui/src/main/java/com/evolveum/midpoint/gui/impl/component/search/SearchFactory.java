@@ -367,7 +367,7 @@ public class SearchFactory {
         } else {
             searchConfWrapper = searchConfigurationWrapper;
         }
-        if (CollectionUtils.isNotEmpty(searchConfWrapper.getAllowedTypeList())) {
+        if (CollectionUtils.isNotEmpty(searchConfWrapper.getAllowedTypeList()) && !objectTypeSearchItemWrapperExists(searchConfWrapper.getItemsList())) {
             searchConfWrapper.getItemsList().add(new ObjectTypeSearchItemWrapper(searchConfWrapper.getAllowedTypeList(),
                     WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfWrapper.getTypeClass())));
         }
@@ -447,8 +447,14 @@ public class SearchFactory {
         return itemWrapper;
     }
 
-
-
+    private static boolean objectTypeSearchItemWrapperExists(List<AbstractSearchItemWrapper> items) {
+        for (AbstractSearchItemWrapper item : items) {
+            if (item instanceof ObjectTypeSearchItemWrapper) {
+                return true;
+            }
+        }
+        return false;
+    }
     public static void createAbstractRoleSearchItemWrapperList(SearchConfigurationWrapper searchConfigWrapper, SearchBoxConfigurationType config) {
         if (config.getObjectTypeConfiguration() != null) {
             searchConfigWrapper.getItemsList().add(new ObjectTypeSearchItemWrapper(config.getObjectTypeConfiguration()));

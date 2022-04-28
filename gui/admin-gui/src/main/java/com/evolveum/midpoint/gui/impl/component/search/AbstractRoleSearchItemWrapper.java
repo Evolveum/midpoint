@@ -40,14 +40,13 @@ public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWr
 
     @Override
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
-        AbstractRoleType object = getParentVariables(variables);
-        if (object == null) {
+        ObjectReferenceType ref = getParentVariables(variables);
+        if (ref == null) {
             return null;
         }
 
         ScopeSearchItemWrapper scope = getScopeSearchItemWrapper();
         if (scope != null && SearchBoxScopeType.SUBTREE.equals(scope.getValue().getValue())) {
-            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, (QName) null);
             return pageBase.getPrismContext().queryFor(type).isChildOf(ref.asReferenceValue()).buildFilter();
         }
 
@@ -65,13 +64,13 @@ public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWr
 
         if(BooleanUtils.isTrue(indirect)) {
             filter = prismContext.queryFor(type)
-                    .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
+                    .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(ref, relations))
                     .buildFilter();
         } else {
             S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
                     .block()
                     .item(AssignmentType.F_TARGET_REF)
-                    .ref(MemberOperationsHelper.createReferenceValuesList(object, relations));
+                    .ref(MemberOperationsHelper.createReferenceValuesList(ref, relations));
 
             if (!getSearchConfig().isTenantEmpty()) {
                 q = q.and().item(AssignmentType.F_TENANT_REF).ref(getSearchConfig().getTenantRef().getOid());
@@ -90,12 +89,12 @@ public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWr
         return false;
     }
 
-    private <R extends AbstractRoleType> R getParentVariables(VariablesMap variables) {
+    private ObjectReferenceType getParentVariables(VariablesMap variables) {
         if (variables == null) {
             return null;
         }
         try {
-            return (R) variables.getValue(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleType.class);
+            return variables.getValue(ExpressionConstants.VAR_PARENT_OBJECT, ObjectReferenceType.class);
         } catch (SchemaException e) {
             LOGGER.error("Couldn't load parent object.");
         }
