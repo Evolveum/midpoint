@@ -379,7 +379,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         if (searchType.equals(getModelObject().getSearchMode())) {
             return;
         }
-        if (SearchBoxModeType.OID.equals(searchType)) {
+        if (SearchBoxModeType.OID.equals(searchType) && getModelObject().findOidSearchItemWrapper() != null) {
             getModelObject().findOidSearchItemWrapper().setValue(new SearchValue<>());
         }
         getModelObject().setSearchMode(searchType);

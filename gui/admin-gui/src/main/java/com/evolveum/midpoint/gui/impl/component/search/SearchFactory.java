@@ -366,71 +366,23 @@ public class SearchFactory {
             searchConfWrapper = combineSearchBoxConfiguration(defaultWrapper, searchConfigurationWrapper);
         } else {
             searchConfWrapper = searchConfigurationWrapper;
-
+        }
+        if (CollectionUtils.isNotEmpty(searchConfWrapper.getAllowedTypeList())) {
+            searchConfWrapper.getItemsList().add(new ObjectTypeSearchItemWrapper(searchConfWrapper.getAllowedTypeList(),
+                    WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfWrapper.getTypeClass())));
+        }
+        if (searchConfWrapper.getAllowedModeList().contains(SearchBoxModeType.OID)) {
+            OidSearchItemWrapper oidWrapper = new OidSearchItemWrapper();
+            oidWrapper.setVisible(true);
+            searchConfWrapper.getItemsList().add(oidWrapper);
         }
 
-//        if (ObjectType.class.isAssignableFrom(searchConfigurationWrapper.getTypeClass())) {
-//            QName typeQname = WebComponentUtil.classToQName(PrismContext.get(), (Class<? extends ObjectType>) searchConfigurationWrapper.getTypeClass());
-//            SearchBoxConfigurationType configuredSearchBoxConfig = getSearchBoxConfiguration(modelServiceLocator,
-//                    typeQname, searchConfigurationWrapper.getCollectionViewName(), panelType);
-//            searchBoxConfig = combineSearchBoxConfiguration(searchBoxConfig, configuredSearchBoxConfig);
-//        }
-        if (Search.PanelType.MEMBER_PANEL.equals(panelType)) {
-            //todo add additional panel config here
-        }
-//        searchConfigurationWrapper.setConfig(searchBoxConfig);
-//        searchConfigurationWrapper.setDefaultSearchBoxMode(searchBoxConfig.getDefaultMode());
-//        createSearchItemWrapperList(searchConfigurationWrapper.getTypeClass(), searchConfigurationWrapper, discriminator, modelServiceLocator);
-//        if (searchBoxConfig.isAllowToConfigureSearchItems() != null && !searchBoxConfig.isAllowToConfigureSearchItems()) {
-//            searchConfigurationWrapper.getItemsList().forEach(item -> item.setCanConfigure(false));
-//        }
         Search<C> search = new Search<>(searchConfWrapper);
         QName typeQname = WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfigurationWrapper.getTypeClass());
         searchConfigurationWrapper.setAllowToConfigureSearchItems(
                 isAllowToConfigureSearchItems(modelServiceLocator, typeQname, searchConfigurationWrapper.getCollectionViewName(), panelType));
         return search;
     }
-
-//    private static <C extends Containerable> void createSearchItemWrapperList(Class<C> type, SearchConfigurationWrapper searchConfigWrapper,
-//            ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
-//        SearchBoxConfigurationType config = searchConfigWrapper.getConfig();
-//        if (config.getObjectTypeConfiguration() != null) {
-//            searchConfigWrapper.addSearchItem(new ObjectTypeSearchItemWrapper(config.getObjectTypeConfiguration(), searchConfigWrapper.isAllowAllTypeSearch()));
-//        }
-//        if (config.getSearchItems() != null && config.getSearchItems().getSearchItem() != null) {
-//            config.getSearchItems().getSearchItem().forEach(item -> {
-//                if (item.getPath() != null) {
-//                    PropertySearchItemWrapper property = createPropertySearchItemWrapper(type, item, discriminator, modelServiceLocator);
-//                    if (property != null) {
-//                        searchConfigWrapper.addSearchItem(property);
-//                    }
-//                } else if (item.getFilter() != null || item.getParameter() != null) {
-//                    searchConfigWrapper.addSearchItem(new FilterSearchItemWrapper(item, searchConfigWrapper.getTypeClass()));
-//                }
-//            });
-//        }
-//        if (config.getAllowedMode() != null && config.getAllowedMode().contains(SearchBoxModeType.OID)) {
-//            OidSearchItemWrapper oidWrapper = new OidSearchItemWrapper();
-//            searchConfigWrapper.addSearchItem(oidWrapper);
-//        }
-//        if (config.getScopeConfiguration() != null) {
-//            searchConfigWrapper.addSearchItem(new ScopeSearchItemWrapper(searchConfigWrapper));
-//        }
-//        if (config.getRelationConfiguration() != null) {
-//            searchConfigWrapper.addSearchItem(new RelationSearchItemWrapper(searchConfigWrapper));
-//        }
-//        if (config.getIndirectConfiguration() != null) {
-//            searchConfigWrapper.addSearchItem(new IndirectSearchItemWrapper(searchConfigWrapper));
-//        }
-//        if (config.getProjectConfiguration() != null) {
-//            searchConfigWrapper.addSearchItem(new ProjectSearchItemWrapper(searchConfigWrapper));
-//        }
-//        if (config.getTenantConfiguration() != null) {
-//            searchConfigWrapper.addSearchItem(new TenantSearchItemWrapper(searchConfigWrapper));
-//        }
-//        //todo what to do with defaultScope and defaultObjectType?
-//
-//    }
 
     public static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
             SearchItemType item, ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
@@ -548,10 +500,6 @@ public class SearchFactory {
         if (CollectionUtils.isNotEmpty(customConfig.getAllowedTypeList())) {
             config.getAllowedTypeList().clear();
             config.getAllowedTypeList().addAll(customConfig.getAllowedTypeList());
-            if (CollectionUtils.isNotEmpty(config.getAllowedTypeList())) {
-                config.getItemsList().add(new ObjectTypeSearchItemWrapper(config.getAllowedTypeList(),
-                        WebComponentUtil.containerClassToQName(PrismContext.get(), config.getTypeClass())));
-            }
         }
         if (customConfig.getDefaultRelation() != null) {
             config.setDefaultRelation(customConfig.getDefaultRelation());
