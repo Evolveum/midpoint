@@ -133,7 +133,7 @@ logger is set to level `DEBUG` or `TRACE` - which can be a security issue if it'
 To avoid this, values are replaced by a placeholder string.
 In rare troubleshooting situations this may be a problem and actual values must be investigated.
 
-To allow this JVM argument `-DmidpointPrintSensitiveValues` must be added to the command line,
+To allow this JVM argument `-Dmidpoint.printSensitiveValues` must be added to the command line,
 value is not required and is ignored.
 This may require modifying `JAVA_OPTS` environment variable or otherwise changing `midpoint.sh` if
 starting scripts are used.

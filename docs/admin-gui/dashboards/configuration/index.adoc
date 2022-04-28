@@ -36,7 +36,6 @@ Dashboard contains name, display with label and widgets.
          ...
      </widget>
      ...
-         <visibility>hidden</visibility> <!-- deprecated since 4.3, use configurableUserDashboard in adminGuiConfig instead -->
 </dashboard>
 ----
 
@@ -52,15 +51,15 @@ The configuration is show below:
 [source,xml]
 ----
 <adminGuiConfiguration>
-        ....
-        <configurableUserDashboard>
-            <identifier>admin-dashboard</identifier>
-                <display>
-                        <label>Admin dashboard</label>
-                </display>
-        <configurableDashboardRef oid="00000000-0000-0000-0001-000000000001" relation="org:default" type="c:DashboardType"/>
-                <visibility>visible</visibility>
-        </configurableUserDashboard>
+    ...
+    <configurableUserDashboard>
+        <identifier>admin-dashboard</identifier>
+        <display>
+            <label>Admin dashboard</label>
+        </display>
+        <configurableDashboardRef oid="00000000-0000-0000-0001-000000000001"/>
+        <visibility>visible</visibility>
+    </configurableUserDashboard>
 </adminGuiConfiguration>
 ----
 
