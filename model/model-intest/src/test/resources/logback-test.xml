@@ -90,9 +90,9 @@
      <logger name="com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.resourceobjects" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning.impl.ConnectorManager" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning.impl.ResourceCache" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.resources.ResourceManager" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.resources.ResourceCache" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.shadows.task" level="DEBUG" />

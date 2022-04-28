@@ -27,6 +27,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+
 @Component
 public class SequenceHelper {
 
@@ -109,7 +111,7 @@ public class SequenceHelper {
 
             return returnValue;
         } catch (ObjectNotFoundException | SchemaException ex) {
-            baseHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, FATAL_ERROR);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);                                            // should always throw an exception
@@ -164,7 +166,7 @@ public class SequenceHelper {
             session.getTransaction().commit();
             LOGGER.trace("Committed!");
         } catch (ObjectNotFoundException | SchemaException ex) {
-            baseHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, FATAL_ERROR);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);                                            // should always throw an exception

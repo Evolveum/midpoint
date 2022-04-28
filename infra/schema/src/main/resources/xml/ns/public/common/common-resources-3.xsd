@@ -481,10 +481,10 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="ResourceIncludeDirectiveType">
+    <xsd:complexType name="SuperResourceDeclarationType">
         <xsd:annotation>
             <xsd:documentation>
-                Causes the inclusion of given resource definition.
+                Declares a "super-resource".
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -492,16 +492,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="1" maxOccurs="unbounded">
+            <xsd:element name="resourceRef" type="tns:ObjectReferenceType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        The reference to the "super-resource".
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <!-- inheritance options may be included later -->
         </xsd:sequence>
     </xsd:complexType>
 </xsd:schema>

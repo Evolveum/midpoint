@@ -10,61 +10,47 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * <p>Provisioning Service Interface.</p>
- * <p>
- * Status: public
- * Stability: STABLE, only compatible changes are expected
- * @version 3.7.1
- * @author Radovan Semancik
- * </p>
- * <p>
+ * Provisioning Service Interface
+ *
+ * * Status: public
+ * * Stability: STABLE, only compatible changes are expected
+ *
  * This service retrieves information about resource objects and resources
  * and handles changes to resource objects. Implementations of this interface
  * will apply the changes to accounts, groups and other similar objects to the
  * target resources. It also provides information about connectors and similar
  * configuration of access to the resources.
- * </p>
- * <p>
+ *
  * Supported object types:
- *   <ul>
- *      <li>Resource</li>
- *      <li>Shadow</li>
- *      <li>Connector</li>
- *   </ul>
- * </p>
- * <p>
+ *
+ *  * Resource
+ *  * Shadow
+ *  * Connector
+ *
+ *
  * TODO: better documentation
- * </p>
+ *
+ * @author Radovan Semancik
  */
 public interface ProvisioningService {
 
@@ -78,6 +64,27 @@ public interface ProvisioningService {
      * combination of both. The retrieval may fail due to resource failure,
      * network failure or similar external cases. The retrieval may also take
      * relatively long time (e.g. until it times out).
+     *
+     * Retrieving `ResourceType` objects:
+     *
+     * 1. In `raw` mode, they are just fetched from the repository and the definitions are applied
+     * (ignoring most of the exceptions in the definition application process). No super-resource resolution
+     * is attempted!
+     *
+     * 2. in `noFetch` mode: TODO
+     *
+     * Retrieving `ShadowType` objects:
+     *
+     * ... TODO ...
+     *
+     * Notes:
+     *
+     * 1. The operation result is cleaned up before returning.
+     * 2. The fetch result ({@link ObjectType#getFetchResult()}) is stored into object. It reflects the result
+     * of the "fetch from resource" operation, but also e.g. application of definitions to an object retrieved in raw mode.
+     * The exception is if the `raw` mode was used and the result is successful (because of performance).
+     *
+     * (TODO What for non-shadow/non-resource objects that are always taken from repository only?)
      *
      * @param type the type (class) of object to get
      * @param oid
@@ -101,7 +108,12 @@ public interface ProvisioningService {
      * @throws GenericConnectorException
      *             unknown connector framework error
      */
-    <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+    @NotNull <T extends ObjectType> PrismObject<T> getObject(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
@@ -141,7 +153,6 @@ public interface ProvisioningService {
      * @throws CommunicationException
      *             error communicating with the resource
      * @throws ObjectNotFoundException appropriate connector object was not found
-     * @throws ConfigurationException
      * @throws IllegalArgumentException
      *             wrong OID format, etc.
      * @throws GenericConnectorException
@@ -173,7 +184,7 @@ public interface ProvisioningService {
      * (Currently, the default refined object class having given object class name is selected. But this should
      * be no problem, because we need just the object class name for live synchronization.)
      *
-     * See also {@link ResourceSchema#determineCompositeObjectClassDefinition(ResourceShadowDiscriminator)}.
+     * FIXME See also link ResourceSchema#determineCompositeObjectClassDefinition(ResourceShadowDiscriminator).
      *
      * @param shadowCoordinates Where to attempt synchronization. See description above.
      * @param options Options driving the synchronization process (execution mode, batch size, ...)
@@ -244,8 +255,20 @@ public interface ProvisioningService {
      * optionally an attribute query. So the search will return all members of that object class.)
      * It is the responsibility of the caller to sort these extra objects out.
      *
-     * @see ObjectQueryUtil#getCoordinates(ObjectFilter, PrismContext)
-     * @see ResourceSchema#determineCompositeObjectClassDefinition(ResourceShadowDiscriminator)
+     * FIXME @see ObjectQueryUtil#getCoordinates(ObjectFilter, PrismContext)
+     * FIXME @see ResourceSchema#determineCompositeObjectClassDefinition(ResourceShadowDiscriminator)
+     *
+     * == Processing of {@link ResourceType} objects
+     *
+     * Just like the {@link #getObject(Class, String, Collection, Task, OperationResult)} method, the resources returned from
+     * this one are processed according to the inheritance rules, unless the `raw` mode is applied. Beware that - obviously -
+     * the search query is applied to find the original resource objects, not the "processed" ones.
+     *
+     * == Fetch result
+     *
+     * The fetch result ({@link ObjectType#getFetchResult()}) should be present in objects returned (namely, if the processing
+     * was not entirely successful). Beware that the details of storing it may differ between this method and
+     * {@link #getObject(Class, String, Collection, Task, OperationResult)}.
      *
      * @return all objects of specified type that match search criteria (subject to paging)
      *
@@ -256,8 +279,11 @@ public interface ProvisioningService {
      * policies
      */
     @NotNull
-    <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(@NotNull Class<T> type, @Nullable ObjectQuery query,
-            @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Task task,
+    <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
@@ -266,8 +292,12 @@ public interface ProvisioningService {
      * @param query See {@link #searchObjects(Class, ObjectQuery, Collection, Task, OperationResult)} description.
      * @param options If noFetch or raw, we count only shadows from the repository.
      */
-    <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+    <T extends ObjectType> Integer countObjects(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
@@ -277,6 +307,8 @@ public interface ProvisioningService {
      * If nothing is found the handler is not called and the operation returns.
      *
      * Should fail if object type is wrong. Should fail if unknown property is specified in the query.
+     *
+     * See {@link #searchObjects(Class, ObjectQuery, Collection, Task, OperationResult)} description for more information.
      *
      * @param query search query
      * @param handler result handler
@@ -290,9 +322,13 @@ public interface ProvisioningService {
      *
      * @see #searchObjects(Class, ObjectQuery, Collection, Task, OperationResult)
      */
-    <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<T> handler, Task task,
-            OperationResult parentResult)
+    <T extends ObjectType> SearchResultMetadata searchObjectsIterative(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ResultHandler<T> handler,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
@@ -374,8 +410,6 @@ public interface ProvisioningService {
      *            script to execute
      * @param parentResult
      *            parent OperationResult (in/out)
-     * @return
-     *
      * @throws ObjectNotFoundException
      *             specified object does not exist
      * @throws SchemaException

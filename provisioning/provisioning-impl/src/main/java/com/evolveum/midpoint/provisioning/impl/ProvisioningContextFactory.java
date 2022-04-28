@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinitionResolver;
 
 import org.jetbrains.annotations.NotNull;

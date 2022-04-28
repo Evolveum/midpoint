@@ -11,6 +11,8 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
+import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaParser;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;

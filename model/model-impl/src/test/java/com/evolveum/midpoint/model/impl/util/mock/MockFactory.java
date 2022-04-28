@@ -38,8 +38,13 @@ public class MockFactory {
     public static ProvisioningService createProvisioningService() {
         return new ProvisioningService() {
             @Override
-            public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) {
-                return null;
+            public @NotNull <T extends ObjectType> PrismObject<T> getObject(
+                    @NotNull Class<T> type,
+                    @NotNull String oid,
+                    @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+                    @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
+                throw new UnsupportedOperationException();
             }
 
             @Override
@@ -65,12 +70,12 @@ public class MockFactory {
             }
 
             @Override
-            public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) {
+            public <T extends ObjectType> Integer countObjects(@NotNull Class<T> type, @Nullable ObjectQuery query, @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Task task, @NotNull OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<T> handler, Task task, OperationResult parentResult) {
+            public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(@NotNull Class<T> type, @Nullable ObjectQuery query, @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull ResultHandler<T> handler, @NotNull Task task, @NotNull OperationResult parentResult) {
                 return null;
             }
 

@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.provisioning.impl;
+package com.evolveum.midpoint.provisioning.impl.resources;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -118,7 +118,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
     private Consumer<ConnectorType> notInRepoConsumer;
 
-    Collection<ConnectorFactory> getConnectorFactories() {
+    public Collection<ConnectorFactory> getConnectorFactories() {
         if (connectorFactories == null) {
             String[] connectorFactoryBeanNames = springContext.getBeanNamesForType(ConnectorFactory.class);
             LOGGER.debug("Connector factories bean names: {}", Arrays.toString(connectorFactoryBeanNames));
@@ -698,10 +698,10 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     @Override
     public Collection<SingleCacheStateInformationType> getStateInformation() {
         return Arrays.asList(
-                new SingleCacheStateInformationType(prismContext)
+                new SingleCacheStateInformationType()
                         .name(CONNECTOR_INSTANCE_CACHE_NAME)
                         .size(connectorInstanceCache.size()),
-                new SingleCacheStateInformationType(prismContext)
+                new SingleCacheStateInformationType()
                         .name(CONNECTOR_TYPE_CACHE_NAME)
                         .size(connectorBeanCache.size())
         );
@@ -725,7 +725,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     }
 
     @VisibleForTesting
-    void setNotFoundInRepoConsumer(Consumer<ConnectorType> consumer) {
+    public void setNotFoundInRepoConsumer(Consumer<ConnectorType> consumer) {
         this.notInRepoConsumer = consumer;
     }
 }

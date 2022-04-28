@@ -271,7 +271,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:operational/>
+                        <a:operational>true</a:operational>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -308,7 +308,7 @@
                         <a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
                         <a:displayName>OrgType.parentOrganization</a:displayName>
                         <a:displayOrder>240</a:displayOrder>
-                        <a:operational/>
+                        <a:operational>true</a:operational>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -335,7 +335,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:operational/>
+                        <a:operational>true</a:operational>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2363,7 +2363,7 @@
                     <xsd:element name="historyEntry" type="tns:PasswordHistoryEntryType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <a:operational/>
+                                <a:operational>true</a:operational>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3455,7 +3455,15 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="include" type="tns:ResourceIncludeDirectiveType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="abstract" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Is this an abstract resource, i.e. something that cannot be used directly (serving like
+                                e.g. a template for creation of specific resources)?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="super" type="tns:SuperResourceDeclarationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Instruction to include a configuration from another resource.
@@ -3884,10 +3892,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="parent" type="tns:ParentObjectTypeReferenceType" minOccurs="0">
+            <xsd:element name="super" type="tns:SuperObjectTypeReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Parent (super) type of this resource object type.
+                        Super type of this resource object type.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4185,10 +4193,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="ParentObjectTypeReferenceType">
+    <xsd:complexType name="SuperObjectTypeReferenceType">
         <xsd:annotation>
             <xsd:documentation>
-                References a parent object type.
+                References super object type.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -7701,7 +7709,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
-                        <a:experimental/>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -7820,7 +7828,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="returnMultiplicity" type="tns:ExpressionReturnMultiplicityType" minOccurs="0"></xsd:element>
+            <xsd:element name="returnMultiplicity" type="tns:ExpressionReturnMultiplicityType" minOccurs="0"/>
             <xsd:element name="allowEmptyValues" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -8453,7 +8461,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.2</a:since>
-                                <a:experimental/>
+                                <a:experimental>true</a:experimental>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -8576,7 +8584,7 @@
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
                 <a:since>4.2</a:since>
-                <a:experimental/>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -12683,7 +12691,7 @@
                                 </xsd:documentation>
                                 <xsd:appinfo>
                                     <a:since>3.6</a:since>
-                                    <a:deprecated/>
+                                    <a:deprecated>true</a:deprecated>
                                     <a:deprecatedSince>4.4</a:deprecatedSince>
                                 </xsd:appinfo>
                             </xsd:annotation>
@@ -13701,8 +13709,8 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:relational/>
-                <a:expensive/>
+                <a:relational>true</a:relational>
+                <a:expensive>true</a:expensive>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

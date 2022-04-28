@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.provisioning.impl;
+package com.evolveum.midpoint.provisioning.impl.resources;
 
 import java.util.*;
 import javax.xml.namespace.QName;
@@ -88,7 +88,7 @@ public class ResourceManager {
     /**
      * Completes a resource that has been - we expect - just retrieved from the repository, usually by a search operation.
      */
-    PrismObject<ResourceType> completeResource(
+    public @NotNull PrismObject<ResourceType> completeResource(
             PrismObject<ResourceType> repositoryObject, GetOperationOptions options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
 
@@ -180,7 +180,7 @@ public class ResourceManager {
         }
     }
 
-    void deleteResource(String oid, OperationResult parentResult) throws ObjectNotFoundException {
+    public void deleteResource(String oid, OperationResult parentResult) throws ObjectNotFoundException {
         resourceCache.remove(oid);
         repositoryService.deleteObject(ResourceType.class, oid, parentResult);
     }
@@ -1350,7 +1350,7 @@ public class ResourceManager {
 
     // Used by the tests. Does not change anything.
     @SuppressWarnings("SameParameterValue")
-    <T extends CapabilityType> ConnectorInstance getConfiguredConnectorInstanceFromCache(PrismObject<ResourceType> resource,
+    public <T extends CapabilityType> ConnectorInstance getConfiguredConnectorInstanceFromCache(PrismObject<ResourceType> resource,
             Class<T> operationCapabilityClass) throws SchemaException {
         ConnectorSpec connectorSpec = selectConnectorSpec(resource, operationCapabilityClass);
         return connectorSpec != null ? connectorManager.getConfiguredConnectorInstanceFromCache(connectorSpec) : null;
@@ -1359,7 +1359,7 @@ public class ResourceManager {
     /**
      * Returns connector capabilities merged with capabilities defined at object type level.
      */
-    <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(ResourceType resource,
+    public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(ResourceType resource,
             ResourceObjectTypeDefinition objectTypeDefinition, Class<T> operationCapabilityClass) {
         if (resource == null) {
             return null;
@@ -1406,7 +1406,7 @@ public class ResourceManager {
             return connectorCapabilities;
         }
 
-        CapabilitiesType finalCapabilities = new CapabilitiesType(prismContext);
+        CapabilitiesType finalCapabilities = new CapabilitiesType();
         if (connectorCapabilities.getNative() != null) {
             finalCapabilities.setNative(connectorCapabilities.getNative());
         }

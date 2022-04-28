@@ -16,6 +16,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 
+import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
