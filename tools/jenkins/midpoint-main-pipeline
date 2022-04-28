@@ -1,14 +1,9 @@
 podTemplate(
         activeDeadlineSeconds: 7200,
         idleMinutes: 1,
-        nodeSelector: '${NODE_SELECTOR}',
+        // Secret volume with maven settings.xml for deploy, see also sim-link in "build" stage.
         volumes: [secretVolume(secretName: "jenkins-nexus",mountPath: "/root/jenkins-nexus")],
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
-        yaml:'''
-spec:
-  securityContext:
-    fsGroup: 1000
-''',
         containers: [
                 containerTemplate(name: 'jnlp',
                         image: 'jenkins/inbound-agent:4.10-3-alpine',
@@ -22,7 +17,7 @@ spec:
                         ttyEnabled: true,
                         command: 'cat',
                         resourceLimitCpu: '4',
-                        resourceLimitMemory: '8Gi')
+                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
         ]
 ) {
     node(POD_LABEL) {
@@ -35,6 +30,7 @@ spec:
             container('maven') {
                 try {
                     sh """#!/bin/bash
+                        # .m2 is mutable and short-term, we just sym-link the settings.xml there.
                         mkdir -p /root/.m2
                         ln -s ../jenkins-nexus/settings.xml /root/.m2/settings.xml
 
@@ -45,7 +41,7 @@ spec:
 	                        df -h
 			            fi
 
-				        mvn clean deploy -P -dist -DskipTests -DdeployAtEnd=true
+				        mvn clean deploy -DskipTests -DdeployAtEnd=true
 
 				        if [ '${VERBOSE}' = '1' ]
                         then
@@ -80,6 +76,7 @@ spec:
         stage("tests-extra") {
             container('maven') {
                 try {
+                    // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
                     sh """
                         mvn verify -Dmaven.test.failure.ignore=true -P extratest -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
 

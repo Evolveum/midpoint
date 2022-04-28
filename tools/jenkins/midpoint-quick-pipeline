@@ -1,0 +1,49 @@
+podTemplate(
+        activeDeadlineSeconds: 7200,
+        idleMinutes: 1,
+        // No need for secret volume, no mvn deploy done here.
+        workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
+        containers: [
+                containerTemplate(name: 'jnlp',
+                        image: 'jenkins/inbound-agent:4.10-3-alpine',
+                        runAsUser: '0',
+                        resourceLimitCpu: '900m',
+                        resourceLimitMemory: '1Gi',
+                        resourceRequestCpu: '900m',
+                        resourceRequestMemory: '1Gi'),
+                containerTemplate(name: 'maven',
+                        image: 'maven:3.8.5-openjdk-11-slim',
+                        ttyEnabled: true,
+                        command: 'cat',
+                        resourceLimitCpu: '4',
+                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
+        ]
+) {
+    node(POD_LABEL) {
+        stage("checkout") {
+            git branch: "${BRANCH}",
+                    url: 'https://github.com/Evolveum/midpoint.git'
+            echo "git checkout done..."
+        }
+        stage("build") {
+            container('maven') {
+                try {
+                    sh """#!/bin/bash
+                        if [ '${VERBOSE}' = '1' ]
+                        then
+	                        env | sort
+	                        mvn --version
+			            fi
+
+				        mvn clean install -Dmaven.test.failure.ignore=true -P -dist -DintegrationTestSuite=fast
+                    """
+                } catch (err) {
+                    echo "Caught: ${err}"
+                    currentBuild.result = 'FAILURE'
+                } finally {
+                    step([$class: 'Publisher', reportFilenamePattern: '**/testng-results.xml'])
+                }
+            }
+        }
+    }
+}

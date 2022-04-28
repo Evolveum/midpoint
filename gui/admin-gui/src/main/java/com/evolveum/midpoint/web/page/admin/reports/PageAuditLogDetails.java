@@ -439,7 +439,8 @@ public class PageAuditLogDetails extends PageBase {
         Map<PolyStringType, ObjectDeltaOperationType> focusDeltas = new HashMap<>();
         List<ObjectDeltaOperationType> otherDeltas = new ArrayList<>();
         for (ObjectDeltaOperationType delta : deltas) {
-            if (delta != null && delta.getObjectDelta() != null && FocusType.class.isAssignableFrom(WebComponentUtil.qnameToClass(getPrismContext(), delta.getObjectDelta().getObjectType()))) {
+            var deltaType = WebComponentUtil.qnameToClass(getPrismContext(), delta.getObjectDelta().getObjectType());
+            if (delta != null && delta.getObjectDelta() != null && deltaType != null && FocusType.class.isAssignableFrom(deltaType)) {
                 if (focusDeltas.containsKey(delta.getObjectName())) {
                     focusDeltas.get(delta.getObjectName()).setResourceName(null);
                     focusDeltas.get(delta.getObjectName()).setResourceOid(null);
@@ -458,6 +459,9 @@ public class PageAuditLogDetails extends PageBase {
                 } else {
                     focusDeltas.put(delta.getObjectName(), delta);
                 }
+            } else if (deltaType == null) {
+                // MID-7913 Intentionally we skip this delta for now, since we do not have object definition
+                // type was deprecated and removed.
             } else {
                 otherDeltas.add(delta);
             }
