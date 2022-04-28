@@ -460,21 +460,46 @@ public class SearchFactory {
             searchConfigWrapper.getItemsList().add(new ObjectTypeSearchItemWrapper(config.getObjectTypeConfiguration()));
         }
         if (config.getRelationConfiguration() != null) {
+            RelationSearchItemWrapper relation = new RelationSearchItemWrapper(searchConfigWrapper);
+            if (config.getRelationConfiguration().getDisplay() != null) {
+                relation.setName(WebComponentUtil.getTranslatedPolyString(config.getRelationConfiguration().getDisplay().getLabel()));
+                relation.setHelp(WebComponentUtil.getTranslatedPolyString(config.getRelationConfiguration().getDisplay().getHelp()));
+            }
             searchConfigWrapper.getItemsList().add(new RelationSearchItemWrapper(searchConfigWrapper));
         }
 
         if (config.getIndirectConfiguration() != null) {
-            searchConfigWrapper.getItemsList().add(new IndirectSearchItemWrapper(searchConfigWrapper));
+            IndirectSearchItemWrapper indirect = new IndirectSearchItemWrapper(searchConfigWrapper);
+            if (config.getIndirectConfiguration().getDisplay() != null) {
+                indirect.setName(WebComponentUtil.getTranslatedPolyString(config.getIndirectConfiguration().getDisplay().getLabel()));
+                indirect.setHelp(WebComponentUtil.getTranslatedPolyString(config.getIndirectConfiguration().getDisplay().getHelp()));
+            }
+            searchConfigWrapper.getItemsList().add(indirect);
         }
 
         if (config.getScopeConfiguration() != null) {
-            searchConfigWrapper.getItemsList().add(new ScopeSearchItemWrapper(searchConfigWrapper));
+            ScopeSearchItemWrapper scope = new ScopeSearchItemWrapper(searchConfigWrapper);
+            if (config.getScopeConfiguration().getDisplay() != null) {
+                scope.setName(WebComponentUtil.getTranslatedPolyString(config.getScopeConfiguration().getDisplay().getLabel()));
+                scope.setHelp(WebComponentUtil.getTranslatedPolyString(config.getScopeConfiguration().getDisplay().getHelp()));
+            }
+            searchConfigWrapper.getItemsList().add(scope);
         }
         if (config.getProjectConfiguration() != null) {
-            searchConfigWrapper.getItemsList().add(new ProjectSearchItemWrapper(searchConfigWrapper));
+            ProjectSearchItemWrapper project = new ProjectSearchItemWrapper(searchConfigWrapper);
+            if (config.getProjectConfiguration().getDisplay() != null) {
+                project.setName(WebComponentUtil.getTranslatedPolyString(config.getProjectConfiguration().getDisplay().getLabel()));
+                project.setHelp(WebComponentUtil.getTranslatedPolyString(config.getProjectConfiguration().getDisplay().getHelp()));
+            }
+            searchConfigWrapper.getItemsList().add(project);
         }
         if (config.getTenantConfiguration() != null) {
-            searchConfigWrapper.getItemsList().add(new TenantSearchItemWrapper(searchConfigWrapper));
+            TenantSearchItemWrapper tenant = new TenantSearchItemWrapper(searchConfigWrapper);
+            if (config.getTenantConfiguration().getDisplay() != null) {
+                tenant.setName(WebComponentUtil.getTranslatedPolyString(config.getTenantConfiguration().getDisplay().getLabel()));
+                tenant.setHelp(WebComponentUtil.getTranslatedPolyString(config.getTenantConfiguration().getDisplay().getHelp()));
+            }
+            searchConfigWrapper.getItemsList().add(tenant);
         }
     }
 

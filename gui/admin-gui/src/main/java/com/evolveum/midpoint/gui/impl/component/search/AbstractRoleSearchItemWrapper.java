@@ -10,6 +10,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -22,6 +24,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.namespace.QName;
 import java.util.Collections;
@@ -31,6 +34,8 @@ public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWr
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleSearchItemWrapper.class);
     private SearchConfigurationWrapper searchConfig;
+    protected String name;
+    protected String help;
 
     public static final String F_SEARCH_CONFIG = "searchConfig";
 
@@ -155,7 +160,30 @@ public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWr
         return null;
     }
 
-//    public void setSearchConfig(SearchConfigurationWrapper searchConfig) {
-//        this.searchConfig = searchConfig;
-//    }
+    @Override
+    public String getName() {
+        return StringUtils.isNotEmpty(name) ? name : getNameResourceKey();
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getHelp() {
+        return StringUtils.isNotEmpty(help) ? help : getHelpResourceKey();
+    }
+    public void setHelp(String help) {
+        this.help = help;
+    }
+
+    protected abstract String getNameResourceKey();
+    protected abstract String getHelpResourceKey();
+
+    protected PrismReferenceDefinition getReferenceDefinition(ItemName refName) {
+        return PrismContext.get().getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(AssignmentType.class)
+                .findReferenceDefinition(refName);
+    }
+
 }

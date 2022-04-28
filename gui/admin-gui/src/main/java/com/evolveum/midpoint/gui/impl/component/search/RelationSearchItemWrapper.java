@@ -13,7 +13,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 
@@ -43,20 +42,13 @@ public class RelationSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     }
 
     @Override
-    public String getName() {
-//        if (getSearchConfig().getRelationConfiguration().getDisplay() == null) {
-            return "relationDropDownChoicePanel.relation";
-//        }
-//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getRelationConfiguration().getDisplay().getLabel());
+    protected String getNameResourceKey() {
+        return "relationDropDownChoicePanel.relation";
     }
 
     @Override
-    public String getHelp() {
-//        if (getSearchConfig().getConfig().getRelationConfiguration() == null
-//                || getSearchConfig().getConfig().getRelationConfiguration().getDisplay() == null) {
-            return "relationDropDownChoicePanel.tooltip.relation";
-//        }
-//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getRelationConfiguration().getDisplay().getHelp());
+    protected String getHelpResourceKey() {
+        return "relationDropDownChoicePanel.tooltip.relation";
     }
 
     @Override
@@ -66,6 +58,6 @@ public class RelationSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     @Override
     public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
-        return !getSearchConfig().getDefaultScope().equals(SearchBoxScopeType.SUBTREE);
+        return !SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getDefaultScope());
     }
 }

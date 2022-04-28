@@ -10,6 +10,9 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -26,7 +29,7 @@ public class ProjectSearchItemPanel extends AbstractSearchItemPanel<ProjectSearc
 
     @Override
     protected Component initSearchItemField() {
-        PrismReferenceDefinition projectRefDef = getProjectRefDef();
+        PrismReferenceDefinition projectRefDef = getModelObject().getProjectRefDef();
         ReferenceValueSearchPanel searchItemField = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
                 new PropertyModel<>(getModel(), ProjectSearchItemWrapper.F_SEARCH_CONFIG + "." + SearchConfigurationWrapper.F_PROJECT),
                 projectRefDef) {
@@ -41,8 +44,5 @@ public class ProjectSearchItemPanel extends AbstractSearchItemPanel<ProjectSearc
         return searchItemField;
     }
 
-    protected PrismReferenceDefinition getProjectRefDef() {
-        return null; //this part is taken from ProjectSearchItem, it is not clear why we return null here
-    }
 
 }

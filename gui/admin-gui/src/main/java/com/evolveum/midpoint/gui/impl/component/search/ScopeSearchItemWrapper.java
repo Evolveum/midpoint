@@ -39,21 +39,13 @@ public class ScopeSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     }
 
     @Override
-    public String getName() {
-//        if (getSearchConfig().getConfig().getScopeConfiguration() == null
-//                || getSearchConfig().getConfig().getScopeConfiguration().getDisplay() == null) {
-            return "abstractRoleMemberPanel.searchScope";
-//        }
-//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getScopeConfiguration().getDisplay().getLabel());
+    protected String getNameResourceKey() {
+        return "abstractRoleMemberPanel.searchScope";
     }
 
     @Override
-    public String getHelp() {
-//        if (getSearchConfig().getConfig().getScopeConfiguration() == null
-//                || getSearchConfig().getConfig().getScopeConfiguration().getDisplay() == null) {
-            return "abstractRoleMemberPanel.searchScope.tooltip";
-//        }
-//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getScopeConfiguration().getDisplay().getHelp());
+    protected String getHelpResourceKey() {
+        return "abstractRoleMemberPanel.searchScope.tooltip";
     }
 
     @Override

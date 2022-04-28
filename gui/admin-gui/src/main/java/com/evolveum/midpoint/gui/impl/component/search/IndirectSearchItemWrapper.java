@@ -40,22 +40,15 @@ public class IndirectSearchItemWrapper extends AbstractRoleSearchItemWrapper {
         return new SearchValue<>(Boolean.FALSE);
     }
 
+
     @Override
-    public String getName() {
-//        if (getSearchConfig().getConfig().getIndirectConfiguration() == null
-//                || getSearchConfig().getConfig().getIndirectConfiguration().getDisplay() == null) {
-            return "abstractRoleMemberPanel.indirectMembers";
-//        }
-//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getIndirectConfiguration().getDisplay().getLabel());
+    protected String getNameResourceKey() {
+        return "abstractRoleMemberPanel.indirectMembers";
     }
 
     @Override
-    public String getHelp() {
-//        if (getSearchConfig().getConfig().getIndirectConfiguration() == null
-//                || getSearchConfig().getConfig().getIndirectConfiguration().getDisplay() == null) {
-            return "abstractRoleMemberPanel.indirectMembers.tooltip";
-//        }
-//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getIndirectConfiguration().getDisplay().getHelp());
+    protected String getHelpResourceKey() {
+        return "abstractRoleMemberPanel.indirectMembers.tooltip";
     }
 
     @Override

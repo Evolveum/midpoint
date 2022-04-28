@@ -7,12 +7,17 @@
 package com.evolveum.midpoint.gui.impl.component.search;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class ProjectSearchItemWrapper extends AbstractRoleSearchItemWrapper{
 
@@ -41,26 +46,25 @@ public class ProjectSearchItemWrapper extends AbstractRoleSearchItemWrapper{
     }
 
     @Override
-    public String getName() {
-//        if (getSearchConfig().getConfig().getProjectConfiguration() == null
-//                || getSearchConfig().getConfig().getProjectConfiguration().getDisplay() == null) {
-            return "abstractRoleMemberPanel.project";
-//        }
-//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getProjectConfiguration().getDisplay().getLabel());
+    protected String getNameResourceKey() {
+        return "abstractRoleMemberPanel.project";
+    }
+
+    @Override
+    protected String getHelpResourceKey() {
+        return "";
     }
 
     @Override
     public String getHelp() {
-//        if (getSearchConfig().getConfig().getProjectConfiguration() == null
-//                || getSearchConfig().getConfig().getProjectConfiguration().getDisplay() == null) {
-            return "";
-//        }
-//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getProjectConfiguration().getDisplay().getHelp());
-//        String help = projectRefDef.getHelp();
-//        if (StringUtils.isNotEmpty(help)) {
-//            return getPageBase().createStringResource(help);
-//        }
-//        return projectRefDef.getDocumentation();
+        if (StringUtils.isNotEmpty(help)) {
+             return help;
+        }
+        String help = getProjectRefDef().getHelp();
+        if (StringUtils.isNotEmpty(help)) {
+            return help;
+        }
+        return getProjectRefDef().getDocumentation();
     }
 
     @Override
@@ -71,5 +75,9 @@ public class ProjectSearchItemWrapper extends AbstractRoleSearchItemWrapper{
     @Override
     public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
         return true;
+    }
+
+    public PrismReferenceDefinition getProjectRefDef() {
+        return getReferenceDefinition(AssignmentType.F_ORG_REF);
     }
 }

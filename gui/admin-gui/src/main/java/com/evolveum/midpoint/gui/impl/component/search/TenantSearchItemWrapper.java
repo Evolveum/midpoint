@@ -7,9 +7,13 @@
 package com.evolveum.midpoint.gui.impl.component.search;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class TenantSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
@@ -38,21 +42,25 @@ public class TenantSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     }
 
     @Override
-    public String getName() {
-//        if (getSearchConfig().getConfig().getTenantConfiguration() == null
-//                || getSearchConfig().getConfig().getTenantConfiguration().getDisplay() == null) {
-            return "abstractRoleMemberPanel.tenant";
-//        }
-//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getTenantConfiguration().getDisplay().getLabel());
+    protected String getNameResourceKey() {
+        return "abstractRoleMemberPanel.tenant";
+    }
+
+    @Override
+    protected String getHelpResourceKey() {
+        return "";
     }
 
     @Override
     public String getHelp() {
-//        if (getSearchConfig().getConfig().getTenantConfiguration() == null
-//                || getSearchConfig().getConfig().getTenantConfiguration().getDisplay() == null) {
-            return "";
-//        }
-//        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getTenantConfiguration().getDisplay().getHelp());
+        if (StringUtils.isNotEmpty(help)) {
+            return help;
+        }
+        String help = getTenantDefinition().getHelp();
+        if (StringUtils.isNotEmpty(help)) {
+            return help;
+        }
+        return getTenantDefinition().getDocumentation();
     }
 
     @Override
@@ -63,6 +71,10 @@ public class TenantSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     public boolean isApplyFilter() {
         //todo check
         return SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getDefaultScope());
+    }
+
+    public PrismReferenceDefinition getTenantDefinition() {
+        return getReferenceDefinition(AssignmentType.F_TENANT_REF);
     }
 
 }
