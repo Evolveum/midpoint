@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.Popover;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 
 import org.apache.wicket.Component;
@@ -37,12 +38,12 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
 
-    private void initLayout(){
+    private void initLayout() {
         setOutputMarkupId(true);
 
         TextPanel<String> textField = new TextPanel<String>(ID_TEXT_FIELD, getTextValue());
@@ -51,25 +52,24 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
         textField.setEnabled(false);
         add(textField);
 
+        Popover popover = new Popover(ID_POPOVER);
+        add(popover);
+
         AjaxButton setDateButton = new AjaxButton(ID_EDIT_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                togglePopover(target, PopoverSearchPanel.this.get(ID_TEXT_FIELD),
-                        PopoverSearchPanel.this.get(ID_POPOVER), 0);
+                popover.toggle(target);
             }
         };
         setDateButton.setOutputMarkupId(true);
         add(setDateButton);
 
-        WebMarkupContainer popover = new WebMarkupContainer(ID_POPOVER);
-        popover.setOutputMarkupId(true);
-        add(popover);
+        popover.setReference(setDateButton);
 
         WebMarkupContainer searchPopupPanel = createPopupPopoverPanel(ID_POPOVER_PANEL);
         popover.add(searchPopupPanel);
-
     }
 
     protected abstract IModel<String> getTextValue();
