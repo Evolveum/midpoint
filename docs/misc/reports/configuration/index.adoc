@@ -272,10 +272,12 @@ Defining columns can be skipped when report in meant for audit records or any of
 
 ==== Parameters
 
-When we want run some report, sometimes we need define some information for input for example role, organization, resource, etc.
-For this situation we can define parameter, which user set before running of the report. For example we want report of all user
-who have accounts on concrete resource. We won't create one report for each resource with different filter but use parameter
-which define resource in filter and we set it before run of report.
+There are situation when we want to run report with slightly different settings.
+In such cases, we don't want to define the report for each case separately.
+Rather, we want to have one report definition and run the report with different parameters.
+Imagine that you need to report all users who have account on specific resources.
+In such a case, _resource_ will be a parameter to the report, so we don't need to prepare report definition for each resource.
+The resource parameter will be set before the report is run.
 
 Usage of the parameter is very simple. We just use the name of the parameter in expression of query.
 
@@ -358,7 +360,7 @@ We can use following attributes for parameter:
 
 | _allowedValuesLookupTable_
 | *ObjectReferenceType*
-| Reference of Lookup Table, which define possible values of parameter.
+| Reference of Lookup Table which defines possible values of parameter.
 
 | _allowedValuesExpression_
 | *ExpressionType*
@@ -368,12 +370,16 @@ We can use following attributes for parameter:
 
 ==== Subreports
 
-Subreport defines some object, which we can get from expression. Next we can use this object in column expression,
-so we don't have to search this object in every column expression. For example we need report with accounts(shadows) but we need some columns with attributes from owner of account, so we use subreport where in expression we define search of owner. Next in columns expressions we use owner and we get attributes from it.
-
-Type of subreport is collection, but in this case we know that contains only one value so we directly use it.
+Subreport is defined by expression and can be used in situations when we need to collect additional information for the processed object (row). To avoid performing expensive operations (such as search) for each column, there is a possibility to define it once per row and use it later in the column expression as in the example bellow.
 
 image::collection-subreport.png[]
+
+In the example above, we have the report, where for each shadow (row) we want to search for the owner of the shadow.
+Therefore, the subreport is defined with the expression to look for the shadow owner.
+The result of the expression is stored to the property called `user` and later used in the column expression to pull the desired information.
+In this case, we need to get the e-mail address of the user.
+
+The return from the expression in subreport is represented by the collection.
 
 We can use following attributes for subreport:
 
@@ -399,15 +405,15 @@ We can use following attributes for subreport:
 
 ==== Example of generated report
 
-On screenshot we can see example of generated HTML report of all users in midPoint. I chose HTML format because of better graphic view. Report contains columns for Name, Full Name, Administrative status, Roles, Organizations and Accounts of every user.
+In the picture bellow we can see example of generated HTML report of all users in midPoint. Report contains columns for Name, Full Name, Administrative status, Roles, Organizations and Accounts of every user.
 
 image::collection-example.png[]
 
 === Dashboard Report
 
-Dashboard engine generates reports by dashboard object. Dashboard object can be shown in GUI. Dashboard contains widgets, which showed actual state of midpoint. Documentation for dashboard configuration can be found on xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration].
+Dashboard engine generates reports by dashboard object. Dashboard object can be shown in GUI. Dashboard contains widgets, which showed actual state of midpoint. Documentation for dashboard configuration can be found in xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration].
 
-Dashboards support both actual supported file formats, but there is a difference. CSV contains only table of widget with basic message and status, unlike HTML, which as default showing table for widgets and one table for every widget with objects which meet the condition in widget. We can turn off this default behaviour via attribute _showOnlyWidgetTable_ and show only table of widgets.
+Dashboards support both currently supported file formats, but there is a difference. CSV contains only table of widget with basic message and status, unlike HTML, which as default showing table for widgets and one table for every widget with objects which meet the condition in widget. We can turn off this default behaviour via attribute _showOnlyWidgetTable_ and show only table of widgets.
 
 Following code shows basic configuration of dashboard report.
 
