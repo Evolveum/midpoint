@@ -251,6 +251,7 @@
         <j2html.version>1.4.0</j2html.version>
         <bouncycastle.version>1.69</bouncycastle.version>
         <javax.persistence.version>2.2</javax.persistence.version>
+        <keycloak.version>18.0.0</keycloak.version>
 
         <maven.api.version>3.8.5</maven.api.version>
         <surefire.version>3.0.0-M6</surefire.version>
@@ -1625,13 +1626,13 @@
             <dependency>
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-authz-client</artifactId>
-                <version>16.1.1</version>
+                <version>${keycloak.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-core</artifactId>
-                <version>16.1.1</version>
+                <version>${keycloak.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
