@@ -218,17 +218,6 @@ class ResourceCompletionOperation {
     private void completeSchemaAndCapabilities()
             throws SchemaException, CommunicationException, ObjectNotFoundException, GenericFrameworkException,
             ConfigurationException {
-        if (isRepoResource()) {
-            completeSchemaAndCapabilitiesRepoResource();
-        } else {
-            completeSchemaAndCapabilitiesResourceObject();
-        }
-    }
-
-    private void completeSchemaAndCapabilitiesRepoResource()
-            throws SchemaException, CommunicationException, ObjectNotFoundException, GenericFrameworkException,
-            ConfigurationException {
-
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 
         // Capabilities
@@ -246,6 +235,26 @@ class ResourceCompletionOperation {
             fetchResourceSchema();
         }
 
+        if (isRepoResource()) {
+            completeSchemaRepoResource(modifications);
+            
+            if (!modifications.isEmpty()) {
+                try {
+                    LOGGER.trace("Applying completion modifications to {}:\n{}",
+                            resource, DebugUtil.debugDumpLazily(modifications, 1));
+                    beans.cacheRepositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
+                    InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
+                } catch (ObjectAlreadyExistsException ex) {
+                    throw SystemException.unexpected(ex, "when updating resource during completion");
+                }
+            }
+        } else {
+            completeSchemaResourceObject();
+        }
+    }
+
+    private void completeSchemaRepoResource(Collection<ItemDelta<?,?>> modifications)
+            throws SchemaException{
         if (rawResourceSchema != null) {
             if (isSchemaFreshlyLoaded) {
                 adjustSchemaForSimulatedCapabilities();
@@ -275,38 +284,10 @@ class ResourceCompletionOperation {
                 }
             }
         }
-
-        if (!modifications.isEmpty()) {
-            try {
-                LOGGER.trace("Applying completion modifications to {}:\n{}",
-                        resource, DebugUtil.debugDumpLazily(modifications, 1));
-                beans.cacheRepositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
-                InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
-            } catch (ObjectAlreadyExistsException ex) {
-                throw SystemException.unexpected(ex, "when updating resource during completion");
-            }
-        }
     }
 
-    private void completeSchemaAndCapabilitiesResourceObject()
-            throws SchemaException, CommunicationException, ObjectNotFoundException, GenericFrameworkException,
-            ConfigurationException {
-
-        // Capabilities
-        // we need to process capabilities first. Schema is one of the connector capabilities.
-        // We need to determine this capability to select the right connector for schema retrieval.
-        completeCapabilities(capabilityMap != null, capabilityMap, null, result);
-
-        if (rawResourceSchema == null) {
-            // Try to get existing schema from resource. We do not want to override this if it exists
-            // (but we still want to refresh the capabilities, that happens below)
-            rawResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
-        }
-
-        if (rawResourceSchema == null || rawResourceSchema.isEmpty()) {
-            fetchResourceSchema();
-        }
-
+    private void completeSchemaResourceObject()
+            throws SchemaException{
         if (rawResourceSchema != null) {
             if (isSchemaFreshlyLoaded) {
                 adjustSchemaForSimulatedCapabilities();

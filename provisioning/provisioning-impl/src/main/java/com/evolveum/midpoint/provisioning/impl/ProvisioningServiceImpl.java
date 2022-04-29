@@ -580,53 +580,50 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     @Override
     public OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException {
-        // We are not going to create parent result here. We don't want to
-        // pollute the result with
-        // implementation details, as this will be usually displayed in the
-        // table of "test resource" results.
 
         Validate.notNull(resourceOid, "Resource OID to test is null.");
-
-        LOGGER.trace("Start testing resource with oid {} ", resourceOid);
 
         OperationResult testResult = new OperationResult(ConnectorTestOperation.TEST_CONNECTION.getOperation());
         testResult.addParam("resourceOid", resourceOid);
         testResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
         PrismObject<ResourceType> resource;
-
         try {
             resource = operationsHelper.getRepoObject(ResourceType.class, resourceOid, null, testResult);
-            resourceManager.testConnection(resource, task, testResult);
-
         } catch (SchemaException ex) {
             throw new IllegalArgumentException(ex.getMessage(), ex);
         }
-        testResult.computeStatus("Test resource has failed");
 
-        LOGGER.debug("Finished testing {}, result: {} ", resource,
-                testResult.getStatus());
-        return testResult;
+        return testResource(resource, resourceOid, task, testResult);
     }
 
     @Override
     public OperationResult testResource(@NotNull PrismObject<ResourceType> resource, Task task) throws ObjectNotFoundException {
+
+        String resourceParam = resource.asObjectable().getName() != null ? resource.asObjectable().getName().getOrig() : resource.toString();
+
+        OperationResult testResult = new OperationResult(ConnectorTestOperation.TEST_CONNECTION.getOperation());
+        testResult.addParam("resource", resourceParam);
+        testResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+
+        return testResource(resource, resourceParam, task, testResult);
+    }
+
+    private OperationResult testResource(
+            @NotNull PrismObject<ResourceType> resource, String resourceParam, Task task, OperationResult testResult)
+            throws ObjectNotFoundException {
         // We are not going to create parent result here. We don't want to
         // pollute the result with
         // implementation details, as this will be usually displayed in the
         // table of "test resource" results.
 
-        LOGGER.trace("Start testing resource {} ", resource);
-
-        OperationResult testResult = new OperationResult(ConnectorTestOperation.TEST_CONNECTION.getOperation());
-        testResult.addParam("resource", resource);
-        testResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+        LOGGER.trace("Start testing resource {} ", resourceParam);
 
         resourceManager.testConnection(resource, task, testResult);
 
         testResult.computeStatus("Test resource has failed");
 
-        LOGGER.debug("Finished testing {}, result: {} ", resource,
+        LOGGER.debug("Finished testing {}, result: {} ", resourceParam,
                 testResult.getStatus());
         return testResult;
     }
