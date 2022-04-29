@@ -53,6 +53,15 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
                 .execute(result);
     }
 
+    @Override
+    protected boolean checkCandidateOwnerInternal(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
+            @NotNull OperationResult result) {
+        throw new UnsupportedOperationException("CompositeCorrelator is not supported in the 'opportunistic synchronization'"
+                + " mode. Please disable this mode for this particular resource or object type.");
+    }
+
     @NotNull private CompositeCorrelatorType getConfiguration() {
         return correlatorContext.getConfigurationBean();
     }

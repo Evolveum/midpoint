@@ -93,9 +93,17 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result) throws ConfigurationException, SchemaException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
-
         return new CorrelationOperation(correlationContext)
-                .execute(result);
+                .correlate(result);
+    }
+
+    @Override
+    protected boolean checkCandidateOwnerInternal(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
+            @NotNull OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+        return new CorrelationOperation(correlationContext)
+                .checkCandidateOwner(candidateOwner, result);
     }
 
     /** Correlation or update operation. */
@@ -124,10 +132,23 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             super(correlationContext);
         }
 
-        public CorrelationResult execute(OperationResult result)
+        public CorrelationResult correlate(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
 
+            MatchingResult mResult = executeMatchAndStoreTheResult(result);
+
+            if (mResult.getReferenceId() != null) {
+                return correlateUsingKnownReferenceId(result);
+            } else {
+                return CorrelationResult.uncertain(
+                        createOwnersInfo(mResult, result));
+            }
+        }
+
+        // Note that the result is stored just to memory objects - nothing is set in the repository
+        private @NotNull MatchingResult executeMatchAndStoreTheResult(OperationResult result)
+                throws SchemaException, ConfigurationException, CommunicationException, SecurityViolationException {
             MatchingRequest mRequest =
                     new MatchingRequest(
                             prepareIdMatchObjectFromContext());
@@ -140,12 +161,15 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             // we also need the state in the shadow in the case object
             ShadowUtil.setCorrelatorState(resourceObject, correlatorState.clone());
 
-            if (mResult.getReferenceId() != null) {
-                return correlateUsingKnownReferenceId(result);
-            } else {
-                return CorrelationResult.uncertain(
-                        createOwnersInfo(mResult, result));
-            }
+            return mResult;
+        }
+
+        boolean checkCandidateOwner(@NotNull FocusType candidateOwner, OperationResult result)
+                throws SchemaException, CommunicationException, SecurityViolationException, ConfigurationException,
+                ExpressionEvaluationException, ObjectNotFoundException {
+            MatchingResult mResult = executeMatchAndStoreTheResult(result);
+            return mResult.getReferenceId() != null
+                    && checkCandidateOwnerUsingKnownReferenceId(candidateOwner, result);
         }
 
         private @NotNull IdMatchCorrelatorStateType createCorrelatorState(MatchingResult mResult) {
@@ -161,6 +185,14 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
 
             return instantiateChild(followOnCorrelatorConfiguration, task, result)
                     .correlate(correlationContext, result);
+        }
+
+        private boolean checkCandidateOwnerUsingKnownReferenceId(FocusType candidateOwner, OperationResult result)
+                throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+                SecurityViolationException, ObjectNotFoundException {
+
+            return instantiateChild(followOnCorrelatorConfiguration, task, result)
+                    .checkCandidateOwner(correlationContext, candidateOwner, result);
         }
 
         /**

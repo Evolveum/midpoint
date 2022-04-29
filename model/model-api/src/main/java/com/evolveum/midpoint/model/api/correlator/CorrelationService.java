@@ -108,6 +108,22 @@ public interface CorrelationService {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;
 
+    /**
+     * Checks whether the supplied candidate owner would be the correlation result (if real correlation would take place).
+     * Used for opportunistic synchronization.
+     *
+     * Why not doing the actual correlation? Because the owner may not exist in repository yet.
+     */
+    boolean checkCandidateOwner(
+            @NotNull ShadowType shadowedResourceObject,
+            @NotNull ResourceType resource,
+            @NotNull SynchronizationPolicy synchronizationPolicy,
+            @NotNull FocusType candidateOwner,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
+
     @FunctionalInterface
     interface CaseCloser {
         /** Closes the case in repository. */

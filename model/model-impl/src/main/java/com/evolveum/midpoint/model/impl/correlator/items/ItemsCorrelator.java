@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
@@ -29,6 +31,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A "user-friendly" correlator based on a list of items that need to be matched between the source
@@ -48,9 +52,18 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-
         return new Correlation<>(correlationContext)
-                .execute(result);
+                .correlate(result);
+    }
+
+    @Override
+    protected boolean checkCandidateOwnerInternal(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
+            @NotNull OperationResult result)
+            throws ConfigurationException, SchemaException {
+        return new Correlation<>(correlationContext)
+                .checkCandidateOwner(candidateOwner);
     }
 
     private class Correlation<F extends FocusType> {
@@ -65,7 +78,7 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             this.contextDescription = getDefaultContextDescription(correlationContext);
         }
 
-        public CorrelationResult execute(OperationResult result)
+        public CorrelationResult correlate(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
 
@@ -77,10 +90,6 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                 throws SchemaException, ConfigurationException {
 
             CorrelationItems correlationItems = createCorrelationItems();
-            configCheck(!correlationItems.isEmpty(), "No items specified in %s", contextDescription);
-
-            LOGGER.trace("Going to find candidates using {} conditional items(s) in {}",
-                    correlationItems.size(), contextDescription);
 
             List<F> allCandidates = findCandidates(correlationItems, result);
 
@@ -91,31 +100,79 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             return allCandidates;
         }
 
+        boolean checkCandidateOwner(F candidateOwner) throws SchemaException, ConfigurationException {
+            CorrelationItems correlationItems = createCorrelationItems();
+
+            boolean matches = checkCandidateOwner(correlationItems, candidateOwner);
+
+            LOGGER.debug("Does candidate owner {} for {} using {} correlation item(s) in {} match: {}",
+                    candidateOwner, resourceObject, correlationItems.size(), contextDescription, matches);
+
+            return matches;
+        }
+
         private @NotNull CorrelationItems createCorrelationItems() throws ConfigurationException {
-            return CorrelationItems.create(correlatorContext, correlationContext);
+            CorrelationItems items = CorrelationItems.create(correlatorContext, correlationContext);
+            configCheck(!items.isEmpty(), "No items specified in %s", contextDescription);
+            LOGGER.trace("Going to find candidates (or check candidate) using {} conditional items(s) in {}",
+                    items.size(), contextDescription);
+            return items;
         }
 
         @NotNull private List<F> findCandidates(
                 CorrelationItems correlationItems, OperationResult result)
                 throws SchemaException, ConfigurationException {
 
-            assert !correlationItems.isEmpty();
-
-            for (CorrelationItem item : correlationItems.getItems()) {
-                if (!item.isApplicable()) {
-                    LOGGER.trace("Correlation item {} forbids us to use this correlator", item);
-                    return List.of();
-                }
+            List<ObjectQuery> queries = createQueries(correlationItems);
+            if (queries == null) {
+                return List.of();
             }
-
-            List<ObjectQuery> queries = correlationItems.createQueries(correlationContext.getFocusType());
-            LOGGER.debug("Correlation items specification resulted in {} queries", queries.size());
 
             List<F> candidates = new ArrayList<>();
             for (ObjectQuery query : queries) {
                 executeQuery(query, candidates, result);
             }
             return candidates;
+        }
+
+        /** Returns `null` if we cannot use the definitions here. */
+        private @Nullable List<ObjectQuery> createQueries(CorrelationItems correlationItems)
+                throws SchemaException, ConfigurationException {
+            if (areItemsApplicable(correlationItems)) {
+                List<ObjectQuery> queries = correlationItems.createQueries(correlationContext.getFocusType());
+                LOGGER.debug("Correlation items specification resulted in {} queries", queries.size());
+                return queries;
+            } else {
+                return null;
+            }
+        }
+
+        private boolean areItemsApplicable(CorrelationItems correlationItems) throws SchemaException {
+            assert !correlationItems.isEmpty();
+
+            for (CorrelationItem item : correlationItems.getItems()) {
+                if (!item.isApplicable()) {
+                    LOGGER.trace("Correlation item {} forbids us to use this correlator", item);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private boolean checkCandidateOwner(CorrelationItems correlationItems, F candidateOwner)
+                throws SchemaException, ConfigurationException {
+
+            List<ObjectQuery> queries = createQueries(correlationItems);
+            if (queries == null) {
+                return false;
+            }
+
+            for (ObjectQuery query : queries) {
+                if (candidateOwnerMatches(query, candidateOwner)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void executeQuery(ObjectQuery query, List<F> candidates, OperationResult gResult) throws SchemaException {
@@ -141,6 +198,14 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                 }
             }
             return true;
+        }
+
+        private boolean candidateOwnerMatches(ObjectQuery query, F candidateOwner) throws SchemaException {
+            LOGGER.trace("Checking the following query:\n{}\nregarding the candidate:\n{}",
+                    query.debugDumpLazily(1),
+                    candidateOwner.debugDumpLazily(1));
+            ObjectFilter filter = query.getFilter();
+            return filter == null || filter.match(candidateOwner.asPrismContainerValue(), beans.matchingRuleRegistry);
         }
     }
 }
