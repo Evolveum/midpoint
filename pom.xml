@@ -549,6 +549,11 @@
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
+                    <!-- use org.apache.commons:commons-collections4 instead -->
+                    <exclusion>
+                        <groupId>commons-collections</groupId>
+                        <artifactId>commons-collections</artifactId>
+                    </exclusion>
                     <exclusion>
                         <groupId>commons-digester</groupId>
                         <artifactId>commons-digester</artifactId>
@@ -565,17 +570,17 @@
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
+                    <!-- use org.apache.commons:commons-collections4 instead -->
+                    <exclusion>
+                        <groupId>commons-collections</groupId>
+                        <artifactId>commons-collections</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
                 <version>1.15</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-collections</groupId>
-                <artifactId>commons-collections</artifactId>
-                <version>3.2.2</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>

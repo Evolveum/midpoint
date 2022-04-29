@@ -9,7 +9,7 @@ package com.evolveum.midpoint.authentication.impl.evaluator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;

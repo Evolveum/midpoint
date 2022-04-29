@@ -34,7 +34,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
