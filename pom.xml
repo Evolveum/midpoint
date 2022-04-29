@@ -549,7 +549,7 @@
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
-                    <!-- use org.apache.commons:commons-collections4 instead -->
+                    <!-- Use org.apache.commons:commons-collections4 instead, not required by our usages of validator. -->
                     <exclusion>
                         <groupId>commons-collections</groupId>
                         <artifactId>commons-collections</artifactId>
@@ -570,12 +570,14 @@
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
-                    <!-- use org.apache.commons:commons-collections4 instead -->
-                    <exclusion>
-                        <groupId>commons-collections</groupId>
-                        <artifactId>commons-collections</artifactId>
-                    </exclusion>
                 </exclusions>
+            </dependency>
+            <!-- TODO: We want to get rid of this, which requires removal of beanutils as well. -->
+            <dependency>
+                <groupId>commons-collections</groupId>
+                <artifactId>commons-collections</artifactId>
+                <version>3.2.2</version>
+                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>commons-codec</groupId>
