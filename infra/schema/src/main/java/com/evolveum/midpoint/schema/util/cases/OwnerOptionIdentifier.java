@@ -18,6 +18,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerO
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Internalized (parsed) form of correlation option identifier (like `none` or `existing-XXX`).
+ *
+ * @see ResourceObjectOwnerOptionType#getIdentifier()
+ */
 public class OwnerOptionIdentifier {
 
     @Nullable private final String existingOwnerId;
@@ -29,7 +34,8 @@ public class OwnerOptionIdentifier {
     }
 
     /**
-     * This method is forgiving: It accepts also invalid string values.
+     * Converts string value of the option identifier (like `none` or `existing-XXX`) to
+     * the internalized form (this class).
      */
     public static @NotNull OwnerOptionIdentifier fromStringValue(@NotNull String value) throws SchemaException {
         OwnerOptionIdentifier identifier = fromStringValueForgiving(value);
@@ -44,6 +50,9 @@ public class OwnerOptionIdentifier {
         return invalidStringValue == null;
     }
 
+    /**
+     * As {@link #fromStringValue(String)} but more forgiving: It accepts also invalid string values.
+     */
     public static @NotNull OwnerOptionIdentifier fromStringValueForgiving(@NotNull String value) {
         // The string value may contain a namespace (although it should not).
         String localPart = QNameUtil.uriToQName(value, true)

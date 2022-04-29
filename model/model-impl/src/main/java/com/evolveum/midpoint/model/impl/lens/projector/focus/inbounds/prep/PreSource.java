@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import java.util.List;
 
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingInContext;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -25,16 +25,18 @@ import com.evolveum.midpoint.schema.processor.PropertyLimitations;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+
 class PreSource extends MSource {
 
-    @NotNull private final SynchronizationContext<?> syncCtx;
+    @NotNull private final PreInboundsContext<?> ctx;
 
-    PreSource(@NotNull SynchronizationContext<?> syncCtx) throws SchemaException, ConfigurationException {
+    PreSource(@NotNull PreInboundsContext<?> ctx) throws SchemaException, ConfigurationException {
         super(
-                syncCtx.getShadowedResourceObject(),
-                syncCtx.getResourceObjectDelta(),
-                syncCtx.getObjectTypeDefinition());
-        this.syncCtx = syncCtx;
+                ctx.getShadowedResourceObject(),
+                ctx.getResourceObjectDelta(),
+                ctx.getObjectTypeDefinitionRequired());
+        this.ctx = ctx;
     }
 
     @Override
@@ -44,17 +46,17 @@ class PreSource extends MSource {
 
     @Override
     @NotNull ResourceType getResource() {
-        return syncCtx.getResource().asObjectable();
+        return ctx.getResource();
     }
 
     @Override
     Object getContextDump() {
-        return syncCtx.debugDumpLazily();
+        return ctx.debugDumpLazily();
     }
 
     @Override
     String getProjectionHumanReadableName() {
-        return syncCtx.toString();
+        return ctx.toString();
     }
 
     @Override
@@ -64,7 +66,7 @@ class PreSource extends MSource {
 
     @Override
     boolean isProjectionBeingDeleted() {
-        return ObjectDelta.isDelete(syncCtx.getResourceObjectDelta());
+        return ObjectDelta.isDelete(ctx.getResourceObjectDelta());
     }
 
     @Override
@@ -80,12 +82,12 @@ class PreSource extends MSource {
 
     @Override
     PrismObject<ShadowType> getResourceObjectNew() {
-        return syncCtx.getShadowedResourceObject(); // TODO what if delta is delete?
+        return asPrismObject(ctx.getShadowedResourceObject()); // TODO what if delta is delete?
     }
 
     @Override
     String getChannel() {
-        return syncCtx.getChannel();
+        return ctx.getChannel();
     }
 
     @Override

@@ -17,7 +17,7 @@
  * 2. {@link com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager}: executes operations in the repository
  * (resides in `manager` child package)
  *
- * The shadow cache package itself is structured like this:
+ * The `shadows` package itself is structured like this:
  *
  * {@link com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade} is a facade that dispatch method calls to a set
  * of helper classes, like {@link com.evolveum.midpoint.provisioning.impl.shadows.GetHelper},

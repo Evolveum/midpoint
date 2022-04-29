@@ -113,18 +113,22 @@ public class CorrelatorContextCreator {
     static CorrelatorContext<?> createRootContext(@NotNull FullCorrelationContext fullContext)
             throws ConfigurationException, SchemaException {
         return createRootContext(
-                fullContext.correlators,
                 fullContext.getCorrelationDefinitionBean(),
                 fullContext.systemConfiguration);
     }
 
     static CorrelatorContext<?> createRootContext(
-            @NotNull CompositeCorrelatorType correlators,
-            @Nullable CorrelationDefinitionType correlationDefinitionBean,
+            @NotNull CorrelationDefinitionType correlationDefinitionBean,
             @Nullable SystemConfigurationType systemConfiguration)
             throws ConfigurationException, SchemaException {
-        CorrelatorConfiguration originalConfiguration = getConfiguration(correlators);
-        return new CorrelatorContextCreator(originalConfiguration, null, correlationDefinitionBean, systemConfiguration)
+        CorrelatorConfiguration originalConfiguration =
+                getConfiguration(
+                        correlationDefinitionBean.getCorrelators());
+        return new CorrelatorContextCreator(
+                originalConfiguration,
+                null,
+                correlationDefinitionBean,
+                systemConfiguration)
                 .create();
     }
 
@@ -429,7 +433,11 @@ public class CorrelatorContextCreator {
      *
      * @throws IllegalArgumentException If there are no configurations.
      */
-    private static @NotNull CorrelatorConfiguration getConfiguration(CompositeCorrelatorType composite) {
+    private static @NotNull CorrelatorConfiguration getConfiguration(@Nullable CompositeCorrelatorType composite) {
+        if (composite == null) {
+            return CorrelatorConfiguration.none();
+        }
+
         Collection<CorrelatorConfiguration> configurations = CorrelatorConfiguration.getConfigurations(composite);
 
         if (configurations.isEmpty()) {

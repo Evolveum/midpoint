@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -73,7 +74,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
                 ocDef = getDefinitionByObjectClass();
 
             }
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             warn("Could not get determine object class definition");
             return map;
         }

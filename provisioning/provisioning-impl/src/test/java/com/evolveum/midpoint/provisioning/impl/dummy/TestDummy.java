@@ -447,7 +447,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             assertTrue(object.canRepresent(ShadowType.class));
             try {
                 checkAccountShadow(object, parentResult, true);
-            } catch (SchemaException e) {
+            } catch (ConfigurationException | SchemaException e) {
                 throw new SystemException(e.getMessage(), e);
             }
 
@@ -544,7 +544,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             assertTrue(shadow.canRepresent(ShadowType.class));
             try {
                 checkCachedAccountShadow(shadow, parentResult, false, null, startTs);
-            } catch (SchemaException e) {
+            } catch (ConfigurationException | SchemaException e) {
                 throw new SystemException(e.getMessage(), e);
             }
 
@@ -2142,7 +2142,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             if (!useRepo) {
                 try {
                     checkAccountShadow(shadow, parentResult, fullShadow);
-                } catch (SchemaException e) {
+                } catch (ConfigurationException | SchemaException e) {
                     throw new SystemException(e.getMessage(), e);
                 }
             }
@@ -2212,7 +2212,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             assertTrue(shadow.canRepresent(ShadowType.class));
             try {
                 checkAccountShadow(shadow, parentResult, true);
-            } catch (SchemaException e) {
+            } catch (ConfigurationException | SchemaException e) {
                 throw new SystemException(e.getMessage(), e);
             }
             return true;
@@ -2332,7 +2332,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSteadyResource();
     }
 
-    private void checkGroupPirates(PrismObject<ShadowType> shadow, OperationResult result) throws SchemaException {
+    private void checkGroupPirates(PrismObject<ShadowType> shadow, OperationResult result)
+            throws SchemaException, ConfigurationException {
         checkGroupShadow(shadow, result);
         PrismAsserts.assertEqualsPolyString("Name not equal.", transformNameFromResource(GROUP_PIRATES_NAME), shadow.getName());
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.asObjectable().getKind());
@@ -2485,7 +2486,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSteadyResource();
     }
 
-    private void checkPrivPillage(PrismObject<ShadowType> shadow, OperationResult result) throws SchemaException {
+    private void checkPrivPillage(PrismObject<ShadowType> shadow, OperationResult result)
+            throws SchemaException, ConfigurationException {
         checkEntitlementShadow(shadow, result, OBJECTCLASS_PRIVILEGE_LOCAL_NAME, true);
         assertShadowName(shadow, PRIVILEGE_PILLAGE_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.asObjectable().getKind());
@@ -2553,7 +2555,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSteadyResource();
     }
 
-    private void checkPrivBargain(PrismObject<ShadowType> shadow, OperationResult result) throws SchemaException {
+    private void checkPrivBargain(PrismObject<ShadowType> shadow, OperationResult result)
+            throws SchemaException, ConfigurationException {
         checkEntitlementShadow(shadow, result, OBJECTCLASS_PRIVILEGE_LOCAL_NAME, true);
         assertShadowName(shadow, PRIVILEGE_BARGAIN_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.asObjectable().getKind());
@@ -4508,28 +4511,44 @@ public class TestDummy extends AbstractBasicDummyTest {
     // test999 shutdown in the superclass
 
     @SuppressWarnings("SameParameterValue")
-    protected void checkCachedAccountShadow(PrismObject<ShadowType> shadowType, OperationResult parentResult, boolean fullShadow, XMLGregorianCalendar startTs,
-            XMLGregorianCalendar endTs) throws SchemaException {
+    protected void checkCachedAccountShadow(
+            PrismObject<ShadowType> shadowType,
+            OperationResult parentResult,
+            boolean fullShadow,
+            XMLGregorianCalendar startTs,
+            XMLGregorianCalendar endTs) throws SchemaException, ConfigurationException {
         checkAccountShadow(shadowType, parentResult, fullShadow);
     }
 
-    private void checkGroupShadow(PrismObject<ShadowType> shadow, OperationResult parentResult) throws SchemaException {
+    private void checkGroupShadow(PrismObject<ShadowType> shadow, OperationResult parentResult)
+            throws SchemaException, ConfigurationException {
         checkEntitlementShadow(shadow, parentResult, SchemaTestConstants.ICF_GROUP_OBJECT_CLASS_LOCAL_NAME, true);
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void checkGroupShadow(PrismObject<ShadowType> shadow, OperationResult parentResult, boolean fullShadow) throws SchemaException {
+    private void checkGroupShadow(PrismObject<ShadowType> shadow, OperationResult parentResult, boolean fullShadow)
+            throws SchemaException, ConfigurationException {
         checkEntitlementShadow(shadow, parentResult, SchemaTestConstants.ICF_GROUP_OBJECT_CLASS_LOCAL_NAME, fullShadow);
     }
 
-    private void checkEntitlementShadow(PrismObject<ShadowType> shadow, OperationResult parentResult, String objectClassLocalName, boolean fullShadow) throws SchemaException {
+    private void checkEntitlementShadow(
+            PrismObject<ShadowType> shadow, OperationResult parentResult, String objectClassLocalName, boolean fullShadow)
+            throws SchemaException, ConfigurationException {
         ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
         ShadowUtil.checkConsistence(shadow, parentResult.getOperation());
-        IntegrationTestTools.checkEntitlementShadow(shadow.asObjectable(), resourceBean, repositoryService, checker, objectClassLocalName, getUidMatchingRule(), prismContext, parentResult);
+        IntegrationTestTools.checkEntitlementShadow(
+                shadow.asObjectable(),
+                resourceBean,
+                repositoryService,
+                checker,
+                objectClassLocalName,
+                getUidMatchingRule(),
+                prismContext,
+                parentResult);
     }
 
     @SuppressWarnings("ConstantConditions")
-    private void checkAllShadows() throws SchemaException {
+    private void checkAllShadows() throws SchemaException, ConfigurationException {
         ObjectChecker<ShadowType> checker = null;
         IntegrationTestTools.checkAllShadows(resourceBean, repositoryService, checker, prismContext);
     }

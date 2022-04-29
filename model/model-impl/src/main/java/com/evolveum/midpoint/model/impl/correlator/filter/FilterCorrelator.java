@@ -10,11 +10,12 @@ package com.evolveum.midpoint.model.impl.correlator.filter;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+
+import com.evolveum.midpoint.schema.util.ObjectSet;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,14 +94,14 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
         public CorrelationResult execute(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
-            List<F> candidates = findCandidatesUsingConditionalFilters(result);
-            List<F> confirmedCandidates = confirmCandidates(candidates, result);
+            ObjectSet<F> candidates = findCandidatesUsingConditionalFilters(result);
+            ObjectSet<F> confirmedCandidates = confirmCandidates(candidates, result);
             // TODO selection expression
 
             return beans.builtInResultCreator.createCorrelationResult(confirmedCandidates, correlationContext);
         }
 
-        private @NotNull List<F> findCandidatesUsingConditionalFilters(OperationResult result)
+        private @NotNull ObjectSet<F> findCandidatesUsingConditionalFilters(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
@@ -113,7 +114,7 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                 throw new ConfigurationException("No filters specified in " + contextDescription);
             }
 
-            List<F> allCandidates = new ArrayList<>();
+            ObjectSet<F> allCandidates = new ObjectSet<>();
             for (ConditionalSearchFilterType conditionalFilter : conditionalFilters) {
                 if (isConditionSatisfied(conditionalFilter, result)) {
                     CorrelatorUtil.addCandidates(
@@ -203,7 +204,7 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             }
         }
 
-        private List<F> confirmCandidates(List<F> candidates, OperationResult result)
+        private ObjectSet<F> confirmCandidates(ObjectSet<F> candidates, OperationResult result)
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
             if (configurationBean.getConfirmation() == null) {
@@ -214,7 +215,7 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                 LOGGER.trace("Single candidate and useConfirmationForSingleCandidate is FALSE -> skipping confirmation");
                 return candidates;
             }
-            List<F> confirmedCandidates = new ArrayList<>();
+            ObjectSet<F> confirmedCandidates = new ObjectSet<>();
             for (F candidate : candidates) {
                 try {
                     LOGGER.trace("Going to confirm candidate owner {}", candidate);

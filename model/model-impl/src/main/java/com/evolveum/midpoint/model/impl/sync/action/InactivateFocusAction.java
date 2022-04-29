@@ -6,33 +6,43 @@
  */
 package com.evolveum.midpoint.model.impl.sync.action;
 
-import java.util.Map;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionDefinitionClass;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionInstantiationContext;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionUris;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InactivateFocusSynchronizationActionType;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationSituation;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
  *
  */
-public class InactivateFocusAction extends BaseAction {
+@ActionUris({
+        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateFocus",
+        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#disableUser" })
+@ActionDefinitionClass(InactivateFocusSynchronizationActionType.class)
+public class InactivateFocusAction<F extends FocusType> extends BaseClockworkAction<F> {
+
+    public InactivateFocusAction(@NotNull ActionInstantiationContext<F> ctx) {
+        super(ctx);
+    }
 
     @Override
-    public <F extends FocusType> void handle(@NotNull LensContext<F> context, SynchronizationSituation<F> situation,
-            Map<QName, Object> parameters, Task task, OperationResult parentResult) {
+    public void prepareContext(@NotNull LensContext<F> context, @NotNull OperationResult result) {
         ActivationStatusType desiredStatus = ActivationStatusType.DISABLED;
 
         LensFocusContext<F> focusContext = context.getFocusContext();
@@ -48,8 +58,12 @@ public class InactivateFocusAction extends BaseAction {
                     }
                 }
             }
-            ObjectDelta<F> activationDelta = getPrismContext().deltaFactory().object().createModificationReplaceProperty(focusContext.getObjectTypeClass(),
-                    focusContext.getOid(), pathAdminStatus, desiredStatus);
+            ObjectDelta<F> activationDelta = PrismContext.get().deltaFactory().object()
+                    .createModificationReplaceProperty(
+                            focusContext.getObjectTypeClass(),
+                            focusContext.getOid(),
+                            pathAdminStatus,
+                            desiredStatus);
             focusContext.setPrimaryDelta(activationDelta);
         }
     }

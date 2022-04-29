@@ -25,8 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -156,26 +154,21 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     @Override
     public PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
-        PrismObject<ShadowType> accountShadow;
-        try {
-            accountShadow = getPrismContext().createObject(ShadowType.class);
-        } catch (SchemaException e) {
-            // This should not happen
-            throw new SystemException("Internal error instantiating account shadow: " + e.getMessage(), e);
-        }
-        ShadowType accountShadowType = accountShadow.asObjectable();
+        ShadowType shadow =
+                new ShadowType()
+                        .tag(tag)
+                        .objectClass(getObjectClassDefinition().getTypeName())
+                        .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
 
-        accountShadowType
-                .tag(tag)
-                .objectClass(getObjectClassDefinition().getTypeName())
-                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
+        PrismObject<ShadowType> shadowPrismObject = shadow.asPrismObject();
 
         // Setup definition
-        PrismObjectDefinition<ShadowType> newDefinition = accountShadow.getDefinition().cloneWithReplacedDefinition(
-                ShadowType.F_ATTRIBUTES, toResourceAttributeContainerDefinition());
-        accountShadow.setDefinition(newDefinition);
+        shadowPrismObject.setDefinition(
+                shadowPrismObject.getDefinition()
+                        .cloneWithReplacedDefinition(
+                                ShadowType.F_ATTRIBUTES, toResourceAttributeContainerDefinition()));
 
-        return accountShadow;
+        return shadowPrismObject;
     }
 
     @Override

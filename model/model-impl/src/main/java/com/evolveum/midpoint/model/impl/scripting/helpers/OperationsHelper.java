@@ -98,7 +98,7 @@ public class OperationsHelper {
         if (optionsBean != null) {
             return ModelExecuteOptions.fromModelExecutionOptionsType(optionsBean);
         } else {
-            return ModelExecuteOptions.create(prismContext);
+            return ModelExecuteOptions.create();
         }
     }
 

@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
@@ -967,7 +969,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
     // TODO: lock out jack again, explicitly reset the lock, see that he can login
 
     @Override
-    protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
+    protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException, ConfigurationException {
         super.assertAccountShadow(shadow, dn);
         ResourceAttribute<String> primaryIdAttr = ShadowUtil.getAttribute(shadow, getPrimaryIdentifierAttributeQName());
         assertNotNull("No primary identifier (" + getPrimaryIdentifierAttributeQName() + " in " + shadow, primaryIdAttr);

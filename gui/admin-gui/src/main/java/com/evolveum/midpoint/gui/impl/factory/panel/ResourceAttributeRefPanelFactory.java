@@ -26,6 +26,8 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.wicket.model.IModel;
 import org.springframework.stereotype.Component;
 
@@ -147,7 +149,7 @@ public class ResourceAttributeRefPanelFactory
             Collection<? extends ResourceAttributeDefinition<?>> attrDefs = rOcd.getAttributeDefinitions();
             return attrDefs.stream().map(a -> a.getItemName()).collect(Collectors.toList());
 
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             LOGGER.warn("Cannot get resource attribute definitions");
         }
 

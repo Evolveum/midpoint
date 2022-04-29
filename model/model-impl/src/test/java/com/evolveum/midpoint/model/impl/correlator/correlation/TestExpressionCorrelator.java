@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -26,9 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -237,7 +236,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
 
     private CorrelationResult correlateAccount(String accountName, Task task, OperationResult result) throws CommonException {
         ShadowType shadow = getAccountByName(accountName, task, result);
-        return correlationService.correlate(shadow, task, result);
+        return correlationService.correlate(shadow, null, task, result);
     }
 
     private @NotNull ShadowType getAccountByName(String name, Task task, OperationResult result)

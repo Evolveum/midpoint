@@ -28,6 +28,8 @@ import com.evolveum.midpoint.testing.conntest.ad.AbstractAdLdapTest;
 
 import com.evolveum.midpoint.testing.conntest.ad.AdTestMixin;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.*;
@@ -1148,7 +1150,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
     }
 
     @Override
-    protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
+    protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException, ConfigurationException {
         super.assertAccountShadow(shadow, dn);
         ResourceAttribute<String> primaryIdAttr = ShadowUtil.getAttribute(shadow, getPrimaryIdentifierAttributeQName());
         assertNotNull("No primary identifier (" + getPrimaryIdentifierAttributeQName() + " in " + shadow, primaryIdAttr);

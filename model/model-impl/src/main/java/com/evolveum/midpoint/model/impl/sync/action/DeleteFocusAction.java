@@ -6,35 +6,41 @@
  */
 package com.evolveum.midpoint.model.impl.sync.action;
 
-import java.util.Map;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionDefinitionClass;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionInstantiationContext;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionUris;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DeleteFocusSynchronizationActionType;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.sync.Action;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationSituation;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
- *
  */
-public class DeleteFocusAction implements Action {
+@ActionUris({
+        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus",
+        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteUser" })
+@ActionDefinitionClass(DeleteFocusSynchronizationActionType.class)
+public class DeleteFocusAction<F extends FocusType> extends BaseClockworkAction<F> {
 
     private static final Trace LOGGER = TraceManager.getTrace(DeleteFocusAction.class);
 
-    @Override
-    public <F extends FocusType> void handle(@NotNull LensContext<F> context, SynchronizationSituation<F> situation,
-            Map<QName, Object> parameters, Task task, OperationResult parentResult) {
+    public DeleteFocusAction(@NotNull ActionInstantiationContext<F> ctx) {
+        super(ctx);
+    }
 
+    @Override
+    public void prepareContext(@NotNull LensContext<F> context, @NotNull OperationResult result) {
         LensFocusContext<F> focusContext = context.getFocusContext();
         if (focusContext != null) {
             PrismObject<F> objectOld = focusContext.getObjectOld();

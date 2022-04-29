@@ -664,7 +664,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
-        ModelExecuteOptions options = ModelExecuteOptions.create(prismContext).pushChanges(); // MID-6420
+        ModelExecuteOptions options = ModelExecuteOptions.create().pushChanges(); // MID-6420
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, options, task, result, ActivationStatusType.ENABLED);
@@ -699,7 +699,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        ModelExecuteOptions options = ModelExecuteOptions.create(prismContext).pushChanges(); // MID-6420
+        ModelExecuteOptions options = ModelExecuteOptions.create().pushChanges(); // MID-6420
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, options, task, result);

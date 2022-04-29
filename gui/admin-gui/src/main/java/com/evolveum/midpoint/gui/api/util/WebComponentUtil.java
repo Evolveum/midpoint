@@ -462,7 +462,7 @@ public final class WebComponentUtil {
                 filter.addCondition(intentFilter);
                 query.setFilter(filter);        // TODO this overwrites existing filter (created in previous cycle iteration)... is it OK? [med]
             }
-        } catch (SchemaException ex) {
+        } catch (SchemaException | ConfigurationException ex) {
             LOGGER.error("Couldn't create query filter for ShadowType for association: {}", ex.getErrorTypeMessage());
         }
         return query.getFilter();
@@ -2904,7 +2904,7 @@ public final class WebComponentUtil {
         try {
             ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
             ocd = ResourceObjectDefinitionResolver.getDefinitionForShadow(resourceSchema, shadowType);
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
         }
         ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType =
@@ -3005,7 +3005,7 @@ public final class WebComponentUtil {
         try {
             ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource.asPrismObject());
             ocd = ResourceObjectDefinitionResolver.getDefinitionForShadow(resourceSchema, shadowType);
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
         }
 
@@ -4926,7 +4926,7 @@ public final class WebComponentUtil {
             } else {
                 return List.of();
             }
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             return List.of();
         }
     }

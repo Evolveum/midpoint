@@ -365,9 +365,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertEquals("Unexpected status of the operation result. Expected " + OperationResultStatus.HANDLED_ERROR + ", but was " + addResult.getStatus(), addResult.getStatus(), OperationResultStatus.HANDLED_ERROR);
 
         OperationResult parentResult = new OperationResult("get");
+        Task task = createTask();
         try {
             getProvisioning().getObject(ShadowType.class, ACCOUNT_CHUCK_OID,
-                    SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null,
+                    SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task,
                     parentResult);
             fail("expected object not found exception but haven't got one.");
         } catch (ObjectNotFoundException ex) {

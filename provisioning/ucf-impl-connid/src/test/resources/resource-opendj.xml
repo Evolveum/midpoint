@@ -102,10 +102,10 @@
                 <shortcutValueAttribute>ri:dn</shortcutValueAttribute>
                 <explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
-               <protected>
-                   <filter>
-                       <q:equal>
-                           <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
                         <q:path>attributes/ri:dn</q:path>
                         <!-- WilDCapiTaLIzaTioN and spacing makes sure that this is matched properly -->
                         <q:value>uid=cAlyPSo, ou=PeoPle,    DC=example,dc=COM</q:value>
@@ -127,15 +127,17 @@
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
-            <baseContext>
-                <objectClass>ri:organizationalUnit</objectClass>
-                <filter>
-                    <q:equal>
-                        <q:path>attributes/dn</q:path>
-                        <q:value>ou=groups,dc=example,dc=com</q:value>
-                    </q:equal>
-                </filter>
-            </baseContext>
+            <objectsSetDelineation>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/dn</q:path>
+                            <q:value>ou=groups,dc=example,dc=com</q:value>
+                        </q:equal>
+                    </filter>
+                </baseContext>
+            </objectsSetDelineation>
             <attribute>
                 <ref>ri:entryUUID</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -158,15 +160,17 @@
             <intent>specialGroup</intent>
             <displayName>Special LDAP Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
-            <baseContext>
-                <objectClass>ri:organizationalUnit</objectClass>
-                <filter>
-                    <q:equal>
-                        <q:path>attributes/dn</q:path>
-                        <q:value>ou=specialgroups,dc=example,dc=com</q:value>
-                    </q:equal>
-                </filter>
-            </baseContext>
+            <objectsSetDelineation>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/dn</q:path>
+                            <q:value>ou=specialgroups,dc=example,dc=com</q:value>
+                        </q:equal>
+                    </filter>
+                </baseContext>
+            </objectsSetDelineation>
             <attribute>
                 <ref>ri:entryUUID</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -189,15 +193,17 @@
             <intent>ou-people</intent>
             <displayName>Organizational Unit</displayName>
             <objectClass>ri:organizationalUnit</objectClass>
-            <baseContext>
-                <objectClass>ri:organizationalUnit</objectClass>
-                <filter>
-                    <q:equal>
-                        <q:path>attributes/dn</q:path>
-                        <q:value>ou=People,dc=example,dc=com</q:value>
-                    </q:equal>
-                </filter>
-            </baseContext>
+            <objectsSetDelineation>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/dn</q:path>
+                            <q:value>ou=People,dc=example,dc=com</q:value>
+                        </q:equal>
+                    </filter>
+                </baseContext>
+            </objectsSetDelineation>
             <attribute>
                 <ref>ri:entryUUID</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -225,13 +231,6 @@
                     <cap:lockedValue>1</cap:lockedValue>
                 </cap:lockoutStatus>
             </cap:activation>
-            <!--
-            <cap:credentials>
-                <cap:password/>
-            </cap:credentials>
-            <cap:liveSync/>
-            <cap:testConnection/>
-            -->
             <cap:create/>
             <cap:read/>
             <cap:update/>

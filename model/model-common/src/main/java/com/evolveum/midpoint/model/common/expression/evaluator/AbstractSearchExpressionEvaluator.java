@@ -166,7 +166,8 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue, D 
         return resultValues;
     }
 
-    protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
+    protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params)
+            throws SchemaException, ExpressionEvaluationException {
         return query;
     }
 
@@ -345,11 +346,20 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue, D 
         // TODO: perhaps we should limit query to some reasonably high number of results?
         SearchResultList<PrismObject<O>> objects = objectResolver.searchObjects(targetTypeClass, query, options, task, opResult);
         for (PrismObject<O> object : objects) {
+            if (!isAcceptable(object)) {
+                LOGGER.trace("Object {} was rejected by additional filtering", object);
+                continue;
+            }
             if (rawResults != null) {
                 rawResults.add(object);
             }
             valueResults.add(createPrismValue(object.getOid(), targetTypeQName, additionalAttributeDeltas, params));
         }
+    }
+
+    /** Provides additional filtering e.g. rejecting dead shadows as association targets. */
+    protected <O extends ObjectType> boolean isAcceptable(@NotNull PrismObject<O> object) {
+        return true;
     }
 
     protected void extendOptions(Collection<SelectorOptions<GetOperationOptions>> options, boolean searchOnResource) {

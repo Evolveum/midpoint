@@ -102,7 +102,7 @@ class ScriptExecutor<O extends ObjectType> {
         ResourceType resource = projCtx.getResource();
 
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(focus, shadow, rsd, resource.asPrismObject(),
-                context.getSystemConfiguration(), projCtx, b.prismContext);
+                context.getSystemConfiguration(), projCtx);
         ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context, projCtx, task, result));
         try {
             OperationProvisioningScriptsType preparedScripts = prepareScripts(scripts, rsd,

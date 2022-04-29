@@ -234,8 +234,8 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     private VariablesMap createVariables(AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx,
             OperationResult result) throws SchemaException {
         PrismObject<SystemConfigurationType> systemConfiguration = ctx.ae.systemObjectCache.getSystemConfiguration(result);
-        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(segment.source, null,
-                null, systemConfiguration.asObjectable(), ctx.ae.prismContext);
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
+                segment.source, null, null, systemConfiguration.asObjectable());
         variables.put(ExpressionConstants.VAR_SOURCE, segment.source, ObjectType.class);
         AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
         if (assignmentPathVariables != null) {

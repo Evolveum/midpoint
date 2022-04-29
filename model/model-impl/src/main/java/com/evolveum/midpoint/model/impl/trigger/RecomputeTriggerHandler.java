@@ -58,7 +58,7 @@ public class RecomputeTriggerHandler implements SingleTriggerHandler {
             LOGGER.trace("Recomputing {}", object);
             // Reconcile option used for compatibility. TODO: do we need it?
             LensContext<O> lensContext = contextFactory.createRecomputeContext(object,
-                    new ModelExecuteOptions(prismContext).reconcile(), task, result);
+                    ModelExecuteOptions.create().reconcile(), task, result);
             LOGGER.trace("Recomputing of {}: context:\n{}", object, lensContext.debugDumpLazily());
             clockwork.run(lensContext, task, result);
             LOGGER.trace("Recomputing of {}: {}", object, result.getStatus());

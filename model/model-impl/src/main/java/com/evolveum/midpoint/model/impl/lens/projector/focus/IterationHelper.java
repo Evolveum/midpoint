@@ -27,7 +27,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Helps AssignmentHolderProcessor with iteration-related activities.
+ * Helps {@link AssignmentHolderProcessor} with iteration-related activities.
  *
  * 1. Keeps iteration state.
  * 2. Evaluates pre/post and uniqueness conditions (including name presence).
@@ -153,8 +153,8 @@ class IterationHelper<AH extends AssignmentHolderType> {
 
     private void createVariablesPreIterationIfNeeded() {
         if (variablesPreIteration == null) {
-            variablesPreIteration = ModelImplUtils.getDefaultVariablesMap(focusContext.getObjectNew(),
-                    null, null, null, context.getSystemConfiguration(), focusContext, assignmentHolderProcessor.getPrismContext());
+            variablesPreIteration = ModelImplUtils.getDefaultVariablesMap(
+                    focusContext.getObjectNew(), null, null, null, context.getSystemConfiguration(), focusContext);
         }
     }
 
@@ -210,15 +210,18 @@ class IterationHelper<AH extends AssignmentHolderType> {
         }
     }
 
-    boolean isIterationOk(PrismObject<AH> objectNew, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    boolean isIterationOk(PrismObject<AH> objectNew, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
         checkNamePresence(context, this, objectNew);
         FocusConstraintsChecker<AH> checker = createChecker(context);
         if (!shouldCheckConstraints() || checker.check(objectNew, result)) {
             LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
             VariablesMap variablesPostIteration = ModelImplUtils.getDefaultVariablesMap(objectNew,
-                    null, null, null, context.getSystemConfiguration(), focusContext, assignmentHolderProcessor.getPrismContext());
+                    null, null, null, context.getSystemConfiguration(), focusContext);
             if (LensUtil.evaluateIterationCondition(context, focusContext,
-                    iterationSpecification, iteration, iterationToken, false, assignmentHolderProcessor.getExpressionFactory(), variablesPostIteration,
+                    iterationSpecification, iteration, iterationToken, false,
+                    assignmentHolderProcessor.getExpressionFactory(), variablesPostIteration,
                     task, result)) {
                 return true;
             } else {
@@ -245,7 +248,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
         return checker;
     }
 
-    private boolean shouldCheckConstraints() throws SchemaException {
+    private boolean shouldCheckConstraints() {
         ConstraintsCheckingStrategyType strategy = context.getFocusConstraintsCheckingStrategy();
         boolean skipWhenNoChange = strategy != null && Boolean.TRUE.equals(strategy.isSkipWhenNoChange());
         boolean skipWhenNoIteration = strategy != null && Boolean.TRUE.equals(strategy.isSkipWhenNoIteration());
@@ -271,7 +274,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
         LensUtil.checkMaxIterations(iteration, maxIterations, reIterationReason, focusContext.getHumanReadableName());
     }
 
-    boolean didResetOnRenameOccur() throws SchemaException {
+    boolean didResetOnRenameOccur() {
         if (iteration != 0 && RESET_ON_RENAME && !wasResetIterationCounter && willResetIterationCounter()) {
             // Make sure this happens only the very first time during the first recompute.
             // Otherwise it will always change the token (especially if the token expression has a random part)
@@ -283,7 +286,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
         }
     }
 
-    private boolean willResetIterationCounter() throws SchemaException {
+    private boolean willResetIterationCounter() {
         ObjectDelta<AH> focusDelta = focusContext.getSummaryDelta(); // TODO check this
         if (focusDelta == null) {
             return false;
@@ -299,7 +302,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
         return hasNameDelta(focusDelta);
     }
 
-    private boolean hasNameDelta() throws SchemaException {
+    private boolean hasNameDelta() {
         ObjectDelta<AH> focusDelta = focusContext.getSummaryDelta(); // TODO check this
         return focusDelta != null && hasNameDelta(focusDelta);
     }

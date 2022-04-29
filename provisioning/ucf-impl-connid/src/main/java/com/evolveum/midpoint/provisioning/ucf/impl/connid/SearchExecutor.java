@@ -216,12 +216,14 @@ class SearchExecutor {
         InternalMonitor.recordConnectorOperation("search");
         ConnIdOperation operation = recordIcfOperationStart();
 
-        ResultsHandler connIdHandler = new SearchResultsHandler(operation, result);
         try {
-
             LOGGER.trace("Executing ConnId search operation: {}", operation);
             connIdSearchResult = connectorInstance.getConnIdConnectorFacade()
-                    .search(icfObjectClass, connIdFilter, connIdHandler, connIdOptions);
+                    .search(
+                            icfObjectClass,
+                            connIdFilter,
+                            new SearchResultsHandler(operation, result),
+                            connIdOptions);
             recordIcfOperationEnd(operation, null);
 
             result.recordSuccess();

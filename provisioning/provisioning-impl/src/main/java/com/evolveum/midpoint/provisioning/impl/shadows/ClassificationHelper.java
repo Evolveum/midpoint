@@ -7,31 +7,34 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
+import java.util.List;
+import java.util.Objects;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier.Classification;
+import com.evolveum.midpoint.provisioning.api.ShadowTagGenerator;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
  * Helps with resource object classification, i.e. determining their kind, intent, and tag.
@@ -47,18 +50,15 @@ class ClassificationHelper {
 
     /**
      * This is an externally-provided classifier implementation.
-     * It is a temporary solution until classification is done purely in provisioning-impl.
+     * It is a temporary solution until classification is done purely in provisioning-impl. (If that will happen.)
      */
     private volatile ResourceObjectClassifier classifier;
 
     /**
-     * Checks if the shadow needs the classification. This is to avoid e.g. needless preparation of the resource object
-     * (if it's not readily available).
+     * This is an externally-provided shadow tag generator implementation.
+     * It is a temporary solution until this process is done purely in provisioning-impl. (If that will happen.)
      */
-    boolean needsClassification(PrismObject<ShadowType> shadow) {
-        return ShadowUtil.isNotKnown(shadow.asObjectable().getKind())
-                || ShadowUtil.isNotKnown(shadow.asObjectable().getIntent());
-    }
+    private volatile ShadowTagGenerator shadowTagGenerator;
 
     /**
      * Classifies the current shadow, based on information from the resource object.
@@ -77,14 +77,17 @@ class ClassificationHelper {
 
         // The classifier code works with the "combined" version of resource object and its shadow.
         // This is NOT a full shadowization. Just good enough for the classifier to work.
-        PrismObject<ShadowType> combinedObject = combine(resourceObject, shadow);
+        ShadowType combinedObject = combine(resourceObject, shadow);
 
-        Classification classification = classifier.classify(combinedObject, ctx.getResource().asPrismObject(),
-                ctx.getTask(), result);
+        Classification classification = classifier.classify(
+                combinedObject,
+                ctx.getResource(),
+                ctx.getTask(),
+                result);
 
         if (isDifferent(classification, shadow)) {
             LOGGER.trace("New/updated classification of {} found: {}", shadow, classification);
-            updateShadowClassification(shadow, classification, result);
+            updateShadowClassificationAndTag(combinedObject, classification, ctx, result);
         } else {
             LOGGER.trace("No change in classification of {}: {}", shadow, classification);
         }
@@ -96,7 +99,7 @@ class ClassificationHelper {
      * In particular, we hope that the object class is roughly OK, and things like entitlement, credentials, and so on
      * are not needed.
      */
-    private PrismObject<ShadowType> combine(PrismObject<ShadowType> resourceObject, PrismObject<ShadowType> shadow)
+    private ShadowType combine(PrismObject<ShadowType> resourceObject, PrismObject<ShadowType> shadow)
             throws SchemaException {
         PrismObject<ShadowType> combined = shadow.clone();
         ResourceAttributeContainer fullAttributes = ShadowUtil.getAttributesContainer(resourceObject);
@@ -105,30 +108,51 @@ class ClassificationHelper {
             combined.add(fullAttributes.clone());
         }
         LOGGER.trace("Combined object:\n{}", combined.debugDumpLazily(1));
-        return combined;
+        return combined.asObjectable();
     }
 
-    private void updateShadowClassification(PrismObject<ShadowType> shadow, Classification classification, OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
+    /**
+     * We update the tag as well, because it may depend on the object type.
+     *
+     * (We intentionally set the value of intent to "unknown" if the classification is not known!)
+     */
+    private void updateShadowClassificationAndTag(
+            @NotNull ShadowType combinedObject,
+            @NotNull Classification classification,
+            @NotNull ProvisioningContext ctx,
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException {
+        String tag = classification.isKnown() && shadowTagGenerator != null ?
+                shadowTagGenerator.generateTag(
+                        combinedObject, ctx.getResource(), classification.getDefinitionRequired(), ctx.getTask(), result) :
+                null;
+        ShadowKindType kindToSet = classification.isKnown() ?
+                classification.getKind() :
+                Objects.requireNonNullElse( // We don't want to lose last-known kind even if classification is not known
+                        combinedObject.getKind(), ShadowKindType.UNKNOWN);
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
-                .item(ShadowType.F_KIND).replace(classification.getKind())
+                .item(ShadowType.F_KIND).replace(kindToSet)
                 .item(ShadowType.F_INTENT).replace(classification.getIntent())
-                .item(ShadowType.F_TAG).replace(classification.getTag())
+                .item(ShadowType.F_TAG).replace(tag)
                 .asItemDeltas();
         try {
-            repositoryService.modifyObject(ShadowType.class, shadow.getOid(), itemDeltas, result);
+            repositoryService.modifyObject(ShadowType.class, combinedObject.getOid(), itemDeltas, result);
         } catch (ObjectAlreadyExistsException e) {
-            throw new SystemException(e); // there is no rename, so no conflict should be there
+            throw SystemException.unexpected(e, "when updating classification and tag");
         }
     }
 
     private boolean isDifferent(Classification classification, PrismObject<ShadowType> shadow) {
-        return classification.getKind() != shadow.asObjectable().getKind() ||
-                !Objects.equals(classification.getIntent(), shadow.asObjectable().getIntent()) ||
-                !Objects.equals(classification.getTag(), shadow.asObjectable().getTag());
+        return classification.getKind() != shadow.asObjectable().getKind()
+                || !Objects.equals(classification.getIntent(), shadow.asObjectable().getIntent());
     }
 
-    public void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
+    void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
         this.classifier = classifier;
+    }
+
+    void setShadowTagGenerator(ShadowTagGenerator shadowTagGenerator) {
+        this.shadowTagGenerator = shadowTagGenerator;
     }
 }

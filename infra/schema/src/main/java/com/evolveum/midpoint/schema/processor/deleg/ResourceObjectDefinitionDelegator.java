@@ -257,6 +257,12 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
+    @NotNull
+    default ResourceObjectTypeDelineation getDelineation() {
+        return delegate().getDelineation();
+    }
+
+    @Override
     default ResourceObjectReferenceType getBaseContext() {
         return delegate().getBaseContext();
     }

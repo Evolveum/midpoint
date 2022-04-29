@@ -82,7 +82,7 @@ abstract class ScriptingTaskCreator {
                 newTask = (TaskType) tasks.get(0).asObjectable();
             }
         } else {
-            newTask = new TaskType(beans.prismContext);
+            newTask = new TaskType();
             newTask.setName(PolyStringType.fromOrig("Execute script"));
         }
         newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
@@ -110,7 +110,7 @@ abstract class ScriptingTaskCreator {
         };
     }
 
-    private VariablesMap createVariables() throws SchemaException {
+    private VariablesMap createVariables() throws SchemaException, ConfigurationException {
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(actx.context, null, true);
         actx.putIntoVariables(variables);
         return variables;

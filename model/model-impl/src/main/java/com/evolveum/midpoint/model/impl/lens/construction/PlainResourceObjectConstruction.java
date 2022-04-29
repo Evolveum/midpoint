@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -51,7 +53,7 @@ public class PlainResourceObjectConstruction<AH extends AssignmentHolderType>
         setResolvedResource(new ResolvedConstructionResource(projectionContext.getResource()));
     }
 
-    protected void initializeDefinitions() throws SchemaException {
+    protected void initializeDefinitions() throws SchemaException, ConfigurationException {
         ResourceObjectDefinition rOcDef = projectionContext.getStructuralObjectDefinition();
         if (rOcDef == null) {
             LOGGER.error("Definition for {} not found in the context, but it should be there, dumping context:\n{}",

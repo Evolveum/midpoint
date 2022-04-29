@@ -7,33 +7,34 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * A schema covering the whole resource.
@@ -57,6 +58,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * @author semancik
  */
 public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinition {
+
+    Trace LOGGER = TraceManager.getTrace(ResourceSchema.class);
 
     /** Returns definitions for all the object classes. */
     default @NotNull Collection<ResourceObjectClassDefinition> getObjectClassDefinitions() {
@@ -175,6 +178,19 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
         stateCheck(definition instanceof ResourceObjectTypeDefinition,
                 "No type definition for %s/%s could be found; only %s", kind, intent, definition);
         return (ResourceObjectTypeDefinition) definition;
+    }
+
+    /**
+     * Sometimes we need _type_ definition (not object class definition).
+     */
+    default @Nullable ResourceObjectTypeDefinition findObjectTypeDefinition(
+            @NotNull ShadowKindType kind, @NotNull String intent) {
+        ResourceObjectDefinition definition = findObjectDefinition(kind, intent);
+        if (definition instanceof ResourceObjectTypeDefinition) {
+            return (ResourceObjectTypeDefinition) definition;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -420,8 +436,20 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
 
     /**
      * Returns true if the schema contains no "refined" (type) definitions.
+     *
+     * BEWARE! Even schemas obtained via {@link ResourceSchemaFactory#getCompleteSchema(ResourceType)} method
+     * may seem raw, if there's no `schemaHandling` section. This should be perhaps fixed.
      */
     default boolean isRaw() {
         return getObjectTypeDefinitions().isEmpty();
+    }
+
+    /**
+     * Returns all {@link SynchronizationPolicy} objects that can be found in given resource definition
+     * (that this schema belongs to).
+     */
+    default Collection<SynchronizationPolicy> getAllSynchronizationPolicies(ResourceType resource)
+            throws ConfigurationException {
+        return SynchronizationPolicyFactory.getAllPolicies(this, resource);
     }
 }

@@ -329,7 +329,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     }
 
     protected void fillDeltas(ModelContext<UserType> modelContext, List<ObjectDelta<? extends ObjectType>> primaryDeltas,
-            List<ObjectDelta<? extends ObjectType>> secondaryDeltas) throws SchemaException {
+            List<ObjectDelta<? extends ObjectType>> secondaryDeltas) throws SchemaException, ConfigurationException {
         if (modelContext != null) {
             if (modelContext.getFocusContext() != null) {
                 addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());

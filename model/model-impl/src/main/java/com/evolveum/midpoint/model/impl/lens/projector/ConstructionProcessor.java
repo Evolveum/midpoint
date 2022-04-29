@@ -130,7 +130,8 @@ public class ConstructionProcessor {
     private <AH extends AssignmentHolderType, K extends HumanReadableDescribable, EC extends EvaluatedAbstractConstruction<AH>>
     void distributeConstructionPacks(K key, EvaluatedConstructionPack<EC> zeroEvaluatedConstructionPack,
             EvaluatedConstructionPack<EC> plusEvaluatedConstructionPack, ComplexConstructionConsumer<K, EC> consumer,
-            DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple, String desc) throws SchemaException {
+            DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple, String desc)
+            throws SchemaException, ConfigurationException {
         // SITUATION: The construction is ASSIGNED
         if (plusEvaluatedConstructionPack != null && plusEvaluatedConstructionPack.hasNonWeakConstruction()) {
 

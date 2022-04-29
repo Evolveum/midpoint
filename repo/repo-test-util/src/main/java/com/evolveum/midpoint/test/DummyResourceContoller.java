@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.lang.StringUtils;
@@ -205,7 +206,7 @@ public class DummyResourceContoller extends AbstractResourceController {
     /**
      * Extend dummy schema to have an auxiliary OC.
      */
-    public void extendSchemaPosix() throws ConnectException, FileNotFoundException, SchemaViolationException {
+    public void extendSchemaPosix() {
         DummyObjectClass posixAccount = new DummyObjectClass();
         addAttrDef(posixAccount, DUMMY_ACCOUNT_ATTRIBUTE_POSIX_UID_NUMBER, Integer.class, false, false);            // uid and gid are temporarily not required
         addAttrDef(posixAccount, DUMMY_ACCOUNT_ATTRIBUTE_POSIX_GID_NUMBER, Integer.class, false, false);
@@ -478,7 +479,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 
     public DummyAccountAsserter<Void> assertAccountById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         DummyAccount account = dummyResource.getAccountById(id);
-        assertNotNull("Account id="+id+" does not exist on dummy resource "+getName());
+        assertNotNull("Account id="+id+" does not exist on dummy resource "+getName(), account);
         return assertAccount(account);
     }
 
@@ -505,7 +506,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         dummyResource.setSyncStyle(syncStyle);
     }
 
-    public <T> ResourceAttribute<T> createAccountAttribute(ItemName attrName) throws SchemaException {
+    public <T> ResourceAttribute<T> createAccountAttribute(ItemName attrName) throws SchemaException, ConfigurationException {
         ResourceObjectTypeDefinition accountDef = getRefinedAccountDefinition();
         //noinspection unchecked
         return (ResourceAttribute<T>) requireNonNull(accountDef.findAttributeDefinition(attrName),
@@ -513,11 +514,11 @@ public class DummyResourceContoller extends AbstractResourceController {
                 .instantiate();
     }
 
-    public ResourceObjectTypeDefinition getRefinedAccountDefinition() throws SchemaException {
+    public ResourceObjectTypeDefinition getRefinedAccountDefinition() throws SchemaException, ConfigurationException {
         return getRefinedSchema().findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
     }
 
-    public ResourceSchema getRefinedSchema() throws SchemaException {
+    public ResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
         return ResourceSchemaFactory.getCompleteSchema(getResourceType());
     }
 }

@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.correlator;
 
-import java.util.List;
+import java.util.Collection;
+
+import com.evolveum.midpoint.model.api.correlator.CorrelationResult.OwnersInfo;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +17,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
@@ -33,22 +34,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerO
 public class BuiltInResultCreator {
 
     public <F extends FocusType> CorrelationResult createCorrelationResult(
-            @NotNull List<F> candidates,
+            @NotNull Collection<F> candidates,
             @NotNull CorrelationContext correlationContext) throws SchemaException {
 
         if (candidates.isEmpty()) {
             return CorrelationResult.noOwner();
         } else if (candidates.size() == 1) {
-            return CorrelationResult.existingOwner(candidates.get(0));
+            return CorrelationResult.existingOwner(candidates.iterator().next());
         } else {
             return CorrelationResult.uncertain(
-                    createOwnerOptionsBean(candidates, correlationContext));
+                    createOwnersInfo(candidates, correlationContext));
         }
     }
 
-    private <F extends FocusType> ResourceObjectOwnerOptionsType createOwnerOptionsBean(
-            List<F> candidates, CorrelationContext correlationContext) {
-        ResourceObjectOwnerOptionsType options = new ResourceObjectOwnerOptionsType(PrismContext.get());
+    private <F extends FocusType> OwnersInfo createOwnersInfo(
+            Collection<F> candidates, CorrelationContext correlationContext) {
+        ResourceObjectOwnerOptionsType options = new ResourceObjectOwnerOptionsType();
         if (correlationContext.getManualCorrelationContext().getPotentialMatches() != null) {
             options.getOption().addAll(
                     CloneUtil.cloneCollectionMembers(
@@ -56,11 +57,11 @@ public class BuiltInResultCreator {
         } else {
             createDefaultOwnerOptions(options, candidates);
         }
-        return options;
+        return new OwnersInfo(options, candidates);
     }
 
     private <F extends FocusType> void createDefaultOwnerOptions(
-            ResourceObjectOwnerOptionsType options, List<F> candidates) {
+            ResourceObjectOwnerOptionsType options, Collection<F> candidates) {
         for (F candidate : candidates) {
             options.getOption().add(
                     createOwnerOption(candidate));
@@ -72,7 +73,7 @@ public class BuiltInResultCreator {
     private ResourceObjectOwnerOptionType createOwnerOption(@Nullable FocusType candidate) {
         OwnerOptionIdentifier identifier = candidate != null ?
                 OwnerOptionIdentifier.forExistingOwner(candidate.getOid()) : OwnerOptionIdentifier.forNoOwner();
-        return new ResourceObjectOwnerOptionType(PrismContext.get())
+        return new ResourceObjectOwnerOptionType()
                 .identifier(identifier.getStringValue())
                 .candidateOwnerRef(ObjectTypeUtil.createObjectRef(candidate));
     }

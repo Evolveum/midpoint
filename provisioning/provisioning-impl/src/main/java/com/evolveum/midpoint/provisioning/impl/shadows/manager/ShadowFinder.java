@@ -130,8 +130,7 @@ class ShadowFinder {
 
     List<PrismObject<ShadowType>> searchShadowsByPrimaryIds(ProvisioningContext ctx,
             Collection<ResourceAttribute<?>> identifiers, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+            throws SchemaException, ConfigurationException {
 
         ObjectQuery query = createQueryBySelectedIds(ctx, identifiers, true);
         try {
@@ -162,17 +161,17 @@ class ShadowFinder {
                 lazy(() -> "primary identifier value " + primaryIdentifierValue + " (impossible because of DB constraint)"));
     }
 
-    public PrismObject<ShadowType> lookupShadowByAllIds(ProvisioningContext ctx,
+    PrismObject<ShadowType> lookupLiveShadowByAllIds(ProvisioningContext ctx,
             ResourceAttributeContainer identifierContainer, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            throws SchemaException, ConfigurationException {
 
-        @SuppressWarnings("unchecked")
+        //noinspection rawtypes,unchecked
         ObjectQuery query = createQueryBySelectedIds(ctx, (Collection) identifierContainer.getValue().getItems(), false);
         LOGGER.trace("Searching for shadow using filter (repo):\n{}", query.debugDumpLazily());
 
         List<PrismObject<ShadowType>> shadows = searchRepoShadows(query, null, result);
 
-        PrismObject<ShadowType> singleShadow = ProvisioningUtil.selectSingleShadow(shadows, identifierContainer);
+        PrismObject<ShadowType> singleShadow = ProvisioningUtil.selectLiveShadow(shadows);
         checkConsistency(singleShadow);
         return singleShadow;
     }

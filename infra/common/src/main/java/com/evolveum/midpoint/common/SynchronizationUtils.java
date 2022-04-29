@@ -8,42 +8,24 @@ package com.evolveum.midpoint.common;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.*;
-
-import static java.util.Objects.requireNonNullElse;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 public class SynchronizationUtils {
-
-    private static final Trace LOGGER = TraceManager.getTrace(SynchronizationUtils.class);
 
     private static PropertyDelta<SynchronizationSituationType> createSynchronizationSituationDelta(
             PrismObject<ShadowType> shadow, SynchronizationSituationType situation) {
@@ -134,80 +116,5 @@ public class SynchronizationUtils {
         } else {
             return ch1.equals(ch2);
         }
-    }
-
-    /**
-     * Checks if the synchronization policy matches given "parameters" (object class, kind, intent).
-     */
-    public static boolean isPolicyApplicable(QName objectClass, ShadowKindType kind, String intent,
-            @NotNull ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource, boolean strictIntent)
-            throws SchemaException {
-
-        if (objectClassDefinedAndNotMatching(objectClass, synchronizationPolicy.getObjectClass())) {
-            return false;
-        }
-
-        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
-        if (schema == null) {
-            throw new SchemaException("No schema defined in resource. Possible configuration problem?");
-        }
-
-        ShadowKindType policyKind = requireNonNullElse(synchronizationPolicy.getKind(), ACCOUNT);
-
-        String policyIntent = synchronizationPolicy.getIntent();
-
-        ResourceObjectDefinition policyObjectClass;
-        if (StringUtils.isEmpty(policyIntent)) {
-            policyObjectClass = schema.findObjectDefinition(policyKind, null); // TODO check this
-            if (policyObjectClass instanceof ResourceObjectTypeDefinition) {
-                policyIntent = ((ResourceObjectTypeDefinition) policyObjectClass).getIntent();
-            }
-        } else {
-            policyObjectClass = schema.findObjectDefinition(policyKind, policyIntent);
-        }
-
-        if (policyObjectClass == null) {
-            return false;
-        }
-
-        // re-check objectClass if wasn't defined
-        if (objectClassDefinedAndNotMatching(objectClass, List.of(policyObjectClass.getTypeName()))) {
-            return false;
-        }
-
-        // kind
-        LOGGER.trace("Comparing kinds, policy kind: {}, current kind: {}", policyKind, kind);
-        if (kind != null && kind != UNKNOWN && !policyKind.equals(kind)) {
-            LOGGER.trace("Kinds don't match, skipping policy {}", synchronizationPolicy);
-            return false;
-        }
-
-        // intent
-        // TODO is the intent always present in shadow at this time? [med]
-        LOGGER.trace("Comparing intents, policy intent: {}, current intent: {}", policyIntent, intent);
-        if (!strictIntent) {
-            if (intent != null && !SchemaConstants.INTENT_UNKNOWN.equals(intent) && !MiscSchemaUtil.equalsIntent(intent, policyIntent)) {
-                LOGGER.trace("Intents don't match, skipping policy {}", synchronizationPolicy);
-                return false;
-            }
-        } else {
-            if (!MiscSchemaUtil.equalsIntent(intent, policyIntent)) {
-                LOGGER.trace("Intents don't match, skipping policy {}", synchronizationPolicy);
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static boolean objectClassDefinedAndNotMatching(@Nullable QName objectClass, @NotNull List<QName> policyObjectClasses) {
-        return objectClass != null &&
-                !policyObjectClasses.isEmpty() &&
-                !QNameUtil.matchAny(objectClass, policyObjectClasses);
-    }
-
-    public static boolean isPolicyApplicable(QName objectClass, ShadowKindType kind, String intent,
-            ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource) throws SchemaException {
-        return isPolicyApplicable(objectClass, kind, intent, synchronizationPolicy, resource, false);
     }
 }

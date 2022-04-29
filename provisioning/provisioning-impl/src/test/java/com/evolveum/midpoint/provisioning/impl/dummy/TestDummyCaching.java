@@ -22,6 +22,8 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -483,7 +485,7 @@ public class TestDummyCaching extends TestDummy {
     @Override
     protected void checkCachedAccountShadow(
             PrismObject<ShadowType> shadow, OperationResult parentResult, boolean fullShadow,
-            XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException {
+            XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, ConfigurationException {
         super.checkAccountShadow(shadow, parentResult, fullShadow);
         if (fullShadow) {
             assertCachingMetadata(shadow, true, startTs, endTs);

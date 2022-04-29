@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -96,6 +97,15 @@ public final class ResourceObjectTypeDefinitionImpl
     @NotNull private final ResourceObjectTypeDefinitionType definitionBean;
 
     /**
+     * Parent source beans for this definition.
+     *
+     * They are here to implement resource object type inheritance.
+     *
+     * Frozen after parsing.
+     */
+    @NotNull private final DeeplyFreezableList<ResourceObjectTypeDefinitionType> parentBeans = new DeeplyFreezableList<>();
+
+    /**
      * Compiled patterns denoting protected objects.
      *
      * @see ResourceObjectTypeDefinitionType#getProtected()
@@ -104,6 +114,11 @@ public final class ResourceObjectTypeDefinitionImpl
      * Frozen after parsing. (TODO)
      */
     @NotNull private final FreezableList<ResourceObjectPattern> protectedObjectPatterns = new FreezableList<>();
+
+    /**
+     * "Compiled" object set delineation.
+     */
+    @NotNull private final DeeplyFreezableReference<ResourceObjectTypeDelineation> delineation = new DeeplyFreezableReference<>();
 
     /**
      * Name of "display name" attribute. May override the value obtained from the resource.
@@ -163,17 +178,20 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public @Nullable String getDisplayName() {
         return getFirstNonNull(
-                definitionBean.getDisplayName(),
+                extractFeature(
+                        ResourceObjectTypeDefinitionType::getDisplayName),
                 rawObjectClassDefinition.getDisplayName());
     }
 
     @Override
     public String getDescription() {
-        return definitionBean.getDescription();
+        return extractFeature(
+                ResourceObjectTypeDefinitionType::getDescription);
     }
 
     @Override
     public boolean isDefaultForObjectClass() {
+        // Note that this value cannot be defined on a parent.
         if (definitionBean.isDefaultForObjectClass() != null) {
             return definitionBean.isDefaultForObjectClass();
         } else if (definitionBean.isDefault() != null) {
@@ -185,6 +203,7 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @Override
     public boolean isDefaultForKind() {
+        // Note that this value cannot be defined on a parent.
         if (definitionBean.isDefaultForKind() != null) {
             return definitionBean.isDefaultForKind();
         } else if (definitionBean.isDefault() != null) {
@@ -194,15 +213,29 @@ public final class ResourceObjectTypeDefinitionImpl
         }
     }
 
+    /** Sets the delineation and freezes the holder. */
+    public void setDelineation(@NotNull ResourceObjectTypeDelineation value) {
+        delineation.setValue(value);
+        delineation.freeze();
+    }
+
+    @Override
+    public @NotNull ResourceObjectTypeDelineation getDelineation() {
+        return Objects.requireNonNull(
+                delineation.getValue(),
+                () -> "no delineation in " + this);
+    }
+
     @Override
     public ResourceObjectReferenceType getBaseContext() {
-        return definitionBean.getBaseContext();
+        return getDelineation()
+                .getBaseContext();
     }
 
     @Override
     public SearchHierarchyScope getSearchHierarchyScope() {
-        return SearchHierarchyScope.fromBeanValue(
-                definitionBean.getSearchHierarchyScope());
+        return getDelineation()
+                .getSearchHierarchyScope();
     }
 
     @Override
@@ -218,32 +251,36 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public @NotNull ResourceObjectVolatilityType getVolatility() {
         return Objects.requireNonNullElse(
-                definitionBean.getVolatility(),
+                extractFeature(
+                        ResourceObjectTypeDefinitionType::getVolatility),
                 ResourceObjectVolatilityType.NONE);
     }
 
     @Override
     public @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases() {
         // In the future we may define the value also on resource or even global system level
-        if (definitionBean.getMappingsEvaluation() == null) {
+        ResourceMappingsEvaluationConfigurationType definition = // TODO consider merging the values
+                extractFeature(ResourceObjectTypeDefinitionType::getMappingsEvaluation);
+        if (definition == null) {
             return null;
         }
-        if (definitionBean.getMappingsEvaluation().getInbound() == null) {
+        if (definition.getInbound() == null) {
             return null;
         }
-        return definitionBean.getMappingsEvaluation().getInbound().getDefaultEvaluationPhases();
+        return definition.getInbound().getDefaultEvaluationPhases();
     }
 
     @Override
     public ResourceObjectMultiplicityType getObjectMultiplicity() {
-        return definitionBean.getMultiplicity();
+        return extractFeature(
+                ResourceObjectTypeDefinitionType::getMultiplicity);
     }
 
     @Override
     public ProjectionPolicyType getProjectionPolicy() {
-        return definitionBean.getProjection();
+        return extractFeature(
+                ResourceObjectTypeDefinitionType::getProjection);
     }
-
     //endregion
 
     //region Accessing parts of schema handling ========================================================
@@ -301,7 +338,7 @@ public final class ResourceObjectTypeDefinitionImpl
         if (configuredCapabilities == null) {
             return null;
         }
-        CapabilitiesType capabilitiesType = new CapabilitiesType(getPrismContext());
+        CapabilitiesType capabilitiesType = new CapabilitiesType();
         capabilitiesType.setConfigured(configuredCapabilities);
         return capabilitiesType;
     }
@@ -483,6 +520,52 @@ public final class ResourceObjectTypeDefinitionImpl
         return definitionBean;
     }
 
+    @Override
+    public @Nullable CorrelationDefinitionType getCorrelationDefinitionBean() {
+        return definitionBean.getCorrelation(); // TODO: inheritance
+    }
+
+    @Override
+    public Boolean isSynchronizationEnabled() {
+        return definitionBean.getSynchronization() != null ? true : null; // TODO FIXME
+    }
+
+    @Override
+    public Boolean isSynchronizationOpportunistic() {
+        SynchronizationReactionsType synchronization = definitionBean.getSynchronization(); // TODO: inheritance
+        return synchronization != null ? synchronization.isOpportunistic() : null;
+    }
+
+    @Override
+    public QName getFocusTypeName() {
+        return definitionBean.getFocusType(); // TODO: inheritance
+    }
+
+    @Override
+    public ExpressionType getClassificationCondition() {
+        ResourceObjectTypeDelineationType delineation = definitionBean.getObjectsSetDelineation();
+        return delineation != null ? delineation.getClassificationCondition() : null;
+    }
+
+    @Override
+    public boolean hasSynchronizationReactionsDefinition() {
+        return definitionBean.getSynchronization() != null;
+    }
+
+    @Override
+    public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+        SynchronizationReactionsType reactions = definitionBean.getSynchronization(); // TODO: inheritance
+        if (reactions == null) {
+            return List.of();
+        } else {
+            SynchronizationReactionsDefaultSettingsType defaultSettings = reactions.getDefaultSettings();
+            ClockworkSettings reactionLevelSettings = ClockworkSettings.of(defaultSettings);
+            return reactions.getReaction().stream()
+                    .map(bean -> SynchronizationReactionDefinition.of(bean, reactionLevelSettings))
+                    .collect(Collectors.toList());
+        }
+    }
+
     void addAssociationDefinition(@NotNull ResourceAssociationDefinition associationDef) {
         associationDefinitions.add(associationDef);
     }
@@ -538,5 +621,24 @@ public final class ResourceObjectTypeDefinitionImpl
         }
         sb.append(",kind=").append(getKind().value());
         sb.append(",intent=").append(getIntent());
+    }
+
+    /** Extracts a feature (e.g. `description`) from the main definition bean or one of the parents. */
+    private <X> @Nullable X extractFeature(@NotNull FeatureExtractor<X> extractor) {
+        X fromMain = extractor.apply(definitionBean);
+        if (fromMain != null) {
+            return fromMain;
+        }
+        for (ResourceObjectTypeDefinitionType parentBean : parentBeans) {
+            X fromParent = extractor.apply(parentBean);
+            if (fromParent != null) {
+                return fromParent;
+            }
+        }
+        return null;
+    }
+
+    @FunctionalInterface
+    private interface FeatureExtractor<X> extends Function<ResourceObjectTypeDefinitionType, X> {
     }
 }

@@ -473,7 +473,7 @@
             <attribute>
                 <ref>icfs:name</ref>
                 <displayName>Groupname</displayName>
-                <matchingRule>mr:stringIgnoreCase</matchingRule>        <!-- to test tolerantValuePatterns for associations -->
+                <matchingRule>mr:stringIgnoreCase</matchingRule> <!-- to test tolerantValuePatterns for associations -->
                 <exclusiveStrong>true</exclusiveStrong>
                 <outbound>
                     <source>

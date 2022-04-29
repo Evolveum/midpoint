@@ -15,6 +15,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -516,7 +518,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
                                     availableIntentValues.add(def.getIntent());
                                 }
                             }
-                        } catch (SchemaException ex) {
+                        } catch (SchemaException | ConfigurationException ex) {
                             LOGGER.error("Cannot get refined resource schema for resource {}. {}", selectedResource.getName().getOrig(), ex.getLocalizedMessage());
                         }
 

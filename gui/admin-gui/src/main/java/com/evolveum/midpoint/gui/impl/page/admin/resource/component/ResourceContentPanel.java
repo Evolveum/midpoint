@@ -18,6 +18,8 @@ import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -137,7 +139,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                     } else {
                         return Collections.emptyIterator();
                     }
-                } catch (SchemaException e) {
+                } catch (SchemaException | ConfigurationException e) {
                     return Collections.emptyIterator();
                 }
             }
@@ -188,7 +190,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                     if (ocDef != null) {
                         return ocDef.getObjectClassDefinition().getTypeName().getLocalPart();
                     }
-                } catch (SchemaException e) {
+                } catch (SchemaException | ConfigurationException e) {
                     // TODO?
                 }
 
@@ -289,7 +291,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         ResourceSchema refinedSchema;
         try {
             refinedSchema = ResourceSchemaFactory.getCompleteSchema(model.getObject().getObject());
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             warn("Could not determine defined object classes for resource");
             return new ArrayList<>();
         }
@@ -311,10 +313,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, loadResourceModel(),
                 getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration()){
             @Override
-            protected ResourceSchema getRefinedSchema() throws SchemaException {
+            protected ResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
                 try {
                     return super.getRefinedSchema();
-                } catch (SchemaException e) {
+                } catch (SchemaException | ConfigurationException e) {
                     return getObjectDetailsModels().getRefinedSchema();
                 }
             }
@@ -330,10 +332,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, loadResourceModel(),
                 getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration()){
             @Override
-            protected ResourceSchema getRefinedSchema() throws SchemaException {
+            protected ResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
                 try {
                     return super.getRefinedSchema();
-                } catch (SchemaException e) {
+                } catch (SchemaException | ConfigurationException e) {
                     return getObjectDetailsModels().getRefinedSchema();
                 }
             }

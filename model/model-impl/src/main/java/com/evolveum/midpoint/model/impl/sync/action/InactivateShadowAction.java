@@ -6,34 +6,46 @@
  */
 package com.evolveum.midpoint.model.impl.sync.action;
 
-import java.util.Map;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionDefinitionClass;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionInstantiationContext;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionUris;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InactivateShadowSynchronizationActionType;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationSituation;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
  *
  */
-public class InactivateShadowAction extends BaseAction {
+@ActionUris({
+        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow",
+        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#disableAccount" })
+@ActionDefinitionClass(InactivateShadowSynchronizationActionType.class)
+public class InactivateShadowAction<F extends FocusType> extends BaseClockworkAction<F> {
+
+    public InactivateShadowAction(@NotNull ActionInstantiationContext<F> ctx) {
+        super(ctx);
+    }
 
     @Override
-    public <F extends FocusType> void handle(@NotNull LensContext<F> context, SynchronizationSituation<F> situation,
-            Map<QName, Object> parameters, Task task, OperationResult parentResult) {
+    public void prepareContext(
+            @NotNull LensContext<F> context,
+            @NotNull OperationResult result) {
         ActivationStatusType desiredStatus = ActivationStatusType.DISABLED;
 
         ItemPath pathAdminStatus = SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
@@ -48,8 +60,12 @@ public class InactivateShadowAction extends BaseAction {
                 }
             }
         }
-        ObjectDelta<ShadowType> activationDelta = getPrismContext().deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                projectionContext.getOid(), pathAdminStatus, desiredStatus);
+        ObjectDelta<ShadowType> activationDelta = PrismContext.get().deltaFactory().object()
+                .createModificationReplaceProperty(
+                        ShadowType.class,
+                        projectionContext.getOid(),
+                        pathAdminStatus,
+                        desiredStatus);
         projectionContext.setPrimaryDelta(activationDelta);
     }
 

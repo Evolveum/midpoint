@@ -385,7 +385,7 @@ public class ShadowedObjectConstruction {
 
         try {
             PrismObject<ShadowType> existingRepoShadow =
-                    beans.shadowManager.lookupShadowByAllIds(
+                    beans.shadowManager.lookupLiveShadowByAllIds(
                             ctxEntitlement, identifierContainer, result);
 
             if (existingRepoShadow != null) {

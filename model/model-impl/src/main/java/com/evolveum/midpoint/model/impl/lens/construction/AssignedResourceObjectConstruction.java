@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -66,7 +67,7 @@ public class AssignedResourceObjectConstruction<AH extends AssignmentHolderType>
     }
 
     @Override
-    protected void initializeDefinitions() throws SchemaException {
+    protected void initializeDefinitions() throws SchemaException, ConfigurationException {
         ResourceType resource = getResolvedResource().resource;
 
         assert resource != null; // evaluation without resource is skipped

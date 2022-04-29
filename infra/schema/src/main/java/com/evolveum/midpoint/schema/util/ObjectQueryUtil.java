@@ -418,7 +418,11 @@ public class ObjectQueryUtil {
      * Returns ALL, NONE only at the top level (never inside the filter), never returns UNDEFINED.
      * This always returns cloned filter which can be freely modify later.
      */
-    public static ObjectFilter simplify(ObjectFilter filter, PrismContext prismContext) {
+    public static ObjectFilter simplify(ObjectFilter filter) {
+        return simplify(filter, PrismContext.get());
+    }
+
+    @Deprecated public static ObjectFilter simplify(ObjectFilter filter, PrismContext prismContext) {
         if (filter == null) {
             return null;
         }

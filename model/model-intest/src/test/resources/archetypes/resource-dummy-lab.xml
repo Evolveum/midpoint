@@ -31,7 +31,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
-            <icfi:instanceId>target</icfi:instanceId>
+            <icfi:instanceId>lab</icfi:instanceId>
         </icfc:configurationProperties>
 
         <icfc:resultsHandlerConfiguration>

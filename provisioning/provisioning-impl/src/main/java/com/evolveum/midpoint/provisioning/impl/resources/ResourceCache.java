@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.provisioning.impl;
+package com.evolveum.midpoint.provisioning.impl.resources;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.PrismContext;

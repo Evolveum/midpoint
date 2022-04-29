@@ -234,7 +234,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         assertPropertyValue(resource, "name", PrismTestUtil.createPolyString("Resource with expressions"));
 
         PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-        assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
+        assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 0, 1);
         PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
         Collection<Item<?,?>> configItems = configContainerValue.getItems();
         assertEquals("Wrong number of config items", 1, configItems.size());
@@ -460,7 +460,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         }
 
         PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-        assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
+        assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 0, 1);
         PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
         Collection<Item<?,?>> configItems = configContainerValue.getItems();
         assertEquals("Wrong number of config items", isSimple ? 1 : 4, configItems.size());

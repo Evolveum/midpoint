@@ -85,7 +85,7 @@ class AsynchronousScriptExecutor {
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         Set<ObjectDelta<? extends ObjectType>> deltas = singleton(DeltaFactory.Object.createAddDelta(newTask.asPrismObject()));
-        ModelExecuteOptions options = new ModelExecuteOptions(actx.beans.prismContext).preAuthorized();
+        ModelExecuteOptions options = ModelExecuteOptions.create().preAuthorized();
         Collection<ObjectDeltaOperation<? extends ObjectType>> operations = actx.beans.modelService.executeChanges(deltas, options, actx.task, result);
         String oid = ObjectDeltaOperation.findAddDeltaOid(operations, newTask.asPrismObject());
         result.setAsynchronousOperationReference(oid);

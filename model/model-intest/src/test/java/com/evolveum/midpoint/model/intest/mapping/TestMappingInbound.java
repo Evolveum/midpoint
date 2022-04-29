@@ -10,7 +10,6 @@ import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
@@ -21,6 +20,7 @@ import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -66,8 +66,8 @@ public class TestMappingInbound extends AbstractMappingTest {
     private static final TestResource<RoleType> ROLE_WHEEL = new TestResource<>(TEST_DIR, "role-wheel.xml", "ad1782d5-48ae-4f86-a26b-efea45d88f3c");
     private static final String GROUP_WHEEL_NAME = "wheel";
 
-    private static final File TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE = new File(TEST_DIR, "task-dumy-tea-green-livesync.xml");
-    private static final String TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID = "10000000-0000-0000-5555-55550000c404";
+    private static final TestTask TASK_LIVE_SYNC_DUMMY_TEA_GREEN = new TestTask(
+            TEST_DIR, "task-dummy-tea-green-livesync.xml", "10000000-0000-0000-5555-55550000c404");
 
     private static final String LOCKER_BIG_SECRET = "BIG secret";
 
@@ -119,6 +119,9 @@ public class TestMappingInbound extends AbstractMappingTest {
         initDummyResource(RESOURCE_DUMMY_TEA_GREEN, initTask, initResult);
 
         addObject(ROLE_WHEEL, initTask, initResult); // creates a resource object as well
+
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.initialize(this, initTask, initResult);
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.rerun(initResult); // to get the token
     }
 
     @Test
@@ -144,15 +147,6 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertEquals("Wrong locker attribute definition type", ProtectedStringType.COMPLEX_TYPE, lockerDef.getTypeName());
 
         assertDummyGroup(RESOURCE_DUMMY_TEA_GREEN.name, GROUP_WHEEL_NAME, "This is the wheel group", true);
-    }
-
-    @Test
-    public void test100ImportLiveSyncTaskDummyTeaGreen() throws Exception {
-        when();
-        importSyncTask();
-
-        then();
-        waitForSyncTaskNextRun();
     }
 
     /**
@@ -182,7 +176,7 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).addAccount(account);
 
-        waitForSyncTaskNextRun();
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.rerun(result);
 
         then();
 
@@ -242,7 +236,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.removeAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
         account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
 
-        waitForSyncTaskNextRun();
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.rerun(result);
 
         then();
 
@@ -256,8 +250,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     /**
      * The same as test120 but using reconcile instead of LS.
      *
-     * *Here we SUSPEND the LS task!*
-     *
      * MID-5912
      */
     @Test
@@ -267,9 +259,6 @@ public class TestMappingInbound extends AbstractMappingTest {
         OperationResult result = task.getResult();
 
         when();
-
-        // stop the task to avoid interference with the reconciliations
-        suspendTask(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
 
         DummyAccount account = getMancombAccount();
         account.removeAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
@@ -454,8 +443,6 @@ public class TestMappingInbound extends AbstractMappingTest {
      * We intentionally skip the maintenance checks that occurs on the start of LS activity
      * and on the start of synchronization processing.
      *
-     * *Here the LS task runs only during the test. Then it's suspended again.*
-     *
      * MID-7062
      */
     @Test
@@ -478,17 +465,16 @@ public class TestMappingInbound extends AbstractMappingTest {
         SyncTaskHelper.setSkipMaintenanceCheck(true);
         SynchronizationContext.setSkipMaintenanceCheck(true);
         try {
-            resumeTaskAndWaitForNextFinish(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 30000);
+            TASK_LIVE_SYNC_DUMMY_TEA_GREEN.rerunErrorsOk(result);
         } finally {
             SyncTaskHelper.setSkipMaintenanceCheck(false);
             SynchronizationContext.setSkipMaintenanceCheck(false);
             turnMaintenanceModeOff(task, result);
-            suspendTask(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
         }
 
         then();
 
-        assertTask(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, "after")
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.assertAfter()
                 .assertFatalError(); // there's an extra check for maintenance mode in ProvisioningServiceImpl#synchronize
 
         // In the current state of the code no synchronization takes place, so technically the following check is not needed.
@@ -546,14 +532,15 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test300DeleteDummyTeaGreenAccountMancomb() throws Exception {
+        OperationResult result = getTestOperationResult();
+
         when();
         getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         displayValue("Dummy (tea green) resource", getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).debugDump());
 
-        // Make sure we have steady state
-        resumeTaskAndWaitForNextFinish(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 20000);
-        waitForSyncTaskNextRun();
+        when("live sync task is run");
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.rerun(result);
 
         then();
 
@@ -570,20 +557,6 @@ public class TestMappingInbound extends AbstractMappingTest {
                         .assertTombstone()
                         .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
         // @formatter:on
-    }
-
-    // Remove livesync task so it won't get into the way for next tests
-    @Test
-    public void test399DeleteLiveSyncTask() throws Exception {
-        given();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        when();
-        deleteObject(TaskType.class, TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, task, result);
-
-        then();
-        assertNoObject(TaskType.class, TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
     }
 
     /**
@@ -893,7 +866,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         /*
          * State before: (death, 1); (treason, 2)
          */
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name(ACCOUNT_RISKY_USERNAME);
         PrismContainerValue<Containerable> riskVectorDeath =
                 user.asPrismObject().getOrCreateExtension().createNewValue()
@@ -954,9 +927,9 @@ public class TestMappingInbound extends AbstractMappingTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name(ACCOUNT_GDPR_USERNAME);
-        DataProtectionType protection = new DataProtectionType(prismContext)
+        DataProtectionType protection = new DataProtectionType()
                 .controllerName("controller")
                 .controllerContact("controller@evolveum.com");
         PrismContainerDefinition<DataProtectionType> protectionDef =
@@ -991,14 +964,6 @@ public class TestMappingInbound extends AbstractMappingTest {
                         .assertPropertyEquals(DataProtectionType.F_CONTROLLER_NAME, "new-controller")
                         .assertPropertyEquals(DataProtectionType.F_CONTROLLER_CONTACT, "new-controller@evolveum.com");
         // @formatter:on
-    }
-
-    protected void importSyncTask() throws FileNotFoundException {
-        importObjectFromFile(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE);
-    }
-
-    private void waitForSyncTaskNextRun() throws Exception {
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 10000);
     }
 
     private void turnMaintenanceModeOn(Task task, OperationResult result) throws Exception {

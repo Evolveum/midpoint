@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.correlator;
 
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.ObjectSet;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
@@ -23,24 +25,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class CorrelatorUtil {
 
-    public static <F extends ObjectType> void addCandidates(List<F> allCandidates, List<F> candidates, Trace logger) {
+    public static <F extends ObjectType> void addCandidates(ObjectSet<F> allCandidates, List<F> candidates, Trace logger) {
         for (F candidate : candidates) {
-            if (!containsOid(allCandidates, candidate.getOid())) {
+            if (allCandidates.add(candidate)) {
                 logger.trace("Found candidate owner {}", candidate);
-                allCandidates.add(candidate);
             } else {
                 logger.trace("Candidate owner {} already processed", candidate);
             }
         }
-    }
-
-    public static <F extends ObjectType> boolean containsOid(List<F> allCandidates, String oid) {
-        for (F existing : allCandidates) {
-            if (existing.getOid().equals(oid)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public static VariablesMap getVariablesMap(

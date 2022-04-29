@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -107,7 +111,17 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
      * This flag indicated if the "object not found" error is critical for
      * processing the original request. If it is not, we just ignore it and
      * don't log it. In other cases, error in logs may lead to misleading
-     * information..
+     * information.
+     *
+     * Technically, `getObject` method will still throw {@link ObjectNotFoundException} (because it has nothing to return,
+     * as it's usually marked as {@link NotNull}). But in {@link OperationResult} there will be no
+     * {@link OperationResultStatus#FATAL_ERROR} but a {@link OperationResultStatus#HANDLED_ERROR} instead.
+     *
+     * This applies to all layers of processing: repository, middle-level modules (provisioning, task manager, ...),
+     * and model.
+     *
+     * TODO Describe the applicability to resource objects (shadows) here. The situation si more complex there.
+     *  (E.g. discovery process may be invoked, and so on.)
      */
     private Boolean allowNotFound;
 

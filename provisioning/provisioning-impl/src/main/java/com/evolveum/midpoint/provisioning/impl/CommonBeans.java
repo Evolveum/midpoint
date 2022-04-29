@@ -7,17 +7,23 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
+import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
+import com.evolveum.midpoint.provisioning.impl.resources.ResourceCache;
+import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
+import com.evolveum.midpoint.provisioning.impl.resources.ResourceOperationalStateManager;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.annotation.Experimental;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 @Component
 @Experimental
@@ -30,5 +36,10 @@ public class CommonBeans {
     @Autowired public ShadowsFacade shadowsFacade;
     @Autowired public ShadowManager shadowManager;
     @Autowired public ResourceObjectConverter resourceObjectConverter;
-
+    @Autowired @Qualifier("cacheRepositoryService") public RepositoryService cacheRepositoryService;
+    @Autowired public ProvisioningServiceImpl provisioningService;
+    @Autowired public ResourceManager resourceManager;
+    @Autowired public ResourceCache resourceCache;
+    @Autowired public ConnectorManager connectorManager;
+    @Autowired public ResourceOperationalStateManager operationalStateManager;
 }

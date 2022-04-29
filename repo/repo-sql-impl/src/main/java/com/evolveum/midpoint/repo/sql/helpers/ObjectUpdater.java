@@ -56,6 +56,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.HANDLED_ERROR;
+
 @Component
 public class ObjectUpdater {
 
@@ -130,7 +133,7 @@ public class ObjectUpdater {
             // TODO use this throughout overwriteAddObjectAttempt to collect information about no-fetch insertion attempts
             AttemptContext attemptContext = new AttemptContext();
             handleConstraintViolationExceptionSpecialCases(constEx, session, attemptContext, result);
-            baseHelper.rollbackTransaction(session, constEx, result, true);
+            baseHelper.rollbackTransaction(session, constEx, result, FATAL_ERROR);
 
             LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", constEx);
             // we don't know if it's only name uniqueness violation, or something else,
@@ -147,7 +150,7 @@ public class ObjectUpdater {
             throw new ObjectAlreadyExistsException("Conflicting object already exists"
                     + (constraintName == null ? "" : " (violated constraint '" + constraintName + "')"), constEx);
         } catch (ObjectAlreadyExistsException | SchemaException ex) {
-            baseHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, FATAL_ERROR);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);
@@ -327,7 +330,7 @@ public class ObjectUpdater {
             return new DeleteObjectResult(
                     RUtil.getSerializedFormFromBytes(object.getFullObject()));
         } catch (ObjectNotFoundException ex) {
-            baseHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, FATAL_ERROR); // TODO might be handled error instead?
             throw ex;
         } catch (RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);
@@ -493,13 +496,13 @@ public class ObjectUpdater {
             LOGGER.trace("Committed! (at attempt {})", attempt);
             return rv;
         } catch (ObjectNotFoundException | SchemaException ex) {
-            baseHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, FATAL_ERROR);
             throw ex;
         } catch (PersistenceException ex) {
             ConstraintViolationException constEx = ExceptionUtil.findCause(ex, ConstraintViolationException.class);
             if (constEx != null) {
                 handleConstraintViolationExceptionSpecialCases(constEx, session, attemptContext, result);
-                baseHelper.rollbackTransaction(session, constEx, result, true);
+                baseHelper.rollbackTransaction(session, constEx, result, FATAL_ERROR);
                 LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", constEx);
                 // we don't know if it's only name uniqueness violation, or something else,
                 // therefore we're throwing it always as ObjectAlreadyExistsException
@@ -576,11 +579,12 @@ public class ObjectUpdater {
                 LOGGER.trace("Modifications computed:\n{}", DebugUtil.debugDumpLazily(modifications, 1));
             } catch (ObjectNotFoundException ex) {
                 GetOperationOptions rootOptions = SelectorOptions.findRootOptions(getOptions);
-                baseHelper.rollbackTransaction(session, ex, result, !GetOperationOptions.isAllowNotFound(rootOptions));
+                baseHelper.rollbackTransaction(session, ex, result,
+                        GetOperationOptions.isAllowNotFound(rootOptions) ? HANDLED_ERROR : FATAL_ERROR);
                 throw ex;
             } catch (SchemaException ex) {
                 baseHelper.rollbackTransaction(session, ex, "Schema error while getting object with oid: "
-                        + oid + ". Reason: " + ex.getMessage(), result, true);
+                        + oid + ". Reason: " + ex.getMessage(), result, FATAL_ERROR);
                 throw ex;
             } catch (DtoTranslationException | RuntimeException ex) {
                 baseHelper.handleGeneralException(ex, session, result);
@@ -613,7 +617,7 @@ public class ObjectUpdater {
             throw new RestartOperationRequestedException("Suspecting no-fetch extension value insertion attempt causing "
                     + "ConstraintViolationException; restarting with no-fetch insertion disabled", true);
         } else if (baseHelper.isSerializationRelatedConstraintViolationException(ex)) {
-            baseHelper.rollbackTransaction(session, ex, result, false);
+            baseHelper.rollbackTransaction(session, ex, result, null);
             throw new SerializationRelatedException(ex);
         }
     }

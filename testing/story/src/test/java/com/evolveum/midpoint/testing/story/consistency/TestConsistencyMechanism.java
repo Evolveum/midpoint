@@ -1160,7 +1160,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         when();
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
-        executeChanges(delta, ModelExecuteOptions.create(prismContext).reconcile(), task, parentResult);
+        executeChanges(delta, ModelExecuteOptions.create().reconcile(), task, parentResult);
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         then();
@@ -1475,7 +1475,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance();
 
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
-        executeChanges(objectDelta, ModelExecuteOptions.create(prismContext).pushChanges(), task, parentResult);
+        executeChanges(objectDelta, ModelExecuteOptions.create().pushChanges(), task, parentResult);
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         parentResult.computeStatus();
@@ -1564,7 +1564,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .createModifyDelta(USER_JACKIE_OID, modifications, UserType.class);
         Task task = taskManager.createTaskInstance();
 
-        executeChanges(objectDelta, ModelExecuteOptions.create(prismContext).pushChanges(), task, parentResult);
+        executeChanges(objectDelta, ModelExecuteOptions.create().pushChanges(), task, parentResult);
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         parentResult.computeStatus();
@@ -2265,7 +2265,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         when();
         modifyObjectReplaceProperty(UserType.class, USER_TRAINEE_OID, UserType.F_NAME,
-                ModelExecuteOptions.create(prismContext).reconcile(), task, result, createPolyString("trainee01"));
+                ModelExecuteOptions.create().reconcile(), task, result, createPolyString("trainee01"));
 
         then();
 //        assertResultStatus(result, OperationResultStatus.IN_PROGRESS);
@@ -2875,7 +2875,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     private void recreateAssignment(String userOid, AssignmentType assignmentNoId, Task task, OperationResult result)
             throws CommonException {
-        ModelExecuteOptions options = ModelExecuteOptions.create(PrismContext.get())
+        ModelExecuteOptions options = ModelExecuteOptions.create()
                 .reconcile();
 
         executeChanges(

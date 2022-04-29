@@ -545,7 +545,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * Force recompute for the next execution wave. Recompute only those contexts that were changed.
      * This is more intelligent than rot()
      */
-    private void rotAfterExecution() throws SchemaException {
+    private void rotAfterExecution() throws SchemaException, ConfigurationException {
         Holder<Boolean> rotHolder = new Holder<>(false);
         rotProjectionContextsIfNeeded(rotHolder);
         rotFocusContextIfNeeded(rotHolder);
@@ -554,7 +554,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    private void rotProjectionContextsIfNeeded(Holder<Boolean> rotHolder) throws SchemaException {
+    private void rotProjectionContextsIfNeeded(Holder<Boolean> rotHolder) throws SchemaException, ConfigurationException {
         for (LensProjectionContext projectionContext : projectionContexts) {
             if (projectionContext.getWave() != executionWave) {
                 LOGGER.trace("Context rot: projection {} NOT rotten because of wrong wave number", projectionContext);
@@ -863,7 +863,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    public void refreshAuxiliaryObjectClassDefinitions() throws SchemaException {
+    public void refreshAuxiliaryObjectClassDefinitions() throws SchemaException, ConfigurationException {
         for (LensProjectionContext projCtx : getProjectionContexts()) {
             projCtx.refreshAuxiliaryObjectClassDefinitions();
         }
@@ -1534,7 +1534,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         conflictingProjectionContexts.clear();
     }
 
-    public boolean hasExplosiveProjection() throws SchemaException {
+    public boolean hasExplosiveProjection() throws SchemaException, ConfigurationException {
         for (LensProjectionContext projectionContext : projectionContexts) {
             if (projectionContext.getVolatility() == ResourceObjectVolatilityType.EXPLOSIVE) {
                 return true;
@@ -1763,7 +1763,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return focusContext != null && focusContext.isOfType(type);
     }
 
-    void updateAfterExecution() throws SchemaException {
+    void updateAfterExecution() throws SchemaException, ConfigurationException {
         rotAfterExecution();
         if (focusContext != null) {
             focusContext.updateAfterExecution();

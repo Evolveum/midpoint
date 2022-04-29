@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.HANDLED_ERROR;
+
 import static org.apache.commons.lang3.ArrayUtils.getLength;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -97,11 +100,12 @@ public class ObjectRetriever {
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
             GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-            baseHelper.rollbackTransaction(session, ex, result, !GetOperationOptions.isAllowNotFound(rootOptions));
+            baseHelper.rollbackTransaction(session, ex, result,
+                    GetOperationOptions.isAllowNotFound(rootOptions) ? HANDLED_ERROR : FATAL_ERROR);
             throw ex;
         } catch (SchemaException ex) {
             baseHelper.rollbackTransaction(session, ex, "Schema error while getting object with oid: "
-                    + oid + ". Reason: " + ex.getMessage(), result, true);
+                    + oid + ". Reason: " + ex.getMessage(), result, FATAL_ERROR);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);

@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.api.expr;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
@@ -18,10 +19,14 @@ import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,6 +67,8 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("unused")
 public interface MidpointFunctions {
+
+    Trace LOGGER = TraceManager.getTrace(MidpointFunctions.class);
 
     /**
      * <p>
@@ -1183,9 +1190,65 @@ public interface MidpointFunctions {
     Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException;
 
     /**
-     * To be used e.g. in synchronization sorter expressions.
+     * Legacy name for {@link #findCandidateOwners(Class, ShadowType, String, ShadowKindType, String)}.
+     *
+     * There are some slight changes in semantics comparing to midPoint 4.5:
+     *
+     * 1. If `kind` is `null`, `ACCOUNT` is assumed.
+     * 2. If `intent` is `null`, `default` is assumed.
+     * 3. The use of `type` parameter is a bit different.
+     * 4. Instead of being limited to correlation/confirmation expressions, the method now invokes
+     * the standard correlation mechanism. See {@link #findCandidateOwners(Class, ShadowType, String, ShadowKindType, String)}
+     * for more information.
+     * 5. The original method returns `null` e.g. if there's no synchronization policy, etc.
+     * So, this method treats all exceptions (except for {@link SchemaException}) by returning `null`.
      */
-    <F extends FocusType> List<F> getFocusesByCorrelationRule(Class<F> type, String resourceOid, ShadowKindType kind, String intent, ShadowType shadow);
+    @Deprecated
+    default <F extends FocusType> List<F> getFocusesByCorrelationRule(
+            Class<F> type,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            ShadowType shadow) throws SchemaException {
+        try {
+            return findCandidateOwners(
+                    type,
+                    shadow,
+                    Objects.requireNonNull(resourceOid, "no resource OID"),
+                    Objects.requireNonNullElse(kind, ShadowKindType.ACCOUNT),
+                    Objects.requireNonNullElse(intent, SchemaConstants.INTENT_DEFAULT));
+        } catch (ExpressionEvaluationException | CommunicationException | SecurityViolationException
+                | ConfigurationException | ObjectNotFoundException e) {
+            LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't find focus objects by correlation rule", e);
+            return null;
+        }
+    }
+
+    /**
+     * Finds candidate owners using defined correlation rules.
+     * (To be used e.g. in synchronization sorter expressions.)
+     *
+     * Limitations/notes:
+     *
+     * 1. Fully supported only for simple correlators: query, expression, and item. Other correlators may or may not work here.
+     * 2. The method call encompasses execution of "before correlation" mappings.
+     *
+     * @param focusType Type of the owner looked for. It is merged with the type defined for given kind/intent;
+     * the more specific of the two is used.
+     * @param resourceObject Resource object we want to correlate
+     * @param resourceOid OID of the resource we want to do the correlation for
+     * @param kind Pre-determined (or assumed) kind of the resource object
+     * @param intent Pre-determined (or assumed) intent of the resource object
+     */
+    @Experimental
+    <F extends FocusType> @NotNull List<F> findCandidateOwners(
+            @NotNull Class<F> focusType,
+            @NotNull ShadowType resourceObject,
+            @NotNull String resourceOid,
+            @NotNull ShadowKindType kind,
+            @NotNull String intent)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 
     <F extends ObjectType> ModelContext<F> previewChanges(Collection<ObjectDelta<? extends ObjectType>> deltas,
             ModelExecuteOptions options)

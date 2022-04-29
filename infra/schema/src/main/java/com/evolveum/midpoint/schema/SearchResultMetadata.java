@@ -18,7 +18,7 @@ import com.evolveum.midpoint.util.ShortDumpable;
  *
  * @author semancik
  */
-public class SearchResultMetadata implements Serializable, DebugDumpable, ShortDumpable {
+public class SearchResultMetadata implements Serializable, DebugDumpable, ShortDumpable, Cloneable {
     private static final long serialVersionUID = 1L;
 
     private String pagingCookie;

@@ -9,10 +9,10 @@ package com.evolveum.midpoint.model.api.correlator;
 
 import com.evolveum.midpoint.model.api.CorrelationProperty;
 
+import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -38,18 +38,6 @@ public interface CorrelationService {
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException;
-
-    /**
-     * Instantiates the correlator for given shadow.
-     *
-     * TODO consider removal (seems to be unused)
-     */
-    @NotNull Correlator instantiateCorrelator(
-            @NotNull ShadowType shadow,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
 
     /**
      * Completes given correlation case.
@@ -81,8 +69,7 @@ public interface CorrelationService {
      * Creates the root correlator context for given configuration.
      */
     @NotNull CorrelatorContext<?> createRootCorrelatorContext(
-            @NotNull CompositeCorrelatorType correlators,
-            @Nullable CorrelationDefinitionType correlationDefinitionBean,
+            @NotNull SynchronizationPolicy synchronizationPolicy,
             @Nullable SystemConfigurationType systemConfiguration) throws ConfigurationException, SchemaException;
 
     /**
@@ -93,14 +80,32 @@ public interface CorrelationService {
     void clearCorrelationState(@NotNull String shadowOid, @NotNull OperationResult result) throws ObjectNotFoundException;
 
     /**
-     * Executes the correlation for a given shadow.
+     * Executes the correlation for a given shadow + pre-focus.
+     *
+     * This is _not_ the standard use of the correlation, though.
+     * (Note that it lacks e.g. the resource object delta information.)
      */
-    @VisibleForTesting
-    CorrelationResult correlate(
+    @NotNull CorrelationResult correlate(
             @NotNull ShadowType shadow,
+            @Nullable FocusType preFocus,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Executes the correlation for a given shadow. (By computing pre-focus first.)
+     * This is _not_ the standard use. It lacks e.g. the resource object delta information.
+     * It is used in special cases like the opportunistic synchronization or explicit `midpoint.findCandidateOwners` method call.
+     */
+    @NotNull CorrelationResult correlate(
+            @NotNull ShadowType shadowedResourceObject,
+            @NotNull ResourceType resource,
+            @NotNull SynchronizationPolicy synchronizationPolicy,
+            @NotNull Class<? extends FocusType> focusType,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;
 
     @FunctionalInterface

@@ -32,8 +32,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
-
 /**
  * Manages correlation that occurs _during synchronization pre-processing_.
  *
@@ -82,19 +80,18 @@ class CorrelationProcessing<F extends FocusType> {
         this.syncCtx = syncCtx;
         this.task = syncCtx.getTask();
         this.beans = beans;
-        this.shadow = syncCtx.getShadowedResourceObject().asObjectable();
+        this.shadow = syncCtx.getShadowedResourceObject();
         this.correlationContext = new CorrelationContext(
                 shadow,
                 syncCtx.getPreFocus(),
-                syncCtx.getResource().asObjectable(),
-                syncCtx.getObjectTypeDefinition(),
-                asObjectable(syncCtx.getSystemConfiguration()),
+                syncCtx.getResource(),
+                syncCtx.getObjectTypeDefinitionRequired(),
+                syncCtx.getSystemConfiguration(),
                 syncCtx.getTask());
         syncCtx.setCorrelationContext(correlationContext);
         this.rootCorrelatorContext =
                 beans.correlationService.createRootCorrelatorContext(
-                        syncCtx.getCorrelators(),
-                        syncCtx.getCorrelationDefinitionBean(),
+                        syncCtx.getSynchronizationPolicyRequired(),
                         syncCtx.getSystemConfigurationBean());
         this.thisCorrelationStart = XmlTypeConverter.createXMLGregorianCalendar();
     }
@@ -133,7 +130,7 @@ class CorrelationProcessing<F extends FocusType> {
     }
 
     private CorrelationResult getResultFromExistingState(OperationResult result) throws SchemaException {
-        ShadowType shadow = syncCtx.getShadowedResourceObject().asObjectable();
+        ShadowType shadow = syncCtx.getShadowedResourceObject();
         if (shadow.getCorrelation() == null) {
             return null;
         }
@@ -219,7 +216,7 @@ class CorrelationProcessing<F extends FocusType> {
             }
             beans.correlationCaseManager.createOrUpdateCase(
                     shadow,
-                    syncCtx.getResource().asObjectable(),
+                    syncCtx.getResource(),
                     syncCtx.getPreFocus(),
                     task,
                     result);
@@ -269,7 +266,7 @@ class CorrelationProcessing<F extends FocusType> {
     }
 
     private @NotNull ShadowType getShadow() {
-        return syncCtx.getShadowedResourceObject().asObjectable();
+        return syncCtx.getShadowedResourceObject();
     }
 
     private @Nullable ShadowCorrelationStateType getShadowCorrelationState() {

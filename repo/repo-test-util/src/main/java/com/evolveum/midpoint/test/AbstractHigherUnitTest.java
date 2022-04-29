@@ -20,6 +20,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
@@ -174,16 +176,30 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
         assertTrue("Object " + object + " does not have subtype " + subtype, FocusTypeUtil.hasSubtype(object, subtype));
     }
 
-    protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, QName objectClass) throws SchemaException {
+    protected void assertShadowCommon(
+            PrismObject<ShadowType> accountShadow,
+            String oid,
+            String username,
+            ResourceType resourceType,
+            QName objectClass) throws SchemaException, ConfigurationException {
         assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, null, false);
     }
 
-    protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) throws SchemaException {
+    protected void assertAccountShadowCommon(
+            PrismObject<ShadowType> accountShadow,
+            String oid,
+            String username,
+            ResourceType resourceType) throws SchemaException, ConfigurationException {
         assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(), null, false);
     }
 
-    protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-            MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers) throws SchemaException {
+    protected void assertAccountShadowCommon(
+            PrismObject<ShadowType> accountShadow,
+            String oid,
+            String username,
+            ResourceType resourceType,
+            MatchingRule<String> nameMatchingRule,
+            boolean requireNormalizedIdentifiers) throws SchemaException, ConfigurationException {
         assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(), nameMatchingRule, requireNormalizedIdentifiers);
     }
 
@@ -195,13 +211,26 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
         return new QName(MidPointConstants.NS_RI, "GroupObjectClass");
     }
 
-    protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
-            QName objectClass, MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers) throws SchemaException {
+    protected void assertShadowCommon(
+            PrismObject<ShadowType> shadow,
+            String oid,
+            String username,
+            ResourceType resourceType,
+            QName objectClass,
+            MatchingRule<String> nameMatchingRule,
+            boolean requireNormalizedIdentifiers) throws SchemaException, ConfigurationException {
         assertShadowCommon(shadow, oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentifiers, false);
     }
 
-    protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
-            QName objectClass, final MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers, boolean useMatchingRuleForShadowName) throws SchemaException {
+    protected void assertShadowCommon(
+            PrismObject<ShadowType> shadow,
+            String oid,
+            String username,
+            ResourceType resourceType,
+            QName objectClass,
+            final MatchingRule<String> nameMatchingRule,
+            boolean requireNormalizedIdentifiers,
+            boolean useMatchingRuleForShadowName) throws SchemaException, ConfigurationException {
         assertShadow(shadow);
         if (oid != null) {
             assertEquals("Shadow OID mismatch (prism)", oid, shadow.getOid());
@@ -217,7 +246,7 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
         assertFalse("Empty attributes in shadow for " + username, attributesContainer.isEmpty());
 
         if (useMatchingRuleForShadowName) {
-            MatchingRule<PolyString> polyMatchingRule = new MatchingRule<PolyString>() {
+            MatchingRule<PolyString> polyMatchingRule = new MatchingRule<>() {
 
                 @Override
                 public QName getName() {
@@ -299,7 +328,11 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
         }
     }
 
-    protected void assertShadowSecondaryIdentifier(PrismObject<ShadowType> shadow, String expectedIdentifier, ResourceType resourceType, MatchingRule<String> nameMatchingRule) throws SchemaException {
+    protected void assertShadowSecondaryIdentifier(
+            PrismObject<ShadowType> shadow,
+            String expectedIdentifier,
+            ResourceType resourceType,
+            MatchingRule<String> nameMatchingRule) throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
         ResourceObjectDefinition ocDef = rSchema.findDefinitionForObjectClass(shadow.asObjectable().getObjectClass());
         ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();

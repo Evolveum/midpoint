@@ -204,9 +204,10 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         return deleteAccountDelta;
     }
 
-    protected <T> ObjectDelta<ShadowType> addModificationToContextReplaceAccountAttribute(
-            LensContext<UserType> context, String accountOid, String attributeLocalName,
-            T... propertyValues) throws SchemaException {
+    @SafeVarargs
+    protected final <T> ObjectDelta<ShadowType> addModificationToContextReplaceAccountAttribute(
+            LensContext<UserType> context, String accountOid, String attributeLocalName, T... propertyValues)
+            throws SchemaException, ConfigurationException {
         LensProjectionContext accCtx = context.findProjectionContextByOid(accountOid);
         ObjectDelta<ShadowType> accountDelta = createAccountDelta(accCtx, accountOid, attributeLocalName,
                 propertyValues);
@@ -214,9 +215,10 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         return accountDelta;
     }
 
-    protected <T> ObjectDelta<ShadowType> addSyncModificationToContextReplaceAccountAttribute(
-            LensContext<UserType> context, String accountOid, String attributeLocalName,
-            T... propertyValues) throws SchemaException {
+    @SafeVarargs
+    protected final <T> ObjectDelta<ShadowType> addSyncModificationToContextReplaceAccountAttribute(
+            LensContext<UserType> context, String accountOid, String attributeLocalName, T... propertyValues)
+            throws SchemaException, ConfigurationException {
         LensProjectionContext accCtx = context.findProjectionContextByOid(accountOid);
         ObjectDelta<ShadowType> accountDelta = createAccountDelta(accCtx, accountOid, attributeLocalName,
                 propertyValues);
@@ -250,8 +252,9 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         return userDelta;
     }
 
-    protected <T> ObjectDelta<ShadowType> createAccountDelta(LensProjectionContext accCtx, String accountOid,
-            String attributeLocalName, T... propertyValues) throws SchemaException {
+    private <T> ObjectDelta<ShadowType> createAccountDelta(
+            LensProjectionContext accCtx, String accountOid, String attributeLocalName, T... propertyValues)
+            throws SchemaException, ConfigurationException {
         ResourceType resourceType = accCtx.getResource();
         QName attrQName = new QName(MidPointConstants.NS_RI, attributeLocalName);
         ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName);

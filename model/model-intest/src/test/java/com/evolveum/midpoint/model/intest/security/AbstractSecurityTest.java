@@ -1046,7 +1046,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         TestUtil.assertSuccess(result);
     }
 
-    protected void assertGlobalStateUntouched() throws SchemaException {
+    protected void assertGlobalStateUntouched() throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(getDummyResourceObject());
         ResourceObjectTypeDefinition rOcDef = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_UID, true, false, false);

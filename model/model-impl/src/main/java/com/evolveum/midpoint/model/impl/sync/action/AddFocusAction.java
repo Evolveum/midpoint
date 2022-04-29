@@ -6,39 +6,46 @@
  */
 package com.evolveum.midpoint.model.impl.sync.action;
 
-import java.util.Map;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionDefinitionClass;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionInstantiationContext;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionUris;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AddFocusSynchronizationActionType;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.sync.Action;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationSituation;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
- * @author semancik
+ * Creates a focus object for (typically unmatched) shadow.
  *
+ * @author semancik
  */
-public class AddFocusAction implements Action {
+@ActionUris({
+        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus",
+        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser" })
+@ActionDefinitionClass(AddFocusSynchronizationActionType.class)
+public class AddFocusAction<F extends FocusType> extends BaseClockworkAction<F> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AddFocusAction.class);
 
-    @Override
-    public <F extends FocusType> void handle(@NotNull LensContext<F> context, SynchronizationSituation<F> situation,
-            Map<QName, Object> parameters, Task task, OperationResult parentResult) throws SchemaException {
+    public AddFocusAction(@NotNull ActionInstantiationContext<F> ctx) {
+        super(ctx);
+    }
 
+    @Override
+    public void prepareContext(@NotNull LensContext<F> context, @NotNull OperationResult result) throws SchemaException {
         LensFocusContext<F> focusContext = context.createFocusContext();
         Class<F> focusClass = focusContext.getObjectTypeClass();
         LOGGER.trace("addFocus action: add delta for {}", focusClass);

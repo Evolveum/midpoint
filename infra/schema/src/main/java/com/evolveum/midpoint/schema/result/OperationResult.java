@@ -1079,6 +1079,22 @@ public class OperationResult
         computeStatusIfUnknown();
     }
 
+    public void closeAndCleanup() {
+        close();
+        cleanupResult();
+    }
+
+    /**
+     * Closes the result and cleans it up.
+     *
+     * BEWARE: It does *NOT* record the {@link Throwable} as a fatal error! Its value is used only for debugging
+     * potential problems during result cleanup.
+     */
+    public void closeAndCleanup(@Nullable Throwable t) {
+        close();
+        cleanupResult(t);
+    }
+
     public void computeStatusIfUnknown() {
         recordEnd();
         if (isUnknown()) {
@@ -1415,15 +1431,15 @@ public class OperationResult
         getReturns().put(name, collectionize(stringify(value)));
     }
 
-    public void addReturn(String name, boolean value) {
+    public void addReturn(String name, Boolean value) {
         getReturns().put(name, collectionize(stringify(value)));
     }
 
-    public void addReturn(String name, long value) {
+    public void addReturn(String name, Long value) {
         getReturns().put(name, collectionize(stringify(value)));
     }
 
-    public void addReturn(String name, int value) {
+    public void addReturn(String name, Integer value) {
         getReturns().put(name, collectionize(stringify(value)));
     }
 
@@ -1647,6 +1663,10 @@ public class OperationResult
 
     public void recordWarning(String message, Throwable cause) {
         recordStatus(OperationResultStatus.WARNING, message, cause);
+    }
+
+    public void recordWarningNotFinish(String message, Throwable cause) {
+        recordStatusNotFinish(OperationResultStatus.WARNING, message, cause);
     }
 
     public void recordHandledError(String message) {

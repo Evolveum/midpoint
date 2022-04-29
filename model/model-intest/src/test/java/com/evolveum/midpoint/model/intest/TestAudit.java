@@ -724,17 +724,17 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     // Tests for MID-7119
     @Test
     public void test404RequestAuditDroppedUsedRawOption() throws Exception {
-        requestAuditDropped(ModelExecuteOptions.create(PrismContext.get()).raw());
+        requestAuditDropped(ModelExecuteOptions.create().raw());
     }
 
     @Test
     public void test405ExecutionAuditDroppedUsedRawOption() throws Exception {
-        executionAuditDropped(ModelExecuteOptions.create(PrismContext.get()).raw());
+        executionAuditDropped(ModelExecuteOptions.create().raw());
     }
 
     @Test
     public void test406AuditForBothStagesIsDroppedUsedRawOption() throws Exception {
-        auditForBothStagesIsDropped(ModelExecuteOptions.create(PrismContext.get()).raw());
+        auditForBothStagesIsDropped(ModelExecuteOptions.create().raw());
     }
 
     private void requestAuditDropped(ModelExecuteOptions options) throws Exception {
