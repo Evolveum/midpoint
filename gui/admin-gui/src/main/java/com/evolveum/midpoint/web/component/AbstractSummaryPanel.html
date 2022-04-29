@@ -7,32 +7,31 @@
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <div wicket:id="summaryBox" class="col-xs-12 info-box" style="padding: 0px;">
-            <!-- take care that there are no whitespaces inside the following div -->
-            <div wicket:id="summaryIconBox" class="info-box-icon d-flex">
-                <span class="user-thumbnail-helper"/>
-                <span wicket:id="summaryIcon" style="margin: auto;"/>
-                <img wicket:id="summaryPhoto" class="user-thumbnail" style="margin: auto;"/>
-            </div>
-            <div class="info-box-content d-flex flex-row">
-                <div class="flex-grow-1">
-                    <div class="info-box-number"  style="padding: 0px;">
-                        <span class="summary-panel-display-name" wicket:id="summaryDisplayName"  style="padding: 0px;"/>
-                        <span class="summary-panel-identifier" wicket:id="summaryIdentifierPanel"  style="padding: 0px;">(<span wicket:id="summaryIdentifier"/>)</span>
-                        <a wicket:id="navigateToObject" class="summary-panel-navigation-button">
-                            <i class="fa fa-share"/>
-                        </a>
-                    </div>
-                    <span wicket:id="summaryTitle" class="summary-panel-title"/>
-                    <span wicket:id="summaryTitle2" class="summary-panel-title" style="display: block"/>
-                    <span wicket:id="summaryTitle3" class="summary-panel-title" style="display: block"/>
-                    <span wicket:id="summaryOrganization" class="summary-panel-organization"/>
+        <div wicket:id="summaryIconBox" class="info-box-icon d-flex">
+            <span class="user-thumbnail-helper"/>
+            <span wicket:id="summaryIcon" style="margin: auto;"/>
+            <img wicket:id="summaryPhoto" class="user-thumbnail" style="margin: auto;"/>
+        </div>
+        <div class="info-box-content d-flex flex-row">
+            <div class="flex-grow-1">
+                <div class="info-box-number" style="padding: 0px;">
+                    <span class="summary-panel-display-name" wicket:id="summaryDisplayName" style="padding: 0px;"/>
+                    <span class="summary-panel-identifier" wicket:id="summaryIdentifierPanel" style="padding: 0px;">(<span wicket:id="summaryIdentifier"/>)</span>
+                    <a wicket:id="navigateToObject" class="summary-panel-navigation-button">
+                        <i class="fa fa-share"/>
+                    </a>
                 </div>
-                <div class="summary-tag-box">
-                    <span wicket:id="summaryTagBox" >
+                <span wicket:id="summaryTitle" class="summary-panel-title"/>
+                <span wicket:id="summaryTitle2" class="summary-panel-title" style="display: block"/>
+                <span wicket:id="summaryTitle3" class="summary-panel-title" style="display: block"/>
+                <span wicket:id="summaryOrganization" class="summary-panel-organization"/>
+            </div>
+            <div class="summary-tag-box">
+                    <span wicket:id="summaryTagBox">
                         <span wicket:id="summaryTag"/>
                     </span>
-                    <wicket:child />
-                </div>
+                <wicket:child/>
             </div>
         </div>
+    </div>
 </wicket:panel>
