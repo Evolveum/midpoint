@@ -437,4 +437,42 @@ export default class MidPointTheme {
     initDropdown(compId, options) {
         $('#' + compId).multiselect(options);
     }
+
+    showPopover(refId, popupId, show) {
+        console.log("showPopover", {
+            ref: refId,
+            popup: popupId,
+            show: show,
+        })
+        var ref = $(refId);
+        var popup = $(popupId);
+        var arrow = popup.find('.arrow');
+
+        if (!show) {
+            if (popup.is(':visible')) {
+                popup.fadeOut(200);
+            }
+        } else {
+            if (!popup.is(':visible')) {
+                var position = ref.position();
+
+                var left = position.left + (ref.outerWidth() - popup.outerWidth()) / 2;// - paddingRight;
+                var top = position.top + ref.outerHeight();
+
+                var offsetLeft = ref.offset().left - position.left;
+
+                if ((left + popup.outerWidth() + offsetLeft) > window.innerWidth) {
+                    left = window.innerWidth - popup.outerWidth() - offsetLeft - 15;
+                } else if (left < 0) {
+                    left = 0;
+                }
+
+                popup.css('top', top);
+                popup.css('left', left);
+
+                arrow.css('left', (popup.innerWidth() - arrow.width()) / 2);
+                popup.fadeIn(200);
+            }
+        }
+    }
 }
