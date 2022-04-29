@@ -3877,7 +3877,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return taskBefore;
     }
 
-    protected <O extends ObjectType> String addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+    protected <O extends ObjectType> String addObject(File file)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         PrismObject<O> object = prismContext.parseObject(file);
         return addObject(object);
     }
@@ -6711,14 +6713,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     public interface TracedFunctionCall<X> {
-        X execute() throws CommonException, PreconditionViolationException;
+        X execute() throws CommonException, PreconditionViolationException, IOException;
     }
 
     public interface TracedProcedureCall {
         void execute() throws CommonException, PreconditionViolationException;
     }
 
-    protected <X> X traced(TracedFunctionCall<X> tracedCall) throws CommonException, PreconditionViolationException {
+    protected <X> X traced(TracedFunctionCall<X> tracedCall)
+            throws CommonException, PreconditionViolationException, IOException {
         setGlobalTracingOverride(createModelLoggingTracingProfile());
         try {
             return tracedCall.execute();

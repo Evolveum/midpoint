@@ -40,6 +40,11 @@ public class ObjectSet<O extends ObjectType> implements Collection<O> {
         addAll(initialObjects);
     }
 
+    @SafeVarargs
+    public static <O extends ObjectType> ObjectSet<O> of(O... objects) {
+        return new ObjectSet<>(List.of(objects));
+    }
+
     @Override
     public int size() {
         return objects.size();

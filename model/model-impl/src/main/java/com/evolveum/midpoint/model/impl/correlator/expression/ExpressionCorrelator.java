@@ -66,6 +66,15 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
                 .execute(result);
     }
 
+    @Override
+    protected boolean checkCandidateOwnerInternal(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
+            @NotNull OperationResult result) {
+        throw new UnsupportedOperationException("ExpressionCorrelator is not supported in the 'opportunistic synchronization'"
+                + " mode. Please disable this mode for this particular resource or object type.");
+    }
+
     private class Correlation<F extends FocusType> {
 
         @NotNull private final ShadowType resourceObject;

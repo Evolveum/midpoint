@@ -70,9 +70,17 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-
         return new Correlation<>(correlationContext)
-                .execute(result);
+                .correlate(result);
+    }
+
+    @Override
+    protected boolean checkCandidateOwnerInternal(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
+            @NotNull OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+        return new Correlation<>(correlationContext)
+                .checkCandidateOwner(candidateOwner, result);
     }
 
     private class Correlation<F extends FocusType> {
@@ -91,7 +99,7 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             this.contextDescription = getDefaultContextDescription(correlationContext);
         }
 
-        public CorrelationResult execute(OperationResult result)
+        public CorrelationResult correlate(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             ObjectSet<F> candidates = findCandidatesUsingConditionalFilters(result);
@@ -101,18 +109,18 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             return beans.builtInResultCreator.createCorrelationResult(confirmedCandidates, correlationContext);
         }
 
+        boolean checkCandidateOwner(F candidateOwner, @NotNull OperationResult result)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException {
+            return checkCandidateUsingConditionalFilters(candidateOwner, result)
+                    && !confirmCandidates(ObjectSet.of(candidateOwner), result).isEmpty();
+        }
+
         private @NotNull ObjectSet<F> findCandidatesUsingConditionalFilters(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
-            List<ConditionalSearchFilterType> conditionalFilters = configurationBean.getOwnerFilter();
-
-            LOGGER.trace("Going to find candidates using {} conditional filter(s) in {}",
-                    conditionalFilters.size(), contextDescription);
-
-            if (conditionalFilters.isEmpty()) {
-                throw new ConfigurationException("No filters specified in " + contextDescription);
-            }
+            List<ConditionalSearchFilterType> conditionalFilters = getConditionalFilters();
 
             ObjectSet<F> allCandidates = new ObjectSet<>();
             for (ConditionalSearchFilterType conditionalFilter : conditionalFilters) {
@@ -129,6 +137,34 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                     lazy(() -> PrettyPrinter.prettyPrint(allCandidates, 3)));
 
             return allCandidates;
+        }
+
+        private boolean checkCandidateUsingConditionalFilters(F candidateOwner, OperationResult result)
+                throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+                ConfigurationException, SecurityViolationException {
+
+            List<ConditionalSearchFilterType> conditionalFilters = getConditionalFilters();
+
+            for (ConditionalSearchFilterType conditionalFilter : conditionalFilters) {
+                if (isConditionSatisfied(conditionalFilter, result)
+                    && checkCandidateUsingFilter(conditionalFilter, candidateOwner, result)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @NotNull
+        private List<ConditionalSearchFilterType> getConditionalFilters() throws ConfigurationException {
+            List<ConditionalSearchFilterType> conditionalFilters = configurationBean.getOwnerFilter();
+
+            LOGGER.trace("Going to find candidates (or check candidate) using {} conditional filter(s) in {}",
+                    conditionalFilters.size(), contextDescription);
+
+            if (conditionalFilters.isEmpty()) {
+                throw new ConfigurationException("No filters specified in " + contextDescription);
+            }
+            return conditionalFilters;
         }
 
         private boolean isConditionSatisfied(ConditionalSearchFilterType conditionalFilter, OperationResult result)
@@ -156,6 +192,26 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                 SearchFilterType conditionalFilter, OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
+            ObjectQuery query = getQuery(conditionalFilter, result);
+            // TODO use read-only option in the future (but is it OK to start a clockwork with immutable object?)
+            //noinspection unchecked
+            return asObjectables(
+                    beans.cacheRepositoryService
+                            .searchObjects((Class<F>) correlationContext.getFocusType(), query, null, result));
+        }
+
+        private boolean checkCandidateUsingFilter(
+                SearchFilterType conditionalFilter, F candidateOwner, OperationResult result)
+                throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+                ConfigurationException, SecurityViolationException {
+            ObjectQuery query = getQuery(conditionalFilter, result);
+            return query.getFilter().match(candidateOwner.asPrismContainerValue(), beans.matchingRuleRegistry);
+        }
+
+        @NotNull
+        private ObjectQuery getQuery(SearchFilterType conditionalFilter, OperationResult result)
+                throws ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+                CommunicationException, SecurityViolationException {
             if (!conditionalFilter.containsFilterClause()) {
                 throw new ConfigurationException("No filter clause in: " + contextDescription);
             }
@@ -175,12 +231,8 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                 throw e; // just to make compiler happy (exception is thrown in the above statement)
             }
 
-            LOGGER.trace("Using the following query to find owner candidates:\n{}", query.debugDumpLazily(1));
-            // TODO use read-only option in the future (but is it OK to start a clockwork with immutable object?)
-            //noinspection unchecked
-            return asObjectables(
-                    beans.cacheRepositoryService
-                            .searchObjects((Class<F>) correlationContext.getFocusType(), query, null, result));
+            LOGGER.trace("Using the following query to find/confirm owner candidate(s):\n{}", query.debugDumpLazily(1));
+            return query;
         }
 
         private ObjectQuery evaluateQueryExpressions(ObjectQuery origQuery, OperationResult result)

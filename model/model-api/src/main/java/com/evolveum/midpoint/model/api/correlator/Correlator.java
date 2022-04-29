@@ -13,6 +13,8 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,6 +34,21 @@ public interface Correlator {
      */
     @NotNull CorrelationResult correlate(
             @NotNull CorrelationContext correlationContext,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Checks whether the provided candidate focus object is the owner for given resource object.
+     *
+     * We assume that the correlator is already configured. See {@link CorrelatorFactory}.
+     *
+     * @param correlationContext Additional information about the overall context for correlation.
+     * @param result Operation result where the method should record its operation
+     */
+    boolean checkCandidateOwner(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
