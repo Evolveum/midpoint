@@ -452,6 +452,8 @@ public interface ProvisioningService {
      */
     OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException;
 
+    OperationResult testResource(PrismObject<ResourceType> resource, Task task) throws ObjectNotFoundException;
+
     /**
      * Discovers local or remote connectors.
      *

@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import javax.annotation.Resource;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.namespace.QName;
@@ -354,6 +355,33 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
         resource = getObject(ResourceType.class, getResourceOid());
         displayXml("Resource after test connection", resource);
+    }
+
+    @Test
+    public void test011ConnectionResourceObject() throws Exception {
+        Task task = getTestTask();
+        PrismObject<ResourceType> resourceFromRepo = getObject(ResourceType.class, getResourceOid());
+        ResourceType resource = new ResourceType()
+                .name("newResource")
+                .connectorRef(resourceFromRepo.asObjectable().getConnectorRef())
+                .connectorConfiguration(resourceFromRepo.asObjectable().getConnectorConfiguration())
+                .schema(resourceFromRepo.asObjectable().getSchema());
+
+        OperationResult testResult = provisioningService.testResource(resource.asPrismObject(), task);
+
+        display("Test connection result", testResult);
+        TestUtil.assertSuccess("Test connection failed", testResult);
+
+        if (isAssertOpenFiles()) {
+            // Set lsof baseline only after the first connection.
+            // We will have more reasonable number here.
+            lsof.rememberBaseline();
+            displayDumpable("lsof baseline", lsof);
+        }
+
+        displayXml("Resource after test connection", resource.asPrismObject());
+
+        assertNull(findObjectByName(ResourceType.class, "newResource"));
     }
 
     @Test

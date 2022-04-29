@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -190,11 +191,15 @@ class ResourceCompletionOperation {
             throw new StopException();
         }
 
-        // Now we need to re-read the resource from the repository and re-apply the schemas. This ensures that we will
-        // cache the correct version and that we avoid race conditions, etc.
-        PrismObject<ResourceType> reloaded = beans.resourceManager.readResourceFromRepository(resource.getOid(), result);
-        beans.resourceManager.applyConnectorSchemasToResource(reloaded, task, result);
-        return reloaded;
+        if (isRepoResource()) {
+            // Now we need to re-read the resource from the repository and re-apply the schemas. This ensures that we will
+            // cache the correct version and that we avoid race conditions, etc.
+            PrismObject<ResourceType> reloaded = beans.resourceManager.readResourceFromRepository(resource.getOid(), result);
+            beans.resourceManager.applyConnectorSchemasToResource(reloaded, task, result);
+            return reloaded;
+        } else {
+            return resource;
+        }
     }
 
     private void parseSchema(PrismObject<ResourceType> reloaded) {
@@ -211,6 +216,16 @@ class ResourceCompletionOperation {
     }
 
     private void completeSchemaAndCapabilities()
+            throws SchemaException, CommunicationException, ObjectNotFoundException, GenericFrameworkException,
+            ConfigurationException {
+        if (isRepoResource()) {
+            completeSchemaAndCapabilitiesRepoResource();
+        } else {
+            completeSchemaAndCapabilitiesResourceObject();
+        }
+    }
+
+    private void completeSchemaAndCapabilitiesRepoResource()
             throws SchemaException, CommunicationException, ObjectNotFoundException, GenericFrameworkException,
             ConfigurationException {
 
@@ -273,6 +288,52 @@ class ResourceCompletionOperation {
         }
     }
 
+    private void completeSchemaAndCapabilitiesResourceObject()
+            throws SchemaException, CommunicationException, ObjectNotFoundException, GenericFrameworkException,
+            ConfigurationException {
+
+        // Capabilities
+        // we need to process capabilities first. Schema is one of the connector capabilities.
+        // We need to determine this capability to select the right connector for schema retrieval.
+        completeCapabilities(capabilityMap != null, capabilityMap, null, result);
+
+        if (rawResourceSchema == null) {
+            // Try to get existing schema from resource. We do not want to override this if it exists
+            // (but we still want to refresh the capabilities, that happens below)
+            rawResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+        }
+
+        if (rawResourceSchema == null || rawResourceSchema.isEmpty()) {
+            fetchResourceSchema();
+        }
+
+        if (rawResourceSchema != null) {
+            if (isSchemaFreshlyLoaded) {
+                adjustSchemaForSimulatedCapabilities();
+               resource.asObjectable().schema(createSchemaUpdateValue());
+
+                // Update the operational state (we know we are up, as the schema was freshly loaded).
+                AvailabilityStatusType previousStatus = ResourceTypeUtil.getLastAvailabilityStatus(resource.asObjectable());
+                if (previousStatus != UP) {
+                    resource.asObjectable().operationalState(
+                            beans.operationalStateManager.createAndLogOperationalState(
+                                    previousStatus,
+                                    UP,
+                                    resource.toString(),
+                                    "resource schema was successfully fetched"));
+                } else {
+                    // just for sure (if the status changed in the meanwhile)
+                    resource.asObjectable().getOperationalState().lastAvailabilityStatus(UP);
+                }
+            } else {
+                CachingMetadataType schemaCachingMetadata = getCurrentCachingMetadata();
+                if (schemaCachingMetadata == null) {
+                    resource.asObjectable().getSchema().cachingMetadata(MiscSchemaUtil.generateCachingMetadata());
+                }
+            }
+        }
+    }
+
     private CachingMetadataType getCurrentCachingMetadata() {
         XmlSchemaType schema = resource.asObjectable().getSchema();
         return schema != null ? schema.getCachingMetadata() : null;
@@ -329,12 +390,16 @@ class ResourceCompletionOperation {
                 CachingMetadataType cachingMetadata = capType.getCachingMetadata();
                 if (cachingMetadata == null) {
                     cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
-                    modifications.add(
-                            PrismContext.get().deltaFactory().property().createModificationReplaceProperty(
-                                    ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_CACHING_METADATA),
-                                    connectorSpec.getResource().getDefinition(),
-                                    cachingMetadata)
-                    );
+                    if (isRepoResource()) {
+                        modifications.add(
+                                PrismContext.get().deltaFactory().property().createModificationReplaceProperty(
+                                        ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_CACHING_METADATA),
+                                        connectorSpec.getResource().getDefinition(),
+                                        cachingMetadata)
+                        );
+                    } else {
+                        resource.asObjectable().getCapabilities().cachingMetadata(cachingMetadata);
+                    }
                 }
                 return;
             }
@@ -361,15 +426,28 @@ class ResourceCompletionOperation {
         CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
         capType.setCachingMetadata(cachingMetadata);
 
-        //noinspection unchecked
-        ObjectDelta<ResourceType> capabilitiesReplaceDelta = PrismContext.get().deltaFactory().object()
-                .createModificationReplaceContainer(ResourceType.class, connectorSpec.getResource().getOid(),
-                        itemPath, capType.asPrismContainerValue().clone());
+        if (isRepoResource()) {
+            //noinspection unchecked
+            ObjectDelta<ResourceType> capabilitiesReplaceDelta = PrismContext.get().deltaFactory().object()
+                    .createModificationReplaceContainer(ResourceType.class, connectorSpec.getResource().getOid(),
+                            itemPath, capType.asPrismContainerValue().clone());
 
-        modifications.addAll(capabilitiesReplaceDelta.getModifications());
+            modifications.addAll(capabilitiesReplaceDelta.getModifications());
+        }
     }
 
     private ContainerDelta<XmlSchemaType> createSchemaUpdateDelta() throws SchemaException {
+        PrismContainerValue<XmlSchemaType> cval = createSchemaUpdateValue().asPrismContainerValue();
+
+        PrismContext prismContext = PrismContext.get();
+        ContainerDelta<XmlSchemaType> schemaContainerDelta =
+                prismContext.deltaFactory().container().createDelta(ResourceType.F_SCHEMA, ResourceType.class);
+        schemaContainerDelta.setValueToReplace(cval);
+
+        return schemaContainerDelta;
+    }
+
+    private XmlSchemaType createSchemaUpdateValue() throws SchemaException {
         Document xsdDoc;
         try {
             xsdDoc = rawResourceSchema.serializeToXsd();
@@ -385,26 +463,17 @@ class ResourceCompletionOperation {
             throw new SchemaException("No schema was generated for " + resource);
         }
 
-        PrismContext prismContext = PrismContext.get();
-        ContainerDelta<XmlSchemaType> schemaContainerDelta =
-                prismContext.deltaFactory().container().createDelta(ResourceType.F_SCHEMA, ResourceType.class);
-        PrismContainerValue<XmlSchemaType> cval = prismContext.itemFactory().createContainerValue();
-        schemaContainerDelta.setValueToReplace(cval);
-        PrismProperty<CachingMetadataType> cachingMetadataProperty = cval.createProperty(XmlSchemaType.F_CACHING_METADATA);
-        cachingMetadataProperty.setRealValue(
-                MiscSchemaUtil.generateCachingMetadata());
+        XmlSchemaType schemaType = new XmlSchemaType()
+                .cachingMetadata(MiscSchemaUtil.generateCachingMetadata());
         List<QName> objectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
         if (objectClasses != null) {
-            PrismProperty<SchemaGenerationConstraintsType> generationConstraints =
-                    cval.createProperty(XmlSchemaType.F_GENERATION_CONSTRAINTS);
-            SchemaGenerationConstraintsType constraints = new SchemaGenerationConstraintsType();
-            constraints.getGenerateObjectClass().addAll(objectClasses);
-            generationConstraints.setRealValue(constraints);
+            schemaType.beginGenerationConstraints().getGenerateObjectClass().addAll(objectClasses);
         }
-        PrismProperty<SchemaDefinitionType> definitionProperty = cval.createProperty(XmlSchemaType.F_DEFINITION);
-        ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
+        SchemaDefinitionType schemaDef = new SchemaDefinitionType();
+        schemaDef.setSchema(xsdElement);
+        schemaType.definition(schemaDef);
 
-        return schemaContainerDelta;
+        return schemaType;
     }
 
     private PropertyDelta<CachingMetadataType> createMetadataUpdateDelta() {
@@ -496,5 +565,10 @@ class ResourceCompletionOperation {
 
     /** Stopping the evaluation, and returning the {@link #resource}. */
     private static class StopException extends Exception {
+    }
+
+    private boolean isRepoResource() {
+        String resourceOid = resource.getOid();
+        return StringUtils.isNotEmpty(resourceOid);
     }
 }

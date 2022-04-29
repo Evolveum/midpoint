@@ -310,6 +310,18 @@ public class ResourceManager {
         }
     }
 
+    public void modifyResourceAvailabilityStatus(PrismObject<ResourceType> resource, AvailabilityStatusType newStatus, String statusChangeReason) {
+
+        AvailabilityStatusType currentStatus = ResourceTypeUtil.getLastAvailabilityStatus(resource.asObjectable());
+        String resourceDesc = resource.toString();
+
+        if (newStatus != currentStatus) {
+            OperationalStateType newState = operationalStateManager.createAndLogOperationalState(
+                    currentStatus,newStatus, resourceDesc, statusChangeReason);
+            resource.asObjectable().operationalState(newState);
+        }
+    }
+
     public void applyDefinition(
             ObjectDelta<ResourceType> delta,
             ResourceType resourceWhenNoOid,

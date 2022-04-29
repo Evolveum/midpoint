@@ -10,6 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.resources;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -61,6 +63,16 @@ class TestConnectionOperation {
      *                                 availability status).
      */
     public void execute(OperationResult result)
+            throws ObjectNotFoundException {
+        if (isRepoResource()) {
+            testingResourceFromRepo(result);
+        } else {
+            testingResource(result);
+        }
+    }
+
+
+    private void testingResourceFromRepo(OperationResult result)
             throws ObjectNotFoundException {
 
         String resourceOid = resource.getOid();
@@ -209,19 +221,201 @@ class TestConnectionOperation {
 
     }
 
+    private void testingResource(OperationResult result)
+            throws ObjectNotFoundException {
+        String operationDesc = createOperationDescription();
+
+        List<ConnectorSpec> allConnectorSpecs;
+        try {
+            allConnectorSpecs = beans.resourceManager.getAllConnectorSpecs(resource);
+        } catch (SchemaException e) {
+            if (LOGGER.isTraceEnabled()) {
+                // TODO why logging at error level only if trace is enabled?
+                LOGGER.error("Configuration error: {}", e.getMessage(), e);
+            }
+            markResourceBroken(operationDesc + ", getting all connectors failed: " + e.getMessage(), result);
+            result.recordFatalError("Configuration error: " + e.getMessage(), e);
+            return;
+        }
+
+        Map<String, Collection<Object>> capabilityMap = new HashMap<>();
+        for (ConnectorSpec connectorSpec: allConnectorSpecs) {
+
+            OperationResult connectorTestResult = result
+                    .createSubresult(ConnectorTestOperation.CONNECTOR_TEST.getOperation());
+            connectorTestResult.addParam(OperationResult.PARAM_NAME, connectorSpec.getConnectorName());
+            connectorTestResult.addParam(OperationResult.PARAM_OID, connectorSpec.getConnectorOid());
+
+            testConnectionConnector(connectorSpec, capabilityMap, connectorTestResult);
+
+            connectorTestResult.computeStatus();
+
+            if (!connectorTestResult.isAcceptable()) {
+                //nothing more to do.. if it failed while testing connection, status is set.
+                // we do not need to continue and waste the time.
+                return;
+            }
+        }
+
+        // === test SCHEMA ===
+
+        OperationResult schemaResult = result.createSubresult(ConnectorTestOperation.RESOURCE_SCHEMA.getOperation());
+
+        ResourceSchema rawSchema;
+        try {
+
+            rawSchema = beans.resourceManager.fetchResourceSchema(resource, capabilityMap, schemaResult);
+
+        } catch (CommunicationException e) {
+            String statusChangeReason = operationDesc + " failed while fetching schema: " + e.getMessage();
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.error("Communication error: {}", e.getMessage(), e);
+            }
+            markResourceDown(statusChangeReason, result);
+            schemaResult.recordFatalError("Communication error: " + e.getMessage(), e);
+            return;
+        } catch (GenericFrameworkException | ConfigurationException | ObjectNotFoundException | SchemaException | RuntimeException e) {
+            String statusChangeReason = operationDesc + " failed while fetching schema: " + e.getMessage();
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.error("Error: {}", e.getMessage(), e);
+            }
+            markResourceBroken(statusChangeReason, result);
+            schemaResult.recordFatalError("Error: " + e.getMessage(), e);
+            return;
+        }
+
+        if (rawSchema == null || rawSchema.isEmpty()) {
+            // Resource does not support schema
+            // If there is a static schema in resource definition this may still be OK
+            try {
+                rawSchema = ResourceSchemaFactory.getRawSchema(resource);
+            } catch (SchemaException e) {
+                String statusChangeReason = operationDesc + " failed while parsing refined schema: " + e.getMessage();
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.error("Error: {}", e.getMessage(), e);
+                }
+                markResourceBroken(statusChangeReason, result);
+                schemaResult.recordFatalError(e);
+                return;
+            }
+
+            if (rawSchema == null || rawSchema.isEmpty()) {
+                String msg = "Connector does not support schema and no static schema available";
+                String statusChangeReason = operationDesc + ". " + msg;
+                markResourceBroken(statusChangeReason, result);
+                schemaResult.recordFatalError(msg);
+                return;
+            }
+        }
+
+        // Invoke completeResource(). This will store the fetched schema to the ResourceType if there is no <schema>
+        // definition already. Therefore the testResource() can be used to generate the resource schema - until we
+        // have full schema caching capability.
+        PrismObject<ResourceType> completedResource;
+        try {
+            completedResource = completeResource(rawSchema, capabilityMap, schemaResult);
+        } catch (ObjectNotFoundException e) {
+            String msg = "Object not found (unexpected error, probably a bug): " + e.getMessage();
+            String statusChangeReason = operationDesc + " failed while completing resource. " + msg;
+            markResourceBroken(statusChangeReason, result);
+            schemaResult.recordFatalError(msg, e);
+            return;
+        } catch (ConfigurationException e) {
+            String msg = "Configuration error: " + e.getMessage();
+            String statusChangeReason = operationDesc + " failed while completing resource. " + msg;
+            markResourceBroken(statusChangeReason, result);
+            schemaResult.recordFatalError(msg, e);
+            return;
+        } catch (SchemaException e) {
+            String msg = "Schema processing error (probably connector bug): " + e.getMessage();
+            String statusChangeReason = operationDesc + " failed while completing resource. " + msg;
+            markResourceBroken(statusChangeReason, result);
+            schemaResult.recordFatalError(msg, e);
+            return;
+        } catch (ExpressionEvaluationException e) {
+            String msg = "Expression error: " + e.getMessage();
+            String statusChangeReason = operationDesc + " failed while completing resource. " + msg;
+            markResourceBroken(statusChangeReason, result);
+            schemaResult.recordFatalError(msg, e);
+            return;
+        } catch (RuntimeException e) {
+            String msg = "Unspecified exception: " + e.getMessage();
+            String statusChangeReason = operationDesc + " failed while completing resource. " + msg;
+            markResourceBroken(statusChangeReason, result);
+            schemaResult.recordFatalError(msg, e);
+            return;
+        }
+
+        schemaResult.recordSuccess();
+
+        try {
+            beans.resourceManager.updateResourceSchema(allConnectorSpecs, result, completedResource);
+        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | RuntimeException e) {
+            String statusChangeReason = operationDesc + " failed while updating resource schema: " + e.getMessage();
+            markResourceBroken(statusChangeReason, result);
+            result.recordFatalError("Couldn't update resource schema: " + e.getMessage(), e);
+            //noinspection UnnecessaryReturnStatement
+            return;
+        }
+
+        // TODO: connector sanity (e.g. refined schema, at least one account type, identifiers
+        // in schema, etc.)
+
+    }
+
+    private PrismObject<ResourceType> completeResource(
+            ResourceSchema rawSchema, Map<String, Collection<Object>> capabilityMap, OperationResult schemaResult) throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException {
+        PrismObject<ResourceType> resourceToComplete;
+        if (isRepoResource()) {
+            // Re-fetching from repository to get up-to-date availability status (to avoid phantom state change records).
+            resourceToComplete = beans.cacheRepositoryService.getObject(
+                            ResourceType.class, resource.getOid(), null, schemaResult);
+        } else {
+            resourceToComplete = this.resource;
+        }
+        return new ResourceCompletionOperation(resourceToComplete, null, rawSchema, true, capabilityMap, task, beans)
+                .execute(schemaResult);
+    }
+
+    private String createOperationDescription() {
+        if (isRepoResource()) {
+            String resourceOid = resource.getOid();
+            return  "test resource " + resourceOid + " connection";
+        } else {
+            PolyString resourceName = resource.getName();
+            if (resourceName != null) {
+                return  "test resource " + resourceName + " connection";
+            } else {
+                return  "test resource connection, resource:" + resource;
+            }
+        }
+    }
+
+    private boolean isRepoResource() {
+        String resourceOid = resource.getOid();
+        return StringUtils.isNotEmpty(resourceOid);
+    }
+
     private void markResourceBroken(String statusChangeReason, OperationResult result) throws ObjectNotFoundException {
-        beans.resourceManager.modifyResourceAvailabilityStatus(
-                resource.getOid(), AvailabilityStatusType.BROKEN, statusChangeReason, task, result, true);
+        markResourceAvailabilityStatus(AvailabilityStatusType.BROKEN, statusChangeReason, result);
     }
 
     private void markResourceDown(String statusChangeReason, OperationResult result) throws ObjectNotFoundException {
-        beans.resourceManager.modifyResourceAvailabilityStatus(
-                resource.getOid(), AvailabilityStatusType.DOWN, statusChangeReason, task, result, true);
+        markResourceAvailabilityStatus(AvailabilityStatusType.DOWN, statusChangeReason, result);
     }
 
     private void markResourceUp(String statusChangeReason, OperationResult result) throws ObjectNotFoundException {
-        beans.resourceManager.modifyResourceAvailabilityStatus(
-                resource.getOid(), AvailabilityStatusType.UP, statusChangeReason, task, result, false);
+        markResourceAvailabilityStatus(AvailabilityStatusType.UP, statusChangeReason, result);
+    }
+
+    private void markResourceAvailabilityStatus (AvailabilityStatusType status, String statusChangeReason, OperationResult result)
+            throws ObjectNotFoundException {
+        if (isRepoResource()) {
+            beans.resourceManager.modifyResourceAvailabilityStatus(
+                    resource.getOid(), status, statusChangeReason, task, result, false);
+        } else {
+            beans.resourceManager.modifyResourceAvailabilityStatus(resource, status, statusChangeReason);
+        }
     }
 
     private void testConnectionConnector(

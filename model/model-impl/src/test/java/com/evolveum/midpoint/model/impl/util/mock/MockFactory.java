@@ -98,6 +98,10 @@ public class MockFactory {
             public OperationResult testResource(String resourceOid, Task task) {
                 return null;
             }
+            @Override
+            public OperationResult testResource(PrismObject<ResourceType> resource, Task task) {
+                return null;
+            }
 
             @Override
             public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) {

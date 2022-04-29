@@ -14,6 +14,7 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.operations.OperationsHelper;
 import com.evolveum.midpoint.provisioning.impl.operations.ProvisioningGetOperation;
 import com.evolveum.midpoint.provisioning.impl.operations.ProvisioningSearchLikeOperation;
@@ -601,6 +602,28 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         } catch (SchemaException ex) {
             throw new IllegalArgumentException(ex.getMessage(), ex);
         }
+        testResult.computeStatus("Test resource has failed");
+
+        LOGGER.debug("Finished testing {}, result: {} ", resource,
+                testResult.getStatus());
+        return testResult;
+    }
+
+    @Override
+    public OperationResult testResource(@NotNull PrismObject<ResourceType> resource, Task task) throws ObjectNotFoundException {
+        // We are not going to create parent result here. We don't want to
+        // pollute the result with
+        // implementation details, as this will be usually displayed in the
+        // table of "test resource" results.
+
+        LOGGER.trace("Start testing resource {} ", resource);
+
+        OperationResult testResult = new OperationResult(ConnectorTestOperation.TEST_CONNECTION.getOperation());
+        testResult.addParam("resource", resource);
+        testResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+
+        resourceManager.testConnection(resource, task, testResult);
+
         testResult.computeStatus("Test resource has failed");
 
         LOGGER.debug("Finished testing {}, result: {} ", resource,
