@@ -133,7 +133,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     }
 
     private <S extends SearchItem, T extends Serializable> void initLayout() {
-        moreDialogModel = new LoadableModel<MoreDialogDto>(false) {
+        moreDialogModel = new LoadableModel<>(false) {
 
             private static final long serialVersionUID = 1L;
 
@@ -268,7 +268,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
         Popover popover = initPopover();
 
-        AjaxLink<Void> more = new AjaxLink<Void>(ID_MORE) {
+        AjaxLink<Void> more = new AjaxLink<>(ID_MORE) {
             private static final long serialVersionUID = 1L;
 
             @Override
