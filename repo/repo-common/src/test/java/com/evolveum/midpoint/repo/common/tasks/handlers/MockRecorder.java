@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
-import static org.apache.commons.collections.ListUtils.synchronizedList;
+import static org.apache.commons.collections4.ListUtils.synchronizedList;
 
 @Component
 public class MockRecorder implements DebugDumpable {

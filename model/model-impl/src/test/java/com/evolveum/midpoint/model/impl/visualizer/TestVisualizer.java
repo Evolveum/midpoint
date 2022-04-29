@@ -38,7 +38,7 @@ import java.util.List;
 
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.testng.AssertJUnit.*;
 
 @UnusedTestElement("reason unknown, 2 tests FAIL")
