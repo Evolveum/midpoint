@@ -9,11 +9,36 @@
     <body>
         <wicket:panel>
             <wicket:enclosure child="menu">
+                    <!--<a href="index3.html" class="brand-link navbar-lightblue">
+                        <img src="dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+                        <span class="brand-text font-weight-light">AdminLTE 3</span>
+                    </a>-->
+
+                    <a class="brand-link navbar-lightblue custom-logo" wicket:id="customLogo">
+                        <i wicket:id="customLogoImgCss"/>
+                        <img wicket:id="customLogoImgSrc"/>
+                    </a>
+                    <a class="brand-link navbar-lightblue logo" wicket:id="logo">
+                        <span>&nbsp;</span>
+                    </a>
 
                     <!-- sidebar: style can be found in sidebar.less -->
-                    <section class="sidebar" style="height: auto;">
-                        <wicket:container wicket:id="menu"/>
-                    </section>
+                    <div class="sidebar os-host os-host-resize-disabled os-host-transition os-theme-dark os-host-scrollbar-vertical-hidden os-host-scrollbar-horizontal-hidden">
+                        <div class="os-resize-observer-host observed">
+                            <div class="os-resize-observer" style="left: 0px; right: auto;"></div>
+                        </div>
+                        <div class="os-size-auto-observer observed" style="height: calc(100% + 1px); float: left;">
+                            <div class="os-resize-observer"></div>
+                        </div>
+                        <div class="os-content-glue" style="margin: 0px -8px; height: 1275px; width: 249px;"></div>
+                        <div class="os-padding">
+                            <div class="os-viewport os-viewport-native-scrollbars-invisible os-viewport-native-scrollbars-overlaid" style="">
+                                <div class="os-content" style="padding: 0px 8px; height: auto; width: 100%;">
+                                    <wicket:container wicket:id="menu"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <!-- /.sidebar -->
 <!--                </aside>-->
             </wicket:enclosure>

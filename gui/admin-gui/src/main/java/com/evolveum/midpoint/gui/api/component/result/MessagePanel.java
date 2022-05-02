@@ -16,7 +16,11 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
-public class MessagePanel extends BasePanel<String> {
+import org.apache.wicket.model.Model;
+
+import java.io.Serializable;
+
+public class MessagePanel<T extends Serializable> extends BasePanel<T> {
 
     private static final String ID_MESSAGE = "message";
 
@@ -28,15 +32,23 @@ public class MessagePanel extends BasePanel<String> {
 
     public enum MessagePanelType {INFO, WARN, SUCCESS, ERROR}
 
-    private MessagePanelType type;
+    private IModel<MessagePanelType> type;
 
     private boolean closeVisible;
 
-    public MessagePanel(String id, MessagePanelType type, IModel<String> model) {
+    public MessagePanel(String id, MessagePanelType type, IModel<T> model) {
         this(id, type, model, true);
     }
 
-    public MessagePanel(String id, MessagePanelType type, IModel<String> model, boolean closeVisible) {
+    public MessagePanel(String id, MessagePanelType type, IModel<T> model, boolean closeVisible) {
+        this(id, Model.of(type), model, closeVisible);
+    }
+
+    public MessagePanel(String id, IModel<MessagePanelType> type, IModel<T> model) {
+        this(id, type, model, true);
+    }
+
+    public MessagePanel(String id, IModel<MessagePanelType> type, IModel<T> model, boolean closeVisible) {
         super(id, model);
 
         this.type = type;
@@ -60,16 +72,16 @@ public class MessagePanel extends BasePanel<String> {
 
     private IModel<String> createHeaderCss() {
         return () -> {
-            switch (type) {
+            switch (type.getObject()) {
                 case INFO:
-                    return " box-info";
+                    return "card-info";
                 case SUCCESS:
-                    return " box-success";
+                    return "card-success";
                 case ERROR:
-                    return " box-danger";
+                    return "card-danger";
                 case WARN:
                 default:
-                    return " box-warning";
+                    return "card-warning";
             }
         };
     }
@@ -78,22 +90,23 @@ public class MessagePanel extends BasePanel<String> {
         WebMarkupContainer iconType = new WebMarkupContainer(ID_ICON_TYPE);
         iconType.setOutputMarkupId(true);
         iconType.add(AttributeAppender.append("class", () -> {
-            switch (type) {
+            switch (type.getObject()) {
                 case INFO:
-                    return " fa-info";
+                    return "fa-info";
                 case SUCCESS:
-                    return " fa-check";
+                    return "fa-check";
                 case ERROR:
-                    return " fa-ban";
+                    return "fa-ban";
                 case WARN:
                 default:
-                    return " fa-warning";
+                    return "fa-exclamation-triangle";
             }
         }));
 
         box.add(iconType);
 
         Label message = new Label(ID_MESSAGE, getModel());
+        message.setRenderBodyOnly(true);
         box.add(message);
 
         AjaxLink<Void> close = new AjaxLink<>(ID_CLOSE) {

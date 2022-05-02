@@ -63,7 +63,7 @@ public class PageSystemConfiguration extends PageBase {
 
         NOTIFICATION("fa fa-envelope", PageSystemNotification.class),
 
-        LOGGING("fa fa-file-text", PageSystemLogging.class),
+        LOGGING("fa fa-file-alt", PageSystemLogging.class),
 
         PROFILING("fa fa-bar-chart", PageProfiling.class),
 

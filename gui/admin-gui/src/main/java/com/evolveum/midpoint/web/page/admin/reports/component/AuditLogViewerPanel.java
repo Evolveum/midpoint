@@ -125,8 +125,9 @@ public class AuditLogViewerPanel extends BasePanel {
 
                     @Override
                     protected Search createSearch(Class<AuditEventRecordType> type) {
-                        AuditLogStorage storage = (AuditLogStorage) getPageStorage(); //TODO: use storage?
-                        Search search = SearchFactory.createContainerSearch(new ContainerTypeSearchItem(new SearchValue(type, "")), AuditEventRecordType.F_TIMESTAMP, getPageBase(), true);
+                        Search search = SearchFactory.createContainerSearch(new ContainerTypeSearchItem(new SearchValue(type, "")),
+                                AuditEventRecordType.F_TIMESTAMP, getPageBase(), true);
+
                         DateSearchItem timestampItem = (DateSearchItem) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
                         if (timestampItem != null && timestampItem.getFromDate() == null && timestampItem.getToDate() == null && !isCollectionViewPanelForWidget()) {
                             Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -247,7 +248,7 @@ public class AuditLogViewerPanel extends BasePanel {
                                 createReportPerformed(target);
                             }
                         };
-                        createReport.add(AttributeAppender.append("class", "btn btn-default btn-sm btn-margin-right"));
+                        createReport.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
                         buttonsList.add(createReport);
                         return buttonsList;
                     }

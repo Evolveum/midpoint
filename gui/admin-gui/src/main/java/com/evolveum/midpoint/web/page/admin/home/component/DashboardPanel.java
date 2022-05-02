@@ -41,7 +41,7 @@ public abstract class DashboardPanel<T extends Serializable> extends BasePanel<T
         }
 
         WebMarkupContainer dashboardParent = new WebMarkupContainer(ID_DASHBOARD_PARENT);
-        dashboardParent.add(new AttributeAppender("class", " " + boxCssClasses));
+        dashboardParent.add(AttributeAppender.append("class", boxCssClasses));
         add(dashboardParent);
 
         WebMarkupContainer dashboardTitle = new WebMarkupContainer(ID_DASHBOARD_TITLE);
@@ -52,11 +52,13 @@ public abstract class DashboardPanel<T extends Serializable> extends BasePanel<T
         dashboardTitle.add(title);
 
         WebMarkupContainer dashboardContent = new WebMarkupContainer(ID_DASHBOARD_CONTENT);
-        dashboardContent.add(getMainComponent(ID_CONTENT));
+        Component content = getMainComponent(ID_CONTENT);
+        content.setRenderBodyOnly(true);
+        dashboardContent.add(content);
         dashboardParent.add(dashboardContent);
 
         WebMarkupContainer iconI = new WebMarkupContainer(ID_ICON);
-        iconI.add(AttributeModifier.replace("class", icon));
+        iconI.add(AttributeModifier.append("class", icon));
         dashboardTitle.add(iconI);
     }
 

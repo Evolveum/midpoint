@@ -8,31 +8,17 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <a data-toggle="dropdown" class="dropdown-toggle" href="#">
-        <img style="outline: 2px solid #eeeeee;" wicket:id="localeIcon" />
+    <a data-toggle="dropdown" class="nav-link" href="#">
+        <img class="famfamfam-flags" style="outline: 2px solid #eeeeee; margin-bottom: 3px;" wicket:id="icon" />
     </a>
-    <ul class="dropdown-menu pull-right" >
-        <li wicket:id="locales">
-            <img wicket:id="localeItemIcon" class="pull-left" style="margin-top: 5px !important;"></img>
-            <a wicket:id="localeLink" style="display: inline !important; padding: 3px 10px !important;">&nbsp;</a>
-        </li>
-    </ul>
+    <div class="dropdown-menu dropdown-menu-right">
+        <div wicket:id="locales">
+            <a class="dropdown-item" href="#" wicket:id="localesLink">
+                <img wicket:id="localesIcon" class="mr-2 famfamfam-flags"/>
+                <span wicket:id="localesLabel"/>
+            </a>
+        </div>
 
-
-
-    <!--<select wicket:id="select" class="selectpicker select-picker-sm pull-right" data-width="auto">-->
-        <!--&lt;!&ndash;<option data-icon="flag-gb">&nbsp;English</option>&ndash;&gt;-->
-        <!--&lt;!&ndash;<option data-icon="flag-sk">&nbsp;Slovensky</option>&ndash;&gt;-->
-
-        <!--<wicket:container wicket:id="options">-->
-            <!--<option wicket:id="option">Option Label</option>-->
-        <!--</wicket:container>-->
-    <!--</select>-->
-
-    <!--<ul wicket:id="locale" class="locales">-->
-        <!--<li wicket:id="locales" class="locale">-->
-            <!--<a wicket:id="localeLink" class="localeLink">&nbsp;</a>-->
-        <!--</li>-->
-    <!--</ul>-->
+    </div>
 </wicket:panel>
 </html>

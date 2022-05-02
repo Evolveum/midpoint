@@ -9,14 +9,12 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <tr>
-        <span wicket:id="headers">
+        <wicket:container wicket:id="headers">
             <th wicket:id="header">
-                <div>
-                    <span class="sortableLabel" wicket:id="label">[header-label]</span>
-                    <span class="sortableArrowIcon" />
-                </div>
+                <i class="icon fas fa-fw mr-1"></i>
+                <wicket:container wicket:id="label"/>
             </th>
-        </span>
+        </wicket:container>
     </tr>
 </wicket:panel>
 </html>

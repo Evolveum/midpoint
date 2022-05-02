@@ -107,7 +107,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         IconType iconType = new IconType();
         iconType.setCssClass("fa fa-address-card-o");
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
-                .setBasicIcon("fa fa-refresh", IconCssStyle.IN_ROW_STYLE)
+                .setBasicIcon("fa fa-sync-alt", IconCssStyle.IN_ROW_STYLE)
                 .appendLayerIcon(iconType, IconCssStyle.BOTTOM_RIGHT_STYLE);
         AjaxCompositedIconButton refresh = new AjaxCompositedIconButton(refreshId, iconBuilder.build(),
                 createStringResource("pageCreateCollectionReport.button.refresh")) {

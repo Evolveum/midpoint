@@ -41,7 +41,7 @@ podTemplate(
 	                        df -h
 			            fi
 
-				        mvn clean deploy -DskipTests -DdeployAtEnd=true
+				        mvn -B -ntp -DskipTests clean deploy -DdeployAtEnd=true
 
 				        if [ '${VERBOSE}' = '1' ]
                         then
@@ -58,7 +58,7 @@ podTemplate(
             container('maven') {
                 try {
                     sh """
-                        mvn verify -Dmaven.test.failure.ignore=true
+                        mvn -B -ntp -Dmaven.test.failure.ignore verify
 
 				        if [ '${VERBOSE}' = '1' ]
                         then
@@ -78,7 +78,7 @@ podTemplate(
                 try {
                     // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
                     sh """
-                        mvn verify -Dmaven.test.failure.ignore=true -P extratest -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+                        mvn -B -ntp -Dmaven.test.failure.ignore verify -P extratest -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
 
 				        if [ '${VERBOSE}' = '1' ]
                         then

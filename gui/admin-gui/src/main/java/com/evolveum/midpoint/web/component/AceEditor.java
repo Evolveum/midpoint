@@ -52,7 +52,7 @@ public class AceEditor extends TextArea<String> {
         super.renderHead(response);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("initEditor('").append(getMarkupId());
+        sb.append("window.MidPointAceEditor.initEditor('").append(getMarkupId());
         sb.append("',").append(readonly.getObject());
         sb.append(",").append(isResizeToMaxHeight());
         sb.append(",").append(getHeight());

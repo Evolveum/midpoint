@@ -6,13 +6,47 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <form wicket:id="form" class="form-inline pull-right search-form" style="padding-bottom:5px; width:100%; text-align: justify; -ms-text-justify: distribute-all-lines; text-justify: distribute-all-lines; text-align-last: right;">
-        <div class="form-inline" style="float:right; text-align-last: left;">
-            <div class="form-group pull-right" style="vertical-align: top; margin-top: -5px; display: grid;">
-                <a class="btn btn-sm btn-link" wicket:id="debug" style="display: table-cell; vertical-align: top; padding: 0px;"/>
-            </div>
+    <form wicket:id="form" class="d-flex flex-wrap justify-content-end">
 
-            <div class="form-group pull-right" style="vertical-align: top; padding-right: 5px;" wicket:id="searchContainer">
+        <div class="my-1" wicket:id="fullTextContainer">
+            <input wicket:id="fullTextField" type="text" class="form-control form-control-sm" style="width: 150px; min-width: 150px;">
+        </div>
+
+        <div wicket:id="collectionRefPanel" class="my-1"/>
+        <div wicket:id="typePanel" class="my-1"/>
+        <div wicket:id="oidItem" class="my-1"/>
+
+        <wicket:container wicket:id="items">
+            <div wicket:id="item" class="my-1"/>
+        </wicket:container>
+        <wicket:container wicket:id="compositedSpecialItems">
+            <div wicket:id="specialItem" class="my-1"/>
+        </wicket:container>
+        <wicket:container wicket:id="specialItems">
+            <div wicket:id="specialItem" class="my-1"/>
+        </wicket:container>
+
+        <div class="my-1 has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px; text-align-last: left;">
+                <textarea class="form-control form-control-sm" rows="2" wicket:id="advancedArea"
+                        style="width: 220px; height: 60px; overflow: hidden; float:right;"></textarea>
+            <input wicket:id="axiomQueryField" type="text" class="form-control form-control-sm"
+                    style="width: 91.6666667%; min-width: 300px; float:right;">
+            <label class="control-label col-lg-1" style="vertical-align: top; float:right; padding-right: 5px;">
+                <i id="advancedCheck" class="fa fa-lg" wicket:id="advancedCheck"/>
+            </label>
+            <div wicket:id="advancedErrorGroup" style="float:right">
+                <span id="advancedError" class="help-block" wicket:id="advancedError" style="float:right"/>
+            </div>
+        </div>
+
+        <div class="d-flex my-1">
+            <a wicket:id="more" class="btn btn-sm btn-default mx-1">
+                <wicket:message key="SearchPanel.more"/>
+                &nbsp;
+                <span class="fa fa-caret-down"></span>
+            </a>
+
+            <div wicket:id="searchContainer">
                 <div class="btn-group btn-group-sm">
                     <button type="button" class="btn btn-primary" about="searchSimple" wicket:id="searchButtonBeforeDropdown">
                         <i class="fa fa-search flip-icon fa-lg"></i>
@@ -30,52 +64,14 @@
                 </div>
             </div>
 
-            <div class="form-group pull-right" wicket:id="moreGroup" style="padding-right: 5px;">
-                <a wicket:id="more" class="btn btn-sm btn-default">
-                    <wicket:message key="SearchPanel.more"/>
-                    &nbsp;
-                    <span class="caret"></span>
-                </a>
-            </div>
+            <a class="btn btn-sm btn-link" wicket:id="debug"/>
         </div>
-
-        <div class="form-group has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px; text-align-last: left;">
-                <textarea class="form-control input-sm" rows="2" wicket:id="advancedArea"
-                        style="width: 220px; height: 60px; overflow: hidden; float:right;"></textarea>
-            <input wicket:id="axiomQueryField" type="text" class="form-control input-sm"
-                    style="width: 91.6666667%; min-width: 300px; float:right;">
-            <label class="control-label col-lg-1" style="vertical-align: top; float:right; padding-right: 5px;">
-                <i id="advancedCheck" class="fa fa-lg" wicket:id="advancedCheck"/>
-            </label>
-            <div wicket:id="advancedErrorGroup" style="float:right">
-                <span id="advancedError" class="help-block" wicket:id="advancedError" style="float:right"/>
-            </div>
-        </div>
-
-        <div class="form-group" wicket:id="fullTextContainer" style="float:right; padding-right: 5px; text-align-last: left;">
-            <input wicket:id="fullTextField" type="text" class="form-control input-sm" style="width: 150px; min-width: 150px;">
-        </div>
-
-        <div wicket:id="collectionRefPanel" class="form-group" style="padding-right: 5px; margin-bottom: 5px; text-align-last: left;"/>
-        <div wicket:id="typePanel" class="form-group" style="padding-right: 5px; margin-bottom: 5px; text-align-last: left;"/>
-        <div wicket:id="oidItem" class="form-group" style="float:right; padding-right: 5px; margin-bottom: 5px; text-align-last: left;"/>
-
-        <wicket:container wicket:id="specialItems">
-            <div wicket:id="specialItem" class="form-group" style="padding-right: 5px; margin-bottom: 5px; text-align-last: left;"/>
-        </wicket:container>
-        <wicket:container wicket:id="compositedSpecialItems">
-            <div wicket:id="specialItem" class="form-group" style="padding-right: 5px; margin-bottom: 5px; text-align-last: left;"/>
-        </wicket:container>
-        <wicket:container wicket:id="items">
-            <div wicket:id="item" class="form-group" style="padding-right: 5px; margin-bottom: 5px; text-align-last: left;"/>
-        </wicket:container>
     </form>
 
-    <div wicket:id="popover" class="popover bottom" style="display: none;">
-        <div class="arrow"></div>
+    <div wicket:id="popover">
         <div class="search-popover">
             <div class="more-input">
-                <input wicket:id="addText" type="text" class="form-control input-sm" style="width: auto;" size="20">
+                <input wicket:id="addText" type="text" class="form-control form-control-sm" style="width: auto;" size="20">
             </div>
 
             <div class="properties">

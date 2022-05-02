@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.web.page.admin.orgs;
 
-import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import java.util.Iterator;
+
 import com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgTreeProvider;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.tree.AbstractTree;
@@ -21,7 +21,10 @@ import org.apache.wicket.markup.repeater.IItemReuseStrategy;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
-import java.util.Iterator;
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
+import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 public class MidpointSubtree extends Panel {
 
@@ -161,7 +164,7 @@ public class MidpointSubtree extends Panel {
     }
 
     private Panel newPaging(String id, AbstractPageableView view) {
-        OrgTreePagingPanel paging = new OrgTreePagingPanel(id, view, true) {
+        NavigatorPanel paging = new NavigatorPanel(id, view, true) {
 
             @Override
             protected void onPageChanged(AjaxRequestTarget target, long page) {

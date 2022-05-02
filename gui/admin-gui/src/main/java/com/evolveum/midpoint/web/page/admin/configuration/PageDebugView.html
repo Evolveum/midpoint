@@ -10,47 +10,35 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm" class="form-horizontal">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <wicket:message key="pageDebugView.options"/>
+                </h3>
+            </div>
+            <div class="card-body d-flex">
+                <div class="main-button-bar mr-2">
+                    <span class="button-group">
+                        <a class="btn btn-default" wicket:id="backButton"/>
+                    </span>
+                    <a class="btn btn-primary" wicket:id="saveButton"/>
+                </div>
 
-    <div class="box">
-        <div class="box-header with-border">
-            <h3 class="box-title"><wicket:message key="pageDebugView.options"/></h3>
-        </div>
-        <div class="box-body">
-            <div class="option-checkbox" wicket:id="encrypt"/>
-            <div class="option-checkbox" wicket:id="validateSchema"/>
-            <div class="option-checkbox" wicket:id="saveAsRaw"/>
-            <div class="option-checkbox" wicket:id="reevaluateSearchFilters"/>
-            <div class="option-checkbox" wicket:id="switchToPlainText"/>
-        </div>
-    </div>
-     <div class="box">
-        <div class="box-header with-border">
-            <div class="form-group">
-                <div class="col-lg-2" wicket:id="viewButtonPanel" ></div>
+                <div class="option-checkbox" wicket:id="encrypt"/>
+                <div class="option-checkbox" wicket:id="validateSchema"/>
+                <div class="option-checkbox" wicket:id="saveAsRaw"/>
+                <div class="option-checkbox" wicket:id="reevaluateSearchFilters"/>
+                <div class="option-checkbox" wicket:id="switchToPlainText"/>
             </div>
         </div>
-        <div class="box-body">
-             <div class="form-group">
-            <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <div wicket:id="viewButtonPanel"/>
+            </div>
+            <div class="card-body p-0">
                 <textarea wicket:id="aceEditor"></textarea>
+                <textarea class="text-area" wicket:id="plainTextarea"/>
             </div>
-        </div>
-        <div class="form-group">
-            <div class="col-lg-12">
-                <textarea class="text-area"  wicket:id="plainTextarea"/>
-            </div>
-        </div>
-        </div>
-    </div>
-
-
-
-
-        <div class="main-button-bar">
-            <span class="button-group">
-                <a class="btn btn-default" wicket:id="backButton" />
-            </span>
-            <a class="btn btn-primary" wicket:id="saveButton"/>
         </div>
     </form>
 </wicket:extend>
