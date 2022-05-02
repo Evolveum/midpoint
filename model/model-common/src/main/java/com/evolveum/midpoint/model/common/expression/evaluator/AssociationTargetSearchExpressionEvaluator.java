@@ -12,6 +12,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
@@ -34,13 +35,19 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
  * Creates an association (or associations) based on specified condition for the associated object.
@@ -99,6 +106,13 @@ public class AssociationTargetSearchExpressionEvaluator
         // We do not need to worry about associations of associations here
         // (nested associations). Avoiding that will make the query faster.
         options.add(SelectorOptions.create(prismContext.toUniformPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createDontRetrieve()));
+    }
+
+    @Override
+    protected <O extends ObjectType> boolean isAcceptable(@NotNull PrismObject<O> object) {
+        O objectable = object.asObjectable();
+        argCheck(objectable instanceof ShadowType, "Not a shadow: %s", objectable);
+        return ShadowUtil.isNotDead((ShadowType) objectable);
     }
 
     protected PrismContainerValue<ShadowAssociationType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {
