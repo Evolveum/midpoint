@@ -23,7 +23,7 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, 'target/generated-resources/webpack/static/static'),
-        publicPath: '../static/',
+        publicPath: '../../static/',
         filename: './[name].js',
         assetModuleFilename: './[name][ext]',
     },
@@ -52,7 +52,6 @@ module.exports = {
                     loader: "./node_modules/babel-loader"
                 }
             },
-
             // Images: Copy image files to build folder
             {
                 test: /\.(?:ico|gif|png|jpg|jpeg)$/i,
@@ -61,7 +60,6 @@ module.exports = {
                     filename: 'img/[name][ext]'
                 }
             },
-
             // Fonts and SVGs: Inline files
             {
                 test: /\.(woff(2)?|eot|ttf|otf|svg|)$/,

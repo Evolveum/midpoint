@@ -6,7 +6,7 @@
  */
 
 var ACE_EDITOR_POSTFIX = "_editor";
-// var DISABLED_CLASS = "disabled";
+var DISABLED_CLASS = "disabled";
 $.aceEditors = {};
 
 export default class MidPointAceEditor {
@@ -38,39 +38,26 @@ export default class MidPointAceEditor {
             enableLiveAutocompletion: true,
             selectionStyle: "text",
             useSoftTabs: true,
+            tabSize: 3,
+            showPrintMargin: false,
+            fadeFoldWidgets: false,
         });
 
-        // editor.setShowPrintMargin(false);
-        // editor.setFadeFoldWidgets(false);
-        // setReadonly(jqEditor, editor, readonly);
-        // editor.on('blur', function () {
-        //     $(jqTextArea).val(editor.getSession().getValue());
-        //     $(jqTextArea).trigger('blur');
-        // });
-        // editor.on('change', function () {
-        //     $(jqTextArea).val(editor.getSession().getValue());
-        //     $(jqTextArea).trigger('change');
-        // });
-        //
-        // //add editor to global map, so we can find it later
-        $.aceEditors[editorId] = editor;
-        //
-        // //todo handle readonly for text area [lazyman] add "disabled" class to .ace_scroller
+        this.setReadonly(jqEditor, editor, readonly);
 
-        // $(document).ready(function () {
-        //
-        //     var self = this;
-        //
-        //     if (height < minHeight) {
-        //         height = minHeight;
-        //     }
-        //
-        //     if (resize) {
-        //         self.resizeToMaxHeight(editorId, minHeight);
-        //     } else {
-        //         self.resizeToFixedHeight(editorId, height);
-        //     }
-        // });
+        editor.on('blur', function () {
+            $(jqTextArea).val(editor.getSession().getValue());
+            $(jqTextArea).trigger('blur');
+        });
+        editor.on('change', function () {
+            $(jqTextArea).val(editor.getSession().getValue());
+            $(jqTextArea).trigger('change');
+        });
+
+        // add editor to global map, so we can find it later
+        $.aceEditors[editorId] = editor;
+
+        // //todo handle readonly for text area [lazyman] add "disabled" class to .ace_scroller
     }
 
     resizeToMaxHeight(editorId, minHeight) {
@@ -140,6 +127,4 @@ export default class MidPointAceEditor {
             $(jqEditor).removeClass(DISABLED_CLASS);
         }
     }
-
 }
-
