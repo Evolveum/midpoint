@@ -226,7 +226,7 @@
         -->
         <h2.version>1.4.193</h2.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
-        <wicket.version>9.7.0</wicket.version>
+        <wicket.version>9.9.1</wicket.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
         <!-- Groovy 3.0.10 is also default for Spring Boot 2.6.6 -->
         <groovy.version>3.0.10</groovy.version>
