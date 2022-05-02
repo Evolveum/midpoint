@@ -78,6 +78,7 @@ public class ImportAuditRepositoryAction extends RepositoryAction<ImportAuditOpt
             BlockingQueue<AuditEventRecordType> queue, OperationStatus status) {
         ImportProducerWorker ret = new ImportProducerWorker<>(context, options, queue, status, filter, stopAfterFound, false);
         ret.setConvertMissingType(true);
+        ret.setCompatMode(true);
         return ret;
     }
 
