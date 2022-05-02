@@ -40,7 +40,7 @@ spec:
 	                        df -h
 			            fi
 
-                        mvn clean install -DskipTests=true -P -dist
+                        mvn -B -ntp clean install -DskipTests=true -P -dist
 
 				        if [ '${VERBOSE}' = '1' ]
                         then
@@ -57,7 +57,7 @@ spec:
             container('maven') {
                 try {
                     sh """
-                        mvn clean install -DskipConnTests=false -pl testing/conntest
+                        mvn -B -ntp clean install -DskipConnTests=false -pl testing/conntest
 
 				        if [ '${VERBOSE}' = '1' ]
                         then
