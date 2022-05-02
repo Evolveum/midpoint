@@ -9,22 +9,11 @@ package com.evolveum.midpoint.web.component.data.column;
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
 
 import java.util.*;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -36,22 +25,38 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.export.Abstr
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
@@ -59,12 +64,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.Nullable;
 
 public class ColumnUtils {
     private static final Trace LOGGER = TraceManager.getTrace(ColumnUtils.class);
@@ -468,7 +469,7 @@ public class ColumnUtils {
             public void onClick() {
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, parentOrgOid);
-                pageBase.navigateToNext(PageOrgUnit.class, parameters);
+                pageBase.navigateToNext(PageOrg.class, parameters);
             }
 
             @Override
@@ -844,7 +845,7 @@ public class ColumnUtils {
 
             @Override
             public String getCssClass() {
-                return isDashboard ? "col-sm-2 col-lg-1" : super.getCssClass();
+                return isDashboard ? "mp-w-sm-2 mp-w-lg-1" : super.getCssClass();
             }
         };
         columns.add(column);
@@ -860,7 +861,7 @@ public class ColumnUtils {
 
                 @Override
                 public String getCssClass() {
-                    return isDashboard ? "col-sm-2 col-lg-1" : super.getCssClass();
+                    return isDashboard ? "mp-w-sm-2 mp-w-lg-1" : super.getCssClass();
                 }
             };
             columns.add(column);
@@ -892,7 +893,7 @@ public class ColumnUtils {
 
             @Override
             public String getCssClass() {
-                return "col-lg-1";
+                return "mp-w-lg-1";
             }
         };
         columns.add(column);
@@ -900,7 +901,7 @@ public class ColumnUtils {
         column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state") {
             @Override
             public String getCssClass() {
-                return "col-lg-1";
+                return "mp-w-lg-1";
             }
 
             @Override
@@ -935,7 +936,7 @@ public class ColumnUtils {
 
                 @Override
                 public String getCssClass() {
-                    return "col-lg-1";
+                    return "mp-w-lg-1";
                 }
 
             };

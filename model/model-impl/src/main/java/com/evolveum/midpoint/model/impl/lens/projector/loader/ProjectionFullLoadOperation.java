@@ -157,7 +157,7 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
     }
 
     @NotNull
-    private Collection<SelectorOptions<GetOperationOptions>> createOptions() throws SchemaException {
+    private Collection<SelectorOptions<GetOperationOptions>> createOptions() throws SchemaException, ConfigurationException {
         GetOperationOptions getOptions = GetOperationOptions.createAllowNotFound();
         //getOptions.setReadOnly(true);
         getOptions.setPointInTimeType(PointInTimeType.FUTURE);
@@ -184,7 +184,7 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
 
     private void createTraceIfNeeded(OperationResult result) throws SchemaException {
         if (result.isTracingAny(FullShadowLoadedTraceType.class)) {
-            trace = new FullShadowLoadedTraceType(beans.prismContext);
+            trace = new FullShadowLoadedTraceType();
             if (result.isTracingNormal(FullShadowLoadedTraceType.class)) {
                 trace.setInputLensContextText(context.debugDump());
                 ResourceType resource = projCtx.getResource();
@@ -229,7 +229,8 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
         return false;
     }
 
-    private void addRetrievePasswordIfNeeded(Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
+    private void addRetrievePasswordIfNeeded(Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException, ConfigurationException {
         if (!LensUtil.isPasswordReturnedByDefault(projCtx)
                 && LensUtil.needsFullShadowForCredentialProcessing(projCtx)) {
             options.add(

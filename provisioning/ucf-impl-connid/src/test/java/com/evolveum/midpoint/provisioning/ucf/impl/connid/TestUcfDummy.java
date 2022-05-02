@@ -95,7 +95,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertPropertyDefinition(resource, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 
         PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-        assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
+        assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 0, 1);
         PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
         Collection<Item<?, ?>> configItems = configContainerValue.getItems();
         assertEquals("Wrong number of config items", 2, configItems.size());

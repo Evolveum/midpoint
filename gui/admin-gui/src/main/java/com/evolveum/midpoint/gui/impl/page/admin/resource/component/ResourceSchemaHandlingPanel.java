@@ -104,7 +104,7 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
 
                     @Override
                     public String getCssClass() {
-                        return " col-md-1 ";
+                        return " mp-w-md-1 ";
                     }
 
                 });

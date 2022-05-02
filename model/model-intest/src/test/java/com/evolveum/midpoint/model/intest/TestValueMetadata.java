@@ -445,7 +445,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         repoAdd(USER_CHUCK, result); // Full name is not present because this is raw addition.
         ModelContext<UserType> modelContext =
                 previewChanges(prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, USER_CHUCK.oid),
-                        ModelExecuteOptions.create(prismContext)
+                        ModelExecuteOptions.create()
                                 .reconcile(),
                         task, result);
 
@@ -1479,7 +1479,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         when();
 
         // Reconcile option is to engage inbound processing.
-        executeChanges(delta, ModelExecuteOptions.create(prismContext).reconcile(), task, result);
+        executeChanges(delta, ModelExecuteOptions.create().reconcile(), task, result);
 
         then();
         assertUserAfterByUsername(USER_BLAISE_NAME)

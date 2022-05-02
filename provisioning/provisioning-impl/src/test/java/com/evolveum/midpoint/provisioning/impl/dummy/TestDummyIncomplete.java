@@ -13,6 +13,8 @@ import java.io.File;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -64,7 +66,9 @@ public class TestDummyIncomplete extends TestDummy {
     }
 
     @Override
-    protected void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
+    protected void checkAccountWill(
+            PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs)
+            throws SchemaException, EncryptionException, ConfigurationException {
         super.checkAccountWill(shadow, result, startTs, endTs);
         CredentialsType credentials = shadow.asObjectable().getCredentials();
         assertNotNull("No credentials in "+shadow, credentials);

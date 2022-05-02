@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.HANDLED_ERROR;
+
 import static org.apache.commons.lang3.ArrayUtils.getLength;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -97,11 +100,12 @@ public class ObjectRetriever {
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
             GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-            baseHelper.rollbackTransaction(session, ex, result, !GetOperationOptions.isAllowNotFound(rootOptions));
+            baseHelper.rollbackTransaction(session, ex, result,
+                    GetOperationOptions.isAllowNotFound(rootOptions) ? HANDLED_ERROR : FATAL_ERROR);
             throw ex;
         } catch (SchemaException ex) {
             baseHelper.rollbackTransaction(session, ex, "Schema error while getting object with oid: "
-                    + oid + ". Reason: " + ex.getMessage(), result, true);
+                    + oid + ". Reason: " + ex.getMessage(), result, FATAL_ERROR);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);
@@ -1023,6 +1027,11 @@ public class ObjectRetriever {
     public RepositoryQueryDiagResponse executeQueryDiagnosticsRequest(RepositoryQueryDiagRequest request, OperationResult result) {
         LOGGER_PERFORMANCE.debug("> execute query diagnostics {}", request);
 
+        Class<? extends Containerable> type = request.getType();
+//        if (!ObjectType.class.isAssignableFrom(type)) {
+            // TODO add this branch too, perhaps not here
+//        }
+
         Session session = null;
         try {
             session = baseHelper.beginReadOnlyTransaction();       // beware, not all databases support read-only transactions!
@@ -1030,29 +1039,20 @@ public class ObjectRetriever {
             final String implementationLevelQuery;
             final Map<String, RepositoryQueryDiagResponse.ParameterValue> implementationLevelQueryParameters;
             final Query<?> query;
-            final boolean isMidpointQuery = request.getImplementationLevelQuery() == null;
-            if (isMidpointQuery) {
-                QueryEngine engine = new QueryEngine(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
-                RQueryImpl rQuery = (RQueryImpl) engine.interpret(request.getQuery(), request.getType(), request.getOptions(), false, session);
-                query = rQuery.getQuery();
-                implementationLevelQuery = query.getQueryString();
-                implementationLevelQueryParameters = new HashMap<>();
-                for (Map.Entry<String, QueryParameterValue> entry : rQuery.getQuerySource().getParameters().entrySet()) {
-                    implementationLevelQueryParameters.put(entry.getKey(),
-                            new RepositoryQueryDiagResponse.ParameterValue(entry.getValue().getValue(), entry.getValue().toString()));
-                }
-            } else {
-                implementationLevelQuery = (String) request.getImplementationLevelQuery();
-                implementationLevelQueryParameters = new HashMap<>();
-                query = session.createQuery(implementationLevelQuery);
+            QueryEngine engine = new QueryEngine(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
+            RQueryImpl rQuery = (RQueryImpl) engine.interpret(request.getQuery(), type, request.getOptions(), false, session);
+            query = rQuery.getQuery();
+            implementationLevelQuery = query.getQueryString();
+            implementationLevelQueryParameters = new HashMap<>();
+            for (Map.Entry<String, QueryParameterValue> entry : rQuery.getQuerySource().getParameters().entrySet()) {
+                implementationLevelQueryParameters.put(entry.getKey(),
+                        new RepositoryQueryDiagResponse.ParameterValue(entry.getValue().getValue(), entry.getValue().toString()));
             }
 
             List<?> objects = request.isTranslateOnly() ? null : query.list();
-            if (isMidpointQuery && objects != null) {
-                // raw GetObjectResult instances are useless outside repo-sql-impl module, so we'll convert them to objects
-                @SuppressWarnings("unchecked")
-                List<GetObjectResult> listOfGetObjectResults = (List<GetObjectResult>) objects;
-                objects = queryResultToPrismObjects(listOfGetObjectResults, request.getType(), null, session, result);
+            if (objects != null) {
+                //noinspection unchecked
+                objects = queryResultToPrismObjects((List<GetObjectResult>) objects, (Class<? extends ObjectType>) type, null, session, result);
             }
 
             RepositoryQueryDiagResponse response = new RepositoryQueryDiagResponse(objects, implementationLevelQuery, implementationLevelQueryParameters);

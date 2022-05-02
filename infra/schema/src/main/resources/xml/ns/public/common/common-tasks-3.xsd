@@ -1560,7 +1560,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Cron-like pattern specifying time(s) when the task is to be run.
-                        Currently only loosely-bound recurring tasks can use this feature.
+                        Currently, only loosely-bound recurring tasks can use this feature.
+
+                        See http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayOrder>110</a:displayOrder>

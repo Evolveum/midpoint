@@ -8,12 +8,13 @@ package com.evolveum.midpoint.web.page.forgetpassword;
 
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.apache.wicket.markup.html.pages.RedirectPage;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageAbstractSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -69,7 +69,7 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
 
         if (result.getStatus() == OperationResultStatus.SUCCESS) {
             result.setMessage(getString("PageResetPassword.reset.successful"));
-            setResponsePage(PageLogin.class);
+            setResponsePage(new RedirectPage("/"));
 
             MyPasswordsDto passwords = getPasswordDto();
             PrismObject<? extends FocusType> focus = passwords.getFocus();
@@ -88,20 +88,17 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
                                     focusType.getCredentials().getNonce().clone());
                     WebModelServiceUtils.save(deleteNonceDelta, result, this);
                 } catch (SchemaException e) {
-                    //nothing to do, just let the nonce here.. it will be invalid
+                    //nothing to do, just let the nonce here. it will be invalid
                 }
             }
 
-            AuthUtil.clearMidpointAuthentication();
             showResult(result);
             target.add(getFeedbackPanel());
+            AuthUtil.clearMidpointAuthentication();
         } else if (showFeedback) {
             showResult(result);
         }
         target.add(getFeedbackPanel());
-//        get(ID_MAIN_FORM).setVisible(false);
-
-//        success(getString("PageShowPassword.success")); //TODO uncomment when remove old mechanism
     }
 
     @Override
@@ -128,5 +125,10 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
        }
 
        return accounts;
+    }
+
+    @Override
+    public Task createSimpleTask(String operation) {
+        return createAnonymousTask(operation);
     }
 }

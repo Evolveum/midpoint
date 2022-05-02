@@ -10,8 +10,23 @@
 -- If you use audit and main repository in a single database, this still must be run as well.
 -- It is safe to run this script repeatedly, so if you're not sure, just run it to be up to date.
 
+-- Using psql is strongly recommended, don't use tools with messy autocommit behavior like pgAdmin!
+-- Using flag to stop on first error is also recommended, for example:
+-- psql -v ON_ERROR_STOP=1 -h localhost -U midaudit -W -d midaudit -f postgres-new-upgrade-audit.sql
+
 -- SCHEMA-COMMIT is a commit which should be used to initialize the DB for testing changes below it.
 -- Check out that commit and initialize a fresh DB with postgres-new-audit.sql to test upgrades.
+
+DO $$
+    BEGIN
+        if to_regproc('apply_audit_change') is null then
+            raise exception 'You are running AUDIT UPGRADE script, but the procedure ''apply_audit_change'' is missing.
+Are you sure you are running this upgrade script on the correct database?
+Current database name is ''%'', schema name is ''%''.
+Perhaps you have separate audit database?', current_database(), current_schema();
+        end if;
+    END
+$$;
 
 -- SCHEMA-COMMIT 4.4: commit 69e8c29b
 

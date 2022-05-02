@@ -251,37 +251,7 @@ public class CollectionProcessor {
 
             // TODO: support more cases
             if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRefType)) {
-                RefFilter archetypeFilter = (RefFilter) prismContext.queryFor(AssignmentHolderType.class)
-                        .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRef.getOid())
-                        .buildFilter();
-                archetypeFilter.setTargetTypeNullAsAny(true);
-
-                if (collectionSpec.getBaseCollectionRef() != null) {
-                    compileBaseCollectionSpec(archetypeFilter, existingView, null, collectionSpec.getBaseCollectionRef(), targetTypeClass, task, result);
-                } else {
-                    existingView.setFilter(archetypeFilter);
-                }
-
-                try {
-                    PrismObject<ArchetypeType> archetype = archetypeManager.getArchetype(collectionRef.getOid(), result);
-                    ArchetypePolicyType archetypePolicy = archetype.asObjectable().getArchetypePolicy();
-                    if (archetypePolicy != null) {
-                        DisplayType archetypeDisplay = archetypePolicy.getDisplay();
-                        if (archetypeDisplay != null) {
-                            DisplayType viewDisplay = existingView.getDisplay();
-                            if (viewDisplay == null) {
-                                viewDisplay = new DisplayType();
-                                existingView.setDisplay(viewDisplay);
-                            }
-                            MiscSchemaUtil.mergeDisplay(viewDisplay, archetypeDisplay);
-                        }
-                    }
-                } catch (ObjectNotFoundException e) {
-                    // We do not want to throw exception here. This code takes place at login time.
-                    // We do not want to stop all logins because of missing archetype.
-                    LOGGER.warn("Archetype {} referenced from view {} was not found", collectionRef.getOid(), existingView.getViewIdentifier());
-                }
-
+                compileArchetypeCollectionView(existingView, targetTypeClass, collectionRef.getOid(), collectionSpec.getBaseCollectionRef(), task, result);
                 return;
             }
 
@@ -322,6 +292,41 @@ public class CollectionProcessor {
         }
     }
 
+    private void compileArchetypeCollectionView(CompiledObjectCollectionView existingView, Class<? extends Containerable> targetTypeClass, String collectionRefOid, CollectionRefSpecificationType baseCollectionRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        RefFilter archetypeFilter = (RefFilter) prismContext.queryFor(AssignmentHolderType.class)
+                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRefOid)
+                .buildFilter();
+        archetypeFilter.setTargetTypeNullAsAny(true);
+
+        if (baseCollectionRef != null) {
+            compileBaseCollectionSpec(archetypeFilter, existingView, null, baseCollectionRef, targetTypeClass, task, result);
+        } else {
+            existingView.setFilter(archetypeFilter);
+        }
+
+        try {
+            PrismObject<ArchetypeType> archetype = archetypeManager.getArchetype(collectionRefOid, result);
+            ArchetypePolicyType archetypePolicy = archetype.asObjectable().getArchetypePolicy();
+            if (archetypePolicy != null) {
+                DisplayType archetypeDisplay = archetypePolicy.getDisplay();
+                if (archetypeDisplay != null) {
+                    DisplayType viewDisplay = existingView.getDisplay();
+                    if (viewDisplay == null) {
+                        viewDisplay = new DisplayType();
+                        existingView.setDisplay(viewDisplay);
+                    }
+                    MiscSchemaUtil.mergeDisplay(viewDisplay, archetypeDisplay);
+                }
+            }
+        } catch (ObjectNotFoundException e) {
+            // We do not want to throw exception here. This code takes place at login time.
+            // We do not want to stop all logins because of missing archetype.
+            LOGGER.warn("Archetype {} referenced from view {} was not found", collectionRefOid, existingView.getViewIdentifier());
+        }
+
+        return;
+    }
+
     private Class<? extends Containerable> getContainerTypeClass(QName targetTypeQName, ObjectCollectionType objectCollectionType) throws SchemaException {
         if (targetTypeQName == null) {
             throw new SchemaException("Target container type not specified in " + objectCollectionType);
@@ -341,18 +346,6 @@ public class CollectionProcessor {
         if (targetTypeClass == null) {
             if (existingView.getContainerType() == null) {
                 QName targetTypeQName = objectCollectionType.getType();
-
-//                if (targetTypeQName == null) {
-//                    throw new SchemaException("Target container type not specified in " + objectCollectionType);
-//                }
-//                targetTypeClass = ObjectTypes.getObjectTypeClassIfKnown(targetTypeQName);
-//                if (targetTypeClass == null) {
-//                    PrismContainerDefinition<Containerable> def = prismContext.getSchemaRegistry().findContainerDefinitionByType(targetTypeQName);
-//                    if (def == null) {
-//                        throw new IllegalArgumentException("Unsupported container type " + targetTypeQName);
-//                    }
-//                    targetTypeClass = def.getTypeClass();
-//                }
                 targetTypeClass = getContainerTypeClass(targetTypeQName, objectCollectionType);
                 existingView.setContainerType(targetTypeQName);
             } else {
@@ -491,7 +484,6 @@ public class CollectionProcessor {
             if (containerDefinition != null) {
                 targetTypeClass = containerDefinition.getTypeClass();
             }
-//            targetTypeClass = ObjectTypes.getObjectTypeFromTypeQName(targetObjectType).getClassDefinition();
         }
         compileObjectCollectionView(existingView, collectionSpec, targetTypeClass, task, result);
     }

@@ -94,7 +94,6 @@ public abstract class BasicMultivalueContainerListPanel<C extends Containerable>
         PrismContainerValue<C> newParameter = getContainerModel().getObject().getItem().createNewValue();
         createNewItemContainerValueWrapper(newParameter, getContainerModel().getObject(), target);
         refreshTable(target);
-        reloadSavePreviewButtons(target);
     }
 
 }

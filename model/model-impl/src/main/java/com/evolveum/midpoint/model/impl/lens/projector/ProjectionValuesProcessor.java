@@ -8,11 +8,13 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static java.util.Objects.requireNonNull;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier.Classification;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
@@ -27,7 +30,6 @@ import com.evolveum.midpoint.model.impl.lens.RememberedElementState;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -42,10 +44,8 @@ import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -75,9 +75,10 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
     @Autowired @Qualifier("cacheRepositoryService") RepositoryService repositoryService;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private PrismContext prismContext;
-    @Autowired private SynchronizationService synchronizationService;
+    @Autowired private CorrelationService correlationService;
     @Autowired private ContextLoader contextLoader;
     @Autowired private ProvisioningService provisioningService;
+    @Autowired private ResourceObjectClassifier classifier;
 
     @ProcessorMethod
     public <F extends FocusType> void process(LensContext<F> context, LensProjectionContext projectionContext,
@@ -233,19 +234,22 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                                 LOGGER.trace("Conflicting shadow details:\n{}", conflictingShadow.debugDumpLazily(1));
                                 PrismObject<ShadowType> fullConflictingShadow = null;
                                 try {
-                                    var options = SchemaService.get().getOperationOptionsBuilder()
-                                            .futurePointInTime()
-                                            //.readOnly() [not yet]
-                                            .build();
+                                    var options =
+                                            SchemaService.get().getOperationOptionsBuilder()
+                                                    .futurePointInTime()
+                                                    //.readOnly() [not yet]
+                                                    .build();
                                     fullConflictingShadow = provisioningService.getObject(ShadowType.class, conflictingShadow.getOid(), options, task, iterationResult);
                                     LOGGER.trace("Full conflicting shadow = {}", fullConflictingShadow);
                                 } catch (ObjectNotFoundException ex) {
-                                    //if object not found exception occurred, its ok..the account was deleted by the discovery, so there esits no more conflicting shadow
-                                    LOGGER.debug("Conflicting shadow was deleted by discovery. It does not exist anymore. Continue with adding current shadow.");
+                                    // Looks like the conflicting resource object no longer exists. Its shadow in repository
+                                    // might have been deleted by the discovery.
+                                    LOGGER.debug("Conflicting shadow was deleted by discovery. It does not exist anymore. "
+                                            + "Continue with adding current shadow.");
                                     conflict = false;
                                 }
 
-                                iterationResult.computeStatus(false);
+                                iterationResult.computeStatus(true);
                                 // if the result is fatal error, it may mean that the
                                 // already exists exception occurs before..but in this
                                 // scenario it means, the exception was handled and we
@@ -256,35 +260,35 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                                 }
 
                                 if (conflict) {
-                                    PrismObject<F> conflictingShadowOwner = repositoryService.searchShadowOwner(conflictingShadow.getOid(),
-                                            SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()), iterationResult);
+                                    PrismObject<F> conflictingShadowOwner = repositoryService.searchShadowOwner(
+                                            conflictingShadow.getOid(),
+                                            SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
+                                            iterationResult);
                                     LOGGER.trace("Conflicting shadow owner = {}", conflictingShadowOwner);
 
-                                    //the owner of the shadow exist and it is a current user..so the shadow was successfully created, linked etc..no other recompute is needed..
+                                    // The owner of the shadow exist and it is the current user. So the shadow was successfully
+                                    // created, linked, and so on; no other recompute is needed.
                                     if (conflictingShadowOwner != null) {
                                         if (conflictingShadowOwner.getOid().equals(context.getFocusContext().getOid())) {
                                             treatConflictingWithTheSameOwner(projContext, rememberedProjectionState, fullConflictingShadow);
                                             skipUniquenessCheck = true;
                                             continue;
                                         } else {
-                                            LOGGER.trace("Iterating to the following shadow identifier, because shadow with the current identifier exists and it belongs to other user.");
+                                            LOGGER.trace("Iterating to the following shadow identifier, because shadow with the"
+                                                    + " current identifier exists and it belongs to other user.");
                                         }
                                     } else {
-                                        LOGGER.debug("There is no owner linked with the conflicting projection.");
-                                        ResourceType resource = projContext.getResource();
-
-                                        if (ResourceTypeUtil.isSynchronizationOpportunistic(resource)) {
-                                            LOGGER.trace("Trying to find owner using correlation expression.");
-                                            boolean match = synchronizationService.matchUserCorrelationRule(fullConflictingShadow,
-                                                    context.getFocusContext().getObjectNew(), resource, context.getSystemConfiguration(), task, iterationResult);
-
-                                            if (match) {
-                                                treatConflictWithMatchedOwner(context, projContext, iterationResult, rememberedProjectionState, fullConflictingShadow);
-                                                skipUniquenessCheck = true;
-                                                continue;
-                                            } else {
-                                                LOGGER.trace("User {} does not satisfy correlation rules.", context.getFocusContext().getObjectNew());
-                                            }
+                                        LOGGER.debug("There is no owner linked with the conflicting projection, checking "
+                                                + "opportunistic synchronization (if available).");
+                                        if (doesMatchOpportunistically(
+                                                context,
+                                                projContext,
+                                                fullConflictingShadow.asObjectable(),
+                                                rememberedProjectionState,
+                                                task,
+                                                iterationResult)) {
+                                            skipUniquenessCheck = true;
+                                            continue;
                                         }
                                     }
                                 }
@@ -312,7 +316,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                 throw t;
             } finally {
                 iterationResult.recordEnd();
-                iterationResult.computeStatusIfUnknown();
+                iterationResult.close();
             }
 
             iteration++;
@@ -327,17 +331,88 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         context.checkConsistenceIfNeeded();
     }
 
+    private <F extends FocusType> boolean doesMatchOpportunistically(
+            LensContext<F> context,
+            LensProjectionContext projContext,
+            ShadowType fullConflictingShadow,
+            RememberedElementState<ShadowType> rememberedProjectionState,
+            Task task,
+            OperationResult iterationResult)
+            throws ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ObjectAlreadyExistsException {
+
+        ResourceType resource = projContext.getResource();
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
+        if (schema == null) {
+            LOGGER.trace("No resource schema for {} -> opportunistic sync not available", resource);
+            return false;
+        }
+        if (!ShadowUtil.isClassified(fullConflictingShadow)) {
+            // In the future the provisioning.getObject operation should do the classification itself.
+            // The following is more or less a workaround. See MID-7910.
+            LOGGER.trace("Conflicting shadow is not classified yet, let us try to classify it now.");
+            Classification classification = classifier.classify(fullConflictingShadow, resource, task, iterationResult);
+            if (!classification.isKnown()) {
+                LOGGER.trace("No classification possible -> opportunistic sync not available");
+                return false;
+            }
+            LOGGER.debug("Classified {} as {}", fullConflictingShadow, classification);
+            fullConflictingShadow.setKind(classification.getKind());
+            fullConflictingShadow.setIntent(classification.getIntent());
+            repositoryService.modifyObject(
+                    ShadowType.class,
+                    fullConflictingShadow.getOid(),
+                    prismContext.deltaFor(ShadowType.class)
+                            .item(ShadowType.F_KIND).replace(classification.getKind())
+                            .item(ShadowType.F_INTENT).replace(classification.getIntent())
+                            .asItemDeltas(),
+                    iterationResult);
+        }
+        ShadowKindType kind = fullConflictingShadow.getKind();
+        String intent = fullConflictingShadow.getIntent();
+        SynchronizationPolicy synchronizationPolicy = SynchronizationPolicyFactory.forKindAndIntent(kind, intent, resource);
+        if (synchronizationPolicy == null) {
+            LOGGER.trace("No sync policy for {}/{} on {} -> opportunistic sync not available", kind, intent, resource);
+            return false;
+        }
+
+        if (!synchronizationPolicy.isOpportunistic()) {
+            LOGGER.trace("Opportunistic sync for {}/{} on {} is disabled", kind, intent, resource);
+            return false;
+        }
+
+        F focus = asObjectable(context.getFocusContext().getObjectNew());
+        if (focus == null || focus.getOid() == null) {
+            LOGGER.trace("'object new' is null or without OID ({}) -> no opportunistic sync will be attempted", focus);
+            return false;
+        }
+
+        LOGGER.trace("Checking if the owner matches (using the correlation service).");
+        boolean matches = correlationService.checkCandidateOwner(
+                fullConflictingShadow, resource, synchronizationPolicy, focus, task, iterationResult);
+
+        if (matches) {
+            LOGGER.trace("Object {} satisfies correlation rules.", focus);
+            treatConflictWithMatchedOwner(
+                    context, projContext, iterationResult, rememberedProjectionState, fullConflictingShadow);
+            return true;
+        } else {
+            LOGGER.trace("Object {} does not satisfy correlation rules.", focus);
+            return false;
+        }
+    }
+
     private <F extends FocusType> void treatConflictWithMatchedOwner(LensContext<F> context, LensProjectionContext projContext,
             OperationResult result, @NotNull RememberedElementState<ShadowType> rememberedProjectionState,
-            PrismObject<ShadowType> fullConflictingShadow)
+            ShadowType fullConflictingShadow)
             throws SchemaException {
         //check if it is add account (primary delta contains add shadow delta)..
         //if it is add account, create new context for conflicting account..
         //it ensures that conflicting account is linked to the user
         if (projContext.getPrimaryDelta() != null && projContext.getPrimaryDelta().isAdd()) {
-            treatConflictForShadowAdd(context, projContext, result, fullConflictingShadow);
+            treatConflictForShadowAdd(context, projContext, result, fullConflictingShadow.asPrismObject());
         } else {
-            treatConflictForShadowNotAdd(context, projContext, rememberedProjectionState, fullConflictingShadow);
+            treatConflictForShadowNotAdd(context, projContext, rememberedProjectionState, fullConflictingShadow.asPrismObject());
         }
     }
 
@@ -400,7 +475,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                 + "Reason: conflicting projection is already linked to the current focus.");
     }
 
-    private boolean willResetIterationCounter(LensProjectionContext projectionContext) throws SchemaException {
+    private boolean willResetIterationCounter(LensProjectionContext projectionContext)
+            throws SchemaException, ConfigurationException {
         ObjectDelta<ShadowType> projectionDelta = projectionContext.getCurrentDelta();
         if (projectionDelta == null) {
             return false;
@@ -471,7 +547,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             LensProjectionContext projectionContext) {
         return ModelImplUtils.getDefaultVariablesMap(context.getFocusContext().getObjectNew(), projectionContext.getObjectNew(),
                 projectionContext.getResourceShadowDiscriminator(), projectionContext.getResource().asPrismObject(),
-                context.getSystemConfiguration(), projectionContext, prismContext);
+                context.getSystemConfiguration(), projectionContext);
     }
 
     private <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context,
@@ -493,7 +569,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
      * TODO: implement schema check
      */
     private void checkSchemaAndPolicies(LensProjectionContext accountContext, String activityDescription)
-            throws SchemaException, PolicyViolationException {
+            throws SchemaException, PolicyViolationException, ConfigurationException {
         ObjectDelta<ShadowType> primaryDelta = accountContext.getPrimaryDelta();
         if (primaryDelta == null || primaryDelta.isDelete()) {
             return;
@@ -586,7 +662,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
     <F extends FocusType> void processPostRecon(LensContext<F> context, LensProjectionContext projContext,
             @SuppressWarnings("unused") String activityDescription, @SuppressWarnings("unused") XMLGregorianCalendar now,
             Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+            throws SchemaException, ExpressionEvaluationException, PolicyViolationException, ConfigurationException {
         SynchronizationPolicyDecision policyDecision = projContext.getSynchronizationPolicyDecision();
         if (policyDecision == SynchronizationPolicyDecision.UNLINK) {
             // We will not update accounts that are being unlinked.

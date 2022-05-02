@@ -334,8 +334,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
     void updateOutputTripleMap(MappingImpl<V, D> mapping, FocalMappingEvaluationRequest<?, ?> request) {
         ItemPath outputPath = mapping.getOutputPath();
         if (outputPath != null) {
-            DeltaSetTriple<ItemValueWithOrigin<V, D>> rawOutputTriple =
-                    ItemValueWithOrigin.createOutputTriple(mapping, beans.prismContext);
+            DeltaSetTriple<ItemValueWithOrigin<V, D>> rawOutputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
             LOGGER.trace("Raw output triple for {}:\n{}", mapping, debugDumpLazily(rawOutputTriple));
             // TODO fix this hack
             //noinspection unchecked,rawtypes

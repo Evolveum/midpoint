@@ -9,12 +9,13 @@ package com.evolveum.midpoint.web.component.sample;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -22,8 +23,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.SimpleRoleSelector;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractFocusTabPanel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -33,7 +32,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * @author Radovan Semancik
  */
-public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusTabPanel<F> {
+public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = SampleFormFocusTabPanel.class.getName() + ".";
@@ -48,19 +47,12 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
 
     private static final Trace LOGGER = TraceManager.getTrace(SampleFormFocusTabPanel.class);
 
-    public SampleFormFocusTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
-            LoadableModel<List<ShadowWrapper>> projectionModel) {
-        super(id, focusWrapperModel, projectionModel);
+    public SampleFormFocusTabPanel(String id, FocusDetailsModels<F> model, ContainerPanelConfigurationType config) {
+        super(id, model, config);
 
     }
 
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
-
-    private void initLayout() {
+    protected void initLayout() {
         add(new Label(ID_HEADER, "Object details"));
         WebMarkupContainer body = new WebMarkupContainer("body");
         add(body);

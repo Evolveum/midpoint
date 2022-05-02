@@ -358,8 +358,8 @@ JAVA_OPTS="$(echo "${JAVA_OPTS:-}" | tr -s [[:space:]] " " | sed "s/^[[:space:]]
 : "${BOOT_OUT:="${MIDPOINT_HOME}/log/midpoint.out"}"
 : "${PID_FILE:="${MIDPOINT_HOME}/log/midpoint.pid"}"
 
-if [[ ! -f "${BASE_DIR}/lib/midpoint.war" ]]; then
-  echo "ERROR: midpoint.war is not in /lib directory"
+if [[ ! -f "${BASE_DIR}/lib/midpoint.jar" ]]; then
+  echo "ERROR: midpoint.jar is not in /lib directory"
   exit 1
 fi
 
@@ -403,7 +403,7 @@ Description=MidPoint Standalone Service
 [Service]
 User=${userToUse:-midpoint}
 WorkingDirectory=${BASE_DIR}
-ExecStart=\"${_RUNJAVA}\" ${JAVA_OPTS} -jar \"${BASE_DIR}/lib/midpoint.war\" \"$@\"
+ExecStart=\"${_RUNJAVA}\" ${JAVA_OPTS} -jar \"${BASE_DIR}/lib/midpoint.jar\" \"$@\"
 SuccessExitStatus=143
 ###TimeoutStopSec=120s
 
@@ -442,11 +442,11 @@ if [[ "$1" == "container" ]]; then
   if [ "${1:-}" = "" ] ; then
     eval "\"${_RUNJAVA}\"" \
       ${JAVA_OPTS} \
-      -jar "\"${BASE_DIR}/lib/midpoint.war\"" 2>&1
+      -jar "\"${BASE_DIR}/lib/midpoint.jar\"" 2>&1
   else
     eval "\"${_RUNJAVA}\"" \
       ${JAVA_OPTS} \
-      -jar "\"${BASE_DIR}/lib/midpoint.war\"" \
+      -jar "\"${BASE_DIR}/lib/midpoint.jar\"" \
       "$@" 2>&1
   fi
 
@@ -508,7 +508,7 @@ if [[ "$1" == "start" ]]; then
   # shellcheck disable=SC2086
   eval "${_NOHUP}" "\"${_RUNJAVA}\"" \
     ${JAVA_OPTS} \
-    -jar "\"${BASE_DIR}/lib/midpoint.war\"" \
+    -jar "\"${BASE_DIR}/lib/midpoint.jar\"" \
     "$@" \
     "&" >>"${BOOT_OUT}" 2>&1
 

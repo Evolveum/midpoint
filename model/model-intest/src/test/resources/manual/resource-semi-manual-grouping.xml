@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2017-2018 Evolveum and contributors
+  ~ Copyright (C) 2017-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -9,7 +9,6 @@
 <resource oid="9eddca88-f222-11e7-98dc-cb6e4b08800c"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector"
         xmlns:csvconf="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
@@ -145,7 +144,7 @@
         <operationGroupingInterval>PT2M</operationGroupingInterval>
         <pendingOperationRetentionPeriod>PT30M</pendingOperationRetentionPeriod>
         <deadShadowRetentionPeriod>PT2H</deadShadowRetentionPeriod>
-        <reshreshOnRead>true</reshreshOnRead>
+        <refreshOnRead>true</refreshOnRead>
     </consistency>
 
     <synchronization>

@@ -15,6 +15,8 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrappe
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
 
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
@@ -115,7 +117,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
                 ocDef = getDefinitionByObjectClass();
 
             }
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             warn("Could not get determine object class definition");
             return itemsList;
         }

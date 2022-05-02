@@ -12,10 +12,9 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Used to represent combined definition of structural and auxiliary object classes.
+ * Represents ad-hoc combination of definitions of structural and auxiliary object classes.
  *
  * @author semancik
- *
  */
 public interface CompositeObjectDefinition extends ResourceObjectDefinition, LayeredDefinition {
 
@@ -31,7 +30,8 @@ public interface CompositeObjectDefinition extends ResourceObjectDefinition, Lay
     @NotNull Collection<ResourceObjectDefinition> getAuxiliaryDefinitions();
 
     /**
-     * The restriction to the structural definition is intentional.
+     * Returns the names of auxiliary object classes that are "statically" defined for the structural object type.
+     * (The restriction to the structural definition is intentional.)
      *
      * @see ResourceObjectDefinition#getConfiguredAuxiliaryObjectClassNames()
      */

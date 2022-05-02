@@ -1,0 +1,22 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<shadow xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="2947d268-1d43-4114-bd4c-f4aa723d884a">
+    <name>guybrush</name>
+    <resourceRef oid="10000000-0000-0000-0000-000000001104" type="ResourceType"/>
+    <dead>true</dead>
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <kind>account</kind>
+    <intent>default</intent>
+    <attributes>
+        <icfs:name>guybrush</icfs:name>
+        <icfs:uid>guybrush</icfs:uid>
+    </attributes>
+</shadow>

@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.web;
 
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import org.apache.wicket.util.tester.WicketTester;
 import org.springframework.test.annotation.DirtiesContext;
@@ -17,6 +17,8 @@ import org.testng.annotations.Test;
 /**
  * Created by honchar
  */
+
+//TODO what is this???
 @ContextConfiguration(locations = {"classpath:ctx-admin-gui-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class PageLoginTest extends AbstractInitializedGuiIntegrationTest {

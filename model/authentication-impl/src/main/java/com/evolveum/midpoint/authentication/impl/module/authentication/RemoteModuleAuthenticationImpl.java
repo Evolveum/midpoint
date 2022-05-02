@@ -9,6 +9,8 @@ package com.evolveum.midpoint.authentication.impl.module.authentication;
 import com.evolveum.midpoint.authentication.api.IdentityProvider;
 import com.evolveum.midpoint.authentication.api.config.RemoteModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.util.RequestState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -31,8 +33,8 @@ public class RemoteModuleAuthenticationImpl extends ModuleAuthenticationImpl imp
 
     private RequestState requestState;
 
-    public RemoteModuleAuthenticationImpl(String nameOfType) {
-        super(nameOfType);
+    public RemoteModuleAuthenticationImpl(String nameOfType, AuthenticationSequenceModuleType sequenceModule) {
+        super(nameOfType, sequenceModule);
     }
 
     public void setProviders(List<IdentityProvider> providers) {

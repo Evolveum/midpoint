@@ -8,10 +8,11 @@
 package com.evolveum.midpoint.model.impl.correlator.composite;
 
 import com.evolveum.midpoint.model.api.correlator.*;
+import com.evolveum.midpoint.model.api.correlator.CorrelationResult.OwnersInfo;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectSet;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 import com.evolveum.midpoint.task.api.Task;
@@ -50,6 +51,15 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
             ConfigurationException, ObjectNotFoundException {
         return new Correlation(correlationContext)
                 .execute(result);
+    }
+
+    @Override
+    protected boolean checkCandidateOwnerInternal(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
+            @NotNull OperationResult result) {
+        throw new UnsupportedOperationException("CompositeCorrelator is not supported in the 'opportunistic synchronization'"
+                + " mode. Please disable this mode for this particular resource or object type.");
     }
 
     @NotNull private CompositeCorrelatorType getConfiguration() {
@@ -150,17 +160,20 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
             return null;
         }
 
-        private @NotNull CorrelationResult determineOverallResult() {
+        private @NotNull CorrelationResult determineOverallResult() throws SchemaException {
             CorrelationResult authoritativeResult = getAuthoritativeResult();
             if (authoritativeResult != null) {
                 return authoritativeResult;
             }
 
-            ResourceObjectOwnerOptionsType ownerOptions = createUnifiedOwnerOptions();
-            if (ownerOptions.getOption().size() > 1) {
-                return CorrelationResult.uncertain(ownerOptions);
+            OwnersInfo ownersInfo = createUnifiedOwnerInfo();
+            List<ResourceObjectOwnerOptionType> options = ownersInfo.optionsBean.getOption();
+            if (options.size() > 1) {
+                return CorrelationResult.uncertain(ownersInfo);
             } else {
-                // Only "create new"
+                assert options.size() == 1;
+                assert OwnerOptionIdentifier.fromStringValue(options.get(0).getIdentifier())
+                        .isNewOwner();
                 return CorrelationResult.noOwner();
             }
         }
@@ -204,39 +217,42 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
          * 1. Assumes identifiers are comparable (or even that they are OID-based).
          * 2. Ignores the confidence
          */
-        private @NotNull ResourceObjectOwnerOptionsType createUnifiedOwnerOptions() {
-            ResourceObjectOwnerOptionsType optionsBean = new ResourceObjectOwnerOptionsType(PrismContext.get());
-            addOptions(optionsBean, authoritativeResults);
-            addOptions(optionsBean, nonAuthoritativeResults);
-            addNoneIfNeeded(optionsBean.getOption());
-            return optionsBean;
+        private @NotNull OwnersInfo createUnifiedOwnerInfo() {
+            OwnersInfo ownersInfo = new OwnersInfo(
+                    new ResourceObjectOwnerOptionsType(), new ObjectSet<>());
+            addOptions(ownersInfo, authoritativeResults);
+            addOptions(ownersInfo, nonAuthoritativeResults);
+            addNoneIfNeeded(ownersInfo.optionsBean.getOption());
+            return ownersInfo;
         }
 
         private void addNoneIfNeeded(List<ResourceObjectOwnerOptionType> options) {
             if (options.stream().noneMatch(
                     o -> o.getCandidateOwnerRef() == null)) {
                 options.add(
-                        new ResourceObjectOwnerOptionType(PrismContext.get())
+                        new ResourceObjectOwnerOptionType()
                                 .identifier(OwnerOptionIdentifier.forNoOwner().getStringValue()));
             }
         }
 
-        private void addOptions(ResourceObjectOwnerOptionsType aggregate, List<CorrelationResult> results) {
+        private void addOptions(OwnersInfo aggregate, List<CorrelationResult> results) {
             for (CorrelationResult result : results) {
                 if (result.isUncertain()) {
                     for (ResourceObjectOwnerOptionType option : result.getOwnerOptionsRequired().getOption()) {
-                        addOption(aggregate, option);
+                        addOption(aggregate.optionsBean, option);
                     }
                 } else if (result.isExistingOwner()) {
-                    addExistingOwnerOption(aggregate, result.getOwnerRequired());
+                    addExistingOwnerOption(aggregate.optionsBean, result.getOwnerRequired());
                 }
+                aggregate.allOwnerCandidates.addAll(
+                        result.getAllOwnerCandidates());
             }
         }
 
         private void addExistingOwnerOption(@NotNull ResourceObjectOwnerOptionsType aggregate, @NotNull ObjectType owner) {
             addOption(
                     aggregate,
-                    new ResourceObjectOwnerOptionType(PrismContext.get())
+                    new ResourceObjectOwnerOptionType()
                             .identifier(
                                     OwnerOptionIdentifier.forExistingOwner(owner.getOid()).getStringValue())
                             .candidateOwnerRef(

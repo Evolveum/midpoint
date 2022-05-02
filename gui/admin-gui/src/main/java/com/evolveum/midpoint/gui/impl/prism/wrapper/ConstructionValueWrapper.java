@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -45,7 +47,7 @@ public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<Con
         return resourceOid;
     }
 
-    public ResourceSchema getRefinedSchema(PrismObject<ResourceType> resource) throws SchemaException {
+    public ResourceSchema getRefinedSchema(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
         if (resource != null) {
             return ResourceSchemaFactory.getCompleteSchema(resource);
         }
@@ -69,7 +71,7 @@ public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<Con
                 if (def instanceof ResourceObjectTypeDefinition) {
                     intent = ((ResourceObjectTypeDefinition) def).getIntent();
                 }
-            } catch (SchemaException e) {
+            } catch (SchemaException | ConfigurationException e) {
                 LOGGER.error("Cannot get default object class definition, {}", e.getMessage(), e);
                 intent = "default";
             }
@@ -78,7 +80,8 @@ public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<Con
         return intent;
     }
 
-    private ResourceObjectDefinition findDefaultObjectClassDefinition(PrismObject<ResourceType> resource) throws SchemaException {
+    private ResourceObjectDefinition findDefaultObjectClassDefinition(PrismObject<ResourceType> resource)
+            throws SchemaException, ConfigurationException {
         ResourceSchema schema = getRefinedSchema(resource);
         if (schema == null) {
             return null;

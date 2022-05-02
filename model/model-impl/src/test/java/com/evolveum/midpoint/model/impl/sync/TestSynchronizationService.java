@@ -858,7 +858,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
      * Limited dummy resource has limited propagation (limitPropagation=true).
      * Therefore it should only read/write to its own resource.
      * Ruin both jack's accounts, so reconciliation would normally try to
-     * fix both accounts. The initiate sync from limted dummy. As limited
+     * fix both accounts. The initiate sync from limited dummy. As limited
      * dummy should only care about itself, it should not fix the other
      * dummy account. Also, is should not even read full dummy account.
      * MID-3805

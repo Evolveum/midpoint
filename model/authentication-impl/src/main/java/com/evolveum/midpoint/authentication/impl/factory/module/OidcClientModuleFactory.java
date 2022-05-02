@@ -45,7 +45,7 @@ public class OidcClientModuleFactory extends RemoteModuleFactory {
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
                                          Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
-            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
+            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
         if (!(moduleType instanceof OidcAuthenticationModuleType)) {
             LOGGER.error("This factory support only OidcAuthenticationModuleType, but modelType is " + moduleType);
             return null;
@@ -71,14 +71,15 @@ public class OidcClientModuleFactory extends RemoteModuleFactory {
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);
 
-        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, request);
+        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, sequenceModule, request);
         moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 
-    public ModuleAuthenticationImpl createEmptyModuleAuthentication(OidcClientModuleWebSecurityConfiguration configuration, ServletRequest request) {
-        OidcClientModuleAuthenticationImpl moduleAuthentication = new OidcClientModuleAuthenticationImpl();
+    public ModuleAuthenticationImpl createEmptyModuleAuthentication(
+            OidcClientModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
+        OidcClientModuleAuthenticationImpl moduleAuthentication = new OidcClientModuleAuthenticationImpl(sequenceModule);
         List<IdentityProvider> providers = new ArrayList<>();
         configuration.getClientRegistrationRepository().forEach(
                 client -> {

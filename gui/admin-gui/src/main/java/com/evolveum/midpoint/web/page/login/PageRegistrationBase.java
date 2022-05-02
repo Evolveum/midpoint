@@ -22,7 +22,6 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.forgetpassword.ResetPolicyDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 public class PageRegistrationBase extends PageBase {
@@ -38,13 +37,10 @@ public class PageRegistrationBase extends PageBase {
     @SpringBean(name = "nonceAuthenticationEvaluator")
     private AuthenticationEvaluator<NonceAuthenticationContext> authenticationEvaluator;
 
-    private ResetPolicyDto resetPasswordPolicy;
     private SelfRegistrationDto selfRegistrationDto;
     private SelfRegistrationDto postAuthenticationDto;
 
     public PageRegistrationBase() {
-//        initSelfRegistrationConfiguration();
-//        initResetCredentialsConfiguration();
     }
 
     private void initSelfRegistrationConfiguration() {
@@ -81,24 +77,21 @@ public class PageRegistrationBase extends PageBase {
 
     }
 
-    private void initResetCredentialsConfiguration() {
-        SecurityPolicyType securityPolicy = resolveSecurityPolicy();
-
-        this.resetPasswordPolicy = new ResetPolicyDto();
-        try {
-            this.resetPasswordPolicy.initResetPolicyDto(securityPolicy);
-        } catch (SchemaException e) {
-            LOGGER.error("Failed to initialize self registration configuration.", e);
-            getSession().error(
-                    createStringResource("PageSelfRegistration.selfRegistration.configuration.init.failed")
-                            .getString());
-            throw new RestartResponseException(PageLogin.class);
-        }
-
-    }
-
     private SecurityPolicyType resolveSecurityPolicy() {
-        SecurityPolicyType securityPolicy = resolveSecurityPolicy(null);
+        SecurityPolicyType securityPolicy = runPrivileged((Producer<SecurityPolicyType>) () -> {
+
+            Task task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
+            task.setChannel(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
+            OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
+
+            try {
+                return getModelInteractionService().getSecurityPolicy((PrismObject<UserType>) null, task, result);
+            } catch (CommonException e) {
+                LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
+                return null;
+            }
+
+        });
 
         if (securityPolicy == null) {
             LOGGER.error("No security policy defined.");
@@ -110,32 +103,6 @@ public class PageRegistrationBase extends PageBase {
         return securityPolicy;
     }
 
-    protected SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user) {
-        SecurityPolicyType securityPolicy = runPrivileged(new Producer<SecurityPolicyType>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public SecurityPolicyType run() {
-
-                Task task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
-                task.setChannel(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
-                OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
-
-                try {
-                    return getModelInteractionService().getSecurityPolicy(user, task, result);
-                } catch (CommonException e) {
-                    LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
-                    return null;
-                }
-
-            }
-
-        });
-
-        return securityPolicy;
-
-    }
-
     public SelfRegistrationDto getSelfRegistrationConfiguration() {
 
         if (selfRegistrationDto == null) {
@@ -144,13 +111,6 @@ public class PageRegistrationBase extends PageBase {
 
         return selfRegistrationDto;
 
-    }
-
-    public ResetPolicyDto getResetPasswordPolicy() {
-        if (resetPasswordPolicy == null) {
-            initResetCredentialsConfiguration();
-        }
-        return resetPasswordPolicy;
     }
 
     public SelfRegistrationDto getPostAuthenticationConfiguration() {

@@ -871,8 +871,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
         ResourceShadowDiscriminator rsd = projCtx.getResourceShadowDiscriminator();
 
-        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(focus, shadow, rsd, resource.asPrismObject(),
-                context.getSystemConfiguration(), elementContext, b.prismContext);
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
+                focus, shadow, rsd, resource.asPrismObject(), context.getSystemConfiguration(), elementContext);
         // Having delta in provisioning scripts may be very useful. E.g. the script can optimize execution of expensive operations.
         variables.put(ExpressionConstants.VAR_DELTA, projCtx.getCurrentDelta(), ObjectDelta.class);
         ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();

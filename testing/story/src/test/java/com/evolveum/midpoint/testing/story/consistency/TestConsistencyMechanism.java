@@ -78,7 +78,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
- * Consistency test suite. It tests consistency mechanisms. It works as end-to-end integration test accross all subsystems.
+ * Consistency test suite. It tests consistency mechanisms. It works as end-to-end integration test across all subsystems.
  *
  * @author Katarina Valalikova
  */
@@ -1160,7 +1160,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         when();
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
-        executeChanges(delta, ModelExecuteOptions.create(prismContext).reconcile(), task, parentResult);
+        executeChanges(delta, ModelExecuteOptions.create().reconcile(), task, parentResult);
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         then();
@@ -1475,7 +1475,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance();
 
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
-        executeChanges(objectDelta, ModelExecuteOptions.create(prismContext).pushChanges(), task, parentResult);
+        executeChanges(objectDelta, ModelExecuteOptions.create().pushChanges(), task, parentResult);
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         parentResult.computeStatus();
@@ -1564,7 +1564,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .createModifyDelta(USER_JACKIE_OID, modifications, UserType.class);
         Task task = taskManager.createTaskInstance();
 
-        executeChanges(objectDelta, ModelExecuteOptions.create(prismContext).pushChanges(), task, parentResult);
+        executeChanges(objectDelta, ModelExecuteOptions.create().pushChanges(), task, parentResult);
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         parentResult.computeStatus();
@@ -2265,7 +2265,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         when();
         modifyObjectReplaceProperty(UserType.class, USER_TRAINEE_OID, UserType.F_NAME,
-                ModelExecuteOptions.create(prismContext).reconcile(), task, result, createPolyString("trainee01"));
+                ModelExecuteOptions.create().reconcile(), task, result, createPolyString("trainee01"));
 
         then();
 //        assertResultStatus(result, OperationResultStatus.IN_PROGRESS);
@@ -2369,7 +2369,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     }
 
     /**
-     * Adding a user (morgan) that has an OpenDJ assignment. But the equivalent account already exists on
+     * Adding a user (chuck) that has an OpenDJ assignment. But the equivalent account already exists on
      * OpenDJ and there is also corresponding shadow in the repo. The account should be linked.
      */
     @Test
@@ -2396,12 +2396,12 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         result.computeStatus();
 //        assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
 
-        PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_CHUCK_OID, null, task, result);
-        display("User morgan after", userMorgan);
-        UserType userMorganType = userMorgan.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getLinkRef().size());
-        ObjectReferenceType accountRefType = userMorganType.getLinkRef().get(0);
-        String accountOid = accountRefType.getOid();
+        PrismObject<UserType> userChuck = modelService.getObject(UserType.class, USER_CHUCK_OID, null, task, result);
+        display("User chuck after", userChuck);
+        UserType userChuckBean = userChuck.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userChuckBean.getLinkRef().size());
+        ObjectReferenceType accountRef = userChuckBean.getLinkRef().get(0);
+        String accountOid = accountRef.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         assertEquals("old oid not used..", accOid, accountOid);
 
@@ -2875,7 +2875,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     private void recreateAssignment(String userOid, AssignmentType assignmentNoId, Task task, OperationResult result)
             throws CommonException {
-        ModelExecuteOptions options = ModelExecuteOptions.create(PrismContext.get())
+        ModelExecuteOptions options = ModelExecuteOptions.create()
                 .reconcile();
 
         executeChanges(

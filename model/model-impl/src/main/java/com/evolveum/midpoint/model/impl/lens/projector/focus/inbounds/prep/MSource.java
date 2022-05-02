@@ -29,6 +29,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+
 /**
  * The resource object being processed plus the necessary surroundings,
  * like lens/projection context in the case of clockwork processing.
@@ -44,11 +46,10 @@ abstract class MSource implements DebugDumpable {
     private static final Trace LOGGER = TraceManager.getTrace(MSource.class);
 
     /**
-     * Current shadow object (in case of clockwork processing it may be full or repo-only, or maybe even null).
-     *
-     * TODO when it can be null?
+     * Current shadow object (in case of clockwork processing it may be full or repo-only, or maybe even null
+     * - e.g. when currentObject is null in projection context).
      */
-    PrismObject<ShadowType> currentShadow;
+    @Nullable PrismObject<ShadowType> currentShadow;
 
     /**
      * A priori delta is a delta that was executed in a previous "step".
@@ -63,10 +64,10 @@ abstract class MSource implements DebugDumpable {
     final ResourceObjectDefinition resourceObjectDefinition;
 
     MSource(
-            PrismObject<ShadowType> currentShadow,
+            @Nullable ShadowType currentShadow,
             @Nullable ObjectDelta<ShadowType> aPrioriDelta,
             ResourceObjectDefinition resourceObjectDefinition) {
-        this.currentShadow = currentShadow;
+        this.currentShadow = asPrismObject(currentShadow);
         this.aPrioriDelta = aPrioriDelta;
         this.resourceObjectDefinition = resourceObjectDefinition;
     }

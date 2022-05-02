@@ -66,7 +66,7 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
     /**
      * Output triples for individual target paths.
      */
-    final PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap = new PathKeyedMap<>();
+    private final PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap = new PathKeyedMap<>();
 
     AbstractInboundsProcessing(
             @NotNull ModelBeans beans,
@@ -127,7 +127,7 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
     private <V extends PrismValue, D extends ItemDefinition<?>> void mergeMappingOutput(MappingImpl<V, D> mapping,
             ItemPath targetPath, boolean allToDelete) {
 
-        DeltaSetTriple<ItemValueWithOrigin<V, D>> ivwoTriple = ItemValueWithOrigin.createOutputTriple(mapping, beans.prismContext);
+        DeltaSetTriple<ItemValueWithOrigin<V, D>> ivwoTriple = ItemValueWithOrigin.createOutputTriple(mapping);
         LOGGER.trace("Inbound mapping for {}\nreturned triple:\n{}",
                 DebugUtil.shortDumpLazily(mapping.getDefaultSource()), DebugUtil.debugDumpLazily(ivwoTriple, 1));
 
@@ -138,10 +138,10 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
                 convertedTriple.addAllToMinusSet(ivwoTriple.getPlusSet());
                 convertedTriple.addAllToMinusSet(ivwoTriple.getZeroSet());
                 convertedTriple.addAllToMinusSet(ivwoTriple.getMinusSet());
-                //noinspection unchecked
+                //noinspection unchecked,rawtypes
                 DeltaSetTripleUtil.putIntoOutputTripleMap((PathKeyedMap) outputTripleMap, targetPath, convertedTriple);
             } else {
-                //noinspection unchecked
+                //noinspection unchecked,rawtypes
                 DeltaSetTripleUtil.putIntoOutputTripleMap((PathKeyedMap) outputTripleMap, targetPath, ivwoTriple);
             }
         }
@@ -154,6 +154,7 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
         PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focusNew);
         ObjectDelta<F> focusAPrioriDelta = getFocusAPrioriDelta();
 
+        //noinspection rawtypes
         Consumer<IvwoConsolidatorBuilder> customizer = builder ->
                 builder
                         .deleteExistingValues(

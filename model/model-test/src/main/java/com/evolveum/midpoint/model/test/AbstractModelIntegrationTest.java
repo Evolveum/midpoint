@@ -28,6 +28,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.AuthModule;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -1942,7 +1944,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void assertNoShadow(
             String username, PrismObject<ResourceType> resource, OperationResult result)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
         ObjectQuery query = createAccountShadowQuery(username, resource);
         List<PrismObject<ShadowType>> accounts =
                 repositoryService.searchObjects(ShadowType.class, query, null, result);
@@ -1954,7 +1956,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected ShadowAsserter<Void> assertShadow(String username, PrismObject<ResourceType> resource)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
         ObjectQuery query = createAccountShadowQuery(username, resource);
         OperationResult result = new OperationResult("assertShadow");
         List<PrismObject<ShadowType>> accounts = repositoryService.searchObjects(ShadowType.class, query, null, result);
@@ -1975,7 +1977,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ConfigurationException, ExpressionEvaluationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         ResourceObjectDefinition rOcDef = rSchema.findObjectDefinitionRequired(kind, intent);
-        ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
+        ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource, false);
         List<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, options, task, result);
         if (shadows.isEmpty()) {
             return null;
@@ -1986,7 +1988,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     @Override
     protected ObjectQuery createAccountShadowQuery(
-            String username, PrismObject<ResourceType> resource) throws SchemaException {
+            String username, PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         ResourceObjectTypeDefinition rAccount = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         Collection<? extends ResourceAttributeDefinition<?>> identifierDefs = rAccount.getPrimaryIdentifiers();
@@ -2755,7 +2757,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         user.asObjectable().getAssignment().add(assignmentType);
     }
 
-    protected PrismObject<ShadowType> createAccount(PrismObject<ResourceType> resource, String name, boolean enabled) throws SchemaException {
+    protected PrismObject<ShadowType> createAccount(PrismObject<ResourceType> resource, String name, boolean enabled)
+            throws SchemaException, ConfigurationException {
         PrismObject<ShadowType> shadow = getShadowDefinition().instantiate();
         ShadowType shadowType = shadow.asObjectable();
         ObjectReferenceType resourceRef = new ObjectReferenceType();
@@ -3019,34 +3022,50 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return foundObjects.iterator().next();
     }
 
-    protected void assertAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) throws SchemaException {
+    protected void assertAccountShadowModel(
+            PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType)
+            throws SchemaException, ConfigurationException {
         assertShadowModel(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null);
     }
 
-    protected void assertAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> matchingRule) throws SchemaException {
+    protected void assertAccountShadowModel(
+            PrismObject<ShadowType> accountShadow,
+            String oid,
+            String username,
+            ResourceType resourceType,
+            MatchingRule<String> matchingRule) throws SchemaException, ConfigurationException {
         assertShadowModel(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), matchingRule);
     }
 
-    protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-            QName objectClass) throws SchemaException {
+    protected void assertShadowModel(
+            PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, QName objectClass)
+            throws SchemaException, ConfigurationException {
         assertShadowModel(accountShadow, oid, username, resourceType, objectClass, null);
     }
 
-    protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-            QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
+    protected void assertShadowModel(
+            PrismObject<ShadowType> accountShadow,
+            String oid,
+            String username,
+            ResourceType resourceType,
+            QName objectClass,
+            MatchingRule<String> nameMatchingRule) throws SchemaException, ConfigurationException {
         assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, false);
         IntegrationTestTools.assertProvisioningShadow(accountShadow, ResourceAttributeDefinition.class, objectClass);
     }
 
-    protected ObjectDelta<UserType> createModifyUserAddDummyAccount(String userOid, String dummyResourceName) throws SchemaException {
+    protected ObjectDelta<UserType> createModifyUserAddDummyAccount(String userOid, String dummyResourceName)
+            throws SchemaException, ConfigurationException {
         return createModifyUserAddAccount(userOid, getDummyResourceObject(dummyResourceName));
     }
 
-    protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException {
+    protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource)
+            throws SchemaException, ConfigurationException {
         return createModifyUserAddAccount(userOid, resource, null);
     }
 
-    protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource, String intent) throws SchemaException {
+    protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource, String intent)
+            throws SchemaException, ConfigurationException {
         PrismObject<ShadowType> account = getAccountShadowDefinition().instantiate();
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resource.getOid());
@@ -3858,7 +3877,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return taskBefore;
     }
 
-    protected <O extends ObjectType> String addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+    protected <O extends ObjectType> String addObject(File file)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         PrismObject<O> object = prismContext.parseObject(file);
         return addObject(object);
     }
@@ -3955,7 +3976,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
             PolicyViolationException, SecurityViolationException {
         ObjectDelta<O> delta = prismContext.deltaFactory().object().createDeleteDelta(type, oid);
-        ModelExecuteOptions options = ModelExecuteOptions.create(prismContext).force();
+        ModelExecuteOptions options = ModelExecuteOptions.create().force();
         executeChanges(delta, options, task, result);
     }
 
@@ -4538,8 +4559,35 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public QName getFocusType() {
                 return null;
             }
+
+            @Override
+            public AuthenticationSequenceModuleNecessityType getNecessity() {
+                return AuthenticationSequenceModuleNecessityType.SUFFICIENT;
+            }
+
+            @Override
+            public Integer getOrder() {
+                return 10;
+            }
         };
         mpAuthentication.addAuthentications(moduleAuthentication);
+        AuthModule authModule = new AuthModule() {
+            @Override
+            public ModuleAuthentication getBaseModuleAuthentication() {
+                return moduleAuthentication;
+            }
+
+            @Override
+            public String getNameOfModule() {
+                return SecurityPolicyUtil.DEFAULT_MODULE_NAME;
+            }
+
+            @Override
+            public Integer getOrder() {
+                return 1;
+            }
+        };
+        mpAuthentication.setAuthModules(Collections.singletonList(authModule));
         mpAuthentication.setPrincipal(authentication.getPrincipal());
         return mpAuthentication;
     }
@@ -4711,37 +4759,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      * Returns appropriate object synchronization settings for the class.
      * Assumes single sync setting for now.
      */
-    protected ObjectSynchronizationType determineSynchronization(ResourceType resource, Class<UserType> type, String name) {
-        SynchronizationType synchronization = resource.getSynchronization();
-        if (synchronization == null) {
-            return null;
-        }
-        List<ObjectSynchronizationType> objectSynchronizations = synchronization.getObjectSynchronization();
+    protected ObjectSynchronizationType determineSynchronization(
+            ResourceType resource, QName focusTypeName, String name) {
+        List<ObjectSynchronizationType> objectSynchronizations = ResourceTypeUtil.getAllSynchronizationBeans(resource);
         if (objectSynchronizations.isEmpty()) {
             return null;
         }
-        for (ObjectSynchronizationType objSyncType : objectSynchronizations) {
-            QName focusTypeQName = objSyncType.getFocusType();
-            if (focusTypeQName == null) {
-                if (type != UserType.class) {
-                    continue;
-                }
-            } else {
-                ObjectTypes focusType = ObjectTypes.getObjectTypeFromTypeQName(focusTypeQName);
-                if (type != (Class<?>) focusType.getClassDefinition()) {
-                    continue;
-                }
-            }
-            if (name == null) {
-                // we got it
-                return objSyncType;
-            } else {
-                if (name.equals(objSyncType.getName())) {
-                    return objSyncType;
-                }
+        for (ObjectSynchronizationType objSyncBean : objectSynchronizations) {
+            QName configuredFocusTypeName = Objects.requireNonNullElse(objSyncBean.getFocusType(), UserType.COMPLEX_TYPE);
+            if (QNameUtil.match(configuredFocusTypeName, focusTypeName)
+                    && (name == null || name.equals(objSyncBean.getName()))) {
+                return objSyncBean;
             }
         }
-        throw new IllegalArgumentException("Synchronization setting for " + type + " and name " + name + " not found in " + resource);
+        throw new IllegalArgumentException(
+                "Synchronization setting for " + focusTypeName + " and name " + name + " not found in " + resource);
     }
 
     protected void assertShadowKindIntent(String shadowOid, ShadowKindType expectedKind,
@@ -5307,7 +5339,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void reconcileUser(String oid, ModelExecuteOptions options, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         ObjectDelta<UserType> emptyDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, oid);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.create(options, prismContext).reconcile(), task, result);
+        modelService.executeChanges(
+                MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.create(options).reconcile(), task, result);
     }
 
     protected void reconcileOrg(String oid, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
@@ -6664,7 +6697,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected ModelExecuteOptions executeOptions() {
-        return ModelExecuteOptions.create(prismContext);
+        return ModelExecuteOptions.create();
     }
 
     protected String determineSingleInducedRuleId(String roleOid, OperationResult result)
@@ -6680,14 +6713,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     public interface TracedFunctionCall<X> {
-        X execute() throws CommonException, PreconditionViolationException;
+        X execute() throws CommonException, PreconditionViolationException, IOException;
     }
 
     public interface TracedProcedureCall {
         void execute() throws CommonException, PreconditionViolationException;
     }
 
-    protected <X> X traced(TracedFunctionCall<X> tracedCall) throws CommonException, PreconditionViolationException {
+    protected <X> X traced(TracedFunctionCall<X> tracedCall)
+            throws CommonException, PreconditionViolationException, IOException {
         setGlobalTracingOverride(createModelLoggingTracingProfile());
         try {
             return tracedCall.execute();

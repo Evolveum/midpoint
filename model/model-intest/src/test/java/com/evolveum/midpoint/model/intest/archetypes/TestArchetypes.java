@@ -1093,7 +1093,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         assertUserAfter(user.getOid())
                 .assertLinks(1, 0);
 
-        assertDummyAccountById(RESOURCE_LAB.name, "john")
+        assertDummyAccountByUsername(RESOURCE_LAB.name, "john")
                 .display();
     }
 
@@ -1135,7 +1135,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .end()
                 .assertLinks(2, 0);
 
-        assertDummyAccountById(RESOURCE_LAB.name, "mary")
+        assertDummyAccountByUsername(RESOURCE_LAB.name, "mary")
                 .display();
     }
 

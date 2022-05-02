@@ -6,28 +6,34 @@
  */
 package com.evolveum.midpoint.model.impl.sync.action;
 
-import java.util.Map;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionDefinitionClass;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionInstantiationContext;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionUris;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UnlinkSynchronizationActionType;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
-import com.evolveum.midpoint.model.impl.sync.Action;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationSituation;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
  */
-public class UnlinkAction implements Action {
+@ActionUris({
+        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink",
+        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount" })
+@ActionDefinitionClass(UnlinkSynchronizationActionType.class)
+public class UnlinkAction<F extends FocusType> extends BaseClockworkAction<F> {
+
+    public UnlinkAction(@NotNull ActionInstantiationContext<F> ctx) {
+        super(ctx);
+    }
 
     @Override
-    public <F extends FocusType> void handle(@NotNull LensContext<F> context, SynchronizationSituation<F> situation,
-            Map<QName, Object> parameters, Task task, OperationResult parentResult) {
+    public void prepareContext(@NotNull LensContext<F> context, @NotNull OperationResult result) {
 
         // This is a no-op (temporary). In fact, we do not want the link to be removed.
         // Unlink is used as a default reaction to DELETE situation, meaning "make link inactive".

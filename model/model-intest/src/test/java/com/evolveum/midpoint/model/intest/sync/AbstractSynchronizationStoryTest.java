@@ -784,11 +784,10 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         ResourceType res = repositoryService.getObject(ResourceType.class, resource.getOid(), null, result).asObjectable();
         assertNotNull(res);
         assertNotNull("Synchronization is not specified", res.getSynchronization());
-        ObjectSynchronizationType ost = determineSynchronization(res, UserType.class, "default account type");
+        ObjectSynchronizationType ost = determineSynchronization(res, UserType.COMPLEX_TYPE, "default account type");
         assertNotNull("object sync type is not specified", ost);
         assertNotNull("user template not specified", ost.getObjectTemplateRef());
         assertEquals("Wrong user template in resource", templateOid, ost.getObjectTemplateRef().getOid());
-
     }
 
     @SuppressWarnings("SameParameterValue")

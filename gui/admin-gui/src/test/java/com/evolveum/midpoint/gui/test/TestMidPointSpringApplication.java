@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -62,7 +62,15 @@ import com.evolveum.midpoint.web.boot.AbstractSpringBootApplication;
 })
 @Profile({ "test", "!default" })
 @SpringBootConfiguration
-@ComponentScan(basePackages = { "com.evolveum.midpoint.web.security.factory", "com.evolveum.midpoint.gui", "com.evolveum.midpoint.gui.api" }, basePackageClasses = { TextAreaPanelFactory.class, GuiComponentRegistryImpl.class })
+@ComponentScan(
+        basePackages = {
+                "com.evolveum.midpoint.gui",
+                "com.evolveum.midpoint.gui.api"
+        },
+        basePackageClasses = {
+                TextAreaPanelFactory.class,
+                GuiComponentRegistryImpl.class
+        })
 public class TestMidPointSpringApplication extends AbstractSpringBootApplication {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestMidPointSpringApplication.class);
@@ -128,8 +136,8 @@ public class TestMidPointSpringApplication extends AbstractSpringBootApplication
 
         application.bannerMode(Banner.Mode.LOG);
 
-        // cglib used by wicket unsupport java 15+ so we need use byte buddy generation for wicket
-        // We can remove this after cglib(wicket) fix issue with java 15+ or when wicket will use byte buddy as default
+        // cglib used by wicket does not support Java 15+ so we need use byte buddy generation for wicket.
+        // We can remove this after cglib(wicket) fix issue with java 15+ or when wicket will use byte buddy as default.
         System.setProperty("wicket.ioc.useByteBuddy", "true");
 
         return application.sources(TestMidPointSpringApplication.class);

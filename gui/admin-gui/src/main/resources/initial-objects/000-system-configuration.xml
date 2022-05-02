@@ -18,10 +18,6 @@
     <globalSecurityPolicyRef oid="00000000-0000-0000-0000-000000000120"/>
     <logging>
         <classLogger>
-            <level>ERROR</level>
-            <package>ro.isdc.wro.extensions.processor.css.Less4jProcessor</package>
-        </classLogger>
-        <classLogger>
             <!-- disabled because INFO log during of creating new authentication filter chain -->
             <level>OFF</level>
             <package>org.springframework.security.web.DefaultSecurityFilterChain</package>
@@ -187,7 +183,7 @@
             <label>PageSelfDashboard.credentials</label>
             <description>PageSelfDashboard.credentials.description</description>
             <icon>
-                <cssClass>fa fa-shield</cssClass>
+                <cssClass>fa fa-shield-alt</cssClass>
             </icon>
             <color>blue</color>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfCredentials</authorization>

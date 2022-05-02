@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,13 +11,27 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageBaseSystemConfiguration;
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.wicket.Page;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.image.ExternalImage;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
@@ -28,6 +42,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageBaseSystemConfiguration;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.authentication.CompiledDashboardType;
@@ -43,7 +58,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.component.menu.*;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.cases.*;
 import com.evolveum.midpoint.web.page.admin.certification.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
@@ -54,7 +68,6 @@ import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageConnectorHosts;
 import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.server.PageNodes;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -66,13 +79,17 @@ import com.evolveum.midpoint.web.page.self.PageSelfConsents;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class LeftMenuPanel extends BasePanel<Void> {
 
     private static final String ID_MENU = "menu";
+    private static final String ID_LOGO = "logo";
+    private static final String ID_CUSTOM_LOGO = "customLogo";
+    private static final String ID_CUSTOM_LOGO_IMG_SRC = "customLogoImgSrc";
+    private static final String ID_CUSTOM_LOGO_IMG_CSS = "customLogoImgCss";
+
     private static final Trace LOGGER = TraceManager.getTrace(LeftMenuPanel.class);
 
     private static final String DOT_CLASS = LeftMenuPanel.class.getName() + ".";
@@ -151,8 +168,102 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private void initLayout() {
+        AjaxLink<String> logo = new AjaxLink<>(ID_LOGO) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                Class<? extends Page> page = MidPointApplication.get().getHomePage();
+                setResponsePage(page);
+            }
+        };
+        logo.add(new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return !isCustomLogoVisible();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return getPageBase().isLogoLinkEnabled();
+            }
+        });
+        add(logo);
+
+        AjaxLink<String> customLogo = new AjaxLink<>(ID_CUSTOM_LOGO) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                //TODO may be this should lead to customerUrl ?
+                Class<? extends Page> page = MidPointApplication.get().getHomePage();
+                setResponsePage(page);
+            }
+        };
+        customLogo.add(new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return isCustomLogoVisible();
+            }
+        });
+        add(customLogo);
+
+        IModel<IconType> logoModel = new IModel<>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public IconType getObject() {
+                DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+                return info != null ? info.getLogo() : null;
+            }
+        };
+
+        ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC) {
+
+            @Override
+            protected void buildSrcAttribute(ComponentTag tag, IModel<?> srcModel) {
+                tag.put("src", WebComponentUtil.getIconUrlModel(logoModel.getObject()).getObject());
+            }
+        };
+        customLogoImgSrc.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isEmpty(logoModel.getObject().getCssClass())));
+        customLogo.add(customLogoImgSrc);
+
+        WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
+        customLogoImgCss.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isNotEmpty(logoModel.getObject().getCssClass())));
+        customLogoImgCss.add(new AttributeAppender("class", new IModel<String>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                return logoModel.getObject() != null ? logoModel.getObject().getCssClass() : null;
+            }
+        }));
+        customLogo.add(customLogoImgCss);
+
+        logo.add(PageBase.createHeaderColorStyleModel(false));
+        customLogo.add(PageBase.createHeaderColorStyleModel(false));
+
         SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_MENU, sideBarMenuModel);
         add(sidebarMenu);
+    }
+
+    private boolean isCustomLogoVisible() {
+        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+        if (info == null || info.getLogo() == null) {
+            return false;
+        }
+
+        IconType logo = info.getLogo();
+        return StringUtils.isNotEmpty(logo.getImageUrl()) || StringUtils.isNotEmpty(logo.getCssClass());
     }
 
     protected List<SideBarMenuItem> createMenuItems() {
@@ -252,6 +363,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return new MenuItem(label, PageDashboardConfigurable.class, createDashboardPageParameters(dashboard), active);
 
     }
+
     private String getDashboardLabel(CompiledDashboardType dashboard) {
         String label = null;
         PolyStringType displayType = WebComponentUtil.getCollectionLabel(dashboard.getDisplay());
@@ -307,7 +419,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private MainMenuItem createResourcesItems() {
         MainMenuItem resourceMenu = createMainMenuItem("PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
         createBasicAssignmentHolderMenuItems(resourceMenu, PageTypes.RESOURCE);
-        createFocusPageViewMenu(resourceMenu,"PageAdmin.menu.top.resources.view", PageResource.class);
+        createFocusPageViewMenu(resourceMenu, "PageAdmin.menu.top.resources.view", PageResource.class);
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.resources.import", PageImportResource.class));
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class));
         return resourceMenu;
@@ -331,7 +443,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
         casesMenu.addMenuItem(new MenuItem("PageWorkItemsClaimable.title", PageWorkItemsClaimable.class));
 
-        createFocusPageViewMenu(casesMenu,"PageAdmin.menu.top.case.view", PageCase.class);
+        createFocusPageViewMenu(casesMenu, "PageAdmin.menu.top.case.view", PageCase.class);
         createFocusPageViewMenu(casesMenu, "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
 
         return casesMenu;
@@ -358,11 +470,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
         certificationMenu.addMenuItem(menu);
 
 //        if (isFullyAuthorized()) {  // workaround for MID-5917
-            certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.allDecisions", PageCertDecisionsAll.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.allDecisions", PageCertDecisionsAll.class));
 
 //        }
         certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.decisions", PageCertDecisions.class));
-
 
         MenuItem newCertificationMenu = new MenuItem("PageAdmin.menu.top.certification.newDefinition", GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCertDefinition.class);
         certificationMenu.addMenuItem(newCertificationMenu);
@@ -417,7 +528,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             return menu;
         }
 
-        Map<String, Class> urlClassMap = PageMounter.getUrlClassMap();
+        Map<String, Class<? extends WebPage>> urlClassMap = PageMounter.getUrlClassMap();
         if (MapUtils.isEmpty(urlClassMap)) {
             return menu;
         }
@@ -427,18 +538,18 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 continue;
             }
 
-            AdditionalMenuItem item = new AdditionalMenuItem(link, urlClassMap.get(link.getTargetUrl()));
+            //noinspection unchecked
+            AdditionalMenuItem item = new AdditionalMenuItem(link,
+                    (Class<? extends PageBase>) urlClassMap.get(link.getTargetUrl()));
             menu.addMainMenuItem(item);
         }
         return menu;
     }
 
     private void createBasicAssignmentHolderMenuItems(MainMenuItem mainMenuItem, PageTypes pageDesc) {
-
-        MenuItem objectListMenuItem = createObjectListPageMenuItem( "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".list", pageDesc.getIcon(), pageDesc.getListClass());
-        if (objectListMenuItem != null) {
-            mainMenuItem.addMenuItem(objectListMenuItem);
-        }
+        MenuItem objectListMenuItem = createObjectListPageMenuItem(
+                "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".list", pageDesc.getIcon(), pageDesc.getListClass());
+        mainMenuItem.addMenuItem(objectListMenuItem);
         addCollectionsMenuItems(mainMenuItem, pageDesc.getTypeName(), pageDesc.getListClass());
 
         if (PageTypes.CASE != pageDesc) {
@@ -448,24 +559,15 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private Class<? extends PageBase> getDetailsPage(PageTypes pageDesc) {
-        CompiledGuiProfile guiProfile = getPageBase().getCompiledGuiProfile();
-        if (guiProfile.isUseNewDesign()) {
-            return pageDesc.getDetailsPage();
-        }
-        return pageDesc.getOldDetailsPage();
+        return pageDesc.getDetailsPage();
     }
 
     private boolean isEditForAdminObjectDetails() {
         PageBase pageBase = getPageBase();
         if (pageBase instanceof AbstractPageObjectDetails) {
-            AbstractPageObjectDetails page = (AbstractPageObjectDetails) pageBase;
+            AbstractPageObjectDetails<?, ?> page = (AbstractPageObjectDetails<?, ?>) pageBase;
             return page.isEditObject();
         }
-        if (pageBase instanceof PageAdminObjectDetails) {
-            PageAdminObjectDetails page = (PageAdminObjectDetails) pageBase;
-            return page.isOidParameterExists() || page.isEditingFocus();
-        }
-
         return false;
     }
 
@@ -497,12 +599,14 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private boolean isAddNewObjectMenuItemAuthorized(Class<? extends PageBase> newPageClass) {
-        if (newPageClass.isAssignableFrom(PageAdminObjectDetails.class)) {
+        if (newPageClass.isAssignableFrom(AbstractPageObjectDetails.class)) {
             try {
-                PageAdminObjectDetails page = (PageAdminObjectDetails) newPageClass.getConstructor().newInstance();
-                ObjectType object = page.createNewObject();
+
+                AbstractPageObjectDetails page = (AbstractPageObjectDetails) newPageClass.getConstructor().newInstance();
+                Class<? extends ObjectType> objectType = page.getType();
+                PrismObject<? extends ObjectType> object = getPrismContext().createObject(objectType);
                 return getPageBase().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
-                        AuthorizationPhaseType.REQUEST, object == null ? null : object.asPrismObject(),
+                        AuthorizationPhaseType.REQUEST, object,
                         null, null, null);
             } catch (Exception ex) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New object menu item", ex);
@@ -547,7 +651,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private MainMenuItem createRepositoryObjectsMenu() {
-        MainMenuItem repositoryObjectsMenu = createMainMenuItem("PageAdmin.menu.top.configuration.repositoryObjects", "fa fa-file-text");
+        MainMenuItem repositoryObjectsMenu = createMainMenuItem("PageAdmin.menu.top.configuration.repositoryObjects", "fa fa-file-alt");
         repositoryObjectsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.configuration.repositoryObjectsList", PageDebugList.class));
         boolean editActive = classMatches(PageDebugView.class);
         if (editActive) {
@@ -629,9 +733,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return collectionNameParam.toString().equals(objectView.getViewIdentifier());
     }
 
-
     private void createSystemConfigurationMenu(SideBarMenuItem item) {
-        MainMenuItem system = createMainMenuItem("PageAdmin.menu.top.configuration.basic", "fa fa-cog", com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
+        MainMenuItem system = createMainMenuItem("PageAdmin.menu.top.configuration.basic",
+                GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON,
+                com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
         PageBase page = getPageBase();
         if (page != null && PageBaseSystemConfiguration.class.isAssignableFrom(page.getClass())) {
 
@@ -640,68 +745,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
             system.addMenuItem(menuItem);
         }
         item.addMainMenuItem(system);
-
-//        MainMenuItem systemConfigMenu = createMainMenuItem("PageAdmin.menu.top.configuration.basic", "fa fa-cog");
-//        createSystemConfigurationTabMebu(systemConfigMenu);
-//        item.addMainMenuItem(systemConfigMenu);
-    }
-
-    private void createSystemConfigurationTabMebu(MainMenuItem systemConfigMenu) {
-//            MenuItem menu = new MenuItem("System NEW", PageSystemConfigurationNew.class);
-//        systemConfigMenu.addMenuItem(menu);
-
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.basic",
-                PageSystemConfiguration.CONFIGURATION_TAB_BASIC);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.objectPolicy",
-                PageSystemConfiguration.CONFIGURATION_TAB_OBJECT_POLICY);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.globalPolicyRule",
-                PageSystemConfiguration.CONFIGURATION_TAB_GLOBAL_POLICY_RULE);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.globalAccountSynchronization",
-                PageSystemConfiguration.CONFIGURATION_TAB_GLOBAL_ACCOUNT_SYNCHRONIZATION);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.cleanupPolicy",
-                PageSystemConfiguration.CONFIGURATION_TAB_CLEANUP_POLICY);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.notifications",
-                PageSystemConfiguration.CONFIGURATION_TAB_NOTIFICATION);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.logging",
-                PageSystemConfiguration.CONFIGURATION_TAB_LOGGING);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.profiling",
-                PageSystemConfiguration.CONFIGURATION_TAB_PROFILING);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.adminGui",
-                PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.workflow",
-                PageSystemConfiguration.CONFIGURATION_TAB_WORKFLOW);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.roleManagement",
-                PageSystemConfiguration.CONFIGURATION_TAB_ROLE_MANAGEMENT);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.internals",
-                PageSystemConfiguration.CONFIGURATION_TAB_INTERNALS);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.deploymentInformation",
-                PageSystemConfiguration.CONFIGURATION_TAB_DEPLOYMENT_INFORMATION);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.accessCertification",
-                PageSystemConfiguration.CONFIGURATION_TAB_ACCESS_CERTIFICATION);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.infrastructure",
-                PageSystemConfiguration.CONFIGURATION_TAB_INFRASTRUCTURE);
-        addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.fullTextSearch",
-                PageSystemConfiguration.CONFIGURATION_TAB_FULL_TEXT_SEARCH);
-    }
-
-    private void addSystemMenuItem(MainMenuItem mainItem, String key, int tabIndex) {
-        PageParameters params = new PageParameters();
-        params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, tabIndex);
-
-        boolean isTabActive = classMatches(PageSystemConfiguration.class) && tabIndex == getSelectedTabForConfiguration(getPageBase());
-        MenuItem menu = new MenuItem(key, PageSystemConfiguration.class, params, isTabActive);
-        mainItem.addMenuItem(menu);
-    }
-
-    private int getSelectedTabForConfiguration(WebPage page) {
-        PageParameters params = page.getPageParameters();
-        StringValue val = params.get(PageSystemConfiguration.SELECTED_TAB_INDEX);
-        String value = null;
-        if (val != null && !val.isNull()) {
-            value = val.toString();
-        }
-
-        return StringUtils.isNumeric(value) ? Integer.parseInt(value) : PageSystemConfiguration.CONFIGURATION_TAB_BASIC;
     }
 
     private MainMenuItem createMainMenuItem(String key, String icon) {

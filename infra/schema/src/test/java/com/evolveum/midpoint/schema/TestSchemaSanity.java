@@ -143,7 +143,7 @@ public class TestSchemaSanity extends AbstractSchemaTest {
         assertFalse("Resource definition is marked as runtime", resourceDefinition.isRuntimeSchema());
 
         PrismContainerDefinition<ConnectorConfigurationType> connectorConfContainerDef = resourceDefinition.findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION);
-        PrismAsserts.assertDefinition(connectorConfContainerDef, ResourceType.F_CONNECTOR_CONFIGURATION, ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
+        PrismAsserts.assertDefinition(connectorConfContainerDef, ResourceType.F_CONNECTOR_CONFIGURATION, ConnectorConfigurationType.COMPLEX_TYPE, 0, 1);
         //assertTrue("<connectorConfiguration> is NOT dynamic", connectorConfContainerDef.isDynamic());
         assertEquals("Wrong compile-time class for <connectorConfiguration> in resource definition", ConnectorConfigurationType.class, connectorConfContainerDef.getCompileTimeClass());
 

@@ -11,9 +11,11 @@ import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationResult.OwnersInfo;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.ObjectSet;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
@@ -91,9 +93,17 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result) throws ConfigurationException, SchemaException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
-
         return new CorrelationOperation(correlationContext)
-                .execute(result);
+                .correlate(result);
+    }
+
+    @Override
+    protected boolean checkCandidateOwnerInternal(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
+            @NotNull OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+        return new CorrelationOperation(correlationContext)
+                .checkCandidateOwner(candidateOwner, result);
     }
 
     /** Correlation or update operation. */
@@ -122,10 +132,23 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             super(correlationContext);
         }
 
-        public CorrelationResult execute(OperationResult result)
+        public CorrelationResult correlate(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
 
+            MatchingResult mResult = executeMatchAndStoreTheResult(result);
+
+            if (mResult.getReferenceId() != null) {
+                return correlateUsingKnownReferenceId(result);
+            } else {
+                return CorrelationResult.uncertain(
+                        createOwnersInfo(mResult, result));
+            }
+        }
+
+        // Note that the result is stored just to memory objects - nothing is set in the repository
+        private @NotNull MatchingResult executeMatchAndStoreTheResult(OperationResult result)
+                throws SchemaException, ConfigurationException, CommunicationException, SecurityViolationException {
             MatchingRequest mRequest =
                     new MatchingRequest(
                             prepareIdMatchObjectFromContext());
@@ -138,12 +161,15 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             // we also need the state in the shadow in the case object
             ShadowUtil.setCorrelatorState(resourceObject, correlatorState.clone());
 
-            if (mResult.getReferenceId() != null) {
-                return correlateUsingKnownReferenceId(result);
-            } else {
-                return CorrelationResult.uncertain(
-                        createOwnerOptions(mResult, result));
-            }
+            return mResult;
+        }
+
+        boolean checkCandidateOwner(@NotNull FocusType candidateOwner, OperationResult result)
+                throws SchemaException, CommunicationException, SecurityViolationException, ConfigurationException,
+                ExpressionEvaluationException, ObjectNotFoundException {
+            MatchingResult mResult = executeMatchAndStoreTheResult(result);
+            return mResult.getReferenceId() != null
+                    && checkCandidateOwnerUsingKnownReferenceId(candidateOwner, result);
         }
 
         private @NotNull IdMatchCorrelatorStateType createCorrelatorState(MatchingResult mResult) {
@@ -161,37 +187,51 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                     .correlate(correlationContext, result);
         }
 
+        private boolean checkCandidateOwnerUsingKnownReferenceId(FocusType candidateOwner, OperationResult result)
+                throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+                SecurityViolationException, ObjectNotFoundException {
+
+            return instantiateChild(followOnCorrelatorConfiguration, task, result)
+                    .checkCandidateOwner(correlationContext, candidateOwner, result);
+        }
+
         /**
-         * Converts internal {@link MatchingResult} into "externalized" {@link ResourceObjectOwnerOptionsType} bean
+         * Converts internal {@link MatchingResult} into "externalized form" of {@link OwnersInfo} that contains a bean
          * to be stored in the shadow.
          *
          * _Temporarily_ adding also "none of the above" potential match here. (If it is not present among options returned
          * from the ID Match service.)
          */
-        private @NotNull ResourceObjectOwnerOptionsType createOwnerOptions(
+        private @NotNull OwnersInfo createOwnersInfo(
                 @NotNull MatchingResult mResult,
                 @NotNull OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             ResourceObjectOwnerOptionsType options = new ResourceObjectOwnerOptionsType();
+            ObjectSet<ObjectType> allCandidates = new ObjectSet<>();
             boolean newIdentityOptionPresent = false;
             for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
                 if (potentialMatch.isNewIdentity()) {
                     newIdentityOptionPresent = true;
                 }
-                ResourceObjectOwnerOptionType potentialMatchBean = createPotentialOwnerBeanFromReturnedMatch(potentialMatch, result);
-                if (potentialMatchBean != null) {
-                    options.getOption().add(potentialMatchBean);
+                @Nullable PotentialOwnerInfo potentialOwner =
+                        createPotentialOwnerInfoFromReturnedMatch(potentialMatch, result);
+                if (potentialOwner != null) {
+                    options.getOption().add(potentialOwner.potentialOwnerBean);
+                    if (potentialOwner.candidateOwner != null) {
+                        allCandidates.add(potentialOwner.candidateOwner);
+                    }
                 }
             }
             if (!newIdentityOptionPresent) {
                 options.getOption().add(
                         createPotentialMatchBeanForNewIdentity());
             }
-            return options;
+            return new OwnersInfo(options, allCandidates);
         }
 
-        private @Nullable ResourceObjectOwnerOptionType createPotentialOwnerBeanFromReturnedMatch(
+        /** We need to return both {@link ResourceObjectOwnerOptionType} and the full owner object. */
+        private @Nullable PotentialOwnerInfo createPotentialOwnerInfoFromReturnedMatch(
                 @NotNull PotentialMatch potentialMatch,
                 @NotNull OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
@@ -201,19 +241,21 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                     .identifier(OwnerOptionIdentifier.forExistingOrNoOwner(id).getStringValue())
                     .confidence(potentialMatch.getConfidenceScaledToOne());
             if (id != null) {
-                ObjectReferenceType candidateOwnerRef = getCandidateOwnerRef(id, result);
-                if (candidateOwnerRef == null) {
+                ObjectType candidateOwner = getCandidateOwner(id, result);
+                if (candidateOwner == null) {
                     LOGGER.warn("Non-null reference ID {} contained in {} yields no owner reference. Ignoring this match.",
                             id, potentialMatch);
                     return null;
-                } else {
-                    potentialOwnerBean.setCandidateOwnerRef(candidateOwnerRef);
                 }
+                potentialOwnerBean.setCandidateOwnerRef(
+                        ObjectTypeUtil.createObjectRef(candidateOwner));
+                return new PotentialOwnerInfo(potentialOwnerBean, candidateOwner);
+            } else {
+                return new PotentialOwnerInfo(potentialOwnerBean, null);
             }
-            return potentialOwnerBean;
         }
 
-        private @Nullable ObjectReferenceType getCandidateOwnerRef(String referenceId, OperationResult result)
+        private @Nullable ObjectType getCandidateOwner(String referenceId, OperationResult result)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException {
 
@@ -235,7 +277,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                 LOGGER.debug("Couldn't find a candidate owner for reference ID {}", referenceId);
             }
 
-            return ObjectTypeUtil.createObjectRef(correlationResult.getOwner());
+            return correlationResult.getOwner();
         }
 
         private ResourceObjectOwnerOptionType createPotentialMatchBeanForNewIdentity() {
@@ -324,5 +366,16 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             throws SchemaException, ConfigurationException {
         return new IdMatchObjectCreator(correlatorContext, preFocus, shadow)
                 .create();
+    }
+
+    private static class PotentialOwnerInfo {
+        @NotNull private final ResourceObjectOwnerOptionType potentialOwnerBean;
+        @Nullable private final ObjectType candidateOwner;
+
+        private PotentialOwnerInfo(
+                @NotNull ResourceObjectOwnerOptionType potentialOwnerBean, @Nullable ObjectType candidateOwner) {
+            this.potentialOwnerBean = potentialOwnerBean;
+            this.candidateOwner = candidateOwner;
+        }
     }
 }

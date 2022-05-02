@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
 
 /**
@@ -64,7 +66,7 @@ public class RefinedResourceSchemaParser {
      *
      * Returns null if the resource has no (raw) schema.
      */
-    public @Nullable ResourceSchema parse() throws SchemaException {
+    public @Nullable ResourceSchema parse() throws SchemaException, ConfigurationException {
         ResourceSchemaImpl rawSchema = (ResourceSchemaImpl) ResourceSchemaFactory.getRawSchema(resource);
         if (rawSchema == null) {
             return null;
@@ -86,6 +88,9 @@ public class RefinedResourceSchemaParser {
 
         // We can parse attributes only after we have all the object class info parsed (including auxiliary object classes)
         parseAttributes();
+
+        // Protected objects, delineation, and so on.
+        parseOtherFeatures();
 
         completeSchema.freeze();
 
@@ -153,11 +158,17 @@ public class RefinedResourceSchemaParser {
         }
     }
 
-
     private void parseAttributes() throws SchemaException {
         for (ResourceObjectTypeDefinition typeDef : completeSchema.getObjectTypeDefinitions()) {
             new ResourceObjectTypeDefinitionParser(typeDef)
                     .parseAttributes();
+        }
+    }
+
+    private void parseOtherFeatures() throws SchemaException, ConfigurationException {
+        for (ResourceObjectTypeDefinition typeDef : completeSchema.getObjectTypeDefinitions()) {
+            new ResourceObjectTypeDefinitionParser(typeDef)
+                    .parseOtherFeatures();
         }
     }
 
@@ -226,7 +237,6 @@ public class RefinedResourceSchemaParser {
             assertNoOtherAttributes();
 
             setupIdentifiers();
-            parseProtected();
         }
 
         /**
@@ -334,6 +344,14 @@ public class RefinedResourceSchemaParser {
         }
 
         /**
+         * Parses protected objects, delineation, and so on.
+         */
+        private void parseOtherFeatures() throws SchemaException, ConfigurationException {
+            parseProtected();
+            parseDelineation();
+        }
+
+        /**
          * Converts protected objects patterns from "bean" to "compiled" form.
          */
         private void parseProtected() throws SchemaException {
@@ -357,6 +375,23 @@ public class RefinedResourceSchemaParser {
             ObjectFilter filter = PrismContext.get().getQueryConverter().parseFilter(filterBean, prismObjectDef);
             resourceObjectPattern.setFilter(filter);
             return resourceObjectPattern;
+        }
+
+        private void parseDelineation() throws ConfigurationException {
+            ResourceObjectTypeDelineationType delineationBean = definitionBean.getObjectsSetDelineation();
+            if (delineationBean != null) {
+                configCheck(definitionBean.getBaseContext() == null,
+                        "Base context cannot be set when delineation is configured. In %s", definition);
+                configCheck(definitionBean.getSearchHierarchyScope() == null,
+                        "Search hierarchy scope cannot be set when delineation is configured. In %s", definition);
+                definition.setDelineation(
+                        ResourceObjectTypeDelineation.of(delineationBean));
+            } else {
+                definition.setDelineation(
+                        ResourceObjectTypeDelineation.of(
+                                definitionBean.getBaseContext(),
+                                definitionBean.getSearchHierarchyScope()));
+            }
         }
     }
 }

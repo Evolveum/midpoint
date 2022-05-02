@@ -10,20 +10,6 @@ import static org.testng.Assert.assertNotNull;
 
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_OID;
 
-import java.io.File;
-
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderBasicPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment.AllAssignmentsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.focus.component.*;
-import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
-import com.evolveum.midpoint.gui.impl.page.admin.user.component.DelegatedToMePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.user.component.UserDelegationsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.user.component.UserPersonasPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
-import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
-import com.evolveum.midpoint.web.component.objectdetails.*;
-
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -31,9 +17,13 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment.AllAssignmentsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.component.*;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+import com.evolveum.midpoint.gui.impl.page.admin.user.component.DelegatedToMePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.user.component.UserDelegationsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.user.component.UserPersonasPanel;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -183,127 +173,6 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
 
         clickOnDetailsMenu(10);
         tester.assertComponent(MAIN_PANEL, FocusTriggersPanel.class);
-    }
-
-    @Test //TODO old test remove after removing old gui pages
-    public void test101testPageUserOld() {
-        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class);
-    }
-
-    @Test //TODO old test remove after removing old gui pages
-    public void test102testBasicTabOld() {
-        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class);
-
-        tester.assertComponent(TAB_MAIN, PrismContainerPanel.class);
-
-        tester.assertComponent(TAB_ACTIVATION, PrismContainerPanel.class);
-
-        tester.assertComponent(TAB_PASSWORD, PrismContainerPanel.class);
-
-    }
-
-    @Test //TODO old test remove after removing old gui pages
-    public void test103testCreateUserOld() throws Exception {
-        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class);
-
-        FormTester formTester = tester.newFormTester(MAIN_FORM_OLD, false);
-        formTester.setValue(PATH_FORM_NAME_OLD, "newUserOld");
-        formTester.setValue(PATH_FORM_SHIP_OLD, "ship");
-        formTester.select(PATH_FORM_ADMINISTRATIVE_STATUS, 2);//index 2 is ActivationStatusType.ENABLED
-
-        formTester.submit(FORM_SAVE_OLD);
-
-        Thread.sleep(5000);
-
-        PrismObject<UserType> newUser = findObjectByName(UserType.class, "newUserOld");
-        assertNotNull(newUser, "New user not created.");
-        logger.info("created user: {}", newUser.debugDump());
-
-    }
-
-    @Test //TODO old test remove after removing old gui pages
-    public void test110renderAssignmentsTabOld() {
-        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class, USER_ADMINISTRATOR_OID);
-
-        clickOnTab(2);
-        String assignmentTable = "mainPanel:mainForm:tabPanel:panel:assignmentsContainer:assignmentsPanel:assignmentsPanel:assignments";
-        tester.assertComponent(assignmentTable, MultivalueContainerListPanelWithDetailsPanel.class);
-
-        String assignmentTableDetailsLink = assignmentTable + ":items:itemsTable:box:tableContainer:table:body:rows:1:cells:3:cell:link";
-        tester.clickLink(assignmentTableDetailsLink);
-        String assignmentTableDetails = assignmentTable + ":details:itemsDetails:0:itemDetails";
-        tester.assertComponent(assignmentTableDetails, MultivalueContainerDetailsPanel.class);
-    }
-
-    @Test //TODO old test remove after removing old gui pages
-    public void test111renderProjectionsTabOld() {
-        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class, USER_JACK_OID);
-
-        clickOnTab(1);
-        String projectionTable = "mainPanel:mainForm:tabPanel:panel:shadowTable";
-        tester.assertComponent(projectionTable, MultivalueContainerListPanelWithDetailsPanel.class);
-
-        String projectionTableDetailsLink = projectionTable + ":items:itemsTable:box:tableContainer:table:body:rows:1:cells:3:cell:values:0:value:link";
-        tester.clickLink(projectionTableDetailsLink);
-        String projectionTableDetails = projectionTable + ":details:itemsDetails:0:itemDetails";
-        tester.assertComponent(projectionTableDetails, MultivalueContainerDetailsPanel.class);
-    }
-
-    @Test //TODO old test remove after removing old gui pages
-    public void test112renderHistoryTabOld() {
-        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class, USER_ADMINISTRATOR_OID);
-
-        clickOnTab(3);
-        String historyPanel = "mainPanel:mainForm:tabPanel:panel";
-        tester.assertComponent(historyPanel, ObjectHistoryTabPanel.class);
-    }
-
-    @Test //TODO old test remove after removing old gui pages
-    public void test113renderCasesTabOld() {
-        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class);
-
-        String tabPath = "mainPanel:mainForm:tabPanel:tabs-container:tabs:4:link";
-        tester.assertInvisible(tabPath);
-    }
-
-    @Test //TODO old test remove after removing old gui pages
-    public void test114renderPersonasTabOld() {
-        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class, USER_ADMINISTRATOR_OID);
-
-        clickOnTab(6);
-        String panel = "mainPanel:mainForm:tabPanel:panel";
-        tester.assertComponent(panel, FocusPersonasTabPanel.class);
-    }
-
-    @Test //TODO old test remove after removing old gui pages
-    public void test115renderDelegationsTabOld() {
-        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class, USER_ADMINISTRATOR_OID);
-
-        clickOnTab(7);
-        String panel = "mainPanel:mainForm:tabPanel:panel";
-        tester.assertComponent(panel, UserDelegationsTabPanel.class);
-    }
-
-    @Test //TODO old test remove after removing old gui pages
-    public void test116renderDelegatedToMeTabOld() {
-        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class, USER_ADMINISTRATOR_OID);
-
-        clickOnTab(8);
-        String panel = "mainPanel:mainForm:tabPanel:panel";
-        tester.assertComponent(panel, AssignmentTablePanel.class);
-    }
-
-    @Test //TODO old test remove after removing old gui pages
-    public void test117renderTriggersTabOld() {
-        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class, USER_ADMINISTRATOR_OID);
-
-        clickOnTab(5);
-        String panel = "mainPanel:mainForm:tabPanel:panel";
-        tester.assertComponent(panel, FocusTriggersTabPanel.class);
-    }
-
-    private void clickOnTab(int order) {
-        clickOnTab(order, com.evolveum.midpoint.web.page.admin.users.PageUser.class);
     }
 
     private void clickOnDetailsMenu(int order) {

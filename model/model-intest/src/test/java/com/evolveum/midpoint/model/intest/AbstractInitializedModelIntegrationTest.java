@@ -333,23 +333,23 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         assertUserJack(user, USER_JACK_USERNAME, fullName, givenName, familyName, locality);
     }
 
-    protected void assertDummyAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException {
+    protected void assertDummyAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException, ConfigurationException {
         assertAccountShadowRepo(accountShadow, oid, username, dummyResourceCtl.getResource().asObjectable());
     }
 
-    protected void assertDummyGroupShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException {
+    protected void assertDummyGroupShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException, ConfigurationException {
         assertShadowRepo(accountShadow, oid, username, dummyResourceCtl.getResourceType(), dummyResourceCtl.getGroupObjectClass());
     }
 
-    protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException {
+    protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException, ConfigurationException {
         assertShadowModel(accountShadow, oid, username, dummyResourceCtl.getResourceType(), dummyResourceCtl.getAccountObjectClass());
     }
 
-    protected void assertDummyGroupShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException {
+    protected void assertDummyGroupShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException, ConfigurationException {
         assertShadowModel(accountShadow, oid, username, dummyResourceCtl.getResourceType(), dummyResourceCtl.getGroupObjectClass());
     }
 
-    protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, String fullname) throws SchemaException {
+    protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, String fullname) throws SchemaException, ConfigurationException {
         assertDummyAccountShadowModel(accountShadow, oid, username);
         IntegrationTestTools.assertAttribute(accountShadow, dummyResourceCtl.getAttributeFullnameQName(), fullname);
     }

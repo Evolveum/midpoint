@@ -58,7 +58,7 @@ public class ExpressionHandlerImplTest extends AbstractSpringTest
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 
         // just something to fill into c:actor expression variable
-        MidPointPrincipal principal = new MidPointPrincipal(new UserType(PrismTestUtil.getPrismContext()));
+        MidPointPrincipal principal = new MidPointPrincipal(new UserType());
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
         securityContext.setAuthentication(authentication);
@@ -98,27 +98,26 @@ public class ExpressionHandlerImplTest extends AbstractSpringTest
     public void testEvaluateExpression() throws Exception {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(TEST_FOLDER, "account.xml"));
         ShadowType accountType = account.asObjectable();
+
+        // Needed for the expression evaluation.
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "resource-dummy.xml"));
-        ResourceType resourceType = resource.asObjectable();
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.asReferenceValue().setObject(resource);
         accountType.setResourceRef(resourceRef);
 
-        ObjectSynchronizationType synchronization = resourceType.getSynchronization().getObjectSynchronization().get(0);
-        for (ConditionalSearchFilterType filter : synchronization.getCorrelation()) {
-            MapXNode clauseXNode = filter.getFilterClauseXNode();
-            // key = q:equal, value = map (path + expression)
-            RootXNode expressionNode = ((MapXNode) clauseXNode.getSingleSubEntry("filter value").getValue())
-                    .getEntryAsRoot(new QName(SchemaConstants.NS_C, "expression"));
+        ExpressionType expression = PrismTestUtil.parseAtomicValue(
+                "<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\" "
+                        + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
+                        + "  <path>declare namespace icfs=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3\";\n"
+                        + "    $account/attributes/icfs:name</path>\n"
+                        + "</object>",
+                ExpressionType.COMPLEX_TYPE);
+        logger.debug("Expression: {}", SchemaDebugUtil.prettyPrint(expression));
 
-            ExpressionType expression = PrismTestUtil.getPrismContext().parserFor(expressionNode).parseRealValue(ExpressionType.class);
-            logger.debug("Expression: {}", SchemaDebugUtil.prettyPrint(expression));
+        OperationResult result = createOperationResult();
+        String name = expressionHandler.evaluateExpression(accountType, expression, "test expression", null, result);
+        logger.info(result.debugDump());
 
-            OperationResult result = createOperationResult();
-            String name = expressionHandler.evaluateExpression(accountType, expression, "test expression", null, result);
-            logger.info(result.debugDump());
-
-            assertEquals("Wrong expression result", "hbarbossa", name);
-        }
+        assertEquals("Wrong expression result", "hbarbossa", name);
     }
 }

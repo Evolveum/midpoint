@@ -187,7 +187,7 @@ public final class FocusValidityScanPartialRun
 
         // We want the reconcile option here. There may be accounts that are in wrong activation state.
         // We will not notice that unless we go with reconcile.
-        ModelExecuteOptions options = new ModelExecuteOptions(PrismContext.get()).reconcile();
+        ModelExecuteOptions options = ModelExecuteOptions.create().reconcile();
 
         LensContext<FocusType> lensContext = getModelBeans().contextFactory
                 .createRecomputeContext(focus.asPrismObject(), options, workerTask, result);

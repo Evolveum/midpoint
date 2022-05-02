@@ -10,6 +10,7 @@ import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;

@@ -8,6 +8,8 @@ build/
 test-output/
 dependency-reduced-pom.xml
 
+node_modules/
+
 # IDEA files
 /.idea/
 *.iml

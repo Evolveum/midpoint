@@ -22,7 +22,7 @@ public class BaseMenuItem implements Serializable {
 
     public static final String F_ICON_CLASS = "iconClass";
 
-    public static final String DEFAULT_ICON = "fa fa-circle-o";
+    public static final String DEFAULT_ICON = "far fa-circle";
 
     //TODO why model? would be string key enought
     // >>> because model value can be resolved much later - eg. during render time (if component is visible), or doesn't have to be resolved at all.

@@ -21,4 +21,14 @@ public interface AuthModule {
      */
     ModuleAuthentication getBaseModuleAuthentication();
 
+    /**
+     * @return name of authentication module
+     */
+    String getNameOfModule();
+
+    /**
+     * @return order of authentication module
+     */
+    Integer getOrder();
+
 }

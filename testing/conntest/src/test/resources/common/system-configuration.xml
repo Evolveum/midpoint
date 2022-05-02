@@ -76,7 +76,7 @@
           </classLogger>
           <classLogger>
             <level>WARN</level>
-            <package>com.evolveum.midpoint.provisioning.impl.ResourceManager</package>
+            <package>com.evolveum.midpoint.provisioning.impl.resources.ResourceManager</package>
           </classLogger>
         <classLogger>
             <c:level>TRACE</c:level>

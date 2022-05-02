@@ -22,7 +22,7 @@ OPTIONAL/ADDITIONAL LIBS
 
 Place any additional libs/JARs (like JDBC drivers) into $MIDPOINT_HOME/lib.
 DO NOT place them into lib in the midPoint distribution root, in other words,
-do not put anything next to midpoint.war, that's the wrong place.
+do not put anything next to midpoint.jar, that's the wrong place.
 
 MORE INFORMATION
 

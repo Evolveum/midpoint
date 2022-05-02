@@ -10,13 +10,13 @@ import java.io.File;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+import com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
-import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -25,7 +25,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -39,14 +38,12 @@ import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationU
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.tools.testng.PerformanceTestMethodMixin;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
-import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
-import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
 
 //@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
@@ -310,13 +307,14 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
         runTestFor(PageTasks.class, "tasks", "All tasks");
     }
 
-    @Test
-    public void test510systemConfigurationAdminGuiConfig() {
-        logger.info(getTestName());
-        PageParameters params = new PageParameters();
-        params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI);
-        runTestFor(PageSystemConfiguration.class, params,"adminGuiConfig", "Admin Gui Config");
-    }
+    //TODO adapt
+//    @Test
+//    public void test510systemConfigurationAdminGuiConfig() {
+//        logger.info(getTestName());
+//        PageParameters params = new PageParameters();
+//        params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI);
+//        runTestFor(PageSystemConfiguration.class, params,"adminGuiConfig", "Admin Gui Config");
+//    }
 
     @Test(enabled = false) // doesn't work because of getPageBase usages
     public void test200sidebarMenu() {

@@ -51,6 +51,16 @@ public class AuthModuleImpl implements AuthModule {
         return baseModuleAuthentication.clone();
     }
 
+    @Override
+    public Integer getOrder() {
+        return baseModuleAuthentication.getOrder();
+    }
+
+    @Override
+    public String getNameOfModule() {
+        return configuration.getNameOfModule();
+    }
+
     private void setBaseModuleAuthentication(ModuleAuthenticationImpl baseModuleAuthentication) {
         this.baseModuleAuthentication = baseModuleAuthentication;
     }

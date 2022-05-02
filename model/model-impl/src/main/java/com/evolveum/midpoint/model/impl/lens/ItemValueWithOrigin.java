@@ -86,8 +86,8 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
         clone.construction = this.construction;
     }
 
-    public static <V extends PrismValue, D extends ItemDefinition<?>> DeltaSetTriple<ItemValueWithOrigin<V, D>> createOutputTriple(
-            PrismValueDeltaSetTripleProducer<V, D> mapping, PrismContext prismContext) {
+    public static <V extends PrismValue, D extends ItemDefinition<?>> DeltaSetTriple<ItemValueWithOrigin<V, D>>
+    createOutputTriple(PrismValueDeltaSetTripleProducer<V, D> mapping) {
         PrismValueDeltaSetTriple<V> outputTriple = mapping.getOutputTriple();
         if (outputTriple == null) {
             return null;
@@ -95,7 +95,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
         Collection<ItemValueWithOrigin<V,D>> zeroIvwoSet = convertSet(outputTriple.getZeroSet(), mapping);
         Collection<ItemValueWithOrigin<V,D>> plusIvwoSet = convertSet(outputTriple.getPlusSet(), mapping);
         Collection<ItemValueWithOrigin<V,D>> minusIvwoSet = convertSet(outputTriple.getMinusSet(), mapping);
-        return prismContext.deltaFactory().createDeltaSetTriple(zeroIvwoSet, plusIvwoSet, minusIvwoSet);
+        return PrismContext.get().deltaFactory().createDeltaSetTriple(zeroIvwoSet, plusIvwoSet, minusIvwoSet);
     }
 
     @NotNull

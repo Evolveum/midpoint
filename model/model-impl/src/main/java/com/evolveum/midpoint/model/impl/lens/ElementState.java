@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.Opera
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -278,7 +279,7 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
         return currentObject;
     }
 
-    private PrismObject<O> getAdjustedCurrentObject() throws SchemaException {
+    private PrismObject<O> getAdjustedCurrentObject() throws SchemaException, ConfigurationException {
         if (!adjustedCurrentObjectValid) {
             adjustedCurrentObject = currentObjectAdjuster.adjust(currentObject);
             adjustedCurrentObjectValid = true;
@@ -422,7 +423,7 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
 
             LOGGER.trace("compute new object: adjusted current = {}, current delta = {}", adjustedCurrentObject, currentDelta);
             return applyDeltaToObject(currentDelta, adjustedCurrentObject);
-        } catch (SchemaException e) {
+        } catch (ConfigurationException | SchemaException e) {
             // FIXME This is temporary. We should propagate this exception upwards. (But probably not to all getNewObject calls.)
             throw new SystemException("Unexpected schema exception when computing new object: " + e.getMessage(), e);
         } finally {
@@ -513,7 +514,7 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
     //endregion
 
     //region Object-delta-objects
-    public ObjectDeltaObject<O> getRelativeObjectDeltaObject() throws SchemaException {
+    public ObjectDeltaObject<O> getRelativeObjectDeltaObject() throws SchemaException, ConfigurationException {
         return new ObjectDeltaObject<>(
                 getAdjustedCurrentObject(),
                 getCurrentDelta(),
@@ -941,7 +942,7 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
 
     /** Creates adjusted current object. */
     interface CurrentObjectAdjuster<O extends ObjectType> extends Serializable {
-        @Nullable PrismObject<O> adjust(@Nullable PrismObject<O> objectCurrent) throws SchemaException;
+        @Nullable PrismObject<O> adjust(@Nullable PrismObject<O> objectCurrent) throws SchemaException, ConfigurationException;
     }
 
     /** Refines "raw" object definition. */

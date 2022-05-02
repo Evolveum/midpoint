@@ -16,14 +16,13 @@ import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 
 import com.evolveum.midpoint.authentication.impl.module.configurer.ModuleWebSecurityConfigurer;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 
 /**
  * @author skublik
@@ -55,7 +54,7 @@ public abstract class AbstractModuleFactory {
     public abstract AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix,
                                                   ServletRequest request, Map<Class<?>, Object> sharedObjects,
                                                   AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
-                                                  AuthenticationChannel authenticationChannel) throws Exception;
+                                                  AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception;
 
     protected Integer getOrder(){
         return 0;

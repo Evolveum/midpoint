@@ -26,13 +26,13 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjects
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 
 /**
- * Definition that describes either an object class (as fetched from the resource),
+ * A definition that describes either an object class (as fetched from the resource),
  * or an object type (as defined in `schemaHandling` part of resource definition).
  *
- * It is used as a common interface to both "raw" and "refined" definitions.
- * (E.g. in cases when there is no `schemaHandling` for given object class, or globally.)
+ * It is used as a common interface to both "raw" and "refined" definitions. (Raw definitions are used e.g. in cases
+ * when there is no `schemaHandling` for given object class, or for the resource as a whole.)
  *
- * Note: Before midPoint 4.5, this interface was known as ObjectClassComplexTypeDefinition.
+ * Note: Before midPoint 4.5, this interface was known as `ObjectClassComplexTypeDefinition`.
  * So the hierarchy was:
  *
  *                          ComplexTypeDefinition
@@ -57,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchC
  *
  * This change eliminates e.g. the need to create "artificial" refined object class definitions just to allow
  * model and provisioning modules to work with object classes not described in schema handling. (Confusion stemmed
- * e.g. from the fact that RefinedObjectClassDefinition had to have kind/intent. This is now fixed.)
+ * e.g. from the fact that `RefinedObjectClassDefinition` had to have kind/intent. This is now fixed.)
  */
 public interface ResourceObjectDefinition
     extends
@@ -69,7 +69,7 @@ public interface ResourceObjectDefinition
 
     /**
      * Returns the object class definition. It is either this object itself,
-     * or the linked definition (for object type).
+     * or the linked object class definition (for object type).
      */
     @NotNull ResourceObjectClassDefinition getObjectClassDefinition();
 
@@ -84,8 +84,6 @@ public interface ResourceObjectDefinition
      *
      * For dynamically composed definitions ({@link CompositeObjectDefinition} only the statically-defined ones
      * (i.e. those from the structural definition) are returned.
-     *
-     * TODO
      */
     @Experimental
     Collection<QName> getConfiguredAuxiliaryObjectClassNames();
@@ -178,6 +176,12 @@ public interface ResourceObjectDefinition
     //endregion
 
     //region Fetching various information from the definition bean
+
+    /**
+     * Returns the delineation of the set of objects belonging to this object type.
+     */
+    @NotNull ResourceObjectTypeDelineation getDelineation();
+
     /**
      * The definition of base context (resource object container). This object will be used
      * as a base for searches for objects of this type.
@@ -302,7 +306,7 @@ public interface ResourceObjectDefinition
     /**
      * Returns the phases in which inbound mappings are evaluated by default.
      *
-     * @see ResourceObjectTypeDefinitionType#getInboundMappingsEvaluation()
+     * @see ResourceObjectTypeDefinitionType#getMappingsEvaluation()
      */
     @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases();
     //endregion

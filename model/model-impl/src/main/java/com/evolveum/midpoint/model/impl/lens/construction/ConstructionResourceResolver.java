@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -114,8 +114,9 @@ class ConstructionResourceResolver {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         VariablesMap variables = ModelImplUtils
-                .getDefaultVariablesMap(construction.getFocusOdoAbsolute().getNewObject().asObjectable(),
-                        null, null, null, PrismContext.get());
+                .getDefaultVariablesMap(
+                        construction.getFocusOdoAbsolute().getNewObject().asObjectable(),
+                        null, null, null);
         ModelImplUtils.addAssignmentPathVariables(construction.getAssignmentPathVariables(), variables, PrismContext.get());
         LOGGER.debug("Expression variables for filter evaluation: {}", variables);
 

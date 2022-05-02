@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -324,7 +324,7 @@ public class ModelRestController extends AbstractRestController {
             return createErrorResponseBuilder(HttpStatus.BAD_REQUEST, result);
         }
 
-        ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options, prismContext);
+        ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
 
         String oid;
         ResponseEntity<?> response;
@@ -412,9 +412,9 @@ public class ModelRestController extends AbstractRestController {
             return createErrorResponseBuilder(HttpStatus.BAD_REQUEST, result);
         }
 
-        ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options, prismContext);
+        ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
         if (modelExecuteOptions == null) {
-            modelExecuteOptions = ModelExecuteOptions.create(prismContext);
+            modelExecuteOptions = ModelExecuteOptions.create();
         }
         // TODO: Do we want to overwrite in any case? Because of PUT?
         //  This was original logic... and then there's that ignored ID.
@@ -464,7 +464,7 @@ public class ModelRestController extends AbstractRestController {
                         .body(result.getMessage());
             }
 
-            ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options, prismContext);
+            ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
 
             model.deleteObject(clazz, id, modelExecuteOptions, task, result);
             response = createResponse(HttpStatus.NO_CONTENT, result);
@@ -501,7 +501,7 @@ public class ModelRestController extends AbstractRestController {
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
         try {
-            ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options, prismContext);
+            ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
             Collection<? extends ItemDelta<?, ?>> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
             model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, result);
             response = createResponse(HttpStatus.NO_CONTENT, result);

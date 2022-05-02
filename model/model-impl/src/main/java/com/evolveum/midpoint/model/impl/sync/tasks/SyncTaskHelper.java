@@ -231,8 +231,8 @@ public class SyncTaskHelper {
         ResourceSchema refinedSchema;
         try {
             refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource, LayerType.MODEL);
-        } catch (SchemaException e) {
-            throw new ActivityRunException("Schema error during processing account definition", FATAL_ERROR, PERMANENT_ERROR, e);
+        } catch (ConfigurationException | SchemaException e) {
+            throw new ActivityRunException("Error during processing account definition", FATAL_ERROR, PERMANENT_ERROR, e);
         }
 
         if (refinedSchema != null) {

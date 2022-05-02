@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.util;
 
+import static com.evolveum.midpoint.gui.api.page.PageBase.createEnumResourceKey;
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.toModelExecutionOptionsBean;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPhase;
@@ -29,23 +30,24 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplate;
-import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplates;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
-import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype;
+import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
+import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
+import com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate;
+import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
+import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+
+import com.evolveum.midpoint.web.component.data.*;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.*;
+import org.apache.commons.lang3.LocaleUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -59,7 +61,6 @@ import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.datetime.PatternDateConverter;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
@@ -85,6 +86,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.format.DateTimeFormat;
 
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
@@ -105,8 +109,14 @@ import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplate;
+import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplates;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageShadow;
+import com.evolveum.midpoint.gui.impl.page.self.PageOrgSelfProfile;
+import com.evolveum.midpoint.gui.impl.page.self.PageRoleSelfProfile;
+import com.evolveum.midpoint.gui.impl.page.self.PageServiceSelfProfile;
+import com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.model.api.*;
@@ -119,6 +129,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -134,12 +145,17 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.cases.*;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.*;
@@ -151,9 +167,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
-import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -169,31 +182,14 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
-import com.evolveum.midpoint.web.page.admin.cases.PageCase;
-import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection;
-import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate;
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
-import com.evolveum.midpoint.web.page.admin.reports.PageReport;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
-import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
-import com.evolveum.midpoint.web.page.self.PageOrgSelfProfile;
-import com.evolveum.midpoint.web.page.self.PageRoleSelfProfile;
-import com.evolveum.midpoint.web.page.self.PageServiceSelfProfile;
-import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -201,7 +197,6 @@ import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.wf.api.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -231,44 +226,26 @@ public final class WebComponentUtil {
      */
     private static RelationRegistry staticallyProvidedRelationRegistry;
 
-    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP;
     private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> CREATE_NEW_OBJECT_PAGE_MAP;
 
-    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP_NEW;
+    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP;
 
     static {
         OBJECT_DETAILS_PAGE_MAP = new HashMap<>();
         OBJECT_DETAILS_PAGE_MAP.put(UserType.class, PageUser.class);
-        OBJECT_DETAILS_PAGE_MAP.put(OrgType.class, PageOrgUnit.class);
+        OBJECT_DETAILS_PAGE_MAP.put(OrgType.class, PageOrg.class);
         OBJECT_DETAILS_PAGE_MAP.put(RoleType.class, PageRole.class);
         OBJECT_DETAILS_PAGE_MAP.put(ServiceType.class, PageService.class);
         OBJECT_DETAILS_PAGE_MAP.put(ResourceType.class, PageResource.class);
         OBJECT_DETAILS_PAGE_MAP.put(TaskType.class, PageTask.class);
         OBJECT_DETAILS_PAGE_MAP.put(ReportType.class, PageReport.class);
-        OBJECT_DETAILS_PAGE_MAP.put(ValuePolicyType.class, PageValuePolicy.class);
+
         OBJECT_DETAILS_PAGE_MAP.put(CaseType.class, PageCase.class);
         OBJECT_DETAILS_PAGE_MAP.put(ArchetypeType.class, PageArchetype.class);
-        OBJECT_DETAILS_PAGE_MAP.put(ShadowType.class, PageAccount.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ShadowType.class, PageShadow.class);
         OBJECT_DETAILS_PAGE_MAP.put(ObjectCollectionType.class, PageObjectCollection.class);
         OBJECT_DETAILS_PAGE_MAP.put(ObjectTemplateType.class, PageObjectTemplate.class);
-    }
-
-    static {
-        OBJECT_DETAILS_PAGE_MAP_NEW = new HashMap<>();
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(UserType.class, com.evolveum.midpoint.gui.impl.page.admin.user.PageUser.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(OrgType.class, PageOrg.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(RoleType.class, com.evolveum.midpoint.gui.impl.page.admin.role.PageRole.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ServiceType.class, com.evolveum.midpoint.gui.impl.page.admin.service.PageService.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ResourceType.class, com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(TaskType.class, com.evolveum.midpoint.gui.impl.page.admin.task.PageTask.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ReportType.class, com.evolveum.midpoint.gui.impl.page.admin.report.PageReport.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ValuePolicyType.class, PageValuePolicy.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(CaseType.class, com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ArchetypeType.class, com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ShadowType.class, PageShadow.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectCollectionType.class, com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectTemplateType.class, com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(MessageTemplateType.class, PageMessageTemplate.class);
+        OBJECT_DETAILS_PAGE_MAP.put(MessageTemplateType.class, PageMessageTemplate.class);
     }
 
     static {
@@ -483,7 +460,7 @@ public final class WebComponentUtil {
                 filter.addCondition(intentFilter);
                 query.setFilter(filter);        // TODO this overwrites existing filter (created in previous cycle iteration)... is it OK? [med]
             }
-        } catch (SchemaException ex) {
+        } catch (SchemaException | ConfigurationException ex) {
             LOGGER.error("Couldn't create query filter for ShadowType for association: {}", ex.getErrorTypeMessage());
         }
         return query.getFilter();
@@ -793,7 +770,10 @@ public final class WebComponentUtil {
     }
 
     public static boolean isReport(TaskType task) {
-        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_TASK) || isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK) || isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK);
+        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_TASK)
+                || isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK)
+                || isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK)
+                || isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_IMPORT_CLASSIC_TASK);
     }
 
     public static boolean isImport(TaskType task) {
@@ -1060,11 +1040,20 @@ public final class WebComponentUtil {
         return concreteTypes;
     }
 
+    public static <T extends Enum> String createEnumResourceKey(T value) {
+        if (value == null) {
+            return null;
+        }
+
+        return value.getClass().getSimpleName() + "." + value.name();
+    }
+
     public static <T extends Enum> IModel<String> createLocalizedModelForEnum(T value, Component comp) {
+        String key = createEnumResourceKey(value);
         if (value == null) {
             return Model.of("");
         }
-        String key = value.getClass().getSimpleName() + "." + value.name();
+
         return new StringResourceModel(key, comp, null);
     }
 
@@ -1785,17 +1774,14 @@ public final class WebComponentUtil {
     }
 
     public static <T extends Selectable> List<T> getSelectedData(Table table) {
-        DataTable dataTable = table.getDataTable();
-        BaseSortableDataProvider<T> provider = (BaseSortableDataProvider<T>) dataTable.getDataProvider();
-
-        List<T> selected = new ArrayList<>();
-//        for (T bean : provider.getAvailableData()) {
-//            if (bean.isSelected()) {
-//                selected.add(bean);
-//            }
-//        }
-
-        return selected;
+        List<T> objects = new ArrayList<>();
+        table.getDataTable().visitChildren(SelectableDataTable.SelectableRowItem.class,
+                (IVisitor<SelectableDataTable.SelectableRowItem<T>, Void>) (row, visit) -> {
+                    if (row.getModelObject().isSelected()) {
+                        objects.add(row.getModelObject());
+                    }
+                });
+        return objects;
     }
 
     public static void clearProviderCache(IDataProvider provider) {
@@ -2653,16 +2639,10 @@ public final class WebComponentUtil {
     }
 
     public static boolean hasDetailsPage(Class<?> clazz) {
-        if (isNewDesignEnabled()) {
-            return OBJECT_DETAILS_PAGE_MAP_NEW.containsKey(clazz);
-        }
         return OBJECT_DETAILS_PAGE_MAP.containsKey(clazz);
     }
 
     public static Class<? extends PageBase> getObjectDetailsPage(Class<? extends ObjectType> type) {
-        if (isNewDesignEnabled()) {
-            return OBJECT_DETAILS_PAGE_MAP_NEW.get(type);
-        }
         return OBJECT_DETAILS_PAGE_MAP.get(type);
     }
 
@@ -2670,9 +2650,6 @@ public final class WebComponentUtil {
         if (ResourceType.class.equals(type)) {
             return CREATE_NEW_OBJECT_PAGE_MAP.get(type);
         } else {
-            if (isNewDesignEnabled()) {
-                return OBJECT_DETAILS_PAGE_MAP_NEW.get(type);
-            }
             return OBJECT_DETAILS_PAGE_MAP.get(type);
         }
     }
@@ -2996,7 +2973,7 @@ public final class WebComponentUtil {
         try {
             ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
             ocd = ResourceObjectDefinitionResolver.getDefinitionForShadow(resourceSchema, shadowType);
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
         }
         ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType =
@@ -3097,7 +3074,7 @@ public final class WebComponentUtil {
         try {
             ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource.asPrismObject());
             ocd = ResourceObjectDefinitionResolver.getDefinitionForShadow(resourceSchema, shadowType);
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
         }
 
@@ -5018,25 +4995,24 @@ public final class WebComponentUtil {
             } else {
                 return List.of();
             }
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             return List.of();
         }
     }
 
     public static Class<? extends PageBase> resolveSelfPage() {
         FocusType focusType = WebModelServiceUtils.getLoggedInFocus();
-        boolean newDesignEnabled = isNewDesignEnabled();
         if (focusType instanceof UserType) {
-            return newDesignEnabled ? com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile.class : PageUserSelfProfile.class;
+            return PageUserSelfProfile.class;
         }
         if (focusType instanceof OrgType) {
-            return newDesignEnabled ? com.evolveum.midpoint.gui.impl.page.self.PageOrgSelfProfile.class : PageOrgSelfProfile.class;
+            return PageOrgSelfProfile.class;
         }
         if (focusType instanceof RoleType) {
-            return newDesignEnabled ? com.evolveum.midpoint.gui.impl.page.self.PageRoleSelfProfile.class : PageRoleSelfProfile.class;
+            return PageRoleSelfProfile.class;
         }
         if (focusType instanceof ServiceType) {
-            return newDesignEnabled ? com.evolveum.midpoint.gui.impl.page.self.PageServiceSelfProfile.class : PageServiceSelfProfile.class;
+            return PageServiceSelfProfile.class;
         }
         return null;
     }

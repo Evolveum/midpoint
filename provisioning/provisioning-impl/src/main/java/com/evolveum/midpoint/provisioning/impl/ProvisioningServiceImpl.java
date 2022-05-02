@@ -7,21 +7,25 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import static com.evolveum.midpoint.prism.PrismObject.cast;
-import static com.evolveum.midpoint.schema.GetOperationOptions.disableReadOnly;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.provisioning.impl.operations.OperationsHelper;
+import com.evolveum.midpoint.provisioning.impl.operations.ProvisioningGetOperation;
+import com.evolveum.midpoint.provisioning.impl.operations.ProvisioningSearchLikeOperation;
+import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
+import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,8 +43,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.NoneFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.AsyncUpdater;
@@ -70,11 +72,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Implementation of provisioning service.
- * <p>
+ *
  * It is just a "dispatcher" that routes interface calls to appropriate places.
  * E.g. the operations regarding resource definitions are routed directly to the
  * repository, operations of shadow objects are routed to the shadow cache and
  * so on.
+ *
+ * To keep the functionality transparent and maintainable, some of the processing is delegated to specialized
+ * "operation" classes, like {@link ProvisioningGetOperation}, {@link ProvisioningSearchLikeOperation}, and so on.
+ *
+ * General responsibilities:
+ *
+ * * Creating and closing the operation-level {@link OperationResult} (and recording any exceptions in the standard manner).
+ * More complex methods (e.g. `getObject`, `searchObjects`, `searchObjectsIterative`) may *clean up* the result before returning.
+ *
+ * * Logging at the operation level.
  *
  * @author Radovan Semancik
  */
@@ -82,11 +94,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Primary
 public class ProvisioningServiceImpl implements ProvisioningService, SystemConfigurationChangeListener {
 
+    private static final String OP_GET_OBJECT = ProvisioningService.class.getName() + ".getObject";
+    private static final String OP_SEARCH_OBJECTS = ProvisioningService.class.getName() + ".searchObjects";
+    private static final String OP_COUNT_OBJECTS = ProvisioningService.class.getName() + ".countObjects";
     private static final String OP_REFRESH_SHADOW = ProvisioningServiceImpl.class.getName() + ".refreshShadow";
     private static final String OP_DELETE_OBJECT = ProvisioningService.class.getName() + ".deleteObject";
 
-    @Autowired
-    ShadowsFacade shadowsFacade;
+    @Autowired ShadowsFacade shadowsFacade;
     @Autowired ResourceManager resourceManager;
     @Autowired ConnectorManager connectorManager;
     @Autowired ProvisioningContextFactory ctxFactory;
@@ -95,148 +109,66 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private LiveSynchronizer liveSynchronizer;
     @Autowired private AsyncUpdater asyncUpdater;
+    @Autowired private CommonBeans beans;
+    @Autowired private OperationsHelper operationsHelper;
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService cacheRepositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
 
     private volatile SystemConfigurationType systemConfiguration;
 
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
 
-    /**
-     * Get the value of repositoryService.
-     *
-     * @return the value of repositoryService
-     */
-    public RepositoryService getCacheRepositoryService() {
-        return cacheRepositoryService;
-    }
-
-    @SuppressWarnings("unchecked")
     @Override
-    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+    public @NotNull <T extends ObjectType> PrismObject<T> getObject(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        Validate.notNull(oid, "Oid of object to get must not be null.");
-        Validate.notNull(parentResult, "Operation result must not be null.");
+        Preconditions.checkNotNull(type, "type");
+        Preconditions.checkNotNull(oid, "oid");
+        Preconditions.checkNotNull(task, "task");
+        Preconditions.checkNotNull(parentResult, "parentResult");
 
-        // Result type for this operation
-        OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".getObject");
+        PrismObject<T> resultingObject;
+        ProvisioningGetOperation<T> operation = new ProvisioningGetOperation<>(type, oid, options, task, beans, operationsHelper);
+
+        OperationResult result = parentResult.createMinorSubresult(OP_GET_OBJECT); // TODO why minor?
         result.addParam(OperationResult.PARAM_OID, oid);
         result.addParam(OperationResult.PARAM_TYPE, type);
-        result.addArbitraryObjectCollectionAsParam("options", options);
+        result.addArbitraryObjectCollectionAsParam(OperationResult.PARAM_OPTIONS, options);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-        boolean exceptionRecorded = false;
+        //noinspection EmptyFinallyBlock
         try {
-            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-            PrismObject<T> resultingObject;
-
-            if (ResourceType.class.isAssignableFrom(type)) {
-                if (GetOperationOptions.isRaw(rootOptions)) {
-                    resultingObject = (PrismObject<T>) cacheRepositoryService.getObject(ResourceType.class, oid, options, result);
-                    try {
-                        applyDefinition(resultingObject, task, result);
-                    } catch (ObjectNotFoundException ex) {
-                        // this is almost OK, we use raw for debug pages, so we want
-                        // to return resource and it can be fixed
-                        result.muteLastSubresultError();
-                        ProvisioningUtil.logWarning(LOGGER, result,
-                                "Bad connector reference defined for resource:  " + ex.getMessage(), ex);
-                    } catch (SchemaException ex) {
-                        result.muteLastSubresultError();
-                        ProvisioningUtil.logWarning(LOGGER, result, "Schema violation:  " + ex.getMessage(), ex);
-                    } catch (ConfigurationException ex) {
-                        result.muteLastSubresultError();
-                        ProvisioningUtil.logWarning(LOGGER, result, "Configuration problem:  " + ex.getMessage(), ex);
-                    }
-                } else {
-                    // We need to handle resource specially. This is usually cached and we do not want to get the repository
-                    // object if it is in the cache.
-
-                    // Make sure that the object is complete, e.g. there is a (fresh) schema
-                    try {
-                        resultingObject = (PrismObject<T>) resourceManager
-                                .getResource(oid, SelectorOptions.findRootOptions(options), task, result);
-                    } catch (ObjectNotFoundException ex) {
-                        ProvisioningUtil.recordFatalError(LOGGER, result, "Resource object not found", ex);
-                        exceptionRecorded = true;
-                        throw ex;
-                    } catch (SchemaException ex) {
-                        ProvisioningUtil.recordFatalError(LOGGER, result, "Schema violation", ex);
-                        exceptionRecorded = true;
-                        throw ex;
-                    } catch (ExpressionEvaluationException ex) {
-                        ProvisioningUtil.recordFatalError(LOGGER, result, "Expression error", ex);
-                        exceptionRecorded = true;
-                        throw ex;
-                    }
-                }
-
-            } else {
-                // Not a resource
-
-                if (ShadowType.class.equals(type)) {
-                    // Temporary action to avoid immutability issues. Maybe we should extend it also to other kinds of objects.
-                    options = disableReadOnly(options);
-                }
-
-                PrismObject<T> repositoryObject = getRepoObject(type, oid, options, result);
-                LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDumpLazily());
-
-                if (repositoryObject.canRepresent(ShadowType.class)) {
-                    try {
-                        resultingObject = (PrismObject<T>) shadowsFacade.getShadow(oid,
-                                (PrismObject<ShadowType>) (repositoryObject), null, options, task, result);
-                    } catch (ObjectNotFoundException e) {
-                        if (!GetOperationOptions.isAllowNotFound(rootOptions)) {
-                            ProvisioningUtil
-                                    .recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-                        } else {
-                            result.muteLastSubresultError();
-                            result.computeStatus();
-                        }
-                        exceptionRecorded = true;
-                        throw e;
-                    } catch (MaintenanceException e) {
-                        LOGGER.trace(e.getMessage(), e);
-                        result.cleanupResult(e);
-                        exceptionRecorded = true;
-                        throw e;
-                    } catch (CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
-                        ProvisioningUtil
-                                .recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-                        //noinspection UnusedAssignment - IDEA is wrong here
-                        exceptionRecorded = true;
-                        throw e;
-                    } catch (EncryptionException e) {
-                        ProvisioningUtil
-                                .recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-                        exceptionRecorded = true;
-                        throw new SystemException(e);
-                    }
-                } else {
-                    resultingObject = repositoryObject;
-                }
-            }
-
-            result.computeStatusIfUnknown();
-            if (!GetOperationOptions.isRaw(rootOptions)) {
-                resultingObject = resultingObject.cloneIfImmutable();
-                resultingObject.asObjectable().setFetchResult(result.createOperationResultType());
-            }
-            result.cleanupResult();
-            return resultingObject;
+            resultingObject = operation.execute(result);
+            result.closeAndCleanup();
         } catch (Throwable t) {
             // We use this strange construction because in some occasions we record the exception in a custom way
             // (e.g. using custom message). Therefore let's record the fatal error only if it was not recorded previously.
             // An alternative would be to check if the result has a status of FATAL_ERROR already set. But there might be
             // cases (in the future) when we want to record status other than FATAL_ERROR and still throw the exception.
-            if (!exceptionRecorded) {
+            if (!operation.isExceptionRecorded()) {
                 result.recordFatalError(t);
             }
+            result.closeAndCleanup(t);
             throw t;
+        } finally {
+            // Nothing needs to be here, as the result is already closed and cleaned up.
+        }
+
+        LOGGER.trace("Retrieved object {} with the status of {}", resultingObject, result.getStatus());
+
+        if (operation.isRawMode() && result.isSuccess()) {
+            return resultingObject;
+        } else {
+            // This must be done after the result is closed.
+            // TODO There may be fetch result stored in the object by lower layers. We assume (hope) that this parent result
+            //  contains its value as one of the children.
+            PrismObject<T> clone = resultingObject.cloneIfImmutable();
+            clone.asObjectable().setFetchResult(result.createOperationResultType());
+            return clone;
         }
     }
 
@@ -267,22 +199,22 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                     // Status might be set already (e.g. by consistency mechanism)
                     result.computeStatusIfUnknown();
                 } catch (GenericFrameworkException ex) {
-                    ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't add object " + object + ". Reason: " + ex.getMessage(), ex);
+                    ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't add object " + object + ". Reason: " + ex.getMessage(), ex);
                     throw new ConfigurationException(ex.getMessage(), ex);
                 } catch (ObjectAlreadyExistsException ex) {
                     result.computeStatus();
                     if (!result.isSuccess() && !result.isHandledError()) {
-                        ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't add object. Object already exist: " + ex.getMessage(), ex);
+                        ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't add object. Object already exist: " + ex.getMessage(), ex);
                     } else {
                         result.recordSuccess();
                     }
                     result.cleanupResult(ex);
                     throw new ObjectAlreadyExistsException("Couldn't add object. Object already exists: " + ex.getMessage(), ex);
                 } catch (EncryptionException e) {
-                    ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+                    ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
                     throw new SystemException(e.getMessage(), e);
                 } catch (Exception | Error e) {
-                    ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+                    ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
                     throw e;
                 }
             } else {
@@ -343,15 +275,15 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException |
                 ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             result.summarize(true);
             throw e;
         } catch (ObjectAlreadyExistsException e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             result.summarize(true);
             throw new SystemException(e);
         } catch (GenericFrameworkException e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result,
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result,
                     "Synchronization error: generic connector framework error: " + e.getMessage(), e);
             result.summarize(true);
             throw new GenericConnectorException(e.getMessage(), e);
@@ -378,7 +310,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             asyncUpdater.processAsynchronousUpdates(shadowCoordinates, handler, task, result);
             result.recordSuccess();
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw e;
         } finally {
             // todo ok?
@@ -389,180 +321,81 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     @NotNull
     @Override
-    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(@NotNull Class<T> type, @Nullable ObjectQuery query,
-            @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Task task, @NotNull OperationResult parentResult)
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".searchObjects");
-        result.addParam("objectType", type);
-        result.addParam("query", query);
+        Preconditions.checkNotNull(type, "type");
+        Preconditions.checkNotNull(task, "task");
+        Preconditions.checkNotNull(parentResult, "parentResult");
+
+        LOGGER.trace("Start of (non-iterative) search objects. Query:\n{}", DebugUtil.debugDumpLazily(query, 1));
+
+        OperationResult result = parentResult.createSubresult(OP_SEARCH_OBJECTS);
+        result.addParam(OperationResult.PARAM_TYPE, type);
+        result.addParam(OperationResult.PARAM_QUERY, query);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-        LOGGER.trace("Start of (non-iterative) search objects. Query:\n{}", query != null ? query.debugDumpLazily(1) : "  (null)");
+        //noinspection EmptyFinallyBlock
+        try {
+            SearchResultList<PrismObject<T>> objects =
+                    new ProvisioningSearchLikeOperation<>(type, query, options, task, beans)
+                            .executeSearch(result);
 
-        query = simplifyQueryFilter(query);
-        ObjectFilter filter = query != null ? query.getFilter() : null;
-
-        if (InternalsConfig.consistencyChecks && filter != null) {
-            // We may not have all the definitions here. We will apply the definitions later
-            filter.checkConsistence(false);
+            LOGGER.trace("Finished searching. Metadata: {}", DebugUtil.shortDumpLazily(objects.getMetadata()));
+            result.closeAndCleanup();
+            return objects;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            result.closeAndCleanup(t);
+            throw t;
+        } finally {
+            // Nothing needs to be here, as the result is already closed and cleaned up.
         }
-
-        if (filter instanceof NoneFilter) {
-            result.recordSuccessIfUnknown();
-            result.cleanupResult();
-            SearchResultMetadata metadata = new SearchResultMetadata();
-            metadata.setApproxNumberOfAllResults(0);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Finished searching. Nothing to do. Filter is NONE. Metadata: {}", metadata.shortDump());
-            }
-            SearchResultList<PrismObject<T>> objListType = new SearchResultList<>(new ArrayList<>());
-            objListType.setMetadata(metadata);
-            return objListType;
-        }
-
-        SearchResultList<PrismObject<T>> objects;
-        if (ShadowType.class.isAssignableFrom(type)) {
-            try {
-                //noinspection unchecked,rawtypes
-                objects = (SearchResultList) shadowsFacade.searchObjects(query, options, task, result);
-            } catch (Throwable e) {
-                ProvisioningUtil.recordFatalError(LOGGER, result, "Could not search objects: " + e.getMessage(), e);
-                throw e;
-            }
-        } else {
-            objects = searchRepoObjects(type, query, options, task, result);
-        }
-
-        result.computeStatus();
-        result.cleanupResult();
-        LOGGER.trace("Finished searching. Metadata: {}", DebugUtil.shortDumpLazily(objects.getMetadata()));
-        // validateObjects(objListType);
-        return objects;
     }
 
-    @NotNull
-    private <T extends ObjectType> SearchResultList<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException {
-
-        List<PrismObject<T>> repoObjects;
-
-        // TODO: should searching connectors trigger rediscovery?
-
-        Collection<SelectorOptions<GetOperationOptions>> repoOptions;
-        if (GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options))) {
-            repoOptions = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-        } else {
-            repoOptions = null;
-        }
-        repoObjects = getCacheRepositoryService().searchObjects(type, query, repoOptions, result);
-
-        SearchResultList<PrismObject<T>> newObjListType = new SearchResultList<>(new ArrayList<>());
-        for (PrismObject<T> repoObject : repoObjects) {
-            OperationResult objResult = new OperationResult(ProvisioningService.class.getName() + ".searchObjects.object");
-
-            try {
-
-                PrismObject<T> completeResource = completeObject(type, repoObject, options, task, objResult);
-                objResult.computeStatusIfUnknown();
-                if (!objResult.isSuccess()) {
-                    // necessary e.g. to skip validation for resources that had issues when checked
-                    completeResource.asObjectable().setFetchResult(objResult.createOperationResultType());
-                    result.addSubresult(objResult);
-                }
-                newObjListType.add(completeResource);
-
-                // TODO: what else do to with objResult??
-
-            } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException e) {
-                LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", repoObject, e.getMessage(), e);
-                objResult.recordFatalError(e);
-                repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
-                newObjListType.add(repoObject);
-                result.addSubresult(objResult);
-                result.recordPartialError(e);
-
-            } catch (RuntimeException e) {
-                // FIXME: Strictly speaking, the runtime exception should not be handled here.
-                //  The runtime exceptions should be considered fatal anyway ... but some of the
-                //  ICF exceptions are still translated to system exceptions. So this provides
-                //  a better robustness now.
-                LOGGER.error("System error while completing {}: {}-{}. Using non-complete object.", repoObject, e.getMessage(), e);
-                objResult.recordFatalError(e);
-                repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
-                newObjListType.add(repoObject);
-                result.addSubresult(objResult);
-                result.recordPartialError(e);
-            }
-        }
-        return newObjListType;
-
-    }
-
-    // TODO: move to ResourceManager and ConnectorManager
-    // the shadow-related code is already in the ShadowCache
-    private <T extends ObjectType> PrismObject<T> completeObject(
-            Class<T> type, PrismObject<T> inObject, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-
-        if (ResourceType.class.equals(type)) {
-            //noinspection unchecked
-            return (PrismObject<T>) resourceManager.completeResource((PrismObject<ResourceType>) inObject,
-                    SelectorOptions.findRootOptions(options), task, result);
-        } else if (ShadowType.class.equals(type)) {
-            throw new IllegalStateException(
-                    "Should not happen, the shadow-related code is already in the ShadowCache");
-        } else {
-            //TODO: connectors etc..
-        }
-        return inObject;
-    }
-
-    public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+    public <T extends ObjectType> Integer countObjects(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
-        OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".countObjects");
-        result.addParam("objectType", type);
-        result.addParam("query", query);
-        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-
-        query = simplifyQueryFilter(query);
-        ObjectFilter filter = query != null ? query.getFilter() : null;
+        Preconditions.checkNotNull(type, "type");
+        Preconditions.checkNotNull(task, "task");
+        Preconditions.checkNotNull(parentResult, "parentResult");
 
         LOGGER.trace("Start of counting objects. Query:\n{}", DebugUtil.debugDumpLazily(query, 1));
 
-        if (filter instanceof NoneFilter) {
-            result.recordSuccessIfUnknown();
-            result.cleanupResult();
-            LOGGER.trace("Finished counting. Nothing to do. Filter is NONE");
-            return 0;
-        }
+        OperationResult result = parentResult.createMinorSubresult(OP_COUNT_OBJECTS);
+        result.addParam(OperationResult.PARAM_TYPE, type);
+        result.addParam(OperationResult.PARAM_QUERY, query);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-
-        if (!ShadowType.class.isAssignableFrom(type) || GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isRaw(rootOptions)) {
-            int count = getCacheRepositoryService().countObjects(type, query, options, parentResult);
-            result.computeStatus();
-            result.recordSuccessIfUnknown();
-            result.cleanupResult();
-            return count;
-        }
-
-        Integer count;
+        //noinspection EmptyFinallyBlock
         try {
-            count = shadowsFacade.countObjects(query, task, result);
+            Integer count =
+                    new ProvisioningSearchLikeOperation<>(type, query, options, task, beans)
+                            .executeCount(result);
 
-            result.computeStatus();
-        } catch (ConfigurationException | CommunicationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
-            throw e;
+            LOGGER.trace("Result of the counting: {}", count);
+            result.addReturn(OperationResult.RETURN_COUNT, count);
+            result.closeAndCleanup();
+            return count;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            result.closeAndCleanup(t);
+            throw t;
         } finally {
-            result.cleanupResult();
+            // Nothing needs to be here, as the result is already closed and cleaned up.
         }
-
-        LOGGER.trace("Finished counting objects: {}", count);
-        return count;
     }
 
     @Override
@@ -595,7 +428,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             LOGGER.trace("modifyObject: object modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
 
             // getting object to modify
-            PrismObject<T> repoShadow = getRepoObject(type, oid, null, result);
+            PrismObject<T> repoShadow = operationsHelper.getRepoObject(type, oid, null, result);
 
             LOGGER.trace("modifyObject: object to modify (repository):\n{}.", repoShadow.debugDumpLazily());
 
@@ -615,16 +448,16 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         } catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException | SecurityViolationException
                 | PolicyViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw e;
         } catch (GenericFrameworkException e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw new CommunicationException(e.getMessage(), e);
         } catch (EncryptionException e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw new SystemException(e.getMessage(), e);
         } catch (ObjectAlreadyExistsException e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't modify object: object after modification would conflict with another existing object: " + e.getMessage(), e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't modify object: object after modification would conflict with another existing object: " + e.getMessage(), e);
             throw e;
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -658,7 +491,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             // TODO: is it critical when shadow does not exist anymore? E.g. do we need to log it?
             //  If it's not critical, change null to allowNotFound options below.
 
-            PrismObject<T> object = getRepoObject(type, oid, null, result);
+            PrismObject<T> object = operationsHelper.getRepoObject(type, oid, null, result);
             LOGGER.trace("Object from repository to delete:\n{}", object.debugDumpLazily(1));
 
             if (object.canRepresent(ShadowType.class) && !ProvisioningOperationOptions.isRaw(options)) {
@@ -693,26 +526,26 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             // TODO improve the error reporting. It is good that we want to provide some context for the error ("Couldn't delete
             //  object: ... problem: ...") but this is just too verbose in code. We need a better approach.
         } catch (CommunicationException e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: communication problem: " + e.getMessage(), e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't delete object: communication problem: " + e.getMessage(), e);
             throw e;
         } catch (GenericFrameworkException e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result,
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result,
                     "Couldn't delete object: generic error in the connector: " + e.getMessage(), e);
             throw new CommunicationException(e.getMessage(), e);
         } catch (SchemaException e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: schema problem: " + e.getMessage(), e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't delete object: schema problem: " + e.getMessage(), e);
             throw e;
         } catch (ConfigurationException e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: configuration problem: " + e.getMessage(), e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't delete object: configuration problem: " + e.getMessage(), e);
             throw e;
         } catch (SecurityViolationException e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: security violation: " + e.getMessage(), e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't delete object: security violation: " + e.getMessage(), e);
             throw e;
         } catch (ExpressionEvaluationException e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: expression error: " + e.getMessage(), e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't delete object: expression error: " + e.getMessage(), e);
             throw e;
         } catch (Throwable e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: " + e.getMessage(), e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't delete object: " + e.getMessage(), e);
             throw e;
         }
     }
@@ -734,7 +567,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             scriptResult = resourceManager.executeScript(resourceOid, script, task, result);
 
         } catch (CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw e;
         }
 
@@ -762,7 +595,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         PrismObject<ResourceType> resource;
 
         try {
-            resource = getRepoObject(ResourceType.class, resourceOid, null, testResult);
+            resource = operationsHelper.getRepoObject(ResourceType.class, resourceOid, null, testResult);
             resourceManager.testConnection(resource, task, testResult);
 
         } catch (SchemaException ex) {
@@ -789,11 +622,11 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             shadowsFacade.refreshShadow(shadow, options, task, result);
 
         } catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't refresh shadow: " + e.getClass().getSimpleName() + ": " + e.getMessage(), e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't refresh shadow: " + e.getClass().getSimpleName() + ": " + e.getMessage(), e);
             throw e;
 
         } catch (EncryptionException e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw new SystemException(e.getMessage(), e);
         }
 
@@ -803,45 +636,20 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         LOGGER.debug("Finished refreshing shadow {}: {}", shadow, result);
     }
 
-    // TODO: move to ResourceManager and ConnectorManager
-    // the shadow-related code is already in the ShadowCache
-    private <T extends ObjectType> boolean handleRepoObject(Class<T> type, PrismObject<T> object,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            ResultHandler<T> handler, Task task, OperationResult objResult) {
-
-        PrismObject<T> completeObject;
-        try {
-
-            completeObject = completeObject(type, object, options, task, objResult);
-
-        } catch (Throwable e) {
-            LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", object, e.getMessage(), e);
-            objResult.recordFatalError(e);
-            object.asObjectable().setFetchResult(objResult.createOperationResultType());
-            completeObject = object;
-        }
-
-        objResult.computeStatus();
-        objResult.recordSuccessIfUnknown();
-
-        if (!objResult.isSuccess()) {
-            OperationResultType resultType = objResult.createOperationResultType();
-            completeObject.asObjectable().setFetchResult(resultType);
-        }
-
-        return handler.handle(completeObject, objResult);
-
-    }
-
-    @SuppressWarnings({ "unchecked" })
     @Override
-    public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<T> handler, Task task,
-            OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
+    public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ResultHandler<T> handler,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        Validate.notNull(parentResult, "Operation result must not be null.");
-        Validate.notNull(handler, "Handler must not be null.");
+        Preconditions.checkNotNull(type, "type");
+        Preconditions.checkNotNull(handler, "handler");
+        Preconditions.checkNotNull(task, "task");
+        Preconditions.checkNotNull(parentResult, "parentResult");
 
         LOGGER.trace("Start of (iterative) search objects. Query:\n{}", DebugUtil.debugDumpLazily(query, 1));
 
@@ -850,80 +658,25 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         result.setSummarizeErrors(true);
         result.setSummarizePartialErrors(true);
 
-        result.addParam("query", query);
+        result.addParam(OperationResult.PARAM_TYPE, type);
+        result.addParam(OperationResult.PARAM_QUERY, query);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-        query = simplifyQueryFilter(query);
-        ObjectFilter filter = query != null ? query.getFilter() : null;
+        //noinspection EmptyFinallyBlock
+        try {
+            SearchResultMetadata metadata =
+                    new ProvisioningSearchLikeOperation<>(type, query, options, task, beans)
+                            .executeIterativeSearch(handler, result);
 
-        if (InternalsConfig.consistencyChecks && filter != null) {
-            // We may not have all the definitions here. We will apply the definitions later
-            filter.checkConsistence(false);
-        }
-
-        if (filter instanceof NoneFilter) {
-            result.recordSuccessIfUnknown();
-            result.cleanupResult();
-            SearchResultMetadata metadata = new SearchResultMetadata();
-            metadata.setApproxNumberOfAllResults(0);
-            LOGGER.trace("Finished searching. Nothing to do. Filter is NONE. Metadata: {}", metadata.shortDumpLazily());
+            LOGGER.trace("Finished iterative searching. Metadata: {}", DebugUtil.shortDumpLazily(metadata));
+            result.closeAndCleanup();
             return metadata;
-        }
-
-        final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-
-        SearchResultMetadata metadata;
-        if (ShadowType.class.isAssignableFrom(type)) {
-
-            try {
-
-                metadata = shadowsFacade.searchObjectsIterative(query, options, (ResultHandler<ShadowType>) handler, task, result);
-
-                result.computeStatus();
-                result.cleanupResult();
-
-            } catch (Throwable e) {
-                ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
-                throw e;
-            }
-
-        } else {
-
-            ResultHandler<T> internalHandler = (object, objResult) -> handleRepoObject(type, object, options, handler, task, objResult);
-
-            Collection<SelectorOptions<GetOperationOptions>> repoOptions;
-            if (GetOperationOptions.isReadOnly(rootOptions)) {
-                repoOptions = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-            } else {
-                repoOptions = null;
-            }
-
-            try {
-
-                metadata = cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, repoOptions, true, result);
-
-                result.computeStatus();
-                result.recordSuccessIfUnknown();
-                result.cleanupResult();
-
-            } catch (Throwable e) {
-                ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
-                throw e;
-            }
-        }
-
-        LOGGER.trace("Finished searching. Metadata: {}", DebugUtil.shortDumpLazily(metadata));
-        return metadata;
-    }
-
-    private ObjectQuery simplifyQueryFilter(ObjectQuery query) {
-        if (query != null) {
-            ObjectFilter filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext);
-            ObjectQuery clone = query.cloneWithoutFilter();
-            clone.setFilter(filter);
-            return clone;
-        } else {
-            return null;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            result.closeAndCleanup(t);
+            throw t;
+        } finally {
+            // Nothing needs to be here, as the result is already closed and cleaned up.
         }
     }
 
@@ -939,7 +692,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         try {
             discoverConnectors = connectorManager.discoverConnectors(hostType, result);
         } catch (CommunicationException ex) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, "Discovery failed: " + ex.getMessage(), ex);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Discovery failed: " + ex.getMessage(), ex);
             throw ex;
         }
 
@@ -962,7 +715,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             resource = resourceManager.getResource(resourceOid, null, task, result);
 
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException ex) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, ex.getMessage(), ex);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, ex.getMessage(), ex);
             throw ex;
         }
 
@@ -970,7 +723,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         try {
             stats = resourceManager.getConnectorOperationalStatus(resource, result);
         } catch (Throwable ex) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, "Getting operations status from connector for resource " + resourceOid + " failed: " + ex.getMessage(), ex);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Getting operations status from connector for resource " + resourceOid + " failed: " + ex.getMessage(), ex);
             throw ex;
         }
 
@@ -1008,7 +761,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             result.cleanupResult();
 
         } catch (Throwable e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw e;
         }
     }
@@ -1036,7 +789,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             result.recordSuccessIfUnknown();
 
         } catch (Throwable e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw e;
         } finally {
             result.cleanupResult();
@@ -1054,7 +807,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, result);
             shadowsFacade.determineShadowState(ctx, shadow);
         } catch (Throwable e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw e;
         } finally {
             result.close();
@@ -1081,7 +834,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             if (ShadowType.class.isAssignableFrom(type)) {
                 shadowsFacade.applyDefinition(query, task, result);
             } else if (ResourceType.class.isAssignableFrom(type)) {
-                resourceManager.applyDefinition(query, result);
+                resourceManager.applyDefinition(query, result); // beware: no implementation yet
             } else {
                 throw new IllegalArgumentException("Could not apply definition to query for object type: " + type);
             }
@@ -1090,7 +843,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             result.recordSuccessIfUnknown();
 
         } catch (Throwable e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw e;
         } finally {
             result.cleanupResult();
@@ -1186,27 +939,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         ConstraintsChecker.exitCache();
     }
 
-    @NotNull
-    private <T extends ObjectType> PrismObject<T> getRepoObject(Class<T> type, String oid,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
-        try {
-            return cacheRepositoryService.getObject(type, oid, options, result);
-        } catch (ObjectNotFoundException e) {
-            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-            if (!GetOperationOptions.isAllowNotFound(rootOptions)) {
-                ProvisioningUtil.recordFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + e.getMessage(), e);
-            } else {
-                result.muteLastSubresultError();
-                result.computeStatus();
-            }
-            throw e;
-        } catch (SchemaException ex) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + ex.getMessage(), ex);
-            throw ex;
-        }
-    }
-
     @Override
     public <O extends ObjectType, T> ItemComparisonResult compare(Class<O> type, String oid, ItemPath path,
             T expectedValue, Task task, OperationResult parentResult)
@@ -1226,7 +958,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         ItemComparisonResult comparisonResult;
         try {
 
-            PrismObject<O> repositoryObject = getRepoObject(type, oid, null, result);
+            PrismObject<O> repositoryObject = operationsHelper.getRepoObject(type, oid, null, result);
             LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDumpLazily());
 
             //noinspection unchecked
@@ -1234,7 +966,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException |
                 SecurityViolationException | ExpressionEvaluationException | EncryptionException | RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw e;
         }
 
@@ -1257,5 +989,10 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
         shadowsFacade.setResourceObjectClassifier(classifier);
+    }
+
+    @Override
+    public void setShadowTagGenerator(ShadowTagGenerator generator) {
+        shadowsFacade.setShadowTagGenerator(generator);
     }
 }

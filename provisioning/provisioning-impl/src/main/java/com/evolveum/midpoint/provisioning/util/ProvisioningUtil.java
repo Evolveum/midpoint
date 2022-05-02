@@ -382,19 +382,18 @@ public class ProvisioningUtil {
         return refinedSchema;
     }
 
-    public static void recordFatalError(Trace logger, OperationResult opResult, String explicitMessage, Throwable ex) {
+    public static void recordWarningNotRethrowing(Trace logger, OperationResult result, String message, Exception ex) {
+        LoggingUtils.logExceptionAsWarning(logger, message, ex);
+        result.muteLastSubresultError();
+        result.recordWarningNotFinish(message, ex); // We are not the one that created the operation result
+    }
+
+    public static void recordFatalErrorWhileRethrowing(Trace logger, OperationResult opResult, String explicitMessage, Throwable ex) {
         String message = explicitMessage != null ? explicitMessage : ex.getMessage();
         // Should we log the exception? Actually, there's no reason to do it if the exception is rethrown.
-        // (What is the case here: each place that calls this method rethrows the exception.)
         // Therefore we'll log the exception only on debug level here.
         LoggingUtils.logExceptionOnDebugLevel(logger, message, ex);
         opResult.recordFatalErrorNotFinish(message, ex); // We are not the one who created the result, so we shouldn't close it
-        opResult.cleanupResult(ex);
-    }
-
-    public static void logWarning(Trace logger, OperationResult opResult, String message, Exception ex) {
-        logger.error(message, ex);
-        opResult.recordWarning(message, ex);
     }
 
     public static boolean shouldStoreAttributeInShadow(ResourceObjectDefinition objectDefinition, QName attributeName,

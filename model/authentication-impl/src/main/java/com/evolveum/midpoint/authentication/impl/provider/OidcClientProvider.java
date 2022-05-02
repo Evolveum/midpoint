@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.authentication.impl.provider;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.OidcClientModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.OidcAdditionalConfiguration;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -30,6 +32,7 @@ import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPrivateKey;
@@ -92,24 +95,24 @@ public class OidcClientProvider extends RemoteModuleProvider {
     @Override
     protected Authentication internalAuthentication(Authentication authentication, List requireAssignment,
             AuthenticationChannel channel, Class focusType) throws AuthenticationException {
-        Authentication token;
+        PreAuthenticatedAuthenticationToken token;
         if (authentication instanceof OAuth2LoginAuthenticationToken) {
-            OAuth2LoginAuthenticationToken oidcAuthenticationToken = (OAuth2LoginAuthenticationToken) authentication;
-            OAuth2LoginAuthenticationToken oidcAuthentication;
+            OAuth2LoginAuthenticationToken oidcAuthenticationToken;
             try {
-                oidcAuthentication = (OAuth2LoginAuthenticationToken) oidcProvider.authenticate(oidcAuthenticationToken);
-            } catch (AuthenticationException e) {
+                oidcAuthenticationToken = (OAuth2LoginAuthenticationToken) oidcProvider.authenticate(authentication);
+            } catch (Exception e) {
                 getAuditProvider().auditLoginFailure(null, null, createConnectEnvironment(getChannel()), e.getMessage());
-                throw e;
+                throw new AuthenticationServiceException("web.security.provider.unavailable", e);
             }
             OidcClientModuleAuthenticationImpl oidcModule = (OidcClientModuleAuthenticationImpl) AuthUtil.getProcessingModule();
             try {
-                String enteredUsername = oidcAuthentication.getName();
+                String enteredUsername = oidcAuthenticationToken.getName();
                 if (StringUtils.isEmpty(enteredUsername)) {
                     LOGGER.error("Oidc attribute, which define username don't contains value");
                     throw new AuthenticationServiceException("web.security.provider.invalid");
                 }
                 token = getPreAuthenticationToken(enteredUsername, focusType, requireAssignment, channel);
+                ((OAuth2LoginAuthenticationToken) authentication).setDetails(oidcAuthenticationToken.getPrincipal());
             } catch (AuthenticationException e) {
                 oidcModule.setAuthentication(oidcAuthenticationToken);
                 LOGGER.info("Authentication with oidc module failed: {}", e.getMessage());

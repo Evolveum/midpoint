@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -111,7 +112,7 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             Task task = getPageBase().createSimpleTask("visualize");
             primaryScenes = getPageBase().getModelInteractionService().visualizeDeltas(primaryDeltas, task, task.getResult());
             secondaryScenes = getPageBase().getModelInteractionService().visualizeDeltas(secondaryDeltas, task, task.getResult());
-        } catch (SchemaException | ExpressionEvaluationException e) {
+        } catch (SchemaException | ExpressionEvaluationException | ConfigurationException e) {
             throw new SystemException(e);        // TODO
         }
         if (LOGGER.isTraceEnabled()) {

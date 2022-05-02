@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -17,17 +17,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+
 public class PreContext extends Context {
 
-    @NotNull final SynchronizationContext<?> syncCtx;
+    @NotNull final PreInboundsContext<?> ctx;
 
     public PreContext(
-            @NotNull SynchronizationContext<?> syncCtx,
+            @NotNull PreInboundsContext<?> ctx,
             @NotNull MappingEvaluationEnvironment env,
             @NotNull OperationResult result,
             @NotNull ModelBeans beans) {
         super(env, result, beans);
-        this.syncCtx = syncCtx;
+        this.ctx = ctx;
     }
 
     @Override
@@ -37,7 +39,7 @@ public class PreContext extends Context {
 
     @Override
     PrismObject<SystemConfigurationType> getSystemConfiguration() {
-        return syncCtx.getSystemConfiguration();
+        return asPrismObject(ctx.getSystemConfiguration());
     }
 
     @Override

@@ -8,34 +8,23 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <a data-toggle="dropdown" class="dropdown-toggle" href="#">
-        <div wicket:id="menuIconBox" class="user-image">
-            <span class="userpanel-icon-helper"/>
-            <img wicket:id="menuPhoto" class="userpanel-icon"/></div>
-        <span class="hidden-xs" wicket:id="usernameLink"/>
+    <a  class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
+        <img wicket:id="menuPhoto" class="user-image img-circle elevation-2"/>
+        <span class="d-none d-md-inline" wicket:id="usernameLink"/>
     </a>
-    <ul class="dropdown-menu">
-        <!-- User image -->
-        <li class="user-header">
-            <div wicket:id="menuPanelIconBox" class="img-circle">
-                <span class="userpanel-icon-helper"/>
-                <img wicket:id="menuPanelPhoto" class="userpanel-photo" /></div>
+    <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+        <li class="user-header bg-primary">
+            <img wicket:id="menuPanelPhoto" class="img-circle elevation-2" />
             <p>
                 <span wicket:id="username"/>
-                 <!-- todo improve this label (user/admin/whatever description you like) -->
                 <small wicket:id="focusType"/>
             </p>
         </li>
-        <!-- Menu Footer-->
         <li class="user-footer">
-            <div class="pull-right">
-                <form method="post" wicket:id="logoutForm">
-
-                    <div wicket:id="csrfField"/>
-
-                    <input type="submit" class="btn btn-default btn-flat"  wicket:message="value:UserMenuPanel.logout"/>
-                </form>
-            </div>
+            <form method="post" wicket:id="logoutForm">
+                <div wicket:id="csrfField"/>
+                <input type="submit" class="btn btn-default btn-flat float-right"  wicket:message="value:UserMenuPanel.logout"/>
+            </form>
         </li>
     </ul>
 </wicket:panel>

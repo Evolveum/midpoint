@@ -509,6 +509,11 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
+    public @NotNull ResourceObjectTypeDelineation getDelineation() {
+        return ResourceObjectTypeDelineation.none(); // no specific delineation in raw object class
+    }
+
+    @Override
     public ResourceObjectReferenceType getBaseContext() {
         return null; // no information in raw object class
     }

@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -350,7 +351,7 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
             }
 
             return ResourceSchemaFactory.getCompleteSchema(resource);
-        } catch (SchemaException|RuntimeException ex) {
+        } catch (SchemaException|RuntimeException|ConfigurationException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse resource schema.", ex);
             getSession().error(getString("SchemaListPanel.message.couldntParseSchema") + " " + ex.getMessage());
 

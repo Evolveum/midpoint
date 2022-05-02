@@ -31,7 +31,6 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="TRACE" />  -->
 
     <logger name="com.evolveum.midpoint.provisioning" level="INFO" />
-<!--     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" /> -->
     <logger name="com.evolveum.midpoint.common" level="INFO" />
     <logger name="com.evolveum.midpoint.repo" level="INFO" />
 

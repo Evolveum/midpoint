@@ -7,19 +7,18 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="feedback-message box box-solid" wicket:id="detailsBox">
-        <div class="box-header">
-            <div class="box-tools pull-right">
-                <div wicket:id="close" data-widget="remove" class="btn btn-box-tool">
+    <div class="feedback-message card" wicket:id="detailsBox">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="mr-2 fa " wicket:id="iconType"></i>
+                <span class="card-title" wicket:id="message"/>
+            </h3>
+            <div class="card-tools">
+                <div wicket:id="close" data-widget="remove" class="btn btn-tool">
                     <i class="fa fa-times"/>
                 </div>
             </div>
-            <div style="display: flex;">
-                <i class="icon fa " wicket:id="iconType"/>
-                <b class="box-title" wicket:id="message"/>
-            </div>
         </div>
-
     </div>
 </wicket:panel>
 </body>

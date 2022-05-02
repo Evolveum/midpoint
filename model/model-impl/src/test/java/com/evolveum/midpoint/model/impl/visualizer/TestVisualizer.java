@@ -38,7 +38,7 @@ import java.util.List;
 
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.testng.AssertJUnit.*;
 
 @UnusedTestElement("reason unknown, 2 tests FAIL")
@@ -329,7 +329,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     }
 
     protected void fillDeltas(ModelContext<UserType> modelContext, List<ObjectDelta<? extends ObjectType>> primaryDeltas,
-            List<ObjectDelta<? extends ObjectType>> secondaryDeltas) throws SchemaException {
+            List<ObjectDelta<? extends ObjectType>> secondaryDeltas) throws SchemaException, ConfigurationException {
         if (modelContext != null) {
             if (modelContext.getFocusContext() != null) {
                 addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());

@@ -446,7 +446,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
 
     //region Definitions management
 
-    protected abstract void initializeDefinitions() throws SchemaException;
+    protected abstract void initializeDefinitions() throws SchemaException, ConfigurationException;
 
     public ResourceObjectDefinition getResourceObjectDefinition() {
         return resourceObjectDefinition;

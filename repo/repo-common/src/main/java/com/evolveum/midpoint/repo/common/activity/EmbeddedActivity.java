@@ -49,7 +49,8 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
     /**
      * Creates an embedded activity.
      *
-     * @param definition Definition to be used. Should be freely modifiable (typically cloned)!
+     * @param definition Definition to be used. Should be freely modifiable (typically cloned,
+     * e.g. via {@link ActivityDefinition#cloneWithoutId()})!
      */
     public static <WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> EmbeddedActivity<WD, AH> create(
             @NotNull ActivityDefinition<WD> definition,

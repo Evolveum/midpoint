@@ -30,7 +30,7 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 public class StringPropertyNotificationPanel extends Panel {
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(NotificationConfigTabPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(StringPropertyNotificationPanel.class);
 
     private static final String ID_HELP = "help";
     private static final String ID_LABEL = "label";

@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (c) 2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="2c226eba-7279-4768-a34a-38392e3fcb19">
+    <name>test370</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                    <presentation>
+                        <message>
+                            <fallbackMessage>A custom message</fallbackMessage>
+                        </message>
+                    </presentation>
+                    <operation>delete</operation>
+                </assignment>
+            </policyConstraints>
+        </policyRule>
+    </assignment>
+</role>

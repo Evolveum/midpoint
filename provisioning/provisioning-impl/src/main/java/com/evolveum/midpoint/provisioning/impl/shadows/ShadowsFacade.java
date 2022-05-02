@@ -10,6 +10,8 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier;
 
+import com.evolveum.midpoint.provisioning.api.ShadowTagGenerator;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -184,5 +186,10 @@ public class ShadowsFacade {
     // temporary
     public void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
         classificationHelper.setResourceObjectClassifier(classifier);
+    }
+
+    // temporary
+    public void setShadowTagGenerator(ShadowTagGenerator generator) {
+        classificationHelper.setShadowTagGenerator(generator);
     }
 }

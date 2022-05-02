@@ -21,8 +21,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.component.AbstractTreeTablePanel;
-import com.evolveum.midpoint.web.page.admin.users.component.OrgTreeProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.org.component.AbstractTreeTablePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgTreeProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
@@ -121,6 +121,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
         String title = StringUtils.isEmpty(treeTitleKey) ? "TreeTablePanel.hierarchy" : treeTitleKey;
         Label treeTitle = new Label(ID_TREE_TITLE, createStringResource(title));
+        treeTitle.setRenderBodyOnly(true);
         treeHeader.add(treeTitle);
 
         List<InlineMenuItem> actions = createTreeMenu();

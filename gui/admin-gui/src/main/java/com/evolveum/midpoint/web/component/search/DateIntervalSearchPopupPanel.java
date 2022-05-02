@@ -52,9 +52,9 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
         WebMarkupContainer fromValueContainer = new WebMarkupContainer(ID_DATE_FROM_VALUE_CONTAINER);
         fromValueContainer.add(AttributeAppender.append("class", () -> {
             if (isInterval()) {
-                return "col-sm-10";
+                return "col-10";
             }
-            return "col-sm-12";
+            return "col-12";
         }));
         popoverForm.add(fromValueContainer);
         DatePanel fromDatePanel = new DatePanel(ID_DATE_FROM_VALUE, fromDateModel);

@@ -27,7 +27,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * TODO: SSH
  * There is also a problem with CredSSP configuration on those servers.
  * Therefore "second-hop" CredSSP tests are skipped here.
- * There is still CreddSSP configured in ad01 server (top-level domain), therefore CredSSP is still tested in a way.
+ * There is still CreddSSP configured in ad01 server (top-level domain), therefore CredSSP could be tested somehow.
+ * However, we are not supporting powershell connector any more, therefore CredSSP is no longer part of this tests.
  * In case of need the old Chimera/Hydra environment is archived, therefore it can be restored and used for full CredSSP tests.
  *
  * @see AbstractAdLdapMultidomainTest

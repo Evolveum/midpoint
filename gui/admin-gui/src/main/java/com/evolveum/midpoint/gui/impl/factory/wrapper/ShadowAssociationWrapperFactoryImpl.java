@@ -148,7 +148,7 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
         ResourceSchema refinedResourceSchema;
         try {
             refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             LOGGER.error("Cannot get refined schema for {}, {}", resource, e.getMessage(), e);
             result.recordPartialError("Could not get fined schema for " + resource, e);
             return null;

@@ -107,9 +107,7 @@ public class GetObjectOpHandler extends CachedOpHandler {
                 }
             }
         } catch (ObjectNotFoundException e) {
-            if (isAllowNotFound(findRootOptions(options))) {
-                exec.result.computeStatus();
-            } else {
+            if (!isAllowNotFound(findRootOptions(options))) {
                 exec.result.recordFatalError(e);
             }
             throw e;
@@ -117,7 +115,7 @@ public class GetObjectOpHandler extends CachedOpHandler {
             exec.result.recordFatalError(t);
             throw t;
         } finally {
-            exec.result.computeStatusIfUnknown();
+            exec.result.close();
         }
     }
 

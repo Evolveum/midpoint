@@ -11,17 +11,15 @@
     <div style="position: relative; display: grid;">
     <button wicket:id="buttonContainer" class="btn dropdown-toggle" type="button" data-toggle="dropdown">
         <span class="badge bg-teal" wicket:id="info"></span>
-        <i class="fa " wicket:id="icon"></i>
-        <wicket:enclosure child="label">
-            <label wicket:id="label"></label>&nbsp;
-        </wicket:enclosure>
+        <i class="mr-1 fa " wicket:id="icon"></i>
+        <span wicket:id="label"/>
         <span wicket:id="caret" class="caret"/>
     </button>
-    <ul class="dropdown-menu" role="menu" wicket:id="dropDownMenu">
-        <li wicket:id="menuItem">
+    <div class="dropdown-menu" role="menu" wicket:id="dropDownMenu">
+        <div class="dropdown-item" wicket:id="menuItem">
             <div wicket:id="menuItemBody"/>
-        </li>
-    </ul>
+        </div>
+    </div>
     </div>
 </wicket:panel>
 </html>

@@ -12,9 +12,7 @@
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
 
     <name>Dummy Resource</name>
     <connectorRef type="c:ConnectorType">
@@ -35,7 +33,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
-            <icfi:instanceId></icfi:instanceId> <!-- Default instance. -->
+            <icfi:instanceId/> <!-- Default instance. -->
         </icfc:configurationProperties>
 
     </connectorConfiguration>
@@ -58,9 +56,7 @@
                     </source>
                     <expression>
                         <script>
-                            <code>
-                                name + iterationToken
-                            </code>
+                            <code>name + iterationToken</code>
                         </script>
                     </expression>
                 </outbound>
@@ -71,6 +67,9 @@
                     <target>
                         <path>$c:user/c:name</path>
                     </target>
+                    <evaluationPhases>
+                        <include>beforeCorrelation</include>
+                    </evaluationPhases>
                 </inbound>
             </attribute>
             <attribute>
@@ -273,6 +272,38 @@
                 </password>
             </credentials>
 
+            <correlation>
+                <correlators>
+                    <items>
+                        <item>
+                            <path>name</path>
+                        </item>
+                    </items>
+                </correlators>
+            </correlation>
+
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <situation>deleted</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
+
         </objectType>
 
         <objectType>
@@ -280,9 +311,10 @@
             <intent>group</intent>
             <default>false</default>
             <objectClass>ri:GroupObjectClass</objectClass>
+            <focusType>c:RoleType</focusType>
             <attribute>
                 <ref>icfs:name</ref>
-                <displayName>Groupname</displayName>
+                <displayName>Group name</displayName>
                 <outbound>
                     <source>
                         <path>$focus/name</path>
@@ -293,6 +325,9 @@
                     <target>
                         <path>name</path>
                     </target>
+                    <evaluationPhases>
+                        <include>beforeCorrelation</include>
+                    </evaluationPhases>
                 </inbound>
             </attribute>
             <attribute>
@@ -310,6 +345,41 @@
                     </target>
                 </inbound>
             </attribute>
+            <correlation>
+                <correlators>
+                    <items>
+                        <item>
+                            <path>name</path>
+                        </item>
+                    </items>
+                </correlators>
+            </correlation>
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <unlink/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
         </objectType>
 
         <objectType>
@@ -347,219 +417,8 @@
         </objectType>
 
     </schemaHandling>
-    <scripts>
-        <script>
-            <host>resource</host>
-            <language>Shell</language>
-            <argument>
-                            <script>
-                               <code>
-tmpSuffix = 'OU=vix,DC=win,DC=evolveum,DC=com'
-switch (basic.stringify(user.getSubtype())) {
-    case 'T':
-        tmpSuffix = 'OU=Prefix1,' + tmpSuffix
-        break
-    case 'R':
-        tmpSuffix = 'OU=Prefix1,' + tmpSuffix
-        break
-    case 'D':
-        tmpSuffix = 'OU=Prefix1,' + tmpSuffix
-        break
-    case 'S':
-        tmpSuffix = 'OU=Prefix1,' + tmpSuffix
-        break
-    default:
-        tmpSuffix = 'OU=Prefix2,' + tmpSuffix
-}
-return tmpSuffix
-                               </code>
-                            </script>
-                <name>midpoint_suffix</name>
-            </argument>
-            <argument>
-                <path>$user/name</path>
-                <name>midpoint_usercn</name><!-- this is sAMAccountName -->
-            </argument>
-            <argument>
-                <script>
-                    <code>
-                '/dir/id/' + user.getFamilyName() + '_' + user.getName()
-                    </code>
-                </script>
-                <name>midpoint_idpath</name>
-            </argument>
-            <argument>
-                <script>
-                    <code>
-                '/dir/temp/' + user.getFamilyName() + '_' + user.getName()
-                    </code>
-                </script>
-                <name>midpoint_temppath</name>
-            </argument>
-<code>user.getFamilyName() + '_' + user.getName()</code>
 
-<!--             <operation>add</operation> -->
-            <operation>reconcile</operation>
-            <kind>account</kind>
-            <order>before</order>
-            <condition>
-                <script>
-                    <code>
-                        return true
-                    </code>
-                </script>
-            </condition>
-        </script>
-
-        <script>
-            <host>resource</host>
-            <language>Shell</language>
-            <argument>
-                            <script>
-                               <code>
-tmpSuffix = 'OU=vix,DC=win,DC=evolveum,DC=com'
-switch (basic.stringify(user.getSubtype())) {
-    case 'T':
-        tmpSuffix = 'OU=Prefix1,' + tmpSuffix
-        break
-    case 'R':
-        tmpSuffix = 'OU=Prefix1,' + tmpSuffix
-        break
-    case 'D':
-        tmpSuffix = 'OU=Prefix1,' + tmpSuffix
-        break
-    case 'S':
-        tmpSuffix = 'OU=Prefix1,' + tmpSuffix
-        break
-    default:
-        tmpSuffix = 'OU=Prefix2,' + tmpSuffix
-}
-return tmpSuffix
-                               </code>
-                            </script>
-                <name>midpoint_suffix</name>
-            </argument>
-            <argument>
-                <path>$user/name</path>
-                <name>midpoint_usercn</name><!-- this is sAMAccountName -->
-            </argument>
-            <argument>
-                <script>
-                    <code>
-                '/dir/id/' + user.getFamilyName() + '_' + user.getName()
-                    </code>
-                </script>
-                <name>midpoint_idpath</name>
-            </argument>
-            <argument>
-                <script>
-                    <code>
-                '/dir/temp/' + user.getFamilyName() + '_' + user.getName()
-                    </code>
-                </script>
-                <name>midpoint_temppath</name>
-            </argument>
-<code>user.getFamilyName() + '_' + user.getName()</code>
-
-<!--             <operation>add</operation> -->
-            <operation>reconcile</operation>
-            <kind>account</kind>
-            <order>before</order>
-            <condition>
-                <script>
-                    <code>
-                        //just for testing condition evaluation
-                        return false
-                    </code>
-                </script>
-            </condition>
-        </script>
-
-    </scripts>
     <consistency>
         <avoidDuplicateValues>true</avoidDuplicateValues>
     </consistency>
-
-    <synchronization>
-        <objectSynchronization>
-            <name>Account sync policy</name>
-            <objectClass>ri:AccountObjectClass</objectClass>
-            <enabled>true</enabled>
-            <correlation>
-                <q:equal>
-                    <q:path>c:name</q:path>
-                    <expression>
-                        <path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                        $account/attributes/icfs:name</path>
-                    </expression>
-                </q:equal>
-            </correlation>
-            <reaction>
-                <situation>linked</situation>
-                <synchronize>true</synchronize>
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <synchronize>true</synchronize>
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <synchronize>true</synchronize>
-                <action>
-                     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-                 </action>
-            </reaction>
-            <reaction>
-                <situation>unmatched</situation>
-                <synchronize>true</synchronize>
-<!--             <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#import</channel> -->
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-                </action>
-            </reaction>
-        </objectSynchronization>
-
-        <objectSynchronization>
-            <name>Group sync policy</name>
-            <objectClass>ri:GroupObjectClass</objectClass>
-            <kind>entitlement</kind>
-            <intent>group</intent>
-            <focusType>c:RoleType</focusType>
-            <enabled>true</enabled>
-            <correlation>
-                <q:equal>
-                    <q:path>c:name</q:path>
-                    <expression>
-                        <path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";$shadow/attributes/icfs:name</path>
-                    </expression>
-                </q:equal>
-            </correlation>
-            <reaction>
-                <situation>linked</situation>
-                <synchronize>true</synchronize>
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unmatched</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-                </action>
-            </reaction>
-        </objectSynchronization>
-    </synchronization>
-
 </resource>

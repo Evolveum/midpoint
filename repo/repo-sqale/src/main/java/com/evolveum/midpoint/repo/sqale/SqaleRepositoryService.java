@@ -39,8 +39,8 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_ConditionEntry;
-import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
@@ -69,10 +69,12 @@ import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Repository implementation based on SQL, JDBC and Querydsl without any ORM.
@@ -531,9 +533,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @Nullable Collection<SelectorOptions<GetOperationOptions>> getOptions) throws ObjectNotFoundException {
         if (!GetOperationOptions.isAllowNotFound(SelectorOptions.findRootOptions(getOptions))) {
             operationResult.recordFatalError(e);
-//        } else { TODO currently it is considered SUCCESS, even though the exception is thrown, which seems strange.
-            // But recording partial error may spoil otherwise happy top-level result, which we don't want either.
-//            operationResult.recordPartialError(e.getMessage());
+        } else {
+            operationResult.recordHandledError(e);
         }
         return e;
     }
@@ -1093,11 +1094,18 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 // "By default, null values sort as if larger than any non-null value; that is,
                 // NULLS FIRST is the default for DESC order, and NULLS LAST otherwise."
             } else {
-                S_MatchingRuleEntry matchingRuleEntry =
-                        asc ? filter.gt(item.getRealValue()) : filter.lt(item.getRealValue());
-                filter = matchingRuleEntry.or()
+                // see MID-7860
+                boolean isPolyString = QNameUtil.match(
+                        PolyStringType.COMPLEX_TYPE, item.getDefinition().getTypeName());
+
+                Object realValue = item.getRealValue();
+                S_AtomicFilterExit subfilter = asc
+                        ? (isPolyString ? filter.gt(realValue).matchingOrig() : filter.gt(realValue))
+                        : (isPolyString ? filter.lt(realValue).matchingOrig() : filter.lt(realValue));
+                S_ConditionEntry subfilter2 = subfilter.or()
                         .block()
-                        .item(orderByPath).eq(item.getRealValue())
+                        .item(orderByPath);
+                filter = (isPolyString ? subfilter2.eq(realValue).matchingOrig() : subfilter2.eq(realValue))
                         .and()
                         .item(OID_PATH);
                 return (asc ? filter.gt(lastProcessedOid) : filter.lt(lastProcessedOid))
@@ -1329,7 +1337,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     @Override
     public long advanceSequence(String oid, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException {
+            throws ObjectNotFoundException {
         UUID oidUuid = checkOid(oid);
         Validate.notNull(parentResult, "Operation result must not be null.");
 
@@ -1662,11 +1670,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .build();
 
         try {
-            if (request.getImplementationLevelQuery() != null) {
-                throw new UnsupportedOperationException(
-                        "Only midPoint query diagnostics is supported for Native repository");
-            }
-
             ObjectQuery query = request.getQuery();
             query = simplifyQuery(query);
             if (isNoneQuery(query)) {
@@ -1685,7 +1688,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
-    private <S extends ObjectType, Q extends FlexibleRelationalPathBase<R>, R> RepositoryQueryDiagResponse
+    private <S extends Containerable, Q extends FlexibleRelationalPathBase<R>, R> RepositoryQueryDiagResponse
     executeExecuteQueryDiagnostics(RepositoryQueryDiagRequest request, @NotNull Class<S> type)
             throws RepositoryException, SchemaException {
         long opHandle = registerOperationStart(OP_EXECUTE_QUERY_DIAGNOSTICS, (Class<? extends Containerable>) null);
@@ -1711,7 +1714,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 result = context.executeQuery(jdbcSession);
                 PageOf<S> transformedResult = context.transformToSchemaType(result, jdbcSession);
                 //noinspection unchecked
-                resultList = transformedResult.map(o -> (PrismObject<S>) o.asPrismObject()).content();
+                resultList = transformedResult.map(o -> (PrismContainerValue<S>) o.asPrismContainerValue()).content();
             } catch (RuntimeException e) {
                 if (e != SimulatedSqlQuery.SIMULATION_EXCEPTION) {
                     throw e; // OK, this was unexpected, so rethrow it
@@ -1808,7 +1811,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 ObjectQueryUtil.assertPropertyOnly(specFilter, logMessagePrefix + " filter is not property-only filter");
             }
             try {
-                if (!ObjectQuery.match(object, specFilter, sqlRepoContext.matchingRuleRegistry())) {
+                if (specFilter != null
+                        && !ObjectQuery.match(object, specFilter, sqlRepoContext.matchingRuleRegistry())) {
                     logger.trace("{} object OID {}", logMessagePrefix, object.getOid());
                     return false;
                 }

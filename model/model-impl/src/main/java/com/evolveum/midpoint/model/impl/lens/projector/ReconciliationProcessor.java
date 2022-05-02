@@ -136,7 +136,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         reconcileMissingAuxiliaryObjectClassAttributes(projCtx);
     }
 
-    private void reconcileAuxiliaryObjectClasses(LensProjectionContext projCtx) throws SchemaException {
+    private void reconcileAuxiliaryObjectClasses(LensProjectionContext projCtx) throws SchemaException, ConfigurationException {
 
         var squeezedAuxiliaryObjectClasses
                 = projCtx.getSqueezedAuxiliaryObjectClasses();
@@ -195,7 +195,8 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         }
     }
 
-    private boolean isTolerantAuxiliaryObjectClasses(LensProjectionContext projCtx) throws SchemaException {
+    private boolean isTolerantAuxiliaryObjectClasses(LensProjectionContext projCtx)
+            throws SchemaException, ConfigurationException {
         ResourceBidirectionalMappingAndDefinitionType auxiliaryObjectClassMappings = projCtx.getStructuralObjectDefinition().getAuxiliaryObjectClassMappings();
         if (auxiliaryObjectClassMappings == null) {
             return false;
@@ -209,7 +210,8 @@ public class ReconciliationProcessor implements ProjectorProcessor {
      * that were deleted. If these attributes are still around then delete them. Otherwise the delete of the aux object class
      * may fail.
      */
-    private void reconcileMissingAuxiliaryObjectClassAttributes(LensProjectionContext projCtx) throws SchemaException {
+    private void reconcileMissingAuxiliaryObjectClassAttributes(LensProjectionContext projCtx)
+            throws SchemaException, ConfigurationException {
         ObjectDelta<ShadowType> delta = projCtx.getCurrentDelta();
         if (delta == null) {
             return;
@@ -301,7 +303,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     private void reconcileProjectionAttributes(
             LensProjectionContext projCtx,
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>, PrismPropertyDefinition<?>>>> squeezedAttributes)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
 
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
 
@@ -319,7 +321,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             QName attrName,
             LensProjectionContext projCtx,
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>, PrismPropertyDefinition<?>>>> squeezedAttributes,
-            PrismContainer attributesContainer) throws SchemaException {
+            PrismContainer attributesContainer) throws SchemaException, ConfigurationException {
 
         LOGGER.trace("Attribute reconciliation processing attribute {}", attrName);
 

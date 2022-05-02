@@ -24,6 +24,8 @@ import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 
 import com.evolveum.midpoint.cases.api.CaseManager;
 
+import com.evolveum.midpoint.schema.util.*;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,10 +78,6 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
@@ -235,6 +233,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         } catch (ObjectNotFoundException e) {
             OP_LOGGER.debug("MODEL OP error getObject({},{},{}): {}: {}", clazz.getSimpleName(), oid, rawOptions, e.getClass().getSimpleName(), e.getMessage());
             if (GetOperationOptions.isAllowNotFound(rootOptions)) {
+                // TODO check if this is really needed (lower layers shouldn't produce FATAL_ERROR if "allow not found" is true)
+                // FIXME there is no "last subresult" if the called method throws this exception because of object type mismatch!
                 result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
             } else {
                 ModelImplUtils.recordFatalError(result, e);
@@ -1491,18 +1491,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         try {
             resource = getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result).asObjectable();
 
-            if (resource.getSynchronization() == null || resource.getSynchronization().getObjectSynchronization().isEmpty()) {
-                OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE + ".check");
-                subresult.recordWarning("No synchronization settings in " + resource + ", import will probably do nothing");
-                LOGGER.warn("No synchronization settings in " + resource + ", import will probably do nothing");
-            } else {
-                ObjectSynchronizationType syncType = resource.getSynchronization().getObjectSynchronization().iterator().next();
-                if (syncType.isEnabled() != null && !syncType.isEnabled()) {
-                    OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE + ".check");
-                    subresult.recordWarning("Synchronization is disabled for " + resource + ", import will probably do nothing");
-                    LOGGER.warn("Synchronization is disabled for " + resource + ", import will probably do nothing");
-                }
-            }
+            // Here was a check on synchronization configuration, providing a warning if there is no configuration set up.
+            // But with changes in 4.6 it is not so easy to definitely tell that there's no synchronization set up,
+            // so - maybe temporarily - we removed these checks.
 
             result.recordStatus(OperationResultStatus.IN_PROGRESS, "Task running in background");
 

@@ -15,6 +15,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 
+import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.schema.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -99,7 +100,7 @@ class GetHelper {
         // for accessing the object by UCF.Later, the repository object may
         // have a fully cached object from the resource.
         if (repoShadow == null) {
-            repoShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
+            repoShadow = repositoryService.getObject(ShadowType.class, oid, disableReadOnly(options), parentResult);
             LOGGER.trace("Got repository shadow object:\n{}", repoShadow.debugDumpLazily());
         }
 
@@ -276,6 +277,8 @@ class GetHelper {
                 LOGGER.trace("Shadow from repository:\n{}", repoShadow.debugDump(1));
                 LOGGER.trace("Resource object fetched from resource:\n{}", resourceObject.debugDump(1));
             }
+
+            // TODO we may need to classify the shadow somewhere around here (MID-7910)
 
             repoShadow = shadowManager.updateShadow(shadowCtx, resourceObject, null, repoShadow, shadowState, parentResult);
             LOGGER.trace("Repository shadow after update:\n{}", repoShadow.debugDumpLazily(1));

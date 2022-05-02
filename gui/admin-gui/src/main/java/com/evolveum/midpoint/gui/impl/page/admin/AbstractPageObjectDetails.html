@@ -12,29 +12,23 @@
 
     <wicket:fragment wicket:id="details">
         <div class="row">
-            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                <div wicket:id="summary"></div>
-            </div>
-            <form wicket:id="mainForm">
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                    <span wicket:id="buttons"/>
-                </div>
+            <div class="col-lg-12" wicket:id="summary"></div>
+        </div>
+        <div class="row">
+            <form class="col-lg-12" wicket:id="mainForm">
+                <div wicket:id="buttons"/>
 
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                    <div class="details-panel">
-                        <wicket:enclosure child="navigation">
-                            <div class="details-panel-navigation">
-                                <div wicket:id="navigation"></div>
-                            </div>
-                        </wicket:enclosure>
-                        <div class="details-panel-details-form">
-                            <div wicket:id="mainPanel"></div>
+                <div class="details-panel">
+                    <wicket:enclosure child="navigation">
+                        <div class="details-panel-navigation">
+                            <div wicket:id="navigation"></div>
                         </div>
+                    </wicket:enclosure>
+                    <div class="details-panel-details-form">
+                        <div wicket:id="mainPanel"></div>
                     </div>
                 </div>
-
             </form>
-
         </div>
     </wicket:fragment>
     <wicket:child/>

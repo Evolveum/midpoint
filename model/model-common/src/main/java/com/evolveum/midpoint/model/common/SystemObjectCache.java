@@ -12,6 +12,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -24,9 +25,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfiles;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,6 +36,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 /**
  * Cache for system object such as SystemConfigurationType. This is a global cache,
@@ -96,7 +96,13 @@ public class SystemObjectCache implements Cache {
         return 1000;
     }
 
-    public synchronized PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws SchemaException {
+    public @Nullable SystemConfigurationType getSystemConfigurationBean(OperationResult result) throws SchemaException {
+        return asObjectable(
+                getSystemConfiguration(result));
+    }
+
+    public synchronized @Nullable PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result)
+            throws SchemaException {
         try {
             if (!hasValidSystemConfiguration(result)) {
                 LOGGER.trace("Cache MISS: reading system configuration from the repository: {}, version {}",

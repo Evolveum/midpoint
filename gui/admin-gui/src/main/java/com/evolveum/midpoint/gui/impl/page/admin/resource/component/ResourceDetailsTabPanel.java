@@ -11,6 +11,12 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.*;
+
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -23,7 +29,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -36,9 +41,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -202,31 +204,22 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
             List<ResourceObjectTypeDefinitionType> objectTypes = resource.getSchemaHandling().getObjectType();
 
-            if (objectTypes == null) {
-                return configs;
-            }
-
             try {
-                for (ResourceObjectTypeDefinitionType objectType : objectTypes) {
-                    ObjectSynchronizationType objectSynchronization = null;
-                    if (resource.getSynchronization() != null
-                            && resource.getSynchronization().getObjectSynchronization() != null) {
-
-                        objectSynchronization = getSynchronizationFor(objectType,
-                                resource.getSynchronization().getObjectSynchronization(),
-                                resource.asPrismObject());
-
-                    }
-                    List<TaskType> syncTask = new ArrayList<>();
-                    if (objectSynchronization != null) {
-                        syncTask = getTaskFor(tasks, objectSynchronization, resource.asPrismObject());
+                for (ResourceObjectTypeDefinitionType objectTypeDefBean : objectTypes) {
+                    SynchronizationPolicy syncPolicy =
+                            SynchronizationPolicyFactory.forDefinitionBean(objectTypeDefBean, resource);
+                    List<TaskType> syncTasks;
+                    if (syncPolicy != null) {
+                        syncTasks = getTasksFor(tasks, syncPolicy, resource.asPrismObject());
+                    } else {
+                        syncTasks = new ArrayList<>();
                     }
 
-                    ResourceConfigurationDto resourceConfig = new ResourceConfigurationDto(objectType,
-                            objectSynchronization != null, syncTask);
+                    ResourceConfigurationDto resourceConfig =
+                            new ResourceConfigurationDto(objectTypeDefBean, syncPolicy != null, syncTasks);
                     configs.add(resourceConfig);
                 }
-            } catch (SchemaException ex) {
+            } catch (SchemaException | ConfigurationException ex) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Could not determine resource configuration", ex);
             }
 
@@ -274,7 +267,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                     getPageBase().getString("PageResource.resource.mappings"));
             infoBoxType.setNumber(getPageBase().getString(numberKey));
 
-            if (isSynchronizationDefined(resource)) {
+            if (ResourceTypeUtil.isSynchronizationDefined(resource.getObjectOld().asObjectable())) {
                 infoBoxType.setDescription(getPageBase().getString("PageResource.resource.sync"));
             }
 
@@ -400,7 +393,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 } else {
                     numberMessage = getPageBase().getString("PageResource.resource.noSchema");
                 }
-            } catch (SchemaException e) {
+            } catch (SchemaException | ConfigurationException e) {
                 backgroundColor = "bg-danger";
                 icon = "fa fa-warning";
                 numberMessage = getPageBase().getString("PageResource.resource.schemaError");
@@ -416,28 +409,11 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
         });
     }
 
-    private ObjectSynchronizationType getSynchronizationFor(
-            ResourceObjectTypeDefinitionType objectTypesDefinition,
-            List<ObjectSynchronizationType> synchronizationPolicies, PrismObject<ResourceType> resource)
-            throws SchemaException {
-
-        for (ObjectSynchronizationType synchronizationPolicy : synchronizationPolicies) {
-            if (SynchronizationUtils.isPolicyApplicable(objectTypesDefinition.getObjectClass(),
-                    objectTypesDefinition.getKind(), objectTypesDefinition.getIntent(), synchronizationPolicy,
-                    resource)) {
-                if (synchronizationPolicy.getObjectClass().isEmpty()) {
-                    synchronizationPolicy.getObjectClass().add(objectTypesDefinition.getObjectClass());
-                }
-                return synchronizationPolicy;
-            }
-        }
-
-        return null;
-    }
-
-    private List<TaskType> getTaskFor(List<PrismObject<TaskType>> tasks,
-            ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource)
-            throws SchemaException {
+    private List<TaskType> getTasksFor(
+            List<PrismObject<TaskType>> tasks,
+            SynchronizationPolicy synchronizationPolicy,
+            PrismObject<ResourceType> resource)
+            throws SchemaException, ConfigurationException {
         List<TaskType> syncTasks = new ArrayList<>();
         for (PrismObject<TaskType> task : tasks) {
             ShadowKindType taskKindValue = null;
@@ -452,7 +428,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
             }
 
             // TODO: unify with determineObjectClass in Utils (model-impl, which
-            // is not accessible in admin-gui)
+            //  is not accessible in admin-gui)
             if (taskObjectClassValue == null) {
                 ResourceObjectDefinition taskObjectClassDef = null;
                 ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
@@ -477,8 +453,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 }
             }
 
-            if (SynchronizationUtils.isPolicyApplicable(taskObjectClassValue, taskKindValue, taskIntentValue,
-                    synchronizationPolicy, resource, true)) {
+            if (synchronizationPolicy.isApplicableTo(taskObjectClassValue, taskKindValue, taskIntentValue, true)) {
                 syncTasks.add(task.asObjectable());
             }
         }
@@ -487,45 +462,6 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
     }
 
     // TODO: ####### start of move to ResourceTypeUtil ###########
-
-    private boolean isOutboundDefined(ResourceAttributeDefinitionType attr) {
-        if (attr.asPrismContainerValue().isEmpty()) {
-            return false;
-        }
-        return attr.getOutbound() != null
-                && (attr.getOutbound().getSource() != null || attr.getOutbound().getExpression() != null);
-    }
-
-    private boolean isInboundDefined(ResourceAttributeDefinitionType attr) {
-        return attr.getInbound() != null && CollectionUtils.isNotEmpty(attr.getInbound())
-                && (attr.getInbound().get(0).getTarget() != null
-                || attr.getInbound().get(0).getExpression() != null);
-    }
-
-    private boolean isSynchronizationDefined(PrismObjectWrapper<ResourceType> resource) {
-        ResourceType resourceType = resource.getObjectOld().asObjectable();
-        if (resourceType.getSynchronization() == null) {
-            return false;
-        }
-
-        if (resourceType.getSynchronization().getObjectSynchronization().isEmpty()) {
-            return false;
-        }
-
-        for (ObjectSynchronizationType syncType : resourceType.getSynchronization().getObjectSynchronization()) {
-            if (syncType.isEnabled() != null && !syncType.isEnabled()) {
-                continue;
-            }
-
-            if (CollectionUtils.isEmpty(syncType.getReaction())) {
-                continue;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
 
     private SourceTarget determineIfSourceOrTarget(PrismObjectWrapper<ResourceType> resource) {
         PrismContainerWrapper<SchemaHandlingType> schemaHandling;
@@ -574,11 +510,11 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 }
 
                 if (!hasOutbound) {
-                    hasOutbound = isOutboundDefined(attr);
+                    hasOutbound = ResourceTypeUtil.isOutboundDefined(attr);
                 }
 
                 if (!hasInbound) {
-                    hasInbound = isInboundDefined(attr);
+                    hasInbound = ResourceTypeUtil.isInboundDefined(attr);
                 }
             }
 
@@ -600,7 +536,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
     private enum SourceTarget {
 
-        NOT_DEFINED("fa fa-square-o"), SOURCE("fa fa-sign-in"), TARGET("fa fa-sign-out"), SOURCE_TARGET("fa fa-exchange");
+        NOT_DEFINED("fa fa-square-o"), SOURCE("fa fa-sign-in"), TARGET("fa fa-sign-out"), SOURCE_TARGET("fa fa-exchange-alt");
 
         private final String cssClass;
 

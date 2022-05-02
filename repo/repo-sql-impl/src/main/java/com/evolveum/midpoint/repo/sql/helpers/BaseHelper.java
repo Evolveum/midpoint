@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sql.helpers;
 
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+
 import com.google.common.base.Strings;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
@@ -30,6 +32,8 @@ import com.evolveum.midpoint.util.backoff.ExponentialBackoffComputer;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 
 /**
  * Core functionality needed in all members of SQL service family.
@@ -108,19 +112,19 @@ public class BaseHelper {
         return sqlRepositoryConfiguration;
     }
 
-    void rollbackTransaction(Session session, Throwable ex, OperationResult result, boolean fatal) {
+    void rollbackTransaction(Session session, Throwable ex, OperationResult result, OperationResultStatus status) {
         String message = ex != null ? ex.getMessage() : "null";
-        rollbackTransaction(session, ex, message, result, fatal);
+        rollbackTransaction(session, ex, message, result, status);
     }
 
-    void rollbackTransaction(Session session, Throwable ex, String message, OperationResult result, boolean fatal) {
+    void rollbackTransaction(
+            Session session, Throwable ex, String message, OperationResult result, OperationResultStatus status) {
         if (Strings.isNullOrEmpty(message) && ex != null) {
             message = ex.getMessage();
         }
 
-        // non-fatal errors will NOT be put into OperationResult, not to confuse the user
-        if (result != null && fatal) {
-            result.recordFatalError(message, ex);
+        if (result != null && status != null) {
+            result.recordStatus(status, message, ex);
         }
 
         if (session == null || session.getTransaction() == null || !session.getTransaction().isActive()) {
@@ -163,14 +167,14 @@ public class BaseHelper {
         LOGGER.debug("General runtime exception occurred.", ex);
 
         if (isFatalException(ex)) {
-            rollbackTransaction(session, ex, result, true);
+            rollbackTransaction(session, ex, result, OperationResultStatus.FATAL_ERROR);
             if (ex instanceof SystemException) {
                 throw ex;
             } else {
                 throw new SystemException(ex.getMessage(), ex);
             }
         } else {
-            rollbackTransaction(session, ex, result, false);
+            rollbackTransaction(session, ex, result, null);
             // this exception will be caught and processed in logOperationAttempt,
             // so it's safe to pass any RuntimeException here
             throw ex;
@@ -181,7 +185,7 @@ public class BaseHelper {
         LOGGER.error("General checked exception occurred.", ex);
 
         boolean fatal = !isExceptionRelatedToSerialization(ex);
-        rollbackTransaction(session, ex, result, fatal);
+        rollbackTransaction(session, ex, result, fatal ? FATAL_ERROR : null);
         throw new SystemException(ex.getMessage(), ex);
     }
 

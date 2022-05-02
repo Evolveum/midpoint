@@ -319,7 +319,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * We use {@link ElementState#getRelativeObjectDeltaObject()}, although the "absolute" version should
      * provide more or less the same results. Projections are not updated iteratively, unlike the focus.
      */
-    public ObjectDeltaObject<ShadowType> getObjectDeltaObject() throws SchemaException {
+    public ObjectDeltaObject<ShadowType> getObjectDeltaObject() throws SchemaException, ConfigurationException {
         return state.getRelativeObjectDeltaObject();
     }
 
@@ -355,7 +355,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                         = ShadowUtil.applyObjectDefinition(rawDefinition, getCompositeObjectDefinition());
                 shadowDefinition.freeze();
                 return shadowDefinition;
-            } catch (SchemaException e) {
+            } catch (SchemaException | ConfigurationException e) {
                 // This should not happen
                 throw new SystemException(e.getMessage(), e);
             }
@@ -737,14 +737,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return ResourceTypeUtil.getResourceObjectTypeDefinitionType(resource, discr.getKind(), discr.getIntent());
     }
 
-    public ResourceSchema getResourceSchema() throws SchemaException {
+    public ResourceSchema getResourceSchema() throws SchemaException, ConfigurationException {
         if (resource == null) {
             return null;
         }
         return ResourceSchemaFactory.getCompleteSchema(resource, LayerType.MODEL);
     }
 
-    public ResourceObjectDefinition getStructuralObjectDefinition() throws SchemaException {
+    public ResourceObjectDefinition getStructuralObjectDefinition() throws SchemaException, ConfigurationException {
         if (structuralObjectDefinition == null) {
             ResourceSchema resourceSchema = getResourceSchema();
             if (resourceSchema == null) {
@@ -760,14 +760,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return structuralObjectDefinition;
     }
 
-    public Collection<ResourceObjectDefinition> getAuxiliaryObjectClassDefinitions() throws SchemaException {
+    public Collection<ResourceObjectDefinition> getAuxiliaryObjectClassDefinitions()
+            throws SchemaException, ConfigurationException {
         if (auxiliaryObjectClassDefinitions == null) {
             refreshAuxiliaryObjectClassDefinitions();
         }
         return auxiliaryObjectClassDefinitions;
     }
 
-    public void refreshAuxiliaryObjectClassDefinitions() throws SchemaException {
+    public void refreshAuxiliaryObjectClassDefinitions() throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = getResourceSchema();
         if (refinedSchema == null) {
             return;
@@ -787,7 +788,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         compositeObjectDefinition = null;
     }
 
-    public CompositeObjectDefinition getCompositeObjectDefinition() throws SchemaException {
+    public CompositeObjectDefinition getCompositeObjectDefinition() throws SchemaException, ConfigurationException {
         if (compositeObjectDefinition == null) {
             ResourceObjectDefinition structuralDefinition = getStructuralObjectDefinition();
             if (structuralDefinition != null) {
@@ -812,7 +813,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
-    public ResourceAttributeDefinition<?> findAttributeDefinition(QName attrName) throws SchemaException {
+    public ResourceAttributeDefinition<?> findAttributeDefinition(QName attrName) throws SchemaException, ConfigurationException {
         ResourceAttributeDefinition<?> attrDef = getStructuralObjectDefinition().findAttributeDefinition(attrName);
         if (attrDef != null) {
             return attrDef;
@@ -855,7 +856,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return canProject;
     }
 
-    public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() throws SchemaException {
+    public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() throws SchemaException, ConfigurationException {
         // TODO: per-resource assignment enforcement
         ResourceType resource = getResource();
         ProjectionPolicyType objectClassProjectionPolicy = determineObjectClassProjectionPolicy();
@@ -875,7 +876,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return MiscSchemaUtil.getAssignmentPolicyEnforcementType(globalAccountSynchronizationSettings);
     }
 
-    public boolean isLegalize() throws SchemaException {
+    public boolean isLegalize() throws SchemaException, ConfigurationException {
         ResourceType resource = getResource();
 
         ProjectionPolicyType objectClassProjectionPolicy = determineObjectClassProjectionPolicy();
@@ -898,7 +899,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return BooleanUtils.isTrue(globalAccountSynchronizationSettings.isLegalize());
     }
 
-    private ProjectionPolicyType determineObjectClassProjectionPolicy() throws SchemaException {
+    private ProjectionPolicyType determineObjectClassProjectionPolicy() throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = getResourceSchema();
         if (refinedSchema == null) {
             return null;
@@ -927,7 +928,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     @Override
-    public ObjectDelta<ShadowType> getExecutableDelta() throws SchemaException {
+    public ObjectDelta<ShadowType> getExecutableDelta() throws SchemaException, ConfigurationException {
         SynchronizationPolicyDecision policyDecision = getSynchronizationPolicyDecision();
         ObjectDelta<ShadowType> origDelta = getCurrentDelta();
         if (policyDecision == SynchronizationPolicyDecision.ADD) {
@@ -1493,7 +1494,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
-    public ResourceObjectVolatilityType getVolatility() throws SchemaException {
+    public ResourceObjectVolatilityType getVolatility() throws SchemaException, ConfigurationException {
         ResourceObjectDefinition structuralObjectClassDefinition = getStructuralObjectDefinition();
         return structuralObjectClassDefinition != null ? structuralObjectClassDefinition.getVolatility() : null;
     }

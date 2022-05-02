@@ -19,6 +19,11 @@
             <source>../INSTALL-dist</source>
             <destName>INSTALL</destName>
         </file>
+        <!-- We do this the old/simple way, because adding midpoint-jar dep breaks javadoc steps. -->
+        <file>
+            <source>../gui/midpoint-jar/target/midpoint.jar</source>
+            <destName>lib/midpoint.jar</destName>
+        </file>
     </files>
     <fileSets>
         <fileSet>

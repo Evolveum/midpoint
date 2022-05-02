@@ -54,7 +54,7 @@ public class ClockworkShadowInboundsPreparation<F extends FocusType> extends Sha
             @NotNull PathKeyedMap<List<InboundMappingInContext<?, ?>>> mappingsMap,
             @NotNull ClockworkContext context,
             @Nullable PrismObject<F> focus,
-            @NotNull PrismObjectDefinition<F> focusDefinition) throws SchemaException {
+            @NotNull PrismObjectDefinition<F> focusDefinition) throws SchemaException, ConfigurationException {
         super(
                 mappingsMap,
                 new ClockworkSource(

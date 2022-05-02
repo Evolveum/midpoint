@@ -56,12 +56,12 @@ echo NB: JAVA_HOME should point to a JDK not a JRE
 goto end
 :okJavaHome
 
-REM MIDPOINT_WAR if not defined
-if exist "%cd%\lib\midpoint.war" goto gotWar
-echo The midpoint.war is not in \lib directory
+REM MIDPOINT_JAR if not defined
+if exist "%cd%\lib\midpoint.jar" goto gotJar
+echo The midpoint.jar is not in \lib directory
 echo Can not start midPoint
 goto end
-:gotWar
+:gotJar
 
 if "%MIDPOINT_HOME%" == "%MIDPOINT_HOME:;=%" goto homeNoSemicolon
 echo Using MIDPOINT_HOME: "%MIDPOINT_HOME%"
@@ -73,7 +73,7 @@ REM ----- Execute The Requested Command ---------------------------------------
 
 set EXECUTABLE=%BIN_DIR%\midpoint.exe
 set PR_INSTALL=%EXECUTABLE%
-set MIDPOINT_LAUNCHER_CLASS=com.evolveum.midpoint.tools.layout.MidPointWarLauncher
+set MIDPOINT_LAUNCHER_CLASS=com.evolveum.midpoint.launcher.MidPointLauncher
 
 REM Service log configuration
 set PR_LOGPREFIX=%SERVICE_NAME%
@@ -93,9 +93,9 @@ echo Warning: Neither 'server' nor 'client' jvm.dll was found at JRE_HOME.
 set PR_JVM=auto
 :foundJvm
 
-set PR_CLASSPATH=%cd%\lib\midpoint.war
+set PR_CLASSPATH=%cd%\lib\midpoint.jar
 
-REM Statup configuration
+REM Startup configuration
 set PR_STARTUP=auto
 set PR_STARTMODE=jvm
 set PR_STARTMETHOD=main
@@ -107,8 +107,8 @@ set PR_STOPMETHOD=stop
 set PR_STOPCLASS=%MIDPOINT_LAUNCHER_CLASS%
 
 REM JVM configuration
-set PR_JVMMS=1024
-set PR_JVMMX=1024
+set PR_JVMMS=2g
+set PR_JVMMX=4g
 
 if %1 == install goto doInstall
 if %1 == remove goto doRemove

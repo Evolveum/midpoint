@@ -536,29 +536,6 @@ public class PageCertDecisions extends PageAdminCertification {
         target.add((Component) getDecisionsTable());
     }
 
-
-    //endregion
-
-//    protected void dispatchToObjectDetailsPage(ObjectReferenceType objectRef) {
-//        if (objectRef == null) {
-//            return;        // should not occur
-//        }
-//        QName type = objectRef.getType();
-//        PageParameters parameters = new PageParameters();
-//        parameters.add(OnePageParameterEncoder.PARAMETER, objectRef.getOid());
-//        if (RoleType.COMPLEX_TYPE.equals(type)) {
-//            setResponsePage(new PageRole(parameters, this));
-//        } else if (OrgType.COMPLEX_TYPE.equals(type)) {
-//            setResponsePage(new PageOrgUnit(parameters, this));
-//        } else if (UserType.COMPLEX_TYPE.equals(type)) {
-//            setResponsePage(new PageUser(parameters, this));
-//        } else if (ResourceType.COMPLEX_TYPE.equals(type)) {
-//            setResponsePage(new PageResource(parameters, this));
-//        } else {
-//            // nothing to do
-//        }
-//    }
-
     private CertDecisionsStorage getCertDecisionsStorage(){
         return getSessionStorage().getCertDecisions();
     }

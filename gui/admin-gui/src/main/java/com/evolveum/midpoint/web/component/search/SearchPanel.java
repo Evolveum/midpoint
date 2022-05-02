@@ -16,23 +16,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
-import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
-import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.evolveum.midpoint.util.QNameUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -54,21 +37,36 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+import com.evolveum.midpoint.web.component.Popover;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
+import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
 /**
@@ -104,7 +102,6 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private static final String ID_FULL_TEXT_CONTAINER = "fullTextContainer";
     private static final String ID_FULL_TEXT_FIELD = "fullTextField";
     private static final String ID_ADVANCED_GROUP = "advancedGroup";
-    private static final String ID_MORE_GROUP = "moreGroup";
     private static final String ID_ADVANCED_AREA = "advancedArea";
     private static final String ID_AXIOM_QUERY_FIELD = "axiomQueryField";
     private static final String ID_ADVANCED_CHECK = "advancedCheck";
@@ -136,7 +133,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     }
 
     private <S extends SearchItem, T extends Serializable> void initLayout() {
-        moreDialogModel = new LoadableModel<MoreDialogDto>(false) {
+        moreDialogModel = new LoadableModel<>(false) {
 
             private static final long serialVersionUID = 1L;
 
@@ -150,7 +147,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
             @Override
             public MoreDialogDto getObject() {
-                if (SearchPanel.this.getModelObject() != null && SearchPanel.this.getModelObject().isTypeChanged()){
+                if (SearchPanel.this.getModelObject() != null && SearchPanel.this.getModelObject().isTypeChanged()) {
                     reset();
                 }
                 return super.getObject();
@@ -188,7 +185,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 //                && getModelObject().isCollectionItemVisible()));
 
         PropertyModel<ContainerTypeSearchItem> typeModel = new PropertyModel<>(getModel(), Search.F_TYPE);
-        SearchTypePanel typePanel = new SearchTypePanel(ID_TYPE_PANEL, typeModel){
+        SearchTypePanel typePanel = new SearchTypePanel(ID_TYPE_PANEL, typeModel) {
             @Override
             protected void searchPerformed(AjaxRequestTarget target) {
                 resetMoreDialogModel();
@@ -269,33 +266,28 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         oidItem.add(createVisibleBehaviour(SearchBoxModeType.OID));
         form.add(oidItem);
 
-        WebMarkupContainer moreGroup = new WebMarkupContainer(ID_MORE_GROUP);
-        moreGroup.add(new VisibleBehaviour(() -> createVisibleBehaviour(SearchBoxModeType.BASIC).isVisible()));
-        form.add(moreGroup);
+        Popover popover = initPopover();
 
-        AjaxLink<Void> more = new AjaxLink<Void>(ID_MORE) {
+        AjaxLink<Void> more = new AjaxLink<>(ID_MORE) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 resetMoreDialogModel();
-                Component popover = SearchPanel.this.get(createComponentPath(ID_POPOVER));
-                Component button = SearchPanel.this.get(createComponentPath(ID_FORM, ID_MORE_GROUP, ID_MORE));
-                togglePopover(target, button, popover, 14);
+                popover.toggle(target);
             }
         };
-        more.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                Search search = getModelObject();
-                return !search.getAvailableDefinitions().isEmpty();
+        popover.setReference(more);
+        more.add(new VisibleBehaviour(() -> {
+            if (!isItemVisible(SearchBoxModeType.BASIC)) {
+                return false;
             }
-        });
+
+            Search search = getModelObject();
+            return !search.getAvailableDefinitions().isEmpty();
+        }));
         more.setOutputMarkupId(true);
-        moreGroup.add(more);
+        form.add(more);
 
         WebMarkupContainer searchContainer = new WebMarkupContainer(ID_SEARCH_CONTAINER);
         searchContainer.setOutputMarkupId(true);
@@ -501,7 +493,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                 WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, item.getModel());
                 menuItemBody.setRenderBodyOnly(true);
                 item.add(menuItemBody);
-                menuItemBody.add(new VisibleEnableBehaviour(){
+                menuItemBody.add(new VisibleEnableBehaviour() {
                     @Override
                     public boolean isVisible() {
                         return Boolean.TRUE.equals(item.getModelObject().getVisible().getObject());
@@ -510,8 +502,6 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
             }
         };
         searchContainer.add(li);
-
-        initPopover();
 
         WebMarkupContainer fullTextContainer = new WebMarkupContainer(ID_FULL_TEXT_CONTAINER);
         fullTextContainer.add(new VisibleEnableBehaviour() {
@@ -662,7 +652,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     }
 
     private IModel<String> getIconLabelByModeModel() {
-        return new IModel<String>(){
+        return new IModel<String>() {
             @Override
             public String getObject() {
                 if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())) {
@@ -727,22 +717,17 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         };
     }
 
-    private VisibleEnableBehaviour createVisibleBehaviour(SearchBoxModeType ... searchType) {
-        return new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return getModelObject() != null && getModelObject().getSearchType() != null
-                        && Arrays.asList(searchType).contains(getModelObject().getSearchType());
-            }
-        };
+    private VisibleEnableBehaviour createVisibleBehaviour(SearchBoxModeType... searchType) {
+        return new VisibleBehaviour(() -> isItemVisible(searchType));
     }
 
-    private void initPopover() {
-        WebMarkupContainer popover = new WebMarkupContainer(ID_POPOVER);
-        popover.setOutputMarkupId(true);
+    private boolean isItemVisible(SearchBoxModeType... searchType) {
+        return getModelObject() != null && getModelObject().getSearchType() != null
+                && Arrays.asList(searchType).contains(getModelObject().getSearchType());
+    }
+
+    private Popover initPopover() {
+        Popover popover = new Popover(ID_POPOVER);
         add(popover);
 
         final WebMarkupContainer propList = new WebMarkupContainer(ID_PROP_LIST);
@@ -785,8 +770,8 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
                 Label help = new Label(ID_HELP);
                 IModel<String> helpModel = new PropertyModel<>(item.getModel(), SearchItemDefinition.F_HELP);
-                help.add(AttributeModifier.replace("title",createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
-                help.add(new InfoTooltipBehavior(){
+                help.add(AttributeModifier.replace("title", createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
+                help.add(new InfoTooltipBehavior() {
                     @Override
                     public String getDataPlacement() {
                         return "left";
@@ -871,6 +856,25 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
             }
         };
         popover.add(close);
+
+        /*******/
+
+        final Popover popover1 = new Popover("popover1");
+        popover1.add(new Label("body", () -> "hello"));
+        add(popover1);
+
+        AjaxLink button1 = new AjaxLink<>("button1") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                popover1.toggle(target);
+            }
+        };
+        add(button1);
+        button1.add(AttributeAppender.append("class", "m-5"));
+        popover1.setReference(button1);
+
+        return popover;
     }
 
     private List<SearchItemDefinition> createPropertiesList() {
@@ -926,13 +930,6 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     }
 
     protected void saveSearch(Search search, AjaxRequestTarget target) {
-    }
-
-    public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
-        target.appendJavaScript("toggleSearchPopover('"
-                + button.getMarkupId() + "','"
-                + popover.getMarkupId() + "',"
-                + paddingRight + ");");
     }
 
     private void searchTypeUpdated(AjaxRequestTarget target, SearchBoxModeType searchType) {

@@ -16,7 +16,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.org.component.TreeTablePanel;
 
 /**
  * @author lazyman

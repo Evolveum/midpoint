@@ -751,7 +751,9 @@ public class SynchronizationStep extends WizardStep {
         }
 
         for (ObjectSynchronizationType objectSync : resourceType.getSynchronization().getObjectSynchronization()) {
-            objectSync.getObjectClass().removeIf(name -> name == null || StringUtils.isBlank(name.getLocalPart()));
+            if (objectSync.getObjectClass() != null && StringUtils.isBlank(objectSync.getObjectClass().getLocalPart())) {
+                objectSync.setObjectClass(null);
+            }
             if (objectSync.getCondition() != null && ExpressionUtil.isEmpty(objectSync.getCondition())) {
                 objectSync.setCondition(null);
             }

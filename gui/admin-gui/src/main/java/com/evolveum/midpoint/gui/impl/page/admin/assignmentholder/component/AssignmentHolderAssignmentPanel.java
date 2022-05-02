@@ -14,10 +14,6 @@ import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.Model;
-
-import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 //@PanelType(name = "assignments", defaultContainerPath = "assignment")
 @PanelInstance(identifier = "assignments",
@@ -37,17 +33,6 @@ public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> ex
         WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
         assignments.setOutputMarkupId(true);
         add(assignments);
-    }
-
-    protected SwitchAssignmentTypePanel createPanel(String panelId, PrismContainerWrapperModel<AH, AssignmentType> model) {
-        return new SwitchAssignmentTypePanel(panelId, model != null ? model : Model.of(), getPanelConfiguration()){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected boolean isReadonly(){
-                return AssignmentHolderAssignmentPanel.this.isReadonly();
-            }
-        };
     }
 
     protected boolean isReadonly(){

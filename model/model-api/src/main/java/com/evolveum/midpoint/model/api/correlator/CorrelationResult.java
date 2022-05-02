@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
+import com.evolveum.midpoint.schema.util.ObjectSet;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType;
@@ -21,7 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType.*;
 
@@ -46,6 +51,13 @@ public class CorrelationResult implements Serializable, DebugDumpable {
     @Nullable private final ResourceObjectOwnerOptionsType ownerOptions;
 
     /**
+     * All owner candidates matching given criteria. (Constrained by the limits of candidates.)
+     *
+     * May not be supported by all correlators. (Required for: query, expression, item.)
+     */
+    @NotNull private final List<? extends ObjectType> allOwnerCandidates;
+
+    /**
      * If the situation is {@link CorrelationSituationType#ERROR}, here must be the details. Null otherwise.
      */
     @Nullable private final CorrelationResult.ErrorDetails errorDetails;
@@ -54,31 +66,48 @@ public class CorrelationResult implements Serializable, DebugDumpable {
             @NotNull CorrelationSituationType situation,
             @Nullable ObjectType owner,
             @Nullable ResourceObjectOwnerOptionsType ownerOptions,
+            @NotNull List<? extends ObjectType> allOwnerCandidates,
             @Nullable ErrorDetails errorDetails) {
         this.situation = situation;
         this.owner = owner;
         this.ownerOptions = ownerOptions;
+        this.allOwnerCandidates = allOwnerCandidates;
         this.errorDetails = errorDetails;
     }
 
     public static CorrelationResult existingOwner(@NotNull ObjectType owner) {
-        return new CorrelationResult(EXISTING_OWNER, owner, null, null);
+        return new CorrelationResult(
+                EXISTING_OWNER,
+                owner,
+                null,
+                List.of(owner),
+                null);
     }
 
     public static CorrelationResult noOwner() {
-        return new CorrelationResult(NO_OWNER, null, null, null);
+        return new CorrelationResult(
+                NO_OWNER,
+                null,
+                null,
+                List.of(),
+                null);
     }
 
-    public static CorrelationResult uncertain(@NotNull ResourceObjectOwnerOptionsType ownerOptions) {
-        return new CorrelationResult(UNCERTAIN, null, ownerOptions, null);
+    public static CorrelationResult uncertain(
+            @NotNull ResourceObjectOwnerOptionsType ownerOptions, List<? extends ObjectType> allOwnerCandidates) {
+        return new CorrelationResult(UNCERTAIN, null, ownerOptions, allOwnerCandidates, null);
+    }
+
+    public static CorrelationResult uncertain(@NotNull OwnersInfo ownersInfo) {
+        return uncertain(ownersInfo.optionsBean, ownersInfo.allOwnerCandidates.asList());
     }
 
     public static CorrelationResult error(@NotNull Throwable t) {
-        return new CorrelationResult(ERROR, null, null, ErrorDetails.forThrowable(t));
+        return new CorrelationResult(ERROR, null, null, List.of(), ErrorDetails.forThrowable(t));
     }
 
     public static CorrelationResult error(@NotNull ErrorDetails details) {
-        return new CorrelationResult(ERROR, null, null, details);
+        return new CorrelationResult(ERROR, null, null, List.of(), details);
     }
 
     public @NotNull CorrelationSituationType getSituation() {
@@ -111,6 +140,12 @@ public class CorrelationResult implements Serializable, DebugDumpable {
 
     public boolean isExistingOwner() {
         return situation == EXISTING_OWNER;
+    }
+
+    /** Returns true if the correlation result points to the given owner OID. */
+    public boolean isExistingOwner(@NotNull String oid) {
+        return isExistingOwner()
+                && oid.equals(getOwnerRequired().getOid());
     }
 
     public boolean isNoOwner() {
@@ -162,6 +197,30 @@ public class CorrelationResult implements Serializable, DebugDumpable {
 
     public @Nullable String getErrorMessage() {
         return errorDetails != null ? errorDetails.message : null;
+    }
+
+    /**
+     * Returns all candidates of given type.
+     *
+     * May not be supported by all correlators. (Required for: query, expression, item.)
+     */
+    @Experimental
+    public <F extends ObjectType> @NotNull List<F> getAllCandidates(@NotNull Class<F> focusType) {
+        //noinspection unchecked
+        return allOwnerCandidates.stream()
+                .filter(candidate -> focusType.isAssignableFrom(candidate.getClass()))
+                .map(candidate -> (F) candidate)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns all candidates of given type.
+     *
+     * May not be supported by all correlators. (Required for: query, expression, item.)
+     */
+    @Experimental
+    public @NotNull List<? extends ObjectType> getAllOwnerCandidates() {
+        return allOwnerCandidates;
     }
 
     public enum Status {
@@ -232,6 +291,19 @@ public class CorrelationResult implements Serializable, DebugDumpable {
             } else {
                 throw new SystemException(cause.getMessage(), cause);
             }
+        }
+    }
+
+    /** Helper class: Aggregates {@link ResourceObjectOwnerOptionsType} (i.e. references) and full candidate owners. */
+    public static class OwnersInfo {
+        @NotNull public final ResourceObjectOwnerOptionsType optionsBean;
+        @NotNull public final ObjectSet<ObjectType> allOwnerCandidates;
+
+        public OwnersInfo(
+                @NotNull ResourceObjectOwnerOptionsType optionsBean,
+                @NotNull Collection<? extends ObjectType> allOwnerCandidates) {
+            this.optionsBean = optionsBean;
+            this.allOwnerCandidates = new ObjectSet<>(allOwnerCandidates);
         }
     }
 }

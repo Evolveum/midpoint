@@ -100,14 +100,6 @@ public class StartupConfiguration implements MidpointConfiguration {
         this.configFilename = configFilename;
     }
 
-    /**
-     * Get current configuration file name
-     */
-    @SuppressWarnings("WeakerAccess")
-    public String getConfigFilename() {
-        return configFilename;
-    }
-
     @Override
     public String getMidpointHome() {
         return midPointHomePath;
@@ -254,7 +246,7 @@ public class StartupConfiguration implements MidpointConfiguration {
             configurator.setContext(context);
             configurator.doConfigure(logbackConfigFile);
         } catch (Exception e) {
-            // This will logged by default logging configuration
+            // This will be logged by default logging configuration
             LOGGER.error("Error loading additional logging configuration: {}", e.getMessage(), e);
             // If normal logging fails make sure it is logged by web container
             e.printStackTrace();
@@ -274,8 +266,7 @@ public class StartupConfiguration implements MidpointConfiguration {
                                 new Parameters()
                                         .xml()
                                         .setFileName(filename)
-                                        .setPrefixLookups(lookups)
-                        );
+                                        .setPrefixLookups(lookups));
         /*
         On debug level this shows stacktrace for:
         DEBUG org.apache.commons.beanutils.FluentPropertyBeanIntrospector - Exception is:

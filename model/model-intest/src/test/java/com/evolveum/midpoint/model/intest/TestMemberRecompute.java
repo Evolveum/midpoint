@@ -211,7 +211,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
         ObjectDelta<OrgType> delta = deltaFor(OrgType.class)
                 .item(OrgType.F_COST_CENTER).replace("07999")
                 .asObjectDelta(ORG_DCS.oid);
-        ModelExecuteOptions options = new ModelExecuteOptions(prismContext)
+        ModelExecuteOptions options = ModelExecuteOptions.create()
                 .setExtensionPropertyRealValues(prismContext, MEMBER_RECOMPUTATION_WORKER_THREADS_NAME, 3);
         executeChanges(delta, options, task, result);
 
@@ -377,7 +377,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
 
     @NotNull
     private ModelExecuteOptions doNotRecompute() throws SchemaException {
-        return new ModelExecuteOptions(prismContext)
+        return ModelExecuteOptions.create()
                 .setExtensionPropertyRealValues(prismContext, RECOMPUTE_MEMBERS_NAME, false);
     }
 }

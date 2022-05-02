@@ -53,7 +53,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -74,9 +73,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public abstract class AbstractAssignmentTypePanel extends MultivalueContainerListPanelWithDetailsPanel<AssignmentType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AssignmentPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractAssignmentTypePanel.class);
 
-    private static final String DOT_CLASS = AssignmentPanel.class.getName() + ".";
+    private static final String DOT_CLASS = AbstractAssignmentTypePanel.class.getName() + ".";
     protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     protected static final String OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ = DOT_CLASS + "loadAssignmentsTargetRefObject";
     protected static final String OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS = DOT_CLASS + "loadAssignmentTargetRelations";
@@ -510,7 +509,6 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                     target);
         });
         AbstractAssignmentTypePanel.this.refreshTable(target);
-        AbstractAssignmentTypePanel.this.reloadSavePreviewButtons(target);
         getPageBase().hideMainPopup(target);
     }
 

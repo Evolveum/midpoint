@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -79,6 +80,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 public class ModelImplUtils {
 
@@ -605,7 +607,7 @@ public class ModelImplUtils {
     }
 
     public static VariablesMap getDefaultVariablesMap(@NotNull LensContext<?> context,
-            @Nullable LensProjectionContext projCtx, boolean focusOdoAbsolute) throws SchemaException {
+            @Nullable LensProjectionContext projCtx, boolean focusOdoAbsolute) throws SchemaException, ConfigurationException {
         VariablesMap variables = new VariablesMap();
         if (context.getFocusContext() != null) {
             ObjectDeltaObject<?> focusOdo = focusOdoAbsolute
@@ -627,75 +629,73 @@ public class ModelImplUtils {
             variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, LensUtil.getIterationTokenVariableValue(projCtx), String.class);
         }
 
-        variables.put(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), context.getSystemConfiguration().getDefinition());
+        PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
+        if (systemConfiguration != null) {
+            variables.put(ExpressionConstants.VAR_CONFIGURATION, systemConfiguration, systemConfiguration.getDefinition());
+        } else {
+            variables.put(ExpressionConstants.VAR_CONFIGURATION, null, SystemConfigurationType.class);
+        }
         return variables;
     }
 
     public static VariablesMap getDefaultVariablesMap(
             ObjectType focus, ShadowType shadow, ResourceType resource, SystemConfigurationType configuration) {
-        return getDefaultVariablesMap(focus, shadow, resource, configuration, PrismContext.get());
+        return getDefaultVariablesMap(
+                asPrismObject(focus),
+                asPrismObject(shadow),
+                null,
+                asPrismObject(resource),
+                asPrismObject(configuration),
+                null);
     }
 
-    public static VariablesMap getDefaultVariablesMap(ObjectType focusType,
-            ShadowType shadowType, ResourceType resourceType, SystemConfigurationType configurationType,
-            PrismContext prismContext) {
-        PrismObject<? extends ObjectType> focus = null;
-        if (focusType != null) {
-            focus = focusType.asPrismObject();
-        }
-        PrismObject<? extends ShadowType> shadow = null;
-        if (shadowType != null) {
-            shadow = shadowType.asPrismObject();
-        }
-        PrismObject<ResourceType> resource = null;
-        if (resourceType != null) {
-            resource = resourceType.asPrismObject();
-        }
-        PrismObject<SystemConfigurationType> configuration = null;
-        if (configurationType != null) {
-            configuration = configurationType.asPrismObject();
-        }
-        return getDefaultVariablesMap(focus, shadow, null, resource, configuration, null, prismContext);
-    }
-
-    public static <O extends ObjectType> VariablesMap getDefaultVariablesMap(PrismObject<? extends ObjectType> focus,
-            PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr,
-            PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration, LensElementContext<O> affectedElementContext,
-            PrismContext prismContext) {
+    public static <O extends ObjectType> VariablesMap getDefaultVariablesMap(
+            PrismObject<? extends ObjectType> focus,
+            PrismObject<? extends ShadowType> shadow,
+            ResourceShadowDiscriminator discr,
+            PrismObject<ResourceType> resource,
+            PrismObject<SystemConfigurationType> configuration,
+            LensElementContext<O> affectedElementContext) {
         VariablesMap variables = new VariablesMap();
-        addDefaultVariablesMap(variables, focus, shadow, discr, resource, configuration, affectedElementContext, prismContext);
+        addDefaultVariablesMap(variables, focus, shadow, discr, resource, configuration, affectedElementContext);
         return variables;
     }
 
-    public static <O extends ObjectType> void addDefaultVariablesMap(VariablesMap variables, PrismObject<? extends ObjectType> focus,
-            PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr,
-            PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration, LensElementContext<O> affectedElementContext,
-            PrismContext prismContext) {
+    private static <O extends ObjectType> void addDefaultVariablesMap(
+            VariablesMap variables,
+            PrismObject<? extends ObjectType> focus,
+            PrismObject<? extends ShadowType> shadow,
+            ResourceShadowDiscriminator discr, // TODO Should we keep this?
+            PrismObject<ResourceType> resource,
+            PrismObject<SystemConfigurationType> configuration,
+            LensElementContext<O> affectedElementContext) {
+
+        SchemaRegistry schemaRegistry = PrismContext.get().getSchemaRegistry();
 
         PrismObjectDefinition<? extends ObjectType> focusDef;
         if (focus == null) {
-            focusDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(FocusType.class);
+            focusDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(FocusType.class);
         } else {
             focusDef = focus.getDefinition();
         }
 
         PrismObjectDefinition<? extends ShadowType> shadowDef;
         if (shadow == null) {
-            shadowDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+            shadowDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
         } else {
             shadowDef = shadow.getDefinition();
         }
 
         PrismObjectDefinition<ResourceType> resourceDef;
         if (resource == null) {
-            resourceDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
+            resourceDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(ResourceType.class);
         } else {
             resourceDef = resource.getDefinition();
         }
 
         PrismObjectDefinition<SystemConfigurationType> configDef;
         if (configuration == null) {
-            configDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
+            configDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
         } else {
             configDef = configuration.getDefinition();
         }

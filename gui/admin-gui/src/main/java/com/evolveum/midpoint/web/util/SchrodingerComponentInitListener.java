@@ -9,8 +9,6 @@ package com.evolveum.midpoint.web.util;
 import java.io.Serializable;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.wicket.AttributeModifier;
@@ -23,13 +21,13 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.Response;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismReferencePanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.PrismHeaderPanel;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -92,13 +90,14 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
             return;
         }
 
-        if (component instanceof PrismHeaderPanel) {
-            PrismHeaderPanel php = (PrismHeaderPanel) component;
-            String key = php.getLabel();
-
-            writeDataAttribute(component, ATTR_RESOURCE_KEY, key);
-            return;
-        }
+        //TODO still needed?
+//        if (component instanceof PrismHeaderPanel) {
+//            PrismHeaderPanel php = (PrismHeaderPanel) component;
+//            String key = php.getLabel();
+//
+//            writeDataAttribute(component, ATTR_RESOURCE_KEY, key);
+//            return;
+//        }
 
         IModel model = null;
         if (component.getDefaultModel() instanceof StringResourceModel) {

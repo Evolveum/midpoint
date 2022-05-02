@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import org.apache.commons.collections4.CollectionUtils;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
@@ -86,7 +88,6 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.objectdetails.FocusPersonasTabPanel;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.util.ProjectionsListProvider;
@@ -626,10 +627,10 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         return shadow;
     }
 
-    private ResourceSchema getRefinedSchema(ResourceType resource) throws SchemaException {
+    private ResourceSchema getRefinedSchema(ResourceType resource) throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource.asPrismObject(), LayerType.PRESENTATION);
         if (refinedSchema == null) {
-            Task task = getPageBase().createSimpleTask(FocusPersonasTabPanel.class.getSimpleName() + ".loadResource");
+            Task task = getPageBase().createSimpleTask(FocusProjectionsPanel.class.getSimpleName() + ".loadResource");
             OperationResult result = task.getResult();
             resource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result).asObjectable();
             result.recomputeStatus();

@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.web.component.*;
 
@@ -44,8 +45,6 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
-import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
@@ -149,13 +148,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return getSelectedObjects();
     }
 
-    public void reloadSavePreviewButtons(AjaxRequestTarget target){
-        FocusMainPanel mainPanel = findParent(FocusMainPanel.class);
-        if (mainPanel != null) {
-            mainPanel.reloadSavePreviewButtons(target);
-        }
-    }
-
     public List<PrismContainerValueWrapper<C>> getPerformedSelectedItems(IModel<PrismContainerValueWrapper<C>> rowModel) {
         List<PrismContainerValueWrapper<C>> performedItems = new ArrayList<>();
         List<PrismContainerValueWrapper<C>> listItems = getSelectedItems();
@@ -214,10 +206,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
 
     public <AH extends AssignmentHolderType> PrismObject<AH> getFocusObject(){
-        AssignmentHolderTypeMainPanel mainPanel = findParent(AssignmentHolderTypeMainPanel.class);
-        if (mainPanel != null) {
-            return mainPanel.getObjectWrapper().getObject();
-        }
         PageBase pageBase = getPageBase();
         if (pageBase != null && pageBase instanceof PageAssignmentHolderDetails) {
             PageAssignmentHolderDetails pageAssignmentHolderDetails = (PageAssignmentHolderDetails) pageBase;
@@ -273,7 +261,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             value.setSelected(false);
         });
         refreshTable(target);
-        reloadSavePreviewButtons(target);
     }
 
     protected abstract boolean isCreateNewObjectVisible();
