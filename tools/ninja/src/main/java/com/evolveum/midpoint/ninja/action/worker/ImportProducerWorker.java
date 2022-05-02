@@ -46,6 +46,7 @@ public class ImportProducerWorker<T extends Containerable>
 
     private String currentOid = null;
     private boolean convertMissingType = false;
+    private boolean compatMode = false;
 
     public ImportProducerWorker(
             NinjaContext context, BasicImportOptions options, BlockingQueue<T> queue,
@@ -162,14 +163,12 @@ public class ImportProducerWorker<T extends Containerable>
                 // Should we log error?
                 operation.incrementError();
                 String message = getErrorMessage();
-                if (continueOnInputError) {
-
-                    if (context.isVerbose()) {
-                        context.getLog().error(message, cause);
-                    } else {
-                        context.getLog().error(message + ", reason: {}", cause.getMessage());
-                    }
+                if (context.isVerbose()) {
+                    context.getLog().error(message, cause);
                 } else {
+                    context.getLog().error(message + ", reason: {}", cause.getMessage());
+                }
+                if (!continueOnInputError) {
                     // We need to throw runtime exception in order to stop validator, otherwise validator will continue
                     // fill queue and this may result in deadlock
                     operation.finish();
@@ -181,6 +180,7 @@ public class ImportProducerWorker<T extends Containerable>
         // FIXME: MID-5151: If validateSchema is false we are not validating unknown attributes on import
         LegacyValidator<?> validator = new LegacyValidator<>(prismContext, handler);
         validator.setValidateSchema(false);
+        validator.setCompatMode(compatMode);
         validator.setConvertMissingType(isConvertMissingType());
         OperationResult result = operation.getResult();
 
@@ -217,5 +217,9 @@ public class ImportProducerWorker<T extends Containerable>
 
     public void setConvertMissingType(boolean convertMissingType) {
         this.convertMissingType = convertMissingType;
+    }
+
+    public void setCompatMode(boolean mode) {
+        this.compatMode = mode;
     }
 }
