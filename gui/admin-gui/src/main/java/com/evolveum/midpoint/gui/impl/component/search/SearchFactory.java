@@ -314,7 +314,7 @@ public class SearchFactory {
                 WebComponentUtil.containerClassToQName(PrismContext.get(), type), collectionViewName, Search.PanelType.DEFAULT);
         if (config != null) {
             SearchConfigurationWrapper<C> preconfiguredSearchConfigWrapper = new SearchConfigurationWrapper<C>(type, config);
-            searchConfigWrapper = combineSearchBoxConfiguration(searchConfigWrapper, preconfiguredSearchConfigWrapper, true);
+            searchConfigWrapper = combineSearchBoxConfiguration(searchConfigWrapper, preconfiguredSearchConfigWrapper);
         }
         searchConfigWrapper.setCollectionViewName(collectionViewName);
         return createSearch(searchConfigWrapper, null, modelServiceLocator, Search.PanelType.DEFAULT, false);
@@ -570,12 +570,14 @@ public class SearchFactory {
         List<AbstractSearchItemWrapper> items = config.getItemsList();
         boolean isProcessed = false;
         if (customItem instanceof PropertySearchItemWrapper) {
-            for (AbstractSearchItemWrapper item : items) {
+            Iterator<AbstractSearchItemWrapper> itemsIterator = items.iterator();
+            while (itemsIterator.hasNext()) {
+                AbstractSearchItemWrapper item = itemsIterator.next();
                 if (!(item instanceof PropertySearchItemWrapper)) {
                     continue;
                 }
                 if (((PropertySearchItemWrapper<?>) item).getPath().equivalent(((PropertySearchItemWrapper<?>) customItem).getPath())) {
-                    items.remove(item);
+                    itemsIterator.remove();
                     items.add(customItem);
                     isProcessed = true;
                     break;
