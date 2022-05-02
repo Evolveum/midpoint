@@ -6,11 +6,6 @@
  */
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -23,7 +18,11 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.validator.RangeValidator;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -119,7 +118,7 @@ public class TableConfigurationPanel extends BasePanel {
     }
 
     private IModel<Integer> createInputModel() {
-        return new IModel<Integer>() {
+        return new IModel<>() {
 
             @Override
             public Integer getObject() {
