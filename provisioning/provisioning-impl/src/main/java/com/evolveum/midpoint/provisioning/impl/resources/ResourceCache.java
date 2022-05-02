@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.provisioning.impl.resources;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -21,6 +20,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,16 +33,21 @@ import javax.annotation.PreDestroy;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
 import static com.evolveum.midpoint.util.caching.CacheConfiguration.StatisticsLevel.PER_CACHE;
 
 /**
- * Caches ResourceType instances with a parsed schemas.
+ * Caches {@link ResourceType} instances with a parsed schemas.
  *
  * Resource cache is similar to repository cache. One of the differences is that it does not expire its entries.
  * It relies on versions and on invalidation events instead. So we have to use resource object versions when querying it.
  * (This could be perhaps changed in the future. But not now.)
+ *
+ * The cache deals with concrete resources, i.e. _not_ the abstract ones. So, when an abstract resource is invalidated,
+ * all concrete ones that inherit from it should be invalidated as well.
  *
  * @author Radovan Semancik
  */
@@ -50,7 +57,6 @@ public class ResourceCache implements Cache {
     private static final Trace LOGGER = TraceManager.getTrace(ResourceCache.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ResourceCache.class.getName() + ".content");
 
-    @Autowired private PrismContext prismContext;
     @Autowired private CacheRegistry cacheRegistry;
     @Autowired @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
@@ -73,16 +79,28 @@ public class ResourceCache implements Cache {
      */
     private final Map<String, PrismObject<ResourceType>> cache = new ConcurrentHashMap<>();
 
-    synchronized void put(PrismObject<ResourceType> resource) throws SchemaException {
+    /**
+     * `K -> V` means that (concrete) resource `V` depends on (concrete or abstract) resource `K`.
+     */
+    private final SetMultimap<String, String> dependencyMap = HashMultimap.create();
+
+    /**
+     * Puts a (complete) resource into the cache.
+     *
+     * @param resource The object to cache.
+     * @param ancestorsOids OIDs of the resource ancestor(s), if any. Invalidation of any of these results in the invalidation
+     * of the cached resource.
+     */
+    synchronized void put(
+            @NotNull PrismObject<ResourceType> resource,
+            @NotNull Collection<String> ancestorsOids) throws SchemaException {
         String oid = resource.getOid();
-        if (oid == null) {
-            throw new SchemaException("Attempt to cache "+resource+" without an OID");
-        }
+        schemaCheck(oid != null, "Attempt to cache %s without an OID", resource);
 
         String version = resource.getVersion();
-        if (version == null) {
-            throw new SchemaException("Attempt to cache "+resource+" without version");
-        }
+        schemaCheck(version != null, "Attempt to cache %s without version", resource);
+
+        updateDependencies(oid, ancestorsOids);
 
         PrismObject<ResourceType> cachedResource = cache.get(oid);
         if (cachedResource == null) {
@@ -96,6 +114,23 @@ public class ResourceCache implements Cache {
             LOGGER.debug("Caching(replace): {}", resource);
             cache.put(oid, resource.createImmutableClone());
         }
+    }
+
+    /**
+     * Updates the {@link #dependencyMap} with the current information about ancestors of given (concrete) resource.
+     *
+     * Guarded by `this` (responsible of the caller).
+     */
+    private void updateDependencies(String concreteResourceOid, Collection<String> ancestorsOids) {
+        // Removing no-longer-valid ancestor OIDs
+        dependencyMap.entries().removeIf(
+                entry ->
+                        concreteResourceOid.equals(entry.getValue())
+                                && !ancestorsOids.contains(entry.getKey()));
+
+        // Re-adding (all) ancestor OIDs; some are already there, but ignoring it.
+        ancestorsOids.forEach(
+                ancestorOid -> dependencyMap.put(ancestorOid, concreteResourceOid));
     }
 
     private boolean compareVersion(String version1, String version2) {
@@ -117,7 +152,7 @@ public class ResourceCache implements Cache {
             LOGGER.debug("MISS(wrong version) for {} (req={}, actual={})", oid, requestedVersion, cachedResource.getVersion());
             LOGGER.trace("Cached resource version {} does not match requested resource version {}, purging from cache",
                     cachedResource.getVersion(), requestedVersion);
-            cache.remove(oid);
+            invalidateSingle(oid);
             resourceToReturn = null;
         } else if (readOnly) {
             cachedResource.checkImmutable();
@@ -176,26 +211,49 @@ public class ResourceCache implements Cache {
         return cachedResource.getVersion();
     }
 
-    synchronized void remove(String oid) {
-        cache.remove(oid);
-    }
-
     @Override
     public synchronized void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
         if (type == null || type.isAssignableFrom(ResourceType.class)) {
             if (oid != null) {
-                remove(oid);
+                invalidateSingle(oid);
             } else {
-                cache.clear();
+                invalidateAll();
             }
         }
+    }
+
+    /** Invalidates single (concrete) resource and all its descendants. */
+    synchronized void invalidateSingle(@NotNull String oid) {
+        Set<String> descendants = dependencyMap.get(oid);
+        LOGGER.trace("Invalidating {} and all its descendants: {}", oid, descendants);
+
+        invalidateSingleShallow(oid);
+        descendants.forEach(this::invalidateSingle);
+    }
+
+    /**
+     * Removes the specific resource from {@link #cache} and {@link #dependencyMap}). Not touching the descendants.
+     * Must be guarded by `this` (caller's responsibility).
+     */
+    private void invalidateSingleShallow(@NotNull String oid) {
+        cache.remove(oid);
+        dependencyMap.removeAll(oid);
+        dependencyMap.entries().removeIf(
+                entry -> oid.equals(entry.getValue()));
+    }
+
+    /** Invalidates the whole cache. Must be guarded by `this` (caller's responsibility). */
+    private void invalidateAll() {
+        LOGGER.trace("Invalidating the whole cache");
+        cache.clear();
+        dependencyMap.clear();
     }
 
     @NotNull
     @Override
     public synchronized Collection<SingleCacheStateInformationType> getStateInformation() {
         return Collections.singleton(
-                new SingleCacheStateInformationType(prismContext)
+                new SingleCacheStateInformationType()
                         .name(ResourceCache.class.getName())
                         .size(cache.size())
         );
