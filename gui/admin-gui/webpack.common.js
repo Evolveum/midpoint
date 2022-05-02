@@ -24,10 +24,10 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, 'target/generated-resources/webpack/static/static'),
         publicPath: '../static/',
-        filename: './[name].bundle.js',
+        filename: './[name].js',
+        assetModuleFilename: './[name][ext]',
     },
     module: {
-        // noParse: /midpoint-theme.js/,
         rules: [
             {
                 test: /\.(sass|scss|css)$/,
@@ -45,32 +45,25 @@ module.exports = {
                     './node_modules/sass-loader',
                 ],
             },
-            // {
-            //     test: require.resolve('../../../../node_modules/jquery'),
-            //     use: [{
-            //         loader: './node_modules/expose-loader',
-            //         options: 'jQuery'
-            //     },
-            //         {
-            //             loader: './node_modules/expose-loader',
-            //             options: '$'
-            //         }
-            //     ]
-            // },
             {
                 test: /\.js$/,
                 exclude: /node_modules/,
-                // type: 'asset/resource',
                 use: {
                     loader: "./node_modules/babel-loader"
                 }
             },
 
             // Images: Copy image files to build folder
-            { test: /\.(?:ico|gif|png|jpg|jpeg)$/i, type: 'asset/resource' },
+            {
+                test: /\.(?:ico|gif|png|jpg|jpeg)$/i,
+                type: 'asset/resource'
+            },
 
             // Fonts and SVGs: Inline files
-            { test: /\.(woff(2)?|eot|ttf|otf|svg|)$/, type: 'asset/inline' },
+            {
+                test: /\.(woff(2)?|eot|ttf|otf|svg|)$/,
+                type: 'asset/inline'
+            },
         ],
     },
     plugins: [

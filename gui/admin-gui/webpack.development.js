@@ -13,7 +13,7 @@ module.exports = {
     plugins: [
         // Extracts CSS into separate files
         new MiniCssExtractPlugin({
-            filename: '[name]-theme.css',
+            filename: '[name].css',
             chunkFilename: '[id].css',
         }),
     ],
