@@ -22,4 +22,4 @@ ace.config.setModuleUrl('ace/ext/language_tools',
 
 // ace.config.setModuleUrl('ace/mode/xml_worker', require('../../../node_modules/ace-builds/src-noconflict/worker-xml.js'));
 ace.config.setModuleUrl('ace/mode/xml_worker',
-    require('file-loader?name=[name].[ext]&esModule=false!../../../node_modules/ace-builds/src-noconflict/worker-xml.js'));
+    require('file-loader?publicPath=../../static/&name=[name].[ext]&esModule=false!../../../node_modules/ace-builds/src-noconflict/worker-xml.js'));

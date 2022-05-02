@@ -23,7 +23,7 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, 'target/generated-resources/webpack/static/static'),
-        publicPath: '../../static/',
+        publicPath: '../static/',
         filename: './[name].js',
         assetModuleFilename: './[name][ext]',
     },
