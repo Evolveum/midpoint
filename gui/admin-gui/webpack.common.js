@@ -56,7 +56,10 @@ module.exports = {
             // Images: Copy image files to build folder
             {
                 test: /\.(?:ico|gif|png|jpg|jpeg)$/i,
-                type: 'asset/resource'
+                type: 'asset/resource',
+                generator: {
+                    filename: 'img/[name][ext]'
+                }
             },
 
             // Fonts and SVGs: Inline files
