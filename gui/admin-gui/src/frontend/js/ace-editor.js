@@ -25,43 +25,21 @@ export default class MidPointAceEditor {
         $(jqEditor).text($(jqTextArea).val());
         $(jqTextArea).hide();
 
-        // var langTools = ace.require("ace/ext/language_tools");
-        //todo implement completer based
-        // var completer = {
-        //
-        //     getCompletions: function(editor, session, pos, prefix, callback) {
-        //         //example
-        //         var completions = [];
-        //         completions.push({ name:"testing1", value:"testing1", meta: "code1" });
-        //         completions.push({ name:"testing2", value:"testing2", meta: "code2" });
-        //         callback(null, completions);
-        //     }
-        // }
-        // langTools.addCompleter(completer);
+        ace.require("ace/ext/language_tools");
 
         var editor = ace.edit(editorId,{
-            mode: "ace/mode/xml",
+            theme: 'ace/theme/eclipse',
+            mode: 'ace/mode/xml',
             highlightActiveLine : true,
             highlightSelectedWord: true,
             autoScrollEditorIntoView: true,
             minLines: 10,
             enableBasicAutocompletion: true,
             enableLiveAutocompletion: true,
-            selectionStyle: "text"
+            selectionStyle: "text",
+            useSoftTabs: true,
         });
 
-        // editor.setOptions({
-        //     enableBasicAutocompletion: true
-        // });
-
-        // editor.setMode('ace/mode/xml');
-        // editor.session.setMode(mode_xml);
-        // editor.getSession().setTabSize(3);
-
-        editor.setTheme('ace/theme/eclipse');
-        // if (mode != null) {
-        //
-        // }
         // editor.setShowPrintMargin(false);
         // editor.setFadeFoldWidgets(false);
         // setReadonly(jqEditor, editor, readonly);
