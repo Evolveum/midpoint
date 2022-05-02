@@ -771,7 +771,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected String getStringValueForObject(ObjectType object) {
-        return WebComponentUtil.getDisplayName(object.asPrismObject());
+        return WebComponentUtil.getDisplayNameOrName(object.asPrismObject());
     }
 
     private boolean isPolyString(QName typeName) {
