@@ -603,6 +603,21 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return null;
     }
 
+    public PropertySearchItemWrapper findPropertySearchItem(ItemPath path) {
+        if (path == null) {
+            return null;
+        }
+        for (AbstractSearchItemWrapper searchItem : getItems()) {
+            if (!(searchItem instanceof PropertySearchItemWrapper)) {
+                continue;
+            }
+            if (path.equivalent(((PropertySearchItemWrapper)searchItem).getPath())) {
+                return (PropertySearchItemWrapper) searchItem;
+            }
+        }
+        return null;
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();

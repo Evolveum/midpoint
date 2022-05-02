@@ -203,6 +203,9 @@ public class SearchFactory {
         FIXED_SEARCH_ITEMS.put(OrgType.class, Arrays.asList(
                 ItemPath.create(OrgType.F_PARENT_ORG_REF)
         ));
+        FIXED_SEARCH_ITEMS.put(AuditEventRecordType.class, Arrays.asList(
+                ItemPath.create(AuditEventRecordType.F_TIMESTAMP)
+        ));
         FIXED_SEARCH_ITEMS.put(ShadowType.class, Arrays.asList(
                 ItemPath.create(ShadowType.F_RESOURCE_REF),
                 ItemPath.create(ShadowType.F_OBJECT_CLASS)
