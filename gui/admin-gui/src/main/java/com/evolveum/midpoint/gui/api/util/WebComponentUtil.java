@@ -40,6 +40,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 
+import com.evolveum.midpoint.web.component.data.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -58,7 +60,6 @@ import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.datetime.PatternDateConverter;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
@@ -165,9 +166,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
-import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -1692,17 +1690,14 @@ public final class WebComponentUtil {
     }
 
     public static <T extends Selectable> List<T> getSelectedData(Table table) {
-        DataTable dataTable = table.getDataTable();
-        BaseSortableDataProvider<T> provider = (BaseSortableDataProvider<T>) dataTable.getDataProvider();
-
-        List<T> selected = new ArrayList<>();
-//        for (T bean : provider.getAvailableData()) {
-//            if (bean.isSelected()) {
-//                selected.add(bean);
-//            }
-//        }
-
-        return selected;
+        List<T> objects = new ArrayList<>();
+        table.getDataTable().visitChildren(SelectableDataTable.SelectableRowItem.class,
+                (IVisitor<SelectableDataTable.SelectableRowItem<T>, Void>) (row, visit) -> {
+                    if (row.getModelObject().isSelected()) {
+                        objects.add(row.getModelObject());
+                    }
+                });
+        return objects;
     }
 
     public static void clearProviderCache(IDataProvider provider) {
