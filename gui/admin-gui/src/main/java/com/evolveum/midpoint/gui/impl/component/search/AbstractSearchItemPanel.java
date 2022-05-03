@@ -77,7 +77,7 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
 
         Label help = new Label(ID_HELP);
         IModel<String> helpModel = createHelpModel();
-        help.add(AttributeModifier.replace("title",createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
+        help.add(AttributeModifier.replace("title", createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
         help.add(new InfoTooltipBehavior(){
             @Override
             public String getDataPlacement() {

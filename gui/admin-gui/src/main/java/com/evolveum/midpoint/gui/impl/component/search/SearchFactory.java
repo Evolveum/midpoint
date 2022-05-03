@@ -8,11 +8,15 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.web.component.search.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -449,7 +453,13 @@ public class SearchFactory {
         itemWrapper.setVisible(isFixedItem(type, path));
         itemWrapper.setValueTypeName(itemDef.getTypeName());
         itemWrapper.setName(WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef, null));
-        itemWrapper.setHelp(itemDef.getHelp());
+        String help = WebPrismUtil.getHelpText(itemDef);
+        if (StringUtils.isNotBlank(help)) {
+            Pattern pattern = Pattern.compile("<.+?>");
+            Matcher m = pattern.matcher(help);
+            help = m.replaceAll("");
+        }
+        itemWrapper.setHelp(help);
         return itemWrapper;
     }
 
