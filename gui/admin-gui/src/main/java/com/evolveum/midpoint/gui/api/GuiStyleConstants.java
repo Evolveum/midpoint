@@ -234,11 +234,11 @@ public class GuiStyleConstants {
     public static final String BLUE_COLOR = "color-blue";
 
     public static final String CLASS_ICON_SIGN_OUT = "fa fa-sign-out";
-    public static final String CLASS_ICON_CLAIM = "fa fa-paper-plane-o";
+    public static final String CLASS_ICON_CLAIM = "far fa-paper-plane";
     public static final String CLASS_ICON_TEXT = "fa fa-text-width";
 
-    public static final String CLASS_ICON_TRASH = "fa fa-trash-o";
-    public static final String CLASS_ICON_PERFORMANCE = "fa fa-area-chart";
+    public static final String CLASS_ICON_TRASH = "far fa-trash-alt";
+    public static final String CLASS_ICON_PERFORMANCE = "fa fa-chart-area";
     public static final String CLASS_ICON_TASK_RESULTS = "fa fa-list-alt";
 
     public static final String CLASS_ICON_SEARCH = "fa fa-search flip-icon";
@@ -251,9 +251,9 @@ public class GuiStyleConstants {
 
     public static final String CLASS_TASK_DISTRIBUTION_ICON = "fa fa-cubes";
     public static final String CLASS_TASK_WORK_ICON = "fa fa-briefcase";
-    public static final String CLASS_TASK_CONTROL_FLOW_ICON = "fa fa-code-fork";
+    public static final String CLASS_TASK_CONTROL_FLOW_ICON = "fa fa-code-branch";
     public static final String CLASS_TASK_SCHEDULE_ICON = "fa fa-calendar";
-    public static final String CLASS_TASK_STATISTICS_ICON = "fa fa-line-chart";
+    public static final String CLASS_TASK_STATISTICS_ICON = "fa fa-chart-line";
     public static final String CLASS_TASK_ERRORS_ICON = "fa fa-exclamation-circle";
     public static final String CLASS_TASK_ACTIVITY_ICON = "fa fa-cog";
 

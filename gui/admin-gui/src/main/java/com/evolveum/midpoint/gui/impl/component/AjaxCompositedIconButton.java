@@ -6,12 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
-
-import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -21,8 +15,10 @@ import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.parser.XmlTag;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
+import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -40,67 +36,35 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
     private boolean titleAsLabel;
 
     public AjaxCompositedIconButton(String id, IModel<CompositedIconButtonDto> buttonModel) {
-        super(id);
-        this.buttonModel = buttonModel;
-
-        add(AttributeAppender.append("class", new IModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return " position-relative ";
-            }
-        }));
-
-        add(AttributeAppender.append("class", new IModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return !AjaxCompositedIconButton.this.isEnabled() ? "disabled" : "";
-            }
-        }));
+        this(id, null, null, buttonModel);
     }
 
     public AjaxCompositedIconButton(String id, CompositedIcon icon, IModel<String> title) {
+        this(id, icon, title, null);
+    }
+
+    public AjaxCompositedIconButton(String id, CompositedIcon icon, IModel<String> title, IModel<CompositedIconButtonDto> buttonModel) {
         super(id);
 
         this.title = title;
         this.icon = icon;
+        this.buttonModel = buttonModel;
 
-        add(AttributeAppender.append("class", new IModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return " position-relative ";
-            }
-        }));
-
-        add(AttributeAppender.append("class", new IModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return !AjaxCompositedIconButton.this.isEnabled() ? "disabled" : "";
-            }
-        }));
+        add(AttributeAppender.append("class", () -> "position-relative"));
+        add(AttributeAppender.append("class", () -> !AjaxCompositedIconButton.this.isEnabled() ? "disabled" : ""));
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
 
-        if (title != null) {
-            add(AttributeModifier.replace("title", title));
-        } else {
-            add(AttributeModifier.replace("title", new ReadOnlyModel<>(() ->
-                    isNotEmptyModel() ? WebComponentUtil.getDisplayTypeTitle(buttonModel.getObject().getAdditionalButtonDisplayType()) : "")));
-        }
+        add(AttributeModifier.replace("title", () -> {
+            if (title != null) {
+                return title;
+            }
+
+            return isNotEmptyModel() ? WebComponentUtil.getDisplayTypeTitle(buttonModel.getObject().getAdditionalButtonDisplayType()) : "";
+        }));
     }
 
     private boolean isNotEmptyModel() {
