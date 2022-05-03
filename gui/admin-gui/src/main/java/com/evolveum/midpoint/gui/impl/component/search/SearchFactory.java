@@ -409,6 +409,9 @@ public class SearchFactory {
         if (item.getDisplayName() != null) {
             searchItemWrapper.setName(WebComponentUtil.getTranslatedPolyString(item.getDisplayName()));
         }
+        if (item.isVisibleByDefault() != null) {
+            searchItemWrapper.setVisible(item.isVisibleByDefault());
+        }
         return searchItemWrapper;
     }
 
