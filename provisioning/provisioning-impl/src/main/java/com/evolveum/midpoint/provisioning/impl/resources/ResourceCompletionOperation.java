@@ -114,7 +114,7 @@ class ResourceCompletionOperation {
         this.capabilityMap = capabilityMap;
         this.task = task;
         this.beans = beans;
-        this.expansionOperation = new ResourceExpansionOperation(resource, beans);
+        this.expansionOperation = new ResourceExpansionOperation(resource.asObjectable(), beans);
     }
 
     /**
@@ -498,7 +498,8 @@ class ResourceCompletionOperation {
         return result.getStatus();
     }
 
-    public Collection<String> getAncestorsOids() {
+    /** Returns OIDs of objects that are ancestors to the current resource. Used e.g. for cache invalidation. */
+    public @NotNull Collection<String> getAncestorsOids() {
         return expansionOperation.getAncestorsOids();
     }
 

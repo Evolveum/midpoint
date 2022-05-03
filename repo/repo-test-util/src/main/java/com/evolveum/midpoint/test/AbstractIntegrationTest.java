@@ -967,6 +967,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .isEqualTo(expected);
     }
 
+    protected ResourceAsserter<Void> assertResource(ResourceType resource, String message) {
+        return assertResource(resource.asPrismObject(), message);
+    }
+
     protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> resource, String message) {
         ResourceAsserter<Void> asserter = ResourceAsserter.forResource(resource, message);
         initializeAsserter(asserter);
