@@ -876,7 +876,8 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <nodeVersion>v16.14.2</nodeVersion>
+                    <nodeVersion>v16.15.0</nodeVersion>
+                    <npmVersion>8.8.0</npmVersion>
                     <installDirectory>target</installDirectory>
                 </configuration>
             </plugin>
