@@ -195,7 +195,7 @@ class TestConnectionOperation {
         schemaResult.recordSuccess();
 
         try {
-            beans.resourceManager.updateResourceSchema(allConnectorSpecs, result, completedResource);
+            updateResourceSchema(completedResource, allConnectorSpecs, result);
         } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | RuntimeException e) {
             String statusChangeReason = operationDesc + " failed while updating resource schema: " + e.getMessage();
             markResourceBroken(statusChangeReason, result);
@@ -207,6 +207,19 @@ class TestConnectionOperation {
         // TODO: connector sanity (e.g. refined schema, at least one account type, identifiers
         // in schema, etc.)
 
+    }
+
+    private void updateResourceSchema(
+            PrismObject<ResourceType> resource, List<ConnectorSpec> allConnectorSpecs, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+        if (resourceSchema != null) {
+            for (ConnectorSpec connectorSpec : allConnectorSpecs) {
+                ConnectorInstance instance = beans.connectorManager.getConfiguredConnectorInstance(
+                        connectorSpec, false, result);
+                instance.updateSchema(resourceSchema);
+            }
+        }
     }
 
     private void markResourceBroken(String statusChangeReason, OperationResult result) throws ObjectNotFoundException {

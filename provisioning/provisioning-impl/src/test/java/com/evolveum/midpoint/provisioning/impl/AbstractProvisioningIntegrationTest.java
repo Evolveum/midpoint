@@ -66,6 +66,8 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
     @Autowired protected MockLiveSyncTaskHandler mockLiveSyncTaskHandler;
     @Autowired protected MockAsyncUpdateTaskHandler mockAsyncUpdateTaskHandler;
 
+    @Autowired protected CommonBeans beans;
+
     // Values used to check if something is unchanged or changed properly
     private Long lastResourceVersion = null;
     private ConnectorInstance lastConfiguredConnectorInstance = null;

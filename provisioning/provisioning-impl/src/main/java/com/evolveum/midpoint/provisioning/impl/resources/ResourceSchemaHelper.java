@@ -85,7 +85,8 @@ class ResourceSchemaHelper {
      */
     void applyConnectorSchemaToResource(ConnectorSpec connectorSpec, PrismObjectDefinition<ResourceType> resourceDefinition,
             PrismObject<ResourceType> resource, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         ConnectorType connectorType = connectorManager.getConnector(connectorSpec, result);
         PrismSchema connectorSchema = connectorManager.getAttachedConnectorSchema(connectorType);

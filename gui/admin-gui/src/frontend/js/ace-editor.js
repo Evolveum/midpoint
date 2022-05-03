@@ -6,7 +6,7 @@
  */
 
 var ACE_EDITOR_POSTFIX = "_editor";
-// var DISABLED_CLASS = "disabled";
+var DISABLED_CLASS = "disabled";
 $.aceEditors = {};
 
 export default class MidPointAceEditor {
@@ -25,74 +25,39 @@ export default class MidPointAceEditor {
         $(jqEditor).text($(jqTextArea).val());
         $(jqTextArea).hide();
 
-        // var langTools = ace.require("ace/ext/language_tools");
-        //todo implement completer based
-        // var completer = {
-        //
-        //     getCompletions: function(editor, session, pos, prefix, callback) {
-        //         //example
-        //         var completions = [];
-        //         completions.push({ name:"testing1", value:"testing1", meta: "code1" });
-        //         completions.push({ name:"testing2", value:"testing2", meta: "code2" });
-        //         callback(null, completions);
-        //     }
-        // }
-        // langTools.addCompleter(completer);
+        ace.require("ace/ext/language_tools");
 
         var editor = ace.edit(editorId,{
-            mode: "ace/mode/xml",
+            theme: 'ace/theme/eclipse',
+            mode: 'ace/mode/xml',
             highlightActiveLine : true,
             highlightSelectedWord: true,
             autoScrollEditorIntoView: true,
             minLines: 10,
             enableBasicAutocompletion: true,
             enableLiveAutocompletion: true,
-            selectionStyle: "text"
+            selectionStyle: "text",
+            useSoftTabs: true,
+            tabSize: 3,
+            showPrintMargin: false,
+            fadeFoldWidgets: false,
         });
 
-        // editor.setOptions({
-        //     enableBasicAutocompletion: true
-        // });
+        this.setReadonly(jqEditor, editor, readonly);
 
-        // editor.setMode('ace/mode/xml');
-        // editor.session.setMode(mode_xml);
-        // editor.getSession().setTabSize(3);
+        editor.on('blur', function () {
+            $(jqTextArea).val(editor.getSession().getValue());
+            $(jqTextArea).trigger('blur');
+        });
+        editor.on('change', function () {
+            $(jqTextArea).val(editor.getSession().getValue());
+            $(jqTextArea).trigger('change');
+        });
 
-        editor.setTheme('ace/theme/eclipse');
-        // if (mode != null) {
-        //
-        // }
-        // editor.setShowPrintMargin(false);
-        // editor.setFadeFoldWidgets(false);
-        // setReadonly(jqEditor, editor, readonly);
-        // editor.on('blur', function () {
-        //     $(jqTextArea).val(editor.getSession().getValue());
-        //     $(jqTextArea).trigger('blur');
-        // });
-        // editor.on('change', function () {
-        //     $(jqTextArea).val(editor.getSession().getValue());
-        //     $(jqTextArea).trigger('change');
-        // });
-        //
-        // //add editor to global map, so we can find it later
+        // add editor to global map, so we can find it later
         $.aceEditors[editorId] = editor;
-        //
-        // //todo handle readonly for text area [lazyman] add "disabled" class to .ace_scroller
 
-        // $(document).ready(function () {
-        //
-        //     var self = this;
-        //
-        //     if (height < minHeight) {
-        //         height = minHeight;
-        //     }
-        //
-        //     if (resize) {
-        //         self.resizeToMaxHeight(editorId, minHeight);
-        //     } else {
-        //         self.resizeToFixedHeight(editorId, height);
-        //     }
-        // });
+        // //todo handle readonly for text area [lazyman] add "disabled" class to .ace_scroller
     }
 
     resizeToMaxHeight(editorId, minHeight) {
@@ -162,6 +127,4 @@ export default class MidPointAceEditor {
             $(jqEditor).removeClass(DISABLED_CLASS);
         }
     }
-
 }
-

@@ -90,6 +90,8 @@ class ResourceCompletionOperation {
     @NotNull private final Task task;
     @NotNull private final CommonBeans beans;
 
+    @NotNull private final ResourceExpansionOperation expansionOperation;
+
     /**
      * Operation result for the operation itself. It is quite unusual to store the operation result
      * like this, but we need it to provide the overall success/failure of the operation.
@@ -112,6 +114,7 @@ class ResourceCompletionOperation {
         this.capabilityMap = capabilityMap;
         this.task = task;
         this.beans = beans;
+        this.expansionOperation = new ResourceExpansionOperation(resource.asObjectable(), beans);
     }
 
     /**
@@ -137,6 +140,7 @@ class ResourceCompletionOperation {
 
         result = parentResult.createMinorSubresult(OP_COMPLETE_RESOURCE);
         try {
+            expansionOperation.execute(result);
             applyConnectorSchema();
             PrismObject<ResourceType> reloaded = completeAndReload();
             parseSchema(reloaded);
@@ -492,6 +496,11 @@ class ResourceCompletionOperation {
 
     public OperationResultStatus getOperationResultStatus() {
         return result.getStatus();
+    }
+
+    /** Returns OIDs of objects that are ancestors to the current resource. Used e.g. for cache invalidation. */
+    public @NotNull Collection<String> getAncestorsOids() {
+        return expansionOperation.getAncestorsOids();
     }
 
     /** Stopping the evaluation, and returning the {@link #resource}. */

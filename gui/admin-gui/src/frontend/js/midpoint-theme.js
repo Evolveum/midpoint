@@ -42,19 +42,6 @@ export default class MidPointTheme {
             });
         });
 
-        function showPassword(iconElement) {
-            var parent = iconElement.closest(".password-parent");
-            var input = parent.querySelector("input");
-
-            if (input.type === "password") {
-                input.type = "text";
-                iconElement.className = 'fa fa-eye-slash';
-            } else {
-                input.type = "password";
-                iconElement.className = 'fa fa-eye';
-            }
-        }
-
         !function($) {
             $.fn.passwordFieldValidatorPopover = function(inputId, popover) {
                 return this.each(function() {
@@ -473,6 +460,19 @@ export default class MidPointTheme {
                 arrow.css('left', (popup.innerWidth() - arrow.width()) / 2);
                 popup.fadeIn(200);
             }
+        }
+    }
+
+    showPassword(iconElement) {
+        var parent = iconElement.closest(".password-parent");
+        var input = parent.querySelector("input");
+
+        if (input.type === "password") {
+            input.type = "text";
+            iconElement.className = 'fa fa-eye-slash';
+        } else {
+            input.type = "password";
+            iconElement.className = 'fa fa-eye';
         }
     }
 }

@@ -72,6 +72,10 @@ body.custom-hold-transition {
   bottom: 55px !important;
 }
 
+#wicketDebugBar img {
+  vertical-align: unset;
+}
+
 div.wicket-debug-buttons {
   border: 1px solid #000000;
   background-color: #ffffff;

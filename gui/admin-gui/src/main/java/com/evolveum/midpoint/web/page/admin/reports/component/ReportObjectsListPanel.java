@@ -50,6 +50,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @author lskublik
  */
@@ -420,6 +422,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     @Override
     protected String getStringValueForObject(ObjectType object) {
-        return super.getStringValueForObject(object) + " (" + object.getOid() + ")";
+        String displayName = super.getStringValueForObject(object);
+        return StringUtils.isEmpty(displayName) ? object.getOid() : displayName;
     }
 }

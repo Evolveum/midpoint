@@ -44,7 +44,6 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -154,7 +153,7 @@ public class ResourceManager {
             } else {
                 LOGGER.debug("Putting {} into cache", repositoryObject);
                 // Cache only resources that are completely OK
-                beans.resourceCache.put(completedResource);
+                beans.resourceCache.put(completedResource, completionOperation.getAncestorsOids());
             }
         }
         return completedResource;
@@ -180,27 +179,9 @@ public class ResourceManager {
         return repositoryService.getObject(ResourceType.class, oid, null, parentResult);
     }
 
-    public void deleteResource(String oid, OperationResult parentResult) throws ObjectNotFoundException {
-        resourceCache.remove(oid);
+    public void deleteResource(@NotNull String oid, OperationResult parentResult) throws ObjectNotFoundException {
+        resourceCache.invalidateSingle(oid);
         repositoryService.deleteObject(ResourceType.class, oid, parentResult);
-    }
-
-    /**
-     * Applies proper definition (connector schema) to the resource.
-     */
-    void applyConnectorSchemasToResource(PrismObject<ResourceType> resource, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-        schemaHelper.applyConnectorSchemasToResource(resource, task, result);
-    }
-
-    /**
-     * Apply proper definition (connector schema) to the resource.
-     */
-    void applyConnectorSchemaToResource(ConnectorSpec connectorSpec, PrismObjectDefinition<ResourceType> resourceDefinition,
-            PrismObject<ResourceType> resource, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        schemaHelper.applyConnectorSchemaToResource(connectorSpec, resourceDefinition, resource, task, result);
     }
 
     public SystemConfigurationType getSystemConfiguration() {
@@ -243,18 +224,6 @@ public class ResourceManager {
             throws ObjectNotFoundException {
         new TestConnectionOperation(resource, task, beans)
                 .execute(parentResult);
-    }
-
-    void updateResourceSchema(List<ConnectorSpec> allConnectorSpecs, OperationResult parentResult,
-            PrismObject<ResourceType> resource)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
-        if (resourceSchema != null) {
-            for (ConnectorSpec connectorSpec : allConnectorSpecs) {
-                ConnectorInstance instance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
-                instance.updateSchema(resourceSchema);
-            }
-        }
     }
 
     /**
@@ -327,6 +296,24 @@ public class ResourceManager {
 
     public void applyDefinition(ObjectQuery query, OperationResult result) {
         // TODO: not implemented yet
+    }
+
+    /**
+     * Applies proper definition (connector schema) to the resource.
+     */
+    void applyConnectorSchemasToResource(PrismObject<ResourceType> resource, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+        schemaHelper.applyConnectorSchemasToResource(resource, task, result);
+    }
+
+    /**
+     * Apply proper definition (connector schema) to the resource.
+     */
+    void applyConnectorSchemaToResource(ConnectorSpec connectorSpec, PrismObjectDefinition<ResourceType> resourceDefinition,
+            PrismObject<ResourceType> resource, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        schemaHelper.applyConnectorSchemaToResource(connectorSpec, resourceDefinition, resource, task, result);
     }
 
     public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult result)
