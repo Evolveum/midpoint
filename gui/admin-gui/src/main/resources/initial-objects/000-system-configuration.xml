@@ -354,7 +354,7 @@
                         </translation>
                     </pluralLabel>
                     <icon>
-                        <cssClass>fa fa-pie-chart</cssClass>
+                        <cssClass>fa fa-chart-pie</cssClass>
                         <color>green</color>
                     </icon>
                 </display>
