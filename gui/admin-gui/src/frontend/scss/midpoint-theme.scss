@@ -547,12 +547,10 @@ th.cog, td.cog {
 	}
 }
 
-// Admin dashboard
-
-.dashboard-info-box {
-	> div > .info-box {
-		cursor: pointer;
-	}
+.info-box {
+  &.info-box-link {
+    cursor: pointer;
+  }
 }
 
 // capability buttons in resource details page

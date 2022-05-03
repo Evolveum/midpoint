@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.box;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -19,6 +20,9 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -41,8 +45,21 @@ public class InfoBox extends BasePanel<InfoBoxData> {
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "info-box"));
-        add(AttributeAppender.append("class", () -> getModelObject().getInfoBoxCssClass()));
+        add(AttributeAppender.append("class", () -> {
+            List<String> classes = new ArrayList<>();
+            classes.add("info-box");
+
+            InfoBoxData data = getModelObject();
+            if (data.getLink() != null) {
+                classes.add("info-box-link");
+            }
+
+            if (data.getInfoBoxCssClass() != null) {
+                classes.add(data.getInfoBoxCssClass());
+            }
+
+            return StringUtils.join(classes, " ");
+        }));
 
         AjaxEventBehavior linkClick = new AjaxEventBehavior("click") {
 
@@ -58,6 +75,7 @@ public class InfoBox extends BasePanel<InfoBoxData> {
                 setResponsePage(getModelObject().getLink());
             }
         };
+        add(linkClick);
 
         addLabel(ID_TEXT, () -> getModelObject().getText());
         addLabel(ID_NUMBER, () -> getModelObject().getNumber());
