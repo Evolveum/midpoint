@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 /**
  * @author skublik
  */
-public abstract class SmallInfoBoxPanel extends InfoBoxPanel {
+public abstract class SmallInfoBoxPanel extends InfoBoxPanel2 {
 
     private static final long serialVersionUID = 1L;
 

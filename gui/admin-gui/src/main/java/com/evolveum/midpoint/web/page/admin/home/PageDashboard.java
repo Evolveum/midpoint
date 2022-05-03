@@ -6,28 +6,33 @@
  */
 package com.evolveum.midpoint.web.page.admin.home;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.component.box.InfoBoxData;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.box.InfoBoxType;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.apache.wicket.request.component.IRequestablePage;
 
 /**
  * @author lazyman
  */
 
 public abstract class PageDashboard extends PageAdminHome {
+
     private static final long serialVersionUID = 1L;
 
     private final LoadableDetachableModel<PrismObject<? extends FocusType>> principalModel;
@@ -58,15 +63,17 @@ public abstract class PageDashboard extends PageAdminHome {
 
     protected abstract void initLayout();
 
-    protected <O extends ObjectType> void customizationObjectInfoBoxType(InfoBoxType infoBoxType, Class<O> type,
+    protected <O extends ObjectType> void customizationObjectInfoBoxType(InfoBoxData infoBoxType, Class<O> type,
             List<QName> items, Object eqObject, String bgColor, String icon, String keyPrefix, Integer totalCount,
             Integer activeCount, OperationResult result, Task task) {
     }
 
-    protected <O extends ObjectType> Model<InfoBoxType> getObjectInfoBoxTypeModel(Class<O> type, List<QName> items,
-            Object eqObject, String bgColor, String icon, String keyPrefix, OperationResult result, Task task) {
+    protected <O extends ObjectType> IModel<InfoBoxData> getObjectInfoBoxTypeModel(Class<O> type, List<QName> items,
+            Object eqObject, String bgColor, String icon, String keyPrefix, OperationResult result, Task task, Class<? extends IRequestablePage> linkPage) {
 
-        InfoBoxType infoBoxType = new InfoBoxType(bgColor, icon, getString(keyPrefix + ".label"));
+        InfoBoxData data = new InfoBoxData(bgColor, icon, getString(keyPrefix + ".label"));
+        data.setLink(linkPage);
+
         Integer totalCount = null;
         Integer activeCount = null;
         try {
@@ -76,37 +83,39 @@ public abstract class PageDashboard extends PageAdminHome {
             }
             QName[] queryItems = new QName[items.size()];
             ObjectQuery query = getPrismContext().queryFor(type)
-                .item(items.toArray(queryItems)).eq(eqObject)
-                .build();
+                    .item(items.toArray(queryItems)).eq(eqObject)
+                    .build();
 
             activeCount = getModelService().countObjects(type, query, null, task, result);
             if (activeCount == null) {
                 activeCount = 0;
             }
 
-            infoBoxType.setNumber(activeCount + " " + getString(keyPrefix + ".number"));
+            data.setNumber(activeCount + " " + getString(keyPrefix + ".number"));
 
             int progress = 0;
             if (totalCount != 0) {
                 progress = activeCount * 100 / totalCount;
             }
-            infoBoxType.setProgress(progress);
+            data.setProgress(progress);
 
-            infoBoxType.setDescription(totalCount + " " + getString(keyPrefix + ".total"));
+            data.setDescription(totalCount + " " + getString(keyPrefix + ".total"));
 
         } catch (Exception e) {
-            infoBoxType.setNumber("ERROR: "+e.getMessage());
+            data.setNumber("ERROR: " + e.getMessage());
         }
 
-        customizationObjectInfoBoxType(infoBoxType, type, items, eqObject, bgColor, icon,
+        customizationObjectInfoBoxType(data, type, items, eqObject, bgColor, icon,
                 keyPrefix, totalCount, activeCount, result, task);
 
-        return new Model<>(infoBoxType);
+        return Model.of(data);
     }
 
-    protected <F extends FocusType> Model<InfoBoxType> getFocusInfoBoxType(Class<F> type, String bgColor,
-            String icon, String keyPrefix, OperationResult result, Task task) {
-        InfoBoxType infoBoxType = new InfoBoxType(bgColor, icon, getString(keyPrefix + ".label"));
+    protected <F extends FocusType> IModel<InfoBoxData> getFocusInfoBoxType(Class<F> type, String bgColor,
+            String icon, String keyPrefix, OperationResult result, Task task, Class<? extends IRequestablePage> linkPage) {
+        InfoBoxData data = new InfoBoxData(bgColor, icon, getString(keyPrefix + ".label"));
+        data.setLink(linkPage);
+
         Integer allCount;
         try {
             allCount = getModelService().countObjects(type, null, null, task, result);
@@ -133,34 +142,33 @@ public abstract class PageDashboard extends PageAdminHome {
             int activeCount = allCount - disabledCount - archivedCount;
             int totalCount = allCount - archivedCount;
 
-            infoBoxType.setNumber(activeCount + " " + getString(keyPrefix + ".number"));
+            data.setNumber(activeCount + " " + getString(keyPrefix + ".number"));
 
             int progress = 0;
             if (totalCount != 0) {
                 progress = activeCount * 100 / totalCount;
             }
-            infoBoxType.setProgress(progress);
+            data.setProgress(progress);
 
             StringBuilder descSb = new StringBuilder();
             descSb.append(totalCount).append(" ").append(getString(keyPrefix + ".total"));
             if (archivedCount != 0) {
                 descSb.append(" ( + ").append(archivedCount).append(" ").append(getString(keyPrefix + ".archived")).append(")");
             }
-            infoBoxType.setDescription(descSb.toString());
+            data.setDescription(descSb.toString());
 
         } catch (Exception e) {
-            infoBoxType.setNumber("ERROR: "+e.getMessage());
+            data.setNumber("ERROR: " + e.getMessage());
         }
 
-        customizationFocusInfoBoxType(infoBoxType, type, bgColor, icon, keyPrefix, result, task);
+        customizationFocusInfoBoxType(data, type, bgColor, icon, keyPrefix, result, task);
 
-        return new Model<>(infoBoxType);
+        return Model.of(data);
     }
 
-    protected <F extends FocusType> void customizationFocusInfoBoxType(InfoBoxType infoBoxType, Class<F> type, String bgColor,
+    protected <F extends FocusType> void customizationFocusInfoBoxType(InfoBoxData infoBoxType, Class<F> type, String bgColor,
             String icon, String keyPrefix, OperationResult result, Task task) {
     }
-
 
     @Override
     protected void onDetach() {
