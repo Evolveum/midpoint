@@ -422,9 +422,11 @@ public class SearchFactory {
     public static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
             ItemDefinition<?> itemDef, ItemPath path) {
         PropertySearchItemWrapper itemWrapper = null;
+        boolean isFixedItem = isFixedItem(type, path);
         if (itemDef instanceof PrismReferenceDefinition) {
             itemWrapper = new ReferenceSearchItemWrapper((PrismReferenceDefinition)itemDef, type);
-            itemWrapper.setVisible(isFixedItem(type, path));
+            itemWrapper.setVisible(isFixedItem);
+            itemWrapper.setCanConfigure(!isFixedItem);
             return itemWrapper;
         }
         PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) itemDef;
@@ -450,7 +452,8 @@ public class SearchFactory {
         } else {
             itemWrapper = new TextSearchItemWrapper(path);
         }
-        itemWrapper.setVisible(isFixedItem(type, path));
+        itemWrapper.setVisible(isFixedItem);
+        itemWrapper.setCanConfigure(!isFixedItem);
         itemWrapper.setValueTypeName(itemDef.getTypeName());
         itemWrapper.setName(WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef, null));
         String help = WebPrismUtil.getHelpText(itemDef);
