@@ -66,8 +66,10 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
             indirect = searchBoxConfig.getIndirectConfiguration().isIndirect();
         }
         if  (searchBoxConfig.getProjectConfiguration() != null) {
+            //todo
         }
         if (searchBoxConfig.getTenantConfiguration() != null) {
+            //todo
         }
         if (searchBoxConfig.isAllowToConfigureSearchItems() != null) {
             allowToConfigureSearchItems = searchBoxConfig.isAllowToConfigureSearchItems();
