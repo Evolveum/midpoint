@@ -1,10 +1,17 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.cases;
+
+import java.util.Collections;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
@@ -13,7 +20,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -23,12 +31,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
-
-import java.util.Collections;
 
 /**
  * Created by honchar
@@ -39,7 +41,6 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     private static final Trace LOGGER = TraceManager.getTrace(CaseWorkItemListWithDetailsPanel.class);
 
     private static final String DOT_CLASS = CaseWorkItemActionsPanel.class.getName() + ".";
-    private static final String OPERATION_SAVE_WORK_ITEM = DOT_CLASS + "saveWorkItem";
     private static final String OPERATION_CLAIM_ITEMS = DOT_CLASS + "claimItem";
     private static final String OPERATION_FORWARD_WORK_ITEM = DOT_CLASS + "forwardWorkItem";
     private static final String OPERATION_COMPLETE_WORK_ITEM = DOT_CLASS + "completeWorkItem";
@@ -127,19 +128,19 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         actionButtonsContainer.add(workItemClaimButton);
     }
 
-    private CaseWorkItemType getCaseWorkItemModelObject(){
+    private CaseWorkItemType getCaseWorkItemModelObject() {
         return getModelObject();
     }
 
     protected WorkItemDelegationRequestType getDelegationRequest(UserType delegate) {
         PrismContext prismContext = getPrismContext();
-        return new WorkItemDelegationRequestType(prismContext)
+        return new WorkItemDelegationRequestType()
                 .delegate(ObjectTypeUtil.createObjectRef(delegate, prismContext))
                 .method(WorkItemDelegationMethodType.REPLACE_ASSIGNEES);
     }
 
     private void forwardPerformed(AjaxRequestTarget target) {
-        ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<UserType>(
+        ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(
                 getPageBase().getMainPopupBodyId(), UserType.class,
                 Collections.singletonList(UserType.COMPLEX_TYPE), false, getPageBase(), null) {
             private static final long serialVersionUID = 1L;
@@ -152,7 +153,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            protected IModel<String> getWarningMessageModel(){
+            protected IModel<String> getWarningMessageModel() {
                 return getPageBase().createStringResource("CaseWorkItemActionsPanel.forwardWarningMessage");
             }
 
@@ -180,12 +181,12 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         afterActionFinished(target);
     }
 
-    private void claimWorkItemPerformed(AjaxRequestTarget target){
+    private void claimWorkItemPerformed(AjaxRequestTarget target) {
         WebComponentUtil.claimWorkItemActionPerformed(getModelObject(), OPERATION_CLAIM_ITEMS, target, getPageBase());
 
     }
 
-    protected void afterActionFinished(AjaxRequestTarget target){
+    protected void afterActionFinished(AjaxRequestTarget target) {
         getPageBase().redirectBack();
     }
 
@@ -198,31 +199,25 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private IModel<String> getApproveButtonTitleModel() {
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                CaseType parentCase = CaseWorkItemUtil.getCase(getCaseWorkItemModelObject());
-                return CaseTypeUtil.isManualProvisioningCase(parentCase) ?
-                        createStringResource("pageWorkItem.button.manual.doneSuccessfully").getString() :
-                        createStringResource("pageWorkItem.button.approve").getString();
-            }
+        return () -> {
+            CaseType parentCase = CaseTypeUtil.getCase(getCaseWorkItemModelObject());
+            return CaseTypeUtil.isManualProvisioningCase(parentCase) ?
+                    createStringResource("pageWorkItem.button.manual.doneSuccessfully").getString() :
+                    createStringResource("pageWorkItem.button.approve").getString();
         };
     }
 
     private IModel<String> getRejectButtonTitleModel() {
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                CaseType parentCase = CaseWorkItemUtil.getCase(getCaseWorkItemModelObject());
-                return CaseTypeUtil.isManualProvisioningCase(parentCase) ?
-                        createStringResource("pageWorkItem.button.manual.operationFailed").getString()
-                        : createStringResource("pageWorkItem.button.reject").getString();
-            }
+        return () -> {
+            CaseType parentCase = CaseTypeUtil.getCase(getCaseWorkItemModelObject());
+            return CaseTypeUtil.isManualProvisioningCase(parentCase) ?
+                    createStringResource("pageWorkItem.button.manual.operationFailed").getString()
+                    : createStringResource("pageWorkItem.button.reject").getString();
         };
     }
 
     private boolean isApproveRejectButtonVisible() {
-        if (CaseTypeUtil.isCorrelationCase(CaseWorkItemUtil.getCase(getCaseWorkItemModelObject()))) {
+        if (CaseTypeUtil.isCorrelationCase(CaseTypeUtil.getCase(getCaseWorkItemModelObject()))) {
             return false;
         }
         if (CaseWorkItemUtil.isCaseWorkItemClosed(getModelObject()) ||
@@ -263,5 +258,4 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
                 CaseWorkItemUtil.isWorkItemClaimable(getModelObject()) &&
                 getPageBase().getCaseManager().isCurrentUserAuthorizedToClaim(getModelObject());
     }
-
 }

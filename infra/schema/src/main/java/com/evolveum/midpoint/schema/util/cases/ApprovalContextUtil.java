@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.schema.util.cases;
 
 import static java.util.Collections.emptyList;
@@ -14,11 +13,8 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,15 +24,12 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * TODO clean up these formatting methods
  */
 public class ApprovalContextUtil {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ApprovalContextUtil.class);
 
     @Nullable
     public static String getStageInfo(CaseType aCase) {
@@ -51,7 +44,7 @@ public class ApprovalContextUtil {
         if (workItem == null) {
             return null;
         }
-        CaseType aCase = CaseWorkItemUtil.getCase(workItem);
+        CaseType aCase = CaseTypeUtil.getCase(workItem);
         return getStageInfo(workItem.getStageNumber(), getStageCount(aCase.getApprovalContext()),
                 getWorkItemStageName(workItem), getWorkItemStageDisplayName(workItem));
     }
@@ -61,15 +54,15 @@ public class ApprovalContextUtil {
         if (workItem == null) {
             return null;
         }
-        return getStageInfo(CaseWorkItemUtil.getCase(workItem));
+        return getStageInfo(CaseTypeUtil.getCase(workItem));
     }
 
     public static String getWorkItemStageName(CaseWorkItemType workItem) {
-        if (workItem == null){
+        if (workItem == null) {
             return "";
         }
         CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
-        if (aCase.getApprovalContext() == null || workItem.getStageNumber() == null){
+        if (aCase.getApprovalContext() == null || workItem.getStageNumber() == null) {
             return "";
         }
         ApprovalStageDefinitionType def = getStageDefinition(aCase.getApprovalContext(), workItem.getStageNumber());
@@ -77,11 +70,11 @@ public class ApprovalContextUtil {
     }
 
     public static String getWorkItemStageDisplayName(CaseWorkItemType workItem) {
-        if (workItem == null){
+        if (workItem == null) {
             return "";
         }
         CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
-        if (aCase.getApprovalContext() == null || workItem.getStageNumber() == null){
+        if (aCase.getApprovalContext() == null || workItem.getStageNumber() == null) {
             return "";
         }
         ApprovalStageDefinitionType def = getStageDefinition(aCase.getApprovalContext(), workItem.getStageNumber());
@@ -108,7 +101,7 @@ public class ApprovalContextUtil {
     }
 
     public static String getStageDisplayName(CaseWorkItemType workItem) {
-        return getStageDisplayName(CaseWorkItemUtil.getCase(workItem));
+        return getStageDisplayName(CaseTypeUtil.getCase(workItem));
     }
 
     // wfc is used to retrieve approval schema (if needed)
@@ -135,7 +128,7 @@ public class ApprovalContextUtil {
 
     // TODO move to better place
     public static String getEscalationLevelInfo(WorkItemEscalationLevelType e) {
-        if (e == null || e.getNumber() == null || e.getNumber()  == 0) {
+        if (e == null || e.getNumber() == null || e.getNumber() == 0) {
             return null;
         }
         String name = e.getDisplayName() != null ? e.getDisplayName() : e.getName();
@@ -155,7 +148,7 @@ public class ApprovalContextUtil {
     }
 
     private static CaseType getCase(ApprovalContextType wfc) {
-        PrismContainerable parent = wfc != null ? wfc.asPrismContainerValue().getParent() : null;
+        PrismContainerable<?> parent = wfc != null ? wfc.asPrismContainerValue().getParent() : null;
         if (parent == null) {
             return null;
         } else if (!(parent instanceof PrismContainer<?>)) {
@@ -301,24 +294,6 @@ public class ApprovalContextUtil {
         return "process: " + aCase.getName() + ", stage: " + aCase.getStageNumber();
     }
 
-    /**
-     *  @pre !stageEvents.isEmpty()
-      */
-    @NotNull
-    public static String getCurrentStageOutcome(CaseType aCase, List<StageCompletionEventType> stageEvents) {
-        Set<String> outcomes = stageEvents.stream()
-                .filter(e -> e.getOutcome() != null)
-                .map(e -> e.getOutcome())
-                .collect(Collectors.toSet());
-        if (outcomes.size() > 1) {
-            throw new IllegalStateException("More than one stage outcome in " + getBriefDiagInfo(aCase) + ": " + outcomes + " (" + stageEvents + ")");
-        } else if (outcomes.isEmpty()) {
-            throw new IllegalStateException("No outcome for stage-level event in " + getBriefDiagInfo(aCase));
-        } else {
-            return outcomes.iterator().next();
-        }
-    }
-
     // expects normalized definition
     public static String getStageDiagName(ApprovalStageDefinitionType level) {
         return level.getNumber() + ":" + level.getName()
@@ -329,7 +304,7 @@ public class ApprovalContextUtil {
         // Sorting uses set(..) method which is not available on prism structures. So we do sort on a copy (ArrayList).
         List<ApprovalStageDefinitionType> stages = getSortedStages(schema);
         for (int i = 0; i < stages.size(); i++) {
-            stages.get(i).setNumber(i+1);
+            stages.get(i).setNumber(i + 1);
         }
         schema.getStage().clear();
         schema.getStage().addAll(CloneUtil.cloneCollectionMembers(stages));
@@ -347,8 +322,8 @@ public class ApprovalContextUtil {
         for (int i = 0; i < stages.size(); i++) {
             ApprovalStageDefinitionType stage = stages.get(i);
             Integer number = getNumber(stage);
-            if (number == null || number != i+1) {
-                throw new IllegalArgumentException("Missing or wrong number of stage #" + (i+1) + ": " + number);
+            if (number == null || number != i + 1) {
+                throw new IllegalArgumentException("Missing or wrong number of stage #" + (i + 1) + ": " + number);
             }
             stage.setNumber(number);
         }
@@ -358,7 +333,6 @@ public class ApprovalContextUtil {
     private static Integer getNumber(ApprovalStageDefinitionType stage) {
         return stage.getNumber();
     }
-
 
     public static OperationBusinessContextType getBusinessContext(CaseType aCase) {
         if (aCase == null) {
@@ -418,19 +392,11 @@ public class ApprovalContextUtil {
     }
 
     public static XMLGregorianCalendar getStartTimestamp(CaseWorkItemType workItem) {
-        return CaseTypeUtil.getStartTimestamp(CaseWorkItemUtil.getCase(workItem));
+        return CaseTypeUtil.getStartTimestamp(CaseTypeUtil.getCase(workItem));
     }
 
     public static XMLGregorianCalendar getStartTimestamp(PrismContainerValue<CaseWorkItemType> workItem) {
         return getStartTimestamp(workItem.asContainerable());
-    }
-
-    public static WorkItemEscalationLevelType createEscalationLevel(Integer number, String name, String displayName) {
-        if ((number != null && number != 0) || name != null || displayName != null) {
-            return new WorkItemEscalationLevelType().number(number).name(name).displayName(displayName);
-        } else {
-            return null;
-        }
     }
 
     public static Integer getEscalationLevelNumber(WorkItemEventType event) {
@@ -490,11 +456,11 @@ public class ApprovalContextUtil {
             WorkItemEventCauseInformationType causeInformation, PrismContext prismContext) {
         WorkItemDelegationEventType event;
         if (newEscalation != null) {
-            WorkItemEscalationEventType escEvent = new WorkItemEscalationEventType(prismContext);
+            WorkItemEscalationEventType escEvent = new WorkItemEscalationEventType();
             escEvent.setNewEscalationLevel(newEscalation);
             event = escEvent;
         } else {
-            event = new WorkItemDelegationEventType(prismContext);
+            event = new WorkItemDelegationEventType();
         }
         event.getAssigneeBefore().addAll(assigneesBefore);
         event.getDelegatedTo().addAll(delegatedTo);
@@ -530,11 +496,11 @@ public class ApprovalContextUtil {
 
     public static List<EvaluatedPolicyRuleType> getAllRules(SchemaAttachedPolicyRulesType policyRules) {
         List<EvaluatedPolicyRuleType> rv = new ArrayList<>();
-        if (policyRules == null){
+        if (policyRules == null) {
             return rv;
         }
         for (SchemaAttachedPolicyRuleType entry : policyRules.getEntry()) {
-            if (entry == null){
+            if (entry == null) {
                 continue;
             }
             if (!rv.contains(entry.getRule())) {
@@ -551,7 +517,7 @@ public class ApprovalContextUtil {
         }
         List<SchemaAttachedPolicyRuleType> entries = actx.getPolicyRules().getEntry();
         for (int i = 0; i < actx.getApprovalSchema().getStage().size(); i++) {
-            rv.add(getRulesForStage(entries, i+1));
+            rv.add(getRulesForStage(entries, i + 1));
         }
         return rv;
     }
@@ -566,13 +532,6 @@ public class ApprovalContextUtil {
             }
         }
         return rulesForStage;
-    }
-
-    // Do not use in approval expressions, because they are evaluated also on process start/preview.
-    // Use explicit stage number instead.
-    @NotNull
-    public static List<EvaluatedPolicyRuleType> getRulesForCurrentStage(CaseType aCase) {
-        return getRulesForStage(aCase.getApprovalContext(), aCase.getStageNumber());
     }
 
     @NotNull

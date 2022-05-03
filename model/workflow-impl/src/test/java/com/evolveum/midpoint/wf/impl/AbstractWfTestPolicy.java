@@ -18,17 +18,15 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemT
 import java.io.File;
 import java.util.*;
 
-import com.evolveum.midpoint.cases.api.CaseManager;
-
-import com.evolveum.midpoint.cases.impl.engine.CaseEngineImpl;
-import com.evolveum.midpoint.wf.api.ApprovalsManager;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.cases.impl.WorkItemManager;
+import com.evolveum.midpoint.cases.impl.engine.CaseEngineImpl;
 import com.evolveum.midpoint.model.api.CaseService;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
@@ -44,16 +42,16 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.cases.impl.WorkItemManager;
+import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
-import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
@@ -214,7 +212,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
                 Boolean approve = testDetails.decideOnApproval(caseWorkItem);
                 if (approve != null) {
                     caseManager.completeWorkItem(WorkItemId.create(caseOid, caseWorkItem.getId()),
-                            new AbstractWorkItemOutputType(prismContext)
+                            new AbstractWorkItemOutputType()
                                     .outcome(ApprovalUtils.toUri(approve)),
                             null, opTask, result);
                     login(userAdministrator);
@@ -245,7 +243,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
                             login(getUserFromRepo(approvalInstruction.approverOid));
                             System.out.println("Completing work item " + WorkItemId.of(workItem) + " using " + approvalInstruction);
                             caseManager.completeWorkItem(WorkItemId.of(workItem),
-                                    new AbstractWorkItemOutputType(prismContext)
+                                    new AbstractWorkItemOutputType()
                                             .outcome(ApprovalUtils.toUri(approvalInstruction.approval))
                                             .comment(approvalInstruction.comment),
                                     null, opTask, result);
@@ -303,7 +301,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         i = 0;
         for (CaseWorkItemType workItem : workItems) {
             display("Work item #" + (i + 1) + ": ", workItem);
-            display("Case", CaseWorkItemUtil.getCase(workItem));
+            display("Case", CaseTypeUtil.getCase(workItem));
             if (objectOid != null) {
                 WfTestUtil.assertRef("object reference", ApprovalContextUtil.getObjectRef(workItem), objectOid, true, true);
             }
