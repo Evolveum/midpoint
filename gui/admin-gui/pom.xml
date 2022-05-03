@@ -879,6 +879,7 @@
                     <nodeVersion>v16.15.0</nodeVersion>
                     <npmVersion>8.8.0</npmVersion>
                     <installDirectory>target</installDirectory>
+                    <npmDownloadRoot>https://nexus.evolveum.com/nexus/repository/npm/</npmDownloadRoot>
                 </configuration>
             </plugin>
         </plugins>
