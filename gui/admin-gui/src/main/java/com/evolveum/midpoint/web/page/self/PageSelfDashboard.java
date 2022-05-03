@@ -104,7 +104,7 @@ public class PageSelfDashboard extends PageSelf {
         super.createBreadcrumb();
 
         Breadcrumb bc = getLastBreadcrumb();
-        bc.setIcon(new Model<>("fa fa-dashboard"));
+        bc.setIcon(new Model<>("fa fa-tachometer-alt"));
     }
 
     private void initLayout() {

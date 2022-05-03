@@ -11,9 +11,15 @@ import '../../../node_modules/admin-lte/dist/js/adminlte';
 import '../../../node_modules/bootstrap-select';
 // import '../../../node_modules/bootstrap-multiselect';  // todo enable, used in DropDownMultiChoice (ListMultipleChoicePanel)
 
+import '../../../node_modules/ace-builds/src-noconflict/ace';
 
-import '../../../node_modules/ace-builds/src-noconflict/ace'
+ace.config.setModuleUrl('ace/theme/eclipse',
+    require('../../../node_modules/ace-builds/src-noconflict/theme-eclipse.js'));
+ace.config.setModuleUrl('ace/mode/xml',
+    require('../../../node_modules/ace-builds/src-noconflict/mode-xml.js'));
+ace.config.setModuleUrl('ace/ext/language_tools',
+    require('../../../node_modules/ace-builds/src-noconflict/ext-language_tools.js'));
 
-require('../../../node_modules/ace-builds/src-noconflict/theme-eclipse')
-require('../../../node_modules/ace-builds/src-noconflict/mode-xml')
-require('../../../node_modules/ace-builds/src-noconflict/ext-language_tools')
+// ace.config.setModuleUrl('ace/mode/xml_worker', require('../../../node_modules/ace-builds/src-noconflict/worker-xml.js'));
+ace.config.setModuleUrl('ace/mode/xml_worker',
+    require('file-loader?publicPath=../../static/&name=[name].[ext]&esModule=false!../../../node_modules/ace-builds/src-noconflict/worker-xml.js'));
