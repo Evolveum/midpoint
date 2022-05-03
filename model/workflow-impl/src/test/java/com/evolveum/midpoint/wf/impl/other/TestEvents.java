@@ -1,32 +1,32 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.wf.impl.other;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import java.io.File;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import java.io.File;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- * Unfinished. Not included in standard tests.
+ * TODO: Unfinished. Not included in standard tests.
  */
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestEvents extends AbstractWfTestPolicy {
 
@@ -65,7 +65,7 @@ public class TestEvents extends AbstractWfTestPolicy {
         workItemId = WorkItemId.of(workItem);
 
         display("work item", workItem);
-        display("Case", CaseWorkItemUtil.getCase(workItem));
+        display("Case", CaseTypeUtil.getCase(workItem));
 
         // TODO check events
     }

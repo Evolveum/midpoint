@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,8 +8,6 @@ package com.evolveum.midpoint.web.page.admin.cases;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,7 +24,9 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
@@ -35,7 +35,10 @@ import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationRequestType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -47,9 +50,10 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
 
     private static final String ID_CASE_WORK_ITEM_ACTIONS_PANEL = "caseWorkItemActionsPanel";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
+
     private WorkItemDetailsPanel workItemDetails = null;
 
-    public CaseWorkItemListWithDetailsPanel(String id){
+    public CaseWorkItemListWithDetailsPanel(String id) {
         super(id, CaseWorkItemType.class);
     }
 
@@ -127,7 +131,6 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         return getWorkItemColumns();
     }
 
-
     @Override
     protected boolean isButtonPanelVisible() {
         return false;
@@ -153,10 +156,9 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
                 ItemRealValueModel<CaseWorkItemType> displayNameModel = new ItemRealValueModel<>(item.getModel());
                 return new DisplayNamePanel<>(displayNamePanelId, displayNameModel) {
 
-
                     @Override
                     protected IModel<String> getDescriptionLabelModel() {
-                        CaseType caseType = CaseWorkItemUtil.getCase(displayNameModel.getObject());
+                        CaseType caseType = CaseTypeUtil.getCase(displayNameModel.getObject());
                         return Model.of(caseType != null && caseType.getDescription() != null ? caseType.getDescription() : "");
                     }
                 };
@@ -173,8 +175,8 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
 
             @Override
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                PolyStringType workitemName = unwrapRowModel(rowModel).getName();
-                return Model.of(WebComponentUtil.getTranslatedPolyString(workitemName));
+                PolyStringType workItemName = unwrapRowModel(rowModel).getName();
+                return Model.of(WebComponentUtil.getTranslatedPolyString(workItemName));
             }
 
             @Override
