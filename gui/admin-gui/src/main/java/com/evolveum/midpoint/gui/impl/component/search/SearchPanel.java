@@ -892,8 +892,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             target.appendJavaScript("restoreTextAreaSize('" + area.getMarkupId() + "');");
 
             target.add(
-                    get(createComponentPath(ID_FORM, ID_ADVANCED_GROUP)),
-                    get(createComponentPath(ID_FORM, ID_SEARCH_CONTAINER)));
+                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_ITEMS_PANEL, "2", ID_ADVANCED_GROUP)),
+                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_CONTAINER)));
         }
 
         private void updateQueryDSLArea(Component child, Component parent, AjaxRequestTarget target) {
