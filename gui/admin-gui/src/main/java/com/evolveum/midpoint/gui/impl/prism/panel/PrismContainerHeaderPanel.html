@@ -11,13 +11,24 @@
     <div class="row">
         <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
                 class="btn btn-tool expand-collapse-button" trigger="hover">
-
         </button>
         <a class="prism-title" wicket:id="label"/>
         <span wicket:id="required" class="text-danger" style="font-weight: bold;" wicket:message="title:prismPropertyPanel.required">*</span>
-        <i wicket:id="help"/>
-        <i wicket:id="deprecated"/>
-        <i wicket:id="experimental"/>
+        <wicket:enclosure child="help">
+            <button class="btn btn-tool">
+                <i wicket:id="help"/>
+            </button>
+        </wicket:enclosure>
+        <wicket:enclosure child="deprecated">
+            <button class="btn btn-tool">
+                <i wicket:id="deprecated"/>
+            </button>
+        </wicket:enclosure>
+        <wicket:enclosure child="experimental">
+            <button class="btn btn-tool">
+                <i wicket:id="experimental"/>
+            </button>
+        </wicket:enclosure>
 
         <button wicket:id="add" wicket:message="title:ItemHeaderPanel.addValue" class="btn btn-tool" trigger="hover">
             <i class="fa fa-plus-circle"></i>

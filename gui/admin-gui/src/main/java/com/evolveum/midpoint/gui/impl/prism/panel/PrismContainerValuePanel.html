@@ -12,7 +12,11 @@
         <div class="prism-header mb-1" wicket:id="header">
             <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer" class="btn btn-tool expand-collapse-button" trigger="hover"></button>
             <a class="prism-title" wicket:id="label"/>
-            <i class="helpTextIcon" wicket:id="help"/>
+            <wicket:enclosure child="help">
+                <button class="btn btn-tool">
+                    <i class="helpTextIcon" wicket:id="help"/>
+                </button>
+            </wicket:enclosure>
             <button wicket:id="sortProperties" wicket:message="title:PrismObjectPanel.sortProperties" class="btn btn-tool"></button>
             <button wicket:id="addChildContainer" wicket:message="title:PrismObjectPanel.addChildContainer" class="btn btn-tool" trigger="hover">
                 <i class="fa fa-plus-circle"></i>
