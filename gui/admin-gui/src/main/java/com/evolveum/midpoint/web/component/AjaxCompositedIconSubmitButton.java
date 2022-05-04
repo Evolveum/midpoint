@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -18,7 +16,7 @@ import org.apache.wicket.markup.parser.XmlTag;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
 
 /**
  * @author skublik
@@ -72,16 +70,15 @@ public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
 
         CompositedIcon icon = this.icon;
         if (icon.hasBasicIcon()) {
-            sb.append("<i class=\"").append(icon.getBasicIcon() != null ? icon.getBasicIcon().trim() : "").append("\"");
+            String margin = titleAsLabel ? "mr-1" : "";
+            sb.append("<i class=\"" + margin + " ").append(icon.getBasicIcon() != null ? icon.getBasicIcon().trim() : "").append("\"");
             if (icon.hasBasicIconHtmlColor()) {
                 sb.append(" style=\"color: " + icon.getBasicIconHtmlColor() + ";\"");
             }
             sb.append("></i> ");
 
             if (titleAsLabel) {
-                sb.append("<span class=\"operationalButtonLabel\">")
-                        .append(title.getObject())
-                        .append("</span>");
+                sb.append(title.getObject());
             }
         }
 
