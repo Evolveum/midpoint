@@ -48,6 +48,10 @@ Be aware that default Postgres server sizing is rather small.
 
 === Database preparation
 
+[WARNING]
+Don't use https://www.pgadmin.org/[pgAdmin] for midPoint SQL scripts!
+Explanation is in one of the important blocks below.
+
 First command is to be executed in `bash` on the server with Postgres, the rest is executed inside `psql`:
 
 ----
