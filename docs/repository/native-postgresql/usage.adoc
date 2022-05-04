@@ -84,7 +84,7 @@ set the ID sequence in the new database as described in xref:/midpoint/reference
 We recommend using `psql` for database initialization like this:
 
 ----
-export PGPASSWORD=password
+export PGPASSWORD=password # password for psql, you can skip it and enter it interactively
 # If you want to replace any previous tables in the schema, uncomment this drop too:
 #psql -h localhost midpoint midpoint -c "drop schema public cascade"
 psql -h localhost midpoint midpoint -f postgres-new.sql -f postgres-new-audit.sql
