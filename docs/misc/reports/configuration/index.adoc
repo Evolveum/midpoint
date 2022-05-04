@@ -370,7 +370,8 @@ We can use following attributes for parameter:
 
 ==== Subreports
 
-Subreport is defined by expression and can be used in situations when we need to collect additional information for the processed object (row). To avoid performing expensive operations (such as search) for each column, there is a possibility to define it once per row and use it later in the column expression as in the example bellow.
+Subreport is defined by expression and can be used in situations when we need to collect additional information for the processed object (row).
+To avoid performing expensive operations (such as search) for each column, there is a possibility to define it once per row and use it later in the column expression as in the example below.
 
 image::collection-subreport.png[]
 
@@ -405,7 +406,8 @@ We can use following attributes for subreport:
 
 ==== Example of generated report
 
-In the picture bellow we can see example of generated HTML report of all users in midPoint. Report contains columns for Name, Full Name, Administrative status, Roles, Organizations and Accounts of every user.
+In the picture below we can see example of generated HTML report of all users in midPoint.
+Report contains columns for Name, Full Name, Administrative status, Roles, Organizations and Accounts of every user.
 
 image::collection-example.png[]
 
