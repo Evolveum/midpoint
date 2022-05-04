@@ -61,7 +61,7 @@ public class ApprovalContextUtil {
         if (workItem == null) {
             return "";
         }
-        CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
+        CaseType aCase = CaseTypeUtil.getCaseRequired(workItem);
         if (aCase.getApprovalContext() == null || workItem.getStageNumber() == null) {
             return "";
         }
@@ -73,7 +73,7 @@ public class ApprovalContextUtil {
         if (workItem == null) {
             return "";
         }
-        CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
+        CaseType aCase = CaseTypeUtil.getCaseRequired(workItem);
         if (aCase.getApprovalContext() == null || workItem.getStageNumber() == null) {
             return "";
         }
@@ -352,7 +352,7 @@ public class ApprovalContextUtil {
     }
 
     public static ApprovalContextType getApprovalContext(CaseWorkItemType workItem) {
-        return CaseWorkItemUtil.getCaseRequired(workItem).getApprovalContext();
+        return CaseTypeUtil.getCaseRequired(workItem).getApprovalContext();
     }
 
     public static CaseType getCase(ApprovalSchemaExecutionInformationType info) {
@@ -368,7 +368,7 @@ public class ApprovalContextUtil {
     }
 
     public static ObjectReferenceType getObjectRef(CaseWorkItemType workItem) {
-        return CaseWorkItemUtil.getCaseRequired(workItem).getObjectRef();
+        return CaseTypeUtil.getCaseRequired(workItem).getObjectRef();
     }
 
     public static ObjectReferenceType getObjectRef(PrismContainerValue<CaseWorkItemType> workItem) {
@@ -376,7 +376,7 @@ public class ApprovalContextUtil {
     }
 
     public static ObjectReferenceType getTargetRef(CaseWorkItemType workItem) {
-        return CaseWorkItemUtil.getCaseRequired(workItem).getTargetRef();
+        return CaseTypeUtil.getCaseRequired(workItem).getTargetRef();
     }
 
     public static ObjectReferenceType getTargetRef(PrismContainerValue<CaseWorkItemType> workItem) {
@@ -384,7 +384,7 @@ public class ApprovalContextUtil {
     }
 
     public static ObjectReferenceType getRequesterRef(CaseWorkItemType workItem) {
-        return CaseWorkItemUtil.getCaseRequired(workItem).getRequestorRef();
+        return CaseTypeUtil.getCaseRequired(workItem).getRequestorRef();
     }
 
     public static ObjectReferenceType getRequesterRef(PrismContainerValue<CaseWorkItemType> workItem) {

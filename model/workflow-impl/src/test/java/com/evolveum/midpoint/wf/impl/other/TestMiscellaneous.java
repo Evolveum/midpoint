@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,12 +15,6 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.cases.api.AuditingConstants;
-
-import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -28,19 +22,25 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.cases.api.AuditingConstants;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
-import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
@@ -134,11 +134,11 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         when();
         caseManager.completeWorkItem(WorkItemId.of(workItem),
-                ApprovalUtils.createApproveOutput(prismContext).comment("OK"),
+                ApprovalUtils.createApproveOutput().comment("OK"),
                 null, task, result);
 
         then();
-        CaseType aCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
+        CaseType aCase = getCase(CaseTypeUtil.getCaseRequired(workItem).getOid());
         display("workflow context", aCase.getApprovalContext());
         List<? extends CaseEventType> events = aCase.getEvent();
         assertEquals("Wrong # of events", 2, events.size());
@@ -200,11 +200,11 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         when();
         caseManager.completeWorkItem(WorkItemId.of(workItem),
-                ApprovalUtils.createApproveOutput(prismContext).comment("OK"),
+                ApprovalUtils.createApproveOutput().comment("OK"),
                 null, task, result);
 
         then();
-        CaseType aCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
+        CaseType aCase = getCase(CaseTypeUtil.getCaseRequired(workItem).getOid());
         display("workflow context", aCase.getApprovalContext());
         List<? extends CaseEventType> events = aCase.getEvent();
         assertEquals("Wrong # of events", 2, events.size());
@@ -265,10 +265,10 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
         caseManager.completeWorkItem(WorkItemId.of(workItem),
-                ApprovalUtils.createApproveOutput(prismContext),
+                ApprovalUtils.createApproveOutput(),
                 null, task, result);
 
-        CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
+        CaseType aCase = CaseTypeUtil.getCaseRequired(workItem);
         CaseType rootCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(rootCase);
 
@@ -481,7 +481,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         when();
 
         modelInteractionService.runUnderPowerOfAttorneyChecked(() -> {
-            AbstractWorkItemOutputType output = new AbstractWorkItemOutputType(prismContext)
+            AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
                     .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
             caseService.completeWorkItem(CaseWorkItemUtil.getId(workItem), output, task, result);
             return null;
@@ -559,7 +559,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         login(USER_GIZMODUCK.object);
 
         modelInteractionService.runUnderPowerOfAttorneyChecked(() -> {
-            AbstractWorkItemOutputType output = new AbstractWorkItemOutputType(prismContext)
+            AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
                     .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
             caseService.completeWorkItem(CaseWorkItemUtil.getId(workItem), output, task, result);
             return null;

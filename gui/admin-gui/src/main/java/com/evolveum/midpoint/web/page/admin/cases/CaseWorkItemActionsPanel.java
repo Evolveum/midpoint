@@ -201,17 +201,17 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     private IModel<String> getApproveButtonTitleModel() {
         return () -> {
             CaseType parentCase = CaseTypeUtil.getCase(getCaseWorkItemModelObject());
-            return CaseTypeUtil.isManualProvisioningCase(parentCase) ?
-                    createStringResource("pageWorkItem.button.manual.doneSuccessfully").getString() :
-                    createStringResource("pageWorkItem.button.approve").getString();
+            return CaseTypeUtil.isManualProvisioningCase(parentCase)
+                    ? createStringResource("pageWorkItem.button.manual.doneSuccessfully").getString()
+                    : createStringResource("pageWorkItem.button.approve").getString();
         };
     }
 
     private IModel<String> getRejectButtonTitleModel() {
         return () -> {
             CaseType parentCase = CaseTypeUtil.getCase(getCaseWorkItemModelObject());
-            return CaseTypeUtil.isManualProvisioningCase(parentCase) ?
-                    createStringResource("pageWorkItem.button.manual.operationFailed").getString()
+            return CaseTypeUtil.isManualProvisioningCase(parentCase)
+                    ? createStringResource("pageWorkItem.button.manual.operationFailed").getString()
                     : createStringResource("pageWorkItem.button.reject").getString();
         };
     }

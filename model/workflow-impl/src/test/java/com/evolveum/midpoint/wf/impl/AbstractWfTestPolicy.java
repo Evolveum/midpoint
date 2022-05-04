@@ -46,7 +46,6 @@ import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
@@ -314,7 +313,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
                     .assertRef("assignee reference", workItem.getOriginalAssigneeRef(), expectedWorkItems.get(i).assigneeOid, false, true);
             // name is not known
             //WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
-            final CaseType subcase = CaseWorkItemUtil.getCaseRequired(workItem);
+            final CaseType subcase = CaseTypeUtil.getCaseRequired(workItem);
             checkCase(subcase, "subcase in workItem", expectedWorkItems.get(i).task);
             WfTestUtil
                     .assertRef("requester ref", subcase.getRequestorRef(), USER_ADMINISTRATOR_OID, false, true);
@@ -340,7 +339,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
     }
 
     protected String getTargetOid(CaseWorkItemType caseWorkItem) {
-        ObjectReferenceType targetRef = CaseWorkItemUtil.getCaseRequired(caseWorkItem).getTargetRef();
+        ObjectReferenceType targetRef = CaseTypeUtil.getCaseRequired(caseWorkItem).getTargetRef();
         assertNotNull("targetRef not found", targetRef);
         String roleOid = targetRef.getOid();
         assertNotNull("requested role OID not found", roleOid);

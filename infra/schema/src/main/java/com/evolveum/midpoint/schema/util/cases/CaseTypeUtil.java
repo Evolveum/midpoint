@@ -4,16 +4,14 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.schema.util.cases;
 
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerable;
@@ -21,16 +19,15 @@ import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- *
+ * Companion light-weight utilities for {@link CaseType} and {@link CaseWorkItemType}.
  */
 public class CaseTypeUtil {
 
     @NotNull
-    public static CaseType getCaseChecked(CaseWorkItemType workItem) {
+    public static CaseType getCaseRequired(CaseWorkItemType workItem) {
         CaseType aCase = getCase(workItem);
         if (aCase == null) {
             throw new IllegalStateException("No case for work item " + workItem);
@@ -43,7 +40,7 @@ public class CaseTypeUtil {
             return null;
         }
 
-        @SuppressWarnings({"unchecked", "raw"})
+        @SuppressWarnings({ "unchecked", "raw" })
         PrismContainerable<CaseWorkItemType> parent = workItem.asPrismContainerValue().getParent();
         if (!(parent instanceof PrismContainer)) {
             return null;
@@ -52,7 +49,7 @@ public class CaseTypeUtil {
         if (!(parentParent instanceof PrismObjectValue)) {
             return null;
         }
-        @SuppressWarnings({"unchecked", "raw"})
+        @SuppressWarnings({ "unchecked", "raw" })
         PrismObjectValue<CaseType> parentParentPov = (PrismObjectValue<CaseType>) parentParent;
         return parentParentPov.asObjectable();
     }
@@ -92,7 +89,7 @@ public class CaseTypeUtil {
         return rv;
     }
 
-    public static boolean approvalSchemaExists(CaseType aCase){
+    public static boolean approvalSchemaExists(CaseType aCase) {
         return aCase != null && aCase.getApprovalContext() != null && aCase.getApprovalContext().getApprovalSchema() != null
                 && !aCase.getApprovalContext().getApprovalSchema().asPrismContainerValue().isEmpty();
     }

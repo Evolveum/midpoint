@@ -14,10 +14,6 @@ import static com.evolveum.midpoint.prism.util.PrismAsserts.assertReferenceValue
 import java.io.File;
 import java.util.*;
 
-import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,11 +36,16 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -61,7 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * There's automated escalation followed by rejection for levels 10 and 40,
  * and automated rejection for levels 20 and 30 (no escalation). All of that is in global configuration.
  *
- * There are two special approval metaroles:
+ * There are two special approval meta-roles:
  *
  * - `metarole-approval-role-approvers-first` - changes the approval strategy for level 40 to `firstDecides`
  * - `metarole-approval-role-approvers-form` - adds using a form to level 40
@@ -212,6 +213,7 @@ public class TestStrings extends AbstractStoryTest {
     }
 
     //region Basic approval of a-test-1 to bob
+
     /**
      * Assigns role `a-test-1` to `bob`. Checks the case and notifications.
      *
@@ -233,7 +235,7 @@ public class TestStrings extends AbstractStoryTest {
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
-        CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
+        CaseType aCase = CaseTypeUtil.getCaseRequired(workItem);
         display("wfTask", aCase);
 
         assertTriggers(aCase, 2);
@@ -303,7 +305,7 @@ public class TestStrings extends AbstractStoryTest {
         login(lechuck);
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
-                ApprovalUtils.createApproveOutput(prismContext).comment("OK. LeChuck"),
+                ApprovalUtils.createApproveOutput().comment("OK. LeChuck"),
                 task, result);
 
         then();
@@ -312,7 +314,7 @@ public class TestStrings extends AbstractStoryTest {
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         displayWorkItems("Work item after 1st approval", workItems);
         assertEquals("Wrong # of work items on level 2", 2, workItems.size());
-        CaseType aCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
+        CaseType aCase = getCase(CaseTypeUtil.getCaseRequired(workItem).getOid());
         display("case after 1st approval", aCase);
 
         assertStage(aCase, 2, 3, "Security", null);
@@ -397,14 +399,14 @@ public class TestStrings extends AbstractStoryTest {
         // Second approval
         caseService.completeWorkItem(
                 WorkItemId.of(elaineWorkItem),
-                ApprovalUtils.createApproveOutput(prismContext).comment("OK. Security."),
+                ApprovalUtils.createApproveOutput().comment("OK. Security."),
                 task, result);
 
         then();
         workItems = getWorkItems(task, result);
         displayWorkItems("Work item after 2nd approval", workItems);
         assertEquals("Wrong # of work items on level 3", 2, workItems.size());
-        CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+        CaseType aCase = CaseTypeUtil.getCaseRequired(workItems.get(0));
         display("wfTask after 2nd approval", aCase);
 
         assertStage(aCase, 3, 3, "Role approvers (all)", null);
@@ -479,7 +481,7 @@ public class TestStrings extends AbstractStoryTest {
         login(getUser(USER_CHEESE.oid));
         caseService.completeWorkItem(
                 WorkItemId.of(workItemsMap.get(USER_CHEESE.oid)),
-                ApprovalUtils.createApproveOutput(prismContext).comment("OK. Cheese."),
+                ApprovalUtils.createApproveOutput().comment("OK. Cheese."),
                 task, result);
 
         then();
@@ -488,7 +490,7 @@ public class TestStrings extends AbstractStoryTest {
         displayWorkItems("Work item after 3rd approval", workItems);
         assertEquals("Wrong # of work items on level 3", 1, workItems.size());
         workItemsMap = sortByOriginalAssignee(workItems);
-        CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+        CaseType aCase = CaseTypeUtil.getCaseRequired(workItems.get(0));
         display("case after 3rd approval", aCase);
 
         assertStage(aCase, 3, 3, "Role approvers (all)", null);
@@ -539,7 +541,7 @@ public class TestStrings extends AbstractStoryTest {
         login(getUser(USER_CHEF.oid));
         WorkItemId workItemId = WorkItemId.of(workItemsMap.get(USER_CHEF.oid));
         caseService.completeWorkItem(workItemId,
-                ApprovalUtils.createApproveOutput(prismContext).comment("OK. Chef."),
+                ApprovalUtils.createApproveOutput().comment("OK. Chef."),
                 task, result);
 
         then();
@@ -601,6 +603,7 @@ public class TestStrings extends AbstractStoryTest {
     //endregion
 
     //region Testing escalation
+
     /**
      * Role `a-test-1` is assigned to `carla`. The approval process is started.
      */
@@ -620,7 +623,7 @@ public class TestStrings extends AbstractStoryTest {
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
-        CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
+        CaseType aCase = CaseTypeUtil.getCaseRequired(workItem);
         display("case", aCase);
 
         assertTriggers(aCase, 2);
@@ -704,7 +707,7 @@ public class TestStrings extends AbstractStoryTest {
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         displayWorkItems("Work items after timed escalation", workItems);
         assertEquals("Wrong # of work items after timed escalation", 1, workItems.size());
-        CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+        CaseType aCase = CaseTypeUtil.getCaseRequired(workItems.get(0));
         display("aCase after timed escalation", aCase);
 
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
@@ -833,7 +836,7 @@ public class TestStrings extends AbstractStoryTest {
         when();
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
-                ApprovalUtils.createApproveOutput(prismContext).comment("OK. Cheese."),
+                ApprovalUtils.createApproveOutput().comment("OK. Cheese."),
                 task, result);
 
         then();
@@ -842,7 +845,7 @@ public class TestStrings extends AbstractStoryTest {
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         assertEquals("Wrong # of work items on level 2", 2, workItems.size());
         displayWorkItems("Work item after 1st approval", workItems);
-        CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+        CaseType aCase = CaseTypeUtil.getCaseRequired(workItems.get(0));
         display("aCase after 1st approval", aCase);
 
         assertStage(aCase, 2, 3, "Security", null);
@@ -1009,6 +1012,7 @@ public class TestStrings extends AbstractStoryTest {
     //endregion
 
     //region Test form fulfillment
+
     /**
      * Role `a-test-4` has `metarole-approval-role-approvers-form`,
      * so it is being approved with gathering additional information.
@@ -1036,7 +1040,7 @@ public class TestStrings extends AbstractStoryTest {
 
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         displayWorkItems("Work item after start", workItems);
-        CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+        CaseType aCase = CaseTypeUtil.getCaseRequired(workItems.get(0));
         display("aCase", aCase);
 
         ApprovalContextType actx = aCase.getApprovalContext();
@@ -1077,7 +1081,7 @@ public class TestStrings extends AbstractStoryTest {
 
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
-                ApprovalUtils.createApproveOutput(prismContext).comment("OK. LeChuck"),
+                ApprovalUtils.createApproveOutput().comment("OK. LeChuck"),
                 task, result);
 
         then();
@@ -1085,7 +1089,7 @@ public class TestStrings extends AbstractStoryTest {
         assertNotAssignedRole(getUser(USER_BOB.oid), ROLE_A_TEST_4.oid);
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         displayWorkItems("Work item after 1st approval", workItems);
-        CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+        CaseType aCase = CaseTypeUtil.getCaseRequired(workItems.get(0));
         assertStage(aCase, 2, 2, "Role approvers (first)", null);
 
         ApprovalStageDefinitionType level = ApprovalContextUtil.getCurrentStageDefinition(aCase);
@@ -1128,7 +1132,7 @@ public class TestStrings extends AbstractStoryTest {
                 .asObjectDelta(USER_BOB.oid);
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
-                ApprovalUtils.createApproveOutput(prismContext).comment("OK. LeChuck"),
+                ApprovalUtils.createApproveOutput().comment("OK. LeChuck"),
                 formDelta,
                 task, result);
 
@@ -1139,7 +1143,7 @@ public class TestStrings extends AbstractStoryTest {
         displayWorkItems("Work item after 2nd approval", workItems);
         assertEquals("Wrong # of work items after 2nd approval", 0, workItems.size());
 
-        CaseType aCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
+        CaseType aCase = getCase(CaseTypeUtil.getCaseRequired(workItem).getOid());
         display("aCase after 2nd approval", aCase);
 
         assertStage(aCase, 2, 2, "Role approvers (first)", null);
@@ -1196,7 +1200,7 @@ public class TestStrings extends AbstractStoryTest {
 
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         displayWorkItems("Work item after start", workItems);
-        CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+        CaseType aCase = CaseTypeUtil.getCaseRequired(workItems.get(0));
         display("aCase", aCase);
 
         ApprovalSchemaType schema = aCase.getApprovalContext().getApprovalSchema();

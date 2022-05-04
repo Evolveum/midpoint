@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
@@ -20,19 +19,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
- * @author bpowers
+ * TODO: merge with CaseTypeUtil.
  */
 public class CaseWorkItemUtil {
-
-    @NotNull
-    public static CaseType getCaseRequired(CaseWorkItemType workItem) {
-        CaseType rv = CaseTypeUtil.getCase(workItem);
-        if (rv != null) {
-            return rv;
-        } else {
-            throw new IllegalStateException("No parent case for " + workItem);
-        }
-    }
 
     public static WorkItemId getId(CaseWorkItemType workItem) {
         return WorkItemId.of(workItem);
@@ -56,7 +45,8 @@ public class CaseWorkItemUtil {
     }
 
     public static boolean isWorkItemClaimable(CaseWorkItemType workItem) {
-        return workItem != null && (workItem.getOriginalAssigneeRef() == null || StringUtils.isEmpty(workItem.getOriginalAssigneeRef().getOid()))
+        return workItem != null
+                && (workItem.getOriginalAssigneeRef() == null || StringUtils.isEmpty(workItem.getOriginalAssigneeRef().getOid()))
                 && !doesAssigneeExist(workItem) && CollectionUtils.isNotEmpty(workItem.getCandidateRef());
     }
 
