@@ -1811,10 +1811,11 @@ td .prism-property-value {
 
 fieldset.objectButtons {
 
-  //border-right: 1px solid $legend-border-color;
+  border-right: 1px solid $legend-border-color;
   padding: 0;
+  padding-right: 2rem;
   width: max-content;
-  margin-right: 10px;
+  margin-right: 2rem;
 
   > legend {
     font-size: 13px;
@@ -1822,6 +1823,10 @@ fieldset.objectButtons {
     margin-bottom: 0.25rem;
     width: auto;
     //color: $legend-color;
+  }
+
+  &:last-of-type {
+    border-right: 0;
   }
 }
 
