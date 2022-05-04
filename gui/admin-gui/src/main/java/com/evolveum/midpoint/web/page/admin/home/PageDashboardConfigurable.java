@@ -28,7 +28,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.box.DashboardWidgetDto;
 import com.evolveum.midpoint.gui.impl.component.box.SmallBox;
 import com.evolveum.midpoint.gui.impl.component.box.SmallBoxData;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;

@@ -1812,14 +1812,14 @@ td .prism-property-value {
 fieldset.objectButtons {
 
   //border-right: 1px solid $legend-border-color;
-  padding: revert;
+  padding: 0;
   width: max-content;
   margin-right: 10px;
 
   > legend {
     font-size: 13px;
     border-bottom: none;
-    margin-bottom: auto;
+    margin-bottom: 0.25rem;
     width: auto;
     //color: $legend-color;
   }
@@ -1955,4 +1955,14 @@ span.yui-skin-sam {
 
 .popover {
   max-width: unset;
+}
+
+.info-box.info-box-resource {
+
+  height: 100%;
+  margin-bottom: 0;
+
+  &> .info-box-content {
+    justify-content: start !important;
+  }
 }
