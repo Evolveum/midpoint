@@ -383,6 +383,18 @@ public class SearchFactory {
             oidWrapper.setVisible(true);
             searchConfWrapper.getItemsList().add(oidWrapper);
         }
+        if (StringUtils.isEmpty(searchConfWrapper.getCollectionViewName())) {
+            //todo we need to get saved searches here for the specified type
+            List<CompiledObjectCollectionView> views = modelServiceLocator.getCompiledGuiProfile()
+                    .findAllApplicableObjectCollectionViews(WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfWrapper.getTypeClass()))
+                    .stream()
+                    .filter(v -> v.getFilter() != null)     //todo should we check also collectionRef?
+                    .collect(Collectors.toList());
+            ObjectCollectionListSearchItemWrapper<C> viewListItem = new ObjectCollectionListSearchItemWrapper<>(searchConfWrapper.getTypeClass(),
+                    views);
+            viewListItem.setVisible(CollectionUtils.isNotEmpty(views));
+            searchConfWrapper.getItemsList().add(viewListItem);
+        }
 
         Search<C> search = new Search<>(searchConfWrapper);
         QName typeQname = WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfigurationWrapper.getTypeClass());

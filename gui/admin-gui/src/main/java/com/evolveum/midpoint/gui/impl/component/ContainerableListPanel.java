@@ -939,12 +939,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected String getStorageKey(){
-
         if (isCollectionViewPanelForCompiledView()) {
             StringValue collectionName = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
             String collectionNameValue = collectionName != null ? collectionName.toString() : "";
             return WebComponentUtil.getObjectListPageStorageKey(collectionNameValue);
-        } else if(isCollectionViewPanelForWidget()) {
+        } else if (isCollectionViewPanelForWidget()) {
             String widgetName = getWidgetNameOfCollection();
             return WebComponentUtil.getObjectListPageStorageKey(widgetName);
         }
