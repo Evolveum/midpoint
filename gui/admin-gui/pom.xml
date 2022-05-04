@@ -859,6 +859,16 @@
                             <goal>install-node-and-npm</goal>
                         </goals>
                     </execution>
+                    <!-- TODO temporary -->
+                    <execution>
+                        <id>npm ignore certs</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>config set strict-ssl false</arguments>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>npm install</id>
                         <goals>
@@ -879,8 +889,7 @@
                     <nodeVersion>v16.15.0</nodeVersion>
                     <npmVersion>8.8.0</npmVersion>
                     <installDirectory>target</installDirectory>
-                    <!-- todo enable downloading from nexus, currently it doesn't work -->
-                    <!--<npmDownloadRoot>https://nexus.evolveum.com/nexus/repository/npm/</npmDownloadRoot>-->
+                    <npmDownloadRoot>https://nexus.evolveum.com/nexus/repository/npm/</npmDownloadRoot>
                 </configuration>
             </plugin>
         </plugins>
