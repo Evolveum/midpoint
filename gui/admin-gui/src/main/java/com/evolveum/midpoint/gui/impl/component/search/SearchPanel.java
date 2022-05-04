@@ -101,7 +101,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private static final String ID_OID_SEARCH_FRAGMENT = "oidSearchFragment";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
-    private static final String ID_MORE_GROUP = "moreGroup";
     private static final String ID_MORE = "more";
     private static final String ID_POPOVER = "popover";
     private static final String ID_ADD_TEXT = "addText";
@@ -596,9 +595,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             items.add(createVisibleBehaviour(SearchBoxModeType.BASIC));
             add(items);
 
-            WebMarkupContainer moreGroup = new WebMarkupContainer(ID_MORE_GROUP);
-            moreGroup.add(createMoreGroupVisibleBehaviour());
-            add(moreGroup);
+            Popover popover = initPopover();
 
             AjaxLink<Void> more = new AjaxLink<Void>(ID_MORE) {
                 private static final long serialVersionUID = 1L;
@@ -606,24 +603,15 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                 @Override
                 public void onClick(AjaxRequestTarget target) {
 //                    resetMoreDialogModel();
-                    Component popover = BasicSearchFragment.this.get(createComponentPath(ID_POPOVER));
-                    Component button = BasicSearchFragment.this.get(createComponentPath(ID_MORE_GROUP, ID_MORE));
-                    togglePopover(target, button, popover, 14);
+                    popover.toggle(target);
                 }
             };
-            more.add(new VisibleEnableBehaviour() {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public boolean isVisible() {
-                    return CollectionUtils.isNotEmpty(morePopupModel.getObject());
-                }
-            });
+            popover.setReference(more);
+            more.add(new VisibleBehaviour(() -> {
+                return CollectionUtils.isNotEmpty(morePopupModel.getObject());
+            }));
             more.setOutputMarkupId(true);
-            moreGroup.add(more);
-
-            initPopover();
+            add(more);
         }
 
         private VisibleBehaviour createMoreGroupVisibleBehaviour() {
@@ -631,9 +619,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                     SearchBoxModeType.BASIC.equals(getModelObject().getSearchMode()));
         }
 
-        private void initPopover() {
-            WebMarkupContainer popover = new WebMarkupContainer(ID_POPOVER);
-            popover.setOutputMarkupId(true);
+        private Popover initPopover() {
+            Popover popover = new Popover(ID_POPOVER);
             add(popover);
 
             final WebMarkupContainer propList = new WebMarkupContainer(ID_PROP_LIST);
@@ -734,18 +721,13 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                 }
             };
             popover.add(close);
+
+            return popover;
         }
 
         private void closeMorePopoverPerformed(AjaxRequestTarget target) {
             String popoverId = get(ID_POPOVER).getMarkupId();
             target.appendJavaScript("$('#" + popoverId + "').toggle();");
-        }
-
-        public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
-            target.appendJavaScript("toggleSearchPopover('"
-                    + button.getMarkupId() + "','"
-                    + popover.getMarkupId() + "',"
-                    + paddingRight + ");");
         }
     }
 

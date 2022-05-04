@@ -54,7 +54,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
-import com.evolveum.midpoint.web.component.Popover;
+import com.evolveum.midpoint.gui.impl.component.search.Popover;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
