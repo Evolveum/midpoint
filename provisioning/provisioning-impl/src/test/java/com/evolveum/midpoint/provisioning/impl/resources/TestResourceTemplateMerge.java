@@ -10,6 +10,10 @@ package com.evolveum.midpoint.provisioning.impl.resources;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.io.IOException;
+
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 
 import org.testng.annotations.Test;
 
@@ -32,8 +36,16 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        repoAdd(RESOURCE_TEMPLATE_BASIC, initResult);
-        repoAdd(RESOURCE_BASIC_1, initResult);
+
+        initDummyResource(RESOURCE_TEMPLATE_BASIC, initResult);
+        repoAdd(RESOURCE_BASIC_1, initResult); // No connectorRef is here, so basic add is OK
+    }
+
+    /** Provides connector OID externally. */
+    private void initDummyResource(TestResource<ResourceType> resource, OperationResult result)
+            throws CommonException, EncryptionException, IOException {
+        addResourceFromFile(resource.file, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, result);
+        resource.reload(result);
     }
 
     @Test
@@ -47,8 +59,9 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         expansionOperation.execute(result);
 
         then("expanded version is OK");
-        assertResource(expansionOperation.getResource(), "after")
-                .assertName("Basic 1");
+        assertResource(expansionOperation.getExpandedResource(), "after")
+                .assertName("Basic 1")
+                .assertNotAbstract();
 
         and("ancestors are OK");
         assertThat(expansionOperation.getAncestorsOids())
@@ -61,6 +74,6 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 raw.getObjectable().clone(),
                 beans);
         expansionOperation.execute(result);
-        return expansionOperation.getResource();
+        return expansionOperation.getExpandedResource();
     }
 }

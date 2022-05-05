@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import static com.evolveum.midpoint.prism.Containerable.asPrismContainerValue;
@@ -149,5 +150,16 @@ public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType, RA> 
                 new PrismContainerAsserter<>(operationalStateHistory, this, getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public ResourceAsserter<RA> assertNotAbstract() {
+        assertThat(isAbstract())
+                .withFailMessage("Resource is abstract although it should not be")
+                .isFalse();
+        return this;
+    }
+
+    private boolean isAbstract() {
+        return Boolean.TRUE.equals(getObjectable().isAbstract());
     }
 }

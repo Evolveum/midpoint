@@ -12,15 +12,17 @@
     <super>
         <resourceRef oid="2d1bbd38-8292-4895-af07-15de1ae423ec"/>
     </super>
-    <!--<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"-->
-    <!--        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">-->
-    <!--    <icfc:configurationProperties>-->
-    <!--        &lt;!&ndash; overriding existing value &ndash;&gt;-->
-    <!--        <icfi:supportValidity>false</icfi:supportValidity>-->
-    <!--    </icfc:configurationProperties>-->
-    <!--    <icfc:resultsHandlerConfiguration>-->
-    <!--        &lt;!&ndash; adding new item &ndash;&gt;-->
-    <!--        <icfc:filteredResultsHandlerInValidationMode>true</icfc:filteredResultsHandlerInValidationMode>-->
-    <!--    </icfc:resultsHandlerConfiguration>-->
-    <!--</connectorConfiguration>-->
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <!-- overriding existing value -->
+            <icfi:supportValidity>false</icfi:supportValidity>
+        </icfc:configurationProperties>
+
+        <icfc:resultsHandlerConfiguration>
+            <!-- adding new item -->
+            <icfc:filteredResultsHandlerInValidationMode>true</icfc:filteredResultsHandlerInValidationMode>
+        </icfc:resultsHandlerConfiguration>
+    </connectorConfiguration>
 </resource>

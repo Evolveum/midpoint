@@ -11,6 +11,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.provisioning.impl.resources.merger.GenericItemMerger.NaturalKey;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorInstanceSpecificationType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
@@ -37,20 +40,25 @@ public class ResourceMergeOperation {
     @NotNull private final ResourceType target;
     @NotNull private final ResourceType source;
 
-    @NotNull private final ItemMerger rootMerger = new GenericItemMerger(
-            null,
-            createPathMap(
-                    Map.of(
-                            ResourceType.F_NAME, RequiredItemMerger.INSTANCE
-                            // connectorRef, connectorConfiguration - default
-                            // TODO other ones
-                    )));
+    @NotNull private final ItemMerger rootMerger;
 
     public ResourceMergeOperation(
             @NotNull ResourceType target,
             @NotNull ResourceType source) {
         this.target = target;
         this.source = source;
+        this.rootMerger =
+                new GenericItemMerger(
+                        createPathMap(
+                                Map.of(
+                                        ResourceType.F_NAME, RequiredItemMerger.INSTANCE,
+                                        // connectorRef - default
+                                        // connectorConfiguration - default
+                                        ResourceType.F_ABSTRACT, IgnoreSourceItemMerger.INSTANCE,
+                                        ResourceType.F_ADDITIONAL_CONNECTOR, new GenericItemMerger(
+                                                NaturalKey.of(ConnectorInstanceSpecificationType.F_NAME),
+                                                emptyPathMap())
+                                )));
     }
 
     public void execute() throws ConfigurationException, SchemaException {
@@ -83,5 +91,9 @@ public class ResourceMergeOperation {
         PathKeyedMap<ItemMerger> newMap = new PathKeyedMap<>();
         newMap.putAll(sourceMap);
         return newMap;
+    }
+
+    private static PathKeyedMap<ItemMerger> emptyPathMap() {
+        return new PathKeyedMap<>();
     }
 }

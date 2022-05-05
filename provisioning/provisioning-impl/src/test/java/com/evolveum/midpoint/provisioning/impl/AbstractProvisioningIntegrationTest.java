@@ -168,7 +168,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         assertNotNull("No schema after parsing in " + desc, parsedSchema);
     }
 
-    protected void rememberConnectorInstance(PrismObject<ResourceType> resource) throws SchemaException {
+    protected void rememberConnectorInstance(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
         rememberConnectorInstance(resourceManager.getConfiguredConnectorInstanceFromCache(resource, ReadCapabilityType.class));
     }
 
@@ -177,7 +177,8 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         lastConfiguredConnectorInstance = currentConnectorInstance;
     }
 
-    protected void assertConnectorInstanceUnchanged(PrismObject<ResourceType> resource) throws SchemaException {
+    protected void assertConnectorInstanceUnchanged(PrismObject<ResourceType> resource)
+            throws SchemaException, ConfigurationException {
         if (lastConfiguredConnectorInstance == null) {
             return;
         }
@@ -186,7 +187,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         assertSame("Connector instance has changed", lastConfiguredConnectorInstance, currentConfiguredConnectorInstance);
     }
 
-    protected void assertSteadyResource() throws SchemaException {
+    protected void assertSteadyResource() throws SchemaException, ConfigurationException {
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
