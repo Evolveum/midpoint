@@ -390,10 +390,12 @@ public class SearchFactory {
                     .stream()
                     .filter(v -> v.getFilter() != null)     //todo should we check also collectionRef?
                     .collect(Collectors.toList());
-            ObjectCollectionListSearchItemWrapper<C> viewListItem = new ObjectCollectionListSearchItemWrapper<>(searchConfWrapper.getTypeClass(),
-                    views);
-            viewListItem.setVisible(CollectionUtils.isNotEmpty(views));
-            searchConfWrapper.getItemsList().add(viewListItem);
+            if (CollectionUtils.isNotEmpty(views)) {
+                ObjectCollectionListSearchItemWrapper<C> viewListItem = new ObjectCollectionListSearchItemWrapper<>(searchConfWrapper.getTypeClass(),
+                        views);
+                viewListItem.setVisible(true);
+                searchConfWrapper.getItemsList().add(viewListItem);
+            }
         }
         searchConfWrapper.getItemsList().sort((i1, i2) -> String.CASE_INSENSITIVE_ORDER.compare(
                 StringUtils.isEmpty(i1.getName()) ? "" : PageBase.createStringResourceStatic(i1.getName()).getString(),
