@@ -1,0 +1,118 @@
+podTemplate(
+        activeDeadlineSeconds: 21600, // 6h total build limit
+        idleMinutes: 1,
+        // Secret volume with maven settings.xml for deploy, see also sim-link in "build" stage.
+        volumes: [secretVolume(secretName: "jenkins-nexus", mountPath: "/root/jenkins-nexus")],
+        workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
+        containers: [
+                containerTemplate(name: 'jnlp',
+                        image: 'jenkins/inbound-agent:4.10-3-alpine',
+                        runAsUser: '0',
+                        resourceLimitCpu: '900m',
+                        resourceLimitMemory: '1Gi',
+                        resourceRequestCpu: '900m',
+                        resourceRequestMemory: '1Gi'),
+                containerTemplate(name: 'pgsql',
+                        image: 'postgres:13-alpine', // TODO parametrize?
+                        ttyEnabled: true,
+                        resourceRequestCpu: '100m',
+                        resourceLimitCpu: '1',
+                        resourceRequestMemory: '1Gi',
+                        resourceLimitMemory: '4Gi',
+                        envVars: [
+                            envVar(key: 'POSTGRES_INITDB_ARGS', value: '--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8'),
+                            envVar(key: 'POSTGRES_USER', value: 'midpoint'),
+                            envVar(key: 'POSTGRES_PASSWORD', value: 'password'),
+                            // TODO mount data?
+                        ],
+                        ports: [portMapping(name: 'pgsql', containerPort: 5432)]),
+                containerTemplate(name: 'maven',
+                        image: 'maven:3.8.5-openjdk-11-slim',
+                        ttyEnabled: true,
+                        command: 'cat',
+                        resourceLimitCpu: '4',
+                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
+        ]
+) {
+    node(POD_LABEL) {
+        stage("checkout") {
+            git branch: "${BRANCH}",
+                    url: 'https://github.com/Evolveum/midpoint.git'
+            echo "git checkout done..."
+        }
+        // TODO PG
+        stage("build") {
+            container('psql') {
+                sh "psql --version"
+            }
+        }
+        stage("build") {
+            container('maven') {
+                try {
+                    sh """#!/bin/bash
+                        # .m2 is mutable and short-term, we just sym-link the settings.xml there.
+                        mkdir -p /root/.m2
+                        ln -s ../jenkins-nexus/settings.xml /root/.m2/settings.xml
+
+                        if [ '${VERBOSE}' = '1' ]
+                        then
+	                        env | sort
+	                        mvn --version
+	                        df -h
+			            fi
+
+				        mvn -B -ntp -DskipTests clean deploy -DdeployAtEnd=true
+
+				        if [ '${VERBOSE}' = '1' ]
+                        then
+                            df -h
+                        fi
+                    """
+                } catch (err) {
+                    echo "Caught: ${err}"
+                    currentBuild.result = 'FAILURE'
+                }
+            }
+        }
+        stage("tests-default") {
+            container('maven') {
+                try {
+                    sh """
+                        mvn -B -ntp -Dmaven.test.failure.ignore verify
+
+				        if [ '${VERBOSE}' = '1' ]
+                        then
+                            df -h
+                        fi
+                    """
+                } catch (err) {
+                    echo "Caught: ${err}"
+                    // TODO replace with better failure, this lets the next stage run
+                    currentBuild.result = 'FAILURE'
+                } finally {
+                    step([$class: 'Publisher', reportFilenamePattern: '**/testng-results.xml'])
+                }
+            }
+        }
+        stage("tests-extra") {
+            container('maven') {
+                try {
+                    // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                    sh """
+                        mvn -B -ntp -Dmaven.test.failure.ignore verify -P extratest -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+
+				        if [ '${VERBOSE}' = '1' ]
+                        then
+                            df -h
+                        fi
+                    """
+                } catch (err) {
+                    echo "Caught: ${err}"
+                    currentBuild.result = 'FAILURE'
+                } finally {
+                    step([$class: 'Publisher', reportFilenamePattern: 'testing/**/testng-results.xml'])
+                }
+            }
+        }
+    }
+}

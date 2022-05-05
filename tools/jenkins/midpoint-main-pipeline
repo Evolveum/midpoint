@@ -65,7 +65,7 @@ podTemplate(
             container('maven') {
                 // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
                 sh """
-                    mvn -B -ntp -Dmaven.test.failure.ignore verify -P extratest -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED" -pl testing
+                    mvn -B -ntp -Dmaven.test.failure.ignore verify -P extratest,-dist -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED" -rf testing
 
                     if [ '${VERBOSE}' = '1' ]
                     then
@@ -75,7 +75,7 @@ podTemplate(
 
                 // Collects results for all tests (main + extra).
                 // Using this step in each phase produces multiple graphs, but all have the same results from the last run.
-                step([$class: 'Publisher', reportFilenamePattern: 'testing/**/testng-results.xml'])
+                step([$class: 'Publisher', reportFilenamePattern: '**/testng-results.xml'])
             }
         }
     }

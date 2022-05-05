@@ -35,7 +35,6 @@ import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -483,7 +482,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         modelInteractionService.runUnderPowerOfAttorneyChecked(() -> {
             AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
                     .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
-            caseService.completeWorkItem(CaseWorkItemUtil.getId(workItem), output, task, result);
+            caseService.completeWorkItem(CaseTypeUtil.getId(workItem), output, task, result);
             return null;
         }, USER_SCROOGE.object, task, result);
 
@@ -561,7 +560,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         modelInteractionService.runUnderPowerOfAttorneyChecked(() -> {
             AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
                     .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
-            caseService.completeWorkItem(CaseWorkItemUtil.getId(workItem), output, task, result);
+            caseService.completeWorkItem(CaseTypeUtil.getId(workItem), output, task, result);
             return null;
         }, USER_SCROOGE.object, task, result);
 

@@ -8,8 +8,12 @@ package com.evolveum.midpoint.schema.util.cases;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -90,7 +95,54 @@ public class CaseTypeUtil {
     }
 
     public static boolean approvalSchemaExists(CaseType aCase) {
-        return aCase != null && aCase.getApprovalContext() != null && aCase.getApprovalContext().getApprovalSchema() != null
+        return aCase != null
+                && aCase.getApprovalContext() != null
+                && aCase.getApprovalContext().getApprovalSchema() != null
                 && !aCase.getApprovalContext().getApprovalSchema().asPrismContainerValue().isEmpty();
+    }
+
+    public static WorkItemId getId(CaseWorkItemType workItem) {
+        return WorkItemId.of(workItem);
+    }
+
+    public static CaseWorkItemType getWorkItem(CaseType aCase, long id) {
+        for (CaseWorkItemType workItem : aCase.getWorkItem()) {
+            if (workItem.getId() != null && workItem.getId() == id) {
+                return workItem;
+            }
+        }
+        return null;
+    }
+
+    public static boolean isCaseWorkItemNotClosed(CaseWorkItemType workItem) {
+        return workItem != null && workItem.getCloseTimestamp() == null;
+    }
+
+    public static boolean isCaseWorkItemClosed(CaseWorkItemType workItem) {
+        return workItem != null && workItem.getCloseTimestamp() != null;
+    }
+
+    public static boolean isWorkItemClaimable(CaseWorkItemType workItem) {
+        return workItem != null
+                && (workItem.getOriginalAssigneeRef() == null || StringUtils.isEmpty(workItem.getOriginalAssigneeRef().getOid()))
+                && !doesAssigneeExist(workItem) && CollectionUtils.isNotEmpty(workItem.getCandidateRef());
+    }
+
+    public static boolean doesAssigneeExist(CaseWorkItemType workItem) {
+        if (workItem == null || CollectionUtils.isEmpty(workItem.getAssigneeRef())) {
+            return false;
+        }
+        for (ObjectReferenceType assignee : workItem.getAssigneeRef()) {
+            if (StringUtils.isNotEmpty(assignee.getOid())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static List<CaseWorkItemType> getWorkItemsForStage(CaseType aCase, int stageNumber) {
+        return aCase.getWorkItem().stream()
+                .filter(wi -> Objects.equals(wi.getStageNumber(), stageNumber))
+                .collect(Collectors.toList());
     }
 }

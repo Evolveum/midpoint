@@ -1,11 +1,22 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.wf.impl.other;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.evolveum.midpoint.schema.util.ApprovalSchemaExecutionInformationUtil.getEmbeddedCaseBean;
+
+import java.io.File;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -16,35 +27,24 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.ApprovalSchemaExecutionInformationUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseEventUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.schema.util.ApprovalSchemaExecutionInformationUtil.getEmbeddedCaseBean;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests the preview feature:
  * 1) before operation is executed,
  * 2) in various stages of approval process as well.
  */
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestPreview extends AbstractWfTestPolicy {
 
@@ -127,10 +127,10 @@ public class TestPreview extends AbstractWfTestPolicy {
         CaseType approvalCase = assertCase(result, "after")
                 .display()
                 .subcases()
-                    .single()
-                    .display()
-                    .assertStageNumber(1)
-                    .getObject().asObjectable();
+                .single()
+                .display()
+                .assertStageNumber(1)
+                .getObject().asObjectable();
 
         ApprovalSchemaExecutionInformationType execInfo =
                 approvalsManager.getApprovalSchemaExecutionInformation(approvalCase.getOid(), task, result);
@@ -258,14 +258,14 @@ public class TestPreview extends AbstractWfTestPolicy {
         CaseType aCase = getEmbeddedCaseBean(execInfo);
         return aCase.getWorkItem().stream()
                 .filter(wi -> java.util.Objects.equals(wi.getStageNumber(), aCase.getStageNumber()))
-                .filter(CaseWorkItemUtil::isCaseWorkItemNotClosed)
+                .filter(CaseTypeUtil::isCaseWorkItemNotClosed)
                 .flatMap(wi -> wi.getAssigneeRef().stream())
                 .map(ObjectReferenceType::getOid)
                 .collect(Collectors.toSet());
     }
 
-    // We could use either (closed) work items or WorkItemCompletionEventType events. The latter is better because we can also
-    // attorney information there.
+    // We could use either (closed) work items or WorkItemCompletionEventType events.
+    // The latter is better because we can also have attorney information there.
     private Collection<String> getApproversFromCompletionEvents(ApprovalSchemaExecutionInformationType executionInfo, int stageNumber) {
         CaseType aCase = getEmbeddedCaseBean(executionInfo);
         return aCase.getEvent().stream()

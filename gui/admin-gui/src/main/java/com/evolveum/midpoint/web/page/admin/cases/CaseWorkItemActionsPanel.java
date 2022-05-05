@@ -23,7 +23,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -66,7 +65,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     private void initLayout() {
         WebMarkupContainer actionButtonsContainer = new WebMarkupContainer(ID_ACTION_BUTTONS);
         actionButtonsContainer.setOutputMarkupId(true);
-        actionButtonsContainer.add(new VisibleBehaviour(() -> CaseWorkItemUtil.isCaseWorkItemNotClosed(CaseWorkItemActionsPanel.this.getModelObject())));
+        actionButtonsContainer.add(new VisibleBehaviour(() -> CaseTypeUtil.isCaseWorkItemNotClosed(CaseWorkItemActionsPanel.this.getModelObject())));
         add(actionButtonsContainer);
 
         AjaxButton workItemApproveButton = new AjaxButton(ID_WORK_ITEM_APPROVE_BUTTON, getApproveButtonTitleModel()) {
@@ -220,8 +219,8 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         if (CaseTypeUtil.isCorrelationCase(CaseTypeUtil.getCase(getCaseWorkItemModelObject()))) {
             return false;
         }
-        if (CaseWorkItemUtil.isCaseWorkItemClosed(getModelObject()) ||
-                CaseWorkItemUtil.isWorkItemClaimable(getModelObject())) {
+        if (CaseTypeUtil.isCaseWorkItemClosed(getModelObject()) ||
+                CaseTypeUtil.isWorkItemClaimable(getModelObject())) {
             return false; // checking separately to avoid needless authorization checking
         }
         try {
@@ -237,8 +236,8 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private boolean isForwardButtonVisible() {
-        if (CaseWorkItemUtil.isCaseWorkItemClosed(getModelObject()) ||
-                CaseWorkItemUtil.isWorkItemClaimable(getModelObject())) {
+        if (CaseTypeUtil.isCaseWorkItemClosed(getModelObject()) ||
+                CaseTypeUtil.isWorkItemClaimable(getModelObject())) {
             return false; // checking separately to avoid needless authorization checking
         }
         try {
@@ -254,8 +253,8 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private boolean isClaimButtonVisible() {
-        return CaseWorkItemUtil.isCaseWorkItemNotClosed(getModelObject()) &&
-                CaseWorkItemUtil.isWorkItemClaimable(getModelObject()) &&
+        return CaseTypeUtil.isCaseWorkItemNotClosed(getModelObject()) &&
+                CaseTypeUtil.isWorkItemClaimable(getModelObject()) &&
                 getPageBase().getCaseManager().isCurrentUserAuthorizedToClaim(getModelObject());
     }
 }

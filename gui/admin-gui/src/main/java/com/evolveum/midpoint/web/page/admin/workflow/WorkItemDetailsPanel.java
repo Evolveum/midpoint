@@ -1,10 +1,25 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.workflow;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.List;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -24,7 +39,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -44,20 +58,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurA
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.List;
 
 /**
  * Created by honchar
@@ -93,28 +93,28 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
     private static final String ID_CASE_WORK_ITEM_EVIDENCE = "caseWorkItemEvidence";
     private static final String ID_CASE_WORK_ITEM_EVIDENCE_FORM = "caseWorkItemEvidenceForm";
 
-
     private IModel<SceneDto> sceneModel;
     private LoadableDetachableModel<PrismObject<CaseType>> caseModel;
+
     public WorkItemDetailsPanel(String id, IModel<CaseWorkItemType> caseWorkItemTypeIModel) {
         super(id, caseWorkItemTypeIModel);
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initModels();
         initLayout();
     }
 
-    private void initModels(){
-        sceneModel = new LoadableModel<SceneDto>(false) {
+    private void initModels() {
+        sceneModel = new LoadableModel<>(false) {
             @Override
             protected SceneDto load() {
                 PageBase pageBase = WorkItemDetailsPanel.this.getPageBase();
                 CaseType parentCase = CaseTypeUtil.getCase(WorkItemDetailsPanel.this.getModelObject());
-                if (CaseTypeUtil.isManualProvisioningCase(parentCase)){
-                    return WebComponentUtil.createSceneDtoForManualCase(parentCase, pageBase,  OPERATION_PREPARE_DELTA_VISUALIZATION);
+                if (CaseTypeUtil.isManualProvisioningCase(parentCase)) {
+                    return WebComponentUtil.createSceneDtoForManualCase(parentCase, pageBase, OPERATION_PREPARE_DELTA_VISUALIZATION);
                 } else {
                     return WebComponentUtil.createSceneDto(WorkItemDetailsPanel.this.getModelObject(), pageBase, OPERATION_PREPARE_DELTA_VISUALIZATION);
                 }
@@ -130,16 +130,16 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         };
     }
 
-    private void initLayout(){
-        LinkedReferencePanel requestedBy = new LinkedReferencePanel(ID_REQUESTED_BY,
+    private void initLayout() {
+        LinkedReferencePanel<?> requestedBy = new LinkedReferencePanel<>(ID_REQUESTED_BY,
                 Model.of(WorkItemTypeUtil.getRequestorReference(getModelObject())));
         requestedBy.setOutputMarkupId(true);
         add(requestedBy);
 
-        LinkedReferencePanel requestedFor;
+        LinkedReferencePanel<?> requestedFor;
         AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(CaseTypeUtil.getCase(getModelObject()));
         if (object == null) {
-            requestedFor = new LinkedReferencePanel(ID_REQUESTED_FOR,
+            requestedFor = new LinkedReferencePanel<>(ID_REQUESTED_FOR,
                     Model.of(WorkItemTypeUtil.getObjectReference(getModelObject())));
         } else {
             ObjectReferenceType ort = new ObjectReferenceType();
@@ -153,26 +153,26 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
 
             ort.setupReferenceValue(referenceValue);
 
-            requestedFor = new LinkedReferencePanel(ID_REQUESTED_FOR, Model.of(ort));
+            requestedFor = new LinkedReferencePanel<>(ID_REQUESTED_FOR, Model.of(ort));
         }
         requestedFor.setOutputMarkupId(true);
         add(requestedFor);
 
-        LinkedReferencePanel approver = new LinkedReferencePanel(ID_APPROVER, getApproverModel());
+        LinkedReferencePanel<?> approver = new LinkedReferencePanel<>(ID_APPROVER, getApproverModel());
         approver.setOutputMarkupId(true);
         add(approver);
 
         WebMarkupContainer candidateContainer = new WebMarkupContainer(ID_CANDIDATE_CONTAINER);
         candidateContainer.setOutputMarkupId(true);
-        candidateContainer.add(new VisibleBehaviour(() -> CaseWorkItemUtil.isWorkItemClaimable(getModelObject())));
+        candidateContainer.add(new VisibleBehaviour(() -> CaseTypeUtil.isWorkItemClaimable(getModelObject())));
         add(candidateContainer);
 
         RepeatingView candidateLinksPanel = new RepeatingView(ID_CANDIDATE);
         candidateLinksPanel.setOutputMarkupId(true);
         List<ObjectReferenceType> candidates = getModelObject() != null ? getModelObject().getCandidateRef() : null;
-        if (candidates != null){
+        if (candidates != null) {
             candidates.forEach(candidate -> {
-                LinkedReferencePanel candidatePanel = new LinkedReferencePanel(candidateLinksPanel.newChildId(), Model.of(candidate));
+                LinkedReferencePanel<ObjectReferenceType> candidatePanel = new LinkedReferencePanel<>(candidateLinksPanel.newChildId(), Model.of(candidate));
                 candidatePanel.setOutputMarkupId(true);
                 candidateLinksPanel.add(candidatePanel);
             });
@@ -194,11 +194,11 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             parentCaseRef.setupReferenceValue(getPageBase().getPrismContext().itemFactory()
                     .createReferenceValue(parentCaseObj.asPrismObject()));
         }
-        LinkedReferencePanel parentCaseLink = new LinkedReferencePanel(ID_PARENT_CASE, Model.of(parentCaseRef));
+        LinkedReferencePanel<ObjectReferenceType> parentCaseLink = new LinkedReferencePanel<>(ID_PARENT_CASE, Model.of(parentCaseRef));
         parentCaseLink.setOutputMarkupId(true);
         parentCaseContainer.add(parentCaseLink);
 
-        LinkedReferencePanel target = new LinkedReferencePanel(ID_TARGET,
+        LinkedReferencePanel<ObjectReferenceType> target = new LinkedReferencePanel<>(ID_TARGET,
                 Model.of(WorkItemTypeUtil.getTargetReference(getModelObject())));
         target.setOutputMarkupId(true);
         add(target);
@@ -212,8 +212,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         reasonPanel.setOutputMarkupId(true);
         add(reasonPanel);
 
-
-        if (CaseTypeUtil.isApprovalCase(parentCase) || CaseTypeUtil.isManualProvisioningCase(parentCase)){
+        if (CaseTypeUtil.isApprovalCase(parentCase) || CaseTypeUtil.isManualProvisioningCase(parentCase)) {
             ScenePanel scenePanel = new ScenePanel(ID_DELTAS_TO_APPROVE, sceneModel);
             scenePanel.setOutputMarkupId(true);
             add(scenePanel);
@@ -244,7 +243,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             String formOid = level.getFormRef().getOid();
             ObjectType focus = getCaseFocusObject(parentCase);
             if (focus == null) {
-                focus = new UserType(getPageBase().getPrismContext());        // TODO (this should not occur anyway)
+                focus = new UserType(); // TODO (this should not occur anyway)
             }
             Task task = getPageBase().createSimpleTask(OPERATION_LOAD_CUSTOM_FORM);
             DynamicFormPanel<?> customForm = new DynamicFormPanel<>(ID_CUSTOM_FORM,
@@ -260,7 +259,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         evidenceForm.setMultiPart(true);
         add(evidenceForm);
 
-        UploadDownloadPanel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE, isParentCaseClosed() && WorkItemTypeUtil.getEvidence(getModelObject()) != null){
+        UploadDownloadPanel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE, isParentCaseClosed() && WorkItemTypeUtil.getEvidence(getModelObject()) != null) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -273,7 +272,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             @Override
             public InputStream getStream() {
                 byte[] evidenceFile = WorkItemTypeUtil.getEvidence(getModelObject());
-                return evidenceFile != null ? new ByteArrayInputStream((byte[]) evidenceFile) : new ByteArrayInputStream(new byte[0]);
+                return evidenceFile != null ? new ByteArrayInputStream(evidenceFile) : new ByteArrayInputStream(new byte[0]);
             }
 
             @Override
@@ -304,7 +303,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         Label commentLabel = new Label(ID_COMMENT_LABEL, createStringResource(key));
         commentContainer.add(commentLabel);
 
-        TextArea<String> approverComment = new TextArea<String>(ID_APPROVER_COMMENT, new PropertyModel<>(getModel(), "output.comment"));
+        TextArea<String> approverComment = new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<>(getModel(), "output.comment"));
         approverComment.add(new EnableBehaviour(() -> !isParentCaseClosed()));
         approverComment.setOutputMarkupId(true);
         approverComment.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -371,7 +370,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         return focus;
     }
 
-    public Component getCustomForm(){
+    public Component getCustomForm() {
         return get(createComponentPath(ID_ADDITIONAL_ATTRIBUTES, ID_CUSTOM_FORM));
     }
 

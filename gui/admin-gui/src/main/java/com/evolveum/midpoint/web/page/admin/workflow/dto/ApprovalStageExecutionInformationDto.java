@@ -1,32 +1,30 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
-import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseEventUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ApprovalSchemaExecutionInformationUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.CaseEventUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * GUI-friendly information about historic, current or future execution of a given approval stage.
  */
-
 public class ApprovalStageExecutionInformationDto implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -43,7 +41,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
     private String errorMessage;                                                            // error message indicating that the preview couldn't be computed
     private ApprovalLevelOutcomeType outcome;                                               // real outcome (automated or "normal")
     private boolean reachable;                                                              // is it possible that this stage would be reachable (if the process would be running)
-                                                                                            // currently all stages after first rejected one are not reachable, as the process would stop there
+    // currently all stages after first rejected one are not reachable, as the process would stop there
 
     private ApprovalStageExecutionInformationDto(ApprovalStageDefinitionType definition) {
         stageNumber = definition.getNumber();
@@ -79,7 +77,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
         }
         // set 'last' flag for all approvers at this stage
         for (int i = 0; i < rv.getApproverEngagements().size(); i++) {
-            rv.getApproverEngagements().get(i).setLast(i == rv.getApproverEngagements().size()-1);
+            rv.getApproverEngagements().get(i).setLast(i == rv.getApproverEngagements().size() - 1);
         }
         return rv;
     }
@@ -136,8 +134,8 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 
         // Obtaining information about open work items
         if (stageNumber == currentStageNumber) {
-            for (CaseWorkItemType workItem : CaseWorkItemUtil.getWorkItemsForStage(aCase, stageNumber)) {
-                if (CaseWorkItemUtil.isCaseWorkItemNotClosed(workItem)) {
+            for (CaseWorkItemType workItem : CaseTypeUtil.getWorkItemsForStage(aCase, stageNumber)) {
+                if (CaseTypeUtil.isCaseWorkItemNotClosed(workItem)) {
                     for (ObjectReferenceType assigneeRef : workItem.getAssigneeRef()) {
                         resolve(assigneeRef, resolver, session, opTask, result);
                         rv.addApproverEngagement(new ApproverEngagementDto(assigneeRef));

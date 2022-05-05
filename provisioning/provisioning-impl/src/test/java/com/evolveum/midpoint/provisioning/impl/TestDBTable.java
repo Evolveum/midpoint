@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -61,7 +61,7 @@ public class TestDBTable extends AbstractIntegrationTest {
     private static final String ACCOUNT_WILL_PASSWORD = "3lizab3th";
     private static final String DB_TABLE_CONNECTOR_TYPE = "org.identityconnectors.databasetable.DatabaseTableConnector";
 
-    private static DerbyController derbyController = new DerbyController();
+    private final DerbyController derbyController = new DerbyController();
 
     @Autowired
     private ProvisioningService provisioningService;
@@ -107,7 +107,7 @@ public class TestDBTable extends AbstractIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
+        when();
         OperationResult testResult = provisioningService.testResource(RESOURCE_DERBY_OID, task);
 
         display("Test result", testResult);
@@ -127,7 +127,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 
     @Test
     public void test002AddAccount() throws Exception {
-        // GIVEN
+        given();
         OperationResult result = createOperationResult();
 
         ShadowType account = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
@@ -136,10 +136,10 @@ public class TestDBTable extends AbstractIntegrationTest {
         System.out.println(account.asPrismObject().debugDump());
 
         Task task = taskManager.createTaskInstance();
-        // WHEN
+        when();
         String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         display("add object result", result);
         TestUtil.assertSuccess("addObject has failed (result)", result);
@@ -147,7 +147,6 @@ public class TestDBTable extends AbstractIntegrationTest {
 
         ShadowType accountType = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result).asObjectable();
         PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_WILL_USERNAME, accountType.getName());
-//        assertEquals("will", accountType.getName());
 
         ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result).asObjectable();
         PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_WILL_USERNAME, provisioningAccountType.getName());
@@ -173,14 +172,14 @@ public class TestDBTable extends AbstractIntegrationTest {
     // MID-1234
     @Test(enabled = false)
     public void test005GetAccount() throws Exception {
-        // GIVEN
+        given();
         OperationResult result = createOperationResult();
 
         Task task = taskManager.createTaskInstance();
-        // WHEN
+        when();
         PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         display(result);
         TestUtil.assertSuccess(result);
@@ -195,5 +194,4 @@ public class TestDBTable extends AbstractIntegrationTest {
         String clearPassword = protector.decryptString(password);
         assertEquals("Wrong password", ACCOUNT_WILL_PASSWORD, clearPassword);
     }
-
 }
