@@ -16,7 +16,7 @@ podTemplate(
                         ttyEnabled: true,
                         command: 'cat',
                         resourceLimitCpu: '4',
-                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
+                        resourceLimitMemory: '6Gi') // by default -Xmx4g is set in main POM
         ]
 ) {
     node(POD_LABEL) {
@@ -27,22 +27,17 @@ podTemplate(
         }
         stage("build") {
             container('maven') {
-                try {
-                    sh """#!/bin/bash
-                        if [ '${VERBOSE}' = '1' ]
-                        then
-	                        env | sort
-	                        mvn --version
-			            fi
+                sh """#!/bin/bash
+                    if [ '${VERBOSE}' = '1' ]
+                    then
+                        env | sort
+                        mvn --version
+                    fi
 
-				        mvn -B -ntp -Dmaven.test.failure.ignore clean install -P -dist -DintegrationTestSuite=fast
-                    """
-                } catch (err) {
-                    echo "Caught: ${err}"
-                    currentBuild.result = 'FAILURE'
-                } finally {
-                    step([$class: 'Publisher', reportFilenamePattern: '**/testng-results.xml'])
-                }
+                    mvn -B -ntp -Dmaven.test.failure.ignore clean install -P -dist -DintegrationTestSuite=fast
+                """
+
+                step([$class: 'Publisher', reportFilenamePattern: '**/testng-results.xml'])
             }
         }
     }

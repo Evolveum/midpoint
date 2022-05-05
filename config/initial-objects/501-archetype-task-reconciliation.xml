@@ -19,7 +19,7 @@
                 </translation>
             </pluralLabel>
             <icon>
-                <cssClass>fa fa-exchange</cssClass>
+                <cssClass>fa fa-exchange-alt</cssClass>
                 <color>green</color>
             </icon>
         </display>

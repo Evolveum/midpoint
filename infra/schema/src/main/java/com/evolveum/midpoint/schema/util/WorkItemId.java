@@ -1,21 +1,21 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.schema.util;
-
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.Objects;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+
 /**
- *  Uniquely identifies a work item.
+ * Uniquely identifies a work item.
  */
 public class WorkItemId implements Serializable {
 
@@ -40,14 +40,6 @@ public class WorkItemId implements Serializable {
         return caseOid + ":" + workItemId;
     }
 
-    public static String getCaseOidFromWorkItemId(String workItemId) {
-        return parseWorkItemId(workItemId)[0];
-    }
-
-    public static long getIdFromWorkItemId(String workItemId) {
-        return Long.parseLong(parseWorkItemId(workItemId)[1]);
-    }
-
     private static String[] parseWorkItemId(@NotNull String workItemId) {
         String[] components = workItemId.split(":");
         if (components.length != 2) {
@@ -58,7 +50,7 @@ public class WorkItemId implements Serializable {
     }
 
     public static WorkItemId of(@NotNull CaseWorkItemType workItem) {
-        return create(CaseWorkItemUtil.getCaseRequired(workItem).getOid(), workItem.getId());
+        return create(CaseTypeUtil.getCaseRequired(workItem).getOid(), workItem.getId());
     }
 
     @NotNull
@@ -84,10 +76,16 @@ public class WorkItemId implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof WorkItemId)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof WorkItemId)) {
+            return false;
+        }
+
         WorkItemId that = (WorkItemId) o;
-        return id == that.id && caseOid.equals(that.caseOid);
+        return id == that.id
+                && caseOid.equals(that.caseOid);
     }
 
     @Override

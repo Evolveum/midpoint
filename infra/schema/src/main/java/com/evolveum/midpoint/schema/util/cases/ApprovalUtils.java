@@ -7,14 +7,14 @@
 
 package com.evolveum.midpoint.schema.util.cases;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import org.apache.commons.lang.BooleanUtils;
+
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
-import org.apache.commons.lang.BooleanUtils;
 
 /**
  * Utility methods related to approval cases.
@@ -51,9 +51,12 @@ public class ApprovalUtils {
             return null;
         }
         switch (outcome) {
-            case APPROVE: return true;
-            case REJECT: return false;
-            default: throw new IllegalArgumentException("outcome: " + outcome);
+            case APPROVE:
+                return true;
+            case REJECT:
+                return false;
+            default:
+                throw new IllegalArgumentException("outcome: " + outcome);
         }
     }
 
@@ -74,9 +77,12 @@ public class ApprovalUtils {
             return null;
         }
         switch (workItemOutcomeType) {
-            case APPROVE: return SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE;
-            case REJECT: return SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT;
-            default: throw new AssertionError("Unexpected outcome: " + workItemOutcomeType);
+            case APPROVE:
+                return SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE;
+            case REJECT:
+                return SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT;
+            default:
+                throw new AssertionError("Unexpected outcome: " + workItemOutcomeType);
         }
     }
 
@@ -85,10 +91,14 @@ public class ApprovalUtils {
             return null;
         }
         switch (outcome) {
-            case APPROVE: return SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE;
-            case REJECT: return SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT;
-            case SKIP: return SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP;
-            default: throw new AssertionError("Unexpected outcome: " + outcome);
+            case APPROVE:
+                return SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE;
+            case REJECT:
+                return SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT;
+            case SKIP:
+                return SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP;
+            default:
+                throw new AssertionError("Unexpected outcome: " + outcome);
         }
     }
 
@@ -159,12 +169,6 @@ public class ApprovalUtils {
 
     public static boolean isApprovedFromUri(String uri) {
         return isApproved(fromUri(uri));
-    }
-
-    @Deprecated
-    public static AbstractWorkItemOutputType createApproveOutput(PrismContext prismContext) {
-        return new AbstractWorkItemOutputType(prismContext)
-                .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
     }
 
     public static AbstractWorkItemOutputType createApproveOutput() {

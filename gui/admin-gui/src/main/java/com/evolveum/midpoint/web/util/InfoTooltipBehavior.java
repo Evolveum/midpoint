@@ -29,6 +29,6 @@ public class InfoTooltipBehavior extends TooltipBehavior {
      *  Override to provide custom css class (image, icon) for the tooltip
      * */
     public String getCssClass(){
-        return "fa fa-fw fa-info-circle text-info";
+        return "fa fa-info-circle text-info";
     }
 }

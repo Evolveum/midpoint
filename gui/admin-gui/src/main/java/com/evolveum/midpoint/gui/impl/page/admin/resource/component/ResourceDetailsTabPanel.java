@@ -11,12 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.*;
-
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -36,13 +30,19 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.box.InfoBox;
+import com.evolveum.midpoint.gui.impl.component.box.InfoBoxData;
+import com.evolveum.midpoint.gui.impl.component.box.InfoBoxPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -50,9 +50,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.box.BasicInfoBoxPanel;
-import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
-import com.evolveum.midpoint.web.component.box.InfoBoxType;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
@@ -116,7 +113,6 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
         ListDataProvider<ResourceConfigurationDto> resourceConfigProvider = new ListDataProvider<>(
                 ResourceDetailsTabPanel.this, createResourceConfigListModel());
 
-
         List<IColumn<SelectableBeanImpl<ResourceType>, String>> tableColumns = new ArrayList<>();
         tableColumns.add(ColumnUtils.createPropertyColumn(
                 new ColumnTypeDto<>(
@@ -133,7 +129,6 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 return model;
             }
         });
-
 
         List<ColumnTypeDto<String>> columns = Arrays.asList(
                 new ColumnTypeDto<>("ShadowType.intent", "objectTypeDefinition.intent",
@@ -233,16 +228,15 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
         ((PageBase) getPage()).navigateToNext(PageTask.class, parameters);
     }
 
-    private BasicInfoBoxPanel createSourceTargetInfo() {
-        return new BasicInfoBoxPanel(ID_SOURCE_TARGET, createSourceTargetInfoBoxModel());
-
+    private InfoBox createSourceTargetInfo() {
+        return new InfoBox(ID_SOURCE_TARGET, createSourceTargetInfoBoxModel());
     }
 
-    private ReadOnlyModel<InfoBoxType> createSourceTargetInfoBoxModel() {
-        return new ReadOnlyModel<>(() -> {
+    private IModel<InfoBoxData> createSourceTargetInfoBoxModel() {
+        return () -> {
 
             PrismObjectWrapper<ResourceType> resource = getObjectDetailsModels().getObjectWrapper();
-            String backgroundColor = "bg-aqua";
+            String backgroundColor = "bg-cyan";
             SourceTarget sourceTarget = determineIfSourceOrTarget(resource);
 
             String numberKey;
@@ -263,29 +257,23 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                     break;
             }
 
-            InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(),
-                    getPageBase().getString("PageResource.resource.mappings"));
-            infoBoxType.setNumber(getPageBase().getString(numberKey));
+            InfoBoxData data = new InfoBoxData(backgroundColor, sourceTarget.getCssClass(), getString("PageResource.resource.mappings"));
+            data.setNumber(getString(numberKey));
 
             if (ResourceTypeUtil.isSynchronizationDefined(resource.getObjectOld().asObjectable())) {
-                infoBoxType.setDescription(getPageBase().getString("PageResource.resource.sync"));
+                data.setDescription(getString("PageResource.resource.sync"));
             }
 
-            return infoBoxType;
-        });
+            return data;
+        };
     }
 
-    private InfoBoxPanel createLastAvailabilityStatusInfo() {
-
-        InfoBoxPanel lastAvailabilityStatus = new BasicInfoBoxPanel(ID_LAST_AVAILABILITY_STATUS, createAvailabilityStatusInfoBoxModel());
-        lastAvailabilityStatus.setOutputMarkupId(true);
-
-        return lastAvailabilityStatus;
-
+    private InfoBox createLastAvailabilityStatusInfo() {
+        return new InfoBox(ID_LAST_AVAILABILITY_STATUS, createAvailabilityStatusInfoBoxModel());
     }
 
-    private ReadOnlyModel<InfoBoxType> createAvailabilityStatusInfoBoxModel() {
-        return new ReadOnlyModel<>(() -> {
+    private IModel<InfoBoxData> createAvailabilityStatusInfoBoxModel() {
+        return () -> {
             String messageKey = "PageResource.resource.availabilityUnknown";
             String backgroundColor = "bg-gray";
             String icon = "fa fa-question";
@@ -323,22 +311,22 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 }
             }
 
-            InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon, getPageBase().getString(messageKey));
+            InfoBoxData data = new InfoBoxData(backgroundColor, icon, getString(messageKey));
 
             ConnectorType connectorType = getConnectorType(resource);
             if (connectorType == null) {
                 // Connector not found. Probably bad connectorRef reference.
-                infoBoxType.setNumber("--");
-                infoBoxType.setDescription("--");
+                data.setNumber("--");
+                data.setDescription("--");
             } else {
                 String connectorName = StringUtils.substringAfterLast(
                         WebComponentUtil.getEffectiveName(connectorType, ConnectorType.F_CONNECTOR_TYPE), ".");
                 String connectorVersion = connectorType.getConnectorVersion();
-                infoBoxType.setNumber(connectorName);
-                infoBoxType.setDescription(connectorVersion);
+                data.setNumber(connectorName);
+                data.setDescription(connectorVersion);
             }
-            return infoBoxType;
-        });
+            return data;
+        };
     }
 
     private ConnectorType getConnectorType(ResourceType resource) {
@@ -359,14 +347,12 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
         return object.asObjectable();
     }
 
-    private InfoBoxPanel createSchemaStatusInfo() {
-
-        return new BasicInfoBoxPanel(ID_SCHEMA_STATUS, createSchemaStatusInfoBoxModel());
-
+    private InfoBox createSchemaStatusInfo() {
+        return new InfoBox(ID_SCHEMA_STATUS, createSchemaStatusInfoBoxModel());
     }
 
-    private ReadOnlyModel<InfoBoxType> createSchemaStatusInfoBoxModel() {
-        return new ReadOnlyModel<>(() -> {
+    private IModel<InfoBoxData> createSchemaStatusInfoBoxModel() {
+        return () -> {
             String backgroundColor = "bg-gray";
             String icon = "fa fa-times";
             String numberMessage;
@@ -382,31 +368,30 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                     // TODO is this correct?
                     int numObjectTypes = refinedSchema.getObjectTypeDefinitions().size();
                     int numAllDefinitions = numObjectTypes + refinedSchema.getObjectClassDefinitions().size();
-                    numberMessage = numObjectTypes + " " + getPageBase().getString("PageResource.resource.objectTypes");
+                    numberMessage = numObjectTypes + " " + getString("PageResource.resource.objectTypes");
                     if (numAllDefinitions != 0) {
                         progress = numObjectTypes * 100 / numAllDefinitions;
                         if (progress > 100) {
                             progress = 100;
                         }
                     }
-                    description = numAllDefinitions + " " + getPageBase().getString("PageResource.resource.schemaDefinitions");
+                    description = numAllDefinitions + " " + getString("PageResource.resource.schemaDefinitions");
                 } else {
-                    numberMessage = getPageBase().getString("PageResource.resource.noSchema");
+                    numberMessage = getString("PageResource.resource.noSchema");
                 }
             } catch (SchemaException | ConfigurationException e) {
                 backgroundColor = "bg-danger";
                 icon = "fa fa-warning";
-                numberMessage = getPageBase().getString("PageResource.resource.schemaError");
+                numberMessage = getString("PageResource.resource.schemaError");
             }
 
-            InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon,
-                    getPageBase().getString("PageResource.resource.schema"));
-            infoBoxType.setNumber(numberMessage);
-            infoBoxType.setProgress(progress);
-            infoBoxType.setDescription(description);
+            InfoBoxData data = new InfoBoxData(backgroundColor, icon, getString("PageResource.resource.schema"));
+            data.setNumber(numberMessage);
+            data.setProgress(progress);
+            data.setDescription(description);
 
-            return infoBoxType;
-        });
+            return data;
+        };
     }
 
     private List<TaskType> getTasksFor(
@@ -466,7 +451,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
     private SourceTarget determineIfSourceOrTarget(PrismObjectWrapper<ResourceType> resource) {
         PrismContainerWrapper<SchemaHandlingType> schemaHandling;
         try {
-             schemaHandling = resource.findContainer(ResourceType.F_SCHEMA_HANDLING);
+            schemaHandling = resource.findContainer(ResourceType.F_SCHEMA_HANDLING);
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, e.getMessage(), e);
             schemaHandling = null;
@@ -536,7 +521,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
     private enum SourceTarget {
 
-        NOT_DEFINED("fa fa-square-o"), SOURCE("fa fa-sign-in"), TARGET("fa fa-sign-out"), SOURCE_TARGET("fa fa-exchange-alt");
+        NOT_DEFINED("far fa-square"), SOURCE("fa fa-sign-in-alt"), TARGET("fa fa-sign-out-alt"), SOURCE_TARGET("fa fa-exchange-alt");
 
         private final String cssClass;
 

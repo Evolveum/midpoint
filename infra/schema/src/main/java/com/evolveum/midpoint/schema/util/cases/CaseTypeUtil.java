@@ -4,16 +4,18 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.schema.util.cases;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerable;
@@ -21,16 +23,16 @@ import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- *
+ * Companion light-weight utilities for {@link CaseType} and {@link CaseWorkItemType}.
  */
 public class CaseTypeUtil {
 
     @NotNull
-    public static CaseType getCaseChecked(CaseWorkItemType workItem) {
+    public static CaseType getCaseRequired(CaseWorkItemType workItem) {
         CaseType aCase = getCase(workItem);
         if (aCase == null) {
             throw new IllegalStateException("No case for work item " + workItem);
@@ -43,7 +45,7 @@ public class CaseTypeUtil {
             return null;
         }
 
-        @SuppressWarnings({"unchecked", "raw"})
+        @SuppressWarnings({ "unchecked", "raw" })
         PrismContainerable<CaseWorkItemType> parent = workItem.asPrismContainerValue().getParent();
         if (!(parent instanceof PrismContainer)) {
             return null;
@@ -52,7 +54,7 @@ public class CaseTypeUtil {
         if (!(parentParent instanceof PrismObjectValue)) {
             return null;
         }
-        @SuppressWarnings({"unchecked", "raw"})
+        @SuppressWarnings({ "unchecked", "raw" })
         PrismObjectValue<CaseType> parentParentPov = (PrismObjectValue<CaseType>) parentParent;
         return parentParentPov.asObjectable();
     }
@@ -92,8 +94,55 @@ public class CaseTypeUtil {
         return rv;
     }
 
-    public static boolean approvalSchemaExists(CaseType aCase){
-        return aCase != null && aCase.getApprovalContext() != null && aCase.getApprovalContext().getApprovalSchema() != null
+    public static boolean approvalSchemaExists(CaseType aCase) {
+        return aCase != null
+                && aCase.getApprovalContext() != null
+                && aCase.getApprovalContext().getApprovalSchema() != null
                 && !aCase.getApprovalContext().getApprovalSchema().asPrismContainerValue().isEmpty();
+    }
+
+    public static WorkItemId getId(CaseWorkItemType workItem) {
+        return WorkItemId.of(workItem);
+    }
+
+    public static CaseWorkItemType getWorkItem(CaseType aCase, long id) {
+        for (CaseWorkItemType workItem : aCase.getWorkItem()) {
+            if (workItem.getId() != null && workItem.getId() == id) {
+                return workItem;
+            }
+        }
+        return null;
+    }
+
+    public static boolean isCaseWorkItemNotClosed(CaseWorkItemType workItem) {
+        return workItem != null && workItem.getCloseTimestamp() == null;
+    }
+
+    public static boolean isCaseWorkItemClosed(CaseWorkItemType workItem) {
+        return workItem != null && workItem.getCloseTimestamp() != null;
+    }
+
+    public static boolean isWorkItemClaimable(CaseWorkItemType workItem) {
+        return workItem != null
+                && (workItem.getOriginalAssigneeRef() == null || StringUtils.isEmpty(workItem.getOriginalAssigneeRef().getOid()))
+                && !doesAssigneeExist(workItem) && CollectionUtils.isNotEmpty(workItem.getCandidateRef());
+    }
+
+    public static boolean doesAssigneeExist(CaseWorkItemType workItem) {
+        if (workItem == null || CollectionUtils.isEmpty(workItem.getAssigneeRef())) {
+            return false;
+        }
+        for (ObjectReferenceType assignee : workItem.getAssigneeRef()) {
+            if (StringUtils.isNotEmpty(assignee.getOid())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static List<CaseWorkItemType> getWorkItemsForStage(CaseType aCase, int stageNumber) {
+        return aCase.getWorkItem().stream()
+                .filter(wi -> Objects.equals(wi.getStageNumber(), stageNumber))
+                .collect(Collectors.toList());
     }
 }

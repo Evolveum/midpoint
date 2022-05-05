@@ -6,18 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.TaskInfoBoxPanel;
-import com.evolveum.midpoint.web.page.admin.server.dto.ActivitiesItemProcessingDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.ActivityInfoBoxDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.ActivityItemProcessingDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.ProcessedItemDto;
-import com.evolveum.wicket.chartjs.ChartJsPanel;
-import com.evolveum.wicket.chartjs.PieChartConfiguration;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -30,8 +20,18 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.TaskInfoBoxPanel;
+import com.evolveum.midpoint.web.page.admin.server.dto.ActivitiesItemProcessingDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.ActivityInfoBoxDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.ActivityItemProcessingDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.ProcessedItemDto;
+import com.evolveum.wicket.chartjs.ChartJsPanel;
+import com.evolveum.wicket.chartjs.PieChartConfiguration;
 
 /**
  * Shows "item processing" statistics for a collection of activities.

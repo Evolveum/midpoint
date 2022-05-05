@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-20222 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,9 +18,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- *
  * @author Radovan Semancik
- *
  */
 public class DerbyController {
 
@@ -32,27 +30,22 @@ public class DerbyController {
     public static final String COLUMN_CHANGELOG = "changelog";
 
     private NetworkServerControl server;
-    private String listenHostname;
-    private InetAddress listenAddress;
-    private int listenPort;
+    private final String listenHostname;
+    private final int listenPort;
     private String jdbcUrl;
-    private String dbName;
-    private String username = "midpoint";
-    private String password = "secret";
+    private final String dbName;
+    private final String username = "midpoint";
+    private final String password = "secret";
 
     private static final Trace LOGGER = TraceManager.getTrace(DerbyController.class);
 
     public DerbyController() {
-        super();
-        listenHostname = "localhost";
-        this.listenPort = DEFAULT_LISTEN_PORT;
-        dbName = "target/derbyMidPointTest";
+        this("target/derbyMidPointTest", "localhost", DEFAULT_LISTEN_PORT);
     }
 
-    public DerbyController(String dbName, String listenHostname, int listentPort) {
-        super();
+    public DerbyController(String dbName, String listenHostname, int listenPort) {
         this.listenHostname = listenHostname;
-        this.listenPort = listentPort;
+        this.listenPort = listenPort;
         this.dbName = dbName;
     }
 
@@ -67,7 +60,6 @@ public class DerbyController {
     public String getDbName() {
         return dbName;
     }
-
 
     public String getUsername() {
         return username;
@@ -95,18 +87,18 @@ public class DerbyController {
             // Ignore. The table may not exist
         }
         stmt.execute("create table users(" +
-                COLUMN_LOGIN + " varchar(50),"+
-                COLUMN_PASSWORD + " varchar(50), "+
-                COLUMN_FULL_NAME + " varchar(51), "+
+                COLUMN_LOGIN + " varchar(50)," +
+                COLUMN_PASSWORD + " varchar(50), " +
+                COLUMN_FULL_NAME + " varchar(51), " +
                 COLUMN_CHANGELOG + " int)");
         //stmt.execute("insert into account values ('1','1','value1',3)");
         conn.commit();
     }
 
     public void start() throws Exception {
-        LOGGER.info("Starting Derby embedded network server "+listenHostname+":"+ listenPort +", database "+dbName);
-        listenAddress = InetAddress.getByName(listenHostname);
-        jdbcUrl = "jdbc:derby:"+dbName+";create=true;user="+username+";password="+password;
+        LOGGER.info("Starting Derby embedded network server " + listenHostname + ":" + listenPort + ", database " + dbName);
+        InetAddress listenAddress = InetAddress.getByName(listenHostname);
+        jdbcUrl = "jdbc:derby:" + dbName + ";create=true;user=" + username + ";password=" + password;
         server = new NetworkServerControl(listenAddress, listenPort);
         System.setProperty("derby.stream.error.file", "target/derby.log");
         server.start(null);
@@ -126,13 +118,4 @@ public class DerbyController {
         LOGGER.info("Stopping Derby embedded network server");
         server.shutdown();
     }
-
-    public Statement getExecutedStatementWhereLoginName(String loginName) throws SQLException {
-        Connection conn = getConnection();
-        // Check if it empty
-        Statement stmt = conn.createStatement();
-        stmt.execute("select * from users where "+COLUMN_LOGIN+"='"+loginName+"'");
-        return stmt;
-    }
-
 }

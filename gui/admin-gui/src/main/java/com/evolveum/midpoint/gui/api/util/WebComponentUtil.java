@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.util;
 
-import static com.evolveum.midpoint.gui.api.page.PageBase.createEnumResourceKey;
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.toModelExecutionOptionsBean;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPhase;
@@ -29,19 +28,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype;
-import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
-import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
-import com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate;
-import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
-import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
-import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
-
-import com.evolveum.midpoint.web.component.data.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.LocaleUtils;
@@ -108,11 +94,21 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
 import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplates;
+import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
+import com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
+import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageShadow;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
+import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.gui.impl.page.self.PageOrgSelfProfile;
 import com.evolveum.midpoint.gui.impl.page.self.PageRoleSelfProfile;
 import com.evolveum.midpoint.gui.impl.page.self.PageServiceSelfProfile;
@@ -149,7 +145,10 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.schema.util.cases.*;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
@@ -167,6 +166,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -1143,8 +1146,8 @@ public final class WebComponentUtil {
         };
     }
 
-    public static <E extends Enum> IChoiceRenderer<E> getEnumChoiceRenderer(Component component) {
-        return new IChoiceRenderer<E>() {
+    public static <E extends Enum<E>> IChoiceRenderer<E> getEnumChoiceRenderer(Component component) {
+        return new IChoiceRenderer<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -3929,7 +3932,7 @@ public final class WebComponentUtil {
             return builder.build();
         }
 
-        if (activationNotSupported(resource) ) {
+        if (activationNotSupported(resource)) {
             appendNotSupportedActivation(title, isColumn, pageBase, builder);
             return builder.build();
         }
@@ -4074,7 +4077,6 @@ public final class WebComponentUtil {
         }
         return null;
     }
-
 
     private static void appendUndefinedIcon(CompositedIconBuilder builder) {
         appendIcon(builder, "fa fa-question " + GuiStyleConstants.RED_COLOR, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
@@ -4648,10 +4650,10 @@ public final class WebComponentUtil {
         if (workItem == null) {
             return;
         }
-        CaseType parentCase = CaseWorkItemUtil.getCase(workItem);
+        CaseType parentCase = CaseTypeUtil.getCase(workItem);
         AbstractWorkItemOutputType output = workItem.getOutput();
         if (output == null) {
-            output = new AbstractWorkItemOutputType(pageBase.getPrismContext());
+            output = new AbstractWorkItemOutputType();
         }
         output.setOutcome(ApprovalUtils.toUri(approved));
         if (WorkItemTypeUtil.getComment(workItem) != null) {
@@ -4674,8 +4676,8 @@ public final class WebComponentUtil {
             Task task = pageBase.createSimpleTask(result.getOperation());
             try {
                 try {
-                    ObjectDelta additionalDelta = null;
-                    if (formPanel != null && formPanel instanceof DynamicFormPanel) {
+                    ObjectDelta<?> additionalDelta = null;
+                    if (formPanel instanceof DynamicFormPanel) {
                         if (approved) {
                             boolean requiredFieldsPresent = ((DynamicFormPanel<?>) formPanel).checkRequiredFields(pageBase);
                             if (!requiredFieldsPresent) {

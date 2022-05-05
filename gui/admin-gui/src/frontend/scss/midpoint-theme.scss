@@ -547,12 +547,10 @@ th.cog, td.cog {
 	}
 }
 
-// Admin dashboard
-
-.dashboard-info-box {
-	> div > .info-box {
-		cursor: pointer;
-	}
+.info-box {
+  &.info-box-link {
+    cursor: pointer;
+  }
 }
 
 // capability buttons in resource details page
@@ -1404,13 +1402,6 @@ th.countLabel{
 	}
 }
 
-.dashboard-widgets{
-	display: flex;
-	flex-flow: row wrap;
-	display: -webkit-flex;
-    -webkit-flex-flow: row wrap;
-}
-
 .dashboard-info-box > .small-box {
 	height:100%;
 }
@@ -1820,23 +1811,23 @@ td .prism-property-value {
 
 fieldset.objectButtons {
 
-  //border-right: 1px solid $legend-border-color;
-  padding: revert;
+  border-right: 1px solid $legend-border-color;
+  padding: 0;
+  padding-right: 2rem;
   width: max-content;
-  margin-right: 10px;
+  margin-right: 2rem;
 
   > legend {
     font-size: 13px;
     border-bottom: none;
-    margin-bottom: auto;
+    margin-bottom: 0.25rem;
     width: auto;
     //color: $legend-color;
   }
-}
 
-.operationalButtonLabel {
-  font-size: 13px;
-  margin-left:5px;
+  &:last-of-type {
+    border-right: 0;
+  }
 }
 
 .execute-options {
@@ -1969,4 +1960,14 @@ span.yui-skin-sam {
 
 .popover {
   max-width: unset;
+}
+
+.info-box.info-box-resource {
+
+  height: 100%;
+  margin-bottom: 0;
+
+  &> .info-box-content {
+    justify-content: start !important;
+  }
 }
