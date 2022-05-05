@@ -25,7 +25,6 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWith
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
@@ -109,7 +108,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         actionsPanel.setOutputMarkupId(true);
         actionsPanel.add(new VisibleBehaviour(() -> {
             CaseWorkItemType workItemSelected = getDetailsPanelItemsList().size() > 0 ? getDetailsPanelItemsList().get(0).getRealValue() : null;
-            return CaseWorkItemUtil.isCaseWorkItemNotClosed(workItemSelected);
+            return CaseTypeUtil.isCaseWorkItemNotClosed(workItemSelected);
         }));
         getDetailsPanelContainer().add(actionsPanel);
     }
