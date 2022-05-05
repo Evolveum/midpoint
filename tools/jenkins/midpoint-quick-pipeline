@@ -4,7 +4,6 @@ podTemplate(
         // No need for secret volume, no mvn deploy done here.
         workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
         containers: [
-        /*
                 containerTemplate(name: 'jnlp',
                         image: 'jenkins/inbound-agent:4.10-3-alpine',
                         runAsUser: '0',
@@ -12,7 +11,6 @@ podTemplate(
                         resourceLimitMemory: '1Gi',
                         resourceRequestCpu: '900m',
                         resourceRequestMemory: '1Gi'),
-                        */
                 containerTemplate(name: 'maven',
                         image: 'maven:3.8.5-openjdk-11-slim',
                         ttyEnabled: true,
@@ -22,14 +20,11 @@ podTemplate(
         ]
 ) {
     node(POD_LABEL) {
-        /* TODO experimentally disabled, Jenkins should still do it on its own
         stage("checkout") {
             git branch: "${BRANCH}",
                     url: 'https://github.com/Evolveum/midpoint.git'
             echo "git checkout done..."
         }
-        */
-
         stage("build") {
             container('maven') {
                 sh """#!/bin/bash
