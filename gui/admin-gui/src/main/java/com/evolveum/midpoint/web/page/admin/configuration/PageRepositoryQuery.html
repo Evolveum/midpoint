@@ -10,41 +10,56 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm" class="form-inline" role="form">
-
         <div class="container-fluid">
             <div class="row">
-                <div class="col-md-6">
-                    <h3><div wicket:id="repositoryQueryLabel"/></h3>
-                    <div class="form-group" style="margin-bottom: 5px; width:100%">
-                        <label for="objectType" class="col-xs-3"><wicket:message key="PageRepositoryQuery.objectType"/></label>
-                        <div id="objectType" wicket:id="objectType"></div>
-                    </div>
-                    <div class="form-group" wicket:id="distinct" style="margin-bottom: 15px; width:100%"/>
-                    <div class="form-group" style="margin-bottom: 10px">
-                        <div class="col-lg-12" wicket:id="viewButtonPanel" ></div>
-                    </div>
-                    <textarea wicket:id="editorMidPoint" style="margin-bottom: 10px"></textarea>
-                    <div class="form-group" style="margin-top: 10px">
-                        <label for="querySample" class="small"><wicket:message key="PageRepositoryQuery.chooseSample"/></label>
-                        <div id="querySample" wicket:id="querySample"/>
-                    </div>
-                    <p class="small" style="margin-top: 5px"><div wicket:id="queryVsFilterNote"/></p>
-                    <div class="main-button-bar" wicket:id="midPointQueryButtonBar">
-                        <a class="btn btn-primary" wicket:id="executeMidPoint"/>
-                        <a class="btn btn-default" wicket:id="compileMidPoint"/>
-                        <a class="btn btn-success" wicket:id="useInObjectList"/>
+                <div class="col-12 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title" wicket:id="repositoryQueryLabel"/>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="d-flex flex-wrap mx-3 my-2">
+                                <div class="mr-2 form-group">
+                                    <label for="objectType" class="mr-2 col-form-label"><wicket:message key="PageRepositoryQuery.objectType"/></label>
+                                    <div id="objectType" wicket:id="objectType"/>
+                                </div>
+                                <div class="mr-2 flex-grow-1 form-group" wicket:id="distinct"/>
+                                <div class="form-group row">
+                                    <div class="col" wicket:id="viewButtonPanel"/>
+                                </div>
+                            </div>
+
+                            <textarea class="border-top border-bottom" wicket:id="editorMidPoint"></textarea>
+
+                            <div class="mx-3 my-2 form-group">
+                                <label for="querySample" class="mr-2 col-form-label"><wicket:message key="PageRepositoryQuery.chooseSample"/></label>
+                                <div id="querySample" wicket:id="querySample"/>
+                            </div>
+
+                            <p class="mx-3 my-2 small" wicket:id="queryVsFilterNote"/>
+
+                            <div class="mx-3 mb-3 mt-2 d-flex" wicket:id="midPointQueryButtonBar">
+                                <a class="mr-1 btn btn-primary" wicket:id="executeMidPoint"/>
+                                <a class="mr-1 btn btn-default" wicket:id="compileMidPoint"/>
+                                <a class="btn btn-success" wicket:id="useInObjectList"/>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <h3><div wicket:id="queryLabel"/></h3>
-                    <textarea wicket:id="queryEditor"></textarea>
-                    <h4>
-                        <wicket:message key="PageRepositoryQuery.hibernateParameters"/>
-                    </h4>
-                    <textarea wicket:id="parameters"></textarea>
+                <div class="col-12 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title" wicket:id="queryLabel"/>
+                        </div>
+                        <div class="card-body p-0">
+                            <textarea class="border-bottom" wicket:id="queryEditor"></textarea>
+
+                            <h5 class="m-3"><wicket:message key="PageRepositoryQuery.hibernateParameters"/></h5>
+                            <textarea class="border-top" wicket:id="parameters"></textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
-
             <div class="row">
                 <div class="col-md-12">
                     <h3 wicket:id="resultLabel"/>
@@ -54,7 +69,6 @@
             </div>
         </div>
     </form>
-
 </wicket:extend>
 </body>
 </html>
