@@ -395,6 +395,9 @@ public class SearchFactory {
             viewListItem.setVisible(CollectionUtils.isNotEmpty(views));
             searchConfWrapper.getItemsList().add(viewListItem);
         }
+        searchConfWrapper.getItemsList().sort((i1, i2) -> String.CASE_INSENSITIVE_ORDER.compare(
+                StringUtils.isEmpty(i1.getName()) ? "" : PageBase.createStringResourceStatic(i1.getName()).getString(),
+                StringUtils.isEmpty(i2.getName()) ? "" : PageBase.createStringResourceStatic(i2.getName()).getString()));
 
         Search<C> search = new Search<>(searchConfWrapper);
         QName typeQname = WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfigurationWrapper.getTypeClass());
