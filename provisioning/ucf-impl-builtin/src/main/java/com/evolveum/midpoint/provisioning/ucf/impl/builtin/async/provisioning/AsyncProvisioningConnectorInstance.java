@@ -8,9 +8,11 @@ package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningRequest;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -163,6 +165,16 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't test async provisioning targets: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void testPartialConfiguration(OperationResult parentResult) {
+        // no-op
+    }
+
+    @Override
+    public <T> Collection<PrismProperty<T>> discoverConfiguration(OperationResult parentResult) {
+        return Collections.emptySet();
     }
 
     @Override

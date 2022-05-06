@@ -757,6 +757,21 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return connectors.get(0);
     }
 
+    protected PrismObject<ConnectorType> findResourceByName(String resourceName, OperationResult result)
+            throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(ResourceType.class)
+                .item(ResourceType.F_NAME).eq(resourceName)
+                .build();
+        List<PrismObject<ConnectorType>> resources = repositoryService.searchObjects(ConnectorType.class, query, null, result);
+        if (resources.isEmpty()) {
+            return null;
+        }
+        if (resources.size() > 1) {
+            throw new IllegalStateException("Cannot find resource with name " + resourceName + ", got " + resources);
+        }
+        return resources.get(0);
+    }
+
     protected PrismObject<ConnectorType> findConnectorByTypeAndVersion(String connectorType, String connectorVersion, OperationResult result)
             throws SchemaException {
         ObjectQuery query = prismContext.queryFor(ConnectorType.class)

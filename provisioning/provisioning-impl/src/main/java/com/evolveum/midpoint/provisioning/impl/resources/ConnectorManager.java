@@ -348,7 +348,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         Object userDataEntry = connector.getUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA);
         if (userDataEntry == null) {
             InternalMonitor.recordCount(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
-            PrismSchema connectorSchema = ConnectorTypeUtil.parseConnectorSchema(connectorBean, prismContext);
+            PrismSchema connectorSchema = ConnectorTypeUtil.parseConnectorSchema(connectorBean);
             if (connectorSchema == null) {
                 throw new SchemaException("No connector schema in "+connectorBean);
             }

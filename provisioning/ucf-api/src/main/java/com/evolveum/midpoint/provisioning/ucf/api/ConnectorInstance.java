@@ -8,6 +8,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import javax.xml.namespace.QName;
@@ -322,6 +324,23 @@ public interface ConnectorInstance {
 
     // Maybe this should be moved to ConnectorManager? In that way it can also test connector instantiation.
     void test(OperationResult parentResult);
+
+    /**
+     * Test the very minimal configuration set, which is usually just a set of mandatory configuration properties.
+     * For most connectors this will be probably just a hostname, username and password.
+     * For example, the test performs a simple connection and authentication to the resource.
+     */
+    void testPartialConfiguration(OperationResult parentResult);
+
+    /**
+     * Discovers additional configuration properties.
+     * The connector is supposed to use minimal configuration to connect to the resource,
+     * then use the connection to discover additional configuration properties.
+     * Discovered configuration properties are returned from this method (if any).
+     *
+     * @return suggested attributes as prism properties
+     */
+    <T> Collection<PrismProperty<T>> discoverConfiguration(OperationResult parentResult);
 
     /**
      * Dispose of the connector instance. Dispose is a brutal operation. Once the instance is disposed of, it cannot execute

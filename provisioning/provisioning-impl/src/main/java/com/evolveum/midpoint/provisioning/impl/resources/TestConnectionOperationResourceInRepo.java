@@ -38,34 +38,32 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Responsible for testing the resource which isn't in repo (doesn't contain OID).
+ * Responsible for testing the resource, which is from repo (contains OID).
  *
  * To be used only from the local package only. All external access should be through {@link ResourceManager}.
  */
-class TestConnectionOperation extends AbstractTestConnectionOperation {
+class TestConnectionOperationResourceInRepo extends AbstractTestConnectionOperation {
 
-    TestConnectionOperation(@NotNull PrismObject<ResourceType> resource, @NotNull Task task, @NotNull CommonBeans beans) {
+    TestConnectionOperationResourceInRepo(@NotNull PrismObject<ResourceType> resource, @NotNull Task task, @NotNull CommonBeans beans) {
         super(resource, task, beans);
     }
 
     @Override
-    protected PrismObject<ResourceType> getResourceToComplete(OperationResult schemaResult) {
-        return this.resource;
+    protected PrismObject<ResourceType> getResourceToComplete(OperationResult schemaResult) throws SchemaException, ObjectNotFoundException {
+        return beans.cacheRepositoryService.getObject(
+                ResourceType.class, resource.getOid(), null, schemaResult);
     }
 
     @Override
     protected String createOperationDescription() {
-        PolyString resourceName = resource.getName();
-        if (resourceName != null) {
-            return "test resource " + resourceName + " connection";
-        } else {
-            return "test resource connection, resource:" + resource;
-        }
+        String resourceOid = resource.getOid();
+        return "test resource " + resourceOid + " connection";
     }
 
     @Override
-    protected void setResourceAvailabilityStatus(AvailabilityStatusType status, String statusChangeReason, OperationResult result) {
-        beans.resourceManager.modifyResourceAvailabilityStatus(resource, status, statusChangeReason);
+    protected void setResourceAvailabilityStatus(AvailabilityStatusType status, String statusChangeReason, OperationResult result)
+            throws ObjectNotFoundException {
+        beans.resourceManager.modifyResourceAvailabilityStatus(
+                resource.getOid(), status, statusChangeReason, task, result, false);
     }
-
 }

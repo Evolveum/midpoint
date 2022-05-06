@@ -8,9 +8,11 @@ package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.task.api.*;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -127,6 +129,16 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't test async update sources: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void testPartialConfiguration(OperationResult parentResult) {
+        // no-op
+    }
+
+    @Override
+    public <T> Collection<PrismProperty<T>> discoverConfiguration(OperationResult parentResult) {
+        return Collections.emptySet();
     }
 
     @Override

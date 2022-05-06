@@ -1731,6 +1731,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     @Override
     public void test(OperationResult parentResult) {
+        testConnection(false, parentResult);
+    }
+
+    @Override
+    public void testPartialConfiguration(OperationResult parentResult) {
+        testConnection(true, parentResult);
+    }
+
+    private void testConnection(boolean isPartialTest, OperationResult parentResult) {
 
         OperationResult connectionResult = parentResult
                 .createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
@@ -1738,8 +1747,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         connectionResult.addContext("connector", connectorType);
 
         try {
-            InternalMonitor.recordConnectorOperation("test");
-            connIdConnectorFacade.test();
+            if (isPartialTest) {
+                InternalMonitor.recordConnectorOperation("testPartialConfiguration");
+                connIdConnectorFacade.testPartialConfiguration();
+            } else {
+                InternalMonitor.recordConnectorOperation("test");
+                connIdConnectorFacade.test();
+            }
             connectionResult.recordSuccess();
         } catch (UnsupportedOperationException ex) {
             // Connector does not support test connection.
@@ -1749,6 +1763,39 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         } catch (Throwable icfEx) {
             Throwable midPointEx = processConnIdException(icfEx, this, connectionResult);
             connectionResult.recordFatalError(midPointEx);
+        }
+    }
+
+    @Override
+    public <T> Collection<PrismProperty<T>> discoverConfiguration(OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(ConnectorFacade.class.getName() + ".discoverConfiguration");
+        result.addContext("connector", connectorType);
+
+        InternalMonitor.recordConnectorOperation("discoverConfiguration");
+
+        try {
+            Map<String, SuggestedValues> suggestions = connIdConnectorFacade.discoverConfiguration();
+
+            ConnIdConfigurationTransformer configTransformer = new ConnIdConfigurationTransformer(connectorType, connectorInfo, protector);
+            // Transform suggested configuration from the ConnId connector configuration to prism properties
+            Collection<PrismProperty<T>> convertedSuggestions = configTransformer.transformSuggestedConfiguration(suggestions);
+            result.recordSuccess();
+            return convertedSuggestions;
+        } catch (UnsupportedOperationException ex) {
+            // Connector does not support discover configuration.
+            result.recordStatus(OperationResultStatus.NOT_APPLICABLE,
+                    "Operation not supported by the connector", ex);
+            // Do not rethrow. Recording the status is just OK.
+            return Collections.emptySet();
+        } catch (Throwable icfEx) {
+            Throwable midPointEx = processConnIdException(icfEx, this, result);
+            result.recordFatalError(midPointEx);
+            //TODO
+            try {
+                throw midPointEx;
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

@@ -532,7 +532,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     }
 
     @Test
-    public void test028Capabilities() throws Exception {
+    public void test025Capabilities() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = createOperationResult();
@@ -663,7 +663,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
      * Check if the cached native capabilities were properly stored in the repo
      */
     @Test
-    public void test029CapabilitiesRepo() throws Exception {
+    public void test026CapabilitiesRepo() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
@@ -721,6 +721,148 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertSteadyResource();
         dummyResource.assertConnections(1);
         assertDummyConnectorInstances(1);
+    }
+
+    @Test
+    public void test028PartialConfigurationSuccess() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Some connector initialization and other things might happen in previous tests.
+        // The monitor is static, not part of spring context, it will not be cleared
+
+        rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
+        rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
+        rememberResourceCacheStats();
+
+        // Check that there is no schema before test (pre-condition)
+        PrismObject<ResourceType> resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+        ResourceType resource = new ResourceType()
+                .name("newResource")
+                .connectorRef(resourceBefore.asObjectable().getConnectorRef())
+                .connectorConfiguration(resourceBefore.asObjectable().getConnectorConfiguration());
+
+        assertNotNull("No connector ref", resource.getConnectorRef());
+        assertNotNull("No connector ref OID", resource.getConnectorRef().getOid());
+        ConnectorType connector = repositoryService.getObject(ConnectorType.class,
+                resource.getConnectorRef().getOid(), null, result).asObjectable();
+        assertNotNull(connector);
+        IntegrationTestTools.assertNoSchema("Found schema before test connection. Bad test setup?", resource);
+
+        // WHEN
+        OperationResult testResult = provisioningService.testPartialConfigurationResource(resource.asPrismObject(), task);
+
+        // THEN
+        display("Test result", testResult);
+        OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
+        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
+        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
+        assertSuccess(connectorResult);
+        assertSuccess(testResult);
+
+        assertResourceCacheMissesIncrement(0);
+
+        PrismObject<ResourceType> resourceAfter = resource.asPrismObject();
+        XmlSchemaType xmlSchemaTypeAfter = resourceAfter.asObjectable().getSchema();
+        assertNull("Resource contains schema after partial configuration test", xmlSchemaTypeAfter);
+        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceAfter);
+        assertNull("Resource contains schema after partial configuration test", resourceXsdSchemaElementAfter);
+        assertNull("Resource contains capabilities after partial configuration test", resource.getCapabilities());
+
+        IntegrationTestTools.displayXml("Resource XML", resourceAfter);
+
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        // One increment for availability status, the other for schema
+
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+
+        assertNull("Resource was saved to repo, during partial configuration test", findResourceByName("newResource", testResult));
+    }
+
+    @Test
+    public void test029PartialConfigurationFail() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Some connector initialization and other things might happen in previous tests.
+        // The monitor is static, not part of spring context, it will not be cleared
+
+        rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
+        rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
+        rememberResourceCacheStats();
+
+        // Check that there is no schema before test (pre-condition)
+        PrismObject<ResourceType> resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+        ResourceType resource = new ResourceType()
+                .name("newResourceFail")
+                .connectorRef(resourceBefore.asObjectable().getConnectorRef())
+                .connectorConfiguration(resourceBefore.asObjectable().getConnectorConfiguration());
+
+        PrismProperty<Object> instanceId = resource.asPrismObject().findProperty(
+                ItemPath.create(
+                        ResourceType.F_CONNECTOR_CONFIGURATION,
+                        SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME,
+                        "instanceId"));
+        @NotNull PrismContainerValue<Containerable> confPropertiesContainer = resource.asPrismObject().findContainer(
+                ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
+                        SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME)).getValue();
+        confPropertiesContainer.remove(instanceId);
+
+        assertNotNull("No connector ref", resource.getConnectorRef());
+        assertNotNull("No connector ref OID", resource.getConnectorRef().getOid());
+        ConnectorType connector = repositoryService.getObject(ConnectorType.class,
+                resource.getConnectorRef().getOid(), null, result).asObjectable();
+        assertNotNull(connector);
+        IntegrationTestTools.assertNoSchema("Found schema before test connection. Bad test setup?", resource);
+
+        // WHEN
+        OperationResult testResult = provisioningService.testPartialConfigurationResource(resource.asPrismObject(), task);
+
+        // THEN
+        display("Test result", testResult);
+        OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
+        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
+        assertTestResourceFailure(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
+        assertFailure(connectorResult);
+        assertFailure(testResult);
+
+        PrismObject<ResourceType> resourceRepoAfter = resource.asPrismObject();
+        XmlSchemaType xmlSchemaTypeAfter = resourceRepoAfter.asObjectable().getSchema();
+        assertNull("Resource contains schema after partial configuration test", xmlSchemaTypeAfter);
+        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceRepoAfter);
+        assertNull("Resource contains schema after partial configuration test", resourceXsdSchemaElementAfter);
+        assertNull("Resource contains capabilities after partial configuration test", resource.getCapabilities());
+
+        IntegrationTestTools.displayXml("Resource XML", resourceRepoAfter);
+
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        // One increment for availability status, the other for schema
+
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+
+        assertNull("Resource was saved to repo, during partial configuration test", findResourceByName("newResourceFail", testResult));
     }
 
     /**

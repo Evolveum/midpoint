@@ -86,7 +86,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
             ConnectorType connectorType = connector.asObjectable();
             PrismSchema schema;
             try {
-                schema = ConnectorTypeUtil.parseConnectorSchema(connectorType, getPrismContext());
+                schema = ConnectorTypeUtil.parseConnectorSchema(connectorType);
             } catch (SchemaException e) {
                 throw new SystemException("Couldn't parse connector schema: " + e.getMessage(), e);
             }
