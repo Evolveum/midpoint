@@ -728,10 +728,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             ObjectAlreadyExistsException {
         for (int i = 0; i < connectorTypes.size(); i++) {
             String type = connectorTypes.get(i);
-            if (i == 0) {
-                fillInConnectorRef(resource, type, result);
-            } else {
-                fillInAdditionalConnectorRef(resource, i - 1, type, result);
+            if (type != null) {
+                if (i == 0) {
+                    fillInConnectorRef(resource, type, result);
+                } else {
+                    fillInAdditionalConnectorRef(resource, i - 1, type, result);
+                }
             }
         }
         CryptoUtil.encryptValues(protector, resource);
