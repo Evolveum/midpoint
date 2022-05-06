@@ -40,6 +40,15 @@ public class OperationResultAssert extends AbstractAssert<OperationResultAssert,
         return this;
     }
 
+    public OperationResultAssert isHandledError() {
+        isNotNull();
+        actual.computeStatusIfUnknown();
+        if (!actual.isHandledError()) {
+            failWithMessage("Expected operation result to be handled error: %s", actual);
+        }
+        return this;
+    }
+
     public OperationResultAssert isTracedSomewhere() {
         if (findTracedSubresult(actual) == null) {
             failWithMessage("No traced subresult in %s", actual);

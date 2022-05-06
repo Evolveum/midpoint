@@ -25,6 +25,8 @@ export default class MidPointAceEditor {
         $(jqEditor).text($(jqTextArea).val());
         $(jqTextArea).hide();
 
+        $(jqEditor).addClass($(jqTextArea).attr("class"));
+
         ace.require("ace/ext/language_tools");
 
         var editor = ace.edit(editorId,{

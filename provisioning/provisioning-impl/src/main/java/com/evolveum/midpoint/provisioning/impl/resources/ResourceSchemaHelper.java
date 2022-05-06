@@ -66,7 +66,7 @@ class ResourceSchemaHelper {
      * Applies proper definition (connector schema) to the resource.
      */
     void applyConnectorSchemasToResource(PrismObject<ResourceType> resource, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
         checkMutable(resource);
         PrismObjectDefinition<ResourceType> newResourceDefinition = resource.getDefinition().clone();
         for (ConnectorSpec connectorSpec : resourceManager.getAllConnectorSpecs(resource)) {
@@ -81,64 +81,30 @@ class ResourceSchemaHelper {
     }
 
     /**
-     * Apply proper definition (connector schema) to the resource.
+     * Applies proper definition (connector schema) to the resource.
+     *
+     * !!! Also evaluates expressions in configuration properties. !!!
      */
-    void applyConnectorSchemaToResource(ConnectorSpec connectorSpec, PrismObjectDefinition<ResourceType> resourceDefinition,
-            PrismObject<ResourceType> resource, Task task, OperationResult result)
+    void applyConnectorSchemaToResource(
+            ConnectorSpec connectorSpec,
+            PrismObjectDefinition<ResourceType> resourceDefinition,
+            PrismObject<ResourceType> resource,
+            Task task,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        ConnectorType connectorType = connectorManager.getConnector(connectorSpec, result);
-        PrismSchema connectorSchema = connectorManager.getAttachedConnectorSchema(connectorType);
-        PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = ConnectorTypeUtil
-                .findConfigurationContainerDefinition(connectorType, connectorSchema);
-        if (configurationContainerDefinition == null) {
-            throw new SchemaException("No configuration container definition in schema of " + connectorType);
-        }
+        var connectorWithSchema = connectorManager.getConnectorWithSchema(connectorSpec, result);
+        PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition =
+                connectorWithSchema.getConfigurationContainerDefinition().clone();
 
-        configurationContainerDefinition = configurationContainerDefinition.clone();
         PrismContainer<ConnectorConfigurationType> configurationContainer = connectorSpec.getConnectorConfiguration();
         // We want element name, minOccurs/maxOccurs and similar definition to be taken from the original, not the schema
         // the element is global in the connector schema. therefore it does not have correct maxOccurs
         if (configurationContainer != null) {
             configurationContainerDefinition.adoptElementDefinitionFrom(configurationContainer.getDefinition());
             configurationContainer.applyDefinition(configurationContainerDefinition, true);
-
-            try {
-                //noinspection unchecked
-                configurationContainer.accept(visitable -> {
-                    if ((visitable instanceof PrismProperty<?>)) {
-                        try {
-                            evaluateExpression((PrismProperty<?>)visitable, resource, task, result);
-                        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-                            throw new TunnelException(e);
-                        }
-                    }
-                    // TODO treat configuration items that are containers themselves
-                });
-            } catch (TunnelException te) {
-                Throwable e = te.getCause();
-                if (e instanceof SchemaException) {
-                    throw (SchemaException)e;
-                } else if (e instanceof ObjectNotFoundException) {
-                    throw (ObjectNotFoundException)e;
-                } else if (e instanceof ExpressionEvaluationException) {
-                    throw (ExpressionEvaluationException)e;
-                } else if (e instanceof CommunicationException) {
-                    throw (CommunicationException)e;
-                } else if (e instanceof ConfigurationException) {
-                    throw (ConfigurationException)e;
-                } else if (e instanceof SecurityViolationException) {
-                    throw (SecurityViolationException)e;
-                } else if (e instanceof RuntimeException) {
-                    throw (RuntimeException)e;
-                } else if (e instanceof Error) {
-                    throw (Error)e;
-                } else {
-                    throw new SystemException(e);
-                }
-            }
-
+            evaluateExpressions(configurationContainer, resource, task, result);
         } else {
             configurationContainerDefinition.adoptElementDefinitionFrom(
                     resourceDefinition.findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION));
@@ -151,6 +117,49 @@ class ResourceSchemaHelper {
             // different definition for additionalConnector[2]/connectorConfiguration in the object definition.
             // The way to go is to set up definitions on the container level.
             resourceDefinition.replaceDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefinition);
+        }
+    }
+
+    private void evaluateExpressions(
+            PrismContainer<ConnectorConfigurationType> configurationContainer,
+            PrismObject<ResourceType> resource,
+            Task task,
+            OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+        try {
+            //noinspection unchecked
+            configurationContainer.accept(visitable -> {
+                if ((visitable instanceof PrismProperty<?>)) {
+                    try {
+                        evaluateExpression((PrismProperty<?>)visitable, resource, task, result);
+                    } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
+                            ConfigurationException | SecurityViolationException e) {
+                        throw new TunnelException(e);
+                    }
+                }
+                // TODO treat configuration items that are containers themselves
+            });
+        } catch (TunnelException te) {
+            Throwable e = te.getCause();
+            if (e instanceof SchemaException) {
+                throw (SchemaException)e;
+            } else if (e instanceof ObjectNotFoundException) {
+                throw (ObjectNotFoundException)e;
+            } else if (e instanceof ExpressionEvaluationException) {
+                throw (ExpressionEvaluationException)e;
+            } else if (e instanceof CommunicationException) {
+                throw (CommunicationException)e;
+            } else if (e instanceof ConfigurationException) {
+                throw (ConfigurationException)e;
+            } else if (e instanceof SecurityViolationException) {
+                throw (SecurityViolationException)e;
+            } else if (e instanceof RuntimeException) {
+                throw (RuntimeException)e;
+            } else if (e instanceof Error) {
+                throw (Error)e;
+            } else {
+                throw new SystemException(e);
+            }
         }
     }
 

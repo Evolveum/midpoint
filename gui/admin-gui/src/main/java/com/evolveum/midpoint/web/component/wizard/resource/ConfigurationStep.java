@@ -119,7 +119,8 @@ public class ConfigurationStep extends WizardStep {
             } catch (SchemaException e) {
                 throw new SystemException("Couldn't parse connector schema: " + e.getMessage(), e);
             }
-            PrismContainerDefinition<ConnectorConfigurationType> definition = ConnectorTypeUtil.findConfigurationContainerDefinition(connectorType, schema);
+            PrismContainerDefinition<ConnectorConfigurationType> definition =
+                    ConnectorTypeUtil.findConfigurationContainerDefinitionRequired(connectorType, schema);
             // Fixing (errorneously) set maxOccurs = unbounded. See MID-2317 and related issues.
             PrismContainerDefinition<ConnectorConfigurationType> definitionFixed = definition.clone();
             definitionFixed.toMutable().setMaxOccurs(1);

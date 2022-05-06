@@ -90,7 +90,7 @@ class ResourceCompletionOperation {
     @NotNull private final Task task;
     @NotNull private final CommonBeans beans;
 
-    @NotNull private final ResourceExpansionOperation expansionOperation;
+    @Nullable private ResourceExpansionOperation expansionOperation;
 
     /**
      * Operation result for the operation itself. It is quite unusual to store the operation result
@@ -114,7 +114,6 @@ class ResourceCompletionOperation {
         this.capabilityMap = capabilityMap;
         this.task = task;
         this.beans = beans;
-        this.expansionOperation = new ResourceExpansionOperation(resource.asObjectable(), beans);
     }
 
     /**
@@ -140,7 +139,12 @@ class ResourceCompletionOperation {
 
         result = parentResult.createMinorSubresult(OP_COMPLETE_RESOURCE);
         try {
-            expansionOperation.execute(result);
+            if (resource.asObjectable().getSuper() != null) {
+                expansionOperation = new ResourceExpansionOperation(resource.asObjectable(), beans);
+                expansionOperation.execute(result);
+            } else {
+                // We spare some CPU cycles by not instantiating the expansion operation object.
+            }
             applyConnectorSchema();
             PrismObject<ResourceType> reloaded = completeAndReload();
             parseSchema(reloaded);
@@ -170,7 +174,8 @@ class ResourceCompletionOperation {
     }
 
     private @NotNull PrismObject<ResourceType> completeAndReload()
-            throws StopException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+            throws StopException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            ConfigurationException {
 
         if (isComplete(resource)) {
             LOGGER.trace("The resource is complete.");
@@ -500,7 +505,8 @@ class ResourceCompletionOperation {
 
     /** Returns OIDs of objects that are ancestors to the current resource. Used e.g. for cache invalidation. */
     public @NotNull Collection<String> getAncestorsOids() {
-        return expansionOperation.getAncestorsOids();
+        return expansionOperation != null ?
+                expansionOperation.getAncestorsOids() : List.of();
     }
 
     /** Stopping the evaluation, and returning the {@link #resource}. */

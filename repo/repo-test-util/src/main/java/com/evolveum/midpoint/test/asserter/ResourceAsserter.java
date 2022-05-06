@@ -6,12 +6,15 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 
 import static com.evolveum.midpoint.prism.Containerable.asPrismContainerValue;
 
-import static org.testng.AssertJUnit.assertNull;
+import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -21,13 +24,18 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ConfigurationPropertiesType;
+import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ResultsHandlerConfigurationType;
 
 /**
  * @author Radovan Semancik
  */
+@SuppressWarnings("UnusedReturnValue") // It's often the case for asserters returned.
 public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType, RA> {
 
     public ResourceAsserter(PrismObject<ResourceType> resource) {
@@ -149,5 +157,71 @@ public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType, RA> 
                 new PrismContainerAsserter<>(operationalStateHistory, this, getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public ResourceAsserter<RA> assertNotAbstract() {
+        assertThat(isAbstract())
+                .withFailMessage("Resource is abstract although it should not be")
+                .isFalse();
+        return this;
+    }
+
+    private boolean isAbstract() {
+        return Boolean.TRUE.equals(getObjectable().isAbstract());
+    }
+
+    public PrismContainerValueAsserter<ConfigurationPropertiesType, ResourceAsserter<RA>> configurationProperties()
+            throws ConfigurationException {
+        return configurationProperties(null);
+    }
+
+    /**
+     * Although configuration properties are not part of the static schema, they are a standard part of ConnId
+     * connector configuration. So we allow accessing them directly.
+     */
+    public PrismContainerValueAsserter<ConfigurationPropertiesType, ResourceAsserter<RA>> configurationProperties(
+            @Nullable String connectorName) throws ConfigurationException {
+        PrismContainerValue<ConfigurationPropertiesType> properties =
+                Objects.requireNonNull(
+                        ResourceTypeUtil.getConfigurationProperties(getObjectable(), connectorName),
+                        "no configuration properties");
+        PrismContainerValueAsserter<ConfigurationPropertiesType, ResourceAsserter<RA>> asserter =
+                new PrismContainerValueAsserter<>(properties, this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public PrismContainerValueAsserter<ResultsHandlerConfigurationType, ResourceAsserter<RA>> resultsHandlerConfiguration()
+            throws ConfigurationException {
+        return resultsHandlerConfiguration(null);
+    }
+
+    /**
+     * Similar to {@link #configurationProperties(String)}, results handler configuration is a standard part of ConnId config.
+     */
+    public PrismContainerValueAsserter<ResultsHandlerConfigurationType, ResourceAsserter<RA>> resultsHandlerConfiguration(
+            @Nullable String connectorName) throws ConfigurationException {
+        PrismContainerValue<ResultsHandlerConfigurationType> handlerConfig =
+                Objects.requireNonNull(
+                        ResourceTypeUtil.getResultsHandlerConfiguration(getObjectable(), connectorName),
+                        "no configuration properties");
+        PrismContainerValueAsserter<ResultsHandlerConfigurationType, ResourceAsserter<RA>> asserter =
+                new PrismContainerValueAsserter<>(handlerConfig, this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public ResourceAsserter<RA> assertConnectorRef(ObjectReferenceType expected) {
+        assertThat(getObjectable().getConnectorRef())
+                .as("connectorRef")
+                .isEqualTo(expected);
+        return this;
+    }
+
+    public ResourceAsserter<RA> assertAdditionalConnectorsCount(int expected) {
+        assertThat(getObjectable().getAdditionalConnector())
+                .as("additional connectors configurations")
+                .hasSize(expected);
+        return this;
     }
 }

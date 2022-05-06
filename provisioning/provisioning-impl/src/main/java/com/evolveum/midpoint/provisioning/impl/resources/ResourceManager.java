@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.provisioning.impl.resources;
 
 import static com.evolveum.midpoint.provisioning.impl.resources.ResourceCompletionOperation.*;
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -290,7 +291,7 @@ public class ResourceManager {
     }
 
     public void applyDefinition(PrismObject<ResourceType> resource, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
         schemaHelper.applyConnectorSchemasToResource(resource, task, parentResult);
     }
 
@@ -302,7 +303,7 @@ public class ResourceManager {
      * Applies proper definition (connector schema) to the resource.
      */
     void applyConnectorSchemasToResource(PrismObject<ResourceType> resource, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
         schemaHelper.applyConnectorSchemasToResource(resource, task, result);
     }
 
@@ -352,11 +353,11 @@ public class ResourceManager {
         return statuses;
     }
 
-    List<ConnectorSpec> getAllConnectorSpecs(PrismObject<ResourceType> resource) throws SchemaException {
+    List<ConnectorSpec> getAllConnectorSpecs(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
         List<ConnectorSpec> connectorSpecs = new ArrayList<>();
         connectorSpecs.add(getDefaultConnectorSpec(resource));
-        for (ConnectorInstanceSpecificationType additionalConnectorType: resource.asObjectable().getAdditionalConnector()) {
-            connectorSpecs.add(getConnectorSpec(resource, additionalConnectorType));
+        for (ConnectorInstanceSpecificationType additionalConnector: resource.asObjectable().getAdditionalConnector()) {
+            connectorSpecs.add(getConnectorSpec(resource, additionalConnector));
         }
         return connectorSpecs;
     }
@@ -380,7 +381,7 @@ public class ResourceManager {
     @SuppressWarnings("SameParameterValue")
     @VisibleForTesting
     public <T extends CapabilityType> ConnectorInstance getConfiguredConnectorInstanceFromCache(
-            PrismObject<ResourceType> resource, Class<T> operationCapabilityClass) throws SchemaException {
+            PrismObject<ResourceType> resource, Class<T> operationCapabilityClass) throws SchemaException, ConfigurationException {
         ConnectorSpec connectorSpec = selectConnectorSpec(resource, operationCapabilityClass);
         return connectorSpec != null ? connectorManager.getConfiguredConnectorInstanceFromCache(connectorSpec) : null;
     }
@@ -396,7 +397,7 @@ public class ResourceManager {
     @SuppressWarnings("SameParameterValue")
     private <T extends CapabilityType> ConnectorSpec selectConnectorSpec(
             PrismObject<ResourceType> resource, Map<String,Collection<Object>> capabilityMap, Class<T> capabilityClass)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
         if (capabilityMap == null) {
             return selectConnectorSpec(resource, capabilityClass);
         }
@@ -410,7 +411,7 @@ public class ResourceManager {
     }
 
     private <T extends CapabilityType> ConnectorSpec selectConnectorSpec(
-            PrismObject<ResourceType> resource, Class<T> operationCapabilityClass) throws SchemaException {
+            PrismObject<ResourceType> resource, Class<T> operationCapabilityClass) throws SchemaException, ConfigurationException {
         for (ConnectorInstanceSpecificationType additionalConnectorType: resource.asObjectable().getAdditionalConnector()) {
             if (capabilitiesHelper.supportsCapability(additionalConnectorType, operationCapabilityClass)) {
                 return getConnectorSpec(resource, additionalConnectorType);
@@ -420,33 +421,32 @@ public class ResourceManager {
     }
 
     ConnectorSpec getDefaultConnectorSpec(PrismObject<ResourceType> resource) {
-        PrismContainer<ConnectorConfigurationType> connectorConfiguration =
-                resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         return new ConnectorSpec(
                 resource,
                 null,
                 ResourceTypeUtil.getConnectorOid(resource),
-                connectorConfiguration);
+                resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION));
     }
 
     ConnectorSpec getConnectorSpec(
             PrismObject<ResourceType> resource, ConnectorInstanceSpecificationType additionalConnectorSpecBean)
-            throws SchemaException {
-        if (additionalConnectorSpecBean.getConnectorRef() == null) {
-            throw new SchemaException("No connector reference in additional connector in "+resource);
-        }
-        String connectorOid = additionalConnectorSpecBean.getConnectorRef().getOid();
-        if (StringUtils.isBlank(connectorOid)) {
-            throw new SchemaException("No connector OID in additional connector in "+resource);
-        }
+            throws ConfigurationException {
+        String connectorName = additionalConnectorSpecBean.getName();
+        configCheck(StringUtils.isNotBlank(connectorName), "No connector name in additional connector in %s", resource);
+
+        // connector OID is not required here, as it may come from the super-resource
+        String connectorOid = getConnectorOid(additionalConnectorSpecBean);
+
         //noinspection unchecked
         PrismContainer<ConnectorConfigurationType> connectorConfiguration =
                 additionalConnectorSpecBean.asPrismContainerValue().findContainer(
                         ConnectorInstanceSpecificationType.F_CONNECTOR_CONFIGURATION);
-        String connectorName = additionalConnectorSpecBean.getName();
-        if (StringUtils.isBlank(connectorName)) {
-            throw new SchemaException("No connector name in additional connector in "+resource);
-        }
+
         return new ConnectorSpec(resource, connectorName, connectorOid, connectorConfiguration);
+    }
+
+    private String getConnectorOid(@NotNull ConnectorInstanceSpecificationType bean) {
+        ObjectReferenceType ref = bean.getConnectorRef();
+        return ref != null ? ref.getOid() : null;
     }
 }

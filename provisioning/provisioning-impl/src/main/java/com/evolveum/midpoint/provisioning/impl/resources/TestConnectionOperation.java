@@ -70,7 +70,7 @@ class TestConnectionOperation {
         List<ConnectorSpec> allConnectorSpecs;
         try {
             allConnectorSpecs = beans.resourceManager.getAllConnectorSpecs(resource);
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             if (LOGGER.isTraceEnabled()) {
                 // TODO why logging at error level only if trace is enabled?
                 LOGGER.error("Configuration error: {}", e.getMessage(), e);

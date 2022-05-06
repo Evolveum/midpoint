@@ -50,9 +50,15 @@ class GenericItemMerger implements ItemMerger {
     /** Mergers to be used for child items. */
     @NotNull private final PathKeyedMap<ItemMerger> childrenMergers;
 
-    GenericItemMerger(@Nullable NaturalKey naturalKey, @NotNull PathKeyedMap<ItemMerger> childrenMergers) {
+    GenericItemMerger(
+            @Nullable NaturalKey naturalKey,
+            @NotNull PathKeyedMap<ItemMerger> childrenMergers) {
         this.naturalKey = naturalKey;
         this.childrenMergers = childrenMergers;
+    }
+
+    GenericItemMerger(@NotNull PathKeyedMap<ItemMerger> childrenMergers) {
+        this(null, childrenMergers);
     }
 
     @Override
@@ -74,7 +80,8 @@ class GenericItemMerger implements ItemMerger {
     }
 
     private ItemMerger createDefaultSubMerger(ItemName itemName) {
-        return new GenericItemMerger(null, createSubChildMergersMap(itemName));
+        return new GenericItemMerger(
+                createSubChildMergersMap(itemName));
     }
 
     private PathKeyedMap<ItemMerger> createSubChildMergersMap(@NotNull ItemName itemName) {
