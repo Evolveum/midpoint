@@ -1827,6 +1827,8 @@ fieldset.objectButtons {
 
   &:last-of-type {
     border-right: 0;
+    padding-right: 0;
+    margin-right: 0;
   }
 }
 
@@ -1894,23 +1896,15 @@ th, td {
   text-transform: uppercase;
 }
 
-div.search-popover {
+div.search-popover > dl {
+  height: 150px;
+  max-height: 150px;
+  overflow: auto;
 
-  & > div.more-input,
-  & > div.buttons {
-    margin: 6px;
-  }
+  & > dd > label {
+    margin-bottom: 0;
 
-  & > div.properties {
-    padding: 0 5px;
-    border-top: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
-    height: 150px;
-    max-height: 150px;
-    overflow: auto;
-    vertical-align: top;
-
-    & label {
+    & > a {
       font-weight: normal;
     }
   }
