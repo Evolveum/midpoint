@@ -33,7 +33,7 @@ podTemplate(
         stage("build") {
             container('maven') {
                 sh """#!/bin/bash
-                    if [ verbose >= 1 ]
+                    if [ "${verbose}" -ge 1 ]
                     then
                         env | sort
                         mvn --version
