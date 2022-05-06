@@ -337,6 +337,11 @@ public class SearchFactory {
     }
 
     public static <C extends Containerable> Search<C> createSearch(
+            SearchConfigurationWrapper<C> searchConfig, boolean mergeWithDefaultSearchWrapper, ModelServiceLocator modelServiceLocator) {
+        return createSearch(searchConfig, null, modelServiceLocator, Search.PanelType.DEFAULT, mergeWithDefaultSearchWrapper);
+    }
+
+    public static <C extends Containerable> Search<C> createSearch(
             SearchConfigurationWrapper<C> searchConfig, ModelServiceLocator modelServiceLocator, boolean combineWithDefaultConfig) {
         return createSearch(searchConfig, null, modelServiceLocator, Search.PanelType.DEFAULT, true);
     }
@@ -365,9 +370,9 @@ public class SearchFactory {
 
     private static <C extends Containerable> Search<C> createSearch(
             SearchConfigurationWrapper<C> searchConfigurationWrapper, ResourceShadowDiscriminator discriminator,
-            ModelServiceLocator modelServiceLocator, Search.PanelType panelType, boolean createDefault) {
+            ModelServiceLocator modelServiceLocator, Search.PanelType panelType, boolean mergeWithDefaultSearchWrapper) {
         SearchConfigurationWrapper<C> searchConfWrapper;
-        if (createDefault) {
+        if (mergeWithDefaultSearchWrapper) {
             SearchConfigurationWrapper<C> defaultWrapper = createDefaultSearchBoxConfigurationWrapper(searchConfigurationWrapper.getTypeClass(),
                     discriminator, modelServiceLocator);
             searchConfWrapper = combineSearchBoxConfiguration(defaultWrapper, searchConfigurationWrapper);

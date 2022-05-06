@@ -59,48 +59,16 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 
     @Override
     protected Search createSearch() {
-//        List<SearchItemDefinition> availableDefs = new ArrayList<>();
-//        availableDefs.addAll(createAttributeDefinitionList());
-//        return new Search(new ContainerTypeSearchItem(ShadowType.class), availableDefs);
-        return SearchFactory.createSearch(createSearchConfigWrapper(), getPageBase());
+        return SearchFactory.createSearch(createSearchConfigWrapper(), false, getPageBase());
     }
 
     private SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper() {
         SearchConfigurationWrapper<ShadowType> config = SearchFactory.createDefaultSearchBoxConfigurationWrapper(ShadowType.class, getPageBase());
+        config.getItemsList().clear();
         config.getItemsList().addAll(createAttributeSearchItemWrappers());
         return config;
     }
 
-    //    private <T extends ObjectType> List<SearchItemDefinition> createAttributeDefinitionList() {
-//
-//        List<SearchItemDefinition> map = new ArrayList<>();
-//
-//        RefinedObjectClassDefinition ocDef = null;
-//        try {
-//
-//            if (getKind() != null) {
-//
-//                ocDef = getDefinitionByKind();
-//
-//            } else if (getObjectClass() != null) {
-//                ocDef = getDefinitionByObjectClass();
-//
-//            }
-//        } catch (SchemaException e) {
-//            warn("Could not get determine object class definition");
-//            return map;
-//        }
-//
-//        if (ocDef == null) {
-//            return map;
-//        }
-//
-//        for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
-//            map.add(new SearchItemDefinition(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def, null));
-//        }
-//
-//        return map;
-//    }
 
     private <T extends ObjectType> List<AbstractSearchItemWrapper> createAttributeSearchItemWrappers() {
 
@@ -127,10 +95,8 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
         }
 
         for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
-            SearchItemType searchItem = new SearchItemType()
-                    .path(new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def))))
-                    .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(def, ResourceContentResourcePanel.this));
-            itemsList.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class, def, ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def))));
+            itemsList.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class, def,
+                    ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def))));
         }
 
         return itemsList;

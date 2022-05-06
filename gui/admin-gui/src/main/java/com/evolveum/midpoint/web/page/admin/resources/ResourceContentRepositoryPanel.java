@@ -10,6 +10,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -166,7 +167,16 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 
     @Override
     protected Search createSearch() {
-        return SearchFactory.createSearch(ShadowType.class, getPageBase());
+        return SearchFactory.createSearch(createSearchConfigWrapper(), false, getPageBase());
+    }
+
+    private SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper() {
+        SearchConfigurationWrapper<ShadowType> config = SearchFactory.createDefaultSearchBoxConfigurationWrapper(ShadowType.class, getPageBase());
+        config
+                .removePropertySearchItem(ShadowType.F_RESOURCE_REF)
+                .removePropertySearchItem(ShadowType.F_OBJECT_CLASS)
+                .removePropertySearchItem(ShadowType.F_INTENT);
+        return config;
     }
 
     @Override
