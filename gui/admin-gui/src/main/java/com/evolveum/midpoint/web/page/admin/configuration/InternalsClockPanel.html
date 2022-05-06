@@ -10,14 +10,13 @@
 <body>
 <wicket:panel>
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-12 col-lg-6">
             <h3><wicket:message key="PageInternals.title.timeChange"/></h3>
             <form wicket:id="form" class="form-horizontal">
 
-                <div class="form-group">
-                    <label class="col-md-2 control-label"><wicket:message key="PageInternals.offset"/></label>
-
-                    <div class="col-md-2">
+                <div class="form-group row">
+                    <label class="col-md-2 col-form-label-sm"><wicket:message key="PageInternals.offset"/></label>
+                    <div class="col-md-10">
                         <span wicket:id="offset"/>
                     </div>
                 </div>

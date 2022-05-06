@@ -1,3 +1,8 @@
+def verbose = 0
+try {
+    verbose = Integer.parseInt(params.VERBOSE ?: '0')
+} catch (Exception e) { /* ignored */ }
+
 podTemplate(
         activeDeadlineSeconds: 7200,
         idleMinutes: 1,
@@ -5,14 +10,14 @@ podTemplate(
         workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
         containers: [
                 containerTemplate(name: 'jnlp',
-                        image: 'jenkins/inbound-agent:4.10-3-alpine',
+                        image: 'jenkins/inbound-agent:4.13-2-alpine',
                         runAsUser: '0',
                         resourceLimitCpu: '900m',
                         resourceLimitMemory: '1Gi',
                         resourceRequestCpu: '900m',
                         resourceRequestMemory: '1Gi'),
                 containerTemplate(name: 'maven',
-                        image: 'maven:3.8.5-openjdk-11-slim',
+                        image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11-slim'}",
                         ttyEnabled: true,
                         command: 'cat',
                         resourceLimitCpu: '4',
@@ -21,14 +26,14 @@ podTemplate(
 ) {
     node(POD_LABEL) {
         stage("checkout") {
-            git branch: "${BRANCH}",
+            git branch: "${params.BRANCH ?: 'master'}",
                     url: 'https://github.com/Evolveum/midpoint.git'
             echo "git checkout done..."
         }
         stage("build") {
             container('maven') {
                 sh """#!/bin/bash
-                    if [ '${VERBOSE}' = '1' ]
+                    if [ "${verbose}" -ge 1 ]
                     then
                         env | sort
                         mvn --version

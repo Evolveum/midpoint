@@ -27,6 +27,10 @@ public class CheckFormGroup extends BasePanel<Boolean> {
     private static final String ID_LABEL = "label";
     private static final String ID_TOOLTIP = "tooltip";
 
+    public CheckFormGroup(String id, IModel<Boolean> value, IModel<String> label) {
+        this(id, value, label, null ,null);
+    }
+
     public CheckFormGroup(String id, IModel<Boolean> value, IModel<String> label, String labelSize, String textSize) {
         this(id, value, label, null, labelSize, textSize);
     }
