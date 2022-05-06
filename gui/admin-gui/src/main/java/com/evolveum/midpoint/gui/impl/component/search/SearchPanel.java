@@ -272,10 +272,13 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         saveSearchButton.setOutputMarkupId(true);
         saveSearchContainer.add(saveSearchButton);
 
+        List<InlineMenuItem> savedSearchList = getSavedSearchList();
+
         WebMarkupContainer savedSearchMenu = new WebMarkupContainer(ID_SAVED_SEARCH_MENU);
+        savedSearchMenu.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(savedSearchList)));
         saveSearchContainer.add(savedSearchMenu);
 
-        ListView<InlineMenuItem> savedSearchItems = new ListView<InlineMenuItem>(ID_SAVED_SEARCH_ITEMS, getSavedSearchList()) {
+        ListView<InlineMenuItem> savedSearchItems = new ListView<InlineMenuItem>(ID_SAVED_SEARCH_ITEMS, savedSearchList) {
 
             private static final long serialVersionUID = 1L;
 
