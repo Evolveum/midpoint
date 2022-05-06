@@ -152,11 +152,13 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public Class<C> getTypeClass() {
         ObjectTypeSearchItemWrapper objectTypeWrapper = findObjectTypeSearchItemWrapper();
+        if (SearchBoxModeType.OID.equals(getSearchMode())) {
+            return (Class<C> )  ObjectType.class;
+        }
         if (objectTypeWrapper != null && objectTypeWrapper.getValue().getValue() != null) {
             return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), objectTypeWrapper.getValue().getValue());
         }
-        return SearchBoxModeType.OID.equals(getSearchMode()) ? (Class<C> )  ObjectType.class
-                : searchConfigurationWrapper.getTypeClass();
+        return searchConfigurationWrapper.getTypeClass();
     }
 
     private String createErrorMessage(Exception ex) {
