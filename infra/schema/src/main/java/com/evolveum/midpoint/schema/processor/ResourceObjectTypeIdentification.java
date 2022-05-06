@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 /**
  * Identifies a resource object type - by kind and intent.
  */
-public class ResourceObjectTypeIdentification {
+public class ResourceObjectTypeIdentification implements Serializable {
 
     @NotNull private final ShadowKindType kind;
     @NotNull private final String intent;
