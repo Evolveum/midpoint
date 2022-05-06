@@ -35,10 +35,6 @@ public class InternalsConfigPanel extends BasePanel<InternalsConfigDto> {
     private static final String ID_MODEL_PROFILING = "modelProfiling";
     private static final String ID_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
     private static final String ID_TOLERATE_UNDECLARED_PREFIXES = "tolerateUndeclaredPrefixes";
-    private static final String ID_DETAILED_DEBUG_DUMP = "detailedDebugDump";
-
-    private static final String LABEL_SIZE = "col-md-4";
-    private static final String INPUT_SIZE = "col-md-8";
 
     public InternalsConfigPanel(String id, IModel<InternalsConfigDto> model) {
         super(id, model);
@@ -96,6 +92,6 @@ public class InternalsConfigPanel extends BasePanel<InternalsConfigDto> {
 
     private CheckFormGroup createCheckbox(String id, String propName) {
         return new CheckFormGroup(id, new PropertyModel<>(getModel(), propName),
-                createStringResource("PageInternals." + propName), LABEL_SIZE, INPUT_SIZE);
+                createStringResource("PageInternals." + propName));
     }
 }
