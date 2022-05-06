@@ -188,6 +188,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private Clock clock;
     @Autowired private AccessCertificationService certificationService;
+    @Autowired(required = false) private List<WicketConfigurator> wicketConfigurators = new ArrayList<>();
     @Autowired @Qualifier("descriptorLoader") private DescriptorLoader descriptorLoader;
     @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
 
@@ -323,6 +324,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
             taskManager.setWebContextPath(servletContext.getContextPath());
         }
 
+        // Additional wicket configuration
+        wicketConfigurators.forEach(c -> c.configure(this));
     }
 
     public DeploymentInformationType getDeploymentInfo() {
