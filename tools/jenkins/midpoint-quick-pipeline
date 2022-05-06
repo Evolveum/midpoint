@@ -17,7 +17,7 @@ podTemplate(
                         resourceRequestCpu: '900m',
                         resourceRequestMemory: '1Gi'),
                 containerTemplate(name: 'maven',
-                        image: "${BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11-slim'}",
+                        image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11-slim'}",
                         ttyEnabled: true,
                         command: 'cat',
                         resourceLimitCpu: '4',
