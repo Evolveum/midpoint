@@ -7,10 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -61,8 +66,8 @@ public class ConfigurableUserDashboardContentPanel extends MultivalueContainerLi
 
         this.model = PrismContainerWrapperModel.fromContainerWrapper(model.getObjectWrapperModel(), ItemPath.create(
                 SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION,
-                AdminGuiConfigurationType.F_CONFIGURABLE_USER_DASHBOARD
-        ));
+                AdminGuiConfigurationType.F_CONFIGURABLE_USER_DASHBOARD),
+                (SerializableSupplier<PageBase>) () -> getPageBase());
     }
 
     @Override
