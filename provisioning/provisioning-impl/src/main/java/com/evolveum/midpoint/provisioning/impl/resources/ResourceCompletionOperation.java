@@ -139,12 +139,7 @@ class ResourceCompletionOperation {
 
         result = parentResult.createMinorSubresult(OP_COMPLETE_RESOURCE);
         try {
-            if (resource.asObjectable().getSuper() != null) {
-                expansionOperation = new ResourceExpansionOperation(resource.asObjectable(), beans);
-                expansionOperation.execute(result);
-            } else {
-                // We spare some CPU cycles by not instantiating the expansion operation object.
-            }
+            expand(resource);
             applyConnectorSchema();
             PrismObject<ResourceType> reloaded = completeAndReload();
             parseSchema(reloaded);
@@ -157,6 +152,19 @@ class ResourceCompletionOperation {
             throw t;
         } finally {
             result.close();
+        }
+    }
+
+    /**
+     * Expands the resource by resolving super-resource references.
+     */
+    private void expand(@NotNull PrismObject<ResourceType> resource)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        if (resource.asObjectable().getSuper() != null) {
+            expansionOperation = new ResourceExpansionOperation(resource.asObjectable(), beans);
+            expansionOperation.execute(result);
+        } else {
+            // We spare some CPU cycles by not instantiating the expansion operation object.
         }
     }
 
@@ -202,7 +210,11 @@ class ResourceCompletionOperation {
         // Now we need to re-read the resource from the repository and re-apply the schemas. This ensures that we will
         // cache the correct version and that we avoid race conditions, etc.
         PrismObject<ResourceType> reloaded = beans.resourceManager.readResourceFromRepository(resource.getOid(), result);
+        expand(reloaded);
+
+        // Schema is applied, but expressions in configuration need to be resolved.
         beans.resourceManager.applyConnectorSchemasToResource(reloaded, task, result);
+
         return reloaded;
     }
 

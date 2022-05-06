@@ -3892,6 +3892,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="internalId" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Generated internal ID of this definition that we use when referring to it from its subtypes.
+                        Used when a type refers to the super-type with the corresponding kind/intent in the super-resource.
+
+                        RESTRICTED USE: Shouldn't be configured manually. To be used only by the resource merge algorithm.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="super" type="tns:SuperObjectTypeReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4204,20 +4214,35 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                         Kind of the parent type. If not specified, the kind of the child is used.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="intent" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Intent of the parent type. Should be specified.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <xsd:choice>
+                <xsd:sequence>
+                    <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Kind of the parent type. If not specified, the kind of the child is used.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="intent" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Intent of the parent type. Should be specified.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+                <xsd:element name="internalId" type="xsd:long" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Internal ID of the type definition we refer to.
+                            (The resource-level inheritance may result in multiple object type definitions
+                            for given kind and intent being created.)
+
+                            RESTRICTED USE: Shouldn't be configured manually. To be used only by the resource merge algorithm.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

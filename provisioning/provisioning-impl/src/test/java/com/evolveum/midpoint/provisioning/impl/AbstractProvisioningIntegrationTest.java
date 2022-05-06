@@ -294,5 +294,4 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         }
         return controller;
     }
-
 }

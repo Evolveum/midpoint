@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
-import com.evolveum.midpoint.provisioning.impl.resources.merger.ResourceMergeOperation;
+import com.evolveum.midpoint.schema.merger.resource.ResourceMergeOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
