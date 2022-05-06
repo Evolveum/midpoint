@@ -65,11 +65,11 @@ public class PageSystemConfiguration extends PageBase {
 
         LOGGING("fa fa-file-alt", PageSystemLogging.class),
 
-        PROFILING("fa fa-bar-chart", PageProfiling.class),
+        PROFILING("fa fa-chart-bar", PageProfiling.class),
 
         ADMIN_GUI("fa fa-desktop", PageSystemAdminGui.class),
 
-        WORKFLOW("fa fa-code-fork", PageSystemWorkflow.class),
+        WORKFLOW("fa fa-code-branch", PageSystemWorkflow.class),
 
         ROLE_MANAGEMENT("fe fe-role", PageRoleManagement.class),
 
