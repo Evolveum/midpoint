@@ -56,6 +56,7 @@ class ResourceExpansionOperation {
     private static final Trace LOGGER = TraceManager.getTrace(ResourceExpansionOperation.class);
 
     private static final List<ItemPath> PATHS_FOR_FIRST_PASS = List.of(
+            F_NAME, // because it's technically considered obligatory + for diagnostic purposes
             F_CONNECTOR_REF,
             F_SUPER,
             ItemPath.create(F_ADDITIONAL_CONNECTOR, ConnectorInstanceSpecificationType.F_NAME),

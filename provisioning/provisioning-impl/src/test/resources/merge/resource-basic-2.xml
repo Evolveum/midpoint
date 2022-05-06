@@ -6,22 +6,18 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<resource oid="b6f77fb9-8bdf-42de-b7d4-639c77fa6805"
+<resource oid="969d0587-b049-4067-a749-2fe61d5fb2f6"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-    <name>Basic 1</name>
+    <name>Basic 2</name>
     <super>
-        <resourceRef oid="2d1bbd38-8292-4895-af07-15de1ae423ec"/>
+        <resourceRef oid="b6f77fb9-8bdf-42de-b7d4-639c77fa6805"/> <!-- Derives from Basic 1 -->
     </super>
     <connectorConfiguration >
         <icfc:configurationProperties>
             <!-- overriding existing value -->
-            <icfi:supportValidity>false</icfi:supportValidity>
+            <icfi:uselessString>False!</icfi:uselessString>
         </icfc:configurationProperties>
-        <icfc:resultsHandlerConfiguration>
-            <!-- adding new item -->
-            <icfc:filteredResultsHandlerInValidationMode>true</icfc:filteredResultsHandlerInValidationMode>
-        </icfc:resultsHandlerConfiguration>
     </connectorConfiguration>
 </resource>

@@ -433,16 +433,20 @@ public class ResourceManager {
             throws ConfigurationException {
         String connectorName = additionalConnectorSpecBean.getName();
         configCheck(StringUtils.isNotBlank(connectorName), "No connector name in additional connector in %s", resource);
-        configCheck(additionalConnectorSpecBean.getConnectorRef() != null,
-            "No connector reference in additional connector '%s' in %s", connectorName, resource);
-        String connectorOid = additionalConnectorSpecBean.getConnectorRef().getOid();
-        configCheck(StringUtils.isNotBlank(connectorOid),
-                "No connector OID in additional connector '%s' in %s", connectorName, resource);
+
+        // connector OID is not required here, as it may come from the super-resource
+        String connectorOid = getConnectorOid(additionalConnectorSpecBean);
 
         //noinspection unchecked
         PrismContainer<ConnectorConfigurationType> connectorConfiguration =
                 additionalConnectorSpecBean.asPrismContainerValue().findContainer(
                         ConnectorInstanceSpecificationType.F_CONNECTOR_CONFIGURATION);
+
         return new ConnectorSpec(resource, connectorName, connectorOid, connectorConfiguration);
+    }
+
+    private String getConnectorOid(@NotNull ConnectorInstanceSpecificationType bean) {
+        ObjectReferenceType ref = bean.getConnectorRef();
+        return ref != null ? ref.getOid() : null;
     }
 }

@@ -7,10 +7,16 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ConfigurationPropertiesType;
+import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ResultsHandlerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -19,10 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -33,6 +35,9 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.util.exception.MaintenanceException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+
+import static com.evolveum.midpoint.schema.SchemaConstantsGenerated.ICF_C_RESULTS_HANDLER_CONFIGURATION;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICF_CONFIGURATION_PROPERTIES;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there
@@ -435,6 +440,69 @@ public class ResourceTypeUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * @throws ConfigurationException e.g. if the connectorName matches no configuration
+     */
+    public static @Nullable PrismContainerValue<ConfigurationPropertiesType> getConfigurationProperties(
+            @NotNull ResourceType resource, @Nullable String connectorName) throws ConfigurationException {
+        ConnectorConfigurationType config = getConnectorConfiguration(resource, connectorName);
+        if (config == null) {
+            return null;
+        }
+        //noinspection unchecked
+        PrismContainer<ConfigurationPropertiesType> propertiesContainer =
+                config.asPrismContainerValue().findContainer(ICF_CONFIGURATION_PROPERTIES);
+        if (propertiesContainer == null || propertiesContainer.hasNoValues()) {
+            return null;
+        }
+        return propertiesContainer.getValue();
+    }
+
+    /**
+     * @throws ConfigurationException e.g. if the connectorName matches no configuration
+     */
+    public static @Nullable ConnectorConfigurationType getConnectorConfiguration(
+            @NotNull ResourceType resource, @Nullable String connectorName) throws ConfigurationException {
+        if (connectorName == null) {
+            return resource.getConnectorConfiguration();
+        } else {
+            return getAdditionalConnectorSpec(resource, connectorName)
+                    .getConnectorConfiguration();
+        }
+    }
+
+    /**
+     * @throws ConfigurationException e.g. if the connectorName matches no configuration
+     */
+    public static @NotNull ConnectorInstanceSpecificationType getAdditionalConnectorSpec(
+            @NotNull ResourceType resource, @NotNull String name) throws ConfigurationException {
+        var matching = resource.getAdditionalConnector().stream()
+                .filter(s -> name.equals(s.getName()))
+                .collect(Collectors.toList());
+        return MiscUtil.extractSingletonRequired(
+                matching,
+                () -> new ConfigurationException("Multiple additional connectors with the name '" + name + "': " + matching),
+                () -> new ConfigurationException("No additional connector with the name '" + name + "'"));
+    }
+
+    /**
+     * @throws ConfigurationException e.g. if the connectorName matches no configuration
+     */
+    public static @Nullable PrismContainerValue<ResultsHandlerConfigurationType> getResultsHandlerConfiguration(
+            @NotNull ResourceType resource, @Nullable String connectorName) throws ConfigurationException {
+        ConnectorConfigurationType config = getConnectorConfiguration(resource, connectorName);
+        if (config == null) {
+            return null;
+        }
+        //noinspection unchecked
+        PrismContainer<ResultsHandlerConfigurationType> handlerContainer =
+                config.asPrismContainerValue().findContainer(ICF_C_RESULTS_HANDLER_CONFIGURATION);
+        if (handlerContainer == null || handlerContainer.hasNoValues()) {
+            return null;
+        }
+        return handlerContainer.getValue();
     }
 
     public static PrismContainer<ConnectorConfigurationType> getConfigurationContainer(ResourceType resourceType) {
