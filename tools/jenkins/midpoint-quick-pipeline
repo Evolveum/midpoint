@@ -1,3 +1,8 @@
+def verbose = 0
+try {
+    verbose = Integer.parseInt(params.VERBOSE ?: '0')
+} catch (Exception e) { /* ignored */ }
+
 podTemplate(
         activeDeadlineSeconds: 7200,
         idleMinutes: 1,
@@ -21,14 +26,14 @@ podTemplate(
 ) {
     node(POD_LABEL) {
         stage("checkout") {
-            git branch: "${BRANCH}",
+            git branch: "${params.BRANCH ?: 'master'}",
                     url: 'https://github.com/Evolveum/midpoint.git'
             echo "git checkout done..."
         }
         stage("build") {
             container('maven') {
                 sh """#!/bin/bash
-                    if [ '${VERBOSE}' = '1' ]
+                    if [ verbose >= 1 ]
                     then
                         env | sort
                         mvn --version
