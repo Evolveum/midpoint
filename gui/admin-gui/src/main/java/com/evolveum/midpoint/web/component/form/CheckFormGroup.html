@@ -8,17 +8,10 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <span class="control-label" wicket:id="labelContainer">
-        <span wicket:id="label"/>
+    <input class="form-check-input" type="checkbox" wicket:id="check">
+    <wicket:enclosure child="label">
+        <label class="form-check-label" wicket:id="label"/>
         <i wicket:id="tooltip"/>
-    </span>
-
-    <div wicket:id="checkWrapper">
-        <div class="checkbox">
-            <label>
-                <input class="form-check-input" type="checkbox" wicket:id="check">
-            </label>
-        </div>
-    </div>
+    </wicket:enclosure>
 </wicket:panel>
 </html>
