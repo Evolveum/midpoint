@@ -14,15 +14,15 @@
     </form>
 
     <wicket:fragment wicket:id="tableHeader">
-        <div class="d-flex">
-            <label class="mr-3"><wicket:message key="pageDebugList.options"/></label>
-            <div class="mr-3">
-                <div wicket:id="zipCheck"/>
+        <div class="d-flex flex-wrap justify-content-between">
+            <div class="d-flex">
+                <label class="mr-3"><wicket:message key="pageDebugList.options"/></label>
+                <div class="mr-3" wicket:id="zipCheck"/>
+                <div wicket:id="showAllItemsCheck"/>
             </div>
-            <div wicket:id="showAllItemsCheck"/>
-        </div>
 
-        <div class="d-flex justify-content-end" wicket:id="search"/>
+            <div class="d-flex flex-grow-1 justify-content-end" wicket:id="search"/>
+        </div>
     </wicket:fragment>
 </wicket:extend>
 </body>

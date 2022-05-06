@@ -1472,7 +1472,6 @@ td .prism-property-value {
   }
 
   .search-item-field {
-    padding-right: 3px !important;
     padding-left: 3px !important;
   }
 }
@@ -1815,6 +1814,7 @@ fieldset.objectButtons {
   padding: 0;
   padding-right: 2rem;
   width: max-content;
+  min-width: revert;
   margin-right: 2rem;
 
   > legend {
