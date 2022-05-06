@@ -125,13 +125,17 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             mailConfigType.setObject(new MailConfigurationType());
         }
 
-        add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<>(mailConfigType, "defaultFrom"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
+        add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<>(mailConfigType, "defaultFrom"),
+                createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
 
-        add(new TextFormGroup(ID_REDIRECT_TO_FILE, new PropertyModel<>(mailConfigType, "redirectToFile"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".redirectToFile"), "", getInputCssClass(), false, true));
+        add(new TextFormGroup(ID_REDIRECT_TO_FILE, new PropertyModel<>(mailConfigType, "redirectToFile"),
+                createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".redirectToFile"), "", getInputCssClass(), false, true));
 
-        add(new TextFormGroup(ID_LOG_TO_FILE, new PropertyModel<>(mailConfigType, "logToFile"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".logToFile"), "", getInputCssClass(), false, true));
+        add(new TextFormGroup(ID_LOG_TO_FILE, new PropertyModel<>(mailConfigType, "logToFile"),
+                createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".logToFile"), "", getInputCssClass(), false, true));
 
-        add(new TriStateFormGroup(ID_DEBUG, new PropertyModel<>(mailConfigType, "debug"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".debug"), "", getInputCssClass(), false, true));
+        add(new TriStateFormGroup(ID_DEBUG, new PropertyModel<>(mailConfigType, "debug"),
+                createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".debug"), "", getInputCssClass(), false, true));
 
         add(createHeader(ID_MAIL_SERVER_CONFIG_HEADER, MailServerConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
 
@@ -299,7 +303,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         }
         StringResourceModel headerLabelModel = createStringResource(displayName);
         Label header = new Label(id, headerLabelModel);
-        header.add(AttributeAppender.prepend("class", "prism-title pull-left"));
+        header.add(AttributeAppender.prepend("class", "prism-title"));
         return header;
     }
 
@@ -529,7 +533,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
     }
 
     private String getInputCssClass() {
-        return "col-xs-10";
+        return "col-10";
     }
 
     private List<MailServerConfiguration> getListOfMailServerConfiguration(List<MailServerConfigurationType> mailServersType) {

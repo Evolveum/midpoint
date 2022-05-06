@@ -88,7 +88,7 @@ public class ObjectPolicyContentPanel extends MultivalueContainerListPanelWithDe
 
                     @Override
                     public String getCssClass() {
-                        return " col-md-2 ";
+                        return "mp-w-2";
                     }
 
                 }

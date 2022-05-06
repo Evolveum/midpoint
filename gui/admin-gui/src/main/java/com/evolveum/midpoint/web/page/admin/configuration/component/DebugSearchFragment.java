@@ -46,12 +46,10 @@ public class DebugSearchFragment extends Fragment {
     private void initLayout(IModel<Boolean> showAllItemsModel) {
         CheckBoxPanel zipCheck = new CheckBoxPanel(ID_ZIP_CHECK, new Model<>(false),
                 new StringResourceModel("pageDebugList.zipCheck"), null);
-        zipCheck.setRenderBodyOnly(true);
         add(zipCheck);
 
         CheckBoxPanel showAllItemsCheck = new CheckBoxPanel(ID_SHOW_ALL_ITEMS_CHECK, showAllItemsModel,
                 new StringResourceModel("pageDebugList.showAllItems"), null);
-        showAllItemsCheck.setRenderBodyOnly(true);
         add(showAllItemsCheck);
 
         SearchPanel searchPanel = new SearchPanel<>(ID_SEARCH, getModel()) {

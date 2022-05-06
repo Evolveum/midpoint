@@ -11,24 +11,20 @@
 <wicket:extend>
     <form wicket:id="mainForm" class="form-horizontal">
         <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <wicket:message key="pageDebugView.options"/>
-                </h3>
-            </div>
             <div class="card-body d-flex">
-                <div class="main-button-bar mr-2">
-                    <span class="button-group">
-                        <a class="btn btn-default" wicket:id="backButton"/>
-                    </span>
-                    <a class="btn btn-primary" wicket:id="saveButton"/>
-                </div>
-
-                <div class="option-checkbox" wicket:id="encrypt"/>
-                <div class="option-checkbox" wicket:id="validateSchema"/>
-                <div class="option-checkbox" wicket:id="saveAsRaw"/>
-                <div class="option-checkbox" wicket:id="reevaluateSearchFilters"/>
-                <div class="option-checkbox" wicket:id="switchToPlainText"/>
+                <fieldset class="objectButtons d-flex gap-1 align-items-start">
+                    <legend><wicket:message key="OperationalButtonsPanel.buttons.main"/></legend>
+                    <a class="btn btn-sm btn-default" wicket:id="backButton"/>
+                    <a class="btn btn-sm btn-primary" wicket:id="saveButton"/>
+                </fieldset>
+                <fieldset class="objectButtons d-flex flex-wrap gap-2">
+                    <legend><wicket:message key="pageDebugView.options"/></legend>
+                    <div wicket:id="encrypt"/>
+                    <div wicket:id="validateSchema"/>
+                    <div wicket:id="saveAsRaw"/>
+                    <div wicket:id="reevaluateSearchFilters"/>
+                    <div wicket:id="switchToPlainText"/>
+                </fieldset>
             </div>
         </div>
         <div class="card">

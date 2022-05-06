@@ -25,22 +25,20 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
-public class InternalsTracesPanel extends BasePanel<Map<String,Boolean>>{
+public class InternalsTracesPanel extends BasePanel<Map<String, Boolean>> {
 
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(InternalsTracesPanel.class);
 
     private static final String ID_FORM = "form";
-        private static final String ID_TRACES_TABLE = "tracesTable";
-        private static final String ID_TRACE_TOGGLE = "traceToggle";
-        private static final String ID_UPDATE_TRACES = "updateTraces";
-        private static final String LABEL_SIZE = "col-md-4";
-        private static final String INPUT_SIZE = "col-md-8";
+    private static final String ID_TRACES_TABLE = "tracesTable";
+    private static final String ID_TRACE_TOGGLE = "traceToggle";
+    private static final String ID_UPDATE_TRACES = "updateTraces";
 
-    private Map<String,Boolean> tracesMap;
+    private Map<String, Boolean> tracesMap;
 
-    public InternalsTracesPanel(String id, Map<String,Boolean> traces) {
+    public InternalsTracesPanel(String id, Map<String, Boolean> traces) {
         super(id);
         this.tracesMap = traces;
     }
@@ -54,15 +52,15 @@ public class InternalsTracesPanel extends BasePanel<Map<String,Boolean>>{
         form.setOutputMarkupId(true);
         add(form);
 
-        ListView<InternalOperationClasses> tracesTable = new ListView<InternalOperationClasses>(ID_TRACES_TABLE, Arrays.asList(InternalOperationClasses.values())) {
+        ListView<InternalOperationClasses> tracesTable = new ListView<>(ID_TRACES_TABLE, Arrays.asList(InternalOperationClasses.values())) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<InternalOperationClasses> item) {
                 InternalOperationClasses operationClass = item.getModelObject();
                 CheckFormGroup checkFormGroup = new CheckFormGroup(ID_TRACE_TOGGLE,
-                    new PropertyModel<>(tracesMap, operationClass.getKey()),
-                        createStringResource("InternalOperationClasses."+operationClass.getKey()), LABEL_SIZE, INPUT_SIZE);
+                        new PropertyModel<>(tracesMap, operationClass.getKey()),
+                        createStringResource("InternalOperationClasses." + operationClass.getKey()));
                 item.add(checkFormGroup);
             }
 
@@ -86,8 +84,8 @@ public class InternalsTracesPanel extends BasePanel<Map<String,Boolean>>{
         form.add(update);
     }
 
-    private void updateTraces(AjaxRequestTarget target){
-        for (Entry<String, Boolean> entry: tracesMap.entrySet()) {
+    private void updateTraces(AjaxRequestTarget target) {
+        for (Entry<String, Boolean> entry : tracesMap.entrySet()) {
             InternalOperationClasses ioc = findInternalOperationClass(entry.getKey());
             if (ioc == null) {
                 continue;
@@ -101,7 +99,6 @@ public class InternalsTracesPanel extends BasePanel<Map<String,Boolean>>{
     }
 
     private InternalOperationClasses findInternalOperationClass(String key) {
-
         if (key == null) {
             return null;
         }
@@ -116,7 +113,7 @@ public class InternalsTracesPanel extends BasePanel<Map<String,Boolean>>{
 
     }
 
-    private Form getInternalsConfigForm(){
+    private Form getInternalsConfigForm() {
         return (Form) get(ID_FORM);
     }
 }
