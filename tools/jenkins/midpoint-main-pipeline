@@ -1,3 +1,8 @@
+def verbose = 0
+try {
+    verbose = Integer.parseInt(params.VERBOSE ?: '0')
+} catch (Exception e) { /* ignored */ }
+
 podTemplate(
         activeDeadlineSeconds: 21600, // 6h total build limit
         idleMinutes: 1,
@@ -6,14 +11,14 @@ podTemplate(
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
         containers: [
                 containerTemplate(name: 'jnlp',
-                        image: 'jenkins/inbound-agent:4.10-3-alpine',
+                        image: 'jenkins/inbound-agent:4.13-2-alpine',
                         runAsUser: '0',
                         resourceLimitCpu: '900m',
                         resourceLimitMemory: '1Gi',
                         resourceRequestCpu: '900m',
                         resourceRequestMemory: '1Gi'),
                 containerTemplate(name: 'maven',
-                        image: "${MAVEN_IMAGE}",
+                        image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11-slim'}",
                         ttyEnabled: true,
                         command: 'cat',
                         resourceLimitCpu: '4',
@@ -22,7 +27,7 @@ podTemplate(
 ) {
     node(POD_LABEL) {
         stage("checkout") {
-            git branch: "${BRANCH}",
+            git branch: "${params.BRANCH ?: 'master'}",
                     url: 'https://github.com/Evolveum/midpoint.git'
             echo "git checkout done..."
         }
@@ -33,7 +38,7 @@ podTemplate(
                     mkdir -p /root/.m2
                     ln -s ../jenkins-nexus/settings.xml /root/.m2/settings.xml
 
-                    if [ '${VERBOSE}' = '1' ]
+                    if [ "${verbose}" -ge 1 ]
                     then
                         env | sort
                         mvn --version
@@ -42,7 +47,7 @@ podTemplate(
 
                     mvn -B -ntp -DskipTests clean deploy -DdeployAtEnd=true
 
-                    if [ '${VERBOSE}' = '1' ]
+                    if [ "${verbose}" -ge 1 ]
                     then
                         df -h
                     fi
@@ -54,7 +59,7 @@ podTemplate(
                 sh """
                     mvn -B -ntp -Dmaven.test.failure.ignore verify
 
-                    if [ '${VERBOSE}' = '1' ]
+                    if [ "${verbose}" -ge 1 ]
                     then
                         df -h
                     fi
@@ -67,7 +72,7 @@ podTemplate(
                 sh """
                     mvn -B -ntp -Dmaven.test.failure.ignore verify -P extratest,-dist -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED" -rf testing
 
-                    if [ '${VERBOSE}' = '1' ]
+                    if [ "${verbose}" -ge 1 ]
                     then
                         df -h
                     fi
