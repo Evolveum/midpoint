@@ -530,7 +530,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         assertSteadyResource(resource);
         dummyResource.assertConnections(2);
-        assertDummyConnectorInstances(1);
     }
 
     private String getSuggestionForProperty(PrismObject<ResourceType> resource, String propertyName) {
@@ -560,8 +559,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         given();
         Task task = getTestTask();
         OperationResult result = createOperationResult();
-
-        rememberResourceCacheStats();
 
         when();
         resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);

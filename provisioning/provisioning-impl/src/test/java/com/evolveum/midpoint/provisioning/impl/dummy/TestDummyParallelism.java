@@ -722,7 +722,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         OperationResult result = task.getResult();
 
         // Previous test will max out the connector pool
-        dummyResource.assertConnections(10);
+        dummyResource.assertConnections(11);
         assertDummyConnectorInstances(10);
 
         dummyResource.setOperationDelayOffset(0);
@@ -826,7 +826,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         displayValue("Dummy resource connections", dummyResource.getConnectionCount());
 
-        assertDummyConnectorInstances(dummyResource.getConnectionCount());
+        //-1 because of connection for tests that use resource without oid
+        assertDummyConnectorInstances(dummyResource.getConnectionCount() - 1);
     }
 
     private Object doResourceOperation(Task task, OperationResult result) throws Exception {
