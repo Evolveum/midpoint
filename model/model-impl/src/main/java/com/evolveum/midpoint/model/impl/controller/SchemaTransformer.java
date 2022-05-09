@@ -776,7 +776,8 @@ public class SchemaTransformer {
 
         List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
         if (limitations != null) {
-            PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsForLayer(limitations, LayerType.PRESENTATION);
+            // TODO review as part of MID-7929 resolution
+            PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsLabeled(limitations, LayerType.PRESENTATION);
             if (limitationsType != null) {
                 if (limitationsType.getMinOccurs() != null) {
                     mutableDef.setMinOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMinOccurs()));

@@ -27,7 +27,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -63,11 +62,7 @@ class AccessChecker {
 //                LOGGER.error(message);
 //                throw new SchemaException(message);
 //            }
-                PropertyAccessType access = limitations.getAccess();
-                if (access == null) {
-                    continue;
-                }
-                if (access.isAdd() == null || !access.isAdd()) {
+                if (!limitations.canAdd()) {
                     throw new SecurityViolationException(
                             "Attempt to add shadow with non-creatable attribute " + attribute.getElementName());
                 }
@@ -116,11 +111,7 @@ class AccessChecker {
 //                LOGGER.error(message);
 //                throw new SchemaException(message);
 //            }
-                PropertyAccessType access = limitations.getAccess();
-                if (access == null) {
-                    continue;
-                }
-                if (access.isModify() == null || !access.isModify()) {
+                if (!limitations.canModify()) {
                     String message = "Attempt to modify non-updateable attribute " + attrName;
                     LOGGER.error(message);
                     result.recordFatalError(message);
@@ -164,11 +155,7 @@ class AccessChecker {
 //                LOGGER.error(message);
 //                throw new SchemaException(message);
 //            }
-                PropertyAccessType access = limitations.getAccess();
-                if (access == null) {
-                    continue;
-                }
-                if (access.isRead() == null || !access.isRead()) {
+                if (!limitations.canRead()) {
                     LOGGER.trace("Removing non-readable attribute {}", attrName);
                     attributeContainer.remove(attribute);
                 }

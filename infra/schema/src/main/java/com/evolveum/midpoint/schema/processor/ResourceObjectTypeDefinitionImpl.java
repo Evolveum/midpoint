@@ -107,6 +107,8 @@ public final class ResourceObjectTypeDefinitionImpl
      * They are here to implement resource object type inheritance.
      *
      * Frozen after parsing.
+     *
+     * TODO remove
      */
     @NotNull private final DeeplyFreezableList<ResourceObjectTypeDefinitionType> parentBeans = new DeeplyFreezableList<>();
 

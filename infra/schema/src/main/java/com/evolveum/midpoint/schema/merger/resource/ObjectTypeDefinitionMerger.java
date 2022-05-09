@@ -7,60 +7,34 @@
 
 package com.evolveum.midpoint.schema.merger.resource;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.merger.ItemMerger;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.schema.merger.BaseCustomItemMerger;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SuperObjectTypeReferenceType;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * A merger specific to resource definitions: creates inheritance relations between the same definitions
  * (matched by kind and intent).
  */
-class ObjectTypeDefinitionMerger implements ItemMerger {
+class ObjectTypeDefinitionMerger extends BaseCustomItemMerger<PrismContainer<ResourceObjectTypeDefinitionType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectTypeDefinitionMerger.class);
 
-    @Override
-    public void merge(@NotNull PrismValue target, @NotNull PrismValue source) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void merge(@NotNull ItemName itemName, @NotNull PrismContainerValue<?> target, @NotNull PrismContainerValue<?> source)
-            throws ConfigurationException, SchemaException {
-        PrismContainer<ResourceObjectTypeDefinitionType> targetDefinitionsContainer = target.findContainer(itemName);
-        PrismContainer<ResourceObjectTypeDefinitionType> sourceDefinitionsContainer = source.findContainer(itemName);
-        // some shortcuts first
-        if (sourceDefinitionsContainer == null || sourceDefinitionsContainer.hasNoValues()) {
-            // nothing to do here
-        } else if (targetDefinitionsContainer == null) {
-            target.add(sourceDefinitionsContainer.clone());
-        } else if (targetDefinitionsContainer.hasNoValues()) {
-            targetDefinitionsContainer.addAll(
-                    sourceDefinitionsContainer.getClonedValues());
-        } else {
-            mergeDefinitions(targetDefinitionsContainer, sourceDefinitionsContainer);
-        }
-    }
-
-    private void mergeDefinitions(
-            PrismContainer<ResourceObjectTypeDefinitionType> target, PrismContainer<ResourceObjectTypeDefinitionType> source)
+    protected void mergeInternal(
+            @NotNull PrismContainer<ResourceObjectTypeDefinitionType> target,
+            @NotNull PrismContainer<ResourceObjectTypeDefinitionType> source)
             throws ConfigurationException {
         DefinitionsTarget definitionsTarget = new DefinitionsTarget(target);
         for (ResourceObjectTypeDefinitionType sourceDefinition : source.getRealValues()) {

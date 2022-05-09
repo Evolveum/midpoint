@@ -18,15 +18,17 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -297,6 +299,24 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(current);
 
         displayDumpable("schema", schema);
-        // TODO
+
+        ResourceObjectTypeDefinition accountDef =
+                schema.findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+
+        // gossip is added in types-1
+        ResourceAttributeDefinition<?> gossipDef =
+                accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME);
+        PropertyLimitations gossipModelLimitations = gossipDef.getLimitations(LayerType.MODEL);
+        assertThat(gossipModelLimitations.canRead()).as("read access to gossip").isFalse();
+        assertThat(gossipModelLimitations.canAdd()).as("add access to gossip").isTrue();
+        assertThat(gossipModelLimitations.canModify()).as("modify access to gossip").isTrue();
+
+        ResourceAttributeDefinition<?> drinkDef =
+                accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+        PropertyLimitations drinkModelLimitations = drinkDef.getLimitations(LayerType.MODEL);
+        assertThat(drinkModelLimitations.canRead()).as("read access to drink").isTrue();
+        assertThat(drinkModelLimitations.canAdd()).as("add access to drink").isFalse();
+        assertThat(drinkModelLimitations.canModify()).as("modify access to drink").isTrue();
+        assertThat(drinkDef.isTolerant()).as("drink 'tolerant' flag").isFalse(); // overridden in types-1
     }
 }
