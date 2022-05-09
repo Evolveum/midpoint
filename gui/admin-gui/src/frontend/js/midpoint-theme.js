@@ -425,12 +425,13 @@ export default class MidPointTheme {
         $('#' + compId).multiselect(options);
     }
 
+    togglePopover(refId, popupId) {
+        var popup = $(popupId);
+
+        this.showPopover(refId, popupId, !popup.is(':visible'));
+    }
+
     showPopover(refId, popupId, show) {
-        console.log("showPopover", {
-            ref: refId,
-            popup: popupId,
-            show: show,
-        })
         var ref = $(refId);
         var popup = $(popupId);
         var arrow = popup.find('.arrow');
