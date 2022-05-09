@@ -130,6 +130,7 @@ public class PolyStringEditorPanel extends InputPanel {
 
         WebMarkupContainer originValueContainer = new WebMarkupContainer(ID_ORIGIN_VALUE_CONTAINER);
         originValueContainer.setOutputMarkupId(true);
+        originValueContainer.add(AttributeAppender.prepend("class", () -> showFullData ? "property-stripe" : null));
         originValueContainer.add(getInputFieldClassAppenderForContainer());
         originValueContainer.add(new VisibleBehaviour(() -> showFullData || StringUtils.isEmpty(localizedValue)));
         add(originValueContainer);
@@ -187,7 +188,6 @@ public class PolyStringEditorPanel extends InputPanel {
         origValueWithButton.add(origValuePanel);
 
         WebMarkupContainer fullDataContainer = new WebMarkupContainer(ID_FULL_DATA_CONTAINER);
-        fullDataContainer.setOutputMarkupId(true);
         fullDataContainer.add(new VisibleBehaviour(() -> showFullData));
         add(fullDataContainer);
 
