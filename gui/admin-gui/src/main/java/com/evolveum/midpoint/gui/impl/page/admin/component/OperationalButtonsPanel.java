@@ -46,6 +46,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DetailsPageSaveMetho
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+/**
+ * Use new {@link OperationsPanel} and {@link OperationPanelPart} to create proper HTML for this panel ("card" with fieldsets that are responsive)
+ *
+ * @param <O>
+ */
 public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<PrismObjectWrapper<O>> {
     private static final long serialVersionUID = 1L;
 
