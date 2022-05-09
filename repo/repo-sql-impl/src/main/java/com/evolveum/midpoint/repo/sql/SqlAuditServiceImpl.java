@@ -16,7 +16,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
 import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.SQLQuery;
@@ -1076,14 +1075,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
 
         Long lastProcessedId = lastProcessedObject.getRepoId();
-        XMLGregorianCalendar lastProcessedTimestamp = lastProcessedObject.getTimestamp();
         if (providedOrdering == null || providedOrdering.isEmpty()) {
             return schemaService.prismContext()
                     .queryFor(AuditEventRecordType.class)
                     .item(AuditEventRecordType.F_REPO_ID).gt(lastProcessedId)
-                    .and()
-                    // timestamp of the next entry can be the same, we need greater-or-equal here
-                    .item(AuditEventRecordType.F_TIMESTAMP).ge(lastProcessedTimestamp)
                     .buildFilter();
         }
 
