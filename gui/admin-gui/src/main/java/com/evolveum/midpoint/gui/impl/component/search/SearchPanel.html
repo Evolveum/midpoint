@@ -6,12 +6,11 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <form wicket:id="form" class="d-flex flex-wrap justify-content-end">
-        <div class="form-inline" style="float:right; text-align-last: left; width: fit-content;">
+    <form wicket:id="form" class="d-flex justify-content-end">
+        <div wicket:id="searchItemsPanel"></div>
 
-            <div class="pull-left" wicket:id="searchItemsPanel"></div>
-
-            <div class="form-group" style="vertical-align: top; padding-right: 5px;" wicket:id="searchContainer">
+<!--        <div class="d-flex my-1">-->
+            <div wicket:id="searchContainer">
                 <div class="btn-group btn-group-sm">
                     <button type="button" class="btn btn-primary" about="searchSimple" wicket:id="submitSearchButton">
                         <i class="fa fa-search flip-icon fa-lg"></i>
@@ -28,7 +27,7 @@
                     </ul>
                 </div>
             </div>
-            <div class="form-group pull-right" style="vertical-align: top; padding-right: 5px;" wicket:id="saveSearchContainer">
+            <div wicket:id="saveSearchContainer">
                 <div class="btn-group btn-group-sm">
                     <button type="button" class="btn btn-primary" wicket:id="saveSearchButton">
                         <i class="fa fa-save flip-icon fa-lg"></i>
@@ -45,46 +44,47 @@
                     </ul>
                 </div>
             </div>
-        </div>
+<!--        </div>-->
     </form>
     <wicket:fragment wicket:id="basicSearchFragment">
-        <div class="d-flex my-1">
-            <wicket:container wicket:id="items">
-                <div wicket:id="item" class="my-1"/>
-            </wicket:container>
-            <a wicket:id="more" class="btn btn-sm btn-default mx-1 my-1">
+        <wicket:container wicket:id="items">
+            <div wicket:id="item" class="my-1"/>
+        </wicket:container>
+<!--        <div class="d-flex my-1">-->
+            <a wicket:id="more" class="btn btn-sm btn-default mx-1">
                 <wicket:message key="SearchPanel.more"/>
                 &nbsp;
                 <span class="fa fa-caret-down"></span>
             </a>
-            <div wicket:id="popover">
-                <div class="search-popover">
-                    <div class="more-input">
-                        <input wicket:id="addText" type="text" class="form-control form-control-sm" style="width: auto;" size="20">
-                    </div>
+<!--        </div>-->
+        <div wicket:id="popover">
+            <div class="search-popover">
+                <div class="more-input">
+                    <input wicket:id="addText" type="text" class="form-control form-control-sm" style="width: auto;" size="20">
+                </div>
 
-                    <div class="properties">
-                        <dl wicket:id="propList">
-                            <dt>
-                                <wicket:message key="SearchPanel.properties"/>
-                            </dt>
-                            <dd wicket:id="properties">
-                                <label>
-                                    <input wicket:id="check" type="checkbox">&nbsp;
-                                    <a wicket:id="propLink"><span wicket:id="propName"/></a>
-                                    <i wicket:id="help"/>
-                                </label>
-                            </dd>
-                        </dl>
-                    </div>
+                <div class="properties">
+                    <dl wicket:id="propList">
+                        <dt>
+                            <wicket:message key="SearchPanel.properties"/>
+                        </dt>
+                        <dd wicket:id="properties">
+                            <label>
+                                <input wicket:id="check" type="checkbox">&nbsp;
+                                <a wicket:id="propLink"><span wicket:id="propName"/></a>
+                                <i wicket:id="help"/>
+                            </label>
+                        </dd>
+                    </dl>
+                </div>
 
-                    <div class="buttons">
-                        <a wicket:id="add" class="btn btn-sm btn-success"/>
-                        <a wicket:id="close" class="btn btn-sm btn-default"/>
-                    </div>
+                <div class="buttons">
+                    <a wicket:id="add" class="btn btn-sm btn-success"/>
+                    <a wicket:id="close" class="btn btn-sm btn-default"/>
                 </div>
             </div>
         </div>
+        <!--        </div>-->
     </wicket:fragment>
 
     <wicket:fragment wicket:id="advancedSearchFragment">
