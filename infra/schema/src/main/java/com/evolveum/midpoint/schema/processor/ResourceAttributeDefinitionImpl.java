@@ -116,7 +116,7 @@ public class ResourceAttributeDefinitionImpl<T>
         this.rawDefinition = rawDefinition;
         this.customizationBean =
                 CloneUtil.toImmutable(
-                        new ResourceAttributeDefinitionType(PrismContext.get()));
+                        new ResourceAttributeDefinitionType());
         try {
             this.limitationsMap = computeLimitationsMap();
         } catch (SchemaException e) {
@@ -208,7 +208,7 @@ public class ResourceAttributeDefinitionImpl<T>
         return new ResourceAttributeDefinitionImpl<>(
                 toImmutable(rawDefinition),
                 toImmutable(customizationBean != null ?
-                        customizationBean : new ResourceAttributeDefinitionType(PrismContext.get())));
+                        customizationBean : new ResourceAttributeDefinitionType()));
     }
 
     /**
@@ -272,16 +272,17 @@ public class ResourceAttributeDefinitionImpl<T>
                 limitations.getAccess().setModify(previousLimitations.getAccess().isModify());
             }
             previousLimitations = limitations;
+            // TODO check this as part of MID-7929 resolution
             if (layer != LayerType.SCHEMA) {
                 // SCHEMA is a pseudo-layer. It cannot be overridden ... unless specified explicitly
                 PropertyLimitationsType genericLimitationsType =
-                        MiscSchemaUtil.getLimitationsForLayer(customizationBean.getLimitations(), null);
+                        MiscSchemaUtil.getLimitationsLabeled(customizationBean.getLimitations(), null);
                 if (genericLimitationsType != null) {
                     applyLimitationsBean(limitations, genericLimitationsType);
                 }
             }
             PropertyLimitationsType layerLimitationsType =
-                    MiscSchemaUtil.getLimitationsForLayer(customizationBean.getLimitations(), layer);
+                    MiscSchemaUtil.getLimitationsLabeled(customizationBean.getLimitations(), layer);
             if (layerLimitationsType != null) {
                 applyLimitationsBean(limitations, layerLimitationsType);
             }
@@ -315,7 +316,7 @@ public class ResourceAttributeDefinitionImpl<T>
         if (accessOverride.isAdd() != null) {
             return accessOverride.isAdd();
         }
-        return limitationsMap.get(layer).getAccess().isAdd();
+        return limitationsMap.get(layer).canAdd();
     }
 
     @Override
@@ -328,7 +329,7 @@ public class ResourceAttributeDefinitionImpl<T>
         if (accessOverride.isRead() != null) {
             return accessOverride.isRead();
         }
-        return limitationsMap.get(layer).getAccess().isRead();
+        return limitationsMap.get(layer).canRead();
     }
 
     @Override
@@ -341,7 +342,7 @@ public class ResourceAttributeDefinitionImpl<T>
         if (accessOverride.isModify() != null) {
             return accessOverride.isModify();
         }
-        return limitationsMap.get(layer).getAccess().isModify();
+        return limitationsMap.get(layer).canModify();
     }
 
     public void setOverrideCanRead(Boolean value) {

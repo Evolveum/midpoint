@@ -124,32 +124,6 @@
                     </q:equal>
                 </filter>
             </protected>
-            <protected>
-                <filter>
-                    <q:equal>
-                        <q:path>attributes/icfs:name</q:path>
-                        <q:value>daviejones</q:value>
-                    </q:equal>
-                </filter>
-            </protected>
-            <protected>
-                <filter>
-                    <q:substring>
-                        <q:path>attributes/icfs:name</q:path>
-                        <q:value>X</q:value>
-                        <q:anchorStart>true</q:anchorStart>
-                    </q:substring>
-                </filter>
-            </protected>
-            <protected>
-                <filter>
-                    <q:substring>
-                        <q:path>attributes/icfs:name</q:path>
-                        <q:value>-adm</q:value>
-                        <q:anchorEnd>true</q:anchorEnd>
-                    </q:substring>
-                </filter>
-            </protected>
         </objectType>
         <objectType>
             <kind>entitlement</kind>

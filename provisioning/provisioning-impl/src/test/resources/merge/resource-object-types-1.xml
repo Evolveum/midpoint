@@ -8,6 +8,7 @@
 
 <resource oid="8e355713-c785-441c-88b4-79bdb041103e"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
@@ -28,6 +29,7 @@
             <kind>account</kind>
             <intent>default</intent>
             <attribute>
+                <!-- New attribute -->
                 <ref>ri:gossip</ref>
                 <limitations>
                     <access>
@@ -37,6 +39,28 @@
                     </access>
                 </limitations>
             </attribute>
+            <attribute>
+                <ref>ri:drink</ref>
+                <!-- Overriding the default value -->
+                <tolerant>false</tolerant>
+
+                <!-- Temporarily disabled (see MID-7929) -->
+                <!--<limitations>-->
+                <!--    <access>-->
+                <!--        &lt;!&ndash; overwriting existing value &ndash;&gt;-->
+                <!--        <add>true</add>-->
+                <!--    </access>-->
+                <!--</limitations>-->
+            </attribute>
+            <!-- extra protected filter -->
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/name</q:path>
+                        <q:value>root</q:value>
+                    </q:equal>
+                </filter>
+            </protected>
         </objectType>
     </schemaHandling>
 </resource>

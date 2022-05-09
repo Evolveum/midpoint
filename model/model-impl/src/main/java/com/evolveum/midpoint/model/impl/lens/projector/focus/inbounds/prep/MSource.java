@@ -176,20 +176,10 @@ abstract class MSource implements DebugDumpable {
             LOGGER.trace("Mapping(s) for {} will be skipped because the item is ignored", itemDescription);
             return true;
         }
-        if (isSourceNotReadable(limitations)) {
+        if (limitations != null && !limitations.canRead()) {
             LOGGER.warn("Skipping inbound mapping(s) for {} in {} because it is not readable",
                     itemDescription, getProjectionHumanReadableName());
             return true;
-        }
-        return false;
-    }
-
-    private boolean isSourceNotReadable(PropertyLimitations limitations) {
-        if (limitations != null) {
-            PropertyAccessType access = limitations.getAccess();
-            if (access != null) {
-                return access.isRead() == null || !access.isRead();
-            }
         }
         return false;
     }
