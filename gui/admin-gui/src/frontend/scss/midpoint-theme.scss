@@ -1474,6 +1474,11 @@ td .prism-property-value {
   .search-item-field {
     padding-left: 3px !important;
   }
+
+  & > a.btn,
+  & > a.btn:hover {
+    border-top: 0 !important;
+  }
 }
 
 .metadata {
