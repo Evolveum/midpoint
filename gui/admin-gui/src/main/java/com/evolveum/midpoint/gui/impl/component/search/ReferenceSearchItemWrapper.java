@@ -88,4 +88,8 @@ public class ReferenceSearchItemWrapper<T extends Serializable> extends Property
         refFilter.setTargetTypeNullAsAny(true);
         return refFilter;
     }
+
+    public List<T> getAvailableValues() {
+        return availableValues;
+    }
 }

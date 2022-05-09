@@ -449,6 +449,7 @@ public class SearchFactory {
             itemWrapper = new ReferenceSearchItemWrapper((PrismReferenceDefinition)itemDef, type);
             itemWrapper.setVisible(isFixedItem);
             itemWrapper.setCanConfigure(!isFixedItem);
+            itemWrapper.setName(WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef, null));
             return itemWrapper;
         }
         PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) itemDef;
@@ -1107,16 +1108,12 @@ public class SearchFactory {
         if (refDef == null) {
             return;
         }
-        SearchItemType searchItem = new SearchItemType()
-                .path(new ItemPathType(path))
-                .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(refDef, null));
+        ReferenceSearchItemWrapper item = (ReferenceSearchItemWrapper) createPropertySearchItemWrapper(containerDef.getCompileTimeClass(), refDef, path);
         if (pageBase == null) {
-            defs.add(new ReferenceSearchItemWrapper(refDef,
-                    Collections.singletonList(WebComponentUtil.getDefaultRelationOrFail()), containerDef.getCompileTimeClass()));
+            item.getAvailableValues().addAll(Collections.singletonList(WebComponentUtil.getDefaultRelationOrFail()));
             return;
         }
-        defs.add(new ReferenceSearchItemWrapper(refDef,
-                WebComponentUtil.getCategoryRelationChoices(category, pageBase), containerDef.getCompileTimeClass()));
+        item.getAvailableValues().addAll(Collections.singletonList(WebComponentUtil.getCategoryRelationChoices(category, pageBase)));
     }
 
     public static <C extends Containerable> void addShadowAttributeSearchItemWrapper(PrismContainerDefinition<C> containerDef,
@@ -1135,19 +1132,16 @@ public class SearchFactory {
         if (propDef == null) {
             return;
         }
-        PolyStringType displayName = new PolyStringType(propDef.getItemName().getLocalPart());
+        PropertySearchItemWrapper item = createPropertySearchItemWrapper(containerDef.getCompileTimeClass(), propDef, propDef.getItemName());
         if (key != null) {
+            PolyStringType displayName = new PolyStringType(propDef.getItemName().getLocalPart());
             PolyStringTranslationType translation = new PolyStringTranslationType();
             translation.setFallback(propDef.getItemName().getLocalPart());
             translation.setKey(key);
             displayName.setTranslation(translation);
+            item.setName(WebComponentUtil.getTranslatedPolyString(displayName));
         }
-
-//        SearchItemType searchItem = new SearchItemType()
-//                .displayName(displayName)
-//                .path(new ItemPathType(path));
-
-        defs.add(createPropertySearchItemWrapper(containerDef.getCompileTimeClass(), propDef, propDef.getItemName()));
+        defs.add(item);
     }
 
     public static ScopeSearchItemConfigurationType createScopeSearchItem() {
