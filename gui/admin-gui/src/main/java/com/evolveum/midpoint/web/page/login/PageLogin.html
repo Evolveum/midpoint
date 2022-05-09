@@ -42,21 +42,21 @@
 
         <div wicket:id="csrfField"/>
 
-        <wicket:link>
-            <a class="btn" role="button" href="forgetpassword" wicket:id="forgetpassword">
-                <wicket:message key="PageLogin.forgetPassword"/>
-            </a>
-        </wicket:link>
+        <div class="d-flex justify-content-between flex-wrap gap-1">
+            <wicket:link>
+                <a class="btn btn-link px-0" role="button" href="forgetpassword" wicket:id="forgetpassword">
+                    <wicket:message key="PageLogin.forgetPassword"/>
+                </a>
+            </wicket:link>
 
-        <div class="pull-right">
-            <a class="btn btn-default" role="button" wicket:id="selfRegistration">
-                <wicket:message key="PageLogin.selfRegistration"/>
-            </a>
-
-            <input type="submit" class="btn btn-primary" wicket:message="value:PageLogin.signIn"/>
+            <div class="d-flex gap-1">
+                <a class="btn btn-default" role="button" wicket:id="selfRegistration">
+                    <wicket:message key="PageLogin.selfRegistration"/>
+                </a>
+                <input type="submit" class="btn btn-primary" wicket:message="value:PageLogin.signIn"/>
+            </div>
         </div>
     </form>
 </wicket:extend>
-
 </body>
 </html>
