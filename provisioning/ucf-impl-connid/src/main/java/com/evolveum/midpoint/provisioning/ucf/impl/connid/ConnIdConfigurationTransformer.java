@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -283,8 +282,10 @@ public class ConnIdConfigurationTransformer {
 
     private void transformConnectorPoolConfiguration(ObjectPoolConfiguration connectorPoolConfiguration,
             PrismContainer<?> connectorPoolContainer) throws SchemaException {
+        int minIdle = 0;
 
         if (connectorPoolContainer == null || connectorPoolContainer.getValue() == null) {
+            connectorPoolConfiguration.setMinIdle(minIdle);
             return;
         }
 
@@ -297,7 +298,7 @@ public class ConnIdConfigurationTransformer {
                     connectorPoolConfiguration.setMinEvictableIdleTimeMillis(parseLong(prismProperty));
                 } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE
                         .equals(subelementName)) {
-                    connectorPoolConfiguration.setMinIdle(parseInt(prismProperty));
+                    minIdle = parseInt(prismProperty);
                 } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE
                         .equals(subelementName)) {
                     connectorPoolConfiguration.setMaxIdle(parseInt(prismProperty));
@@ -325,6 +326,7 @@ public class ConnIdConfigurationTransformer {
                                 + ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
             }
         }
+        connectorPoolConfiguration.setMinIdle(minIdle);
     }
 
     private void transformConnectorTimeoutsConfiguration(APIConfiguration apiConfig,
