@@ -10,6 +10,22 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
+<wicket:head>
+    <script type="text/javascript">
+        $(".focus-username").focus();
+    </script>
+    <wicket:remove>This css is used to hide sidebar menu</wicket:remove>
+    <style type="text/css">
+        .content-wrapper, .right-side, .main-footer, .main-header {
+            margin-left: 0px !important;
+
+            -moz-transition: none !important;;
+            -webkit-transition: none !important;;
+            -o-transition: color 0 ease-in !important;;
+            transition: none !important;;
+        }
+    </style>
+</wicket:head>
 <wicket:extend>
     <div class="row">
         <div class="col-md-offset-2 col-md-8 col-lg-offset-4 col-lg-4">
@@ -24,22 +40,6 @@
             </div>
         </div>
     </div>
-
-    <script type="text/javascript">
-        $(".focus-username").focus();
-    </script>
-
-    <wicket:remove>This css is used to hide sidebar menu</wicket:remove>
-    <style type="text/css">
-        .content-wrapper, .right-side, .main-footer {
-            margin-left: 0px;
-
-            -moz-transition: none;
-            -webkit-transition: none;
-            -o-transition: color 0 ease-in;
-            transition: none;
-        }
-    </style>
 </wicket:extend>
 </body>
 </html>
