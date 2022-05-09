@@ -6,13 +6,13 @@
  */
 @import "midpoint-theme-variables";
 
-@import "../../../node_modules/admin-lte/build/scss/adminlte";
-@import "../../../node_modules/overlayscrollbars/css/OverlayScrollbars.css";
-@import "../../../node_modules/@fortawesome/fontawesome-free/css/all.css";
-@import "../../../node_modules/datatables.net-bs4/css/dataTables.bootstrap4";
-
-@import "../../../node_modules/bootstrap-select/dist/css/bootstrap-select.css";
-@import "../../../node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css";
+// AdminLTE and Bootstrap
+@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/functions";
+@import "../../../node_modules/admin-lte/build/scss/bootstrap-variables";
+@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/variables";
+@import "../../../node_modules/admin-lte/build/scss/variables";
+@import "../../../node_modules/admin-lte/build/scss/variables-alt";
+// AdminLTE and Bootstrap end
 
 @import "icon-style";
 @import "prism-forms";
@@ -1971,4 +1971,8 @@ span.yui-skin-sam {
   display: flex !important;
   flex-wrap: wrap !important;
   gap: 0.5rem;
+}
+
+.card-footer {
+  background-color: $white;
 }
