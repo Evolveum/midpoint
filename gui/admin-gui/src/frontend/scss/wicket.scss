@@ -1,0 +1,66 @@
+/*!
+ * Copyright (c) 2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+@import "midpoint-theme-variables";
+
+#wicketDebugLink {
+  bottom: 55px !important;
+}
+
+#wicketDebugBar img {
+  vertical-align: unset;
+}
+
+div.wicket-debug-buttons {
+  border: 1px solid #000000;
+  background-color: #ffffff;
+  opacity: 0.7;
+  bottom: 85px;
+  display: block;
+  position: fixed;
+  right: 10px;
+  z-index: 1000000;
+
+  a {
+    color: #0000ff;
+    display: block;
+    padding: 3px 20px;
+  }
+}
+
+/**
+ *  Auto-complete drop-down choice styles
+ */
+div.wicket-aa-container {
+  z-index: 20003 !important;  // used because if autocomplete used on popup
+
+  div.wicket-aa {
+    background-color: $input-bg;
+    border: 1px solid $input-border-color;
+    border-bottom-left-radius: $input-border-radius;
+    border-bottom-right-radius: $input-border-radius;
+    padding: $input-padding-y $input-padding-x;
+    margin: 1px;
+    text-align: left;
+
+    ul {
+      list-style: none;
+      padding: 2px;
+      margin: 0;
+
+      li {
+        padding: 2px;
+        margin: 0;
+
+        &.selected {
+          background-color: lighten($input-focus-border-color, 10%);
+        }
+      }
+    }
+  }
+}
+
