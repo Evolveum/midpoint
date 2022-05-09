@@ -8,37 +8,29 @@
 
 <resource oid="873a5483-ded8-4607-ac06-ea5ae92ce755"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-    <name>template-basic</name>
+    <name>template-object-types</name>
+    <documentation>
+        A resource template with unfinished configuration (no instance ID), three object types (account/default,
+        entitlement/group, entitlement/privilege), and some configured capabilities.
+    </documentation>
     <abstract>true</abstract>
 
     <connectorRef oid="provided-by-test-code" type="ConnectorType"/>
 
-    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-
-        <icfc:configurationProperties>
-            <icfi:instanceId>basic</icfi:instanceId>
-            <icfi:uselessString>Shiver me timbers!</icfi:uselessString>
-            <icfi:uselessGuardedString> <!-- Add some whitespace -->
-                <clearValue>Dead men tell no tales</clearValue>
-            </icfi:uselessGuardedString>
-            <icfi:supportValidity>true</icfi:supportValidity>
-        </icfc:configurationProperties>
-
+    <connectorConfiguration>
+        <!-- Intentionally no configuration properties -->
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
             <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
             <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
         </icfc:resultsHandlerConfiguration>
-
     </connectorConfiguration>
 
     <schemaHandling>
@@ -91,16 +83,6 @@
                 </limitations>
             </attribute>
             <attribute>
-                <ref>ri:gossip</ref>
-                <limitations>
-                    <access>
-                        <read>false</read>
-                        <add>true</add>
-                        <modify>true</modify>
-                    </access>
-                </limitations>
-            </attribute>
-            <attribute>
                 <ref>ri:water</ref>
                 <limitations>
                     <access>
@@ -145,10 +127,7 @@
             <protected>
                 <filter>
                     <q:equal>
-                        <q:path>
-                            declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                            attributes/icfs:name
-                        </q:path>
+                        <q:path>attributes/icfs:name</q:path>
                         <q:value>daviejones</q:value>
                     </q:equal>
                 </filter>
@@ -156,10 +135,7 @@
             <protected>
                 <filter>
                     <q:substring>
-                        <q:path>
-                            declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                            attributes/icfs:name
-                        </q:path>
+                        <q:path>attributes/icfs:name</q:path>
                         <q:value>X</q:value>
                         <q:anchorStart>true</q:anchorStart>
                     </q:substring>
@@ -168,10 +144,7 @@
             <protected>
                 <filter>
                     <q:substring>
-                        <q:path>
-                            declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                            attributes/icfs:name
-                        </q:path>
+                        <q:path>attributes/icfs:name</q:path>
                         <q:value>-adm</q:value>
                         <q:anchorEnd>true</q:anchorEnd>
                     </q:substring>

@@ -598,7 +598,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             resource = operationsHelper.getRepoObject(ResourceType.class, resourceOid, null, testResult);
             resourceManager.testConnection(resource, task, testResult);
 
-        } catch (SchemaException ex) {
+        } catch (SchemaException | ConfigurationException ex) { // TODO is this ok?
             throw new IllegalArgumentException(ex.getMessage(), ex);
         }
         testResult.computeStatus("Test resource has failed");

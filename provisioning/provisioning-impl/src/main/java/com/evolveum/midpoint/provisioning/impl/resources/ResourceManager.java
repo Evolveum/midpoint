@@ -222,7 +222,10 @@ public class ResourceManager {
      *                                 availability status).
      */
     public void testConnection(PrismObject<ResourceType> resource, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+        // FIXME temporary code
+        new ResourceExpansionOperation(resource.asObjectable(), beans)
+                .execute(parentResult);
         new TestConnectionOperation(resource, task, beans)
                 .execute(parentResult);
     }

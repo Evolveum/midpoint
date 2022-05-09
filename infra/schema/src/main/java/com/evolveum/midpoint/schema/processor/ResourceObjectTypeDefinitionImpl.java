@@ -47,6 +47,11 @@ public final class ResourceObjectTypeDefinitionImpl
         implements ResourceObjectTypeDefinition {
 
     /**
+     * Kind + intent.
+     */
+    @NotNull private final ResourceObjectTypeIdentification identification;
+
+    /**
      * Kind of objects covered by this type.
      */
     @NotNull private final ShadowKindType kind;
@@ -133,24 +138,23 @@ public final class ResourceObjectTypeDefinitionImpl
     private final String resourceOid;
 
     ResourceObjectTypeDefinitionImpl(
-            @NotNull ShadowKindType kind,
-            @NotNull String intent,
+            @NotNull ResourceObjectTypeIdentification identification,
             @NotNull ResourceObjectClassDefinition rawDefinition,
             @NotNull ResourceObjectTypeDefinitionType definitionBean,
             String resourceOid) {
-        this(DEFAULT_LAYER, kind, intent, rawDefinition, definitionBean, resourceOid);
+        this(DEFAULT_LAYER, identification, rawDefinition, definitionBean, resourceOid);
     }
 
     private ResourceObjectTypeDefinitionImpl(
             @NotNull LayerType layer,
-            @NotNull ShadowKindType kind,
-            @NotNull String intent,
+            @NotNull ResourceObjectTypeIdentification identification,
             @NotNull ResourceObjectClassDefinition rawDefinition,
             @NotNull ResourceObjectTypeDefinitionType definitionBean,
             String resourceOid) {
         super(layer);
-        this.kind = kind;
-        this.intent = intent;
+        this.identification = identification;
+        this.kind = identification.getKind();
+        this.intent = identification.getIntent();
         this.rawObjectClassDefinition = rawDefinition;
         this.definitionBean = definitionBean;
         this.resourceOid = resourceOid;
@@ -384,7 +388,7 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     protected ResourceObjectTypeDefinitionImpl cloneInLayer(@NotNull LayerType layer) {
         ResourceObjectTypeDefinitionImpl clone = new ResourceObjectTypeDefinitionImpl(
-                layer, kind, intent, rawObjectClassDefinition, definitionBean, resourceOid);
+                layer, identification, rawObjectClassDefinition, definitionBean, resourceOid);
         clone.copyDefinitionDataFrom(layer, this);
         return clone;
     }

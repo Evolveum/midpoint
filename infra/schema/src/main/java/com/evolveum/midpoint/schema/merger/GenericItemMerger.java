@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.provisioning.impl.resources.merger;
+package com.evolveum.midpoint.schema.merger;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.*;
 
-import static com.evolveum.midpoint.provisioning.impl.resources.merger.GenericItemMerger.Kind.CONTAINER;
+import static com.evolveum.midpoint.schema.merger.GenericItemMerger.Kind.CONTAINER;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -40,7 +40,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * 2. For multi-valued items with a natural key defined, the values having the same key are considered matching.
  * 3. For multi-valued items without a natural key, no values are matching.
  */
-class GenericItemMerger implements ItemMerger {
+public class GenericItemMerger implements ItemMerger {
 
     private static final Trace LOGGER = TraceManager.getTrace(GenericItemMerger.class);
 
@@ -50,14 +50,14 @@ class GenericItemMerger implements ItemMerger {
     /** Mergers to be used for child items. */
     @NotNull private final PathKeyedMap<ItemMerger> childrenMergers;
 
-    GenericItemMerger(
+    public GenericItemMerger(
             @Nullable NaturalKey naturalKey,
             @NotNull PathKeyedMap<ItemMerger> childrenMergers) {
         this.naturalKey = naturalKey;
         this.childrenMergers = childrenMergers;
     }
 
-    GenericItemMerger(@NotNull PathKeyedMap<ItemMerger> childrenMergers) {
+    public GenericItemMerger(@NotNull PathKeyedMap<ItemMerger> childrenMergers) {
         this(null, childrenMergers);
     }
 
@@ -115,26 +115,27 @@ class GenericItemMerger implements ItemMerger {
         Item<?, ?> sourceItem = source.findItem(itemName);
         if (sourceItem == null || sourceItem.hasNoValues()) {
             LOGGER.trace("Nothing found at source; keeping target unchanged");
-            return;
-        }
-        Item<?, ?> targetItem = target.findItem(itemName);
-        if (targetItem == null || targetItem.hasNoValues()) {
-            LOGGER.trace("Nothing found at target; copying source value(s) to the target");
-            //noinspection unchecked
-            target.add(
-                    sourceItem.clone());
-            return;
-        }
-        boolean isTargetItemSingleValued = isSingleValued(targetItem);
-        boolean isSourceItemSingleValued = isSingleValued(sourceItem);
-        stateCheck(isSourceItemSingleValued == isTargetItemSingleValued,
-                "Mismatch between the cardinality of source and target items: single=%s (source) vs single=%s (target)",
-                isSourceItemSingleValued, isTargetItemSingleValued);
-        if (isSourceItemSingleValued) {
-            mergeSingleValuedItem(targetItem, sourceItem);
         } else {
-            mergeMultiValuedItem(targetItem, sourceItem);
+            Item<?, ?> targetItem = target.findItem(itemName);
+            if (targetItem == null || targetItem.hasNoValues()) {
+                LOGGER.trace("Nothing found at target; copying source value(s) to the target");
+                //noinspection unchecked
+                target.add(
+                        sourceItem.clone());
+            } else {
+                boolean isTargetItemSingleValued = isSingleValued(targetItem);
+                boolean isSourceItemSingleValued = isSingleValued(sourceItem);
+                stateCheck(isSourceItemSingleValued == isTargetItemSingleValued,
+                        "Mismatch between the cardinality of source and target items: single=%s (source) vs single=%s (target)",
+                        isSourceItemSingleValued, isTargetItemSingleValued);
+                if (isSourceItemSingleValued) {
+                    mergeSingleValuedItem(targetItem, sourceItem);
+                } else {
+                    mergeMultiValuedItem(targetItem, sourceItem);
+                }
+            }
         }
+        LOGGER.trace("Finished merging item {}", itemName);
     }
 
     private void mergeSingleValuedItem(Item<?, ?> targetItem, Item<?, ?> sourceItem)
@@ -226,14 +227,14 @@ class GenericItemMerger implements ItemMerger {
         }
     }
 
-    static class NaturalKey {
+    public static class NaturalKey {
         @NotNull private final Collection<QName> constituents;
 
         private NaturalKey(@NotNull Collection<QName> constituents) {
             this.constituents = constituents;
         }
 
-        static NaturalKey of(QName... constituents) {
+        public static NaturalKey of(QName... constituents) {
             return new NaturalKey(List.of(constituents));
         }
     }

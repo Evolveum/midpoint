@@ -104,4 +104,8 @@ public interface ResourceObjectTypeDefinition
 
     /** Temporary? */
     @Nullable ExpressionType getClassificationCondition();
+
+    @NotNull default ResourceObjectTypeIdentification getIdentification() {
+        return ResourceObjectTypeIdentification.of(getKind(), getIntent());
+    }
 }

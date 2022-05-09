@@ -5,26 +5,22 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.provisioning.impl.resources.merger;
+package com.evolveum.midpoint.schema.merger;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
-
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
-
 /**
- * Does no actual data movement; just requires that the value does exist in the target object.
+ * Ignores the value in the source object.
  */
-public class RequiredItemMerger implements ItemMerger {
+public class IgnoreSourceItemMerger implements ItemMerger {
 
-    public static final RequiredItemMerger INSTANCE = new RequiredItemMerger();
+    public static final IgnoreSourceItemMerger INSTANCE = new IgnoreSourceItemMerger();
 
     @Override
     public void merge(@NotNull PrismValue target, @NotNull PrismValue source) throws ConfigurationException, SchemaException {
@@ -34,8 +30,6 @@ public class RequiredItemMerger implements ItemMerger {
     @Override
     public void merge(@NotNull ItemName itemName, @NotNull PrismContainerValue<?> target, @NotNull PrismContainerValue<?> source)
             throws ConfigurationException {
-
-        configCheck(ResourceMergeOperation.hasValue(target, itemName),
-                "Item %s is required but not present in %s", itemName, target);
+        // No op
     }
 }
