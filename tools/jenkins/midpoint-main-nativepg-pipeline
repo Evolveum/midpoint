@@ -1,8 +1,12 @@
+def verbose = 0
+try {
+    verbose = Integer.parseInt(params.VERBOSE ?: '0')
+} catch (Exception e) { /* ignored */ }
+
 podTemplate(
         activeDeadlineSeconds: 21600, // 6h total build limit
-        idleMinutes: 1,
-        // Secret volume with maven settings.xml for deploy, see also sim-link in "build" stage.
-        volumes: [secretVolume(secretName: "jenkins-nexus", mountPath: "/root/jenkins-nexus")],
+        idleMinutes: 10,
+        // No need for secret volume, no mvn deploy done here.
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
         containers: [
                 containerTemplate(name: 'jnlp',
@@ -12,8 +16,8 @@ podTemplate(
                         resourceLimitMemory: '1Gi',
                         resourceRequestCpu: '900m',
                         resourceRequestMemory: '1Gi'),
-                containerTemplate(name: 'pgsql',
-                        image: 'postgres:13-alpine', // TODO parametrize?
+                containerTemplate(name: 'postgres',
+                        image: "${params.POSTGRES_IMAGE ?: 'postgres:14-alpine'}",
                         ttyEnabled: true,
                         resourceRequestCpu: '100m',
                         resourceLimitCpu: '1',
@@ -21,13 +25,13 @@ podTemplate(
                         resourceLimitMemory: '4Gi',
                         envVars: [
                             envVar(key: 'POSTGRES_INITDB_ARGS', value: '--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8'),
-                            envVar(key: 'POSTGRES_USER', value: 'midpoint'),
+                            envVar(key: 'POSTGRES_USER', value: 'midtest'),
                             envVar(key: 'POSTGRES_PASSWORD', value: 'password'),
-                            // TODO mount data?
+                            // TODO is separate mount for data necessary?
                         ],
-                        ports: [portMapping(name: 'pgsql', containerPort: 5432)]),
+                        ports: [portMapping(name: 'postgres', containerPort: 5432)]),
                 containerTemplate(name: 'maven',
-                        image: 'maven:3.8.5-openjdk-11-slim',
+                        image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17-slim'}",
                         ttyEnabled: true,
                         command: 'cat',
                         resourceLimitCpu: '4',
@@ -36,82 +40,67 @@ podTemplate(
 ) {
     node(POD_LABEL) {
         stage("checkout") {
-            git branch: "${BRANCH}",
+            git branch: "${params.BRANCH ?: 'master'}",
                     url: 'https://github.com/Evolveum/midpoint.git'
-            echo "git checkout done..."
         }
-        // TODO PG
-        stage("build") {
-            container('psql') {
-                sh "psql --version"
+        stage("db-init") {
+            container('postgres') {
+                sh """#!/bin/bash
+                    set -x
+                    psql --version
+                    psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/native-new/postgres-new.sql \
+                        -f config/sql/native-new/postgres-new-audit.sql -f config/sql/native-new/postgres-new-quartz.sql
+                    #psql -U midtest -c "\\dt" # uncomment to list the tables
+                """
             }
         }
-        stage("build") {
+        stage("build-with-tests") {
             container('maven') {
-                try {
-                    sh """#!/bin/bash
-                        # .m2 is mutable and short-term, we just sym-link the settings.xml there.
-                        mkdir -p /root/.m2
-                        ln -s ../jenkins-nexus/settings.xml /root/.m2/settings.xml
+                sh """#!/bin/bash
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        env | sort
+                        mvn --version
+                        df -h
+		            fi
 
-                        if [ '${VERBOSE}' = '1' ]
-                        then
-	                        env | sort
-	                        mvn --version
-	                        df -h
-			            fi
+			        mvn -B -ntp -Dmaven.test.failure.ignore -P sqale,dbtest,-dist clean install \
+			            -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest
 
-				        mvn -B -ntp -DskipTests clean deploy -DdeployAtEnd=true
-
-				        if [ '${VERBOSE}' = '1' ]
-                        then
-                            df -h
-                        fi
-                    """
-                } catch (err) {
-                    echo "Caught: ${err}"
-                    currentBuild.result = 'FAILURE'
-                }
-            }
-        }
-        stage("tests-default") {
-            container('maven') {
-                try {
-                    sh """
-                        mvn -B -ntp -Dmaven.test.failure.ignore verify
-
-				        if [ '${VERBOSE}' = '1' ]
-                        then
-                            df -h
-                        fi
-                    """
-                } catch (err) {
-                    echo "Caught: ${err}"
-                    // TODO replace with better failure, this lets the next stage run
-                    currentBuild.result = 'FAILURE'
-                } finally {
-                    step([$class: 'Publisher', reportFilenamePattern: '**/testng-results.xml'])
-                }
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
             }
         }
         stage("tests-extra") {
             container('maven') {
-                try {
-                    // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
-                    sh """
-                        mvn -B -ntp -Dmaven.test.failure.ignore verify -P extratest -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+                // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                sh """#!/bin/bash
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+		            fi
 
-				        if [ '${VERBOSE}' = '1' ]
-                        then
-                            df -h
-                        fi
-                    """
-                } catch (err) {
-                    echo "Caught: ${err}"
-                    currentBuild.result = 'FAILURE'
-                } finally {
-                    step([$class: 'Publisher', reportFilenamePattern: 'testing/**/testng-results.xml'])
-                }
+			        mvn -B -ntp -Dmaven.test.failure.ignore -P sqale,extratest,dbtest,-dist verify -rf testing \
+			            -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest \
+			            -Dtest.config.file=test-config-new-repo.xml \
+			            -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+        }
+        stage("collect-test-results") {
+            container('maven') {
+                step([
+                    $class: 'Publisher',
+//                        $class: 'LabeledTestResultGroupPublisher',
+                    reportFilenamePattern: '**/testng-results.xml'
+                ])
             }
         }
     }
