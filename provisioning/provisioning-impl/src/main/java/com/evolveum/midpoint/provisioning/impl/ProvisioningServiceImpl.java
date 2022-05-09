@@ -673,11 +673,11 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         LOGGER.trace("Start discovering configuration of resource {} ", resourceParam);
 
-        resourceManager.discoverConfiguration(resource, parentResult);
+        Collection<PrismProperty<T>> suggestions = resourceManager.discoverConfiguration(resource, parentResult);
 
         LOGGER.debug("Finished discovering configuration of resource{}, result: {} ", resourceParam,
                 parentResult.getStatus());
-        return null;
+        return suggestions;
     }
 
     @Override

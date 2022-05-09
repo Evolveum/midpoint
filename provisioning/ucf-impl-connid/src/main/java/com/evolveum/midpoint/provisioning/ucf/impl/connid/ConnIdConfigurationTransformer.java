@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -146,7 +147,7 @@ public class ConnIdConfigurationTransformer {
             throw new SystemException("Couldn't parse connector schema: " + e.getMessage(), e);
         }
         PrismContainerDefinition<ConnectorConfigurationType> connectorConfigDef = ConnectorTypeUtil.findConfigurationContainerDefinition(connectorType, schema);
-        if (connectorConfigDef != null) {
+        if (connectorConfigDef == null) {
             throw new SystemException("Couldn't find container definition of connector configuration in connector: " + connectorType.getConnectorType());
         }
 
@@ -167,15 +168,15 @@ public class ConnIdConfigurationTransformer {
             }
 
             QName qNameOfProperty = new QName(connectorConfNs, propertyName);
-            PrismPropertyDefinition<?> propertyDef = connectorConfigDef.findPropertyDefinition(ItemName.fromQName(qNameOfProperty));
+            PrismPropertyDefinition<?> propertyDef = connectorConfigDef.findPropertyDefinition(
+                    ItemPath.create(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME, qNameOfProperty));
             if (propertyDef == null) {
                 LOGGER.debug("Couldn't find property definition of configuration property for suggestion with name " + propertyName);
                 continue;
             }
 
             PrismContext prismContext = PrismContext.get();
-            Class<?> type = configProperty.getType();
-            QName qNameOfType = prismContext.getSchemaRegistry().determineTypeForClass(type);
+            QName qNameOfType = propertyDef.getTypeName();
             MutableItemDefinition def;
             if (ValueListOpenness.OPEN.equals(values.getOpenness())) {
                 def = prismContext.definitionFactory().createPropertyDefinition(qNameOfProperty, qNameOfType);
@@ -220,8 +221,6 @@ public class ConnIdConfigurationTransformer {
                     convertedSuggestions.add(property);
                 }
             }
-
-            convertedSuggestions.add((PrismProperty<T>) def.instantiate());
         }
         return convertedSuggestions;
     }

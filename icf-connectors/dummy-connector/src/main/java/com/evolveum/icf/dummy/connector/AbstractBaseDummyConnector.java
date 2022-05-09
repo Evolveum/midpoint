@@ -48,6 +48,8 @@ public abstract class AbstractBaseDummyConnector implements PoolableConnector, T
     // Marker used in logging tests
     public static final String LOG_MARKER = "_M_A_R_K_E_R_";
 
+    public static final String SUGGESTION_PREFIX = "Suggestion: ";
+
     /**
      * Place holder for the {@link Configuration} passed into the init() method
      */
@@ -235,8 +237,8 @@ public abstract class AbstractBaseDummyConnector implements PoolableConnector, T
 //                                DummyConfiguration.PAGING_STRATEGY_NONE)));
         SuggestedValuesBuilder builder = new SuggestedValuesBuilder();
         builder.setOpenness(ValueListOpenness.OPEN);
-        builder.addValues("Suggestion:" + configuration.getConnectorInstanceNameAttribute(),
-                "Suggestion:" + configuration.getInstanceId());
+        builder.addValues(SUGGESTION_PREFIX + configuration.getInstanceId(),
+                SUGGESTION_PREFIX + configuration.getUselessString());
         return Map.of(
                 "uselessString",
                 builder.build()
