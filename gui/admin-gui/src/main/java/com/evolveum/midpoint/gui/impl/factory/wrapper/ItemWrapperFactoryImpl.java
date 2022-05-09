@@ -290,6 +290,30 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         processMetadataType.setRequestorRef(oldMetadata.getRequestorRef());
         processMetadataType.setRequestTimestamp(oldMetadata.getRequestTimestamp());
 
+        for (ObjectReferenceType ref : oldMetadata.getCertifierRef()){
+            processMetadataType.getCertifierRef().add(ref.clone());
+        }
+
+        for (String comment : oldMetadata.getCertifierComment()) {
+            processMetadataType.getCertifierComment().add(comment);
+        }
+
+        for (ObjectReferenceType ref : oldMetadata.getCreateApproverRef()){
+            processMetadataType.getCreateApproverRef().add(ref.clone());
+        }
+
+        for (String comment : oldMetadata.getCreateApprovalComment()){
+            processMetadataType.getCreateApprovalComment().add(comment);
+        }
+
+        for (ObjectReferenceType ref : oldMetadata.getModifyApproverRef()){
+            processMetadataType.getModifyApproverRef().add(ref.clone());
+        }
+
+        for (String comment : oldMetadata.getModifyApprovalComment()){
+            processMetadataType.getModifyApprovalComment().add(comment);
+        }
+
         if (!processMetadataType.asPrismContainerValue().isEmpty()) {
             PrismContainer<ProcessMetadataType> processMetadata = metadataValue.findOrCreateContainer(ValueMetadataType.F_PROCESS);
             processMetadata.setRealValue(processMetadataType);
