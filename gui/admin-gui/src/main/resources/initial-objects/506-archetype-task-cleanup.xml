@@ -19,7 +19,7 @@
                 </translation>
             </pluralLabel>
             <icon>
-                <cssClass>fa fa-trash</cssClass>
+                <cssClass>fa fa-trash-alt</cssClass>
                 <color>green</color>
             </icon>
         </display>
