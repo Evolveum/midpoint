@@ -10,18 +10,17 @@ podTemplate(
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
         containers: [
                 containerTemplate(name: 'jnlp',
-                        image: 'jenkins/inbound-agent:4.10-3-alpine',
-                        runAsUser: '0',
-                        resourceLimitCpu: '900m',
-                        resourceLimitMemory: '1Gi',
-                        resourceRequestCpu: '900m',
-                        resourceRequestMemory: '1Gi'),
-                containerTemplate(name: 'postgres',
-                        image: "${params.POSTGRES_IMAGE ?: 'postgres:14-alpine'}",
-                        ttyEnabled: true,
-                        resourceRequestCpu: '100m',
+                        image: 'jenkins/inbound-agent:4.13-2-alpine',
+                        resourceRequestCpu: '1',
                         resourceLimitCpu: '1',
                         resourceRequestMemory: '1Gi',
+                        resourceLimitMemory: '1Gi'),
+                containerTemplate(name: 'postgres',
+                        image: "${params.POSTGRES_IMAGE ?: 'postgres:13-alpine'}",
+                        ttyEnabled: true,
+                        resourceRequestCpu: '2',
+                        resourceLimitCpu: '2',
+                        resourceRequestMemory: '4Gi',
                         resourceLimitMemory: '4Gi',
                         envVars: [
                             envVar(key: 'POSTGRES_INITDB_ARGS', value: '--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8'),
@@ -31,10 +30,12 @@ podTemplate(
                         ],
                         ports: [portMapping(name: 'postgres', containerPort: 5432)]),
                 containerTemplate(name: 'maven',
-                        image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17-slim'}",
+                        image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11-slim'}",
                         ttyEnabled: true,
                         command: 'cat',
+                        resourceRequestCpu: '4',
                         resourceLimitCpu: '4',
+                        resourceRequestMemory: '8Gi',
                         resourceLimitMemory: '8Gi') // see also -Xmx flag lower
         ]
 ) {
@@ -45,7 +46,7 @@ podTemplate(
         }
         stage("db-init") {
             container('postgres') {
-                sh """#!/bin/bash
+                sh """#!/bin/bash -ex
                     set -x
                     psql --version
                     psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/native-new/postgres-new.sql \
@@ -56,7 +57,7 @@ podTemplate(
         }
         stage("build-with-tests") {
             container('maven') {
-                sh """#!/bin/bash
+                sh """#!/bin/bash -ex
                     if [ "${verbose}" -ge 1 ]
                     then
                         env | sort
@@ -77,7 +78,7 @@ podTemplate(
         stage("tests-extra") {
             container('maven') {
                 // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
-                sh """#!/bin/bash
+                sh """#!/bin/bash -ex
                     if [ "${verbose}" -ge 1 ]
                     then
                         df -h

@@ -11,16 +11,17 @@ podTemplate(
         containers: [
                 containerTemplate(name: 'jnlp',
                         image: 'jenkins/inbound-agent:4.13-2-alpine',
-                        runAsUser: '0',
-                        resourceLimitCpu: '900m',
-                        resourceLimitMemory: '1Gi',
-                        resourceRequestCpu: '900m',
-                        resourceRequestMemory: '1Gi'),
+                        resourceRequestCpu: '1',
+                        resourceLimitCpu: '1',
+                        resourceRequestMemory: '1Gi',
+                        resourceLimitMemory: '1Gi'),
                 containerTemplate(name: 'maven',
                         image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11-slim'}",
                         ttyEnabled: true,
                         command: 'cat',
+                        resourceRequestCpu: '4',
                         resourceLimitCpu: '4',
+                        resourceRequestMemory: '6Gi',
                         resourceLimitMemory: '6Gi') // by default -Xmx4g is set in main POM
         ]
 ) {
@@ -28,11 +29,10 @@ podTemplate(
         stage("checkout") {
             git branch: "${params.BRANCH ?: 'master'}",
                     url: 'https://github.com/Evolveum/midpoint.git'
-            echo "git checkout done..."
         }
         stage("build") {
             container('maven') {
-                sh """#!/bin/bash
+                sh """#!/bin/bash -ex
                     if [ "${verbose}" -ge 1 ]
                     then
                         env | sort
