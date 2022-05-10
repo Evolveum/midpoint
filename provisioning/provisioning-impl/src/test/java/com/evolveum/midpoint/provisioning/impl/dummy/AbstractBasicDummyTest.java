@@ -22,6 +22,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.icf.dummy.connector.AbstractBaseDummyConnector;
+import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -245,6 +246,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        int cachedConnectorsCount = getSizeOfConnectorCache();
+
         dummyResource.assertNoConnections();
 
         // Some connector initialization and other things might happen in previous tests.
@@ -291,6 +294,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertNull("Resource contains schema after partial configuration test", resourceXsdSchemaElementAfter);
         assertNull("Resource contains capabilities after partial configuration test", resource.getCapabilities());
 
+        assertEquals("Was created entry connector in cache", cachedConnectorsCount, getSizeOfConnectorCache());
+
         IntegrationTestTools.displayXml("Resource XML", resourceAfter);
 
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
@@ -306,11 +311,18 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertNull("Resource was saved to repo, during partial configuration test", findResourceByName("newResource", testResult));
     }
 
+    private int getSizeOfConnectorCache() {
+        return connectorManager.getStateInformation().stream().filter(
+                state -> ConnectorManager.CONNECTOR_INSTANCE_CACHE_NAME.equals(state.getName())).findFirst().get().getSize();
+    }
+
     @Test
     public void test017PartialConfigurationFail() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        int cachedConnectorsCount = getSizeOfConnectorCache();
 
         dummyResource.assertConnections(1);
 
@@ -368,17 +380,19 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertNull("Resource contains schema after partial configuration test", resourceXsdSchemaElementAfter);
         assertNull("Resource contains capabilities after partial configuration test", resource.getCapabilities());
 
+        assertEquals("Was created entry connector in cache", cachedConnectorsCount, getSizeOfConnectorCache());
+
         IntegrationTestTools.displayXml("Resource XML", resourceAfter);
 
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
-        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         // One increment for availability status, the other for schema
 
-        dummyResource.assertConnections(1);
+        dummyResource.assertConnections(2);
 
         assertNull("Resource was saved to repo, during partial configuration test", findResourceByName("newResourceFail", testResult));
     }
@@ -396,7 +410,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        dummyResource.assertConnections(1);
+        dummyResource.assertConnections(2);
 
         // Some connector initialization and other things might happen in previous tests.
         // The monitor is static, not part of spring context, it will not be cleared
@@ -485,7 +499,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // One increment for availability status, the other for schema
         assertResourceVersionIncrement(resourceRepoAfter, 2);
 
-        dummyResource.assertConnections(2);
+        dummyResource.assertConnections(3);
         assertDummyConnectorInstances(1);
 
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
@@ -503,7 +517,32 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         given();
         OperationResult result = createOperationResult();
 
-        PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+        int cachedConnectorsCount = getSizeOfConnectorCache();
+
+        dummyResource.assertConnections(3);
+
+        rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
+        rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
+        rememberResourceCacheStats();
+
+        // Check that there is no schema before test (pre-condition)
+        PrismObject<ResourceType> resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+        PrismObject<ResourceType> resource = new ResourceType()
+                .name("newResource")
+                .connectorRef(resourceBefore.asObjectable().getConnectorRef())
+                .connectorConfiguration(resourceBefore.asObjectable().getConnectorConfiguration()).asPrismObject();
+
+        PrismProperty<Object> supportValidity = resource.findOrCreateProperty(
+                ItemPath.create(
+                        ResourceType.F_CONNECTOR_CONFIGURATION,
+                        SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME,
+                        "supportValidity"));
+
+        supportValidity.setRealValue(false);
 
         when();
         Collection<PrismProperty<Object>> suggestions = provisioningService.discoverConfiguration(resource, result);
@@ -524,12 +563,18 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                     expectedSuggestions.contains(suggestion.getRealValue()));
         });
 
-        resource.checkConsistence();
+        assertEquals("Was created entry connector in cache", cachedConnectorsCount, getSizeOfConnectorCache());
 
-        rememberSchemaMetadata(resource);
+        IntegrationTestTools.displayXml("Resource XML", resource);
 
-        assertSteadyResource(resource);
-        dummyResource.assertConnections(2);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+
+        dummyResource.assertConnections(4);
     }
 
     private String getSuggestionForProperty(PrismObject<ResourceType> resource, String propertyName) {
@@ -598,7 +643,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         rememberSchemaMetadata(resource);
 
         assertSteadyResource();
-        dummyResource.assertConnections(2);
+        dummyResource.assertConnections(4);
         assertDummyConnectorInstances(1);
     }
 
@@ -627,7 +672,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         rememberResourceSchema(returnedSchema);
         assertSteadyResource();
-        dummyResource.assertConnections(2);
+        dummyResource.assertConnections(4);
         assertDummyConnectorInstances(1);
     }
 
@@ -708,7 +753,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 //                refinedSchema.getDefinitions().size());
 
         assertSteadyResource();
-        dummyResource.assertConnections(2);
+        dummyResource.assertConnections(4);
         assertDummyConnectorInstances(1);
     }
 
@@ -816,7 +861,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         }
 
         assertSteadyResource();
-        dummyResource.assertConnections(2);
+        dummyResource.assertConnections(4);
         assertDummyConnectorInstances(1);
     }
 
@@ -922,7 +967,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                 capabilitiesCachingMetadataType.getSerialNumber(), repoCapabilitiesCachingMetadataType.getSerialNumber());
 
         assertSteadyResource();
-        dummyResource.assertConnections(2);
+        dummyResource.assertConnections(4);
         assertDummyConnectorInstances(1);
     }
 
@@ -962,7 +1007,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         rememberConnectorInstance(resource);
 
         assertSteadyResource();
-        dummyResource.assertConnections(2);
+        dummyResource.assertConnections(4);
         assertDummyConnectorInstances(1);
     }
 

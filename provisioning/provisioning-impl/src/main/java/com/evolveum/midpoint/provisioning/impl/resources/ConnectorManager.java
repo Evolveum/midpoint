@@ -101,7 +101,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorManager.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ConnectorManager.class.getName() + ".content");
 
-    private static final String CONNECTOR_INSTANCE_CACHE_NAME = ConnectorManager.class.getName() + ".connectorInstanceCache";
+    public static final String CONNECTOR_INSTANCE_CACHE_NAME = ConnectorManager.class.getName() + ".connectorInstanceCache";
     private static final String CONNECTOR_TYPE_CACHE_NAME = ConnectorManager.class.getName() + ".connectorTypeCache";
 
     private Collection<ConnectorFactory> connectorFactories;

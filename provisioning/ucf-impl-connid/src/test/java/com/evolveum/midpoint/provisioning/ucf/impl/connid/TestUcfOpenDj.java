@@ -145,7 +145,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
                 "description of OpenDJ connector instance");
 
         OperationResult result = new OperationResult("initUcf");
-        cc.configure(resourceType.getConnectorConfiguration().asPrismContainerValue(), ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), result);
+        cc.configure(resourceType.getConnectorConfiguration().asPrismContainerValue(), ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), true, result);
         cc.initialize(null, null, false, result);
         // TODO: assert something
 
@@ -440,7 +440,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         ConnectorInstance badConnector = factory.createConnectorInstance(connectorType,
                 "bad resource", "bad resource description");
-        badConnector.configure(badResourceType.getConnectorConfiguration().asPrismContainerValue(), null, result);
+        badConnector.configure(badResourceType.getConnectorConfiguration().asPrismContainerValue(), null, true, result);
 
         // WHEN
 

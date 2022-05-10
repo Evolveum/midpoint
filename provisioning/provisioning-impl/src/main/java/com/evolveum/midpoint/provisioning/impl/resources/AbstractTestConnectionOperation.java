@@ -281,7 +281,7 @@ abstract class AbstractTestConnectionOperation {
 
             InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
 
-            connector.configure(connectorConfiguration, ResourceTypeUtil.getSchemaGenerationConstraints(resource), configResult);
+            connector.configure(connectorConfiguration, ResourceTypeUtil.getSchemaGenerationConstraints(resource), isCachingConnector(), configResult);
 
             // We need to explicitly initialize the instance, e.g. in case that the schema and capabilities
             // cannot be detected by the connector and therefore are provided in the resource
@@ -399,7 +399,7 @@ abstract class AbstractTestConnectionOperation {
             }
         }
 
-        if (cachingConnector()) {
+        if (isCachingConnector()) {
             // Connector instance is fully configured at this point.
             // But the connector cache entry may not be set up properly and it is not yet placed into the cache.
             // Therefore make sure the caching bit is completed.
@@ -408,7 +408,7 @@ abstract class AbstractTestConnectionOperation {
         }
     }
 
-    protected boolean cachingConnector() {
+    protected boolean isCachingConnector() {
         return true;
     }
 

@@ -124,7 +124,7 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
     }
 
     @Override
-    public void configure(@NotNull PrismContainerValue<?> configuration, List<QName> generateObjectClasses, OperationResult parentResult)
+    public void configure(@NotNull PrismContainerValue<?> configuration, List<QName> generateObjectClasses, boolean isCaching, OperationResult parentResult)
             throws SchemaException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
