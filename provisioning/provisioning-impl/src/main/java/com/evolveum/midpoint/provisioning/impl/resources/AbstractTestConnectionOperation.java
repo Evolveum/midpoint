@@ -399,11 +399,17 @@ abstract class AbstractTestConnectionOperation {
             }
         }
 
-        // Connector instance is fully configured at this point.
-        // But the connector cache entry may not be set up properly and it is not yet placed into the cache.
-        // Therefore make sure the caching bit is completed.
-        // Place the connector to cache even if it was configured at the beginning. The connector is reconfigured now.
-        beans.connectorManager.cacheConfiguredConnector(connectorInstanceCacheEntry, connectorSpec);
+        if (cachingConnector()) {
+            // Connector instance is fully configured at this point.
+            // But the connector cache entry may not be set up properly and it is not yet placed into the cache.
+            // Therefore make sure the caching bit is completed.
+            // Place the connector to cache even if it was configured at the beginning. The connector is reconfigured now.
+            beans.connectorManager.cacheConfiguredConnector(connectorInstanceCacheEntry, connectorSpec);
+        }
+    }
+
+    protected boolean cachingConnector() {
+        return true;
     }
 
     protected String getTestName() {

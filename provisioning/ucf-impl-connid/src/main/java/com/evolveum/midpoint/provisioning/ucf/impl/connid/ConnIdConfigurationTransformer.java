@@ -82,7 +82,7 @@ public class ConnIdConfigurationTransformer {
      * @throws SchemaException
      * @throws ConfigurationException
      */
-    public APIConfiguration transformConnectorConfiguration(PrismContainerValue configuration)
+    public APIConfiguration transformConnectorConfiguration(PrismContainerValue configuration, boolean isCaching)
             throws SchemaException, ConfigurationException {
 
         APIConfiguration apiConfig = cinfo.createDefaultAPIConfiguration();
@@ -107,7 +107,7 @@ public class ConnIdConfigurationTransformer {
                 SchemaConstants.NS_ICF_CONFIGURATION,
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME));
         ObjectPoolConfiguration connectorPoolConfiguration = apiConfig.getConnectorPoolConfiguration();
-        transformConnectorPoolConfiguration(connectorPoolConfiguration, connectorPoolContainer);
+        transformConnectorPoolConfiguration(connectorPoolConfiguration, connectorPoolContainer, isCaching);
 
         PrismProperty producerBufferSizeProperty = configuration.findProperty(new ItemName(
                 SchemaConstants.NS_ICF_CONFIGURATION,
@@ -281,36 +281,38 @@ public class ConnIdConfigurationTransformer {
     }
 
     private void transformConnectorPoolConfiguration(ObjectPoolConfiguration connectorPoolConfiguration,
-            PrismContainer<?> connectorPoolContainer) throws SchemaException {
-        int minIdle = 0;
+            PrismContainer<?> connectorPoolContainer, boolean isCaching) throws SchemaException {
 
-        if (connectorPoolContainer == null || connectorPoolContainer.getValue() == null) {
-            connectorPoolConfiguration.setMinIdle(minIdle);
-            return;
-        }
-
-        for (PrismProperty prismProperty : connectorPoolContainer.getValue().getProperties()) {
-            QName propertyQName = prismProperty.getElementName();
-            if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
-                String subelementName = propertyQName.getLocalPart();
-                if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS
-                        .equals(subelementName)) {
-                    connectorPoolConfiguration.setMinEvictableIdleTimeMillis(parseLong(prismProperty));
-                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE
-                        .equals(subelementName)) {
-                    minIdle = parseInt(prismProperty);
-                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE
-                        .equals(subelementName)) {
-                    connectorPoolConfiguration.setMaxIdle(parseInt(prismProperty));
-                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_OBJECTS
-                        .equals(subelementName)) {
-                    connectorPoolConfiguration.setMaxObjects(parseInt(prismProperty));
-                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT
-                        .equals(subelementName)) {
-                    connectorPoolConfiguration.setMaxWait(parseLong(prismProperty));
-                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE_TIME_MILLIS
-                        .equals(subelementName)) {
-                    connectorPoolConfiguration.setMaxIdleTimeMillis(parseLong(prismProperty));
+        if (connectorPoolConfiguration != null && connectorPoolContainer != null) {
+            for (PrismProperty prismProperty : connectorPoolContainer.getValue().getProperties()) {
+                QName propertyQName = prismProperty.getElementName();
+                if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
+                    String subelementName = propertyQName.getLocalPart();
+                    if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS
+                            .equals(subelementName)) {
+                        connectorPoolConfiguration.setMinEvictableIdleTimeMillis(parseLong(prismProperty));
+                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE
+                            .equals(subelementName)) {
+                        connectorPoolConfiguration.setMinIdle(parseInt(prismProperty));
+                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE
+                            .equals(subelementName)) {
+                        connectorPoolConfiguration.setMaxIdle(parseInt(prismProperty));
+                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_OBJECTS
+                            .equals(subelementName)) {
+                        connectorPoolConfiguration.setMaxObjects(parseInt(prismProperty));
+                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT
+                            .equals(subelementName)) {
+                        connectorPoolConfiguration.setMaxWait(parseLong(prismProperty));
+                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE_TIME_MILLIS
+                            .equals(subelementName)) {
+                        connectorPoolConfiguration.setMaxIdleTimeMillis(parseLong(prismProperty));
+                    } else {
+                        throw new SchemaException(
+                                "Unexpected element "
+                                        + propertyQName
+                                        + " in "
+                                        + ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
+                    }
                 } else {
                     throw new SchemaException(
                             "Unexpected element "
@@ -318,15 +320,11 @@ public class ConnIdConfigurationTransformer {
                                     + " in "
                                     + ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
                 }
-            } else {
-                throw new SchemaException(
-                        "Unexpected element "
-                                + propertyQName
-                                + " in "
-                                + ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
             }
         }
-        connectorPoolConfiguration.setMinIdle(minIdle);
+        if (!isCaching) {
+            connectorPoolConfiguration.setMinIdle(0);
+        }
     }
 
     private void transformConnectorTimeoutsConfiguration(APIConfiguration apiConfig,

@@ -85,4 +85,8 @@ class TestPartialConfigurationOperation extends TestConnectionOperation {
     protected void setResourceAvailabilityStatus(AvailabilityStatusType status, String statusChangeReason, OperationResult result) {
         // don't save status to resource
     }
+    protected boolean cachingConnector() {
+        return false;
+    }
+
 }

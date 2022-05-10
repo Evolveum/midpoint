@@ -266,7 +266,7 @@ public class ResourceManager {
 
         ConnectorInstance connector;
         try {
-            connector = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, connectorResult);
+            connector = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, false, connectorResult);
         } catch (CommunicationException | ConfigurationException | ObjectNotFoundException |
                 SchemaException | RuntimeException e) {
             if (LOGGER.isTraceEnabled()) {

@@ -11,6 +11,7 @@ import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
+import org.identityconnectors.framework.common.objects.ValueListOpenness;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
 
@@ -141,7 +142,9 @@ public class DummyConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey = "UI_ENFORCE_UNIQUE_NAME",
-            helpMessageKey = "UI_ENFORCE_UNIQUE_NAME")
+            helpMessageKey = "UI_ENFORCE_UNIQUE_NAME",
+            allowedValues = {DummyResource.UID_MODE_NAME, DummyResource.UID_MODE_UUID, DummyResource.UID_MODE_EXTERNAL},
+            allowedValuesOpenness = ValueListOpenness.CLOSED)
     public boolean isEnforceUniqueName() {
         return enforceUniqueName;
     }
@@ -154,7 +157,9 @@ public class DummyConfiguration extends AbstractConfiguration {
      * If set to true then the password can be read from the resource.
      */
     @ConfigurationProperty(displayMessageKey = "UI_INSTANCE_READABLE_PASSWORD",
-            helpMessageKey = "UI_INSTANCE_READABLE_PASSWORD_HELP")
+            helpMessageKey = "UI_INSTANCE_READABLE_PASSWORD_HELP",
+            allowedValues = {PASSWORD_READABILITY_MODE_READABLE, PASSWORD_READABILITY_MODE_UNREADABLE, PASSWORD_READABILITY_MODE_INCOMPLETE},
+            allowedValuesOpenness = ValueListOpenness.CLOSED)
     public String getPasswordReadabilityMode() {
         return passwordReadabilityMode;
     }
@@ -389,7 +394,8 @@ public class DummyConfiguration extends AbstractConfiguration {
         this.monsterized = monsterized;
     }
 
-    @ConfigurationProperty
+    @ConfigurationProperty (allowedValues = {PAGING_STRATEGY_NONE, PAGING_STRATEGY_OFFSET},
+            allowedValuesOpenness = ValueListOpenness.CLOSED)
     public String getPagingStrategy() {
         return pagingStrategy;
     }
