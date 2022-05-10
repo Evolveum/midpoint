@@ -24,4 +24,10 @@
             <icfc:filteredResultsHandlerInValidationMode>true</icfc:filteredResultsHandlerInValidationMode>
         </icfc:resultsHandlerConfiguration>
     </connectorConfiguration>
+    <schema>
+        <generationConstraints>
+            <generateObjectClass>A</generateObjectClass>
+            <generateObjectClass>B</generateObjectClass>
+        </generationConstraints>
+    </schema>
 </resource>

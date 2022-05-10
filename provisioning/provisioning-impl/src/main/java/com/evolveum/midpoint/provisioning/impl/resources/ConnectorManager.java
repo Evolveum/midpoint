@@ -298,7 +298,10 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
             InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
 
-            connector.configure(connectorConfigurationVal, ResourceTypeUtil.getSchemaGenerationConstraints(connectorSpec.getResource()), result);
+            connector.configure(
+                    connectorConfigurationVal,
+                    ResourceTypeUtil.getSchemaGenerationConstraints(connectorSpec.getResource()),
+                    result);
 
             ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(connectorSpec.getResource());
             Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());

@@ -77,8 +77,12 @@ public interface ConnectorInstance {
      *
      * @param configuration new connector configuration (prism container value)
      * @param generateObjectClasses the list of the object classes which should be generated in schema
+     * (null or empty means "all")
      */
-    void configure(@NotNull PrismContainerValue<?> configuration, List<QName> generateObjectClasses, OperationResult parentResult)
+    void configure(
+            @NotNull PrismContainerValue<?> configuration,
+            @Nullable List<QName> generateObjectClasses,
+            @NotNull OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 
     ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException;

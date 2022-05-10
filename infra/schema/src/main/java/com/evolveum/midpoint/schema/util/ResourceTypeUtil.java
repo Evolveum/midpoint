@@ -116,33 +116,25 @@ public class ResourceTypeUtil {
     }
 
     public static boolean hasSchemaGenerationConstraints(ResourceType resource) {
-        if (resource == null) {
+        if (resource == null || resource.getSchema() == null) {
             return false;
         }
-
-        if (resource.getSchema() == null) {
+        SchemaGenerationConstraintsType generationConstraints = resource.getSchema().getGenerationConstraints();
+        if (generationConstraints == null) {
             return false;
+        } else {
+            List<QName> constraints = generationConstraints.getGenerateObjectClass();
+            return constraints != null && !constraints.isEmpty();
         }
-
-        if (resource.getSchema().getGenerationConstraints() == null) {
-            return false;
-        }
-
-        List<QName> constainst = resource.getSchema().getGenerationConstraints().getGenerateObjectClass();
-
-        if (constainst == null) {
-            return false;
-        }
-
-        return !constainst.isEmpty();
     }
 
+    /** Returns `null` if the list of constraints does not exist or is empty. */
     public static List<QName> getSchemaGenerationConstraints(ResourceType resource) {
-
         if (hasSchemaGenerationConstraints(resource)) {
             return resource.getSchema().getGenerationConstraints().getGenerateObjectClass();
+        } else {
+            return null;
         }
-        return null;
     }
 
     public static List<QName> getSchemaGenerationConstraints(PrismObject<ResourceType> resource) {

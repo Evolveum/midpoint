@@ -451,9 +451,7 @@ public class ProvisioningContext {
         return ItemPath.create(components);
     }
 
-    public CachingStategyType getCachingStrategy()
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+    public CachingStrategyType getCachingStrategy() {
         return ProvisioningUtil.getCachingStrategy(this);
     }
 
@@ -500,7 +498,7 @@ public class ProvisioningContext {
         return resourceObjectDefinition instanceof ResourceObjectTypeDefinition;
     }
 
-    public @Nullable CachingStategyType getPasswordCachingStrategy() {
+    public @Nullable CachingStrategyType getPasswordCachingStrategy() {
         return ProvisioningUtil.getPasswordCachingStrategy(
                 getObjectDefinitionRequired());
     }

@@ -233,7 +233,7 @@ class ShadowUpdater {
     private void computeUpdateShadowAttributeChanges(ProvisioningContext ctx, Collection<ItemDelta<?, ?>> repoShadowChanges,
             PrismObject<ShadowType> resourceShadow, PrismObject<ShadowType> repoShadow) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
-        CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
+        CachingStrategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
         for (ResourceAttributeDefinition<?> attrDef : objectDefinition.getAttributeDefinitions()) {
             if (ProvisioningUtil.shouldStoreAttributeInShadow(objectDefinition, attrDef.getItemName(), cachingStrategy)) {
                 ResourceAttribute<Object> resourceAttr = ShadowUtil.getAttribute(resourceShadow, attrDef.getItemName());
@@ -462,7 +462,7 @@ class ShadowUpdater {
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired(); // If type is not present, OC def is fine
-        CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
+        CachingStrategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
         Collection<ItemDelta<?, ?>> repoChanges = new ArrayList<>();
         for (ItemDelta itemDelta : objectChange) {
             if (ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath())) {
@@ -532,8 +532,8 @@ class ShadowUpdater {
         if (!(requestedPasswordDelta.getPath().equivalent(SchemaConstants.PATH_PASSWORD_VALUE))) {
             return;
         }
-        CachingStategyType cachingStrategy = ProvisioningUtil.getPasswordCachingStrategy(objectDefinition);
-        if (cachingStrategy == null || cachingStrategy == CachingStategyType.NONE) {
+        CachingStrategyType cachingStrategy = ProvisioningUtil.getPasswordCachingStrategy(objectDefinition);
+        if (cachingStrategy == null || cachingStrategy == CachingStrategyType.NONE) {
             return;
         }
         //noinspection unchecked

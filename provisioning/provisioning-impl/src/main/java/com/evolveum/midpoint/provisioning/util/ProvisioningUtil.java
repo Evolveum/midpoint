@@ -397,8 +397,8 @@ public class ProvisioningUtil {
     }
 
     public static boolean shouldStoreAttributeInShadow(ResourceObjectDefinition objectDefinition, QName attributeName,
-            CachingStategyType cachingStrategy) throws ConfigurationException {
-        if (cachingStrategy == null || cachingStrategy == CachingStategyType.NONE) {
+            CachingStrategyType cachingStrategy) throws ConfigurationException {
+        if (cachingStrategy == null || cachingStrategy == CachingStrategyType.NONE) {
             if (objectDefinition.isPrimaryIdentifier(attributeName) || objectDefinition.isSecondaryIdentifier(attributeName)) {
                 return true;
             }
@@ -412,7 +412,7 @@ public class ProvisioningUtil {
             }
             return false;
 
-        } else if (cachingStrategy == CachingStategyType.PASSIVE) {
+        } else if (cachingStrategy == CachingStrategyType.PASSIVE) {
             return objectDefinition.findAttributeDefinition(attributeName) != null;
 
         } else {
@@ -420,8 +420,8 @@ public class ProvisioningUtil {
         }
     }
 
-    public static boolean shouldStoreActivationItemInShadow(QName elementName, CachingStategyType cachingStrategy) {    // MID-2585
-        if (cachingStrategy == CachingStategyType.PASSIVE) {
+    public static boolean shouldStoreActivationItemInShadow(QName elementName, CachingStrategyType cachingStrategy) {    // MID-2585
+        if (cachingStrategy == CachingStrategyType.PASSIVE) {
             return true;
         } else {
             return QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP) ||
@@ -579,22 +579,21 @@ public class ProvisioningUtil {
         }
     }
 
-    public static CachingStategyType getCachingStrategy(ProvisioningContext ctx)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public static CachingStrategyType getCachingStrategy(ProvisioningContext ctx) {
         ResourceType resource = ctx.getResource();
         CachingPolicyType caching = resource.getCaching();
-        if (caching == null || caching.getCachingStategy() == null) {
+        if (caching == null || caching.getCachingStrategy() == null) {
             ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
             if (readCapabilityType == null) {
-                return CachingStategyType.NONE;
+                return CachingStrategyType.NONE;
             }
             Boolean cachingOnly = readCapabilityType.isCachingOnly();
             if (cachingOnly == Boolean.TRUE) {
-                return CachingStategyType.PASSIVE;
+                return CachingStrategyType.PASSIVE;
             }
-            return CachingStategyType.NONE;
+            return CachingStrategyType.NONE;
         }
-        return caching.getCachingStategy();
+        return caching.getCachingStrategy();
     }
 
     public static boolean isResourceModification(ItemDelta modification) {
@@ -870,7 +869,7 @@ public class ProvisioningUtil {
     }
 
     // TODO better place?
-    public static CachingStategyType getPasswordCachingStrategy(ResourceObjectDefinition objectDefinition) {
+    public static CachingStrategyType getPasswordCachingStrategy(ResourceObjectDefinition objectDefinition) {
         ResourcePasswordDefinitionType passwordDefinition = objectDefinition.getPasswordDefinition();
         if (passwordDefinition == null) {
             return null;
@@ -879,7 +878,7 @@ public class ProvisioningUtil {
         if (passwordCachingPolicy == null) {
             return null;
         }
-        return passwordCachingPolicy.getCachingStategy();
+        return passwordCachingPolicy.getCachingStrategy();
     }
 
     // TODO better place?

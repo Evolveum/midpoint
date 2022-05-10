@@ -80,6 +80,8 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static java.util.Collections.emptySet;
 
 /**
@@ -476,7 +478,7 @@ public class LensUtil {
     }
 
     public static int determineMaxIterations(IterationSpecificationType iterationSpecType) {
-        return iterationSpecType != null ? iterationSpecType.getMaxIterations() : 0;
+        return iterationSpecType != null ? or0(iterationSpecType.getMaxIterations()) : 0;
     }
 
     public static <F extends ObjectType> String formatIterationToken(LensContext<F> context,

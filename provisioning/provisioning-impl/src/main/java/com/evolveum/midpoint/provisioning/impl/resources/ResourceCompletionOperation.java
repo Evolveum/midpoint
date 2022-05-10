@@ -7,8 +7,23 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType.UP;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.prism.ItemProcessing;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -28,31 +43,17 @@ import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType.UP;
 
 /**
  * Responsible for "completing" a resource object, i.e. transforming the raw value fetched from the repository
@@ -299,6 +300,11 @@ class ResourceCompletionOperation {
         return schema != null ? schema.getCachingMetadata() : null;
     }
 
+    private SchemaGenerationConstraintsType getCurrentSchemaGenerationConstraints() {
+        XmlSchemaType schema = resource.asObjectable().getSchema();
+        return schema != null ? schema.getGenerationConstraints() : null;
+    }
+
     private void fetchResourceSchema()
             throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
             SchemaException {
@@ -390,42 +396,34 @@ class ResourceCompletionOperation {
         modifications.addAll(capabilitiesReplaceDelta.getModifications());
     }
 
-    private ContainerDelta<XmlSchemaType> createSchemaUpdateDelta() throws SchemaException {
+    private ItemDelta<?, ?> createSchemaUpdateDelta() throws SchemaException {
+        SchemaDefinitionType schemaDefinition = new SchemaDefinitionType();
+        schemaDefinition.setSchema(getSchemaRootElement());
+
+        XmlSchemaType schemaBean = new XmlSchemaType()
+                .cachingMetadata(MiscSchemaUtil.generateCachingMetadata())
+                .definition(schemaDefinition)
+                .generationConstraints(getCurrentSchemaGenerationConstraints());
+
+        return PrismContext.get().deltaFor(ResourceType.class)
+                .item(ResourceType.F_SCHEMA).replace(schemaBean)
+                .asItemDelta();
+    }
+
+    @NotNull
+    private Element getSchemaRootElement() throws SchemaException {
         Document xsdDoc;
         try {
             xsdDoc = rawResourceSchema.serializeToXsd();
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Serialized XSD resource schema for {}:\n{}", resource, DOMUtil.serializeDOMToString(xsdDoc));
-            }
+            LOGGER.trace("Serialized XSD resource schema for {}:\n{}",
+                    resource, lazy(() -> DOMUtil.serializeDOMToString(xsdDoc)));
         } catch (SchemaException e) {
             throw new SchemaException("Error processing resource schema for " + resource + ": " + e.getMessage(), e);
         }
 
-        Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
-        if (xsdElement == null) {
-            throw new SchemaException("No schema was generated for " + resource);
-        }
-
-        PrismContext prismContext = PrismContext.get();
-        ContainerDelta<XmlSchemaType> schemaContainerDelta =
-                prismContext.deltaFactory().container().createDelta(ResourceType.F_SCHEMA, ResourceType.class);
-        PrismContainerValue<XmlSchemaType> cval = prismContext.itemFactory().createContainerValue();
-        schemaContainerDelta.setValueToReplace(cval);
-        PrismProperty<CachingMetadataType> cachingMetadataProperty = cval.createProperty(XmlSchemaType.F_CACHING_METADATA);
-        cachingMetadataProperty.setRealValue(
-                MiscSchemaUtil.generateCachingMetadata());
-        List<QName> objectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
-        if (objectClasses != null) {
-            PrismProperty<SchemaGenerationConstraintsType> generationConstraints =
-                    cval.createProperty(XmlSchemaType.F_GENERATION_CONSTRAINTS);
-            SchemaGenerationConstraintsType constraints = new SchemaGenerationConstraintsType();
-            constraints.getGenerateObjectClass().addAll(objectClasses);
-            generationConstraints.setRealValue(constraints);
-        }
-        PrismProperty<SchemaDefinitionType> definitionProperty = cval.createProperty(XmlSchemaType.F_DEFINITION);
-        ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
-
-        return schemaContainerDelta;
+        return MiscUtil.requireNonNull(
+                DOMUtil.getFirstChildElement(xsdDoc),
+                () -> "No schema was generated for " + resource);
     }
 
     private PropertyDelta<CachingMetadataType> createMetadataUpdateDelta() {

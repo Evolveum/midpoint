@@ -110,7 +110,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     final ConnIdNameMapper connIdNameMapper;
     final ConnIdConvertor connIdConvertor;
 
-    private List<QName> generateObjectClasses;
+    /** If not null and not empty, specifies what object classes should be put into schema (empty means "no limitations"). */
+    @Nullable private List<QName> generateObjectClasses;
 
     /**
      * Builder and holder object for parsed ConnId schema and capabilities. By using
@@ -175,7 +176,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public synchronized void configure(@NotNull PrismContainerValue<?> configurationOriginal, List<QName> generateObjectClasses, OperationResult parentResult)
+    public synchronized void configure(
+            @NotNull PrismContainerValue<?> configurationOriginal,
+            @Nullable List<QName> generateObjectClasses,
+            @NotNull OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
@@ -340,7 +344,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
 
             if (resourceSchema == null || capabilities == null) {
-                retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
+                retrieveAndParseResourceCapabilitiesAndSchema(result);
 
                 this.legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
                 setRawResourceSchema(parsedCapabilitiesAndSchema.getRawResourceSchema());
@@ -381,7 +385,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         try {
 
             if (parsedCapabilitiesAndSchema == null) {
-                retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
+                retrieveAndParseResourceCapabilitiesAndSchema(result);
             }
 
             legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
@@ -414,7 +418,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             // Always refresh capabilities and schema here, even if we have already parsed that before.
             // This method is used in "test connection". We want to force fresh fetch here
             // TODO: later: clean up this mess. Make fresh fetch somehow explicit?
-            retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
+            retrieveAndParseResourceCapabilitiesAndSchema(result);
 
             legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
             setRawResourceSchema(parsedCapabilitiesAndSchema.getRawResourceSchema());
@@ -430,7 +434,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         return capabilities;
     }
 
-    private void retrieveAndParseResourceCapabilitiesAndSchema(List<QName> generateObjectClasses, OperationResult result)
+    private void retrieveAndParseResourceCapabilitiesAndSchema(OperationResult result)
             throws CommunicationException, ConfigurationException, GenericFrameworkException, SchemaException {
 
         ConnIdCapabilitiesAndSchemaParser parser =

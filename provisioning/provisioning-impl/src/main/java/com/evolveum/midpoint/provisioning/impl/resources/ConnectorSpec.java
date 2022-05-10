@@ -11,42 +11,51 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
- * @author semancik
+ * TODO description
  *
+ * Note: {@link #connectorOid} may be `null` e.g. for abstract resources.
+ *
+ * @author semancik
  */
 public class ConnectorSpec {
 
-    private final PrismObject<ResourceType> resource;
-    private final String connectorName;
-    private final String connectorOid;
-    private final PrismContainer<ConnectorConfigurationType> connectorConfiguration;
+    @NotNull private final PrismObject<ResourceType> resource;
+    @Nullable private final String connectorName;
+    @Nullable private final String connectorOid;
+    @Nullable private final PrismContainer<ConnectorConfigurationType> connectorConfiguration;
 
-    ConnectorSpec(PrismObject<ResourceType> resource, String connectorName, String connectorOid,
-            PrismContainer<ConnectorConfigurationType> connectorConfiguration) {
+    ConnectorSpec(
+            @NotNull PrismObject<ResourceType> resource,
+            @Nullable String connectorName,
+            @Nullable String connectorOid,
+            @Nullable PrismContainer<ConnectorConfigurationType> connectorConfiguration) {
         this.resource = resource;
         this.connectorName = connectorName;
         this.connectorOid = connectorOid;
         this.connectorConfiguration = connectorConfiguration;
     }
 
-    public PrismObject<ResourceType> getResource() {
+    public @NotNull PrismObject<ResourceType> getResource() {
         return resource;
     }
 
-    public String getConnectorName() {
+    public @Nullable String getConnectorName() {
         return connectorName;
     }
 
-    public String getConnectorOid() {
+    public @Nullable String getConnectorOid() {
         return connectorOid;
     }
 
-    public PrismContainer<ConnectorConfigurationType> getConnectorConfiguration() {
+    public @Nullable PrismContainer<ConnectorConfigurationType> getConnectorConfiguration() {
         return connectorConfiguration;
     }
 
-    public ConfiguredConnectorCacheKey getCacheKey() {
+    public @NotNull ConfiguredConnectorCacheKey getCacheKey() {
         return new ConfiguredConnectorCacheKey(resource.getOid(), connectorName);
     }
 

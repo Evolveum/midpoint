@@ -131,7 +131,8 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                     .assertPropertyEquals(F_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER, false) // from template
                     .assertPropertyEquals(F_ENABLE_NORMALIZING_RESULTS_HANDLER, false) // from template
                 .end()
-                .assertConnectorRef(RESOURCE_BASIC_TEMPLATE.getObjectable().getConnectorRef());
+                .assertConnectorRef(RESOURCE_BASIC_TEMPLATE.getObjectable().getConnectorRef())
+                .assertGeneratedClasses(new QName("A"), new QName("B"));
         // @formatter:on
 
         and("ancestors are OK");
@@ -172,7 +173,8 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                     .assertPropertyEquals(F_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER, false) // from template
                     .assertPropertyEquals(F_ENABLE_NORMALIZING_RESULTS_HANDLER, false) // from template
                 .end()
-                .assertConnectorRef(RESOURCE_BASIC_TEMPLATE.getObjectable().getConnectorRef());
+                .assertConnectorRef(RESOURCE_BASIC_TEMPLATE.getObjectable().getConnectorRef())
+                .assertGeneratedClasses(new QName("A"), new QName("B"), new QName("C"));
         // @formatter:on
 
         and("ancestors are OK");
