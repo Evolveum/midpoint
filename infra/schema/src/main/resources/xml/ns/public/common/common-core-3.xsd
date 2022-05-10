@@ -5749,6 +5749,7 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
+                <a:container>true</a:container>
                 <a:schemaMigration>
                     <a:element>tns:ignore</a:element>
                     <a:version>4.4</a:version>
@@ -5851,6 +5852,11 @@
     </xsd:simpleType>
 
     <xsd:complexType name="PropertyAccessType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="read" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="add" type="xsd:boolean" minOccurs="0"/>

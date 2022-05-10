@@ -25,13 +25,13 @@ import java.util.Map;
  *
  * @param <C> type of objects to be merged
  */
-public abstract class BaseMergeOperation<C extends Containerable> {
+public class BaseMergeOperation<C extends Containerable> {
 
     @NotNull private final C target;
     @NotNull private final C source;
     @NotNull private final ItemMerger rootMerger;
 
-    protected BaseMergeOperation(@NotNull C target, @NotNull C source, @NotNull ItemMerger rootMerger) {
+    public BaseMergeOperation(@NotNull C target, @NotNull C source, @NotNull ItemMerger rootMerger) {
         this.target = target;
         this.source = source;
         this.rootMerger = rootMerger;
