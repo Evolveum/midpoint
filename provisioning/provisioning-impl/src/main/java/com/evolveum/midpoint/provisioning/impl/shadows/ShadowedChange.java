@@ -21,6 +21,8 @@ import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStrategyType;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,13 +38,11 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectAsy
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectChange;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
@@ -304,7 +304,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
             resourceObject = objectDelta.getObjectToAdd().clone();
             LOGGER.trace("-> current object was taken from ADD delta:\n{}", resourceObject.debugDumpLazily());
         } else {
-            boolean passiveCaching = context.getCachingStrategy() == CachingStategyType.PASSIVE;
+            boolean passiveCaching = context.getCachingStrategy() == CachingStrategyType.PASSIVE;
             ReadCapabilityType readCapability = context.getEffectiveCapability(ReadCapabilityType.class);
             boolean canReadFromResource = readCapability != null && !Boolean.TRUE.equals(readCapability.isCachingOnly());
             if (canReadFromResource && (!passiveCaching || isNotificationOnly())) {

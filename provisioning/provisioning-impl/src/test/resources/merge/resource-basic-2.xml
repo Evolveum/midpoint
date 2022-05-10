@@ -20,4 +20,9 @@
             <icfi:uselessString>False!</icfi:uselessString>
         </icfc:configurationProperties>
     </connectorConfiguration>
+    <schema>
+        <generationConstraints>
+            <generateObjectClass>C</generateObjectClass> <!-- should be added to A and B in the parent -->
+        </generationConstraints>
+    </schema>
 </resource>

@@ -190,7 +190,7 @@ public class ResourceManager {
     }
 
     ResourceSchema fetchResourceSchema(
-            PrismObject<ResourceType> resource,
+            @NotNull PrismObject<ResourceType> resource,
             Map<String, Collection<Object>> capabilityMap,
             OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,

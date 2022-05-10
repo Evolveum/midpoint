@@ -483,13 +483,6 @@ public class ObjectTypeUtil {
     }
 
     public static void setXsdSchemaDefinition(PrismProperty<SchemaDefinitionType> definitionProperty, Element xsdElement) {
-
-//        Document document = xsdElement.getOwnerDocument();
-//        Element definitionElement = document.createElementNS(XmlSchemaType.F_DEFINITION.getNamespaceURI(),
-//                XmlSchemaType.F_DEFINITION.getLocalPart());
-//        definitionElement.appendChild(xsdElement);
-//        SchemaDefinitionType schemaDefinition = definitionProperty.getValue().getValue();
-//        schemaDefinition.setSchema(definitionElement);
         SchemaDefinitionType schemaDefinition = new SchemaDefinitionType();
         schemaDefinition.setSchema(xsdElement);
         definitionProperty.setRealValue(schemaDefinition);

@@ -703,12 +703,12 @@ public class ConnIdCapabilitiesAndSchemaParser {
     }
 
     private boolean shouldBeGenerated(List<QName> generateObjectClasses, QName objectClassXsdName) {
-        if (generateObjectClasses == null || generateObjectClasses.isEmpty()){
+        if (generateObjectClasses == null || generateObjectClasses.isEmpty()) {
             return true;
         }
 
-        for (QName objClassToGenerate : generateObjectClasses){
-            if (objClassToGenerate.equals(objectClassXsdName)){
+        for (QName objClassToGenerate : generateObjectClasses) {
+            if (objClassToGenerate.equals(objectClassXsdName)) {
                 return true;
             }
         }
