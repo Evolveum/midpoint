@@ -304,7 +304,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                 SearchPanel.this);
         basicSearchFragment.setOutputMarkupId(true);
         basicSearchFragment.add(new VisibleBehaviour(() -> SearchBoxModeType.BASIC.equals(getModelObject().getSearchMode())));
-        basicSearchFragment.add(AttributeAppender.append("style", "display: flex; flex-direction: row; flex-wrap: wrap;"));
+        basicSearchFragment.add(AttributeAppender.append("style", "display: contents !important;"));
         searchItemsRepeatingView.add(basicSearchFragment);
 
         AdvancedSearchFragment advancedSearchFragment = new AdvancedSearchFragment(searchItemsRepeatingView.newChildId(), ID_ADVANCED_SEARCH_FRAGMENT,

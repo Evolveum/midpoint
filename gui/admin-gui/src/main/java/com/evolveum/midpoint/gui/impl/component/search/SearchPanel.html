@@ -6,11 +6,11 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <form wicket:id="form" class="d-flex justify-content-end">
+    <form wicket:id="form" class="d-flex flex-wrap justify-content-end">
         <div wicket:id="searchItemsPanel"></div>
 
 <!--        <div class="d-flex my-1">-->
-            <div wicket:id="searchContainer">
+            <div wicket:id="searchContainer" class="my-1">
                 <div class="btn-group btn-group-sm">
                     <button type="button" class="btn btn-primary" about="searchSimple" wicket:id="submitSearchButton">
                         <i class="fa fa-search flip-icon fa-lg"></i>
@@ -27,7 +27,7 @@
                     </ul>
                 </div>
             </div>
-            <div wicket:id="saveSearchContainer">
+            <div wicket:id="saveSearchContainer" class="my-1">
                 <div class="btn-group btn-group-sm">
                     <button type="button" class="btn btn-primary" wicket:id="saveSearchButton">
                         <i class="fa fa-save flip-icon fa-lg"></i>
@@ -51,7 +51,7 @@
             <div wicket:id="item" class="my-1"/>
         </wicket:container>
 <!--        <div class="d-flex my-1">-->
-            <a wicket:id="more" class="btn btn-sm btn-default mx-1">
+            <a wicket:id="more" class="btn btn-sm btn-default mx-1 my-1">
                 <wicket:message key="SearchPanel.more"/>
                 &nbsp;
                 <span class="fa fa-caret-down"></span>
