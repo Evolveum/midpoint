@@ -9,10 +9,8 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -51,9 +49,8 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchFilterConfigurationPanel.class);
 
-    private static final String ID_ACE_EDITOR_CONTAINER = "aceEditorContainer";
+    private static final String ID_CONTAINER = "container";
     private static final String ID_ACE_EDITOR_FIELD = "aceEditorField";
-    private static final String ID_TEXT_FIELD_CONTAINER = "textFieldContainer";
     private static final String ID_TEXT_FIELD = "textField";
     private static final String ID_CONFIGURE_BUTTON = "configureButton";
     private static final String ID_FIELD_TYPE_BUTTON = "fieldTypeButton";
@@ -99,35 +96,17 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
     }
 
     private void initLayout() {
-        WebMarkupContainer aceEditorContainer = new WebMarkupContainer(ID_ACE_EDITOR_CONTAINER);
-        aceEditorContainer.setOutputMarkupId(true);
-        // todo why this is not handled via VisibleBehaviour?
-        aceEditorContainer.add(AttributeAppender.append("style", (IModel<?>) () -> {
-            if (FieldType.XML.equals(fieldType)) {
-                return "display: block;";
-            }
-            return "display: none;";
-        }));
-        add(aceEditorContainer);
+        WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
+        container.setOutputMarkupId(true);
+        add(container);
 
         AceEditorPanel aceEditorField = new AceEditorPanel(ID_ACE_EDITOR_FIELD, null, new SearchFilterTypeForXmlModel(getModel(), getPageBase()), 10);
-        aceEditorField.setOutputMarkupId(true);
-        aceEditorContainer.add(aceEditorField);
+        aceEditorField.add(new VisibleBehaviour(() -> FieldType.XML.equals(fieldType)));
+        container.add(aceEditorField);
 
-        WebMarkupContainer textFieldContainer = new WebMarkupContainer(ID_TEXT_FIELD_CONTAINER);
-        textFieldContainer.setOutputMarkupId(true);
-        // todo why this is not handled via VisibleBehaviour?
-        textFieldContainer.add(AttributeAppender.append("style", (IModel<?>) () -> {
-            if (FieldType.QUERY.equals(fieldType)) {
-                return "display: block;";
-            }
-            return "display: none;";
-        }));
-        add(textFieldContainer);
-
-        TextPanel textPanel = new TextPanel(ID_TEXT_FIELD, new SearchFilterTypeForQueryModel<O>(getModel(), getPageBase(), filterTypeModel, containerWrapper != null));
-        textPanel.setOutputMarkupId(true);
-        textFieldContainer.add(textPanel);
+        TextPanel textPanel = new TextPanel(ID_TEXT_FIELD, new SearchFilterTypeForQueryModel<>(getModel(), getPageBase(), filterTypeModel, containerWrapper != null));
+        textPanel.add(new VisibleBehaviour(() -> FieldType.QUERY.equals(fieldType)));
+        container.add(textPanel);
 
         AjaxButton searchConfigurationButton = new AjaxButton(ID_CONFIGURE_BUTTON) {
             private static final long serialVersionUID = 1L;
@@ -137,8 +116,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
                 searchConfigurationPerformed(target);
             }
         };
-        searchConfigurationButton.setOutputMarkupId(true);
-        searchConfigurationButton.add(new VisibleBehaviour(() -> true || containerWrapper != null));
+        searchConfigurationButton.add(new VisibleBehaviour(() -> containerWrapper != null));
         add(searchConfigurationButton);
 
         IModel<String> labelModel = (IModel) () -> {
@@ -161,8 +139,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
                 } else {
                     fieldType = FieldType.QUERY;
                 }
-                target.add(getAceEditorContainer());
-                target.add(getTextFieldContainer());
+                target.add(SearchFilterConfigurationPanel.this.get(ID_CONTAINER));
                 target.add(getPageBase().getFeedbackPanel());
                 target.add(buttonLabel);
             }
@@ -187,8 +164,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
                         return;
                     }
                     SearchFilterConfigurationPanel.this.getModel().setObject(SearchFilterConfigurationPanel.this.getPageBase().getQueryConverter().createSearchFilterType(configuredFilter));
-                    target.add(getAceEditorContainer());
-                    target.add(getTextFieldContainer());
+                    target.add(get(ID_CONTAINER));
                     target.add(getPageBase().getFeedbackPanel());
                 } catch (SchemaException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
@@ -196,13 +172,5 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
             }
         };
         getPageBase().showMainPopup(configPanel, target);
-    }
-
-    private Component getAceEditorContainer() {
-        return get(ID_ACE_EDITOR_CONTAINER);
-    }
-
-    private Component getTextFieldContainer() {
-        return get(ID_TEXT_FIELD_CONTAINER);
     }
 }
