@@ -35,6 +35,16 @@ div.wicket-debug-buttons {
 /**
  *  Auto-complete drop-down choice styles
  */
+.autocomplete-parent > a.icon {
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  z-index: 5;
+  cursor: default;
+  color: #555555;
+  font-size: 10.5px;
+}
+
 div.wicket-aa-container {
   z-index: 20003 !important;  // used because if autocomplete used on popup
 
