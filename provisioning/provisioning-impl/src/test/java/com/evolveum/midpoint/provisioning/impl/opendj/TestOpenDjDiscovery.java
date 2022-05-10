@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.opends.server.types.Entry;
@@ -148,6 +150,12 @@ public class TestOpenDjDiscovery extends AbstractOpenDjTest {
         then();
         display("Discovered properties", discoveredProperties);
 
+        for (PrismProperty<Object> discoveredProperty : discoveredProperties) {
+            if (discoveredProperty.getElementName().getLocalPart().equals("baseContext")) {
+                assertEquals("Wrong discovered base context", openDJController.getSuffix(), discoveredProperty.getRealValue());
+            }
+        }
+
         // TODO: assert discovered properties
     }
 
@@ -169,15 +177,40 @@ public class TestOpenDjDiscovery extends AbstractOpenDjTest {
         TestUtil.assertFailure("Test connection result (failure expected)", testResult);
     }
 
-
-    // TODO
-
-    @Test(enabled = false)
+    /**
+     * Apply discovered properties to resource configuration.
+     * We will be creating a delta which contains all the properties, updating Resource object.
+     */
+    @Test
     public void test016ApplyDiscoverConfiguration() throws Exception {
-        // TODO: Apply discovered properties to resource configuration
+        Task task = getTestTask();
+
+        List<ItemDelta<?, ?>> modifications = new ArrayList<>();
+        for (PrismProperty<Object> discoveredProperty : discoveredProperties) {
+            ItemPath propertyPath = ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
+                    SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
+                    discoveredProperty.getElementName());
+            PropertyDelta<Object> propertyDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
+                    propertyPath, discoveredProperty.getDefinition(), discoveredProperty.getRealValues().toArray());
+            modifications.add(propertyDelta);
+        }
+
+        display("Resource modifications", modifications);
+
+        when();
+        provisioningService.modifyObject(ResourceType.class, RESOURCE_OPENDJ_OID, modifications, null, null, task, task.getResult());
+
+        then();
+        PrismObject<ResourceType> resourceAfter = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, task.getResult());
+        display("Resource after", resourceAfter);
+
+        PrismAsserts.assertPropertyValue(resourceAfter,
+                ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
+                        SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
+                        "baseContext"), openDJController.getSuffix());
     }
 
-    @Test(enabled = false)
+    @Test
     public void test020TestConnection() throws Exception {
         Task task = getTestTask();
 

@@ -953,11 +953,37 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-databasetable</artifactId>
                 <version>1.4.9.1</version>
+                <exclusions>
+                    <!-- Connectors may have dependencies on various versions of connector-common,
+                         as they can be built against various versions of polygon.
+                         However, this will make dependency convergence enforcement really unhappy.
+                         Therefore, we will exclude the dependency from all connectors, except for LDAP connector.
+                         The LDAP connector is usually the newest one, bringing the newest version of connector-common.
+                         Excluding in Maven reactor should not do much anyway.
+                         MidPoint/ConnId are loading the connectors in their own way, anyway. -->
+                    <exclusion>
+                        <groupId>com.evolveum.polygon</groupId>
+                        <artifactId>connector-common</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-csv</artifactId>
                 <version>2.4</version>
+                <exclusions>
+                    <!-- Connectors may have dependencies on various versions of connector-common,
+                         as they can be built against various versions of polygon.
+                         However, this will make dependency convergence enforcement really unhappy.
+                         Therefore, we will exclude the dependency from all connectors, except for LDAP connector.
+                         The LDAP connector is usually the newest one, bringing the newest version of connector-common.
+                         Excluding in Maven reactor should not do much anyway.
+                         MidPoint/ConnId are loading the connectors in their own way, anyway. -->
+                    <exclusion>
+                        <groupId>com.evolveum.polygon</groupId>
+                        <artifactId>connector-common</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
@@ -976,6 +1002,19 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ssh</artifactId>
                 <version>1.0</version>
+                <exclusions>
+                    <!-- Connectors may have dependencies on various versions of connector-common,
+                         as they can be built against various versions of polygon.
+                         However, this will make dependency convergence enforcement really unhappy.
+                         Therefore, we will exclude the dependency from all connectors, except for LDAP connector.
+                         The LDAP connector is usually the newest one, bringing the newest version of connector-common.
+                         Excluding in Maven reactor should not do much anyway.
+                         MidPoint/ConnId are loading the connectors in their own way, anyway. -->
+                    <exclusion>
+                        <groupId>com.evolveum.polygon</groupId>
+                        <artifactId>connector-common</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <!-- End connectors -->
 
