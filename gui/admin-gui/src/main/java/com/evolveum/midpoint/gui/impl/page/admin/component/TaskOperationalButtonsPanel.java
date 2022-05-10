@@ -491,7 +491,6 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
                 refresh(target);
             }
         };
-        resumePauseRefreshing.add(AttributeAppender.append("class", "btn-margin-left"));
         repeatingView.add(resumePauseRefreshing);
     }
 
@@ -548,7 +547,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
                 getPageBase().showMainPopup(dialog, target);
             }
         };
-        cleanupPerformance.add(AttributeAppender.append("class", "btn-default btn-margin-left"));
+        cleanupPerformance.add(AttributeAppender.append("class", "btn-default"));
         cleanupPerformance.add(new VisibleBehaviour(this::isNotRunning));
         repeatingView.add(cleanupPerformance);
     }
@@ -601,7 +600,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
             }
         };
         cleanupResults.add(new VisibleBehaviour(this::isNotRunning));
-        cleanupResults.add(AttributeAppender.append("class", "btn-default btn-margin-left"));
+        cleanupResults.add(AttributeAppender.append("class", "btn-default"));
         repeatingView.add(cleanupResults);
     }
 
