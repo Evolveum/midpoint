@@ -28,8 +28,7 @@
             <!-- Should be derived from the account/default in the super-resource -->
             <kind>account</kind>
             <intent>default</intent>
-            <attribute>
-                <!-- New attribute -->
+            <attribute> <!-- New attribute -->
                 <ref>ri:gossip</ref>
                 <limitations>
                     <access>
@@ -39,25 +38,24 @@
                     </access>
                 </limitations>
             </attribute>
-            <attribute>
-                <ref>ri:drink</ref>
-                <!-- Overriding the default value -->
-                <tolerant>false</tolerant>
-
-                <!-- Temporarily disabled (see MID-7929) -->
-                <!--<limitations>-->
-                <!--    <access>-->
-                <!--        &lt;!&ndash; overwriting existing value &ndash;&gt;-->
-                <!--        <add>true</add>-->
-                <!--    </access>-->
-                <!--</limitations>-->
+            <attribute> <!-- Existing attribute -->
+                <ref>drink</ref> <!-- Intentionally without the namespace, expecting to match ri:drink -->
+                <tolerant>false</tolerant> <!-- Overriding the default value -->
+                <limitations>
+                    <access>
+                        <add>true</add> <!-- Overriding the parent value -->
+                    </access>
+                </limitations>
             </attribute>
-            <!-- extra protected filter -->
-            <protected>
+            <association> <!-- Existing association -->
+                <ref>group</ref> <!-- Intentionally without the namespace, expecting to match ri:group -->
+                <explicitReferentialIntegrity>false</explicitReferentialIntegrity> <!-- Overriding the default value -->
+            </association>
+            <protected> <!-- Extra protected filter -->
                 <filter>
                     <q:equal>
                         <q:path>attributes/name</q:path>
-                        <q:value>root</q:value>
+                        <q:value>extra</q:value>
                     </q:equal>
                 </filter>
             </protected>

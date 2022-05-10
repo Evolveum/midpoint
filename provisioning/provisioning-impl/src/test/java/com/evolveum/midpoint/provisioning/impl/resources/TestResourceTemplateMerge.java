@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.DUMMY_CONNECTOR_TYPE;
@@ -14,10 +16,11 @@ import static com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_sch
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -40,24 +43,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import javax.xml.namespace.QName;
+
 public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/merge");
 
-    private static final TestResource<ResourceType> RESOURCE_TEMPLATE_BASIC = new TestResource<>(
-            TEST_DIR, "resource-template-basic.xml", "2d1bbd38-8292-4895-af07-15de1ae423ec");
+    private static final TestResource<ResourceType> RESOURCE_BASIC_TEMPLATE = new TestResource<>(
+            TEST_DIR, "resource-basic-template.xml", "2d1bbd38-8292-4895-af07-15de1ae423ec");
     private static final TestResource<ResourceType> RESOURCE_BASIC_1 = new TestResource<>(
             TEST_DIR, "resource-basic-1.xml", "b6f77fb9-8bdf-42de-b7d4-639c77fa6805");
     private static final TestResource<ResourceType> RESOURCE_BASIC_2 = new TestResource<>(
             TEST_DIR, "resource-basic-2.xml", "969d0587-b049-4067-a749-2fe61d5fb2f6");
 
-    private static final TestResource<ResourceType> RESOURCE_TEMPLATE_ADDITIONAL_CONNECTORS = new TestResource<>(
-            TEST_DIR, "resource-template-additional-connectors.xml", "e17dfe38-727f-41b6-ab1c-9106c0bb046d");
+    private static final TestResource<ResourceType> RESOURCE_ADDITIONAL_CONNECTORS_TEMPLATE = new TestResource<>(
+            TEST_DIR, "resource-additional-connectors-template.xml", "e17dfe38-727f-41b6-ab1c-9106c0bb046d");
     private static final TestResource<ResourceType> RESOURCE_ADDITIONAL_CONNECTORS_1 = new TestResource<>(
             TEST_DIR, "resource-additional-connectors-1.xml", "dcf805dc-afff-46c1-bf8c-876777ef4af5");
 
-    private static final TestResource<ResourceType> RESOURCE_TEMPLATE_OBJECT_TYPES = new TestResource<>(
-            TEST_DIR, "resource-template-object-types.xml", "873a5483-ded8-4607-ac06-ea5ae92ce755");
+    private static final TestResource<ResourceType> RESOURCE_OBJECT_TYPES_TEMPLATE = new TestResource<>(
+            TEST_DIR, "resource-object-types-template.xml", "873a5483-ded8-4607-ac06-ea5ae92ce755");
     private static final TestResource<ResourceType> RESOURCE_OBJECT_TYPES_1_RAW = new TestResource<>(
             TEST_DIR, "resource-object-types-1.xml", "8e355713-c785-441c-88b4-79bdb041103e");
 
@@ -70,12 +75,12 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        addResourceObject(RESOURCE_TEMPLATE_BASIC, List.of(DUMMY_CONNECTOR_TYPE), initResult);
+        addResourceObject(RESOURCE_BASIC_TEMPLATE, List.of(DUMMY_CONNECTOR_TYPE), initResult);
         repoAdd(RESOURCE_BASIC_1, initResult); // No connectorRef is here, so basic add is OK
         repoAdd(RESOURCE_BASIC_2, initResult); // No connectorRef is here, so basic add is OK
 
         addResourceObject(
-                RESOURCE_TEMPLATE_ADDITIONAL_CONNECTORS,
+                RESOURCE_ADDITIONAL_CONNECTORS_TEMPLATE,
                 List.of(DUMMY_CONNECTOR_TYPE, DUMMY_CONNECTOR_TYPE, DUMMY_CONNECTOR_TYPE),
                 initResult);
         addResourceObject(
@@ -83,7 +88,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 Arrays.asList(null, null, DUMMY_CONNECTOR_TYPE),
                 initResult); // No connectorRef is here, so basic add is OK
 
-        addResourceObject(RESOURCE_TEMPLATE_OBJECT_TYPES, List.of(DUMMY_CONNECTOR_TYPE), initResult);
+        addResourceObject(RESOURCE_OBJECT_TYPES_TEMPLATE, List.of(DUMMY_CONNECTOR_TYPE), initResult);
         repoAdd(RESOURCE_OBJECT_TYPES_1_RAW, initResult); // No connectorRef is here, so basic add is OK
     }
 
@@ -126,13 +131,13 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                     .assertPropertyEquals(F_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER, false) // from template
                     .assertPropertyEquals(F_ENABLE_NORMALIZING_RESULTS_HANDLER, false) // from template
                 .end()
-                .assertConnectorRef(RESOURCE_TEMPLATE_BASIC.getObjectable().getConnectorRef());
+                .assertConnectorRef(RESOURCE_BASIC_TEMPLATE.getObjectable().getConnectorRef());
         // @formatter:on
 
         and("ancestors are OK");
         assertThat(expansionOperation.getAncestorsOids())
                 .as("ancestors OIDs")
-                .containsExactly(RESOURCE_TEMPLATE_BASIC.oid);
+                .containsExactly(RESOURCE_BASIC_TEMPLATE.oid);
     }
 
     @Test
@@ -167,13 +172,13 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                     .assertPropertyEquals(F_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER, false) // from template
                     .assertPropertyEquals(F_ENABLE_NORMALIZING_RESULTS_HANDLER, false) // from template
                 .end()
-                .assertConnectorRef(RESOURCE_TEMPLATE_BASIC.getObjectable().getConnectorRef());
+                .assertConnectorRef(RESOURCE_BASIC_TEMPLATE.getObjectable().getConnectorRef());
         // @formatter:on
 
         and("ancestors are OK");
         assertThat(expansionOperation.getAncestorsOids())
                 .as("ancestors OIDs")
-                .containsExactlyInAnyOrder(RESOURCE_TEMPLATE_BASIC.oid, RESOURCE_BASIC_1.oid);
+                .containsExactlyInAnyOrder(RESOURCE_BASIC_TEMPLATE.oid, RESOURCE_BASIC_1.oid);
     }
 
     @Test
@@ -197,7 +202,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                     .assertPropertyEquals(new ItemName("instanceId"), "main") // from template
                     .assertPropertyEquals(new ItemName("supportValidity"), true) // from specific
                 .end()
-                .assertConnectorRef(RESOURCE_TEMPLATE_ADDITIONAL_CONNECTORS.getObjectable().getConnectorRef())
+                .assertConnectorRef(RESOURCE_ADDITIONAL_CONNECTORS_TEMPLATE.getObjectable().getConnectorRef())
                 .assertAdditionalConnectorsCount(3)
                 .configurationProperties("first")
                     .assertSize(2)
@@ -220,7 +225,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         and("ancestors are OK");
         assertThat(expansionOperation.getAncestorsOids())
                 .as("ancestors OIDs")
-                .containsExactly(RESOURCE_TEMPLATE_ADDITIONAL_CONNECTORS.oid);
+                .containsExactly(RESOURCE_ADDITIONAL_CONNECTORS_TEMPLATE.oid);
     }
 
     /**
@@ -248,7 +253,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                     .assertAllItemsHaveCompleteDefinition()
                     .assertPropertyEquals(new ItemName("instanceId"), "object-types-1")
                 .end()
-                .assertConnectorRef(RESOURCE_TEMPLATE_OBJECT_TYPES.getObjectable().getConnectorRef())
+                .assertConnectorRef(RESOURCE_OBJECT_TYPES_TEMPLATE.getObjectable().getConnectorRef())
                 .assertAdditionalConnectorsCount(0);
         // @formatter:on
 
@@ -315,8 +320,35 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
         PropertyLimitations drinkModelLimitations = drinkDef.getLimitations(LayerType.MODEL);
         assertThat(drinkModelLimitations.canRead()).as("read access to drink").isTrue();
-        assertThat(drinkModelLimitations.canAdd()).as("add access to drink").isFalse();
+        assertThat(drinkModelLimitations.canAdd()).as("add access to drink").isTrue(); // overridden in types-1
         assertThat(drinkModelLimitations.canModify()).as("modify access to drink").isTrue();
         assertThat(drinkDef.isTolerant()).as("drink 'tolerant' flag").isFalse(); // overridden in types-1
+
+        Collection<ResourceObjectPattern> protectedPatterns = accountDef.getProtectedObjectPatterns();
+        assertThat(protectedPatterns).as("protected object patterns").hasSize(3); // 2 inherited, 1 added
+        Set<String> names = protectedPatterns.stream().map(this::getFilterValue).collect(Collectors.toSet());
+        assertThat(names)
+                .as("protected objects names")
+                .containsExactlyInAnyOrder("root", "daemon", "extra");
+
+        Collection<ResourceAssociationDefinition> associationDefinitions = accountDef.getAssociationDefinitions();
+        displayCollection("associations", associationDefinitions);
+        assertThat(associationDefinitions).as("association definitions").hasSize(2);
+
+        QName groupQName = new QName(NS_RI, "group");
+        ResourceAssociationDefinition groupDef = accountDef.findAssociationDefinitionRequired(groupQName, () -> "");
+        assertThat(groupDef.requiresExplicitReferentialIntegrity())
+                .as("requiresExplicitReferentialIntegrity flag")
+                .isFalse();
+        assertThat(groupDef.getName())
+                .as("group name")
+                .isEqualTo(groupQName); // i.e. it's qualified
+    }
+
+    /** Hacked: gets the value of (assuming) single property value filter in the pattern. */
+    private String getFilterValue(ResourceObjectPattern pattern) {
+        //noinspection unchecked
+        return Objects.requireNonNull(((PropertyValueFilter<String>) pattern.getObjectFilter()).getValues())
+                .get(0).getRealValue();
     }
 }
