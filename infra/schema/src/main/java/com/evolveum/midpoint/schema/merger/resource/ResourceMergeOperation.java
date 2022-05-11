@@ -40,8 +40,7 @@ public class ResourceMergeOperation extends BaseMergeOperation<ResourceType> {
                         F_ABSTRACT, IgnoreSourceItemMerger.INSTANCE,
                         F_ADDITIONAL_CONNECTOR, new GenericItemMerger(
                                 DefaultNaturalKeyImpl.of(ConnectorInstanceSpecificationType.F_NAME),
-                                emptyPathMap()),
-                        ItemPath.create(F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE), new ObjectTypeDefinitionMerger()
+                                emptyPathMap())
                 ))));
     }
 }

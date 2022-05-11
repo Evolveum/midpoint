@@ -403,11 +403,6 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public Class<?> getTypeClassIfKnown() {
-        return ShadowAttributesType.class;
-    }
-
-    @Override
     public Class<?> getTypeClass() {
         return ShadowAttributesType.class;
     }

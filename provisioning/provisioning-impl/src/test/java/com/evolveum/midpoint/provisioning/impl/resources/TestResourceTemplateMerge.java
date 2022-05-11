@@ -25,7 +25,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.annotations.Test;
 
@@ -38,9 +38,6 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import javax.xml.namespace.QName;
@@ -326,6 +323,15 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(drinkModelLimitations.canModify()).as("modify access to drink").isTrue();
         assertThat(drinkDef.isTolerant()).as("drink 'tolerant' flag").isFalse(); // overridden in types-1
 
+        ResourceAttributeDefinition<?> weaponDef =
+                accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
+        List<InboundMappingType> weaponInbounds = weaponDef.getInboundMappingBeans();
+        assertThat(weaponInbounds).as("weapon inbound mappings").hasSize(1);
+        InboundMappingType weaponInbound = weaponInbounds.get(0);
+        assertThat(weaponInbound.isTrace()).as("weapon mapping traced flag").isTrue(); // in types-1
+        assertThat(weaponInbound.getStrength()).as("weapon mapping strength").isEqualTo(MappingStrengthType.STRONG);
+        assertThat(weaponInbound.getName()).as("weapon mapping name").isEqualTo("weapon-mapping"); // this is the key
+
         Collection<ResourceObjectPattern> protectedPatterns = accountDef.getProtectedObjectPatterns();
         assertThat(protectedPatterns).as("protected object patterns").hasSize(3); // 2 inherited, 1 added
         Set<String> names = protectedPatterns.stream().map(this::getFilterValue).collect(Collectors.toSet());
@@ -345,6 +351,46 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(groupDef.getName())
                 .as("group name")
                 .isEqualTo(groupQName); // i.e. it's qualified
+
+        Collection<SynchronizationReactionDefinition> reactions = accountDef.getSynchronizationReactions();
+        assertThat(reactions).as("sync reactions").hasSize(2);
+        SynchronizationReactionDefinition unnamed =
+                reactions.stream().filter(r -> r.getName() == null).findFirst().orElseThrow();
+        assertThat(unnamed.getSituations())
+                .as("situations in unnamed")
+                .containsExactly(SynchronizationSituationType.UNMATCHED);
+        assertThat(unnamed.getActions())
+                .as("actions in unnamed")
+                .hasSize(1);
+        assertThat(unnamed.getActions().get(0).getNewDefinitionBeanClass())
+                .as("action in unnamed")
+                .isEqualTo(DeleteShadowSynchronizationActionType.class);
+        SynchronizationReactionDefinition reaction1 =
+                reactions.stream().filter(r -> "reaction1".equals(r.getName())).findFirst().orElseThrow();
+        assertThat(reaction1.getSituations())
+                .as("situations in reaction1")
+                .containsExactly(SynchronizationSituationType.UNMATCHED);
+        assertThat(reaction1.getChannels())
+                .as("channels in reaction1")
+                .containsExactly("channel1"); // types-1
+        List<SynchronizationActionDefinition> actions = reaction1.getActions();
+        assertThat(actions)
+                .as("actions in reaction1")
+                .hasSize(2);
+        SynchronizationActionDefinition unnamedAction =
+                actions.stream().filter(a -> a.getName() == null).findFirst().orElseThrow();
+        assertThat(unnamedAction.getNewDefinitionBeanClass())
+                .as("definition bean class in unnamed action")
+                .isEqualTo(InactivateShadowSynchronizationActionType.class);
+        AddFocusSynchronizationActionType addFocusAction =
+                (AddFocusSynchronizationActionType) actions.stream()
+                        .filter(a -> "add-focus".equals(a.getName()))
+                        .findFirst().orElseThrow()
+                        .getNewDefinitionBean();
+        assert addFocusAction != null;
+        assertThat(addFocusAction.getName()).isEqualTo("add-focus");
+        assertThat(addFocusAction.isSynchronize()).isTrue(); // types-1
+        assertThat(addFocusAction.getDocumentation()).isEqualTo("Adding a focus"); // parent
     }
 
     /** Hacked: gets the value of (assuming) single property value filter in the pattern. */

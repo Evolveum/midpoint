@@ -38,14 +38,10 @@ public class ResourceObjectTypeDefinitionMergeOperation extends BaseMergeOperati
                         F_ABSTRACT, IgnoreSourceItemMerger.INSTANCE, // otherwise everything would be abstract
                         F_ATTRIBUTE, new GenericItemMerger(
                                 SingletonItemPathNaturalKeyImpl.of(ResourceAttributeDefinitionType.F_REF),
-                                createPathMap(Map.of(
-                                        ResourceAttributeDefinitionType.F_LIMITATIONS,
-                                        new LimitationsMerger()))),
+                                emptyPathMap()),
                         F_ASSOCIATION, new GenericItemMerger(
                                 SingletonItemPathNaturalKeyImpl.of(ResourceAttributeDefinitionType.F_REF),
-                                createPathMap(Map.of(
-                                        ResourceAttributeDefinitionType.F_LIMITATIONS,
-                                        new LimitationsMerger())))
+                                emptyPathMap())
                 ))));
     }
 }

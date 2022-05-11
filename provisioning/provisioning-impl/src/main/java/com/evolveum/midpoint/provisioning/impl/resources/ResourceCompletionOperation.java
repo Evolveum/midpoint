@@ -216,6 +216,8 @@ class ResourceCompletionOperation {
         // Schema is applied, but expressions in configuration need to be resolved.
         beans.resourceManager.applyConnectorSchemasToResource(reloaded, task, result);
 
+        LOGGER.trace("Completed resource after reload:\n{}", reloaded.debugDumpLazily(1));
+
         return reloaded;
     }
 
@@ -224,7 +226,8 @@ class ResourceCompletionOperation {
             // Make sure the schema is parseable. We are going to cache the resource, so we want to cache it
             // with the parsed schemas.
             ResourceSchemaFactory.getRawSchema(reloaded);
-            ResourceSchemaFactory.getCompleteSchema(reloaded);
+            ResourceSchema completeSchema = ResourceSchemaFactory.getCompleteSchema(reloaded);
+            LOGGER.trace("Complete schema:\n{}", completeSchema.debugDumpLazily(1));
         } catch (Throwable e) {
             String message = "Error while processing schemaHandling section of " + reloaded + ": " + e.getMessage();
             result.recordPartialError(message, e);
